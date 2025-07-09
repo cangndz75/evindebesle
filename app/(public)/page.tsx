@@ -1,4 +1,6 @@
 import CategorySection from "./_components/CategorySection";
+import Footer from "./_components/Footer";
+import FooterBanner from "./_components/FooterBanner";
 import Hero from "./_components/Hero";
 import FaqSection from "./_components/home/FaqSection";
 import HowItWorksSection from "./_components/HowItWorksSection";
@@ -16,6 +18,8 @@ export default function HomePage() {
       <CategorySection />
       <HowItWorksSection />
       <FaqSection />
+      <FooterBanner />
+      <Footer />
     </>
   );
 }

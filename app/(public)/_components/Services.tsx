@@ -15,7 +15,9 @@ export default function Services() {
         <div className="grid md:grid-cols-2 gap-12">
           {serviceGroups.map((group) => (
             <div key={group.title}>
-              <h3 className="text-xl font-semibold mb-4 text-gray-800">{group.title}</h3>
+              <h3 className="text-xl font-semibold mb-4 text-gray-800">
+                {group.title}
+              </h3>
               <div className="grid gap-4">
                 {group.items.map((item) => (
                   <ServiceCard

@@ -1,48 +1,112 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import AuthHeader from './AuthHeader';
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import AuthHeader from "./AuthHeader";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import Link from "next/link";
 
 export default function RegisterForm() {
+  const router = useRouter();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [pending, startTransition] = useTransition();
+
+  const handleRegister = () => {
+    startTransition(async () => {
+      try {
+        const res = await fetch("/api/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email, password }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          toast.error(data.error || "Kayıt başarısız.");
+          return;
+        }
+
+        const otpRes = await fetch(
+          "/api/auth/email-otp/send-verification-otp",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              email,
+              type: "sign-in",
+            }),
+          }
+        );
+
+        if (otpRes.ok) {
+          toast.success("Doğrulama kodu gönderildi.");
+          router.push(`/verify-request?email=${email}`);
+        } else {
+          toast.error("Kod gönderilemedi.");
+        }
+      } catch {
+        toast.error("Bir hata oluştu.");
+      }
+    });
+  };
 
   return (
     <div className="w-full max-w-md space-y-6">
-      <AuthHeader title="Kayıt Ol" subtitle="Hesap oluştur, hayvan dostlarını koru!" />
+      <AuthHeader title="Kayıt Ol" subtitle="Seni aramızda görmek harika!" />
 
-      <form className="space-y-4">
-        <input
+      <div className="space-y-4">
+        <Input
           type="text"
-          placeholder="Ad Soyad"
-          className="w-full px-4 py-2 border rounded-md bg-background border-input"
+          placeholder="Adınız"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
         />
-        <input
+
+        <Input
           type="email"
-          placeholder="Email"
-          className="w-full px-4 py-2 border rounded-md bg-background border-input"
+          placeholder="Email adresi"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
         />
+
         <div className="relative">
-          <input
-            type={showPassword ? 'text' : 'password'}
+          <Input
+            type={showPassword ? "text" : "password"}
             placeholder="Şifre"
-            className="w-full px-4 py-2 border rounded-md bg-background border-input"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
           />
           <button
             type="button"
             className="absolute right-3 top-2 text-sm text-muted-foreground"
             onClick={() => setShowPassword((prev) => !prev)}
           >
-            {showPassword ? 'Gizle' : 'Göster'}
+            {showPassword ? "Gizle" : "Göster"}
           </button>
         </div>
 
-        <button
-          type="submit"
-          className="w-full py-2 px-4 rounded-md bg-lime-500 hover:bg-lime-600 transition text-white font-semibold"
+        <Button disabled={pending} onClick={handleRegister} className="w-full">
+          {pending ? "Kayıt olunuyor..." : "Kayıt Ol"}
+        </Button>
+      </div>
+
+      <div className="text-sm text-center text-muted-foreground pt-4">
+        Hesabın var mı?{" "}
+        <Link
+          href="/login"
+          className="text-violet-700 font-semibold hover:underline"
         >
-          Kayıt Ol
-        </button>
-      </form>
+          Giriş Yap
+        </Link>
+      </div>
     </div>
   );
 }

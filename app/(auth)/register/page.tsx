@@ -1,13 +1,17 @@
-import RegisterForm from '@/app/(public)/_components/RegisterForm';
-import AuthImage from '@/app/(public)/_components/AuthImage';
+"use client";
 
-export default function RegisterPage() {
+import OnboardingSlides from "@/app/(public)/_components/OnboardingSlides";
+import RegisterForm from "@/app/(public)/_components/RegisterForm";
+
+export default function LoginPage() {
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row items-center justify-center bg-background px-4 py-16">
-      <div className="w-full lg:w-1/2 flex items-center justify-center">
+    <>
+      <div className="flex items-center justify-center w-full bg-white">
         <RegisterForm />
       </div>
-      <AuthImage />
-    </div>
+      <div className="hidden md:flex items-center justify-center w-full bg-muted">
+        <OnboardingSlides />
+      </div>
+    </>
   );
 }

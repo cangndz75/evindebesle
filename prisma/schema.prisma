@@ -102,6 +102,7 @@ model Pet {
   id        String   @id @default(uuid())
   name      String   
   createdAt DateTime @default(now())
+  image     String?
 
   userPets  UserPet[]
   petServices PetService[]

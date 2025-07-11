@@ -31,8 +31,11 @@ export default function LoginForm() {
         return;
       }
 
+      const response = await fetch("/api/me");
+      const data = await response.json();
+
       toast.success("Giriş başarılı!");
-      window.location.href = "/";
+      window.location.href = data.isAdmin ? "/admin" : "/";
     });
   };
 

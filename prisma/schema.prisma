@@ -48,8 +48,8 @@ model User {
 
   sessions        Session[]
   accounts        Account[]
-  pets            Pet[]
-  petServices     PetService[]
+  userPets     UserPet[]
+  petServices  PetService[]
 
   @@map("user")
 }
@@ -100,16 +100,24 @@ model Verification {
 
 model Pet {
   id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name      String
-  type      String
-  age       Int?
-  breed     String?
-  notes     String?
+  name      String   
   createdAt DateTime @default(now())
 
-  services  PetService[]
+  userPets  UserPet[]
+  petServices PetService[]
+}
+
+model UserPet {
+  id        String   @id @default(uuid())
+  userId    String
+  petId     String
+  name      String?    
+  age       Int?
+  notes     String?
+  createdAt DateTime   @default(now())
+
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pet       Pet    @relation(fields: [petId], references: [id], onDelete: Cascade)
 }
 
 model Service {

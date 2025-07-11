@@ -13,10 +13,9 @@ export default function HomePage() {
     <>
       <Hero />
       <SearchBox />
-      <Services />
+      <HowItWorksSection />
       <PetTypeSelector />
       <CategorySection />
-      <HowItWorksSection />
       <FaqSection />
       <FooterBanner />
       <Footer />

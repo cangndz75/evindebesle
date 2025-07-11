@@ -1,71 +1,86 @@
-'use client';
+'use client'
 
-import { useState } from "react";
-import {
-  Dog, Cat, Fish, Bird, Rabbit, Turtle, PiggyBank
-} from "lucide-react";
+import { useEffect, useState } from 'react'
+import { Loader2, CheckCircle2 } from 'lucide-react'
 
-const petTypes = [
-  { key: "dog", name: "Köpek", icon: Dog },
-  { key: "cat", name: "Kedi", icon: Cat },
-  { key: "bird", name: "Kuş", icon: Bird },
-  { key: "fish", name: "Balık", icon: Fish },
-  { key: "rabbit", name: "Küçük Hayvan", icon: Rabbit },
-  { key: "turtle", name: "Sürüngen", icon: Turtle },
-  { key: "farm", name: "Çiftlik Hayvanı", icon: PiggyBank },
-];
+type Pet = {
+  id: string
+  name: string
+}
 
 export default function PetTypeSelector() {
-  const [selected, setSelected] = useState<string[]>([]);
+  const [pets, setPets] = useState<Pet[]>([])
+  const [selected, setSelected] = useState<string[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const toggle = (key: string) => {
+  useEffect(() => {
+    fetch('/api/pets')
+      .then((res) => res.json())
+      .then((data) => setPets(data))
+      .finally(() => setLoading(false))
+  }, [])
+
+  const toggle = (id: string) => {
     setSelected((prev) =>
-      prev.includes(key) ? prev.filter((item) => item !== key) : [...prev, key]
-    );
-  };
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    )
+  }
 
   return (
-    <section
-      className="min-h-screen w-full bg-cover bg-center bg-no-repeat py-24 px-4 flex items-center justify-center"
-    >
-      <div className="backdrop-blur-xl bg-black/50 p-10 rounded-3xl max-w-6xl w-full text-white shadow-2xl">
-        <h2 className="text-4xl sm:text-5xl font-extrabold text-center mb-3 drop-shadow-md">Hangi hayvanlara sahipsiniz?</h2>
-        <p className="text-center text-white/80 mb-10 text-lg">
+    <section className="min-h-screen flex items-center justify-center py-24 px-4 bg-gradient-to-br from-lime-100 via-white to-lime-200">
+      <div className="w-full max-w-6xl bg-white rounded-3xl p-10 shadow-2xl">
+        <h2 className="text-4xl sm:text-5xl font-extrabold text-center mb-4 text-gray-900">
+          Hangi hayvanlara sahipsiniz?
+        </h2>
+        <p className="text-center text-gray-600 mb-10 text-lg">
           Size en uygun bakımı sunabilmemiz için seçim yapın.
         </p>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-          {petTypes.map(({ key, name, icon: Icon }) => {
-            const isActive = selected.includes(key);
-            return (
-              <div
-                key={key}
-                onClick={() => toggle(key)}
-                className={`cursor-pointer rounded-xl border transition-all duration-300 p-6 flex flex-col items-center justify-center gap-3
-                  hover:scale-105 hover:shadow-2xl
-                  ${
+        {loading ? (
+          <div className="flex justify-center">
+            <Loader2 className="animate-spin h-10 w-10 text-gray-600" />
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+            {pets.map((pet) => {
+              const isActive = selected.includes(pet.id)
+              return (
+                <div
+                  key={pet.id}
+                  onClick={() => toggle(pet.id)}
+                  className={`group relative cursor-pointer rounded-xl overflow-hidden shadow-md border-2 transition-all duration-300 ${
                     isActive
-                      ? "bg-white text-black border-lime-400 shadow-lime-400"
-                      : "bg-white/10 text-white border-white/20"
-                  }
-                `}
-              >
-                <Icon size={40} className={isActive ? "text-lime-500" : "text-white"} />
-                <span className="font-semibold text-md">{name}</span>
-              </div>
-            );
-          })}
-        </div>
+                      ? 'border-lime-500 ring-2 ring-lime-400'
+                      : 'border-gray-200 hover:scale-105'
+                  }`}
+                >
+                  <img
+                    src={`https://images.unsplash.com/photo-1583337130417-3346a1be7dee?q=80&w=2070&auto=format&fit=crop`}
+                    alt={pet.name}
+                    className="w-full h-40 object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/30 group-hover:bg-black/50 transition-colors" />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-white font-bold text-xl">
+                    {pet.name}
+                    {isActive && (
+                      <CheckCircle2 className="text-lime-400 mt-2" />
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
 
         <div className="text-center mt-12">
           <button
-            onClick={() => alert("Devam ediliyor...")}
-            className="px-10 py-4 rounded-full font-bold bg-lime-400 hover:bg-lime-500 text-black transition-all duration-300 shadow-lg shadow-lime-300"
+            onClick={() => alert('Devam ediliyor...')}
+            className="px-10 py-4 rounded-full font-bold bg-lime-500 hover:bg-lime-600 text-white transition-all duration-300 shadow-lg"
           >
             Devam Et
           </button>
         </div>
       </div>
     </section>
-  );
+  )
 }

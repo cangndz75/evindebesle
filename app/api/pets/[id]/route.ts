@@ -20,11 +20,15 @@ export async function PUT(req: NextRequest) {
 }
 
 
-export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest) {
+  const url = new URL(req.url)
+  const id = url.pathname.split("/").pop() || ""
+
   try {
     await prisma.pet.delete({
-      where: { id: params.id },
+      where: { id },
     })
+
     return NextResponse.json({ success: true })
   } catch (error) {
     return NextResponse.json({ success: false, error: "Silme işlemi başarısız" }, { status: 500 })

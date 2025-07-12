@@ -1,16 +1,19 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 
-export async function PUT(req: NextRequest, context: { params: { id: string } }) {
-  const { id } = context.params
-  const data = await req.json()
+export async function PUT(req: NextRequest) {
+  const url = new URL(req.url)
+  const id = url.pathname.split("/").pop() || "" 
+
+  const body = await req.json()
 
   try {
-    const updated = await prisma.pet.update({
+    const updatedPet = await prisma.pet.update({
       where: { id },
-      data,
+      data: body,
     })
-    return NextResponse.json(updated)
+
+    return NextResponse.json(updatedPet)
   } catch (error) {
     return NextResponse.json({ error: "Güncelleme hatası" }, { status: 500 })
   }

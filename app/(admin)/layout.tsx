@@ -7,7 +7,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div className="flex min-h-screen bg-background text-foreground">
       <aside className="w-64 bg-white border-r border-border p-6 flex flex-col justify-between">
         <div>
-          <h2 className="text-2xl font-bold mb-8">TechCorp</h2>
+          <h2 className="text-2xl font-bold mb-8">Evinde Besle</h2>
           <nav className="space-y-4">
             {[
               { label: "Anasayfa", href: "/dashboard" },
@@ -31,11 +31,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </nav>
         </div>
         <div className="space-y-2">
-          <Button variant="outline" className="w-full text-sm">
+          {/* <Button variant="outline" className="w-full text-sm">
             Light Mode
-          </Button>
+          </Button> */}
           <Button variant="secondary" className="w-full text-sm">
-            Admin Profile
+            Admin Profil
           </Button>
         </div>
       </aside>

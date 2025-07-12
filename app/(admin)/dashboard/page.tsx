@@ -16,9 +16,9 @@ export default function DashboardPage() {
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Welcome Admin</h1>
+          <h1 className="text-3xl font-bold">Hoşgeldin</h1>
           <p className="text-muted-foreground">
-            Here's what's happening with your platform today.
+            Burada genel istatistikleri ve önemli bilgileri görebilirsin.
           </p>
         </div>
         <div className="flex gap-2">

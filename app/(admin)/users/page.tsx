@@ -133,41 +133,41 @@ export default function UsersPage() {
       cell: ({ row }) =>
         new Date(row.getValue("createdAt")).toLocaleDateString("tr-TR"),
     },
-    {
-      id: "actions",
-      header: () => null,
-      cell: ({ row }) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <EllipsisIcon size={16} />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>İşlemler</DropdownMenuLabel>
-            <EditUserModal
-              user={row.original}
-              onSuccess={() => {
-                fetch("/api/users")
-                  .then((res) => res.json())
-                  .then((users) => setData(users))
-              }}
-            />
-            <DropdownMenuItem
-              onClick={() => {
-                fetch(`/api/users/${row.original.id}`, { method: "DELETE" }).then(() =>
-                  fetch("/api/users")
-                    .then((res) => res.json())
-                    .then(setData)
-                )
-              }}
-            >
-              Sil
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ),
-    },
+    // {
+    //   id: "actions",
+    //   header: () => null,
+    //   cell: ({ row }) => (
+    //     <DropdownMenu>
+    //       <DropdownMenuTrigger asChild>
+    //         <Button variant="ghost" size="icon">
+    //           <EllipsisIcon size={16} />
+    //         </Button>
+    //       </DropdownMenuTrigger>
+    //       <DropdownMenuContent align="end">
+    //         <DropdownMenuLabel>İşlemler</DropdownMenuLabel>
+    //         <EditUserModal
+    //           user={row.original}
+    //           onSuccess={() => {
+    //             fetch("/api/users")
+    //               .then((res) => res.json())
+    //               .then((users) => setData(users))
+    //           }}
+    //         />
+    //         <DropdownMenuItem
+    //           onClick={() => {
+    //             fetch(`/api/users/${row.original.id}`, { method: "DELETE" }).then(() =>
+    //               fetch("/api/users")
+    //                 .then((res) => res.json())
+    //                 .then(setData)
+    //             )
+    //           }}
+    //         >
+    //           Sil
+    //         </DropdownMenuItem>
+    //       </DropdownMenuContent>
+    //     </DropdownMenu>
+    //   ),
+    // },
   ]
 
   const table = useReactTable({

@@ -4,7 +4,6 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { PlusIcon, MinusIcon } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Image from "next/image";
 import DistrictSelect from "./_components/DistrictSelect";
@@ -13,10 +12,10 @@ import ServiceMultiSelect from "./_components/ServiceMultiSelect";
 type Pet = { id: string; name: string };
 
 export default function Page() {
-  const searchParams = useSearchParams();
+  const searchParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
   const router = useRouter();
 
-  const selectedPetIds = searchParams.getAll("pet");
+  const selectedPetIds = searchParams ? searchParams.getAll("pet") : [];
   const [allPets, setAllPets] = useState<Pet[]>([]);
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [district, setDistrict] = useState<string | null>(null);
@@ -55,8 +54,8 @@ export default function Page() {
 
   return (
     <div className="h-screen grid md:grid-cols-2 overflow-hidden">
-      <div className="flex flex-col justify-between px-8 py-10">
-        <div className="space-y-6">
+      <div className="flex flex-col justify-between px-6 py-6 overflow-hidden">
+        <div className="space-y-4 overflow-y-auto pr-2">
           <div>
             <h1 className="text-2xl font-bold">
               Kaç tane hayvan için hizmet istiyorsunuz?
@@ -67,23 +66,23 @@ export default function Page() {
           </div>
 
           <div className="relative">
-            <div className="flex gap-4 overflow-x-auto pb-2 px-1 hide-scrollbar">
+            <div className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar">
               {selectedPets.map((pet) => (
                 <div
                   key={pet.id}
-                  className="min-w-[120px] max-w-[140px] flex-shrink-0 rounded-xl border bg-white p-4 shadow-sm transition hover:shadow-md flex flex-col items-center"
+                  className="min-w-[110px] flex-shrink-0 rounded-xl border bg-white p-3 shadow-sm transition hover:shadow-md flex flex-col items-center"
                 >
                   <Image
                     src={`/icons/${pet.name.toLowerCase()}.svg`}
                     alt={pet.name}
-                    width={32}
-                    height={32}
+                    width={30}
+                    height={30}
                     className="mb-2"
                   />
-                  <div className="text-sm font-medium capitalize mb-2 text-center">
+                  <div className="text-xs font-medium capitalize mb-2 text-center">
                     {pet.name}
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
                     <Button
                       variant="outline"
                       size="icon"
@@ -91,7 +90,7 @@ export default function Page() {
                     >
                       <MinusIcon className="w-3 h-3" />
                     </Button>
-                    <span className="text-sm font-semibold w-5 text-center">
+                    <span className="text-sm font-semibold w-4 text-center">
                       {counts[pet.id]}
                     </span>
                     <Button
@@ -108,25 +107,23 @@ export default function Page() {
           </div>
 
           <div className="rounded-2xl border bg-white p-4 shadow">
-            <Label className="text-base font-semibold mb-2 block">
-              İlçe Seçimi
-            </Label>
+            <Label className="text-sm font-semibold mb-1 block">İlçe Seçimi</Label>
             <DistrictSelect onSelect={setDistrict} />
           </div>
 
           <div className="rounded-2xl border bg-white p-4 shadow">
-            <Label className="text-base font-semibold mb-2 block">
+            <Label className="text-sm font-semibold mb-1 block">
               Hizmet Türleri
             </Label>
             <ServiceMultiSelect selected={services} setSelected={setServices} />
           </div>
         </div>
 
-        <div className="text-right pt-6">
+        <div className="pt-4 text-right">
           <Button
             size="lg"
             onClick={handleSubmit}
-            className="px-8 py-5 rounded-full text-base font-semibold"
+            className="w-full md:w-auto px-8 py-4 rounded-full text-base font-semibold"
           >
             Devam Et
           </Button>

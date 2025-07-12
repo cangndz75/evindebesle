@@ -1,17 +1,21 @@
-import { prisma } from "@/lib/db"
 import { NextRequest, NextResponse } from "next/server"
+import { prisma } from "@/lib/db"
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-  const body = await req.json()
-  const { name, image } = body
+export async function PUT(req: NextRequest, context: { params: { id: string } }) {
+  const { id } = context.params
+  const data = await req.json()
 
-  const updatedPet = await prisma.pet.update({
-    where: { id: params.id },
-    data: { name, image },
-  })
-
-  return NextResponse.json(updatedPet)
+  try {
+    const updated = await prisma.pet.update({
+      where: { id },
+      data,
+    })
+    return NextResponse.json(updated)
+  } catch (error) {
+    return NextResponse.json({ error: "Güncelleme hatası" }, { status: 500 })
+  }
 }
+
 
 export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
   try {

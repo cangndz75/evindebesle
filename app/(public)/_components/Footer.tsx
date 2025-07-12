@@ -9,13 +9,13 @@ export default function Footer() {
           <div>
             <h1 className="text-2xl font-bold mb-6">evindebesle</h1>
           </div>
-          <p className="text-xs text-[#6b6059]">© EvindeBesle 2025. All rights reserved.</p>
+          <p className="text-xs text-[#6b6059]">© EvindeBesle 2025. Tüm hakları saklıdır.</p>
         </div>
 
         {/* Address */}
         <div className="leading-7 text-[15px]">
           <p className="font-medium">evindebesle</p>
-          <p>20–22 Wenlock Road,<br />London, N1 7GU</p>
+          <p>Uptwins Blok, Orta, Yalnız Selvi Cd. No : 5AB, 34880 Kartal/İstanbul</p>
           <p className="mt-2">
             M. <a href="mailto:info@evindebesle.com" className="underline">info@evindebesle.com</a>
           </p>
@@ -26,16 +26,16 @@ export default function Footer() {
 
         {/* Policies */}
         <div className="space-y-2 text-[15px]">
-          <Link href="#" className="block hover:underline">Terms & Conditions</Link>
-          <Link href="#" className="block hover:underline">Privacy policy</Link>
-          <Link href="#" className="block hover:underline">Cookie policy</Link>
+          <Link href="#" className="block hover:underline">Şartlar ve Koşullar</Link>
+          <Link href="#" className="block hover:underline">Gizlilik Politikası</Link>
+          {/* <Link href="#" className="block hover:underline">Cookie policy</Link> */}
           <div className="mt-6 text-xs text-[#6b6059] flex items-center">
-            Webdesign by
-            <img
+            Webdesign by DogoPet
+            {/* <img
               src="/third-dimension-logo.png"
-              alt="Third Dimension"
+              alt="DogoPet"
               className="h-4 ml-2 opacity-70"
-            />
+            /> */}
           </div>
         </div>
       </div>

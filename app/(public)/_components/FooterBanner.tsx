@@ -1,3 +1,5 @@
+import React from "react";
+
 export default function FooterBanner() {
   return (
     <section className="bg-[#003737] text-white px-6 md:px-24 py-12">

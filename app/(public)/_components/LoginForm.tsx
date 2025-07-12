@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import AuthHeader from "./AuthHeader";
 import { authClient } from "@/lib/auth-client";
-import { signIn } from "next-auth/react";
+import { getSession, signIn } from "next-auth/react";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -31,11 +31,20 @@ export default function LoginForm() {
         return;
       }
 
-      const response = await fetch("/api/me");
-      const data = await response.json();
+      await new Promise((r) => setTimeout(r, 500));
+
+      const session = await getSession();
+
+      if (!session) {
+        toast.error("Oturum alınamadı.");
+        return;
+      }
 
       toast.success("Giriş başarılı!");
-      window.location.href = data.isAdmin ? "/admin" : "/";
+      console.log("Session:", session, session.user, session.user?.isAdmin);
+
+      const isAdmin = session.user?.isAdmin === true;
+      window.location.href = isAdmin ? "/admin" : "/home";
     });
   };
 

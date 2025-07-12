@@ -1,5 +1,11 @@
+import Navbar from "../(public)/_components/Navbar";
 import DashboardPage from "./dashboard/page";
 
 export default function AdminHome() {
-  return <DashboardPage />
+  return (
+  <div>
+    <Navbar />
+    <DashboardPage />
+  </div>
+  )
 }

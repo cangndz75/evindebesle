@@ -1,5 +1,6 @@
-import { Footer } from "react-day-picker";
+import CategoryMarquee from "../_components/CategoryMarquee";
 import CategorySection from "../_components/CategorySection";
+import Footer from "../_components/Footer";
 import FooterBanner from "../_components/FooterBanner";
 import Hero from "../_components/Hero";
 import FaqSection from "../_components/home/FaqSection";
@@ -15,7 +16,7 @@ export default function HomePage() {
       <SearchBox />
       <HowItWorksSection />
       <PetTypeSelector />
-      <CategorySection />
+      <CategoryMarquee />
       <FaqSection />
       <FooterBanner />
       <Footer />

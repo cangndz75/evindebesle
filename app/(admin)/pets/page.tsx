@@ -93,29 +93,29 @@ export default function PetsPage() {
       accessorKey: "createdAt",
       cell: ({ row }) => new Date(row.getValue("createdAt")).toLocaleDateString("tr-TR"),
     },
-    {
-      id: "actions",
-      header: () => null,
-      cell: ({ row }) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="w-full text-left">
-              <EllipsisIcon size={16} />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>İşlemler</DropdownMenuLabel>
-            <EditPetModal pet={row.original} onSuccess={refresh} />
-            <DropdownMenuItem onClick={async () => {
-              await fetch(`/api/pets/${row.original.id}`, { method: "DELETE" })
-              refresh()
-            }}>
-              Sil
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ),
-    },
+    // {
+    //   id: "actions",
+    //   header: () => null,
+    //   cell: ({ row }) => (
+    //     <DropdownMenu>
+    //       <DropdownMenuTrigger asChild>
+    //         <Button variant="ghost" className="w-full text-left">
+    //           <EllipsisIcon size={16} />
+    //         </Button>
+    //       </DropdownMenuTrigger>
+    //       <DropdownMenuContent align="end">
+    //         <DropdownMenuLabel>İşlemler</DropdownMenuLabel>
+    //         <EditPetModal pet={row.original} onSuccess={refresh} />
+    //         <DropdownMenuItem onClick={async () => {
+    //           await fetch(`/api/pets/${row.original.id}`, { method: "DELETE" })
+    //           refresh()
+    //         }}>
+    //           Sil
+    //         </DropdownMenuItem>
+    //       </DropdownMenuContent>
+    //     </DropdownMenu>
+    //   ),
+    // },
   ]
 
   const table = useReactTable({

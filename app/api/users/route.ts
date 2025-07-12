@@ -14,6 +14,11 @@ export async function GET() {
       createdAt: true,
     },
   })
-
   return NextResponse.json(users)
+}
+
+export async function POST(req: Request) {
+  const body = await req.json()
+  const user = await prisma.user.create({ data: body })
+  return NextResponse.json(user)
 }

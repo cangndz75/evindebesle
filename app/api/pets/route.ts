@@ -13,3 +13,12 @@ export async function GET() {
 
   return NextResponse.json(pets)
 }
+
+export async function POST(req: Request) {
+  const body = await req.json()
+  const { name, image } = body
+  const pet = await prisma.pet.create({
+    data: { name, image },
+  })
+  return NextResponse.json(pet)
+}

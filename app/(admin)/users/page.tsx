@@ -27,6 +27,7 @@ import { Label } from "@/components/ui/label"
 import { FilterIcon, Columns3Icon, PlusIcon, TrashIcon, EllipsisIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { ColumnFiltersState } from "@tanstack/react-table"
+import { AddUserModal } from "@/app/(public)/_components/AddUserModal"
 
 type User = {
   id: string
@@ -199,10 +200,12 @@ export default function UsersPage() {
               </AlertDialogContent>
             </AlertDialog>
           )}
-          <Button variant="outline">
-            <PlusIcon size={16} className="mr-2" />
-            Kullanıcı Ekle
-          </Button>
+          <AddUserModal onSuccess={() => {
+            fetch("/api/users")
+              .then(res => res.json())
+              .then(setData)
+            }
+          } />
         </div>
       </div>
 

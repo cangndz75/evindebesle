@@ -2,16 +2,17 @@
 
 import { useEffect, useState } from "react"
 import {
-  ColumnDef,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  PaginationState,
-  SortingState,
   useReactTable,
-  VisibilityState,
+  type ColumnDef,
+  type ColumnFiltersState,
+  type PaginationState,
+  type SortingState,
+  type VisibilityState,
 } from "@tanstack/react-table"
 
 import {
@@ -20,9 +21,14 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuLabel, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { EllipsisIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
-import type { ColumnFiltersState } from "@tanstack/react-table"
+
+import { AddPetModal } from "@/app/(public)/_components/AddPet"
+import { EditPetModal } from "@/app/(public)/_components/EditPetModal"
 
 type Pet = {
   id: string
@@ -31,84 +37,86 @@ type Pet = {
   image?: string
 }
 
-const columns: ColumnDef<Pet>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={table.getIsAllPageRowsSelected()}
-        onCheckedChange={(val) => table.toggleAllPageRowsSelected(!!val)}
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(val) => row.toggleSelected(!!val)}
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-    size: 20,
-  },
-  {
-    header: "Görsel",
-    accessorKey: "image",
-    cell: ({ row }) => {
-      const url = row.original.image
-      return url ? (
-        <img src={url} alt="Pet image" className="w-10 h-10 object-cover rounded" />
-      ) : (
-        <div className="w-10 h-10 bg-muted rounded flex items-center justify-center text-xs text-muted-foreground">
-          Yok
-        </div>
-      )
-    },
-  },
-  {
-    header: "Adı",
-    accessorKey: "name",
-    cell: ({ row }) => <div className="font-medium">{row.getValue("name")}</div>,
-  },
-  {
-    header: "Oluşturulma",
-    accessorKey: "createdAt",
-    cell: ({ row }) => new Date(row.getValue("createdAt")).toLocaleDateString("tr-TR"),
-  },
-  {
-    id: "actions",
-    header: () => null,
-    cell: ({ row }) => (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon">
-            <EllipsisIcon size={16} />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuLabel>İşlemler</DropdownMenuLabel>
-          <DropdownMenuItem>Düzenle</DropdownMenuItem>
-          <DropdownMenuItem>Sil</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    ),
-  },
-]
-
 export default function PetsPage() {
   const [data, setData] = useState<Pet[]>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
-  const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 10,
-  })
+  const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
   const [sorting, setSorting] = useState<SortingState>([])
 
   useEffect(() => {
-    fetch("/api/pets")
-      .then((res) => res.json())
-      .then(setData)
+    fetch("/api/pets").then(res => res.json()).then(setData)
   }, [])
+
+  const refresh = () => {
+    fetch("/api/pets").then(res => res.json()).then(setData)
+  }
+
+  const columns: ColumnDef<Pet>[] = [
+    {
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={table.getIsAllPageRowsSelected()}
+          onCheckedChange={(val) => table.toggleAllPageRowsSelected(!!val)}
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(val) => row.toggleSelected(!!val)}
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+      size: 20,
+    },
+    {
+      header: "Görsel",
+      accessorKey: "image",
+      cell: ({ row }) => {
+        const url = row.original.image
+        return url ? (
+          <img src={url} alt="Pet image" className="w-10 h-10 object-cover rounded" />
+        ) : (
+          <div className="w-10 h-10 bg-muted rounded flex items-center justify-center text-xs text-muted-foreground">Yok</div>
+        )
+      },
+    },
+    {
+      header: "Adı",
+      accessorKey: "name",
+      cell: ({ row }) => <div className="font-medium">{row.getValue("name")}</div>,
+    },
+    {
+      header: "Oluşturulma",
+      accessorKey: "createdAt",
+      cell: ({ row }) => new Date(row.getValue("createdAt")).toLocaleDateString("tr-TR"),
+    },
+    {
+      id: "actions",
+      header: () => null,
+      cell: ({ row }) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="w-full text-left">
+              <EllipsisIcon size={16} />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>İşlemler</DropdownMenuLabel>
+            <EditPetModal pet={row.original} onSuccess={refresh} />
+            <DropdownMenuItem onClick={async () => {
+              await fetch(`/api/pets/${row.original.id}`, { method: "DELETE" })
+              refresh()
+            }}>
+              Sil
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    },
+  ]
 
   const table = useReactTable({
     data,
@@ -133,7 +141,7 @@ export default function PetsPage() {
           onChange={(e) => table.getColumn("name")?.setFilterValue(e.target.value)}
           className="max-w-xs"
         />
-        <Button variant="outline">Yeni Pet Ekle</Button>
+        <AddPetModal onSuccess={refresh} />
       </div>
 
       <div className="rounded-md border">

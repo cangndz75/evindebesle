@@ -1,13 +1,16 @@
 import { prisma } from "@/lib/db"
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
-  const { name, image } = await req.json()
-  const updated = await prisma.pet.update({
+export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+  const body = await req.json()
+  const { name, image } = body
+
+  const updatedPet = await prisma.pet.update({
     where: { id: params.id },
     data: { name, image },
   })
-  return NextResponse.json(updated)
+
+  return NextResponse.json(updatedPet)
 }
 
 export async function DELETE(_: Request, { params }: { params: { id: string } }) {

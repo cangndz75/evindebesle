@@ -12,22 +12,48 @@ import {
   SortingState,
   useReactTable,
   VisibilityState,
+  ColumnFiltersState,
 } from "@tanstack/react-table"
 
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
-import { Label } from "@/components/ui/label"
-import { FilterIcon, Columns3Icon, PlusIcon, TrashIcon, EllipsisIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
-import { cn } from "@/lib/utils"
-import type { ColumnFiltersState } from "@tanstack/react-table"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import {
+  Columns3Icon,
+  TrashIcon,
+  EllipsisIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+} from "lucide-react"
 import { AddUserModal } from "@/app/(public)/_components/AddUserModal"
+import { EditUserModal } from "@/app/(public)/_components/EditUserModal"
 
 type User = {
   id: string
@@ -39,78 +65,6 @@ type User = {
   isAdmin: boolean
   createdAt: string
 }
-
-const columns: ColumnDef<User>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={table.getIsAllPageRowsSelected()}
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    header: "Ad Soyad",
-    accessorKey: "name",
-    cell: ({ row }) => <div className="font-medium">{row.getValue("name")}</div>,
-  },
-  {
-    header: "E-posta",
-    accessorKey: "email",
-  },
-  {
-    header: "Telefon",
-    accessorKey: "phone",
-  },
-  {
-    header: "Adres",
-    accessorKey: "address",
-  },
-  {
-    header: "Abonelik",
-    accessorKey: "subscriptionPlan",
-    cell: ({ row }) => (
-      <Badge variant="outline">{row.getValue("subscriptionPlan")}</Badge>
-    ),
-  },
-  {
-    header: "Yetki",
-    accessorKey: "isAdmin",
-    cell: ({ row }) => row.getValue("isAdmin") ? "Admin" : "Kullanıcı",
-  },
-  {
-    header: "Kayıt Tarihi",
-    accessorKey: "createdAt",
-    cell: ({ row }) => new Date(row.getValue("createdAt")).toLocaleDateString("tr-TR"),
-  },
-  {
-    id: "actions",
-    header: () => null,
-    cell: ({ row }) => (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon">
-            <EllipsisIcon size={16} />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuLabel>İşlemler</DropdownMenuLabel>
-          <DropdownMenuItem>Düzenle</DropdownMenuItem>
-          <DropdownMenuItem>Sil</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    ),
-  },
-]
 
 export default function UsersPage() {
   const [data, setData] = useState<User[]>([])
@@ -124,9 +78,97 @@ export default function UsersPage() {
 
   useEffect(() => {
     fetch("/api/users")
-      .then(res => res.json())
+      .then((res) => res.json())
       .then(setData)
   }, [])
+
+  const columns: ColumnDef<User>[] = [
+    {
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={table.getIsAllPageRowsSelected()}
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      header: "Ad Soyad",
+      accessorKey: "name",
+      cell: ({ row }) => <div className="font-medium">{row.getValue("name")}</div>,
+    },
+    {
+      header: "E-posta",
+      accessorKey: "email",
+    },
+    {
+      header: "Telefon",
+      accessorKey: "phone",
+    },
+    {
+      header: "Adres",
+      accessorKey: "address",
+    },
+    {
+      header: "Abonelik",
+      accessorKey: "subscriptionPlan",
+      cell: ({ row }) => <Badge variant="outline">{row.getValue("subscriptionPlan")}</Badge>,
+    },
+    {
+      header: "Yetki",
+      accessorKey: "isAdmin",
+      cell: ({ row }) => (row.getValue("isAdmin") ? "Admin" : "Kullanıcı"),
+    },
+    {
+      header: "Kayıt Tarihi",
+      accessorKey: "createdAt",
+      cell: ({ row }) =>
+        new Date(row.getValue("createdAt")).toLocaleDateString("tr-TR"),
+    },
+    {
+      id: "actions",
+      header: () => null,
+      cell: ({ row }) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <EllipsisIcon size={16} />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>İşlemler</DropdownMenuLabel>
+            <EditUserModal
+              user={row.original}
+              onSuccess={() => {
+                fetch("/api/users")
+                  .then((res) => res.json())
+                  .then((users) => setData(users))
+              }}
+            />
+            <DropdownMenuItem
+              onClick={() => {
+                fetch(`/api/users/${row.original.id}`, { method: "DELETE" }).then(() =>
+                  fetch("/api/users")
+                    .then((res) => res.json())
+                    .then(setData)
+                )
+              }}
+            >
+              Sil
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    },
+  ]
 
   const table = useReactTable({
     data,
@@ -150,7 +192,7 @@ export default function UsersPage() {
         <div className="flex gap-2">
           <Input
             placeholder="İsim veya e-posta ile filtrele"
-            value={table.getColumn("name")?.getFilterValue() as string || ""}
+            value={(table.getColumn("name")?.getFilterValue() as string) || ""}
             onChange={(e) => table.getColumn("name")?.setFilterValue(e.target.value)}
             className="min-w-[240px]"
           />
@@ -163,12 +205,18 @@ export default function UsersPage() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              {table.getAllColumns().filter(c => c.getCanHide()).map(column => (
-                <DropdownMenuItem key={column.id} onClick={() => column.toggleVisibility()}>
-                  <Checkbox checked={column.getIsVisible()} />
-                  <span className="ml-2 capitalize">{column.id}</span>
-                </DropdownMenuItem>
-              ))}
+              {table
+                .getAllColumns()
+                .filter((c) => c.getCanHide())
+                .map((column) => (
+                  <DropdownMenuItem
+                    key={column.id}
+                    onClick={() => column.toggleVisibility()}
+                  >
+                    <Checkbox checked={column.getIsVisible()} />
+                    <span className="ml-2 capitalize">{column.id}</span>
+                  </DropdownMenuItem>
+                ))}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -189,32 +237,35 @@ export default function UsersPage() {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>İptal</AlertDialogCancel>
-                  <AlertDialogAction onClick={() => {
-                    const selectedIds = selected.map(r => r.original.id)
-                    setData(prev => prev.filter(u => !selectedIds.includes(u.id)))
-                    table.resetRowSelection()
-                  }}>
+                  <AlertDialogAction
+                    onClick={() => {
+                      const selectedIds = selected.map((r) => r.original.id)
+                      setData((prev) => prev.filter((u) => !selectedIds.includes(u.id)))
+                      table.resetRowSelection()
+                    }}
+                  >
                     Sil
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
           )}
-          <AddUserModal onSuccess={() => {
-            fetch("/api/users")
-              .then(res => res.json())
-              .then(setData)
-            }
-          } />
+          <AddUserModal
+            onSuccess={() => {
+              fetch("/api/users")
+                .then((res) => res.json())
+                .then(setData)
+            }}
+          />
         </div>
       </div>
 
       <div className="rounded-md border">
         <Table>
           <TableHeader>
-            {table.getHeaderGroups().map(headerGroup => (
+            {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map(header => (
+                {headerGroup.headers.map((header) => (
                   <TableHead key={header.id} style={{ width: header.getSize() }}>
                     {flexRender(header.column.columnDef.header, header.getContext())}
                   </TableHead>
@@ -224,9 +275,9 @@ export default function UsersPage() {
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows.length ? (
-              table.getRowModel().rows.map(row => (
+              table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id}>
-                  {row.getVisibleCells().map(cell => (
+                  {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
@@ -246,13 +297,25 @@ export default function UsersPage() {
 
       <div className="flex items-center justify-between">
         <div className="text-sm text-muted-foreground">
-          {pagination.pageIndex * pagination.pageSize + 1}–{Math.min((pagination.pageIndex + 1) * pagination.pageSize, data.length)} / {data.length} kayıt
+          {pagination.pageIndex * pagination.pageSize + 1}–
+          {Math.min((pagination.pageIndex + 1) * pagination.pageSize, data.length)} /{" "}
+          {data.length} kayıt
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()} size="sm" variant="outline">
+          <Button
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+            size="sm"
+            variant="outline"
+          >
             <ChevronLeftIcon size={16} />
           </Button>
-          <Button onClick={() => table.nextPage()} disabled={!table.getCanNextPage()} size="sm" variant="outline">
+          <Button
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+            size="sm"
+            variant="outline"
+          >
             <ChevronRightIcon size={16} />
           </Button>
         </div>

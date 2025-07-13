@@ -1,0 +1,16 @@
+export const anadoluDistricts = [
+    "Adalar",
+    "Ataşehir",
+    "Beykoz",
+    "Çekmeköy",
+    "Kadıköy",
+    "Kartal",
+    "Maltepe",
+    "Pendik",
+    "Sancaktepe",
+    "Sultanbeyli",
+    "Şile",
+    "Tuzla",
+    "Ümraniye",
+    "Üsküdar",
+];

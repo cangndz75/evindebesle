@@ -7,8 +7,9 @@ import { PlusIcon, MinusIcon } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import Image from "next/image";
 import DistrictSelect from "./_components/DistrictSelect";
-import ServiceMultiSelect from "./_components/ServiceMultiSelect";
+import { Input } from "@/components/ui/input";
 import Stepper from "../(public)/_components/Stepper";
+import ServiceMultiSelect from "../(public)/_components/ServiceMultiSelect";
 
 type Pet = { id: string; name: string };
 
@@ -17,13 +18,14 @@ export default function Page() {
     typeof window !== "undefined"
       ? new URLSearchParams(window.location.search)
       : null;
-  const router = useRouter();
 
+  const router = useRouter();
   const selectedPetIds = searchParams ? searchParams.getAll("pet") : [];
   const [allPets, setAllPets] = useState<Pet[]>([]);
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [district, setDistrict] = useState<string | null>(null);
   const [services, setServices] = useState<string[]>([]);
+  const [fullAddress, setFullAddress] = useState<string>("");
 
   useEffect(() => {
     fetch("/api/pets")
@@ -46,11 +48,15 @@ export default function Page() {
 
   const handleSubmit = () => {
     const params = new URLSearchParams();
+
     Object.entries(counts).forEach(([id, count]) => {
       if (count > 0) params.append(id, count.toString());
     });
+
     if (district) params.set("district", district);
+    if (fullAddress) params.set("fullAddress", fullAddress);
     services.forEach((s) => params.append("service", s));
+
     router.push(`/request/step2?${params.toString()}`);
   };
 
@@ -58,7 +64,6 @@ export default function Page() {
 
   return (
     <div className="h-screen grid md:grid-cols-2 overflow-hidden relative">
-      {/* SOL TARAF */}
       <div className="flex flex-col justify-between px-6 py-6 overflow-hidden">
         <div className="space-y-4 overflow-y-auto pr-2">
           <div className="mb-2">
@@ -75,11 +80,9 @@ export default function Page() {
           </Button>
 
           <div className="pl-4 md:pl-8">
-            <h1 className="text-2xl font-bold">
-              Kaç tane hayvan için hizmet istiyorsunuz?
-            </h1>
+            <h1 className="text-2xl font-bold">Kaç hayvan için hizmet istiyorsunuz?</h1>
             <p className="text-muted-foreground text-sm">
-              Her tür için sayı belirleyin
+              Her tür için sayı belirtin
             </p>
           </div>
 
@@ -100,21 +103,13 @@ export default function Page() {
                   {pet.name}
                 </div>
                 <div className="flex items-center gap-1">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => handleChange(pet.id, -1)}
-                  >
+                  <Button variant="outline" size="icon" onClick={() => handleChange(pet.id, -1)}>
                     <MinusIcon className="w-3 h-3" />
                   </Button>
                   <span className="text-sm font-semibold w-4 text-center">
                     {counts[pet.id]}
                   </span>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => handleChange(pet.id, 1)}
-                  >
+                  <Button variant="outline" size="icon" onClick={() => handleChange(pet.id, 1)}>
                     <PlusIcon className="w-3 h-3" />
                   </Button>
                 </div>
@@ -122,17 +117,24 @@ export default function Page() {
             ))}
           </div>
 
-          <div className="rounded-2xl border bg-white p-4 shadow">
-            <Label className="text-sm font-semibold mb-1 block">
-              İlçe Seçimi
-            </Label>
-            <DistrictSelect onSelect={setDistrict} />
+          <div className="rounded-2xl border bg-white p-4 shadow space-y-3">
+            <div>
+              <Label className="text-sm font-semibold mb-1 block">İlçe Seçimi</Label>
+              <DistrictSelect onSelect={setDistrict} />
+            </div>
+
+            <div>
+              <Label className="text-sm font-semibold mb-1 block">Detaylı Adres</Label>
+              <Input
+                placeholder="Apartman, sokak, no, kat vb."
+                value={fullAddress}
+                onChange={(e) => setFullAddress(e.target.value)}
+              />
+            </div>
           </div>
 
           <div className="rounded-2xl border bg-white p-4 shadow">
-            <Label className="text-sm font-semibold mb-1 block">
-              Hizmet Türleri
-            </Label>
+            <Label className="text-sm font-semibold mb-1 block">Hizmet Türleri</Label>
             <ServiceMultiSelect selected={services} setSelected={setServices} />
           </div>
         </div>

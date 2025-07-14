@@ -1,6 +1,7 @@
 "use client";
 
-import { DayPicker } from "react-day-picker";
+import { useState, useEffect } from "react";
+import { DayPicker, DateRange } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 
 interface DatePickerProps {
@@ -8,35 +9,36 @@ interface DatePickerProps {
   onSelect: (dates: Date[]) => void;
 }
 
-function areDatesSequential(dates: Date[]) {
-  const sorted = [...dates].sort((a, b) => a.getTime() - b.getTime());
-
-  for (let i = 1; i < sorted.length; i++) {
-    const prev = sorted[i - 1];
-    const curr = sorted[i];
-    const diffDays = (curr.getTime() - prev.getTime()) / (1000 * 60 * 60 * 24);
-    if (diffDays !== 1) return false;
-  }
-  return true;
-}
-
 export default function DatePicker({ selected, onSelect }: DatePickerProps) {
-  const handleSelect = (dates?: Date[]) => {
-    if (!dates || dates.length === 0) return;
-    if (dates.length === 1) return onSelect(dates);
-
-    if (areDatesSequential(dates)) {
-      onSelect(dates);
-    } else {
-      onSelect([dates[dates.length - 1]]);
+  const [range, setRange] = useState<DateRange | undefined>(() => {
+    if (selected.length >= 2) {
+      return { from: selected[0], to: selected[selected.length - 1] };
+    } else if (selected.length === 1) {
+      return { from: selected[0], to: undefined };
     }
-  };
+    return undefined;
+  });
+
+  useEffect(() => {
+    if (!range?.from || !range.to) return;
+
+    const days: Date[] = [];
+    const current = new Date(range.from);
+
+    while (current <= range.to) {
+      days.push(new Date(current));
+      current.setDate(current.getDate() + 1);
+    }
+
+    onSelect(days);
+  }, [range]);
 
   return (
     <DayPicker
-      mode="multiple"
-      selected={selected}
-      onSelect={handleSelect}
+      mode="range"
+      selected={range}
+      onSelect={setRange}
+      disabled={{ before: new Date() }}
       className="rounded-md border shadow bg-white p-4"
     />
   );

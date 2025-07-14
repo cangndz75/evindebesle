@@ -41,8 +41,6 @@ export default function LoginForm() {
       }
 
       toast.success("Giriş başarılı!");
-      console.log("Session:", session, session.user, session.user?.isAdmin);
-
       const isAdmin = session.user?.isAdmin === true;
       window.location.href = isAdmin ? "/admin" : "/home";
     });
@@ -71,7 +69,7 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="w-full max-w-md space-y-6">
+    <div className="w-full px-6 sm:px-8 max-w-md mx-auto py-10 space-y-8">
       <AuthHeader title="Giriş Yap" subtitle="Tekrar hoş geldiniz!" />
 
       <div className="space-y-4">
@@ -101,7 +99,7 @@ export default function LoginForm() {
         <Button
           disabled={pending}
           onClick={handleLoginWithPassword}
-          className="w-full"
+          className="w-full h-12 text-base"
         >
           {pending ? "Giriş yapılıyor..." : "Giriş Yap"}
         </Button>
@@ -110,13 +108,13 @@ export default function LoginForm() {
           variant="outline"
           onClick={handleLoginWithOtp}
           disabled={otpPending}
-          className="w-full"
+          className="w-full h-12 text-base"
         >
           {otpPending ? "Gönderiliyor..." : "Şifresiz Giriş (OTP)"}
         </Button>
       </div>
 
-      <div className="text-sm text-center text-muted-foreground pt-4">
+      <div className="text-sm text-center text-muted-foreground pt-6">
         Hesabın yok mu?{" "}
         <Link
           href="/register"

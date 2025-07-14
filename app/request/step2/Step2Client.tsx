@@ -16,6 +16,7 @@ import {
 import Image from "next/image";
 import Stepper from "@/app/(public)/_components/Stepper";
 import DatePicker from "@/app/(public)/_components/DatePicker";
+import { toast } from "sonner";
 
 export default function Step2Client() {
   const router = useRouter();
@@ -65,10 +66,27 @@ export default function Step2Client() {
   };
 
   const handleNext = () => {
+    if (dates.length === 0) {
+      toast.error("Lütfen en az bir tarih seçin.");
+      return;
+    }
+
+    if (isRecurring) {
+      if (!recurringType) {
+        toast.error("Lütfen tekrar sıklığını seçin.");
+        return;
+      }
+
+      if (!recurringCount || recurringCount < 1) {
+        toast.error("Tekrar sayısı en az 1 olmalıdır.");
+        return;
+      }
+    }
+
     const params = new URLSearchParams();
     searchParams.forEach((val, key) => params.append(key, val));
-
     dates.forEach((d) => params.append("date", d.toISOString().split("T")[0]));
+
     params.set("recurring", isRecurring ? "1" : "0");
 
     if (isRecurring) {

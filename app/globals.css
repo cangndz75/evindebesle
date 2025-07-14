@@ -139,3 +139,18 @@
 .rotate-y-180 {
   transform: rotateY(180deg);
 }
+
+@keyframes slide {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-slide {
+  display: flex;
+  white-space: nowrap;
+  animation: slide 40s linear infinite;
+}

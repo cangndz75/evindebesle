@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 type Pet = {
   id: string;
   name: string;
+  image: string;
 };
 
 export default function PetTypeSelector() {
@@ -57,7 +58,7 @@ export default function PetTypeSelector() {
                   }`}
                 >
                   <img
-                    src={`https://images.unsplash.com/photo-1583337130417-3346a1be7dee?q=80&w=2070&auto=format&fit=crop`}
+                    src={pet.image}
                     alt={pet.name}
                     className="w-full h-40 object-cover"
                   />

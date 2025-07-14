@@ -14,17 +14,18 @@ import ServiceMultiSelect from "../(public)/_components/ServiceMultiSelect";
 type Pet = { id: string; name: string };
 
 export default function Page() {
-  const searchParams =
-    typeof window !== "undefined"
-      ? new URLSearchParams(window.location.search)
-      : null;
-
+  const searchParams = useSearchParams();
   const router = useRouter();
-  const selectedPetIds = searchParams ? searchParams.getAll("pet") : [];
+
+  const selectedPetIds = searchParams.getAll("pet");
   const [allPets, setAllPets] = useState<Pet[]>([]);
   const [counts, setCounts] = useState<Record<string, number>>({});
-  const [district, setDistrict] = useState<string | null>(null);
-  const [services, setServices] = useState<string[]>([]);
+  const [district, setDistrict] = useState<string | null>(
+    searchParams.get("district") || null
+  );
+  const [services, setServices] = useState<string[]>(
+    searchParams.getAll("service")
+  );
   const [fullAddress, setFullAddress] = useState<string>("");
 
   useEffect(() => {
@@ -39,6 +40,11 @@ export default function Page() {
       });
   }, []);
 
+  useEffect(() => {
+    const addressFromURL = searchParams.get("fullAddress");
+    if (addressFromURL) setFullAddress(addressFromURL);
+  }, [searchParams]);
+
   const handleChange = (petId: string, delta: number) => {
     setCounts((prev) => ({
       ...prev,
@@ -50,7 +56,8 @@ export default function Page() {
     const params = new URLSearchParams();
 
     Object.entries(counts).forEach(([id, count]) => {
-      if (count > 0) params.append(id, count.toString());
+      if (count > 0) params.append("pet", id);
+      params.append(id, count.toString());
     });
 
     if (district) params.set("district", district);
@@ -80,7 +87,9 @@ export default function Page() {
           </Button>
 
           <div className="pl-4 md:pl-8">
-            <h1 className="text-2xl font-bold">Kaç hayvan için hizmet istiyorsunuz?</h1>
+            <h1 className="text-2xl font-bold">
+              Kaç hayvan için hizmet istiyorsunuz?
+            </h1>
             <p className="text-muted-foreground text-sm">
               Her tür için sayı belirtin
             </p>
@@ -103,13 +112,21 @@ export default function Page() {
                   {pet.name}
                 </div>
                 <div className="flex items-center gap-1">
-                  <Button variant="outline" size="icon" onClick={() => handleChange(pet.id, -1)}>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => handleChange(pet.id, -1)}
+                  >
                     <MinusIcon className="w-3 h-3" />
                   </Button>
                   <span className="text-sm font-semibold w-4 text-center">
                     {counts[pet.id]}
                   </span>
-                  <Button variant="outline" size="icon" onClick={() => handleChange(pet.id, 1)}>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => handleChange(pet.id, 1)}
+                  >
                     <PlusIcon className="w-3 h-3" />
                   </Button>
                 </div>
@@ -119,12 +136,16 @@ export default function Page() {
 
           <div className="rounded-2xl border bg-white p-4 shadow space-y-3">
             <div>
-              <Label className="text-sm font-semibold mb-1 block">İlçe Seçimi</Label>
+              <Label className="text-sm font-semibold mb-1 block">
+                İlçe Seçimi
+              </Label>
               <DistrictSelect onSelect={setDistrict} />
             </div>
 
             <div>
-              <Label className="text-sm font-semibold mb-1 block">Detaylı Adres</Label>
+              <Label className="text-sm font-semibold mb-1 block">
+                Detaylı Adres
+              </Label>
               <Input
                 placeholder="Apartman, sokak, no, kat vb."
                 value={fullAddress}
@@ -134,7 +155,9 @@ export default function Page() {
           </div>
 
           <div className="rounded-2xl border bg-white p-4 shadow">
-            <Label className="text-sm font-semibold mb-1 block">Hizmet Türleri</Label>
+            <Label className="text-sm font-semibold mb-1 block">
+              Hizmet Türleri
+            </Label>
             <ServiceMultiSelect selected={services} setSelected={setServices} />
           </div>
         </div>

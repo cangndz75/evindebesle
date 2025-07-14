@@ -1,29 +1,29 @@
 import { prisma } from "@/lib/db";
-import { NextResponse, type NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function PATCH(request: NextRequest, context: { params: { id: string } }) {
-  const { params } = context;
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
   const body = await request.json();
 
   const updated = await prisma.service.update({
-    where: { id: params.id },
-    data: {
-      isActive: body.isActive,
-      name: body.name,
-      description: body.description,
-      price: body.price,
-      image: body.image,
-    },
+    where: { id },
+    data: body,
   });
 
   return NextResponse.json(updated);
 }
 
-export async function DELETE(request: NextRequest, context: { params: { id: string } }) {
-  const { params } = context;
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
 
   await prisma.service.delete({
-    where: { id: params.id },
+    where: { id },
   });
 
   return NextResponse.json({ success: true });

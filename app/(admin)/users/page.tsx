@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
+import { useEffect, useState } from "react";
 import {
   ColumnDef,
   flexRender,
@@ -13,7 +13,7 @@ import {
   useReactTable,
   VisibilityState,
   ColumnFiltersState,
-} from "@tanstack/react-table"
+} from "@tanstack/react-table";
 
 import {
   Table,
@@ -22,18 +22,17 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Badge } from "@/components/ui/badge"
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -44,43 +43,43 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+} from "@/components/ui/alert-dialog";
 import {
   Columns3Icon,
   TrashIcon,
-  EllipsisIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-} from "lucide-react"
-import { AddUserModal } from "@/app/(public)/_components/AddUserModal"
-import { EditUserModal } from "@/app/(public)/_components/EditUserModal"
+} from "lucide-react";
+import { AddUserModal } from "@/app/(public)/_components/AddUserModal";
+import { useRouter } from "next/navigation";
 
 type User = {
-  id: string
-  name: string
-  email: string
-  phone?: string
-  address?: string
-  subscriptionPlan: string
-  isAdmin: boolean
-  createdAt: string
-}
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  address?: string;
+  subscriptionPlan: string;
+  isAdmin: boolean;
+  createdAt: string;
+};
 
 export default function UsersPage() {
-  const [data, setData] = useState<User[]>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+  const router = useRouter();
+  const [data, setData] = useState<User[]>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
-  })
-  const [sorting, setSorting] = useState<SortingState>([])
+  });
+  const [sorting, setSorting] = useState<SortingState>([]);
 
   useEffect(() => {
     fetch("/api/users")
       .then((res) => res.json())
-      .then(setData)
-  }, [])
+      .then(setData);
+  }, []);
 
   const columns: ColumnDef<User>[] = [
     {
@@ -103,7 +102,11 @@ export default function UsersPage() {
     {
       header: "Ad Soyad",
       accessorKey: "name",
-      cell: ({ row }) => <div className="font-medium">{row.getValue("name")}</div>,
+      cell: ({ row }) => (
+        <div className="font-semibold text-sm md:text-base">
+          {row.getValue("name")}
+        </div>
+      ),
     },
     {
       header: "E-posta",
@@ -120,7 +123,11 @@ export default function UsersPage() {
     {
       header: "Abonelik",
       accessorKey: "subscriptionPlan",
-      cell: ({ row }) => <Badge variant="outline">{row.getValue("subscriptionPlan")}</Badge>,
+      cell: ({ row }) => (
+        <Badge variant="outline" className="text-xs md:text-sm">
+          {row.getValue("subscriptionPlan")}
+        </Badge>
+      ),
     },
     {
       header: "Yetki",
@@ -133,42 +140,7 @@ export default function UsersPage() {
       cell: ({ row }) =>
         new Date(row.getValue("createdAt")).toLocaleDateString("tr-TR"),
     },
-    // {
-    //   id: "actions",
-    //   header: () => null,
-    //   cell: ({ row }) => (
-    //     <DropdownMenu>
-    //       <DropdownMenuTrigger asChild>
-    //         <Button variant="ghost" size="icon">
-    //           <EllipsisIcon size={16} />
-    //         </Button>
-    //       </DropdownMenuTrigger>
-    //       <DropdownMenuContent align="end">
-    //         <DropdownMenuLabel>İşlemler</DropdownMenuLabel>
-    //         <EditUserModal
-    //           user={row.original}
-    //           onSuccess={() => {
-    //             fetch("/api/users")
-    //               .then((res) => res.json())
-    //               .then((users) => setData(users))
-    //           }}
-    //         />
-    //         <DropdownMenuItem
-    //           onClick={() => {
-    //             fetch(`/api/users/${row.original.id}`, { method: "DELETE" }).then(() =>
-    //               fetch("/api/users")
-    //                 .then((res) => res.json())
-    //                 .then(setData)
-    //             )
-    //           }}
-    //         >
-    //           Sil
-    //         </DropdownMenuItem>
-    //       </DropdownMenuContent>
-    //     </DropdownMenu>
-    //   ),
-    // },
-  ]
+  ];
 
   const table = useReactTable({
     data,
@@ -182,24 +154,30 @@ export default function UsersPage() {
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     state: { sorting, pagination, columnFilters, columnVisibility },
-  })
+  });
 
-  const selected = table.getSelectedRowModel().rows
+  const selected = table.getSelectedRowModel().rows;
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex gap-2">
+      <div className="sm:hidden flex items-center justify-between mb-2">
+        <Button variant="ghost" size="sm" onClick={() => router.back()}>
+          ← Geri
+        </Button>
+      </div>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex flex-wrap gap-2">
           <Input
             placeholder="İsim veya e-posta ile filtrele"
             value={(table.getColumn("name")?.getFilterValue() as string) || ""}
-            onChange={(e) => table.getColumn("name")?.setFilterValue(e.target.value)}
-            className="min-w-[240px]"
+            onChange={(e) =>
+              table.getColumn("name")?.setFilterValue(e.target.value)
+            }
+            className="min-w-[240px] text-sm md:text-base"
           />
-
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline">
+              <Button variant="outline" className="text-sm md:text-base">
                 <Columns3Icon size={16} className="mr-2" />
                 Sütunlar
               </Button>
@@ -221,11 +199,11 @@ export default function UsersPage() {
           </DropdownMenu>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {selected.length > 0 && (
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="destructive">
+                <Button variant="destructive" className="text-sm md:text-base">
                   <TrashIcon size={16} className="mr-2" />
                   Sil ({selected.length})
                 </Button>
@@ -233,15 +211,19 @@ export default function UsersPage() {
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>Emin misiniz?</AlertDialogTitle>
-                  <AlertDialogDescription>Bu işlem geri alınamaz.</AlertDialogDescription>
+                  <AlertDialogDescription>
+                    Bu işlem geri alınamaz.
+                  </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>İptal</AlertDialogCancel>
                   <AlertDialogAction
                     onClick={() => {
-                      const selectedIds = selected.map((r) => r.original.id)
-                      setData((prev) => prev.filter((u) => !selectedIds.includes(u.id)))
-                      table.resetRowSelection()
+                      const selectedIds = selected.map((r) => r.original.id);
+                      setData((prev) =>
+                        prev.filter((u) => !selectedIds.includes(u.id))
+                      );
+                      table.resetRowSelection();
                     }}
                   >
                     Sil
@@ -254,20 +236,23 @@ export default function UsersPage() {
             onSuccess={() => {
               fetch("/api/users")
                 .then((res) => res.json())
-                .then(setData)
+                .then(setData);
             }}
           />
         </div>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
+      <div className="rounded-md border overflow-x-auto">
+        <Table className="min-w-[700px] text-sm md:text-base">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id} style={{ width: header.getSize() }}>
-                    {flexRender(header.column.columnDef.header, header.getContext())}
+                  <TableHead key={header.id}>
+                    {flexRender(
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -279,7 +264,10 @@ export default function UsersPage() {
                 <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
@@ -295,11 +283,14 @@ export default function UsersPage() {
         </Table>
       </div>
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
         <div className="text-sm text-muted-foreground">
           {pagination.pageIndex * pagination.pageSize + 1}–
-          {Math.min((pagination.pageIndex + 1) * pagination.pageSize, data.length)} /{" "}
-          {data.length} kayıt
+          {Math.min(
+            (pagination.pageIndex + 1) * pagination.pageSize,
+            data.length
+          )}{" "}
+          / {data.length} kayıt
         </div>
         <div className="flex gap-2">
           <Button
@@ -321,5 +312,5 @@ export default function UsersPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

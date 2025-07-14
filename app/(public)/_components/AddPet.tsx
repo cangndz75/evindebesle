@@ -34,7 +34,7 @@ export function AddPetModal({ onSuccess }: { onSuccess: () => void }) {
       });
 
       const uploadData = await uploadRes.json();
-      image = uploadData.url; // Örn: S3 ya da Cloudinary URL
+      image = uploadData.url;
     }
 
     await fetch("/api/pets", {
@@ -54,13 +54,17 @@ export function AddPetModal({ onSuccess }: { onSuccess: () => void }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">Yeni Pet Ekle</Button>
+        <Button variant="outline" className="w-full sm:w-auto">
+          Yeni Pet Ekle
+        </Button>
       </DialogTrigger>
-      <DialogContent>
+
+      <DialogContent className="max-w-sm sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Yeni Pet Ekle</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 py-2">
+
+        <div className="grid gap-4 py-2">
           <Input
             placeholder="Pet adı"
             value={name}
@@ -79,8 +83,12 @@ export function AddPetModal({ onSuccess }: { onSuccess: () => void }) {
           />
         </div>
         <DialogFooter>
-          <Button disabled={loading || !name} onClick={handleSubmit}>
-            Kaydet
+          <Button
+            disabled={loading || !name}
+            onClick={handleSubmit}
+            className="w-full sm:w-auto"
+          >
+            {loading ? "..." : "Kaydet"}
           </Button>
         </DialogFooter>
       </DialogContent>

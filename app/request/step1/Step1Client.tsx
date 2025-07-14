@@ -12,7 +12,7 @@ import ServiceMultiSelect from "@/app/(public)/_components/ServiceMultiSelect";
 import DistrictSelect from "../_components/DistrictSelect";
 import { toast } from "sonner";
 
-type Pet = { id: string; name: string };
+type Pet = { id: string; name: string; image: string };
 
 export default function Page() {
   const searchParams = useSearchParams();
@@ -148,35 +148,37 @@ export default function Page() {
             {selectedPets.map((pet) => (
               <div
                 key={pet.id}
-                className="min-w-[110px] flex-shrink-0 rounded-xl border bg-white p-3 shadow-sm transition hover:shadow-md flex flex-col items-center"
+                className="min-w-[130px] flex-shrink-0 rounded-xl border bg-white p-4 shadow-sm transition hover:shadow-md flex flex-col items-center"
               >
-                <Image
-                  src={`/icons/${pet.name.toLowerCase()}.svg`}
+                {/* <Image
+                  src={pet.image}
                   alt={pet.name}
-                  width={30}
-                  height={30}
-                  className="mb-2"
-                />
-                <div className="text-xs font-medium capitalize mb-2 text-center">
+                  width={60}
+                  height={60}
+                  className="mb-3 rounded-lg object-cover"
+                /> */}
+                <div className="text-sm font-medium capitalize mb-3 text-center">
                   {pet.name}
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
-                    size="icon"
+                    size="sm"
+                    className="w-9 h-9 flex items-center justify-center p-0"
                     onClick={() => handleChange(pet.id, -1)}
                   >
-                    <MinusIcon className="w-3 h-3" />
+                    <MinusIcon className="w-5 h-5" />
                   </Button>
-                  <span className="text-sm font-semibold w-4 text-center">
+                  <span className="text-lg font-semibold w-8 text-center select-none">
                     {counts[pet.id]}
                   </span>
                   <Button
                     variant="outline"
-                    size="icon"
+                    size="sm"
+                    className="w-9 h-9 flex items-center justify-center p-0"
                     onClick={() => handleChange(pet.id, 1)}
                   >
-                    <PlusIcon className="w-3 h-3" />
+                    <PlusIcon className="w-5 h-5" />
                   </Button>
                 </div>
               </div>

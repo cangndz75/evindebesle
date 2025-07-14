@@ -1,48 +1,51 @@
-"use client"
+"use client";
 
-import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
-import { useEffect, useState } from "react"
-import { InfoIcon } from "lucide-react"
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { useEffect, useState } from "react";
+import { InfoIcon } from "lucide-react";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+} from "@/components/ui/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type Service = {
-  id: string
-  name: string
-  description?: string
-  price: number
-  isActive: boolean
-}
+  id: string;
+  name: string;
+  description?: string;
+  price: number;
+  isActive: boolean;
+};
 
 export default function ServiceMultiSelect({
   selected,
   setSelected,
 }: {
-  selected: string[]
-  setSelected: (val: string[]) => void
+  selected: string[];
+  setSelected: (val: string[]) => void;
 }) {
-  const [services, setServices] = useState<Service[]>([])
+  const [services, setServices] = useState<Service[]>([]);
 
   useEffect(() => {
     fetch("/api/services")
       .then((res) => res.json())
-      .then((data) =>
-        setServices(data.filter((s: Service) => s.isActive))
-      )
-  }, [])
+      .then((data) => setServices(data.filter((s: Service) => s.isActive)));
+  }, []);
 
   const toggle = (serviceId: string) => {
     setSelected(
       selected.includes(serviceId)
         ? selected.filter((s) => s !== serviceId)
         : [...selected, serviceId]
-    )
-  }
+    );
+  };
 
   return (
     <TooltipProvider>
@@ -50,20 +53,24 @@ export default function ServiceMultiSelect({
         {services.map((s) => (
           <div
             key={s.id}
-            className="flex items-start justify-between gap-4 border p-3 rounded-lg bg-muted/50"
+            className="flex items-center justify-between gap-4 border border-gray-200 p-4 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow"
           >
-            <div className="flex items-start gap-3">
+            <div className="flex items-center gap-3">
               <Checkbox
                 id={s.id}
                 checked={selected.includes(s.id)}
                 onCheckedChange={() => toggle(s.id)}
+                className="mt-1"
               />
-              <div>
-                <Label htmlFor={s.id} className="font-medium">
-                  {s.name}
-                </Label>
-                <div className="text-sm text-muted-foreground">{s.price}₺</div>
-              </div>
+              <Label
+                htmlFor={s.id}
+                className="font-semibold text-gray-900 flex items-center gap-2 cursor-pointer select-none"
+              >
+                {s.name}
+                <span className="inline-block bg-primary text-white text-xs font-semibold px-2 py-0.5 rounded-md">
+                  {s.price.toLocaleString("tr-TR")}₺
+                </span>
+              </Label>
             </div>
 
             {s.description && (
@@ -71,14 +78,14 @@ export default function ServiceMultiSelect({
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <PopoverTrigger asChild>
-                      <InfoIcon className="w-4 h-4 text-muted-foreground cursor-pointer mt-1" />
+                      <InfoIcon className="w-5 h-5 text-gray-400 cursor-pointer hover:text-primary transition" />
                     </PopoverTrigger>
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>Hizmet detayını gör</p>
                   </TooltipContent>
                 </Tooltip>
-                <PopoverContent className="max-w-xs text-sm text-muted-foreground">
+                <PopoverContent className="max-w-xs text-sm text-gray-700 rounded-lg shadow-lg">
                   {s.description}
                 </PopoverContent>
               </Popover>
@@ -87,5 +94,5 @@ export default function ServiceMultiSelect({
         ))}
       </div>
     </TooltipProvider>
-  )
+  );
 }

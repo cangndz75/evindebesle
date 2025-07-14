@@ -104,14 +104,14 @@ export default function LoginForm() {
           {pending ? "Giriş yapılıyor..." : "Giriş Yap"}
         </Button>
 
-        <Button
+        {/* <Button
           variant="outline"
           onClick={handleLoginWithOtp}
           disabled={otpPending}
           className="w-full h-12 text-base"
         >
           {otpPending ? "Gönderiliyor..." : "Şifresiz Giriş (OTP)"}
-        </Button>
+        </Button> */}
       </div>
 
       <div className="text-sm text-center text-muted-foreground pt-6">

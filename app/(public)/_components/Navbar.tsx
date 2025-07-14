@@ -60,7 +60,7 @@ export default function Navbar() {
         </div>
 
         <div className="md:hidden flex items-center gap-2">
-          <Link href="/login">
+          <Link href="/auth-tabs">
             <Button variant="outline" size="sm">
               <User className="w-4 h-4 mr-1" />
               Giriş Yap

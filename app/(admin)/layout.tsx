@@ -1,8 +1,25 @@
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import "@/app/globals.css"
+"use client";
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import "@/app/globals.css";
+import { useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
+import { toast } from "sonner";
+
+export default function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await signOut({ redirect: false });
+    toast.success("Çıkış yapıldı");
+    router.push("/home");
+  };
+
   return (
     <div className="flex min-h-screen bg-background text-foreground">
       <aside className="w-64 bg-white border-r border-border p-6 flex flex-col justify-between">
@@ -10,15 +27,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <h2 className="text-2xl font-bold mb-8">Evinde Besle</h2>
           <nav className="space-y-4">
             {[
-              { label: "Anasayfa", href: "/dashboard" },
-              { label: "Kullanıcılar", href: "/users" },
-              { label: "Evcil Hayvanlar", href: "/pets" },
-              { label: "Siparişler", href: "/security" },
-              { label: "Hizmetler", href: "/activity" },
-              { label: "Abonelikler", href: "/database" },
-              // { label: "Performance", href: "/performance" },
-              // { label: "Notifications", href: "/notifications" },
-              { label: "Settings", href: "/settings" },
+              { label: "Anasayfa", href: "/admin/dashboard" },
+              { label: "Kullanıcılar", href: "/admin/users" },
+              { label: "Evcil Hayvanlar", href: "/admin/pets" },
+              { label: "Siparişler", href: "/admin/security" },
+              { label: "Hizmetler", href: "/admin/activity" },
             ].map(({ label, href }) => (
               <Link
                 key={href}
@@ -30,20 +43,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             ))}
           </nav>
         </div>
+
         <div className="space-y-2">
-          {/* <Button variant="outline" className="w-full text-sm">
-            Light Mode
-          </Button> */}
-          <Button variant="secondary" className="w-full text-sm">
-            Admin Profil
+          <Button
+            variant="secondary"
+            className="w-full text-sm"
+            onClick={handleLogout}
+          >
+            Çıkış Yap
           </Button>
         </div>
       </aside>
 
-      {/* Sağ taraf = içerik burada değişir */}
-      <main className="flex-1 p-8">
-        {children}
-      </main>
+      <main className="flex-1 p-8">{children}</main>
     </div>
-  )
+  );
 }

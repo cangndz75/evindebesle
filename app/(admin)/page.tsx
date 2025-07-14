@@ -1,11 +1,9 @@
-import Navbar from "../(public)/_components/Navbar";
-import DashboardPage from "./dashboard/page";
+import Navbar from "../(public)/_components/Navbar"
 
 export default function AdminHome() {
   return (
-  <div>
-    <Navbar />
-    <DashboardPage />
-  </div>
+    <div>
+      <Navbar />
+    </div>
   )
 }

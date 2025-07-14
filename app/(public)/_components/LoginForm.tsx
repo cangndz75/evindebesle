@@ -42,7 +42,7 @@ export default function LoginForm() {
 
       toast.success("Giriş başarılı!");
       const isAdmin = session.user?.isAdmin === true;
-      window.location.href = isAdmin ? "/admin" : "/home";
+      window.location.href = isAdmin ? "/dashboard" : "/home";
     });
   };
 

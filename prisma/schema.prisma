@@ -35,6 +35,7 @@ enum DiscountType {
 enum MediaType {
   PHOTO
   VIDEO
+  AUDIO
 }
 
 model User {
@@ -52,19 +53,24 @@ model User {
   preferredContactMethod  ContactMethod?
   referralCode            String?
   emailVerified           Boolean          @default(false)
-
+  marketingEmailConsent   Boolean          @default(false)
+  profileNoteConsent      Boolean          @default(false) 
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
-  district    District?   @relation(fields: [districtId], references: [id])
-  sessions    Session[]
-  accounts    Account[]
-  userPets    UserPet[]
-  appointments Appointment[]
-  userCoupons UserCoupon[]
-
-  @@map("user")
+  district     District?       @relation(fields: [districtId], references: [id])
+  sessions     Session[]
+  accounts     Account[]
+  userPets     UserPet[]         
+  appointments Appointment[]     
+  userCoupons  UserCoupon[]      
+  feedbacks    Feedback[]        
+  reviews      AppointmentReview[] 
+  userBadges   UserBadge[]
+  notificationLogs NotificationLog[]
+  emailLogs        EmailLog[]
 }
+
 
 model Session {
   id        String   @id @default(uuid())
@@ -104,9 +110,13 @@ model Pet {
   id        String   @id @default(uuid())
   name      String
   image     String?
+  species   String?        // Tür: Kedi, Köpek, vs.
+  breed     String?        // Irk
   createdAt DateTime @default(now())
 
   userPets  UserPet[]
+  prices    ServicePrice[] 
+  tags      ServiceTag[]   
 }
 
 model UserPet {
@@ -115,11 +125,21 @@ model UserPet {
   petId     String
   name      String?
   age       Int?
-  notes     String?
+  gender    String?        
+  image     String?
+  relation  String?        
+  allergy   String?        
+  sensitivity String?      
+  specialNote String?     
+  allowAdUse Boolean @default(false) 
+
   createdAt DateTime @default(now())
 
   user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   pet       Pet    @relation(fields: [petId], references: [id], onDelete: Cascade)
+
+  appointments Appointment[] 
+  reports      PetReport[]    
 }
 
 model Service {
@@ -129,30 +149,65 @@ model Service {
   image       String?
   price       Int
   isActive    Boolean  @default(true)
+  isWeeklyPopular Boolean @default(false) 
   createdAt   DateTime @default(now())
 
   appointmentServices AppointmentService[]
   checkItems          AppointmentCheck[]
+  prices              ServicePrice[] // Hayvan türüne göre fiyat
+  tags                ServiceTag[]   // Kedi, Köpek vs. için uygunluk
 }
+model ServicePrice {
+  id        String   @id @default(cuid())
+  serviceId String
+  petId     String
+  price     Int
+
+  service   Service  @relation(fields: [serviceId], references: [id])
+  pet       Pet      @relation(fields: [petId], references: [id])
+}
+
+model ServiceTag {
+  id        String   @id @default(cuid())
+  serviceId String
+  petId     String
+
+  service   Service  @relation(fields: [serviceId], references: [id])
+  pet       Pet      @relation(fields: [petId], references: [id])
+}
+
 
 model Appointment {
   id              String             @id @default(cuid())
   userId          String
+  userPetId       String             // Randevu hangi pet içindi
   confirmedAt     DateTime           @default(now())
   deliveredAt     DateTime?
   assignedToId    String?
-  notes           String?
   status          AppointmentStatus  @default(SCHEDULED)
   summarySent     Boolean            @default(false)
   isRecurring     Boolean            @default(false)
   repeatCount     Int?
   repeatInterval  String?
 
+  userNote        String?            
+  allergy         String?            
+  sensitivity     String?            
+  specialRequest  String?            
+  adminNote       String?            
+  specialRequestStatus String?       
+  discountRate    Int?               
+  discountReason  String?            
+
   user            User               @relation(fields: [userId], references: [id])
+  pet             UserPet            @relation(fields: [userPetId], references: [id])
   services        AppointmentService[]
   checkItems      AppointmentCheck[]
   media           AppointmentMedia[]
+  reviews         AppointmentReview[] 
+  invoice         Invoice?
 }
+
 
 model AppointmentService {
   id             String   @id @default(cuid())
@@ -169,6 +224,7 @@ model AppointmentCheck {
   serviceId     String
   title         String
   isChecked     Boolean  @default(false)
+  note          String?
 
   appointment   Appointment @relation(fields: [appointmentId], references: [id])
   service       Service     @relation(fields: [serviceId], references: [id])
@@ -182,6 +238,101 @@ model AppointmentMedia {
   uploadedAt     DateTime @default(now())
 
   appointment    Appointment @relation(fields: [appointmentId], references: [id])
+}
+
+model AppointmentReview {
+  id             String   @id @default(cuid())
+  appointmentId  String
+  userId         String
+  rating         Int       
+  comment        String?
+  createdAt      DateTime @default(now())
+
+  user           User      @relation(fields: [userId], references: [id])
+  appointment    Appointment @relation(fields: [appointmentId], references: [id])
+}
+
+model PetReport {
+  id        String   @id @default(cuid())
+  userPetId String
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+
+  userPet   UserPet  @relation(fields: [userPetId], references: [id])
+}
+
+model Feedback {
+  id        String   @id @default(cuid())
+  userId    String
+  subject   String
+  message   String
+  status    String     @default("pending") 
+  createdAt DateTime   @default(now())
+
+  user      User       @relation(fields: [userId], references: [id])
+}
+
+model NotificationLog {
+  id            String   @id @default(cuid())
+  userId        String
+  type          String   
+  message       String
+  sentAt        DateTime @default(now())
+  retryCount    Int      @default(0)
+  success       Boolean  @default(true)
+
+  user          User     @relation(fields: [userId], references: [id])
+}
+
+model Invoice {
+  id             String   @id @default(cuid())
+  appointmentId  String   @unique
+  fileUrl        String
+  createdAt      DateTime @default(now())
+
+  appointment    Appointment @relation(fields: [appointmentId], references: [id])
+}
+
+model EmailLog {
+  id        String   @id @default(cuid())
+  userId    String
+  subject   String
+  content   String
+  sentAt    DateTime @default(now())
+  type      String   
+  success   Boolean  @default(true)
+
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model AdminDiscountConfig {
+  id            String   @id @default(cuid())
+  triggerCount  Int      
+  type          DiscountType
+  value         Int
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+}
+
+model Badge {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  icon        String?     
+  createdAt   DateTime @default(now())
+
+  userBadges  UserBadge[]
+}
+
+model UserBadge {
+  id       String   @id @default(cuid())
+  userId   String
+  badgeId  String
+  earnedAt DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id])
+  badge    Badge    @relation(fields: [badgeId], references: [id])
 }
 
 model District {

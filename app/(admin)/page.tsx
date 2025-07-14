@@ -1,9 +1,5 @@
-import Navbar from "../(public)/_components/Navbar"
+import { redirect } from "next/navigation"
 
-export default function AdminHome() {
-  return (
-    <div>
-      <Navbar />
-    </div>
-  )
+export default function AdminRootPage() {
+  redirect("/admin/dashboard")
 }

@@ -6,11 +6,11 @@ type StepperProps = {
   activeStep: number;
 };
 
-const steps = ["Hayvan Seçimi", "Tarih Seçimi", "Ödeme Planı"];
+const steps = ["Hizmet Seçimi", "Tarih Seçimi", "Ödeme Planı"];
 
 export default function Stepper({ activeStep }: StepperProps) {
   return (
-    <div className="w-full px-4 py-4 flex justify-center md:justify-start gap-4">
+    <div className="w-full px-4 py-4 flex flex-wrap justify-center md:justify-start gap-4">
       {steps.map((step, index) => (
         <div key={index} className="flex items-center gap-2">
           <div

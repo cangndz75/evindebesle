@@ -214,6 +214,7 @@ model Appointment {
   isRecurring     Boolean            @default(false)
   repeatCount     Int?
   repeatInterval  String?
+  timeSlot        String?
 
   userNote        String?            
   allergy         String?            

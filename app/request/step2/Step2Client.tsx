@@ -17,6 +17,8 @@ import Image from "next/image";
 import Stepper from "@/app/(public)/_components/Stepper";
 import DatePicker from "@/app/(public)/_components/DatePicker";
 import { toast } from "sonner";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import ServiceModal from "../_components/ServiceModal";
 
 export default function Step2Client() {
   const router = useRouter();
@@ -27,6 +29,7 @@ export default function Step2Client() {
     "daily" | "weekly" | "monthly" | ""
   >("");
   const [recurringCount, setRecurringCount] = useState<number>(1);
+  const [selectedTime, setSelectedTime] = useState("");
 
   const [dateRange, setDateRange] = useState<{
     start: Date | null;
@@ -35,6 +38,14 @@ export default function Step2Client() {
     start: null,
     end: null,
   });
+
+  const timeSlots = [
+    { label: "08:00 - 12:00", value: "08:00 - 12:00" },
+    { label: "12:00 - 16:00", value: "12:00 - 16:00" },
+    { label: "16:00 - 20:00", value: "16:00 - 20:00" },
+  ];
+
+  const [timeSlot, setTimeSlot] = useState<string>("");
 
   const handleDateSelect = (selectedDates: Date[]) => {
     if (selectedDates.length === 0) {
@@ -122,6 +133,20 @@ export default function Step2Client() {
             <DatePicker selected={dates} onSelect={handleDateSelect} />
           </div>
 
+          <div className="flex justify-between items-center px-4 md:px-8 mt-6">
+            <div />
+            <div className="flex items-center gap-4">
+              <ServiceModal
+                selectedTime={timeSlot}
+                setSelectedTime={setTimeSlot}
+              />
+              {timeSlot && (
+                <span className="text-sm text-muted-foreground">
+                  Seçilen: <strong>{timeSlot}</strong>
+                </span>
+              )}
+            </div>
+          </div>
           <div className="flex items-center justify-between border rounded-lg px-4 py-3 mx-4 md:mx-8">
             <Label className="text-sm font-medium">
               Tekrarlayan Hizmet mi?

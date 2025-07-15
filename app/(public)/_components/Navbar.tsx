@@ -60,12 +60,23 @@ export default function Navbar() {
         </div>
 
         <div className="md:hidden flex items-center gap-2">
-          <Link href="/auth-tabs">
-            <Button variant="outline" size="sm">
-              <User className="w-4 h-4 mr-1" />
-              Giriş Yap
+          {session?.user ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleLogout}
+              className="text-gray-600 hover:text-red-500"
+            >
+              <LogOut className="w-5 h-5" />
             </Button>
-          </Link>
+          ) : (
+            <Link href="/auth-tabs">
+              <Button variant="outline" size="sm">
+                <User className="w-4 h-4 mr-1" />
+                Giriş Yap
+              </Button>
+            </Link>
+          )}
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon">
@@ -85,9 +96,15 @@ export default function Navbar() {
                       {session?.user?.name?.charAt(0) ?? "U"}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="font-medium text-sm text-gray-900">
-                    {session?.user?.name ?? "Misafir"}
-                  </span>
+                  {status === "loading" ? (
+                    <span className="font-medium text-sm text-gray-400">
+                      Yükleniyor...
+                    </span>
+                  ) : (
+                    <span className="font-medium text-sm text-gray-900">
+                      {session?.user?.name ?? "Misafir"}
+                    </span>
+                  )}
                 </div>
                 {session?.user && (
                   <Button
@@ -102,6 +119,13 @@ export default function Navbar() {
               </div>
 
               <div className="flex flex-col gap-4 text-sm text-gray-800">
+                <Link
+                  href="/profile"
+                  className="flex items-center gap-2 hover:text-primary transition"
+                >
+                  <Info className="w-4 h-4" />
+                  Profilim
+                </Link>
                 <Link
                   href="/about"
                   className="flex items-center gap-2 hover:text-primary transition"

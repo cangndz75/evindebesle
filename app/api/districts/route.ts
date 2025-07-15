@@ -1,9 +1,9 @@
-import { prisma } from "@/lib/db"
-import { NextResponse } from "next/server"
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
 
 export async function GET() {
   const districts = await prisma.district.findMany({
-    orderBy: { name: "asc" }
-  })
-  return NextResponse.json(districts)
+    select: { id: true, name: true }
+  });
+  return NextResponse.json(districts);
 }

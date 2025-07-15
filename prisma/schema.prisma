@@ -53,6 +53,8 @@ model User {
   preferredContactMethod  ContactMethod?
   referralCode            String?
   emailVerified           Boolean          @default(false)
+  emailVerifyToken        String?  
+  emailVerifyExpires      DateTime?
   marketingEmailConsent   Boolean          @default(false)
   profileNoteConsent      Boolean          @default(false) 
   createdAt   DateTime    @default(now())

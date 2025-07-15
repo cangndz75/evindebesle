@@ -23,11 +23,14 @@ export const authConfig: AuthOptions = {
         const isValid = await bcrypt.compare(credentials.password, user.password);
         if (!isValid) return null;
 
+        // Tüm field'ları dön
         return {
           id: user.id.toString(),
           email: user.email,
           name: user.name,
           isAdmin: user.isAdmin,
+          districtId: user.districtId,
+          fullAddress: user.fullAddress,
         };
       },
     }),
@@ -35,26 +38,26 @@ export const authConfig: AuthOptions = {
   session: {
     strategy: "jwt",
   },
-    callbacks: {
+  callbacks: {
     async session({ session, token }: { session: any; token: any }) {
-        if (token?.sub) {
+      if (token) {
         session.user.id = token.sub;
         session.user.isAdmin = token.isAdmin;
-        }
-        return session;
+        session.user.districtId = token.districtId;
+        session.user.fullAddress = token.fullAddress;
+      }
+      return session;
     },
     async jwt({ token, user }: { token: any; user?: any }) {
-        if (user) {
+      if (user) {
         token.sub = user.id;
-        const foundUser = await prisma.user.findUnique({
-            where: { id: user.id },
-            select: { isAdmin: true },
-        });
-        token.isAdmin = foundUser?.isAdmin;
-        }
-        return token;
+        token.isAdmin = user.isAdmin;
+        token.districtId = user.districtId;
+        token.fullAddress = user.fullAddress;
+      }
+      return token;
     },
-    },
+  },
   pages: {
     signIn: "/login",
   },

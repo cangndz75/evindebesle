@@ -33,7 +33,7 @@ export default function MyPetsSection() {
   }, []);
 
   return (
-    <div className="max-w-md mx-auto mt-6">
+    <div className="w-full max-w-3xl mx-auto mt-6">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold">Evcil Hayvanlarım</h2>
         <button
@@ -43,9 +43,11 @@ export default function MyPetsSection() {
           + Ekle
         </button>
       </div>
+
       {pets.length === 0 && (
         <div className="text-gray-500">Henüz kayıtlı hayvanınız yok.</div>
       )}
+
       <div className="grid gap-4">
         {pets.map((pet) => (
           <div

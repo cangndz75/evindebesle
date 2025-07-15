@@ -10,7 +10,7 @@ import clsx from "clsx";
 
 const tabs = [
   { label: "Kişisel Bilgilerim2", href: "/profile/personal-info" },
-  { label: "Evcil Hayvanlarım", href: "/profile/my-pets" },
+  { label: "Evcil Hayvanlarım", href: "/profile/pets" },
   { label: "Siparişlerim", href: "/profile/orders" },
   { label: "Favorilerim", href: "/profile/favorites" },
   { label: "İndirim Kuponlarım", href: "/profile/coupons" },

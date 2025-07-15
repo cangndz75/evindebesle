@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import Navbar from "@/app/(public)/_components/Navbar";
-import Sidebar from "@/app/(profile)/_components/Sidebar";
-import ProfileMobileHeader from "@/app/(profile)/_components/ProfileMobileHeader";
+import Sidebar from "@/app/(account)/profile/_components/Sidebar";
+import ProfileMobileHeader from "@/app/(account)/profile/_components/ProfileMobileHeader";
 
 export default function ProfileLayout({ children }: { children: ReactNode }) {
   return (

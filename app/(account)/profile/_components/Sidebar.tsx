@@ -5,8 +5,8 @@ import { usePathname } from "next/navigation";
 import { LogOut } from "lucide-react";
 
 const links = [
-  { href: "/personal-info", label: "Kişisel Bilgilerim" },
-  { href: "/pets", label: "Evcil Hayvanlarım" },
+  { href: "/profile/personal-info", label: "Kişisel Bilgilerim" },
+  { href: "/profile/pets", label: "Evcil Hayvanlarım" },
   { href: "/addresses", label: "Adreslerim" },
   { href: "/orders", label: "Siparişlerim" },
   { href: "/price-alerts", label: "Fiyat Alarmı" },

@@ -7,7 +7,7 @@ export async function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
 
-  const adminPaths = ["/admin","/dashboard", "/pets", "/services", "/users"];
+  const adminPaths = ["/admin","/dashboard", "/pets", "/users"];
 
   const isProtectedAdminPath = adminPaths.some((path) =>
     pathname.startsWith(path)

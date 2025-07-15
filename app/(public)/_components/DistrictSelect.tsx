@@ -1,29 +1,69 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useEffect, useState } from "react";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { ChevronDownIcon, CheckIcon } from "lucide-react";
 
-export default function DistrictSelect({ onSelect }: { onSelect: (id: string) => void }) {
-  const [districts, setDistricts] = useState<{ id: string; name: string }[]>([])
+type District = {
+  id: string;
+  name: string;
+  city: string;
+};
+
+export default function DistrictSelect({
+  onSelect,
+  value,
+}: {
+  onSelect: (val: string) => void;
+  value?: string | null;
+}) {
+  const [open, setOpen] = useState(false);
+  const [districts, setDistricts] = useState<District[]>([]);
+  const [selected, setSelected] = useState("");
 
   useEffect(() => {
     fetch("/api/districts")
       .then((res) => res.json())
-      .then(setDistricts)
-  }, [])
+      .then((data) => setDistricts(data));
+  }, []);
+
+  useEffect(() => {
+    if (value) {
+      setSelected(value);
+    }
+  }, [value]);
+
+  const handleSelect = (val: string) => {
+    setSelected(val);
+    onSelect(val);
+    setOpen(false);
+  };
 
   return (
-    <Select onValueChange={onSelect}>
-      <SelectTrigger>
-        <SelectValue placeholder="Bir ilçe seçin" />
-      </SelectTrigger>
-      <SelectContent>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="outline" className="w-full justify-between">
+          {selected || "İlçe seçin"}
+          <ChevronDownIcon className="h-4 w-4" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-full max-h-60 overflow-auto">
         {districts.map((d) => (
-          <SelectItem key={d.id} value={d.id}>
+          <div
+            key={d.id}
+            className="flex items-center justify-between px-2 py-1.5 cursor-pointer hover:bg-accent rounded-md"
+            onClick={() => handleSelect(d.id)}
+          >
             {d.name}
-          </SelectItem>
+            {selected === d.id && <CheckIcon size={16} />}
+          </div>
         ))}
-      </SelectContent>
-    </Select>
-  )
+      </PopoverContent>
+    </Popover>
+  );
 }

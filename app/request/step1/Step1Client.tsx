@@ -8,17 +8,33 @@ import { Label } from "@/components/ui/label";
 import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import Stepper from "@/app/(public)/_components/Stepper";
-import ServiceMultiSelect from "@/app/(public)/_components/ServiceMultiSelect";
 import DistrictSelect from "../_components/DistrictSelect";
 import { toast } from "sonner";
+import FilteredServiceSelect from "@/app/(public)/_components/FilteredServiceSelect";
+import { useMemo } from "react";
 
-type Pet = { id: string; name: string; image: string };
+type Pet = {
+  id: string;
+  name: string;
+  image: string;
+  species: string;
+};
+
+type Service = {
+  id: string;
+  name: string;
+  price: number;
+  petTags: string[];
+};
 
 export default function Page() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const selectedPetIds = useMemo(
+    () => searchParams.getAll("pet"),
+    [searchParams]
+  );
 
-  const selectedPetIds = searchParams.getAll("pet");
   const [allPets, setAllPets] = useState<Pet[]>([]);
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [district, setDistrict] = useState<string | null>(
@@ -28,8 +44,12 @@ export default function Page() {
     searchParams.getAll("service")
   );
   const [fullAddress, setFullAddress] = useState<string>("");
+  const [allServices, setAllServices] = useState<Service[]>([]);
+  const [isLoadingServices, setIsLoadingServices] = useState(true);
+  const [isLoadingPets, setIsLoadingPets] = useState(true);
 
   useEffect(() => {
+    setIsLoadingPets(true);
     fetch("/api/pets")
       .then((res) => res.json())
       .then((data) => {
@@ -38,8 +58,23 @@ export default function Page() {
           selectedPetIds.map((id) => [id, 0])
         );
         setCounts(initialCounts);
-      });
+      })
+      .finally(() => setIsLoadingPets(false));
   }, []);
+
+  useEffect(() => {
+    if (selectedPetIds.length === 0) return;
+
+    setIsLoadingServices(true);
+
+    const params = new URLSearchParams();
+    selectedPetIds.forEach((id) => params.append("pet", id));
+
+    fetch(`/api/services/filtered?${params.toString()}`)
+      .then((res) => res.json())
+      .then((data) => setAllServices(data))
+      .finally(() => setIsLoadingServices(false));
+  }, [selectedPetIds]);
 
   useEffect(() => {
     const addressFromURL = searchParams.get("fullAddress");
@@ -62,11 +97,6 @@ export default function Page() {
         return newCounts;
       });
     }
-  }, [searchParams]);
-
-  useEffect(() => {
-    const addressFromURL = searchParams.get("fullAddress");
-    if (addressFromURL) setFullAddress(addressFromURL);
   }, [searchParams]);
 
   const handleChange = (petId: string, delta: number) => {
@@ -117,15 +147,16 @@ export default function Page() {
   };
 
   const selectedPets = allPets.filter((p) => selectedPetIds.includes(p.id));
+  const selectedSpecies = selectedPets.map((p) => p.species);
 
   return (
     <div className="h-screen grid md:grid-cols-2 overflow-hidden relative">
       <div className="flex flex-col justify-between px-6 py-6 overflow-hidden">
-        <div className="space-y-4 overflow-y-auto pr-2">
-          <div className="mb-2">
-            <Stepper activeStep={1} />
-          </div>
+        <div className="sticky top-0 z-40 bg-white pb-2 md:static">
+          <Stepper activeStep={1} />
+        </div>
 
+        <div className="space-y-4 overflow-y-auto pr-2">
           <Button
             variant="ghost"
             size="sm"
@@ -145,71 +176,86 @@ export default function Page() {
           </div>
 
           <div className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar">
-            {selectedPets.map((pet) => (
-              <div
-                key={pet.id}
-                className="min-w-[130px] flex-shrink-0 rounded-xl border bg-white p-4 shadow-sm transition hover:shadow-md flex flex-col items-center"
-              >
-                {/* <Image
-                  src={pet.image}
-                  alt={pet.name}
-                  width={60}
-                  height={60}
-                  className="mb-3 rounded-lg object-cover"
-                /> */}
-                <div className="text-sm font-medium capitalize mb-3 text-center">
-                  {pet.name}
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-9 h-9 flex items-center justify-center p-0"
-                    onClick={() => handleChange(pet.id, -1)}
+            {isLoadingPets
+              ? [...Array(3)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="min-w-[130px] h-[120px] flex-shrink-0 rounded-xl border bg-muted animate-pulse p-4 shadow-sm"
+                  />
+                ))
+              : selectedPets.map((pet) => (
+                  <div
+                    key={pet.id}
+                    className="min-w-[130px] flex-shrink-0 rounded-xl border bg-white p-4 shadow-sm transition hover:shadow-md flex flex-col items-center"
                   >
-                    <MinusIcon className="w-5 h-5" />
-                  </Button>
-                  <span className="text-lg font-semibold w-8 text-center select-none">
-                    {counts[pet.id]}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-9 h-9 flex items-center justify-center p-0"
-                    onClick={() => handleChange(pet.id, 1)}
-                  >
-                    <PlusIcon className="w-5 h-5" />
-                  </Button>
-                </div>
-              </div>
-            ))}
+                    <div className="text-sm font-medium capitalize mb-3 text-center">
+                      {pet.name}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleChange(pet.id, -1)}
+                      >
+                        <MinusIcon className="w-5 h-5" />
+                      </Button>
+                      <span className="text-lg font-semibold w-8 text-center select-none">
+                        {counts[pet.id]}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleChange(pet.id, 1)}
+                      >
+                        <PlusIcon className="w-5 h-5" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
           </div>
 
           <div className="rounded-2xl border bg-white p-4 shadow space-y-3">
-            <div>
-              <Label className="text-sm font-semibold mb-1 block">
-                İlçe Seçimi
-              </Label>
-              <DistrictSelect onSelect={setDistrict} />
-            </div>
+            <Label className="text-sm font-semibold mb-1 block">
+              İlçe Seçimi
+            </Label>
+            <DistrictSelect onSelect={setDistrict} />
 
-            <div>
-              <Label className="text-sm font-semibold mb-1 block">
-                Detaylı Adres
-              </Label>
-              <Input
-                placeholder="Apartman, sokak, no, kat vb."
-                value={fullAddress}
-                onChange={(e) => setFullAddress(e.target.value)}
-              />
-            </div>
+            <Label className="text-sm font-semibold mb-1 block">
+              Detaylı Adres
+            </Label>
+            <Input
+              placeholder="Apartman, sokak, no, kat vb."
+              value={fullAddress}
+              onChange={(e) => setFullAddress(e.target.value)}
+            />
           </div>
 
           <div className="rounded-2xl border bg-white p-4 shadow">
             <Label className="text-sm font-semibold mb-1 block">
               Hizmet Türleri
             </Label>
-            <ServiceMultiSelect selected={services} setSelected={setServices} />
+
+            {isLoadingServices ? (
+              <div className="space-y-2">
+                {[...Array(3)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="h-10 w-full bg-muted animate-pulse rounded-md"
+                  />
+                ))}
+              </div>
+            ) : allServices.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Uygun hizmet bulunamadı.
+              </p>
+            ) : (
+              <FilteredServiceSelect
+                allServices={allServices}
+                selectedPetSpecies={selectedSpecies}
+                selected={services}
+                setSelected={setServices}
+              />
+            )}
           </div>
         </div>
 

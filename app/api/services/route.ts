@@ -1,10 +1,27 @@
-import { prisma } from "@/lib/db"
-import { NextResponse } from "next/server"
+import { prisma } from "@/lib/db";
+import { NextResponse } from "next/server";
 
 export async function GET() {
   const services = await prisma.service.findMany({
-    select: { id: true, name: true, description: true, price: true, isActive: true },
-  })
+    where: { isActive: true },
+    include: {
+      tags: {
+        include: {
+          pet: true,
+        },
+      },
+    },
+  });
 
-  return NextResponse.json(services)
+  const flatServices = services.map((service) => ({
+    id: service.id,
+    name: service.name,
+    description: service.description,
+    price: service.price,
+    petTags: service.tags
+      .map((tag) => tag.pet?.species?.toUpperCase())
+      .filter((species): species is string => Boolean(species)),
+  }));
+
+  return NextResponse.json(flatServices);
 }

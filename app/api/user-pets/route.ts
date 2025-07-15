@@ -35,37 +35,31 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const session = await getServerSession(authConfig);
-  if (!session?.user?.id) return NextResponse.json({}, { status: 401 });
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   const body = await req.json();
-  const {
-    petId,          
-    name,
-    age,
-    gender,
-    image,          
-    relation,
-    allergy,
-    sensitivity,
-    specialNote,
-    allowAdUse,
-  } = body;
 
-  const userPet = await prisma.userPet.create({
+    const created = await prisma.userPet.create({
     data: {
-      userId: session.user.id,
-      petId,                  
-      name,
-      age,
-      gender,
-      image: image ?? [],     
-      relation,
-      allergy,
-      sensitivity,
-      specialNote,
-      allowAdUse: !!allowAdUse,
-    }
-  });
+        user: {
+        connect: { id: session.user.id } 
+        },
+        pet: {
+        connect: { id: body.petId } 
+        },
+        name: body.name,
+        age: body.age,
+        gender: body.gender ?? null,
+        image: body.image ?? null,
+        allergy: body.allergy || null,
+        sensitivity: body.sensitivity || null,
+        specialNote: body.specialNote || null,
+        relation: body.relation || null,
+        allowAdUse: body.allowAdUse ?? false,
+    },
+    });
 
-  return NextResponse.json(userPet);
+  return NextResponse.json(created);
 }

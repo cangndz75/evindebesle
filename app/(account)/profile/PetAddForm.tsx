@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -12,15 +12,17 @@ type Props = {
   onSaved: () => void;
 };
 
-const speciesOptions = [
-  { value: "kedi", label: "Kedi" },
-  { value: "köpek", label: "Köpek" },
-  { value: "kuş", label: "Kuş" },
-];
+type PetType = {
+  id: string;
+  name: string;
+  species?: string;
+  image?: string;
+};
 
 export default function PetAddForm({ onSaved }: Props) {
-  const id = useId();
-  const [species, setSpecies] = useState("kedi");
+  const [speciesOptions, setSpeciesOptions] = useState<PetType[]>([]);
+  const [selectedSpecies, setSelectedSpecies] = useState<string | null>(null);
+
   const [form, setForm] = useState({
     name: "",
     age: "",
@@ -34,6 +36,15 @@ export default function PetAddForm({ onSaved }: Props) {
   const maxSizeMB = 5;
   const maxSize = maxSizeMB * 1024 * 1024;
   const maxFiles = 6;
+
+  useEffect(() => {
+    fetch("/api/pets")
+      .then((res) => res.json())
+      .then((data) => {
+        setSpeciesOptions(data);
+        if (data.length > 0) setSelectedSpecies(data[0].id);
+      });
+  }, []);
 
   const [
     { files, isDragging, errors },
@@ -49,27 +60,26 @@ export default function PetAddForm({ onSaved }: Props) {
   ] = useFileUpload({
     accept: "image/*",
     maxSize,
-    multiple: true,
-    maxFiles,
+    multiple: false,
+    maxFiles: 1,
   });
 
   const uploadAllToCloudinary = async () => {
     setUploading(true);
-    const urls: string[] = [];
-    for (const f of files) {
-      if (!f.file) continue;
-      const formData = new FormData();
-      formData.append("file", f.file);
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-      const data = await res.json();
-      if (data.url) urls.push(data.url);
-    }
+    const f = files[0];
+    if (!f?.file) return [];
+
+    const formData = new FormData();
+    formData.append("file", f.file);
+    const res = await fetch("/api/upload", {
+      method: "POST",
+      body: formData,
+    });
+    const data = await res.json();
     setUploading(false);
-    setCloudinaryUrls(urls);
-    return urls;
+    const url = data.url;
+    if (url) setCloudinaryUrls([url]);
+    return url ? [url] : [];
   };
 
   if (
@@ -89,14 +99,17 @@ export default function PetAddForm({ onSaved }: Props) {
     e.preventDefault();
     setSaving(true);
 
+    const uploadedUrls = await uploadAllToCloudinary();
+    const image = uploadedUrls[0] || null;
+
     await fetch("/api/user-pets", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: form.name,
         age: form.age ? Number(form.age) : undefined,
-        species,
-        image: cloudinaryUrls, 
+        petId: selectedSpecies,
+        image: uploadedUrls.length > 0 ? uploadedUrls[0] : null,
         allergy: form.allergy,
         specialNote: form.specialNote,
       }),
@@ -104,7 +117,7 @@ export default function PetAddForm({ onSaved }: Props) {
 
     setSaving(false);
     setCloudinaryUrls([]);
-    files.forEach((f) => removeFile(f.id)); 
+    files.forEach((f) => removeFile(f.id));
     setForm({ name: "", age: "", allergy: "", specialNote: "" });
     onSaved();
   };
@@ -113,9 +126,9 @@ export default function PetAddForm({ onSaved }: Props) {
     <form className="space-y-6 w-full pb-10" onSubmit={handleSubmit}>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor={`${id}-name`}>Ad</Label>
+          <Label htmlFor="name">Ad</Label>
           <Input
-            id={`${id}-name`}
+            id="name"
             name="name"
             value={form.name}
             onChange={handleChange}
@@ -124,9 +137,9 @@ export default function PetAddForm({ onSaved }: Props) {
           />
         </div>
         <div>
-          <Label htmlFor={`${id}-age`}>Yaş</Label>
+          <Label htmlFor="age">Yaş</Label>
           <Input
-            id={`${id}-age`}
+            id="age"
             name="age"
             value={form.age}
             onChange={handleChange}
@@ -141,23 +154,14 @@ export default function PetAddForm({ onSaved }: Props) {
       <div>
         <Label className="mb-2 block text-sm font-medium">Tür</Label>
         <RadioGroup
+          value={selectedSpecies ?? ""}
+          onValueChange={setSelectedSpecies}
           className="flex gap-4"
-          defaultValue={species}
-          onValueChange={setSpecies}
         >
-          {speciesOptions.map((item) => (
-            <div
-              key={`${id}-${item.value}`}
-              className="border-input data-[state=checked]:border-primary/50 relative flex flex-col items-start gap-4 rounded-md border p-3 shadow-xs outline-none"
-            >
-              <div className="flex items-center gap-2">
-                <RadioGroupItem
-                  id={`${id}-${item.value}`}
-                  value={item.value}
-                  className="after:absolute after:inset-0"
-                />
-                <Label htmlFor={`${id}-${item.value}`}>{item.label}</Label>
-              </div>
+          {speciesOptions.map((pet) => (
+            <div key={pet.id} className="flex items-center gap-2">
+              <RadioGroupItem id={pet.id} value={pet.id} />
+              <Label htmlFor={pet.id}>{pet.name}</Label>
             </div>
           ))}
         </RadioGroup>
@@ -165,8 +169,9 @@ export default function PetAddForm({ onSaved }: Props) {
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label>Alerji</Label>
+          <Label htmlFor="allergy">Alerji</Label>
           <Input
+            id="allergy"
             name="allergy"
             value={form.allergy}
             onChange={handleChange}
@@ -174,8 +179,9 @@ export default function PetAddForm({ onSaved }: Props) {
           />
         </div>
         <div>
-          <Label>Özel Not</Label>
+          <Label htmlFor="specialNote">Özel Not</Label>
           <Input
+            id="specialNote"
             name="specialNote"
             value={form.specialNote}
             onChange={handleChange}
@@ -212,47 +218,38 @@ export default function PetAddForm({ onSaved }: Props) {
                   onClick={openFileDialog}
                   disabled={files.length >= maxFiles}
                 >
-                  <UploadIcon
-                    className="-ms-0.5 size-3.5 opacity-60"
-                    aria-hidden="true"
-                  />
+                  <UploadIcon className="-ms-0.5 size-3.5 opacity-60" />
                   Daha fazla ekle
                 </Button>
               </div>
               <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-                {cloudinaryUrls.map((url, idx) => (
-                  <div
-                    key={url}
-                    className="bg-accent relative aspect-square rounded-md"
-                  >
-                    <img
-                      src={url}
-                      alt={`Yüklenen fotoğraf ${idx + 1}`}
-                      className="size-full rounded-[inherit] object-cover"
-                    />
-                    <Button
-                      onClick={() => {
-                        if (files[idx]) removeFile(files[idx].id);
-                        setCloudinaryUrls((prev) =>
-                          prev.filter((u, i) => i !== idx)
-                        );
-                      }}
-                      size="icon"
-                      className="border-background focus-visible:border-background absolute -top-2 -right-2 size-6 rounded-full border-2 shadow-none"
-                      aria-label="Remove image"
-                    >
-                      <XIcon className="size-3.5" />
-                    </Button>
+                {cloudinaryUrls.length > 0 && (
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="bg-accent relative aspect-square rounded-md">
+                      <img
+                        src={cloudinaryUrls[0]}
+                        alt="Yüklenen fotoğraf"
+                        className="size-full rounded-[inherit] object-cover"
+                      />
+                      <Button
+                        onClick={() => {
+                          if (files[0]) removeFile(files[0].id);
+                          setCloudinaryUrls([]);
+                        }}
+                        size="icon"
+                        className="border-background focus-visible:border-background absolute -top-2 -right-2 size-6 rounded-full border-2 shadow-none"
+                        aria-label="Remove image"
+                      >
+                        <XIcon className="size-3.5" />
+                      </Button>
+                    </div>
                   </div>
-                ))}
+                )}
               </div>
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center px-4 py-3 text-center">
-              <div
-                className="bg-background mb-2 flex size-11 shrink-0 items-center justify-center rounded-full border"
-                aria-hidden="true"
-              >
+              <div className="bg-background mb-2 flex size-11 items-center justify-center rounded-full border">
                 <ImageIcon className="size-4 opacity-60" />
               </div>
               <p className="mb-1.5 text-sm font-medium">
@@ -267,17 +264,14 @@ export default function PetAddForm({ onSaved }: Props) {
                 type="button"
                 onClick={openFileDialog}
               >
-                <UploadIcon className="-ms-1 opacity-60" aria-hidden="true" />
+                <UploadIcon className="-ms-1 opacity-60" />
                 Fotoğraf Seç
               </Button>
             </div>
           )}
         </div>
         {errors.length > 0 && (
-          <div
-            className="text-destructive flex items-center gap-1 text-xs mt-2"
-            role="alert"
-          >
+          <div className="text-destructive flex items-center gap-1 text-xs mt-2">
             <AlertCircleIcon className="size-3 shrink-0" />
             <span>{errors[0]}</span>
           </div>

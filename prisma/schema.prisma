@@ -128,7 +128,7 @@ model UserPet {
   name      String?
   age       Int?
   gender    String?        
-  image     String[] @default([])
+  image     String?
   relation  String?        
   allergy   String?        
   sensitivity String?      

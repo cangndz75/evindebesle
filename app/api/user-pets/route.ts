@@ -13,24 +13,24 @@ export async function GET() {
     orderBy: { createdAt: "desc" }
   });
 
-  return NextResponse.json(
+    return NextResponse.json(
     userPets.map(up => ({
-      id: up.id,
-      name: up.name ?? up.pet?.name,            
-      petType: up.pet?.name,                     
-      image: up.image || up.pet?.image,
-      species: up.pet?.species,
-      breed: up.pet?.breed,
-      age: up.age,
-      gender: up.gender,
-      relation: up.relation,
-      allergy: up.allergy,
-      sensitivity: up.sensitivity,
-      specialNote: up.specialNote,
-      allowAdUse: up.allowAdUse,
-      createdAt: up.createdAt,
+        id: up.id,
+        petName: up.pet?.name,
+        userPetName: up.name,
+        image: up.image && up.image.length > 0 ? up.image : up.pet?.image ? [up.pet?.image] : [],
+        species: up.pet?.species,
+        breed: up.pet?.breed,
+        age: up.age,
+        gender: up.gender,
+        relation: up.relation,
+        allergy: up.allergy,
+        sensitivity: up.sensitivity,
+        specialNote: up.specialNote,
+        allowAdUse: up.allowAdUse,
+        createdAt: up.createdAt,
     }))
-  );
+    );
 }
 
 export async function POST(req: Request) {
@@ -43,7 +43,7 @@ export async function POST(req: Request) {
     name,
     age,
     gender,
-    image,
+    image,          
     relation,
     allergy,
     sensitivity,
@@ -54,11 +54,11 @@ export async function POST(req: Request) {
   const userPet = await prisma.userPet.create({
     data: {
       userId: session.user.id,
-      petId,
+      petId,                  
       name,
       age,
       gender,
-      image,
+      image: image ?? [],     
       relation,
       allergy,
       sensitivity,

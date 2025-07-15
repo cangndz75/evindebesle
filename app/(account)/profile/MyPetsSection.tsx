@@ -23,7 +23,7 @@ export default function MyPetsSection() {
   const [open, setOpen] = useState(false);
 
   const fetchPets = async () => {
-    const res = await fetch("/api/pets");
+    const res = await fetch("/api/user-pets");
     const data = await res.json();
     setPets(data);
   };

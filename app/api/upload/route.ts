@@ -1,10 +1,33 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server";
+import { v2 as cloudinary } from "cloudinary";
 
-export async function POST(req: Request) {
-  const formData = await req.formData()
-  const file = formData.get("file") as File
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
-  return NextResponse.json({
-    url: URL.createObjectURL(file),
-  })
+export async function POST(req: NextRequest) {
+  const data = await req.formData();
+  const file = data.get("file") as File;
+  if (!file) return NextResponse.json({ error: "No file" }, { status: 400 });
+
+  const arrayBuffer = await file.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+
+  try {
+    const res = await new Promise<{ secure_url: string }>((resolve, reject) => {
+      cloudinary.uploader.upload_stream(
+        { folder: "evindebesle" },
+        (err, result) => {
+          if (err || !result) return reject(err);
+          resolve(result as any);
+        }
+      ).end(buffer);
+    });
+
+    return NextResponse.json({ url: res.secure_url });
+  } catch (e) {
+    return NextResponse.json({ error: "Cloudinary upload failed" }, { status: 500 });
+  }
 }

@@ -30,6 +30,7 @@
     "bcryptjs": "^3.0.2",
     "better-auth": "^1.2.12",
     "class-variance-authority": "^0.7.1",
+    "cloudinary": "^2.7.0",
     "clsx": "^2.1.1",
     "cors": "^2.8.5",
     "date-fns": "^4.1.0",

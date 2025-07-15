@@ -8,8 +8,10 @@ import { authConfig } from "@/lib/auth.config";
 export default async function PetDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = await params;
+
   const session = await getServerSession(authConfig);
   const userId = session?.user.id;
 
@@ -17,7 +19,7 @@ export default async function PetDetailPage({
 
   const pet = await prisma.ownedPet.findFirst({
     where: {
-      id: params.id,
+      id,
       userId,
     },
     include: {

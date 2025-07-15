@@ -43,6 +43,16 @@ const navLinks = [
     href: "/admin-services",
     icon: <Briefcase className="w-5 h-5" />,
   },
+  {
+    label: "İndirim Kuponları",
+    href: "/coupons",
+    icon: <List className="w-5 h-5" />,
+  },
+  {
+    label: "Hizmet Adresleri",
+    href: "/admin-addresses",
+    icon: <List className="w-5 h-5" />,
+  }
 ];
 
 export default function AdminLayout({

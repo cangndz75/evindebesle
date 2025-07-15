@@ -8,7 +8,7 @@ export async function PATCH(
   const { id } = await params;
   const body = await request.json();
 
-  const updated = await prisma.userPet.update({
+  const updated = await prisma.ownedPet.update({
     where: { id },
     data: body,
   });
@@ -22,7 +22,7 @@ export async function DELETE(
 ) {
   const { id } = await params;
 
-  await prisma.userPet.delete({
+  await prisma.ownedPet.delete({
     where: { id },
   });
 

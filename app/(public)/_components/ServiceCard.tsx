@@ -6,7 +6,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-export function ServiceCard({
+export default function ServiceCard({
   service,
   selected,
   toggle,

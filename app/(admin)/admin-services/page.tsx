@@ -28,8 +28,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { ChevronLeftIcon, ChevronRightIcon, TrashIcon } from "lucide-react";
-import { AddServiceModal } from "@/app/(public)/_components/admin/services/AddServiceModal";
-import { EditServiceModal } from "@/app/(public)/_components/admin/services/EditServiceModal";
+
+import { AddServiceModal } from "@/app/(admin)/admin-services/AddServiceModal";
+import { EditServiceModal } from "@/app/(admin)/admin-services/EditServiceModal";
+
+type Pet = {
+  id: string;
+  name: string;
+};
 
 type Service = {
   id: string;
@@ -39,6 +45,7 @@ type Service = {
   isActive: boolean;
   image?: string;
   createdAt: string;
+  tags: { pet: Pet }[]; // tags içinden pet bilgisi geliyor
 };
 
 export default function ServicesPage() {
@@ -88,6 +95,19 @@ export default function ServicesPage() {
     {
       header: "Fiyat (₺)",
       accessorKey: "price",
+    },
+    {
+      header: "Pet Türleri",
+      accessorKey: "tags",
+      cell: ({ row }) => (
+        <div className="flex flex-wrap gap-1">
+          {(row.getValue("tags") as { pet: Pet }[]).map((tag) => (
+            <Badge key={tag.pet.id} variant="secondary" className="text-xs">
+              {tag.pet.name}
+            </Badge>
+          ))}
+        </div>
+      ),
     },
     {
       header: "Aktif",

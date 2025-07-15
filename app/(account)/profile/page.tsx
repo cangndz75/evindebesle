@@ -6,7 +6,6 @@ import EmailVerifyNotice from "./EmailVerifyNotice";
 import ProfileDetails from "./ProfileDetails";
 import MarketingConsentToggle from "./MarketingConsentToggle";
 import PasswordChange from "./PasswordChange";
-import AddressEdit from "./addresses/AddressEdit";
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -21,9 +20,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 export default function ProfilePage() {
-  const [activeTab, setActiveTab] = useState<
-    "profile" | "password" | "address"
-  >("profile");
+  const [activeTab, setActiveTab] = useState<"profile" | "password">("profile");
   const { data: session } = useSession();
   const user = session?.user;
 
@@ -46,39 +43,22 @@ export default function ProfilePage() {
       <div className="flex space-x-4 mb-4 border-b">
         <button
           onClick={() => setActiveTab("profile")}
-          className={`px-1 pb-2 text-sm font-medium transition-all
-      ${
-        activeTab === "profile"
-          ? "border-b-2 border-black text-black font-semibold"
-          : "text-gray-700 hover:text-black"
-      }
-    `}
+          className={`px-1 pb-2 text-sm font-medium transition-all ${
+            activeTab === "profile"
+              ? "border-b-2 border-black text-black font-semibold"
+              : "text-gray-700 hover:text-black"
+          }`}
           style={{ background: "none", borderRadius: 0 }}
         >
           Profil Detayları
         </button>
         <button
-          onClick={() => setActiveTab("address")}
-          className={`px-1 pb-2 text-sm font-medium transition-all
-      ${
-        activeTab === "address"
-          ? "border-b-2 border-black text-black font-semibold"
-          : "text-gray-700 hover:text-black"
-      }
-    `}
-          style={{ background: "none", borderRadius: 0 }}
-        >
-          Adresim
-        </button>
-        <button
           onClick={() => setActiveTab("password")}
-          className={`px-1 pb-2 text-sm font-medium transition-all
-      ${
-        activeTab === "password"
-          ? "border-b-2 border-black text-black font-semibold"
-          : "text-gray-700 hover:text-black"
-      }
-    `}
+          className={`px-1 pb-2 text-sm font-medium transition-all ${
+            activeTab === "password"
+              ? "border-b-2 border-black text-black font-semibold"
+              : "text-gray-700 hover:text-black"
+          }`}
           style={{ background: "none", borderRadius: 0 }}
         >
           Şifre Değiştirme
@@ -92,12 +72,6 @@ export default function ProfilePage() {
           <ProfileDetails />
           <MarketingConsentToggle />
         </>
-      )}
-      {activeTab === "address" && (
-        <AddressEdit
-          districtId={user?.districtId ?? ""}
-          fullAddress={user?.fullAddress ?? ""}
-        />
       )}
       {activeTab === "password" && <PasswordChange />}
       {activeTab === "profile" && (

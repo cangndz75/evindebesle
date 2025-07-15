@@ -1,5 +1,5 @@
 import { serviceGroups } from "@/lib/data/services";
-import ServiceCard from "./ServiceCard";
+import PromoServiceCard from "./PromoServiceCard";
 
 export default function Services() {
   return (
@@ -20,7 +20,7 @@ export default function Services() {
               </h3>
               <div className="grid gap-4">
                 {group.items.map((item) => (
-                  <ServiceCard
+                  <PromoServiceCard
                     key={item.title}
                     icon={item.icon}
                     title={item.title}

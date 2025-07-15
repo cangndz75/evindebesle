@@ -70,7 +70,7 @@ export default function LoginForm() {
 
   return (
     <div className="w-full px-6 sm:px-8 max-w-md mx-auto py-10 space-y-8">
-      <AuthHeader title="Giriş Yap" subtitle="Tekrar hoş geldiniz!" />
+      <AuthHeader title="Giriş Yap" />
 
       <div className="space-y-4">
         <Input

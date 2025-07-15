@@ -83,7 +83,12 @@ export default function PetTypeSelector() {
               selected.forEach((pet) => params.append("pet", pet));
               router.push(`/request?${params.toString()}`);
             }}
-            className="px-10 py-4 rounded-full font-bold bg-lime-500 hover:bg-lime-600 text-white transition-all duration-300 shadow-lg"
+            disabled={selected.length === 0}
+            className={`px-10 py-4 rounded-full font-bold text-white transition-all duration-300 shadow-lg ${
+              selected.length === 0
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-lime-500 hover:bg-lime-600"
+            }`}
           >
             Devam Et
           </button>

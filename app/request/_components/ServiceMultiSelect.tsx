@@ -1,39 +1,50 @@
-"use client"
+"use client";
 
-import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { useEffect, useState } from "react";
 
-const allServices = [
-  "Mama Takibi", "Günlük Oyun", "Yürüyüş", "Veteriner Ziyareti", "Gözlem", "Fotoğraf Gönderimi"
-]
+type Service = {
+  id: string;
+  name: string;
+};
 
 export default function ServiceMultiSelect({
   selected,
   setSelected,
 }: {
-  selected: string[]
-  setSelected: (val: string[]) => void
+  selected: string[];
+  setSelected: (val: string[]) => void;
 }) {
-  const toggle = (service: string) => {
+  const [services, setServices] = useState<Service[]>([]);
+
+  useEffect(() => {
+    fetch("/api/admin-services")
+      .then((res) => res.json())
+      .then(setServices)
+      .catch(() => setServices([]));
+  }, []);
+
+  const toggle = (serviceId: string) => {
     setSelected(
-      selected.includes(service)
-        ? selected.filter((s) => s !== service)
-        : [...selected, service]
-    )
-  }
+      selected.includes(serviceId)
+        ? selected.filter((id) => id !== serviceId)
+        : [...selected, serviceId]
+    );
+  };
 
   return (
-    <div className="grid gap-2">
-      {allServices.map((s) => (
-        <div key={s} className="flex items-center gap-2">
+    <div className="grid gap-2 max-h-64 overflow-y-auto">
+      {services.map((service) => (
+        <div key={service.id} className="flex items-center gap-2">
           <Checkbox
-            id={s}
-            checked={selected.includes(s)}
-            onCheckedChange={() => toggle(s)}
+            id={service.id}
+            checked={selected.includes(service.id)}
+            onCheckedChange={() => toggle(service.id)}
           />
-          <Label htmlFor={s}>{s}</Label>
+          <Label htmlFor={service.id}>{service.name}</Label>
         </div>
       ))}
     </div>
-  )
+  );
 }

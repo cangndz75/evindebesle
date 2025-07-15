@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
+import { signIn } from "next-auth/react";
 
 export default function RegisterForm() {
   const router = useRouter();
@@ -32,26 +33,19 @@ export default function RegisterForm() {
           return;
         }
 
-        const otpRes = await fetch(
-          "/api/auth/email-otp/send-verification-otp",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              email,
-              type: "sign-in",
-            }),
-          }
-        );
+        const signInResult = await signIn("credentials", {
+          redirect: false,
+          email,
+          password,
+        });
 
-        if (otpRes.ok) {
-          toast.success("Doğrulama kodu gönderildi.");
-          router.push(`/verify-request?email=${email}`);
-        } else {
-          toast.error("Kod gönderilemedi.");
+        if (signInResult?.error) {
+          toast.error("Otomatik giriş başarısız: " + signInResult.error);
+          return;
         }
+
+        toast.success("Kayıt ve giriş başarılı!");
+        window.location.href = "/";
       } catch {
         toast.error("Bir hata oluştu.");
       }

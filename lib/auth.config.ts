@@ -23,7 +23,6 @@ export const authConfig: AuthOptions = {
         const isValid = await bcrypt.compare(credentials.password, user.password);
         if (!isValid) return null;
 
-        // Tüm field'ları dön
         return {
           id: user.id.toString(),
           email: user.email,

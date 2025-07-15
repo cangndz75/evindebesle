@@ -1,32 +1,48 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const body = await request.json();
+  try {
+    const body = await request.json();
 
-  // tags güncellemesi için önce eski taglar silinip sonra yeni oluşturulabilir
-  if (body.petIds) {
-    await prisma.serviceTag.deleteMany({ where: { serviceId: id } });
+    return await prisma.$transaction(async (tx) => {
+      if (body.petIds) {
+        await tx.serviceTag.deleteMany({ where: { serviceId: id } });
+      }
+
+      const { petIds, ...rest } = body;
+      const updated = await tx.service.update({
+        where: { id },
+        data: rest,
+      });
+
+      if (body.petIds && Array.isArray(body.petIds) && body.petIds.length > 0) {
+        await Promise.all(
+          body.petIds.map((petId: string) =>
+            tx.serviceTag.create({
+              data: { serviceId: id, petId },
+            })
+          )
+        );
+      }
+
+      const result = await tx.service.findUniqueOrThrow({
+        where: { id },
+        include: { tags: { include: { pet: true } } },
+      });
+
+      return NextResponse.json(result);
+    });
+  } catch (error) {
+    console.error("PATCH /api/admin-services/[id] hata:", error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Bilinmeyen hata" },
+      { status: 500 }
+    );
   }
-
-  const updated = await prisma.service.update({
-    where: { id },
-    data: {
-      ...body,
-      tags: body.petIds
-        ? {
-            create: body.petIds.map((petId: string) => ({ petId })),
-          }
-        : undefined,
-    },
-    include: { tags: { include: { pet: true } } },
-  });
-
-  return NextResponse.json(updated);
 }
 
 export async function DELETE(
@@ -41,3 +57,4 @@ export async function DELETE(
 
   return NextResponse.json({ success: true });
 }
+

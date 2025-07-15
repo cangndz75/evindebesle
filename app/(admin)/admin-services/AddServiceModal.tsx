@@ -59,7 +59,7 @@ export function AddServiceModal({ onSuccess }: Props) {
     if (!form.name || !form.price) return;
     setLoading(true);
     try {
-      const res = await fetch("/api/services", {
+      const res = await fetch("/api/admin-services", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -74,11 +74,13 @@ export function AddServiceModal({ onSuccess }: Props) {
         setSelectedPetIds([]);
         onSuccess();
       } else {
-        // hata yönetimi eklenebilir
-        console.error("Hizmet eklenemedi");
+        const errorData = await res.json();
+        console.error("Backend Hata:", errorData);
+        alert("Hizmet eklenemedi: " + (errorData.error || "Bilinmeyen hata"));
       }
     } catch (error) {
       console.error("Hata:", error);
+      alert("Hizmet eklenemedi: " + error);
     } finally {
       setLoading(false);
     }

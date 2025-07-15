@@ -14,24 +14,48 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const body = await req.json();
-  const { name, description, price, petIds } = body;
+  try {
+    const body = await req.json();
+    const { name, description, price, petIds } = body;
 
-  if (!name || !price) {
-    return NextResponse.json({ error: "İsim ve fiyat gerekli" }, { status: 400 });
+    if (!name || !price) {
+      return NextResponse.json(
+        { error: "İsim ve fiyat gerekli" },
+        { status: 400 }
+      );
+    }
+
+    const service = await prisma.$transaction(async (tx) => {
+      const created = await tx.service.create({
+        data: {
+          name,
+          description: description || "",
+          price: Number(price),
+        },
+      });
+
+      if (petIds && Array.isArray(petIds) && petIds.length > 0) {
+        await Promise.all(
+          petIds.map((petId: string) =>
+            tx.serviceTag.create({
+              data: { serviceId: created.id, petId },
+            })
+          )
+        );
+      }
+
+      return tx.service.findUniqueOrThrow({
+        where: { id: created.id },
+        include: { tags: { include: { pet: true } } },
+      });
+    });
+
+    return NextResponse.json(service);
+  } catch (error) {
+    console.error("POST /api/services hata:", error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Bilinmeyen hata" },
+      { status: 500 }
+    );
   }
-
-  const service = await prisma.service.create({
-    data: {
-      name,
-      description: description || "",
-      price,
-      tags: {
-        create: petIds?.map((petId: string) => ({ petId })) || [],
-      },
-    },
-    include: { tags: { include: { pet: true } } },
-  });
-
-  return NextResponse.json(service);
 }

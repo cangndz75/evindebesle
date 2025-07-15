@@ -31,6 +31,13 @@ import { ChevronLeftIcon, ChevronRightIcon, TrashIcon } from "lucide-react";
 
 import { AddServiceModal } from "@/app/(admin)/admin-services/AddServiceModal";
 import { EditServiceModal } from "@/app/(admin)/admin-services/EditServiceModal";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type Pet = {
   id: string;
@@ -45,7 +52,7 @@ type Service = {
   isActive: boolean;
   image?: string;
   createdAt: string;
-  tags: { pet: Pet }[]; // tags içinden pet bilgisi geliyor
+  tags: { pet: Pet }[];
 };
 
 export default function ServicesPage() {
@@ -57,6 +64,9 @@ export default function ServicesPage() {
     pageSize: 10,
   });
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [pets, setPets] = useState<Pet[]>([]);
+  const [selectedPetFilter, setSelectedPetFilter] = useState<string>("");
+  const [loading, setLoading] = useState(false);
 
   const refresh = () => {
     fetch("/api/admin-services")
@@ -64,6 +74,14 @@ export default function ServicesPage() {
       .then(setData);
   };
 
+  useEffect(() => {
+    fetch("/api/pets")
+      .then((res) => res.json())
+      .then(setPets)
+      .catch(() => setPets([]));
+
+    refresh();
+  }, []);
   useEffect(refresh, []);
 
   const handleToggleActive = async (id: string, val: boolean) => {
@@ -108,6 +126,12 @@ export default function ServicesPage() {
           ))}
         </div>
       ),
+      enableColumnFilter: true,
+      filterFn: (row, columnId, filterValue) => {
+        if (!filterValue || filterValue === "all") return true;
+        const tags = row.getValue(columnId) as { pet: Pet }[];
+        return tags.some((tag) => tag.pet.id === filterValue);
+      },
     },
     {
       header: "Aktif",
@@ -168,6 +192,25 @@ export default function ServicesPage() {
           }
           className="max-w-xs"
         />
+        <Select
+          onValueChange={(val) => {
+            setSelectedPetFilter(val);
+            table.getColumn("tags")?.setFilterValue(val);
+          }}
+          value={selectedPetFilter}
+        >
+          <SelectTrigger className="max-w-xs">
+            <SelectValue placeholder="Pet türüne göre filtrele" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tüm Pet Türleri</SelectItem>
+            {pets.map((pet) => (
+              <SelectItem key={pet.id} value={pet.id}>
+                {pet.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <AddServiceModal onSuccess={refresh} />
       </div>
 

@@ -24,6 +24,11 @@ export default function MyPetsSection() {
 
   const fetchPets = async () => {
     const res = await fetch("/api/user-pets");
+    if (!res.ok) {
+      const errText = await res.text();
+      console.error("Sunucu hatası:", res.status, errText);
+      return;
+    }
     const data = await res.json();
     setPets(data);
   };

@@ -63,7 +63,7 @@ model User {
   district     District?       @relation(fields: [districtId], references: [id])
   sessions     Session[]
   accounts     Account[]
-  userPets     UserPet[]         
+  ownedPets OwnedPet[]
   appointments Appointment[]     
   userCoupons  UserCoupon[]      
   feedbacks    Feedback[]        
@@ -116,33 +116,56 @@ model Pet {
   breed     String?        // Irk
   createdAt DateTime @default(now())
 
-  userPets  UserPet[]
+  ownedBy OwnedPet[]
   prices    ServicePrice[] 
   tags      ServiceTag[]   
 }
 
-model UserPet {
-  id        String   @id @default(uuid())
-  userId    String
-  petId     String
-  name      String?
-  age       Int?
-  gender    String?        
-  image     String?
-  relation  String?        
-  allergy   String?        
-  sensitivity String?      
-  specialNote String?     
-  allowAdUse Boolean @default(false) 
+model OwnedPet {
+  id           String   @id @default(uuid())
+  userId       String
+  petId        String
+  name         String?
+  age          Int?
+  gender       String?        
+  image        String?
+  relation     String?        
+  allergy      String?        
+  sensitivity  String?      
+  specialNote  String?     
+  allowAdUse   Boolean @default(false) 
 
-  createdAt DateTime @default(now())
+  createdAt    DateTime @default(now())
 
-  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  pet       Pet    @relation(fields: [petId], references: [id], onDelete: Cascade)
+  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pet          Pet    @relation(fields: [petId], references: [id], onDelete: Cascade)
 
   appointments Appointment[] 
   reports      PetReport[]    
 }
+
+// model UserPet {
+//   id        String   @id @default(uuid())
+//   userId    String
+//   petId     String
+//   name      String?
+//   age       Int?
+//   gender    String?        
+//   image     String?
+//   relation  String?        
+//   allergy   String?        
+//   sensitivity String?      
+//   specialNote String?     
+//   allowAdUse Boolean @default(false) 
+
+//   createdAt DateTime @default(now())
+
+//   user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+//   pet       Pet    @relation(fields: [petId], references: [id], onDelete: Cascade)
+
+//   appointments Appointment[] 
+//   reports      PetReport[]    
+// }
 
 model Service {
   id          String   @id @default(uuid())
@@ -202,7 +225,8 @@ model Appointment {
   discountReason  String?            
 
   user            User               @relation(fields: [userId], references: [id])
-  pet             UserPet            @relation(fields: [userPetId], references: [id])
+  ownedPet        OwnedPet   @relation(fields: [ownedPetId], references: [id], onDelete: Cascade)
+  ownedPetId      String
   services        AppointmentService[]
   checkItems      AppointmentCheck[]
   media           AppointmentMedia[]
@@ -260,8 +284,8 @@ model PetReport {
   title     String
   content   String
   createdAt DateTime @default(now())
-
-  userPet   UserPet  @relation(fields: [userPetId], references: [id])
+  ownedPet   OwnedPet   @relation(fields: [ownedPetId], references: [id], onDelete: Cascade)
+  ownedPetId String
 }
 
 model Feedback {

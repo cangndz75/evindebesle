@@ -1,5 +1,8 @@
 "use client";
+
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { ChevronRight } from "lucide-react";
 import PetAddModal from "./PetAddModal";
 
 type UserPet = {
@@ -21,6 +24,7 @@ type UserPet = {
 export default function MyPetsSection() {
   const [pets, setPets] = useState<UserPet[]>([]);
   const [open, setOpen] = useState(false);
+  const router = useRouter();
 
   const fetchPets = async () => {
     const res = await fetch("/api/user-pets");
@@ -57,32 +61,37 @@ export default function MyPetsSection() {
         {pets.map((pet) => (
           <div
             key={pet.id}
-            className="flex items-center gap-4 border rounded-lg p-3"
+            onClick={() => router.push(`/account/profile/pets/${pet.id}`)}
+            className="flex items-center justify-between border rounded-lg p-3 cursor-pointer hover:bg-gray-50 transition"
           >
-            <img
-              src={pet.image || "/pet-placeholder.png"}
-              alt={pet.petName}
-              className="w-12 h-12 rounded-full object-cover bg-gray-200"
-            />
-            <div>
-              <div className="font-semibold">
-                {pet.userPetName || pet.petName}
-              </div>
-              <div className="text-xs text-gray-600">
-                {pet.species} {pet.breed ? `/ ${pet.breed}` : ""}
-              </div>
-              {pet.age && (
-                <div className="text-xs text-gray-500">Yaş: {pet.age}</div>
-              )}
-              {pet.gender && (
-                <div className="text-xs text-gray-500">
-                  Cinsiyet: {pet.gender}
+            <div className="flex items-center gap-4">
+              <img
+                src={pet.image || "/pet-placeholder.png"}
+                alt={pet.petName}
+                className="w-12 h-12 rounded-full object-cover bg-gray-200"
+              />
+              <div>
+                <div className="font-semibold">
+                  {pet.userPetName || pet.petName}
                 </div>
-              )}
-              {pet.relation && (
-                <div className="text-xs text-gray-500">{pet.relation}</div>
-              )}
+                <div className="text-xs text-gray-600">
+                  {pet.species} {pet.breed ? `/ ${pet.breed}` : ""}
+                </div>
+                {pet.age && (
+                  <div className="text-xs text-gray-500">Yaş: {pet.age}</div>
+                )}
+                {pet.gender && (
+                  <div className="text-xs text-gray-500">
+                    Cinsiyet: {pet.gender}
+                  </div>
+                )}
+                {pet.relation && (
+                  <div className="text-xs text-gray-500">{pet.relation}</div>
+                )}
+              </div>
             </div>
+
+            <ChevronRight className="w-5 h-5 text-gray-400" />
           </div>
         ))}
       </div>

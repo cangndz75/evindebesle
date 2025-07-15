@@ -7,7 +7,7 @@ import { LogOut } from "lucide-react";
 const links = [
   { href: "/profile/personal-info", label: "Kişisel Bilgilerim" },
   { href: "/profile/pets", label: "Evcil Hayvanlarım" },
-  { href: "/addresses", label: "Adreslerim" },
+  { href: "/profile/addresses", label: "Adreslerim" },
   { href: "/orders", label: "Siparişlerim" },
   { href: "/price-alerts", label: "Fiyat Alarmı" },
   { href: "/stock-alerts", label: "Stok Habercim" },

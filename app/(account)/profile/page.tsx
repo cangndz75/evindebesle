@@ -6,7 +6,7 @@ import EmailVerifyNotice from "./EmailVerifyNotice";
 import ProfileDetails from "./ProfileDetails";
 import MarketingConsentToggle from "./MarketingConsentToggle";
 import PasswordChange from "./PasswordChange";
-import AddressEdit from "./AddressEdit";
+import AddressEdit from "./addresses/AddressEdit";
 import {
   AlertDialog,
   AlertDialogTrigger,

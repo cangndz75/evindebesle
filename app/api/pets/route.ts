@@ -9,26 +9,24 @@ export async function GET() {
 
   const userPets = await prisma.userPet.findMany({
     where: { userId: session.user.id },
-    include: {
-      pet: true, 
-    },
+    include: { pet: true },
     orderBy: { createdAt: "desc" }
   });
 
   return NextResponse.json(userPets.map(up => ({
     id: up.id,
-    name: up.name || up.pet?.name || "",
+    petName: up.pet?.name,
+    userPetName: up.name,
+    species: up.pet?.species,
+    breed: up.pet?.breed,
     age: up.age,
     gender: up.gender,
-    image: up.image || up.pet?.image || "",
+    image: up.image || up.pet?.image,
     relation: up.relation,
     allergy: up.allergy,
     sensitivity: up.sensitivity,
     specialNote: up.specialNote,
     allowAdUse: up.allowAdUse,
-    createdAt: up.createdAt,
-    species: up.pet?.species,
-    breed: up.pet?.breed,
   })));
 }
 
@@ -38,26 +36,16 @@ export async function POST(req: Request) {
 
   const body = await req.json();
   const {
-    petName,
-    petImage,
-    petSpecies,
-    petBreed,
-    userPetName,
-    age,
-    gender,
-    relation,
-    allergy,
-    sensitivity,
-    specialNote,
-    allowAdUse,
+    petName, petImage, species, breed,
+    userPetName, age, gender, relation, allergy, sensitivity, specialNote, allowAdUse
   } = body;
 
   const pet = await prisma.pet.create({
     data: {
       name: petName,
       image: petImage,
-      species: petSpecies,
-      breed: petBreed,
+      species,
+      breed,
     }
   });
 

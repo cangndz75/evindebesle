@@ -119,13 +119,13 @@ export default function Navbar() {
               </div>
 
               <div className="flex flex-col gap-4 text-sm text-gray-800">
-                <Link
+                {/* <Link
                   href="/profile"
                   className="flex items-center gap-2 hover:text-primary transition"
                 >
                   <Info className="w-4 h-4" />
                   Profilim
-                </Link>
+                </Link> */}
                 <Link
                   href="/about"
                   className="flex items-center gap-2 hover:text-primary transition"

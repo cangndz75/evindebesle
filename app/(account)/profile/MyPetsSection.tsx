@@ -4,7 +4,10 @@ import PetAddModal from "./PetAddModal";
 
 type UserPet = {
   id: string;
-  name: string;
+  petName?: string;
+  userPetName?: string;
+  species?: string;
+  breed?: string;
   age?: number;
   gender?: string;
   image?: string;
@@ -13,8 +16,6 @@ type UserPet = {
   sensitivity?: string;
   specialNote?: string;
   allowAdUse?: boolean;
-  species?: string;
-  breed?: string;
 };
 
 export default function MyPetsSection() {
@@ -27,7 +28,9 @@ export default function MyPetsSection() {
     setPets(data);
   };
 
-  useEffect(() => { fetchPets(); }, []);
+  useEffect(() => {
+    fetchPets();
+  }, []);
 
   return (
     <div className="max-w-md mx-auto mt-6">
@@ -40,22 +43,29 @@ export default function MyPetsSection() {
           + Ekle
         </button>
       </div>
-      {pets.length === 0 && <div className="text-gray-500">Henüz kayıtlı hayvanınız yok.</div>}
+      {pets.length === 0 && (
+        <div className="text-gray-500">Henüz kayıtlı hayvanınız yok.</div>
+      )}
       <div className="grid gap-4">
         {pets.map((pet) => (
-          <div key={pet.id} className="flex items-center gap-4 border rounded-lg p-3">
+          <div
+            key={pet.id}
+            className="flex items-center gap-4 border rounded-lg p-3"
+          >
             <img
               src={pet.image || "/pet-placeholder.png"}
-              alt={pet.name}
+              alt={pet.petName}
               className="w-12 h-12 rounded-full object-cover bg-gray-200"
             />
             <div>
-              <div className="font-semibold">{pet.name}</div>
-              <div className="text-xs text-gray-600">{pet.species} {pet.breed ? `/ ${pet.breed}` : ""}</div>
+              <div className="font-semibold">
+                {pet.userPetName || pet.petName}
+              </div>
+              <div className="text-xs text-gray-600">
+                {pet.species} {pet.breed ? `/ ${pet.breed}` : ""}
+              </div>
               {pet.age && (
-                <div className="text-xs text-gray-500">
-                  Yaş: {pet.age}
-                </div>
+                <div className="text-xs text-gray-500">Yaş: {pet.age}</div>
               )}
               {pet.gender && (
                 <div className="text-xs text-gray-500">
@@ -63,9 +73,7 @@ export default function MyPetsSection() {
                 </div>
               )}
               {pet.relation && (
-                <div className="text-xs text-gray-500">
-                  {pet.relation}
-                </div>
+                <div className="text-xs text-gray-500">{pet.relation}</div>
               )}
             </div>
           </div>
@@ -74,7 +82,10 @@ export default function MyPetsSection() {
       <PetAddModal
         open={open}
         onClose={() => setOpen(false)}
-        onAdded={() => { setOpen(false); fetchPets(); }}
+        onAdded={() => {
+          setOpen(false);
+          fetchPets();
+        }}
       />
     </div>
   );

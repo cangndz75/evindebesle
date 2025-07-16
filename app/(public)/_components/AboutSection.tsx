@@ -1,39 +1,47 @@
-'use client'
+"use client";
 
-import Image from 'next/image'
-import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import clsx from 'clsx'
+import Image from "next/image";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import clsx from "clsx";
 
 const steps = [
   {
-    number: '01',
-    title: 'Evde Sizi Ziyaret Ediyoruz',
-    description: 'Uzman ekibimiz ihtiyacınızı yerinde analiz etmek için sizi evinizde ziyaret eder.',
-    image: 'https://images.unsplash.com/photo-1478098711619-5ab0b478d6e6?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    number: "01",
+    title: "Randevunu Planla",
+    description:
+      "Evcil dostunuz için uygun tarihi ve hizmet türünü seçerek kolayca randevu oluşturun.",
+    image:
+      "https://res.cloudinary.com/dlahfchej/image/upload/v1752621182/18_jx1kqp.png",
   },
   {
-    number: '02',
-    title: 'İlk Bilgisayar Tasarımları',
-    description: 'İlk taslak çizimler bilgisayar ortamında hazırlanarak sizinle paylaşılır.',
-    image: 'https://plus.unsplash.com/premium_photo-1707353401897-da9ba223f807?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    number: "02",
+    title: "Dogo Pet Uzmanı Kapınızda",
+    description:
+      "Alanında eğitimli Dogo Pet bakıcımız, belirttiğiniz saatte evinize gelir.",
+    image:
+      "https://res.cloudinary.com/dlahfchej/image/upload/v1752621180/17_a2tgt3.png",
   },
   {
-    number: '03',
-    title: 'Detaylı Tasarım Süreci',
-    description: 'Beğendiğiniz tasarım detaylandırılır, ölçüler ve malzemeler netleştirilir.',
-    image: 'https://plus.unsplash.com/premium_photo-1707353401897-da9ba223f807?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    number: "03",
+    title: "Hizmet Anında Fotoğraf ve Video Desteği",
+    description:
+      "Mama verme, tuvalet temizliği veya yürüyüş sırasında anlık fotoğraf ve videolarla sizi bilgilendiririz.",
+    image:
+      "https://plus.unsplash.com/premium_photo-1707353401897-da9ba223f807?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
   },
   {
-    number: '04',
-    title: 'Evde Montaj',
-    description: 'Tüm hazırlıklar sonrası ekibimiz evinize gelerek montajı gerçekleştirir.',
-    image: 'https://plus.unsplash.com/premium_photo-1707353401897-da9ba223f807?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    number: "04",
+    title: "Raporlama ve Geri Bildirim",
+    description:
+      "Hizmet sonrası size özel hazırlanan dijital rapor ile detaylara ulaşır, hizmeti puanlayabilirsiniz.",
+    image:
+      "https://res.cloudinary.com/dlahfchej/image/upload/v1752619387/13_lmksmp.png",
   },
-]
+];
 
 export default function AboutSection() {
-  const [activeIndex, setActiveIndex] = useState(0)
+  const [activeIndex, setActiveIndex] = useState(0);
 
   return (
     <div className="relative w-full h-screen overflow-hidden text-white">
@@ -62,11 +70,13 @@ export default function AboutSection() {
               key={i}
               onMouseEnter={() => setActiveIndex(i)}
               className={clsx(
-                'transition-all duration-300 cursor-pointer p-4 space-y-4',
-                i === activeIndex && 'bg-white/10 backdrop-blur-sm rounded-lg'
+                "transition-all duration-300 cursor-pointer p-4 space-y-4",
+                i === activeIndex && "bg-white/10 backdrop-blur-sm rounded-lg"
               )}
             >
-              <motion.h3 className="text-5xl font-thin">{step.number}</motion.h3>
+              <motion.h3 className="text-5xl font-thin">
+                {step.number}
+              </motion.h3>
               <h4 className="font-semibold text-lg">{step.title}</h4>
               {i === activeIndex && (
                 <motion.p
@@ -83,5 +93,5 @@ export default function AboutSection() {
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-const logos = ["/rcanin.png", "/rcanin.png"];
+const logos = ["/rcanin.png", "https://res.cloudinary.com/dlahfchej/image/upload/v1752619387/13_lmksmp.png", "https://res.cloudinary.com/dlahfchej/image/upload/v1752621515/proplan_j3q4d1.png"];
 
 export default function BrandLogos() {
   return (

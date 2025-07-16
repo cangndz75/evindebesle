@@ -33,9 +33,10 @@ type Service = {
 type Props = {
   service: Service;
   onSuccess: () => void;
+  trigger?: React.ReactNode;
 };
 
-export function EditServiceModal({ service, onSuccess }: Props) {
+export function EditServiceModal({ service, onSuccess, trigger }: Props) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -115,9 +116,11 @@ export function EditServiceModal({ service, onSuccess }: Props) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          Düzenle
-        </Button>
+        {trigger || (
+          <Button variant="outline" size="sm">
+            Düzenle
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="max-w-sm">
         <DialogHeader>
@@ -177,7 +180,32 @@ export function EditServiceModal({ service, onSuccess }: Props) {
             onClick={handleSubmit}
             disabled={loading || !form.name || !form.price}
           >
-            {loading ? "Kaydediliyor..." : "Kaydet"}
+            {loading ? (
+              <>
+                <svg
+                  className="animate-spin h-4 w-4 mr-2 inline-block text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                  />
+                </svg>
+              </>
+            ) : (
+              "Kaydet"
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

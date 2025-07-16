@@ -4,7 +4,7 @@ export default function ContactInfo() {
       <div>
         <h2 className="text-3xl font-bold text-black mb-2">İletişim Bilgileri</h2>
         <p className="text-gray-500 leading-relaxed max-w-md">
-          Hemen her zaman yanınızdayız. Sorularınızı memnuniyetle yanıtlarız.
+          Evindebesle olarak, evcil dostlarınıza en iyi hizmeti sunmak için buradayız. Herhangi bir sorunuz, öneriniz veya hizmetlerimiz hakkında bilgi almak için bizimle iletişime geçebilirsiniz.
         </p>
       </div>
 
@@ -23,7 +23,7 @@ export default function ContactInfo() {
 
         <div className="space-y-2">
           <h4 className="font-semibold text-black">Resmi E-posta</h4>
-          <p className="text-sm text-neutral-700">info@evindebesle.com</p>
+          <p className="text-sm text-neutral-700">evindebesle34@gmail.com</p>
         </div>
 
         <div className="space-y-2">

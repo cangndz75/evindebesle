@@ -6,9 +6,11 @@ export default function FooterBanner() {
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
         <div className="flex items-center gap-6 w-full md:w-auto">
           <img
-            src="/logo-full.png"
+            src="https://res.cloudinary.com/dlahfchej/image/upload/v1752619387/13_lmksmp.png"
             alt="Evinde Besle"
             className="w-32 md:w-40"
+            width={160}
+            height={40}
           />
           <div className="hidden md:block h-20 border-l-[1px] border-[#d5ff4b]" />
         </div>

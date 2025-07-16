@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+
 import EmailVerifyNotice from "./EmailVerifyNotice";
 import ProfileDetails from "./ProfileDetails";
 import MarketingConsentToggle from "./MarketingConsentToggle";
@@ -16,15 +19,14 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState<"profile" | "password">("profile");
-  const { data: session } = useSession();
-  const user = session?.user;
-
+  const { data: session, status } = useSession();
   const router = useRouter();
+
+  const user = session?.user;
 
   const handleDeleteAccount = async () => {
     try {
@@ -37,9 +39,12 @@ export default function ProfilePage() {
     }
   };
 
+  const isLoading = status === "loading";
+
   return (
     <div className="max-w-xl mx-auto px-4 py-6">
       <h1 className="text-2xl font-bold mb-4">Kişisel Bilgiler</h1>
+
       <div className="flex space-x-4 mb-4 border-b">
         <button
           onClick={() => setActiveTab("profile")}
@@ -65,36 +70,45 @@ export default function ProfilePage() {
         </button>
       </div>
 
-      <EmailVerifyNotice />
-
-      {activeTab === "profile" && (
+      {isLoading ? (
+        <div className="space-y-6">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-10 w-1/2" />
+        </div>
+      ) : (
         <>
-          <ProfileDetails />
-          <MarketingConsentToggle />
+          <EmailVerifyNotice />
+
+          {activeTab === "profile" && (
+            <>
+              <ProfileDetails />
+              <MarketingConsentToggle />
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <button className="mt-6 text-sm text-red-600 hover:underline">
+                    Hesabı Sil
+                  </button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      Hesabınızı silmek istediğinize emin misiniz?
+                    </AlertDialogTitle>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Vazgeç</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDeleteAccount}>
+                      Evet, Sil
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </>
+          )}
+
+          {activeTab === "password" && <PasswordChange />}
         </>
-      )}
-      {activeTab === "password" && <PasswordChange />}
-      {activeTab === "profile" && (
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <button className="mt-6 text-sm text-red-600 hover:underline">
-              Hesabı Sil
-            </button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>
-                Hesabınızı silmek istediğinize emin misiniz?
-              </AlertDialogTitle>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Vazgeç</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDeleteAccount}>
-                Evet, Sil
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
       )}
     </div>
   );

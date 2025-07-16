@@ -14,16 +14,16 @@ const features = [
       "Evcil hayvanın için bakım, konaklama ya da gezdirme ihtiyacını seçerek birkaç saniyede talep oluştur.",
     icon: PawPrint,
     image:
-      "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?q=80&w=2070&auto=format&fit=crop",
+      "https://res.cloudinary.com/dlahfchej/image/upload/v1752619388/8_kkoxpr.png",
   },
   {
     step: "Adım 2",
-    title: "Bakıcını Seç",
+    title: "Hizmet Durumunu Kontrol Et",
     content:
-      "Sana en yakın ve uygun bakıcıları listele. Profillerini incele, yorumlara göz at ve güvenle seçimini yap.",
+      "Bakıcın talebini onayladıktan sonra, hizmet tarihini ve detaylarını kontrol et. İstersen bakıcı ile iletişime geç.",
     icon: Users,
     image:
-      "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?q=80&w=2070&auto=format&fit=crop",
+      "https://res.cloudinary.com/dlahfchej/image/upload/v1752619158/1_x7as6v.png",
   },
   {
     step: "Adım 3",

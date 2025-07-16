@@ -17,7 +17,7 @@ export default function Footer() {
           <p className="font-medium">evindebesle</p>
           <p>Uptwins Blok, Orta, Yalnız Selvi Cd. No : 5AB, 34880 Kartal/İstanbul</p>
           <p className="mt-2">
-            M. <a href="mailto:info@evindebesle.com" className="underline">info@evindebesle.com</a>
+            M. <a href="mailto:evindebesle34@gmail.com" className="underline">evindebesle34@gmail.com</a>
           </p>
           <p>
             W. <a href="https://evindebesle.com" className="underline">evindebesle.com</a>

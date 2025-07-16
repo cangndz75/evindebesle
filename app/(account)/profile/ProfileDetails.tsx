@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Loader2 } from "lucide-react";
 
 type User = {
   name: string;
@@ -16,12 +18,20 @@ export default function ProfileDetails() {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
 
-  const fetchUser = async () => {
-    const res = await fetch("/api/user/me");
-    const data = await res.json();
-    setUser(data);
-    setLoading(false);
-  };
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch("/api/user/me");
+        const data = await res.json();
+        setUser(data);
+      } catch {
+        toast.error("Kullanıcı bilgileri alınamadı");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUser();
+  }, []);
 
   const updateUser = async () => {
     setUpdating(true);
@@ -36,11 +46,25 @@ export default function ProfileDetails() {
     else toast.error("Bir hata oluştu");
   };
 
-  useEffect(() => {
-    fetchUser();
-  }, []);
-
-  if (loading || !user) return <p>Yükleniyor...</p>;
+  if (loading || !user) {
+    return (
+      <div className="space-y-4">
+        <div>
+          <Skeleton className="h-4 w-20 mb-2" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+        <div>
+          <Skeleton className="h-4 w-20 mb-2" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+        <div>
+          <Skeleton className="h-4 w-20 mb-2" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+        <Skeleton className="h-10 w-32" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -66,7 +90,13 @@ export default function ProfileDetails() {
       </div>
 
       <Button onClick={updateUser} disabled={updating}>
-        {updating ? "Kaydediliyor..." : "Kaydet"}
+        {updating ? (
+          <div className="flex items-center gap-2">
+            <Loader2 className="h-4 w-4 animate-spin" />
+          </div>
+        ) : (
+          "Kaydet"
+        )}
       </Button>
     </div>
   );

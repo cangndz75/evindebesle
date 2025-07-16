@@ -9,37 +9,32 @@ import extra2 from "@/public/w1.png";
 
 const faqs = [
   {
-    question: "Evcil hayvanımı nasıl eğitirim?",
+    question: "Evde hayvan bakımı nasıl gerçekleşiyor?",
     answer: [
-      "Sabırlı ve tutarlı olun.",
-      "Ödül temelli eğitim yöntemlerini tercih edin.",
-      "Günlük kısa seanslarla başlayın.",
-      "Olumlu pekiştirme kullanın.",
-      "Profesyonel destek almaktan çekinmeyin.",
+      "Bakıcılarımız, belirttiğiniz gün ve saatlerde adresinize gelir.",
+      "Mama, su, oyun, temizlik ve özel isteklerinizi uygular.",
+      "İsteğe bağlı olarak kamera ve fotoğraf ile hizmet raporu gönderilir.",
     ],
   },
   {
-    question: "Evcil hayvanımı nasıl yönetebilirim?",
+    question: "Hangi hizmetleri sunuyorsunuz?",
     answer: [
-      "Günlük rutin oluşturun.",
-      "Sağlıklı mama tercih edin.",
-      "Veteriner kontrollerini aksatmayın.",
+      "Evde besleme, oyun ve sosyalleşme, hijyen/temizlik ve veteriner takibi.",
+      "Her hayvana özel planlama yapılır, ekstra ücret sürprizi yoktur.",
     ],
   },
   {
-    question: "Evcil hayvanım için en iyi bakım nedir?",
+    question: "Bakıcılar güvenilir mi?",
     answer: [
-      "Tüy bakımı ve tırnak kesimi düzenli yapılmalı.",
-      "Temiz su her zaman erişilebilir olmalı.",
-      "Zihinsel ve fiziksel aktiviteler önemli.",
+      "Tüm bakıcılarımız referanslı, eğitimli ve detaylı şekilde değerlendirilmiştir.",
+      "Sürekli geri bildirim ve kalite kontrol süreci ile güvenliği sağlıyoruz.",
     ],
   },
   {
-    question: "Bakıcı olmak için ne gereklidir?",
+    question: "Evcil hayvanım özel ilgi gerektiriyor, bunu belirtmeli miyim?",
     answer: [
-      "Hayvan sevgisi ve sabır şarttır.",
-      "Deneyim veya referans faydalıdır.",
-      "Zamanında iletişim kurabilme önemlidir.",
+      "Evet. Tırnak kesim hassasiyeti, ilaç alerjisi gibi tüm özel notlar formda alınır.",
+      "Bu bilgiler bakıcınıza önceden iletilir ve hizmet buna göre planlanır.",
     ],
   },
 ];
@@ -98,23 +93,29 @@ export default function FaqSection() {
         {/* Görseller */}
         <div className="space-y-4">
           <div className="rounded-xl overflow-hidden shadow-lg">
-            <Image
-              src={mainImage}
+            {/* <Image
+              src="https://res.cloudinary.com/dlahfchej/image/upload/v1752619391/9_hsaz8i.png"
               alt="Evcil Hayvan Görseli"
               className="w-full h-auto object-cover rounded-xl"
-            />
+              width={250}
+              height={300}
+            /> */}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <Image
-              src={extra1}
+              src="https://res.cloudinary.com/dlahfchej/image/upload/v1752619390/11_uwaotv.png"
               alt="Ek Görsel 1"
               className="w-full aspect-square object-cover rounded-xl shadow-md"
+              width={250}
+              height={250}
             />
             <Image
-              src={extra2}
+              src="https://res.cloudinary.com/dlahfchej/image/upload/v1752619388/14_mrxvcn.png"
               alt="Ek Görsel 2"
               className="w-full aspect-square object-cover rounded-xl shadow-md"
+              width={250}
+              height={250}
             />
           </div>
         </div>

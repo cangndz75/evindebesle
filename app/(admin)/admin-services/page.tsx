@@ -55,6 +55,12 @@ type Service = {
   tags: { pet: Pet }[];
 };
 
+type Props = {
+  service: Service;
+  onSuccess?: () => void;
+  trigger?: React.ReactNode;
+};
+
 export default function ServicesPage() {
   const [data, setData] = useState<Service[]>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -69,9 +75,11 @@ export default function ServicesPage() {
   const [loading, setLoading] = useState(false);
 
   const refresh = () => {
+    setLoading(true);
     fetch("/api/admin-services")
       .then((res) => res.json())
-      .then(setData);
+      .then(setData)
+      .finally(() => setLoading(false));
   };
 
   useEffect(() => {
@@ -154,7 +162,28 @@ export default function ServicesPage() {
       id: "actions",
       cell: ({ row }) => (
         <>
-          <EditServiceModal service={row.original} onSuccess={refresh} />
+          <EditServiceModal
+            service={row.original}
+            onSuccess={refresh}
+            trigger={
+              <Button size="icon" variant="ghost" className="hover:bg-muted">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15.232 5.232l3.536 3.536M4 13v7h7l9-9-7-7-9 9z"
+                  />
+                </svg>
+              </Button>
+            }
+          />
           <Button
             variant="ghost"
             size="icon"
@@ -231,7 +260,17 @@ export default function ServicesPage() {
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows.length ? (
+            {loading ? (
+              [...Array(5)].map((_, i) => (
+                <TableRow key={i}>
+                  {columns.map((_, j) => (
+                    <TableCell key={j}>
+                      <div className="h-4 bg-muted rounded w-full animate-pulse" />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : table.getRowModel().rows.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
@@ -263,7 +302,7 @@ export default function ServicesPage() {
               {Math.min(
                 (pagination.pageIndex + 1) * pagination.pageSize,
                 data.length
-              )}{" "}
+              )}
               / {data.length}
             </>
           )}

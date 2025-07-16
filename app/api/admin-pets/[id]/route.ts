@@ -8,12 +8,9 @@ export async function PATCH(
   const { id } = await params;
   const { name, image } = await request.json();
 
-  const updated = await prisma.ownedPet.update({
+  const updated = await prisma.pet.update({
     where: { id },
-    data: {
-      name,
-      image,
-    },
+    data: { name, image },
   });
 
   return NextResponse.json(updated);
@@ -25,7 +22,7 @@ export async function DELETE(
 ) {
   const { id } = await params;
 
-  await prisma.ownedPet.delete({
+  await prisma.pet.delete({
     where: { id },
   });
 

@@ -22,7 +22,6 @@ type PetType = {
 export default function PetAddForm({ onSaved }: Props) {
   const [speciesOptions, setSpeciesOptions] = useState<PetType[]>([]);
   const [selectedSpecies, setSelectedSpecies] = useState<string | null>(null);
-
   const [form, setForm] = useState({
     name: "",
     age: "",
@@ -31,11 +30,10 @@ export default function PetAddForm({ onSaved }: Props) {
   });
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [cloudinaryUrls, setCloudinaryUrls] = useState<string[]>([]);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const maxSizeMB = 5;
   const maxSize = maxSizeMB * 1024 * 1024;
-  const maxFiles = 6;
 
   useEffect(() => {
     fetch("/api/pets")
@@ -64,32 +62,6 @@ export default function PetAddForm({ onSaved }: Props) {
     maxFiles: 1,
   });
 
-  const uploadAllToCloudinary = async () => {
-    setUploading(true);
-    const f = files[0];
-    if (!f?.file) return [];
-
-    const formData = new FormData();
-    formData.append("file", f.file);
-    const res = await fetch("/api/upload", {
-      method: "POST",
-      body: formData,
-    });
-    const data = await res.json();
-    setUploading(false);
-    const url = data.url;
-    if (url) setCloudinaryUrls([url]);
-    return url ? [url] : [];
-  };
-
-  if (
-    files.length > 0 &&
-    cloudinaryUrls.length !== files.length &&
-    !uploading
-  ) {
-    uploadAllToCloudinary();
-  }
-
   const handleChange = (e: any) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -99,8 +71,20 @@ export default function PetAddForm({ onSaved }: Props) {
     e.preventDefault();
     setSaving(true);
 
-    const uploadedUrls = await uploadAllToCloudinary();
-    const image = uploadedUrls[0] || null;
+    let uploadedUrl: string | null = null;
+
+    if (files.length > 0 && files[0]?.file) {
+      setUploading(true);
+      const formData = new FormData();
+      formData.append("file", files[0].file);
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      uploadedUrl = data.url || null;
+      setUploading(false);
+    }
 
     await fetch("/api/user-pets", {
       method: "POST",
@@ -109,18 +93,26 @@ export default function PetAddForm({ onSaved }: Props) {
         name: form.name,
         age: form.age ? Number(form.age) : undefined,
         petId: selectedSpecies,
-        image: uploadedUrls.length > 0 ? uploadedUrls[0] : null,
+        image: uploadedUrl,
         allergy: form.allergy,
         specialNote: form.specialNote,
       }),
     });
 
     setSaving(false);
-    setCloudinaryUrls([]);
-    files.forEach((f) => removeFile(f.id));
+    removeFile(files[0]?.id);
     setForm({ name: "", age: "", allergy: "", specialNote: "" });
+    setPreviewUrl(null);
     onSaved();
   };
+
+  useEffect(() => {
+    if (files.length > 0 && files[0]?.file) {
+      const url = URL.createObjectURL(files[0].file);
+      setPreviewUrl(url);
+      return () => URL.revokeObjectURL(url);
+    }
+  }, [files]);
 
   return (
     <form className="space-y-6 w-full pb-10" onSubmit={handleSubmit}>
@@ -191,80 +183,42 @@ export default function PetAddForm({ onSaved }: Props) {
       </div>
 
       <div>
-        <Label className="mb-2 block text-sm font-medium">Fotoğraflar</Label>
+        <Label className="mb-2 block text-sm font-medium">Fotoğraf</Label>
         <div
           onDragEnter={handleDragEnter}
           onDragLeave={handleDragLeave}
           onDragOver={handleDragOver}
           onDrop={handleDrop}
-          data-dragging={isDragging || undefined}
-          data-files={files.length > 0 || undefined}
-          className="border-input data-[dragging=true]:bg-accent/50 has-[input:focus]:border-ring has-[input:focus]:ring-ring/50 relative flex min-h-52 flex-col items-center overflow-hidden rounded-xl border border-dashed p-4 transition-colors not-data-[files]:justify-center has-[input:focus]:ring-[3px]"
+          className="border-input data-[dragging=true]:bg-accent/50 relative flex min-h-52 flex-col items-center justify-center overflow-hidden rounded-xl border border-dashed p-4"
         >
-          <input
-            {...getInputProps()}
-            className="sr-only"
-            aria-label="Upload image file"
-          />
-          {cloudinaryUrls.length > 0 ? (
-            <div className="flex w-full flex-col gap-3">
-              <div className="flex items-center justify-between gap-2">
-                <h3 className="truncate text-sm font-medium">
-                  Yüklenen Fotoğraflar ({cloudinaryUrls.length})
-                </h3>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={openFileDialog}
-                  disabled={files.length >= maxFiles}
-                >
-                  <UploadIcon className="-ms-0.5 size-3.5 opacity-60" />
-                  Daha fazla ekle
-                </Button>
-              </div>
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-                {cloudinaryUrls.length > 0 && (
-                  <div className="grid grid-cols-1 gap-4">
-                    <div className="bg-accent relative aspect-square rounded-md">
-                      <img
-                        src={cloudinaryUrls[0]}
-                        alt="Yüklenen fotoğraf"
-                        className="size-full rounded-[inherit] object-cover"
-                      />
-                      <Button
-                        onClick={() => {
-                          if (files[0]) removeFile(files[0].id);
-                          setCloudinaryUrls([]);
-                        }}
-                        size="icon"
-                        className="border-background focus-visible:border-background absolute -top-2 -right-2 size-6 rounded-full border-2 shadow-none"
-                        aria-label="Remove image"
-                      >
-                        <XIcon className="size-3.5" />
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
+          <input {...getInputProps()} className="sr-only" />
+          {previewUrl ? (
+            <div className="relative">
+              <img
+                src={previewUrl}
+                alt="Önizleme"
+                className="w-40 h-40 object-cover rounded-md"
+              />
+              <Button
+                type="button"
+                onClick={() => {
+                  removeFile(files[0]?.id);
+                  setPreviewUrl(null);
+                }}
+                size="icon"
+                className="absolute -top-2 -right-2"
+              >
+                <XIcon className="w-4 h-4" />
+              </Button>
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center px-4 py-3 text-center">
-              <div className="bg-background mb-2 flex size-11 items-center justify-center rounded-full border">
-                <ImageIcon className="size-4 opacity-60" />
-              </div>
-              <p className="mb-1.5 text-sm font-medium">
-                Fotoğrafları buraya sürükle veya yükle
+            <div className="text-center">
+              <ImageIcon className="mx-auto mb-2 opacity-60" />
+              <p className="text-sm font-medium mb-1">
+                Fotoğrafı sürükleyin veya yükleyin
               </p>
-              <p className="text-muted-foreground text-xs">
-                PNG, JPG veya GIF (max. {maxSizeMB}MB)
-              </p>
-              <Button
-                variant="outline"
-                className="mt-4"
-                type="button"
-                onClick={openFileDialog}
-              >
-                <UploadIcon className="-ms-1 opacity-60" />
+              <Button variant="outline" type="button" onClick={openFileDialog}>
+                <UploadIcon className="-ms-1 opacity-60 mr-1" />
                 Fotoğraf Seç
               </Button>
             </div>
@@ -283,10 +237,9 @@ export default function PetAddForm({ onSaved }: Props) {
           İptal
         </Button>
         <Button type="submit" disabled={saving || uploading}>
-          {saving ? "Kaydediliyor..." : "Kaydet"}
+          {saving || uploading ? "Kaydediliyor..." : "Kaydet"}
         </Button>
       </div>
-      <div className="h-12" />
     </form>
   );
 }

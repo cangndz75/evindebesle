@@ -1,5 +1,5 @@
 import VerifyClient from "./VerifyClient";
 
-export default function VerifyPage() {
+export default function Page() {
   return <VerifyClient />;
 }

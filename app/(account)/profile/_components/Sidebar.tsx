@@ -8,7 +8,7 @@ const links = [
   { href: "/profile/personal-info", label: "Kişisel Bilgilerim" },
   { href: "/profile/pets", label: "Evcil Hayvanlarım" },
   { href: "/profile/addresses", label: "Adreslerim" },
-  { href: "/orders", label: "Siparişlerim" },
+  { href: "/profile/orders", label: "Randevularım" },
   { href: "/price-alerts", label: "Fiyat Alarmı" },
   { href: "/stock-alerts", label: "Stok Habercim" },
   { href: "/coupons", label: "İndirim Kuponlarım" },

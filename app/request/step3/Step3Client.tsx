@@ -177,18 +177,7 @@ export default function Step3Client() {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({
-                        petIds: searchParams.getAll("pet"),
                         serviceIds: searchParams.getAll("service"),
-                        districtId: searchParams.get("district"),
-                        fullAddress: searchParams.get("fullAddress"),
-                        petCounts: Object.fromEntries(
-                          searchParams
-                            .getAll("pet")
-                            .map((id) => [
-                              id,
-                              parseInt(searchParams.get(id) || "0"),
-                            ])
-                        ),
                         dates: searchParams.getAll("date"),
                         isRecurring: searchParams.get("recurring") === "1",
                         recurringType: searchParams.get("recurringType"),
@@ -196,10 +185,10 @@ export default function Step3Client() {
                           searchParams.get("recurringCount") || "1"
                         ),
                         timeSlot: searchParams.get("timeSlot") || null,
-                        userNote: "", 
+                        userNote: "",
+                        userAddressId: searchParams.get("userAddressId"),
                       }),
                     });
-
                     if (!res.ok) throw new Error();
 
                     const data = await res.json();

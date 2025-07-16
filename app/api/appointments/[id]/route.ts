@@ -9,11 +9,62 @@ export async function GET(
 
   const appointment = await prisma.appointment.findUnique({
     where: { id },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+      ownedPet: {
+        select: {
+          id: true,
+          name: true,
+          pet: {
+            select: {
+              species: true,
+            },
+          },
+        },
+      },
+      address: {
+        select: {
+          id: true,
+          fullAddress: true,
+          district: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
+      services: {
+        include: {
+          service: {
+            select: {
+              name: true,
+              description: true,
+            },
+          },
+        },
+      },
+      media: {
+        select: {
+          id: true,
+          type: true,
+          url: true,
+        },
+      },
+      checkItems: true,
+      reviews: true,
+      invoice: true,
+    },
   });
 
   if (!appointment) {
     return NextResponse.json({ error: "Not Found" }, { status: 404 });
   }
 
-  return NextResponse.json(appointment);
+  return NextResponse.json({ data: appointment });
 }

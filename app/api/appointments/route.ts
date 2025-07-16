@@ -8,72 +8,105 @@ export async function POST(req: NextRequest) {
     const session = await getServerSession(authConfig);
     const user = session?.user;
 
-    if (!user || !user.id) {
+    if (!user?.id) {
       return NextResponse.json({ error: "Giriş yapmalısınız" }, { status: 401 });
     }
 
     const {
+      petIds,
       serviceIds,
+      districtId,
+      fullAddress,
       dates,
       isRecurring,
       recurringType,
       recurringCount,
       timeSlot,
       userNote,
-      userAddressId,
     } = await req.json();
 
-    if (!Array.isArray(dates) || dates.length === 0) {
-      return NextResponse.json({ error: "Tarih bilgisi eksik" }, { status: 400 });
+    if (!petIds?.length || !Array.isArray(dates) || dates.length === 0 || !timeSlot) {
+      return NextResponse.json({ error: "Eksik bilgi" }, { status: 400 });
     }
 
-    if (!timeSlot) {
-      return NextResponse.json({ error: "Saat dilimi belirtilmeli" }, { status: 400 });
-    }
-
-    const ownedPet = await prisma.ownedPet.findFirst({
-      where: { userId: user.id },
-      select: { id: true },
-    });
-
-    if (!ownedPet) {
-      return NextResponse.json(
-        { error: "Kullanıcıya ait bir evcil hayvan bulunamadı" },
-        { status: 400 }
-      );
+    let userAddressId: string | null = null;
+    if (districtId && fullAddress) {
+      const addr = await prisma.userAddress.create({
+        data: {
+          userId: user.id,
+          districtId,
+          fullAddress,
+        },
+      });
+      userAddressId = addr.id;
     }
 
     const appointments = [];
 
-    for (const date of dates) {
-      const appointment = await prisma.appointment.create({
-        data: {
-          userId: user.id,
-          ownedPetId: ownedPet.id,
-          confirmedAt: new Date(date),
-          status: "SCHEDULED",
-          isRecurring: isRecurring || false,
-          repeatCount: isRecurring ? recurringCount : null,
-          repeatInterval: isRecurring ? recurringType : null,
-          timeSlot: timeSlot,
-          userNote: userNote || null,
-          userAddressId: userAddressId || null,
-          services: {
-            create: serviceIds.map((serviceId: string) => ({
-              serviceId,
-            })),
+    for (const petId of petIds) {
+      for (const date of dates) {
+        const appointment = await prisma.appointment.create({
+          data: {
+            userId: user.id,
+            ownedPetId: petId,
+            confirmedAt: new Date(date),
+            status: "SCHEDULED",
+            isRecurring: isRecurring || false,
+            repeatCount: isRecurring ? recurringCount : null,
+            repeatInterval: isRecurring ? recurringType : null,
+            timeSlot,
+            userNote: userNote || null,
+            userAddressId,
+            services: {
+              create: serviceIds.map((serviceId: string) => ({
+                serviceId,
+              })),
+            },
           },
-        },
-      });
-
-      appointments.push(appointment);
+        });
+        appointments.push(appointment);
+      }
     }
 
-    return NextResponse.json({ success: true, appointments }, { status: 200 });
+    return NextResponse.json({ success: true, appointments });
   } catch (error) {
-    console.error("Hata:", error);
+    console.error("Randevu oluşturma hatası:", error);
     return NextResponse.json(
       { success: false, message: "Bir hata oluştu." },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET() {
+  try {
+    const session = await getServerSession(authConfig);
+    const user = session?.user;
+
+    if (!user?.id) {
+      return NextResponse.json({ error: "Giriş yapmalısınız" }, { status: 401 });
+    }
+
+    const appointments = await prisma.appointment.findMany({
+      where: { userId: user.id },
+      orderBy: { confirmedAt: "desc" },
+      include: {
+        ownedPet: {
+          include: { pet: true },
+        },
+        services: {
+          include: { service: true },
+        },
+        address: {
+          include: { district: true },
+        },
+      },
+    });
+    return NextResponse.json({ success: true, data: appointments });
+  } catch (error) {
+    console.error("Randevular getirme hatası:", error);
+    return NextResponse.json(
+      { success: false, message: "Randevular alınamadı." },
       { status: 500 }
     );
   }

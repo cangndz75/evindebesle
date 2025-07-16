@@ -206,6 +206,7 @@ model ServiceTag {
 model Appointment {
   id              String             @id @default(cuid())
   userId          String
+  userAddressId   String?            
   confirmedAt     DateTime           @default(now())
   deliveredAt     DateTime?
   assignedToId    String?
@@ -227,6 +228,7 @@ model Appointment {
 
   user            User               @relation(fields: [userId], references: [id])
   ownedPet        OwnedPet   @relation(fields: [ownedPetId], references: [id], onDelete: Cascade)
+  address         UserAddress? @relation(fields: [userAddressId], references: [id])
   ownedPetId      String
   services        AppointmentService[]
   checkItems      AppointmentCheck[]
@@ -383,6 +385,7 @@ model UserAddress {
 
   user     User     @relation(fields: [userId], references: [id])
   district District @relation(fields: [districtId], references: [id])
+  appointments Appointment[]
 }
 
 

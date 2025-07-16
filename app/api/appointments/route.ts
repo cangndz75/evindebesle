@@ -20,6 +20,7 @@ export async function POST(req: NextRequest) {
       recurringCount,
       timeSlot,
       userNote,
+      userAddressId,
     } = await req.json();
 
     const ownedPet = await prisma.ownedPet.findFirst({
@@ -48,6 +49,7 @@ export async function POST(req: NextRequest) {
           repeatInterval: isRecurring ? recurringType : null,
           timeSlot: timeSlot || null,
           userNote: userNote || null,
+          userAddressId: userAddressId || null, 
           services: {
             create: serviceIds.map((serviceId: string) => ({
               serviceId,

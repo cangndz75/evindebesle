@@ -89,7 +89,7 @@ export default function AdminDashboard() {
       title: "Randevular",
       description: "+%8 İstatistiksel artış",
       value: `+${counts.appointments}`,
-      href: "/appointments",
+      href: "/admin-appointments",
       icon: <CalendarCheck className="text-blue-600" />,
     },
     {

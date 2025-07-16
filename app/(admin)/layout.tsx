@@ -34,8 +34,8 @@ const navLinks = [
     icon: <PawPrint className="w-5 h-5" />,
   },
   {
-    label: "Siparişler",
-    href: "/security",
+    label: "Randevular",
+    href: "/admin-appointments",
     icon: <List className="w-5 h-5" />,
   },
   {

@@ -1,46 +1,108 @@
-import { notFound } from "next/navigation";
-import { getServerSession } from "next-auth";
-import { prisma } from "@/lib/db";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter, useParams } from "next/navigation";
 import Image from "next/image";
-import { authConfig } from "@/lib/auth.config";
+import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import PetEditModal from "../../PetEditModal";
 
-export default async function PetDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
+export default function PetDetailPage() {
+  const router = useRouter();
+  const { id } = useParams();
+  const [pet, setPet] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [openEdit, setOpenEdit] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
-  const session = await getServerSession(authConfig);
-  const userId = session?.user.id;
+  const fetchPet = async () => {
+    try {
+      const res = await fetch("/api/user-pets");
+      const allPets = await res.json();
+      const found = allPets.find((p: any) => p.id === id);
+      setPet(found);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  if (!userId) return notFound();
+  const handleDelete = async () => {
+    if (!confirm("Evcil hayvanı silmek istediğinize emin misiniz?")) return;
+    setDeleting(true);
+    const res = await fetch(`/api/user-pets/${id}`, { method: "DELETE" });
+    if (res.ok) {
+      router.push("/account/profile");
+    } else {
+      alert("Silme işlemi başarısız oldu");
+      setDeleting(false);
+    }
+  };
 
-  const pet = await prisma.ownedPet.findFirst({
-    where: {
-      id,
-      userId,
-    },
-    include: {
-      appointments: {
-        include: {
-          services: {
-            include: {
-              service: true,
-            },
-          },
-        },
-      },
-    },
-  });
+  useEffect(() => {
+    fetchPet();
+  }, [id]);
 
-  if (!pet) return notFound();
+  if (loading)
+    return (
+      <div className="max-w-3xl mx-auto py-10 px-4 space-y-6">
+        <Skeleton className="h-8 w-48" />
+        <div className="flex items-center gap-4">
+          <Skeleton className="w-28 h-28 rounded-xl" />
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-40" />
+            <Skeleton className="h-4 w-32" />
+          </div>
+        </div>
+      </div>
+    );
+
+  if (!pet)
+    return <p className="text-center mt-10">Evcil hayvan bulunamadı.</p>;
 
   return (
     <div className="max-w-3xl mx-auto py-10 px-4">
-      <h1 className="text-2xl font-bold mb-6">Evcil Hayvan Detayı</h1>
+      <div className="flex items-center gap-4 mb-6">
+        <Button variant="ghost" size="icon" onClick={() => router.back()}>
+          <ArrowLeft className="w-5 h-5" />
+        </Button>
+        <h1 className="text-2xl font-bold">{pet.userPetName || pet.petName}</h1>
+      </div>
 
-      <div className="flex items-start gap-6 border p-4 rounded-lg">
+      <div className="relative border p-4 rounded-lg flex items-start gap-6">
+        {/* SİLME BUTONU */}
+        <Button
+          size="sm"
+          variant="destructive"
+          className="absolute top-4 right-4"
+          onClick={handleDelete}
+        >
+          {deleting ? (
+            <svg
+              className="animate-spin h-4 w-4 mr-2"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+              />
+            </svg>
+          ) : (
+            <>Evcil Hayvanı Sil</>
+          )}
+        </Button>
+
         <Image
           src={pet.image || "/pet-placeholder.png"}
           width={120}
@@ -48,49 +110,52 @@ export default async function PetDetailPage({
           alt="Pet"
           className="rounded-xl object-cover"
         />
-        <div>
-          <div className="text-lg font-semibold">{pet.name}</div>
-          <div className="text-sm text-gray-600">
-            {pet.gender && `Cinsiyet: ${pet.gender}`} <br />
-            {pet.age && `Yaş: ${pet.age}`} <br />
-            {pet.relation && `İlişki: ${pet.relation}`} <br />
-            {pet.allergy && `Alerji: ${pet.allergy}`} <br />
-            {pet.sensitivity && `Hassasiyet: ${pet.sensitivity}`} <br />
-            {pet.specialNote && `Not: ${pet.specialNote}`} <br />
+
+        <div className="space-y-2 text-sm text-gray-700 w-full">
+          <div className="font-semibold text-lg">
+            {pet.userPetName || pet.petName}
+          </div>
+          {pet.age && <p>Yaş: {pet.age}</p>}
+          {pet.gender && <p>Cinsiyet: {pet.gender}</p>}
+          {pet.relation && <p>İlişki: {pet.relation}</p>}
+          {pet.allergy && <p>Alerji: {pet.allergy}</p>}
+          {pet.sensitivity && <p>Hassasiyet: {pet.sensitivity}</p>}
+          {pet.specialNote && <p>Not: {pet.specialNote}</p>}
+
+          <div className="mt-3">
+            <Button
+              variant="outline"
+              onClick={() => setOpenEdit(true)}
+              className="flex items-center gap-2"
+            >
+              <Pencil className="w-4 h-4" />
+              Düzenle
+            </Button>
           </div>
         </div>
       </div>
 
       <div className="mt-10">
         <h2 className="text-lg font-bold mb-2">Aldığı Hizmetler</h2>
-        {pet.appointments.length === 0 ? (
-          <p className="text-gray-500">Henüz hizmet alınmamış.</p>
-        ) : (
-          <ul className="space-y-2">
-            {pet.appointments.map((a) => (
-              <li
-                key={a.id}
-                className="border rounded px-4 py-2 text-sm flex justify-between items-center"
-              >
-                <div>
-                  <div className="font-medium">
-                    {a.services.map((s) => s.service.name).join(", ")}
-                  </div>
-                  {/* <div className="text-xs text-gray-500">
-                    {new Date(a.createdAt).toLocaleDateString("tr-TR")}
-                  </div> */}
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
+        <div className="text-sm text-muted-foreground">
+          Henüz hizmet alınmamış.
+        </div>
       </div>
 
       <div className="mt-10">
-        <button className="px-4 py-2 border rounded font-medium hover:bg-gray-50">
-          🪪 Pet Kartı Oluştur
-        </button>
+        <Button variant="outline">🪪 Pet Kartı Oluştur</Button>
       </div>
+
+      <PetEditModal
+        open={openEdit}
+        onClose={() => setOpenEdit(false)}
+        pet={pet}
+        onUpdated={() => {
+          setOpenEdit(false);
+          setLoading(true);
+          fetchPet();
+        }}
+      />
     </div>
   );
 }

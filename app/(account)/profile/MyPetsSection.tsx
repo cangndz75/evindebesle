@@ -27,6 +27,7 @@ export default function MyPetsSection() {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const router = useRouter();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const fetchPets = async () => {
     try {
@@ -85,8 +86,13 @@ export default function MyPetsSection() {
           {pets.map((pet) => (
             <div
               key={pet.id}
-              onClick={() => router.push(`/profile/pets/${pet.id}`)}
-              className="flex items-center justify-between border rounded-lg p-3 cursor-pointer hover:bg-gray-50 transition"
+              onClick={() => {
+                setSelectedId(pet.id);
+                router.push(`/profile/pets/${pet.id}`);
+              }}
+              className={`flex items-center justify-between border rounded-lg p-3 cursor-pointer hover:bg-gray-50 transition ${
+                selectedId === pet.id ? "opacity-50 pointer-events-none" : ""
+              }`}
             >
               <div className="flex items-center gap-4">
                 <img
@@ -115,7 +121,11 @@ export default function MyPetsSection() {
                 </div>
               </div>
 
-              <ChevronRight className="w-5 h-5 text-gray-400" />
+              {selectedId === pet.id ? (
+                <div className="w-5 h-5 border-2 border-gray-300 border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <ChevronRight className="w-5 h-5 text-gray-400" />
+              )}
             </div>
           ))}
         </div>

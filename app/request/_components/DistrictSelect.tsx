@@ -1,49 +1,62 @@
-"use client"
+"use client";
 
-import { useState } from "react"
+import { useEffect, useState } from "react";
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
-} from "@/components/ui/popover"
-import { Button } from "@/components/ui/button"
-import { ChevronDownIcon, CheckIcon } from "lucide-react"
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { ChevronDownIcon, CheckIcon } from "lucide-react";
 
-const districts = [
-  "Kadıköy", "Maltepe", "Ataşehir", "Üsküdar", "Kartal",
-  "Pendik", "Tuzla", "Sancaktepe", "Çekmeköy", "Şile"
-]
+type District = {
+  id: string;
+  name: string;
+};
 
-export default function DistrictSelect({ onSelect }: { onSelect: (val: string) => void }) {
-  const [open, setOpen] = useState(false)
-  const [selected, setSelected] = useState("")
+export default function DistrictSelect({
+  onSelect,
+  initial,
+}: {
+  onSelect: (val: string) => void;
+  initial?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [selected, setSelected] = useState(initial || "");
+  const [districts, setDistricts] = useState<District[]>([]);
+
+  useEffect(() => {
+    fetch("/api/districts")
+      .then((res) => res.json())
+      .then(setDistricts);
+  }, []);
 
   const handleSelect = (val: string) => {
-    setSelected(val)
-    onSelect(val)
-    setOpen(false)
-  }
+    setSelected(val);
+    onSelect(val);
+    setOpen(false);
+  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button variant="outline" className="w-full justify-between">
-          {selected || "İlçe seçin"}
+          {districts.find((d) => d.id === selected)?.name || "İlçe seçin"}
           <ChevronDownIcon className="h-4 w-4" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-full">
         {districts.map((d) => (
           <div
-            key={d}
+            key={d.id}
             className="flex items-center justify-between px-2 py-1.5 cursor-pointer hover:bg-accent rounded-md"
-            onClick={() => handleSelect(d)}
+            onClick={() => handleSelect(d.id)}
           >
-            {d}
-            {selected === d && <CheckIcon size={16} />}
+            {d.name}
+            {selected === d.id && <CheckIcon size={16} />}
           </div>
         ))}
       </PopoverContent>
     </Popover>
-  )
+  );
 }

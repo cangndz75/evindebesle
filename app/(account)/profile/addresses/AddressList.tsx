@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import AddressForm from "./AddressForm";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type District = { id: string; name: string };
 type UserAddress = { districtId?: string; fullAddress?: string };
@@ -18,7 +19,8 @@ export default function AddressList() {
   const [userAddress, setUserAddress] = useState<UserAddress | null>(null);
   const [districtName, setDistrictName] = useState("");
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [formLoading, setFormLoading] = useState(false);
   const [districts, setDistricts] = useState<District[]>([]);
 
   useEffect(() => {
@@ -42,14 +44,15 @@ export default function AddressList() {
         } else {
           setUserAddress(null);
         }
-      });
+      })
+      .finally(() => setLoading(false));
   }, [districts]);
 
   const handleSave = async (values: {
     districtId: string;
     fullAddress: string;
   }) => {
-    setLoading(true);
+    setFormLoading(true);
     const res = await fetch("/api/address", {
       method: "PATCH",
       body: JSON.stringify(values),
@@ -66,7 +69,7 @@ export default function AddressList() {
     } else {
       console.error("Hata oluştu");
     }
-    setLoading(false);
+    setFormLoading(false);
   };
 
   const handleDelete = async () => {
@@ -77,12 +80,18 @@ export default function AddressList() {
 
   return (
     <div>
-      {userAddress ? (
+      {loading ? (
+        <div className="space-y-3">
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-6 w-full" />
+          <Skeleton className="h-4 w-24" />
+        </div>
+      ) : userAddress ? (
         <div className="border rounded-lg p-4 flex items-start justify-between">
           <div>
             <div className="text-sm text-gray-500">İlçe:</div>
             <div className="font-medium text-lg">{districtName || "-"}</div>
-            <div className="mt-2 text-sm text-gray-500">Adres:</div>
+            <div className="mt-2 text-sm text-gray-500">Tam Adres:</div>
             <div>{userAddress.fullAddress || "-"}</div>
           </div>
           <div className="flex gap-2">
@@ -116,7 +125,7 @@ export default function AddressList() {
           <AddressForm
             districtId={userAddress?.districtId}
             fullAddress={userAddress?.fullAddress}
-            loading={loading}
+            loading={formLoading}
             onSubmit={handleSave}
           />
         </DialogContent>

@@ -218,7 +218,10 @@ export default function Page() {
             <Label className="text-sm font-semibold mb-1 block">
               İlçe Seçimi
             </Label>
-            <DistrictSelect onSelect={setDistrict} />
+            <DistrictSelect
+              initial={district || undefined}
+              onSelect={setDistrict}
+            />
 
             <Label className="text-sm font-semibold mb-1 block">
               Detaylı Adres

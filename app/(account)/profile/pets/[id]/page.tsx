@@ -1,4 +1,3 @@
-// app/(account)/profile/pets/[id]/page.tsx
 import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/db";

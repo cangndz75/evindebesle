@@ -96,7 +96,7 @@ export default function AdminDashboard() {
       title: "Evcil Hayvanlar",
       description: "Kayıtlı pet sayısı",
       value: `${counts.pets}`,
-      href: "/pets",
+      href: "/admin-pets",
       icon: <PawPrint className="text-orange-500" />,
     },
     {

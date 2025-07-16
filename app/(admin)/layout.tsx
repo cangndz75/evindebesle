@@ -30,7 +30,7 @@ const navLinks = [
   },
   {
     label: "Evcil Hayvanlar",
-    href: "/pets",
+    href: "/admin-pets",
     icon: <PawPrint className="w-5 h-5" />,
   },
   {

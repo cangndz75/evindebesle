@@ -85,7 +85,7 @@ export default function MyPetsSection() {
           {pets.map((pet) => (
             <div
               key={pet.id}
-              onClick={() => router.push(`/pets/${pet.id}`)}
+              onClick={() => router.push(`/profile/pets/${pet.id}`)}
               className="flex items-center justify-between border rounded-lg p-3 cursor-pointer hover:bg-gray-50 transition"
             >
               <div className="flex items-center gap-4">

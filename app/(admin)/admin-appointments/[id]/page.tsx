@@ -1,6 +1,6 @@
 import AppointmentDetailCard from "../_components/AppoinmentDetailCard";
 
-export default async function AppointmentDetailPage({
+export default function AppointmentDetailPage({
   params,
 }: {
   params: { id: string };

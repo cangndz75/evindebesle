@@ -1,21 +1,50 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { useState } from "react"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useState, useTransition } from "react";
+import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function ContactForm() {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+
   const [form, setForm] = useState({
     name: "",
     email: "",
     phone: "",
     message: "",
-  })
+  });
+
+  const [statusText, setStatusText] = useState("İletişime Geç");
+
+  const handleSubmit = () => {
+    setStatusText("Gönderiliyor...");
+
+    fetch("/api/contact", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form),
+    }).then((res) => {
+      if (res.ok) {
+        setStatusText("Mesajınız iletildi");
+        setForm({ name: "", email: "", phone: "", message: "" });
+        startTransition(() => {
+          setTimeout(() => router.refresh(), 1500);
+        });
+      } else {
+        setStatusText("Hata oluştu");
+      }
+    });
+  };
 
   return (
     <div className="bg-white p-8 shadow-xl rounded-lg w-full max-w-2xl">
-      <p className="text-sm text-primary font-semibold uppercase mb-1 tracking-wide">SORULARINIZ MI VAR?</p>
+      <p className="text-sm text-primary font-semibold uppercase mb-1 tracking-wide">
+        İletişim Formu
+      </p>
       <h2 className="text-3xl font-bold text-black mb-6">Bize Ulaşın</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -48,10 +77,14 @@ export default function ContactForm() {
         onChange={(e) => setForm({ ...form, message: e.target.value })}
       />
 
-      <Button className="mt-8 w-full bg-primary hover:bg-primary/90 text-white rounded-md">
-        <i className="fas fa-paper-plane mr-2" />
-        İletişime Geç
+      <Button
+        className="mt-8 w-full bg-primary hover:bg-primary/90 text-white rounded-md flex items-center justify-center gap-2"
+        onClick={handleSubmit}
+        disabled={isPending}
+      >
+        {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+        {statusText}
       </Button>
     </div>
-  )
+  );
 }

@@ -12,9 +12,8 @@ export default function Footer() {
           <p className="text-xs text-[#6b6059]">© EvindeBesle 2025. Tüm hakları saklıdır.</p>
         </div>
 
-        {/* Address */}
         <div className="leading-7 text-[15px]">
-          <p className="font-medium">evindebesle</p>
+          <p className="font-medium">evindebesle bir DogoPet hizmetidir.</p>
           <p>Uptwins Blok, Orta, Yalnız Selvi Cd. No : 5AB, 34880 Kartal/İstanbul</p>
           <p className="mt-2">
             M. <a href="mailto:evindebesle34@gmail.com" className="underline">evindebesle34@gmail.com</a>
@@ -26,8 +25,11 @@ export default function Footer() {
 
         {/* Policies */}
         <div className="space-y-2 text-[15px]">
-          <Link href="#" className="block hover:underline">Şartlar ve Koşullar</Link>
-          <Link href="#" className="block hover:underline">Gizlilik Politikası</Link>
+          {/* <Link href="#" className="block hover:underline">Şartlar ve Koşullar</Link>
+          <Link href="#" className="block hover:underline">Gizlilik Politikası</Link> */}
+          <Link href="kvkk" className="block hover:underline">KVKK Aydınlatma Metni</Link>
+          <Link href="contract" className="block hover:underline">Üyelik Sözleşmesi</Link>
+          <Link href="contact" className="block hover:underline">İletişim</Link>
           {/* <Link href="#" className="block hover:underline">Cookie policy</Link> */}
           <div className="mt-6 text-xs text-[#6b6059] flex items-center">
             Webdesign by DogoPet

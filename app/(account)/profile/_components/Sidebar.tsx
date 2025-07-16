@@ -2,31 +2,36 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 const links = [
   { href: "/profile/personal-info", label: "Kişisel Bilgilerim" },
   { href: "/profile/pets", label: "Evcil Hayvanlarım" },
   { href: "/profile/addresses", label: "Adreslerim" },
   { href: "/profile/orders", label: "Randevularım" },
-  { href: "/price-alerts", label: "Fiyat Alarmı" },
-  { href: "/stock-alerts", label: "Stok Habercim" },
-  { href: "/coupons", label: "İndirim Kuponlarım" },
-  { href: "/notifications", label: "Bildirimlerim" },
-  { href: "/smart-match", label: "Smart Match Sonucu" },
+  { href: "/profile/coupons", label: "İndirim Kuponlarım" },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const { data: session } = useSession();
+
+  const fullName = session?.user?.name || "Kullanıcı";
+  const initials = fullName
+    .split(" ")
+    .map((word) => word[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
 
   return (
     <div className="space-y-8">
       <div className="flex items-center space-x-3">
         <div className="w-12 h-12 bg-blue-200 rounded-full flex items-center justify-center text-white font-bold text-xl">
-          CG
+          {initials}
         </div>
         <div>
-          <p className="font-semibold text-lg">Can Gündüz</p>
+          <p className="font-semibold text-lg">{fullName}</p>
           <Link
             href="/logout"
             className="text-sm text-gray-500 hover:underline"

@@ -10,15 +10,22 @@ export async function GET(
   const appointment = await prisma.appointment.findUnique({
     where: { id },
     include: {
-      user: true,
-      address: {
+      user: {
         include: {
-          district: true,
+          addresses: {
+            where: { isPrimary: true },
+            include: { district: true },
+          },
         },
       },
       ownedPet: {
         include: {
           pet: true,
+        },
+      },
+      address: {
+        include: {
+          district: true,
         },
       },
       services: {
@@ -35,7 +42,26 @@ export async function GET(
     });
   }
 
-  return new Response(JSON.stringify({ data: appointment }), {
+  const fallbackAddress = appointment.address || appointment.user?.addresses?.[0];
+
+  const normalized = {
+    ...appointment,
+    fullAddress: fallbackAddress?.fullAddress || "",
+    district: fallbackAddress?.district || null,
+    pets: [
+      {
+        id: appointment.ownedPet.id,
+        name: appointment.ownedPet.name,
+        image: appointment.ownedPet.image,
+        allergy: appointment.allergy,
+        sensitivity: appointment.sensitivity,
+        specialRequest: appointment.specialRequest,
+        services: appointment.services,
+      },
+    ],
+  };
+
+  return new Response(JSON.stringify({ data: normalized }), {
     status: 200,
   });
 }

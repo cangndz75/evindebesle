@@ -94,16 +94,21 @@ export default function Step2Client() {
       }
     }
 
+    if (!timeSlot) {
+      toast.error("Lütfen bir saat dilimi seçin.");
+      return;
+    }
+
     const params = new URLSearchParams();
     searchParams.forEach((val, key) => params.append(key, val));
     dates.forEach((d) => params.append("date", d.toISOString().split("T")[0]));
 
     params.set("recurring", isRecurring ? "1" : "0");
-
     if (isRecurring) {
       params.set("recurringType", recurringType);
       params.set("recurringCount", recurringCount.toString());
     }
+    params.set("timeSlot", timeSlot); 
 
     router.push(`/request/step3?${params.toString()}`);
   };

@@ -9,38 +9,37 @@ import {
   PawPrint,
   StickyNote,
   AlertCircle,
+  RefreshCw,
 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
 type AppointmentWithRelations = {
   id: string;
-  confirmedAt: string;
   status: string;
+  confirmedAt: string;
+  repeatInterval?: string | null;
+  repeatCount?: number | null;
   adminNote?: string | null;
-  allergy?: string | null;
-  sensitivity?: string | null;
-  specialRequest?: string | null;
+  fullAddress?: string;
   district?: {
     name: string;
-  };
-  fullAddress?: string;
-  ownedPet: {
+  } | null;
+  pets?: {
+    id: string;
     name: string;
     image?: string | null;
-    age?: number | null;
-    species?: string | null;
-    gender?: string | null;
-    pet?: {
-      type?: string;
-      breed?: string;
-    };
-  };
-  services: {
-    service: {
-      id: string;
-      name: string;
-    };
+    allergy?: string | null;
+    sensitivity?: string | null;
+    specialRequest?: string | null;
+    services: {
+      service: {
+        id: string;
+        name: string;
+      };
+    }[];
   }[];
 };
 
@@ -69,151 +68,172 @@ export default function AppointmentLeftInfoCard({
     fetchDetail();
   }, [appointmentId]);
 
-  if (loading) {
-    return (
-      <div className="space-y-4 border rounded-lg p-6 shadow-sm bg-white animate-pulse">
-        <div className="flex items-start justify-between">
-          <div className="space-y-2">
-            <div className="h-6 w-48 bg-gray-200 rounded" />
-            <div className="flex gap-3">
-              <div className="h-4 w-24 bg-gray-200 rounded" />
-              <div className="h-4 w-16 bg-gray-200 rounded" />
-            </div>
-          </div>
-          <div className="flex flex-col items-end gap-2">
-            <div className="h-6 w-20 bg-gray-200 rounded" />
-            <div className="h-8 w-24 bg-gray-100 rounded" />
-          </div>
-        </div>
-
-        <div className="w-full h-52 bg-gray-200 rounded-lg" />
-
-        <div className="space-y-2">
-          <div className="h-4 w-32 bg-gray-200 rounded" />
-          <div className="h-4 w-48 bg-gray-100 rounded" />
-        </div>
-
-        <div className="h-4 w-28 bg-gray-200 rounded" />
-        <div className="h-16 w-full bg-gray-100 rounded" />
-      </div>
-    );
-  }
-
+  if (loading) return <div>Yükleniyor...</div>;
   if (!appointment) return null;
 
   return (
-    <div className="space-y-6 border rounded-lg p-6 shadow-sm bg-white">
-      <div className="flex items-start justify-between">
-        <div>
-          <h2 className="text-xl font-bold mb-2 flex items-center gap-2">
-            <PawPrint className="w-5 h-5 text-muted-foreground" />
-            {appointment.ownedPet.name} için Hizmet Detayı
-          </h2>
-          <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <Calendar className="w-4 h-4" />
-              {format(new Date(appointment.confirmedAt), "d MMMM yyyy", {
-                locale: tr,
-              })}
-            </div>
-            <div className="flex items-center gap-1">
-              <Clock className="w-4 h-4" />
-              {format(new Date(appointment.confirmedAt), "HH:mm", {
-                locale: tr,
-              })}
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-2 items-end">
-          <Badge variant="outline">{appointment.status}</Badge>
-          <Button size="sm" variant="outline">
-            Durumu Değiştir
-          </Button>
-        </div>
+    <div className="border rounded-lg p-6 shadow-sm bg-white space-y-4">
+      <div className="flex items-center justify-between mb-4">
+        <div className="text-xl font-bold">Randevu Detayı</div>
+        <Button variant="outline" size="sm" onClick={() => history.back()}>
+          ← Geri
+        </Button>
       </div>
 
-      {appointment.ownedPet.image && (
-        <img
-          src={appointment.ownedPet.image}
-          alt="Pet"
-          className="w-full h-52 object-cover rounded-lg shadow"
-        />
-      )}
-
-      {appointment.district?.name && appointment.fullAddress && (
-        <div className="space-y-1 text-sm">
-          <h3 className="font-semibold text-sm mb-1">Adres Bilgisi</h3>
-          <p className="text-muted-foreground">
-            {appointment.district.name} / {appointment.fullAddress}
-          </p>
-        </div>
-      )}
-
-      <div className="space-y-1">
-        <h3 className="font-semibold text-sm mb-1">İstenen Hizmetler</h3>
-        {appointment.services.map((s) => (
-          <div key={s.service.id} className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              defaultChecked
-              disabled
-              className="w-4 h-4"
-            />
-            <label>{s.service.name}</label>
-          </div>
-        ))}
-      </div>
-
-      {appointment.allergy && (
-        <div>
-          <h3 className="font-semibold text-sm mb-1 flex items-center gap-1">
-            <AlertCircle className="w-4 h-4 text-red-500" />
-            Alerjiler
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {appointment.allergy.split(",").map((item, i) => (
-              <span
-                key={i}
-                className="bg-red-100 text-red-700 text-xs rounded px-2 py-1"
-              >
-                {item.trim()}
-              </span>
+      {(appointment.pets && appointment.pets.length > 0) ? (
+        <Tabs defaultValue={appointment.pets[0].id} className="w-full">
+          <TabsList>
+            {appointment.pets?.map((pet) => (
+              <TabsTrigger key={pet.id} value={pet.id}>
+                {pet.name}
+              </TabsTrigger>
             ))}
-          </div>
-        </div>
-      )}
+          </TabsList>
 
-      {appointment.sensitivity && (
-        <div>
-          <h3 className="font-semibold text-sm mb-1">Hassasiyet Bilgisi</h3>
-          <p className="text-sm text-muted-foreground">
-            {appointment.sensitivity}
-          </p>
-        </div>
-      )}
+          {appointment.pets.map((pet) => (
+            <TabsContent key={pet.id} value={pet.id}>
+              <div className="space-y-4">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h2 className="text-lg font-semibold flex items-center gap-2 mb-1">
+                      <PawPrint className="w-4 h-4 text-muted-foreground" />
+                      {pet.name} için Hizmet Detayı
+                    </h2>
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-4 h-4" />
+                        {format(
+                          new Date(appointment.confirmedAt),
+                          "d MMMM yyyy",
+                          { locale: tr }
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Clock className="w-4 h-4" />
+                        {format(new Date(appointment.confirmedAt), "HH:mm", {
+                          locale: tr,
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    <Badge variant="outline">{appointment.status}</Badge>
+                    <Button size="sm" variant="outline">
+                      Durumu Değiştir
+                    </Button>
+                  </div>
+                </div>
 
-      {appointment.specialRequest && (
-        <div>
-          <h3 className="font-semibold text-sm mb-1">Özel İstekler</h3>
-          <p className="text-sm text-muted-foreground">
-            {appointment.specialRequest}
-          </p>
-        </div>
-      )}
+                {pet.image && (
+                  <img
+                    src={pet.image}
+                    alt="Pet Görseli"
+                    className="w-full h-52 object-cover rounded-lg shadow"
+                  />
+                )}
 
-      {appointment.adminNote && (
-        <div>
-          <h3 className="font-semibold text-sm mb-1 flex items-center gap-1">
-            <StickyNote className="w-4 h-4 text-muted-foreground" />
-            Admin Notu
-          </h3>
-          <textarea
-            className="w-full border rounded px-3 py-2 text-sm"
-            value={appointment.adminNote}
-            rows={4}
-            disabled
-          />
+                <div className="space-y-1">
+                  <h3 className="font-semibold text-sm mb-1">Adres</h3>
+                  <p className="text-muted-foreground text-sm">
+                    {appointment.fullAddress || "Adres bilgisi yok"}
+                    {appointment.district?.name &&
+                      ` / ${appointment.district.name}`}
+                  </p>
+                </div>
+
+                <Separator />
+
+                <div>
+                  <h3 className="font-semibold text-sm mb-1">
+                    İstenen Hizmetler
+                  </h3>
+                  <ul className="list-disc list-inside text-sm text-muted-foreground">
+                    {pet.services.map((s) => (
+                      <li key={s.service.id}>{s.service.name}</li>
+                    ))}
+                  </ul>
+                </div>
+
+                {(appointment.repeatInterval || appointment.repeatCount) && (
+                  <div className="flex items-start gap-2 mt-2">
+                    <RefreshCw className="w-4 h-4 text-muted-foreground mt-1" />
+                    <div>
+                      <h4 className="font-semibold text-sm mb-0.5">
+                        Tekrarlayan Hizmet
+                      </h4>
+                      <p className="text-sm text-muted-foreground">
+                        {appointment.repeatInterval?.toLocaleUpperCase()}{" "}
+                        aralıklarla toplam {appointment.repeatCount} kez
+                        yapılacaktır.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {(pet.allergy || pet.specialRequest) && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-100 p-4 rounded-lg">
+                    <div>
+                      <h4 className="font-semibold text-sm mb-1 flex items-center gap-1">
+                        <AlertCircle className="w-4 h-4 text-red-500" />
+                        Alerjiler
+                      </h4>
+                      {pet.allergy ? (
+                        <div className="flex flex-wrap gap-2">
+                          {pet.allergy.split(",").map((a, i) => (
+                            <span
+                              key={i}
+                              className="bg-red-100 text-red-700 text-xs rounded px-2 py-1"
+                            >
+                              {a.trim()}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">Yok</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold text-sm mb-1">Özel İstek</h4>
+                      <p className="text-sm text-muted-foreground">
+                        {pet.specialRequest || "Belirtilmemiş"}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {pet.sensitivity && (
+                  <div>
+                    <h4 className="font-semibold text-sm mb-1">
+                      Hassasiyet Bilgisi
+                    </h4>
+                    <p className="text-sm text-muted-foreground">
+                      {pet.sensitivity}
+                    </p>
+                  </div>
+                )}
+
+                {appointment.adminNote && (
+                  <div>
+                    <h4 className="font-semibold text-sm mb-1 flex items-center gap-1">
+                      <StickyNote className="w-4 h-4 text-muted-foreground" />
+                      Admin Notu
+                    </h4>
+                    <textarea
+                      className="w-full border rounded px-3 py-2 text-sm bg-muted"
+                      value={appointment.adminNote}
+                      rows={4}
+                      disabled
+                    />
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+          ))}
+        </Tabs>
+      ) : (
+        <div className="text-muted-foreground text-sm">
+          Randevuya ait pet bilgisi bulunamadı.
         </div>
       )}
     </div>

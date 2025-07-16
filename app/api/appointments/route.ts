@@ -23,6 +23,14 @@ export async function POST(req: NextRequest) {
       userAddressId,
     } = await req.json();
 
+    if (!Array.isArray(dates) || dates.length === 0) {
+      return NextResponse.json({ error: "Tarih bilgisi eksik" }, { status: 400 });
+    }
+
+    if (!timeSlot) {
+      return NextResponse.json({ error: "Saat dilimi belirtilmeli" }, { status: 400 });
+    }
+
     const ownedPet = await prisma.ownedPet.findFirst({
       where: { userId: user.id },
       select: { id: true },
@@ -47,9 +55,9 @@ export async function POST(req: NextRequest) {
           isRecurring: isRecurring || false,
           repeatCount: isRecurring ? recurringCount : null,
           repeatInterval: isRecurring ? recurringType : null,
-          timeSlot: timeSlot || null,
+          timeSlot: timeSlot,
           userNote: userNote || null,
-          userAddressId: userAddressId || null, 
+          userAddressId: userAddressId || null,
           services: {
             create: serviceIds.map((serviceId: string) => ({
               serviceId,

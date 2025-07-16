@@ -196,7 +196,7 @@ export default function Step3Client() {
                           searchParams.get("recurringCount") || "1"
                         ),
                         timeSlot: searchParams.get("timeSlot") || null,
-                        userNote: "", // ileride eklenebilir
+                        userNote: "", 
                       }),
                     });
 

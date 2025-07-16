@@ -1,11 +1,10 @@
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { NextRequest } from "next/server";
 
-export async function GET(
-  request: NextRequest,
-  context: { params: { id: string } }
-) {
-  const { id } = context.params;
+export async function GET(request: NextRequest) {
+  const url = new URL(request.url);
+  const segments = url.pathname.split("/");
+  const id = segments[segments.length - 1]; 
 
   const appointment = await prisma.appointment.findUnique({
     where: { id },
@@ -37,9 +36,7 @@ export async function GET(
   });
 
   if (!appointment) {
-    return new Response(JSON.stringify({ error: "Bulunamadı" }), {
-      status: 404,
-    });
+    return NextResponse.json({ error: "Bulunamadı" }, { status: 404 });
   }
 
   const fallbackAddress = appointment.address || appointment.user?.addresses?.[0];
@@ -61,7 +58,5 @@ export async function GET(
     ],
   };
 
-  return new Response(JSON.stringify({ data: normalized }), {
-    status: 200,
-  });
+  return NextResponse.json({ data: normalized }, { status: 200 });
 }

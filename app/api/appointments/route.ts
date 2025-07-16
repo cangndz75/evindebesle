@@ -1,46 +1,70 @@
-// // app/api/appointments/route.ts
+import { getServerSession } from "next-auth";
+import { authConfig } from "@/lib/auth.config";
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
 
-// import { NextRequest, NextResponse } from "next/server";
-// import { getServerSession } from "next-auth";
-// import { prisma } from "@/lib/db";
+export async function POST(req: NextRequest) {
+  try {
+    const session = await getServerSession(authConfig);
+    const user = session?.user;
 
-// export async function POST(req: NextRequest) {
-//   const session = await getServerSession(authConfig);
-//   if (!session?.user?.id) {
-//     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-//   }
+    if (!user || !user.id) {
+      return NextResponse.json({ error: "Giriş yapmalısınız" }, { status: 401 });
+    }
 
-//   const body = await req.json();
+    const {
+      serviceIds,
+      dates,
+      isRecurring,
+      recurringType,
+      recurringCount,
+      timeSlot,
+      userNote,
+    } = await req.json();
 
-//   try {
-//     const appointment = await prisma.appointment.create({
-//       data: {
-//         userId: session.user.id,
-//         userNote: body.userNote,
-//         allergy: body.allergy,
-//         sensitivity: body.sensitivity,
-//         specialRequest: body.specialRequest,
-//         districtId: body.districtId,
-//         fullAddress: body.fullAddress,
-//         timeSlot: body.timeSlot,
-//         repeatCount: body.repeatCount,
-//         repeatInterval: body.repeatInterval,
-//         userPetId: body.userPetId,
-//         status: "SCHEDULED",
-//         finalPrice: body.finalPrice ?? 0,
-//         couponId: body.couponId ?? null,
-//       },
-//     });
+    const ownedPet = await prisma.ownedPet.findFirst({
+      where: { userId: user.id },
+      select: { id: true },
+    });
 
-//     return NextResponse.json(appointment);
-//   } catch (error) {
-//     console.error("Appointment POST error", error);
-//     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
-//   }
-// }
+    if (!ownedPet) {
+      return NextResponse.json(
+        { error: "Kullanıcıya ait bir evcil hayvan bulunamadı" },
+        { status: 400 }
+      );
+    }
 
-import { NextResponse } from "next/server";
+    const appointments = [];
 
-export async function GET() {
-  return NextResponse.json({ message: "Appointments API aktif" });
+    for (const date of dates) {
+      const appointment = await prisma.appointment.create({
+        data: {
+          userId: user.id,
+          ownedPetId: ownedPet.id,
+          confirmedAt: new Date(date),
+          status: "SCHEDULED",
+          isRecurring: isRecurring || false,
+          repeatCount: isRecurring ? recurringCount : null,
+          repeatInterval: isRecurring ? recurringType : null,
+          timeSlot: timeSlot || null,
+          userNote: userNote || null,
+          services: {
+            create: serviceIds.map((serviceId: string) => ({
+              serviceId,
+            })),
+          },
+        },
+      });
+
+      appointments.push(appointment);
+    }
+
+    return NextResponse.json({ success: true, appointments }, { status: 200 });
+  } catch (error) {
+    console.error("Hata:", error);
+    return NextResponse.json(
+      { success: false, message: "Bir hata oluştu." },
+      { status: 500 }
+    );
+  }
 }

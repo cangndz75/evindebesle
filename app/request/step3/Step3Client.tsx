@@ -8,7 +8,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import clsx from "clsx";
 import Stepper from "@/app/(public)/_components/Stepper";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function Step3Client() {
   const router = useRouter();
@@ -25,6 +25,7 @@ export default function Step3Client() {
   };
 
   const formattedCardNumber = cardRaw.replace(/(.{4})/g, "$1 ").trim();
+  const searchParams = useSearchParams();
 
   return (
     <div className="min-h-screen grid md:grid-cols-2 overflow-hidden relative">
@@ -56,9 +57,9 @@ export default function Step3Client() {
                     "backface-hidden"
                   )}
                 >
-                  <div className="text-right text-sm tracking-widest font-semibold">
+                  {/* <div className="text-right text-sm tracking-widest font-semibold">
                     DISCOVER
-                  </div>
+                  </div> */}
                   <div className="mt-6 text-xl tracking-widest font-mono">
                     {cardRaw ? formattedCardNumber : "•••• •••• •••• ••••"}
                   </div>
@@ -170,9 +171,43 @@ export default function Step3Client() {
               <Button
                 variant="outline"
                 className="w-full"
-                onClick={() => {
-                  console.log("Ödemesiz tamamlandı. Test modunda ilerleniyor.");
-                  router.push("/success"); 
+                onClick={async () => {
+                  try {
+                    const res = await fetch("/api/appointments", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        petIds: searchParams.getAll("pet"),
+                        serviceIds: searchParams.getAll("service"),
+                        districtId: searchParams.get("district"),
+                        fullAddress: searchParams.get("fullAddress"),
+                        petCounts: Object.fromEntries(
+                          searchParams
+                            .getAll("pet")
+                            .map((id) => [
+                              id,
+                              parseInt(searchParams.get(id) || "0"),
+                            ])
+                        ),
+                        dates: searchParams.getAll("date"),
+                        isRecurring: searchParams.get("recurring") === "1",
+                        recurringType: searchParams.get("recurringType"),
+                        recurringCount: parseInt(
+                          searchParams.get("recurringCount") || "1"
+                        ),
+                        timeSlot: searchParams.get("timeSlot") || null,
+                        userNote: "", // ileride eklenebilir
+                      }),
+                    });
+
+                    if (!res.ok) throw new Error();
+
+                    const data = await res.json();
+                    console.log("Sipariş oluşturuldu:", data);
+                    router.push("/success");
+                  } catch (err) {
+                    console.error("Sipariş oluşturulamadı", err);
+                  }
                 }}
               >
                 Ödemesiz Tamamla (Test)

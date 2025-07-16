@@ -39,14 +39,13 @@ export default function Navbar() {
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
         {/* Logo */}
         <Link
-          href="/home"
+          href={session?.user?.isAdmin ? "/dashboard" : "/home"}
           className="flex items-center gap-2 text-xl font-bold text-primary"
         >
           <PawPrint className="w-6 h-6 text-violet-700" />
           EvindeBesle
         </Link>
 
-        {/* Masaüstü menü */}
         <div className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground">
           <Link href="/about" className="hover:text-black transition">
             Hakkımızda
@@ -179,20 +178,18 @@ export default function Navbar() {
             {session?.user ? (
               <>
                 <Link href="/profile">
-                  <Button variant="ghost" className="flex items-center gap-2">
+                  <Button variant="outline" className="flex items-center gap-2">
                     <Avatar className="w-6 h-6">
-                      <AvatarImage src="/logo.png" />
+                      <AvatarImage src={session.user.image || "/logo.png"} />
                       <AvatarFallback>
                         {session.user.name?.charAt(0) ?? "U"}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="text-sm text-muted-foreground">
-                      {session.user.name}
-                    </span>
+                    <span className="text-sm font-medium">Hesabım</span>
                   </Button>
                 </Link>
                 <Separator orientation="vertical" className="h-6" />
-                <Button variant="outline" onClick={handleLogout}>
+                <Button variant="secondary" onClick={handleLogout}>
                   <LogOut className="w-4 h-4 mr-1" />
                   Çıkış
                 </Button>

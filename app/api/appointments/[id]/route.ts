@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  req: NextRequest,
+  context: { params: { id: string } }
 ) {
   try {
-    const { id } = params;
+    const { id } = context.params;
 
     const appointment = await prisma.appointment.findUnique({
       where: { id },

@@ -1,34 +1,26 @@
-import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
 
 export async function GET(
-  req: NextRequest,
-  context: { params: { id: string } } 
+  request: NextRequest,
+  { params }: { params: { id: string } }
 ) {
-  try {
-    const { id } = context.params;
+  const { id } = params;
 
-    const appointment = await prisma.appointment.findUnique({
-      where: { id },
-      include: {
-        user: true,
-        ownedPet: true,
-        services: {
-          include: { service: true },
-        },
+  const appointment = await prisma.appointment.findUnique({
+    where: { id },
+    include: {
+      user: true,
+      ownedPet: true,
+      services: {
+        include: { service: true },
       },
-    });
+    },
+  });
 
-    if (!appointment) {
-      return NextResponse.json({ error: "Not Found" }, { status: 404 });
-    }
-
-    return NextResponse.json(appointment);
-  } catch (error) {
-    console.error("Appointment GET error", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
+  if (!appointment) {
+    return NextResponse.json({ error: "Not Found" }, { status: 404 });
   }
+
+  return NextResponse.json(appointment);
 }

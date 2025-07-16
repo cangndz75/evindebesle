@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { PlusIcon, MinusIcon } from "lucide-react";
 import { Label } from "@/components/ui/label";
@@ -11,7 +11,7 @@ import Stepper from "@/app/(public)/_components/Stepper";
 import DistrictSelect from "../_components/DistrictSelect";
 import { toast } from "sonner";
 import FilteredServiceSelect from "@/app/(public)/_components/FilteredServiceSelect";
-import { useMemo } from "react";
+import NewAddressModal from "../_components/NewAddressModal";
 
 type Pet = {
   id: string;
@@ -37,9 +37,7 @@ export default function Page() {
 
   const [allPets, setAllPets] = useState<Pet[]>([]);
   const [counts, setCounts] = useState<Record<string, number>>({});
-  const [district, setDistrict] = useState<string | null>(
-    searchParams.get("district") || null
-  );
+  const [districtId, setDistrictId] = useState<string | null>(null);
   const [services, setServices] = useState<string[]>(
     searchParams.getAll("service")
   );
@@ -47,6 +45,31 @@ export default function Page() {
   const [allServices, setAllServices] = useState<Service[]>([]);
   const [isLoadingServices, setIsLoadingServices] = useState(true);
   const [isLoadingPets, setIsLoadingPets] = useState(true);
+  const [addressModalOpen, setAddressModalOpen] = useState(false);
+  const [addresses, setAddresses] = useState<any[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
+    null
+  );
+
+  useEffect(() => {
+    fetch("/api/me")
+      .then((res) => res.json())
+      .then((user) => {
+        if (user.fullAddress) {
+          const addr = {
+            id: "me",
+            districtId: user.districtId,
+            fullAddress: user.fullAddress,
+          };
+          setAddresses([addr]);
+          setSelectedAddressId("me");
+          setDistrictId(user.districtId);
+          setFullAddress(user.fullAddress);
+        } else {
+          setAddresses([]);
+        }
+      });
+  }, []);
 
   useEffect(() => {
     setIsLoadingPets(true);
@@ -64,40 +87,14 @@ export default function Page() {
 
   useEffect(() => {
     if (selectedPetIds.length === 0) return;
-
     setIsLoadingServices(true);
-
-    const params = new URLSearchParams();
-    selectedPetIds.forEach((id) => params.append("pet", id));
-
-    fetch(`/api/services/filtered?${params.toString()}`)
+    const query = new URLSearchParams();
+    selectedPetIds.forEach((id) => query.append("pet", id));
+    fetch(`/api/services/filtered?${query.toString()}`)
       .then((res) => res.json())
       .then((data) => setAllServices(data))
       .finally(() => setIsLoadingServices(false));
   }, [selectedPetIds]);
-
-  useEffect(() => {
-    const addressFromURL = searchParams.get("fullAddress");
-    if (addressFromURL) setFullAddress(addressFromURL);
-
-    const districtFromURL = searchParams.get("district");
-    if (districtFromURL) setDistrict(districtFromURL);
-
-    const serviceFromURL = searchParams.getAll("service");
-    if (serviceFromURL.length > 0) setServices(serviceFromURL);
-
-    const petIdsFromURL = searchParams.getAll("pet");
-    if (petIdsFromURL.length > 0) {
-      setCounts((prev) => {
-        const newCounts = { ...prev };
-        petIdsFromURL.forEach((id) => {
-          const count = parseInt(searchParams.get(id) || "0");
-          newCounts[id] = count;
-        });
-        return newCounts;
-      });
-    }
-  }, [searchParams]);
 
   const handleChange = (petId: string, delta: number) => {
     setCounts((prev) => ({
@@ -111,35 +108,19 @@ export default function Page() {
       (sum, count) => sum + count,
       0
     );
-
-    if (totalCount === 0) {
-      toast.error("Lütfen en az 1 hayvan için sayı belirtin.");
-      return;
-    }
-
-    if (!district) {
-      toast.error("Lütfen ilçe seçin.");
-      return;
-    }
-
-    if (!fullAddress.trim()) {
-      toast.error("Lütfen detaylı adres girin.");
-      return;
-    }
-
-    if (services.length === 0) {
-      toast.error("En az 1 hizmet seçmelisiniz.");
-      return;
-    }
+    if (totalCount === 0)
+      return toast.error("Lütfen en az 1 hayvan için sayı belirtin.");
+    if (!districtId) return toast.error("Lütfen ilçe seçin.");
+    if (!fullAddress.trim()) return toast.error("Lütfen detaylı adres girin.");
+    if (services.length === 0)
+      return toast.error("En az 1 hizmet seçmelisiniz.");
 
     const params = new URLSearchParams();
-
     Object.entries(counts).forEach(([id, count]) => {
       if (count > 0) params.append("pet", id);
       params.append(id, count.toString());
     });
-
-    params.set("district", district);
+    params.set("district", districtId);
     params.set("fullAddress", fullAddress);
     services.forEach((s) => params.append("service", s));
 
@@ -215,29 +196,50 @@ export default function Page() {
           </div>
 
           <div className="rounded-2xl border bg-white p-4 shadow space-y-3">
-            <Label className="text-sm font-semibold mb-1 block">
-              İlçe Seçimi
-            </Label>
-            <DistrictSelect
-              initial={district || undefined}
-              onSelect={setDistrict}
-            />
+            <div className="flex items-center justify-between">
+              <Label className="text-sm font-semibold">Adres Bilgileri</Label>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setAddressModalOpen(true)}
+              >
+                Adres Ekle / Güncelle
+              </Button>
+            </div>
 
-            <Label className="text-sm font-semibold mb-1 block">
-              Detaylı Adres
-            </Label>
-            <Input
-              placeholder="Apartman, sokak, no, kat vb."
-              value={fullAddress}
-              onChange={(e) => setFullAddress(e.target.value)}
-            />
+            {addresses.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Kayıtlı adresiniz yok.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {addresses.map((addr) => (
+                  <label
+                    key={addr.id}
+                    className="flex items-center gap-2 cursor-pointer text-sm"
+                  >
+                    <input
+                      type="radio"
+                      name="selectedAddress"
+                      value={addr.id}
+                      checked={selectedAddressId === addr.id}
+                      onChange={() => {
+                        setSelectedAddressId(addr.id);
+                        setDistrictId(addr.districtId);
+                        setFullAddress(addr.fullAddress);
+                      }}
+                    />
+                    <span>{addr.fullAddress}</span>
+                  </label>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="rounded-2xl border bg-white p-4 shadow">
             <Label className="text-sm font-semibold mb-1 block">
               Hizmet Türleri
             </Label>
-
             {isLoadingServices ? (
               <div className="space-y-2">
                 {[...Array(3)].map((_, i) => (
@@ -287,6 +289,27 @@ export default function Page() {
           <p className="mt-2 font-semibold">Can · Türkiye</p>
         </div>
       </div>
+
+      <NewAddressModal
+        open={addressModalOpen}
+        onClose={() => setAddressModalOpen(false)}
+        onSaved={({ districtId, fullAddress }) => {
+          fetch("/api/me")
+            .then((res) => res.json())
+            .then((data) => {
+              setAddresses(data || []);
+              const newAddress = data.find(
+                (a: any) => a.fullAddress === fullAddress
+              );
+              if (newAddress) {
+                setSelectedAddressId(newAddress.id);
+                setDistrictId(newAddress.districtId);
+                setFullAddress(newAddress.fullAddress);
+              }
+            });
+          setAddressModalOpen(false);
+        }}
+      />
     </div>
   );
 }

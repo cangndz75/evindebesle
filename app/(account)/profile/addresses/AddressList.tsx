@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { PencilIcon, Trash2, PlusCircle } from "lucide-react";
+import { PencilIcon, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -9,19 +9,31 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import AddressForm from "./AddressForm";
 import { Skeleton } from "@/components/ui/skeleton";
+import EditAddressForm from "./EditAddressModal";
 
 type District = { id: string; name: string };
-type UserAddress = { districtId?: string; fullAddress?: string };
+type Address = {
+  id: string;
+  districtId: string;
+  districtName: string;
+  fullAddress: string;
+  isPrimary: boolean;
+};
 
 export default function AddressList() {
-  const [userAddress, setUserAddress] = useState<UserAddress | null>(null);
-  const [districtName, setDistrictName] = useState("");
-  const [open, setOpen] = useState(false);
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [districts, setDistricts] = useState<District[]>([]);
   const [loading, setLoading] = useState(true);
   const [formLoading, setFormLoading] = useState(false);
-  const [districts, setDistricts] = useState<District[]>([]);
+  const [openEditId, setOpenEditId] = useState<string | null>(null);
+
+  const fetchAddresses = async () => {
+    const res = await fetch("/api/address");
+    const data = await res.json();
+    setAddresses(data);
+    setLoading(false);
+  };
 
   useEffect(() => {
     fetch("/api/districts")
@@ -30,106 +42,99 @@ export default function AddressList() {
   }, []);
 
   useEffect(() => {
-    fetch("/api/me")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.districtId || data.fullAddress) {
-          setUserAddress({
-            districtId: data.districtId,
-            fullAddress: data.fullAddress,
-          });
+    fetchAddresses();
+  }, []);
 
-          const found = districts.find((d) => d.id === data.districtId);
-          if (found) setDistrictName(found.name);
-        } else {
-          setUserAddress(null);
-        }
-      })
-      .finally(() => setLoading(false));
-  }, [districts]);
-
-  const handleSave = async (values: {
-    districtId: string;
-    fullAddress: string;
-  }) => {
+  const handleEdit = async (
+    id: string,
+    values: { districtId: string; fullAddress: string }
+  ) => {
     setFormLoading(true);
-    const res = await fetch("/api/address", {
+    const res = await fetch(`/api/address/${id}`, {
       method: "PATCH",
-      body: JSON.stringify(values),
       headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(values),
     });
 
     if (res.ok) {
-      setUserAddress(values);
-      const selectedDistrict = districts.find(
-        (d) => d.id === values.districtId
-      );
-      if (selectedDistrict) setDistrictName(selectedDistrict.name);
-      setOpen(false);
-    } else {
-      console.error("Hata oluştu");
+      await fetchAddresses();
+      setOpenEditId(null);
     }
+
     setFormLoading(false);
   };
 
-  const handleDelete = async () => {
-    await fetch("/api/address", { method: "DELETE" });
-    setUserAddress(null);
-    setDistrictName("");
+  const handleDelete = async (id: string) => {
+    if (!confirm("Bu adresi silmek istediğinize emin misiniz?")) return;
+
+    await fetch(`/api/address/${id}`, { method: "DELETE" });
+    await fetchAddresses();
   };
 
   return (
-    <div>
+    <div className="space-y-4">
       {loading ? (
-        <div className="space-y-3">
-          <Skeleton className="h-4 w-32" />
-          <Skeleton className="h-6 w-full" />
-          <Skeleton className="h-4 w-24" />
-        </div>
-      ) : userAddress ? (
-        <div className="border rounded-lg p-4 flex items-start justify-between">
-          <div>
-            <div className="text-sm text-gray-500">İlçe:</div>
-            <div className="font-medium text-lg">{districtName || "-"}</div>
-            <div className="mt-2 text-sm text-gray-500">Tam Adres:</div>
-            <div>{userAddress.fullAddress || "-"}</div>
+        [...Array(2)].map((_, i) => (
+          <div key={i} className="space-y-2">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-6 w-full" />
           </div>
-          <div className="flex gap-2">
-            <Button size="icon" variant="outline" onClick={() => setOpen(true)}>
-              <PencilIcon className="w-4 h-4" />
-            </Button>
-            <Button size="icon" variant="destructive" onClick={handleDelete}>
-              <Trash2 className="w-4 h-4" />
-            </Button>
+        ))
+      ) : addresses.length > 0 ? (
+        addresses.map((address) => (
+          <div
+            key={address.id}
+            className="border rounded-lg p-4 flex items-start justify-between"
+          >
+            <div>
+              <div className="text-sm text-gray-500">İlçe:</div>
+              <div className="font-medium text-lg">{address.districtName}</div>
+              <div className="mt-2 text-sm text-gray-500">Tam Adres:</div>
+              <div>{address.fullAddress}</div>
+              {address.isPrimary && (
+                <div className="text-xs text-green-600 mt-2">⭐ Ana Adres</div>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <Button
+                size="icon"
+                variant="outline"
+                onClick={() => setOpenEditId(address.id)}
+              >
+                <PencilIcon className="w-4 h-4" />
+              </Button>
+              <Button
+                size="icon"
+                variant="destructive"
+                onClick={() => handleDelete(address.id)}
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
+
+            <Dialog
+              open={openEditId === address.id}
+              onOpenChange={() => setOpenEditId(null)}
+            >
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Adresi Güncelle</DialogTitle>
+                </DialogHeader>
+                <EditAddressForm
+                  districtId={address.districtId}
+                  fullAddress={address.fullAddress}
+                  loading={formLoading}
+                  onSubmit={(values) => handleEdit(address.id, values)}
+                />
+              </DialogContent>
+            </Dialog>
           </div>
-        </div>
+        ))
       ) : (
-        <div className="flex items-center justify-between border rounded-lg p-4">
-          <span className="text-sm text-gray-600">
-            Henüz bir adres eklemediniz.
-          </span>
-          <Button onClick={() => setOpen(true)}>
-            <PlusCircle className="w-4 h-4 mr-2" />
-            Adres Ekle
-          </Button>
+        <div className="text-gray-500 text-sm">
+          Henüz bir adres eklemediniz.
         </div>
       )}
-
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {userAddress ? "Adres Bilgilerini Güncelle" : "Yeni Adres Ekle"}
-            </DialogTitle>
-          </DialogHeader>
-          <AddressForm
-            districtId={userAddress?.districtId}
-            fullAddress={userAddress?.fullAddress}
-            loading={formLoading}
-            onSubmit={handleSave}
-          />
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

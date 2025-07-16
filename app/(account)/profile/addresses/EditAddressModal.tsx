@@ -12,32 +12,28 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-// Prop tipi güncellendi: districtId ve fullAddress isteğe bağlı oldu
-interface AddressFormProps {
-  districtId?: string;
-  fullAddress?: string;
-  onSubmit: (values: { districtId: string; fullAddress: string }) => void;
-  loading: boolean;
-}
-
 type District = { id: string; name: string };
 
-export default function AddressForm({
+export default function EditAddressForm({
   districtId,
   fullAddress,
   onSubmit,
   loading,
-}: AddressFormProps) {
+}: {
+  districtId?: string;
+  fullAddress?: string;
+  onSubmit: (values: { districtId: string; fullAddress: string }) => void;
+  loading: boolean;
+}) {
   const [districts, setDistricts] = useState<District[]>([]);
-  const [selectedDistrict, setSelectedDistrict] = useState(districtId || "");
-  const [address, setAddress] = useState(fullAddress || "");
+  const [selectedDistrict, setSelectedDistrict] = useState(districtId ?? "");
+  const [address, setAddress] = useState(fullAddress ?? "");
 
   useEffect(() => {
-    setSelectedDistrict(districtId || "");
-    setAddress(fullAddress || "");
+    setSelectedDistrict(districtId ?? "");
+    setAddress(fullAddress ?? "");
   }, [districtId, fullAddress]);
 
-  // İlçeleri getir
   useEffect(() => {
     fetch("/api/districts")
       .then((res) => res.json())
@@ -78,7 +74,7 @@ export default function AddressForm({
       </div>
 
       <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? "İşleniyor..." : districtId ? "Güncelle" : "Kaydet"}
+        {loading ? "Güncelleniyor..." : "Güncelle"}
       </Button>
     </form>
   );

@@ -5,61 +5,57 @@ import { authConfig } from "@/lib/auth.config";
 
 export async function GET() {
   const session = await getServerSession(authConfig);
-  if (!session?.user.id) return new NextResponse("Unauthorized", { status: 401 });
+  if (!session?.user?.id)
+    return new NextResponse("Unauthorized", { status: 401 });
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: {
-      districtId: true,
-      fullAddress: true,
-      district: {
-        select: { name: true },
-      },
-    },
+  const addresses = await prisma.userAddress.findMany({
+    where: { userId: session.user.id },
+    include: { district: true },
+    orderBy: { createdAt: "desc" },
   });
 
-  return NextResponse.json(user);
+  return NextResponse.json(
+    addresses.map((addr) => ({
+      id: addr.id,
+      districtId: addr.districtId,
+      districtName: addr.district?.name || "",
+      fullAddress: addr.fullAddress,
+      isPrimary: addr.isPrimary,
+    }))
+  );
 }
+
 
 export async function POST(req: Request) {
   const session = await getServerSession(authConfig);
-  if (!session?.user.id) return new NextResponse("Unauthorized", { status: 401 });
+  if (!session?.user?.id) return new NextResponse("Unauthorized", { status: 401 });
 
   const { districtId, fullAddress } = await req.json();
 
-  await prisma.user.update({
-    where: { id: session.user.id },
-    data: { districtId, fullAddress },
+  const existingAddresses = await prisma.userAddress.findMany({
+    where: { userId: session.user.id },
   });
 
-  return NextResponse.json({ ok: true });
-}
+  const isFirst = existingAddresses.length === 0;
 
-export async function PATCH(req: Request) {
-  const session = await getServerSession(authConfig);
-  if (!session?.user.id) return new NextResponse("Unauthorized", { status: 401 });
-
-  const { districtId, fullAddress } = await req.json();
-
-  await prisma.user.update({
-    where: { id: session.user.id },
-    data: { districtId, fullAddress },
-  });
-
-  return NextResponse.json({ ok: true });
-}
-
-export async function DELETE(req: Request) {
-  const session = await getServerSession(authConfig);
-  if (!session?.user.id) return new NextResponse("Unauthorized", { status: 401 });
-
-  await prisma.user.update({
-    where: { id: session.user.id },
+  const newAddress = await prisma.userAddress.create({
     data: {
-      districtId: null,
-      fullAddress: null,
+      userId: session.user.id,
+      districtId,
+      fullAddress,
+      isPrimary: isFirst,
     },
   });
 
-  return NextResponse.json({ ok: true });
+  if (isFirst) {
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: {
+        districtId,
+        fullAddress,
+      },
+    });
+  }
+
+  return NextResponse.json(newAddress);
 }

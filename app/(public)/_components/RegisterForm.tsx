@@ -33,19 +33,19 @@ export default function RegisterForm() {
           return;
         }
 
-        const signInResult = await signIn("credentials", {
-          redirect: false,
-          email,
-          password,
+        const otpRes = await fetch("/api/send-otp", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
         });
 
-        if (signInResult?.error) {
-          toast.error("Otomatik giriş başarısız: " + signInResult.error);
+        if (!otpRes.ok) {
+          toast.error("Kod gönderilemedi.");
           return;
         }
 
-        toast.success("Kayıt ve giriş başarılı!");
-        window.location.href = "/";
+        toast.success("Kayıt başarılı! Kod gönderildi.");
+        router.push(`/verify?email=${email}`);
       } catch {
         toast.error("Bir hata oluştu.");
       }

@@ -197,16 +197,15 @@ export default function Page() {
 
           <div className="rounded-2xl border bg-white p-4 shadow space-y-3">
             <div className="flex items-center justify-between">
-              <Label className="text-sm font-semibold">Adres Bilgileri</Label>
+              <Label className="text-sm font-semibold">Adresim</Label>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setAddressModalOpen(true)}
+                onClick={() => router.push("/profile/addresses")}
               >
-                Adres Ekle / Güncelle
+                Adreslerim
               </Button>
             </div>
-
             {addresses.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 Kayıtlı adresiniz yok.
@@ -289,27 +288,6 @@ export default function Page() {
           <p className="mt-2 font-semibold">Can · Türkiye</p>
         </div>
       </div>
-
-      <NewAddressModal
-        open={addressModalOpen}
-        onClose={() => setAddressModalOpen(false)}
-        onSaved={({ districtId, fullAddress }) => {
-          fetch("/api/me")
-            .then((res) => res.json())
-            .then((data) => {
-              setAddresses(data || []);
-              const newAddress = data.find(
-                (a: any) => a.fullAddress === fullAddress
-              );
-              if (newAddress) {
-                setSelectedAddressId(newAddress.id);
-                setDistrictId(newAddress.districtId);
-                setFullAddress(newAddress.fullAddress);
-              }
-            });
-          setAddressModalOpen(false);
-        }}
-      />
     </div>
   );
 }

@@ -1,48 +1,42 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { toast } from "sonner";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 export default function VerifyClient() {
-  const searchParams = useSearchParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const email = searchParams.get("email");
+
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const [pending, startTransition] = useTransition();
-  const [resendCooldown, setResendCooldown] = useState(0);
-
+  const [cooldown, setCooldown] = useState(0);
   const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
 
   useEffect(() => {
-    if (resendCooldown > 0) {
+    if (cooldown > 0) {
       const interval = setInterval(() => {
-        setResendCooldown((prev) => prev - 1);
+        setCooldown((prev) => prev - 1);
       }, 1000);
       return () => clearInterval(interval);
     }
-  }, [resendCooldown]);
+  }, [cooldown]);
 
-  const handleChange = (value: string, index: number) => {
-    if (!/^\d?$/.test(value)) return;
-
+  const handleChange = (val: string, index: number) => {
+    if (!/^\d?$/.test(val)) return;
     const newCode = [...code];
-    newCode[index] = value;
+    newCode[index] = val;
     setCode(newCode);
-
-    if (value && inputsRef.current[index + 1]) {
+    if (val && inputsRef.current[index + 1]) {
       inputsRef.current[index + 1]?.focus();
     }
   };
 
-  const handleVerify = () => {
+  const handleSubmit = () => {
     const fullCode = code.join("");
-    if (fullCode.length !== 6) {
-      toast.error("6 haneli kodu girin.");
-      return;
-    }
-
+    if (fullCode.length !== 6) return toast.error("6 haneli kod gerekli.");
     startTransition(async () => {
       const res = await fetch("/api/verify-otp", {
         method: "POST",
@@ -51,7 +45,7 @@ export default function VerifyClient() {
       });
 
       if (res.ok) {
-        toast.success("Doğrulama başarılı!");
+        toast.success("Doğrulama başarılı.");
         router.push("/");
       } else {
         toast.error("Kod geçersiz veya süresi dolmuş.");
@@ -62,61 +56,62 @@ export default function VerifyClient() {
   const handleResend = async () => {
     const res = await fetch("/api/send-otp", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
+      headers: { "Content-Type": "application/json" },
     });
 
     if (res.ok) {
       toast.success("Kod tekrar gönderildi.");
-      setResendCooldown(60);
+      setCooldown(60);
     } else {
-      toast.error("Gönderim başarısız.");
+      toast.error("Kod gönderilemedi.");
     }
   };
 
   return (
-    <div className="max-w-md mx-auto pt-20 px-4 space-y-6 text-center">
-      <h1 className="text-2xl font-bold">E-posta Doğrulama</h1>
-      <p className="text-muted-foreground">
-        {email} adresine gönderilen 6 haneli kodu giriniz.
-      </p>
+    <div className="grid md:grid-cols-2 min-h-screen">
+      <div
+        className="hidden md:block bg-muted bg-cover bg-center"
+        style={{ backgroundImage: "url('/7.png')" }}
+      />
 
-      <div className="flex justify-center gap-2">
-        {code.map((digit, index) => (
-          <input
-            key={index}
-            ref={(el) => {
-              inputsRef.current[index] = el;
-            }}
-            type="text"
-            maxLength={1}
-            value={digit}
-            onChange={(e) => handleChange(e.target.value, index)}
-            className="w-12 h-12 text-center text-xl border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-violet-500"
-          />
-        ))}
-      </div>
+      <div className="flex flex-col justify-center items-center px-6">
+        <div className="max-w-md w-full space-y-6">
+          <h2 className="text-2xl font-bold text-center">E-Posta Doğrulama</h2>
+          <p className="text-center text-muted-foreground">
+            Mail adresinize gönderilen 6 haneli kodu giriniz.
+          </p>
 
-      <Button
-        onClick={handleVerify}
-        disabled={pending || code.includes("")}
-        className="w-full"
-      >
-        {pending ? "Doğrulanıyor..." : "Kodu Doğrula"}
-      </Button>
+          <div className="flex justify-center gap-2">
+            {code.map((digit, index) => (
+              <input
+                key={index}
+                ref={(el) => { inputsRef.current[index] = el; }}
+                type="text"
+                inputMode="numeric"
+                maxLength={1}
+                value={digit}
+                onChange={(e) => handleChange(e.target.value, index)}
+                className="w-12 h-12 text-xl text-center border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            ))}
+          </div>
 
-      <div className="text-sm text-muted-foreground">
-        Kod gelmedi mi?{" "}
-        <Button
-          variant="link"
-          size="sm"
-          onClick={handleResend}
-          disabled={resendCooldown > 0}
-        >
-          {resendCooldown > 0
-            ? `Tekrar gönder (${resendCooldown})`
-            : "Kod Gönder"}
-        </Button>
+          <Button onClick={handleSubmit} className="w-full" disabled={pending}>
+            {pending ? "Doğrulanıyor..." : "Kodu Doğrula"}
+          </Button>
+
+          <p className="text-center text-sm text-muted-foreground">
+            Kod gelmedi mi?{" "}
+            <button
+              onClick={handleResend}
+              disabled={cooldown > 0}
+              className="text-blue-600 underline disabled:opacity-50"
+            >
+              {cooldown > 0 ? `Tekrar Gönder (${cooldown})` : "Tekrar Gönder"}
+            </button>
+          </p>
+        </div>
       </div>
     </div>
   );

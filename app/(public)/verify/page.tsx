@@ -1,9 +1,15 @@
 import { Suspense } from "react";
 import VerifyClient from "./VerifyClient";
 
-export default function VerifyPage() {
+export default function Page() {
   return (
-    <Suspense fallback={<div className="p-10">Doğrulama yapılıyor...</div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center text-lg text-muted-foreground">
+          Doğrulama sayfası yükleniyor...
+        </div>
+      }
+    >
       <VerifyClient />
     </Suspense>
   );

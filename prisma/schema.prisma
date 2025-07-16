@@ -205,7 +205,6 @@ model ServiceTag {
 model Appointment {
   id              String             @id @default(cuid())
   userId          String
-  userPetId       String             // Randevu hangi pet içindi
   confirmedAt     DateTime           @default(now())
   deliveredAt     DateTime?
   assignedToId    String?

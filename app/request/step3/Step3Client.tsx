@@ -1,138 +1,200 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle } from "lucide-react";
+import Image from "next/image";
+import { motion } from "framer-motion";
+import clsx from "clsx";
 import Stepper from "@/app/(public)/_components/Stepper";
-
-const plans = [
-  {
-    id: "starter",
-    name: "Başlangıç",
-    price: 50,
-    features: [
-      "10 projeye kadar",
-      "Temel analizler",
-      "48 saat içinde destek yanıtı",
-      "Sınırlı API erişimi",
-      "Topluluk desteği",
-    ],
-    cta: "Ücretsiz Deneme Başlat",
-    popular: false,
-  },
-  {
-    id: "professional",
-    name: "Profesyonel",
-    price: 99,
-    features: [
-      "Sınırsız proje",
-      "Gelişmiş analizler",
-      "24 saat içinde destek yanıtı",
-      "Tam API erişimi",
-      "Öncelikli destek",
-      "Ekip işbirliği",
-      "Özel entegrasyonlar",
-    ],
-    cta: "Hemen Başla",
-    popular: true,
-  },
-  {
-    id: "enterprise",
-    name: "Kurumsal",
-    price: 299,
-    features: [
-      "Profesyonel plandaki her şey",
-      "Özel çözümler",
-      "Özel müşteri temsilcisi",
-      "1 saat içinde destek yanıtı",
-      "SSO Kimlik Doğrulama",
-      "Gelişmiş güvenlik",
-      "Özel sözleşmeler",
-      "SLA anlaşması",
-    ],
-    cta: "Satışla İletişime Geç",
-    popular: false,
-  },
-];
+import { useRouter } from "next/navigation";
 
 export default function Step3Client() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const [selectedPlan, setSelectedPlan] = useState("professional");
+  const [cardRaw, setCardRaw] = useState("");
+  const [cardName, setCardName] = useState("");
+  const [expiryMonth, setExpiryMonth] = useState("");
+  const [expiryYear, setExpiryYear] = useState("");
+  const [cvv, setCvv] = useState("");
+  const [isFlipped, setIsFlipped] = useState(false);
 
-  const handleSubmit = () => {
-    const params = new URLSearchParams();
-    searchParams.forEach((val, key) => params.append(key, val));
-    params.set("plan", selectedPlan);
-    router.push(`/request/summary?${params.toString()}`);
+  const handleCardInput = (value: string) => {
+    const digitsOnly = value.replace(/\D/g, "").slice(0, 16);
+    setCardRaw(digitsOnly);
   };
 
+  const formattedCardNumber = cardRaw.replace(/(.{4})/g, "$1 ").trim();
+
   return (
-    <div className="max-w-6xl mx-auto px-4 py-10">
-      <Stepper activeStep={3} />
-
-      <div className="text-left mb-6">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => router.back()}
-          className="text-muted-foreground"
-        >
-          ← Geri
-        </Button>
-      </div>
-
-      <div className="text-center my-10">
-        <h1 className="text-3xl font-bold">Planını Seç</h1>
-        <h2 className="text-5xl font-serif font-semibold mb-4 text-black">Yolculuğun Başlasın</h2>
-        <p className="text-muted-foreground max-w-xl mx-auto">
-          Bireysel kullanıcılardan kurumsal ekiplere kadar her ihtiyaca uygun bir plan tasarladık.
-        </p>
-      </div>
-
-      <div className="grid md:grid-cols-3 gap-6">
-        {plans.map((plan) => (
-          <Card
-            key={plan.id}
-            className={`relative cursor-pointer transition ${
-              plan.popular ? "border-2 border-red-500 shadow-xl" : "border"
-            } ${selectedPlan === plan.id ? "ring-2 ring-black" : ""}`}
-            onClick={() => setSelectedPlan(plan.id)}
+    <div className="min-h-screen grid md:grid-cols-2 overflow-hidden relative">
+      <div className="flex flex-col px-4 py-6">
+        <div className="mb-6 space-y-2">
+          <Stepper activeStep={3} />
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.back()}
+            className="text-muted-foreground"
           >
-            {plan.popular && (
-              <div className="absolute -top-3 right-3 bg-red-500 text-white text-xs px-2 py-1 rounded-md shadow">
-                Popüler
-              </div>
-            )}
-            <CardHeader>
-              <CardTitle className="text-center text-xl">{plan.name}</CardTitle>
-              <p className="text-center text-3xl font-bold">
-                ${plan.price}{" "}
-                <span className="text-base font-normal">/ ay</span>
-              </p>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {plan.features.map((feature, idx) => (
-                <div key={idx} className="flex items-center gap-2 text-sm">
-                  <CheckCircle className="w-4 h-4 text-green-500" />
-                  {feature}
+            ← Geri
+          </Button>
+        </div>
+
+        <div className="flex-1 flex flex-col items-center justify-center">
+          <div className="w-full max-w-md space-y-6">
+            <div className="w-full h-[200px] perspective">
+              <motion.div
+                className="relative w-full h-full"
+                animate={{ rotateY: isFlipped ? 180 : 0 }}
+                transition={{ duration: 0.6 }}
+                style={{ transformStyle: "preserve-3d" }}
+              >
+                <div
+                  className={clsx(
+                    "absolute w-full h-full p-6 rounded-xl text-white bg-gradient-to-r from-[#1a1a2e] to-[#0f3460] shadow-xl",
+                    "backface-hidden"
+                  )}
+                >
+                  <div className="text-right text-sm tracking-widest font-semibold">
+                    DISCOVER
+                  </div>
+                  <div className="mt-6 text-xl tracking-widest font-mono">
+                    {cardRaw ? formattedCardNumber : "•••• •••• •••• ••••"}
+                  </div>
+                  <div className="absolute bottom-6 left-6 text-xs">
+                    <div className="opacity-70">Kart Sahibi</div>
+                    <div className="font-semibold">
+                      {cardName || "AD SOYAD"}
+                    </div>
+                  </div>
+                  <div className="absolute bottom-6 right-6 text-xs text-right">
+                    <div className="opacity-70">SKT</div>
+                    <div className="font-semibold">
+                      {expiryMonth || "AA"}/{expiryYear || "YY"}
+                    </div>
+                  </div>
                 </div>
-              ))}
-              <Button className="w-full mt-4">{plan.cta}</Button>
-            </CardContent>
-          </Card>
-        ))}
+
+                <div
+                  className={clsx(
+                    "absolute w-full h-full p-6 rounded-xl text-white bg-gradient-to-r from-[#0f3460] to-[#1a1a2e] shadow-xl",
+                    "backface-hidden rotate-y-180"
+                  )}
+                >
+                  <div className="h-12 bg-gray-800 w-full rounded-sm mb-6" />
+                  <div className="text-xs">CVV</div>
+                  <div className="bg-white text-black rounded px-2 py-1 inline-block mt-1 font-mono tracking-widest">
+                    {cvv || "•••"}
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <Label>Kart Numarası</Label>
+                <Input
+                  value={formattedCardNumber}
+                  onChange={(e) => handleCardInput(e.target.value)}
+                  placeholder="0000 0000 0000 0000"
+                  inputMode="numeric"
+                />
+              </div>
+              <div>
+                <Label>Kart Adı</Label>
+                <Input
+                  value={cardName}
+                  onChange={(e) =>
+                    setCardName(
+                      e.target.value.replace(/[^A-Za-zÇçĞğİıÖöŞşÜü\s]/g, "")
+                    )
+                  }
+                  placeholder="Ad Soyad"
+                />
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <Label>Ay</Label>
+                  <select
+                    value={expiryMonth}
+                    onChange={(e) => setExpiryMonth(e.target.value)}
+                    className="w-full rounded-md border px-3 py-2"
+                  >
+                    <option value="">Ay</option>
+                    {Array.from({ length: 12 }, (_, i) => {
+                      const month = String(i + 1).padStart(2, "0");
+                      return (
+                        <option key={month} value={month}>
+                          {month}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+                <div>
+                  <Label>Yıl</Label>
+                  <select
+                    value={expiryYear}
+                    onChange={(e) => setExpiryYear(e.target.value)}
+                    className="w-full rounded-md border px-3 py-2"
+                  >
+                    <option value="">Yıl</option>
+                    {Array.from({ length: 10 }, (_, i) => {
+                      const year = new Date().getFullYear() + i;
+                      return (
+                        <option key={year} value={String(year).slice(2)}>
+                          {year}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+                <div>
+                  <Label>CVV</Label>
+                  <Input
+                    value={cvv}
+                    onChange={(e) =>
+                      setCvv(e.target.value.replace(/\D/g, "").slice(0, 3))
+                    }
+                    placeholder="CVV"
+                    maxLength={3}
+                    inputMode="numeric"
+                    onFocus={() => setIsFlipped(true)}
+                    onBlur={() => setIsFlipped(false)}
+                  />
+                </div>
+              </div>
+
+              <Button className="w-full mt-4">Ödemeyi Tamamla</Button>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  console.log("Ödemesiz tamamlandı. Test modunda ilerleniyor.");
+                  router.push("/success"); 
+                }}
+              >
+                Ödemesiz Tamamla (Test)
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className="text-center mt-10">
-        <Button
-          onClick={handleSubmit}
-          className="px-8 py-4 rounded-full text-base font-semibold"
-        >
-          Devam Et
-        </Button>
+      <div className="relative hidden md:flex items-center justify-center bg-gray-50">
+        <Image
+          src="https://res.cloudinary.com/dlahfchej/image/upload/v1752619395/10_en3zvw.png"
+          alt="Pet"
+          fill
+          className="object-cover"
+        />
+        <div className="absolute bottom-6 left-6 bg-white/90 rounded-lg p-4 shadow-md max-w-sm">
+          <p className="text-sm text-gray-700 italic">
+            “Ödeme ekranı çok modern ve kullanımı kolay 👌”
+          </p>
+          <p className="mt-2 font-semibold">Ali · İstanbul</p>
+        </div>
       </div>
     </div>
   );

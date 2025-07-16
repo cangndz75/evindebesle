@@ -59,7 +59,6 @@ export default function MyPetsSection() {
         </button>
       </div>
 
-      {/* Skeleton */}
       {loading ? (
         <div className="grid gap-4">
           {Array.from({ length: 2 }).map((_, i) => (
@@ -86,7 +85,7 @@ export default function MyPetsSection() {
           {pets.map((pet) => (
             <div
               key={pet.id}
-              onClick={() => router.push(`/account/profile/pets/${pet.id}`)}
+              onClick={() => router.push(`/pets/${pet.id}`)}
               className="flex items-center justify-between border rounded-lg p-3 cursor-pointer hover:bg-gray-50 transition"
             >
               <div className="flex items-center gap-4">

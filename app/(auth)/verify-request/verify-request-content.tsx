@@ -33,9 +33,10 @@ export default function VerifyRequest() {
         email,
         otp,
         fetchOptions: {
-          onSuccess: () => {
-            toast.success("E-posta doğrulandı! Giriş yapabilirsiniz.");
-            router.push("/");
+          onSuccess: async () => {
+            toast.success("E-posta doğrulandı! Giriş yapılıyor...");
+            await new Promise((r) => setTimeout(r, 500));
+            window.location.href = "/home";
           },
           onError: () => {
             toast.error("Doğrulama kodu geçersiz veya süresi dolmuş.");

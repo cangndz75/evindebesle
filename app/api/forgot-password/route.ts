@@ -13,11 +13,15 @@ export async function POST(req: Request) {
   const user = await prisma.user.findUnique({ where: { email } })
 
   if (!user) {
-    return NextResponse.json({ error: "Bu e-posta sistemimizde kayıtlı değildir." }, { status: 404 })
+    return NextResponse.json({ success: true })
   }
 
+  await prisma.passwordResetToken.deleteMany({
+    where: { userId: user.id },
+  })
+
   const token = crypto.randomUUID()
-  const expires = new Date(Date.now() + 1000 * 60 * 60) 
+  const expires = new Date(Date.now() + 60 * 60 * 1000) 
 
   await prisma.passwordResetToken.create({
     data: {

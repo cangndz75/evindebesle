@@ -39,7 +39,7 @@ export default function ResetPasswordClient() {
 
       if (res.ok) {
         toast.success("Şifre başarıyla yenilendi.");
-        router.push("/auth/login");
+        router.push("/login");
       } else {
         toast.error("Geçersiz veya süresi dolmuş bağlantı.");
       }

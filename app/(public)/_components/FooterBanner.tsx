@@ -4,7 +4,7 @@ export default function FooterBanner() {
   return (
     <section className="bg-[#003737] text-white px-6 md:px-24 py-12">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
-        <div className="flex items-center gap-6 w-full md:w-auto">
+        <div className="flex items-center justify-center md:justify-start gap-6 w-full md:w-auto">
           <img
             src="https://res.cloudinary.com/dlahfchej/image/upload/v1752619387/13_lmksmp.png"
             alt="Evinde Besle"

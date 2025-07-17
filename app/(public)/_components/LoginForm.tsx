@@ -127,7 +127,7 @@ export default function LoginForm() {
 
         <div>
           <Link
-            href="/auth/forgot-password"
+            href="/forgot-password"
             className="text-sm text-gray-500 hover:underline"
           >
             Şifremi Unuttum?

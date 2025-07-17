@@ -27,7 +27,7 @@ export async function POST(req: Request) {
     },
   })
 
-  const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}`
+  const resetUrl = `${process.env.FRONTEND_BASE_URL}/reset-password?token=${token}`
 
   await resend.emails.send({
     from: "EvindeBesle <noreply@evindebesle.com>",

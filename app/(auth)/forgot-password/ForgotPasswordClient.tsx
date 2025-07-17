@@ -32,10 +32,20 @@ export default function ForgotPasswordClient() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="w-full max-w-md bg-white rounded-lg shadow-xl p-8 space-y-6">
+    <div className="min-h-screen flex items-center justify-center px-4 bg-muted relative">
+      <div className="absolute top-6 left-6 flex items-center gap-2">
+        <button
+          onClick={() => router.back()}
+          className="text-sm font-medium text-muted-foreground hover:text-foreground"
+        >
+          ←
+        </button>
+        <span className="text-sm font-semibold">EvindeBesle</span>
+      </div>
+
+      <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl p-10 space-y-6">
         <div className="text-center">
-          <h1 className="text-2xl font-bold">🔑 Şifremi Unuttum</h1>
+          <h1 className="text-3xl font-bold">🔑 Şifremi Unuttum</h1>
           <p className="text-sm text-muted-foreground mt-2">
             Kayıtlı e-posta adresinizi girin, şifre sıfırlama bağlantısı
             gönderelim.
@@ -48,12 +58,13 @@ export default function ForgotPasswordClient() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           disabled={pending}
+          className="text-base h-12"
         />
 
         <Button
           onClick={handleSubmit}
           disabled={pending || !email}
-          className="w-full"
+          className="w-full h-12 text-base"
         >
           {pending ? "Gönderiliyor..." : "Şifre Sıfırlama Linki Gönder"}
         </Button>

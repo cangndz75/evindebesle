@@ -26,20 +26,30 @@ export default function Step3Client() {
 
   const formattedCardNumber = cardRaw.replace(/(.{4})/g, "$1 ").trim();
   const searchParams = useSearchParams();
+  const totalPrice = parseInt(searchParams.get("totalPrice") || "0");
 
   return (
     <div className="min-h-screen grid md:grid-cols-2 overflow-hidden relative">
       <div className="flex flex-col px-4 py-6">
         <div className="mb-6 space-y-2">
           <Stepper activeStep={3} />
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.back()}
-            className="text-muted-foreground"
-          >
-            ← Geri
-          </Button>
+          <div className="mb-6 flex items-center justify-between">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.back()}
+              className="text-muted-foreground"
+            >
+              ← Geri
+            </Button>
+
+            <div className="text-sm text-muted-foreground font-medium">
+              Toplam Tutar:{" "}
+              <span className="text-lg font-bold text-black">
+                {totalPrice.toLocaleString()}₺
+              </span>
+            </div>
+          </div>
         </div>
 
         <div className="flex-1 flex flex-col items-center justify-center">

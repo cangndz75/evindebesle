@@ -104,7 +104,7 @@ export default function PetDetailPage() {
         </Button>
 
         <Image
-          src={pet.image || "/pet-placeholder.png"}
+          src={pet.image || "/https://res.cloudinary.com/dlahfchej/image/upload/v1752619388/8_kkoxpr.png"}
           width={120}
           height={120}
           alt="Pet"

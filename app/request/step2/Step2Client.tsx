@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -23,6 +23,7 @@ import ServiceModal from "../_components/ServiceModal";
 export default function Step2Client() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const totalPrice = Number(searchParams.get("totalPrice") || 0);
   const [dates, setDates] = useState<Date[]>([]);
   const [isRecurring, setIsRecurring] = useState(false);
   const [recurringType, setRecurringType] = useState<
@@ -30,7 +31,8 @@ export default function Step2Client() {
   >("");
   const [recurringCount, setRecurringCount] = useState<number>(1);
   const [selectedTime, setSelectedTime] = useState("");
-
+  const [calculatedPrice, setCalculatedPrice] = useState(0);
+  const unitPrice = Number(searchParams.get("unitPrice") || 0);
   const [dateRange, setDateRange] = useState<{
     start: Date | null;
     end: Date | null;
@@ -47,35 +49,52 @@ export default function Step2Client() {
 
   const [timeSlot, setTimeSlot] = useState<string>("");
 
+  useEffect(() => {
+    const total = unitPrice * dates.length;
+    setCalculatedPrice(total);
+  }, [unitPrice, dates]);
+
   const handleDateSelect = (selectedDates: Date[]) => {
-    if (selectedDates.length === 0) {
-      setDateRange({ start: null, end: null });
+    if (!selectedDates || selectedDates.length === 0) {
       setDates([]);
+      setDateRange({ start: null, end: null });
       return;
     }
 
     if (selectedDates.length === 1) {
-      setDateRange({ start: selectedDates[0], end: null });
       setDates([selectedDates[0]]);
+      setDateRange({ start: selectedDates[0], end: null });
       return;
     }
 
-    const [a, b] = selectedDates;
-    const start = a < b ? a : b;
-    const end = a < b ? b : a;
+    if (selectedDates.length === 2) {
+      const [a, b] = selectedDates;
+      const start = a < b ? a : b;
+      const end = a < b ? b : a;
 
-    const temp = new Date(start);
-    const dayList: Date[] = [];
+      const temp = new Date(start);
+      const dayList: Date[] = [];
 
-    while (temp <= end) {
-      dayList.push(new Date(temp));
-      temp.setDate(temp.getDate() + 1);
+      while (temp <= end) {
+        dayList.push(new Date(temp));
+        temp.setDate(temp.getDate() + 1);
+      }
+
+      setDates(dayList);
+      setDateRange({ start, end });
+      return;
     }
 
-    setDateRange({ start, end });
-    setDates(dayList);
-  };
+    const uniqueDates = Array.from(
+      new Set(selectedDates.map((d) => d.toDateString()))
+    ).map((s) => new Date(s));
 
+    setDates(uniqueDates);
+    setDateRange({
+      start: uniqueDates[0] ?? null,
+      end: uniqueDates[uniqueDates.length - 1] ?? null,
+    });
+  };
   const handleNext = () => {
     if (dates.length === 0) {
       toast.error("Lütfen en az bir tarih seçin.");
@@ -108,7 +127,8 @@ export default function Step2Client() {
       params.set("recurringType", recurringType);
       params.set("recurringCount", recurringCount.toString());
     }
-    params.set("timeSlot", timeSlot); 
+    params.set("timeSlot", timeSlot);
+    params.set("totalPrice", calculatedPrice.toString());
 
     router.push(`/request/step3?${params.toString()}`);
   };
@@ -192,7 +212,13 @@ export default function Step2Client() {
             </div>
           )}
         </div>
-
+        {dates.length > 0 && (
+          <div className="text-right px-4 md:px-8 pt-4">
+            <p className="text-lg font-bold">
+              Toplam Tutar: {calculatedPrice.toLocaleString()}₺
+            </p>
+          </div>
+        )}
         <div className="pt-4 text-right px-4 md:px-8">
           <Button
             onClick={handleNext}

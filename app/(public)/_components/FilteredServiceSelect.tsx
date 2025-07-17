@@ -11,6 +11,7 @@ import {
 import { Info } from "lucide-react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 type Service = {
   id: string;
@@ -25,6 +26,7 @@ interface Props {
   selectedPetSpecies: string[];
   selected: string[];
   setSelected: (ids: string[]) => void;
+  counts: Record<string, number>;
 }
 
 export default function FilteredServiceSelect({
@@ -32,12 +34,19 @@ export default function FilteredServiceSelect({
   selectedPetSpecies,
   selected,
   setSelected,
+  counts,
 }: Props) {
-  const toggle = (id: string) => {
-    if (selected.includes(id)) {
-      setSelected(selected.filter((s) => s !== id));
+  const toggle = (service: Service, species: string) => {
+    const count = counts[species] ?? 0;
+    if (count < 1) {
+      toast.error(`Lütfen önce ${species} için en az 1 hayvan seçin.`);
+      return;
+    }
+
+    if (selected.includes(service.id)) {
+      setSelected(selected.filter((s) => s !== service.id));
     } else {
-      setSelected([...selected, id]);
+      setSelected([...selected, service.id]);
     }
   };
 
@@ -70,7 +79,7 @@ export default function FilteredServiceSelect({
                 services.map((service) => (
                   <div
                     key={`${species}-${service.id}`}
-                    onClick={() => toggle(service.id)}
+                    onClick={() => toggle(service, species)}
                     className={cn(
                       "flex items-center justify-between border rounded-lg px-4 py-3 transition cursor-pointer",
                       selected.includes(service.id)
@@ -81,21 +90,11 @@ export default function FilteredServiceSelect({
                     <div className="flex items-center gap-2">
                       <Checkbox
                         checked={selected.includes(service.id)}
-                        onCheckedChange={() => toggle(service.id)}
+                        onCheckedChange={() => toggle(service, species)}
                         className="pointer-events-none"
                       />
                       <div>
                         <Label className="font-medium">{service.name}</Label>
-                        {/* <div className="flex gap-1 mt-1 flex-wrap">
-                          {service.petTags.map((tag) => (
-                            <span
-                              key={tag}
-                              className="text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full uppercase"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                        </div> */}
                       </div>
                     </div>
 

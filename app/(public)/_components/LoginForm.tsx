@@ -27,7 +27,11 @@ export default function LoginForm() {
       });
 
       if (res?.error) {
-        toast.error(res.error);
+        const message =
+          res.error === "CredentialsSignin"
+            ? "E-posta adresi veya şifre hatalı."
+            : res.error;
+        toast.error(message);
         return;
       }
 
@@ -101,7 +105,32 @@ export default function LoginForm() {
           onClick={handleLoginWithPassword}
           className="w-full h-12 text-base"
         >
-          {pending ? "Giriş yapılıyor..." : "Giriş Yap"}
+          {pending ? (
+            <>
+              <svg
+                className="animate-spin h-5 w-5 mr-2 inline-block text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                />
+              </svg>
+            </>
+          ) : (
+            "Giriş Yap"
+          )}
         </Button>
 
         {/* <Button

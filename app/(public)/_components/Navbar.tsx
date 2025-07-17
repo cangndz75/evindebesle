@@ -35,9 +35,8 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="w-full border-b bg-white sticky top-0 z-50 shadow-sm">
-      <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-        {/* Logo */}
+    <nav className="w-full border-b bg-white sticky top-0 z-50 shadow-sm h-[64px]">
+      <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between h-[64px]">
         <Link
           href={session?.user?.isAdmin ? "/dashboard" : "/home"}
           className="flex items-center gap-2 text-xl font-bold text-primary"
@@ -46,7 +45,7 @@ export default function Navbar() {
           EvindeBesle
         </Link>
 
-        <div className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground">
+        <div className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground h-[64px]">
           <Link href="/about" className="hover:text-black transition">
             Hakkımızda
           </Link>
@@ -58,7 +57,7 @@ export default function Navbar() {
           </Link>
         </div>
 
-        <div className="md:hidden flex items-center gap-2">
+        <div className="md:hidden flex items-center gap-2 h-[64px]">
           {session?.user ? (
             <Button
               variant="ghost"
@@ -173,37 +172,37 @@ export default function Navbar() {
           </Sheet>
         </div>
 
-        {status === "loading" ? null : (
-          <div className="hidden md:flex items-center gap-4">
-            {session?.user ? (
-              <>
-                <Link href="/profile">
-                  <Button variant="outline" className="flex items-center gap-2">
-                    <Avatar className="w-6 h-6">
-                      <AvatarImage src={session.user.image || "/logo.png"} />
-                      <AvatarFallback>
-                        {session.user.name?.charAt(0) ?? "U"}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="text-sm font-medium">Hesabım</span>
-                  </Button>
-                </Link>
-                <Separator orientation="vertical" className="h-6" />
-                <Button variant="secondary" onClick={handleLogout}>
-                  <LogOut className="w-4 h-4 mr-1" />
-                  Çıkış
-                </Button>
-              </>
-            ) : (
-              <Link href="/login">
-                <Button>
-                  <User className="w-4 h-4 mr-1" />
-                  Giriş Yap
+        <div className="hidden md:flex items-center gap-4 min-w-[160px] justify-end">
+          {status === "loading" ? (
+            <div className="h-9 w-[100px]" />
+          ) : session?.user ? (
+            <>
+              <Link href="/profile">
+                <Button variant="outline" className="flex items-center gap-2">
+                  <Avatar className="w-6 h-6">
+                    <AvatarImage src={session.user.image || "/logo.png"} />
+                    <AvatarFallback>
+                      {session.user.name?.charAt(0) ?? "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="text-sm font-medium">Hesabım</span>
                 </Button>
               </Link>
-            )}
-          </div>
-        )}
+              <Separator orientation="vertical" className="h-6" />
+              <Button variant="secondary" onClick={handleLogout}>
+                <LogOut className="w-4 h-4 mr-1" />
+                Çıkış
+              </Button>
+            </>
+          ) : (
+            <Link href="/login">
+              <Button>
+                <User className="w-4 h-4 mr-1" />
+                Giriş Yap
+              </Button>
+            </Link>
+          )}
+        </div>
       </div>
     </nav>
   );

@@ -52,21 +52,18 @@ export default function Page() {
   );
 
   useEffect(() => {
-    fetch("/api/me")
+    fetch("/api/user-addresses")
       .then((res) => res.json())
-      .then((user) => {
-        if (user.fullAddress) {
-          const addr = {
-            id: "me",
-            districtId: user.districtId,
-            fullAddress: user.fullAddress,
-          };
-          setAddresses([addr]);
-          setSelectedAddressId("me");
-          setDistrictId(user.districtId);
-          setFullAddress(user.fullAddress);
+      .then((data) => {
+        const primary = data.find((a: any) => a.isPrimary);
+        if (primary) {
+          setAddresses(data);
+          setSelectedAddressId(primary.id);
+          setDistrictId(primary.districtId);
+          setFullAddress(primary.fullAddress);
         } else {
           setAddresses([]);
+          setSelectedAddressId(null);
         }
       });
   }, []);
@@ -122,6 +119,9 @@ export default function Page() {
     });
     params.set("district", districtId);
     params.set("fullAddress", fullAddress);
+    if (selectedAddressId) {
+      params.set("userAddressId", selectedAddressId);
+    }
     services.forEach((s) => params.append("service", s));
 
     router.push(`/request/step2?${params.toString()}`);

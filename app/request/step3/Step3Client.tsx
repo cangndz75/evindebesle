@@ -177,6 +177,7 @@ export default function Step3Client() {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({
+                        petIds: searchParams.getAll("pet"),
                         serviceIds: searchParams.getAll("service"),
                         dates: searchParams.getAll("date"),
                         isRecurring: searchParams.get("recurring") === "1",
@@ -189,6 +190,7 @@ export default function Step3Client() {
                         userAddressId: searchParams.get("userAddressId"),
                       }),
                     });
+
                     if (!res.ok) throw new Error();
 
                     const data = await res.json();

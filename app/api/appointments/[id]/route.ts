@@ -21,6 +21,10 @@ export async function GET(
         select: {
           id: true,
           name: true,
+          image: true,
+          age: true,
+          gender: true,
+          relation: true,
           pet: {
             select: {
               species: true,

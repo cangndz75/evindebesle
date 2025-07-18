@@ -6,11 +6,13 @@ import { useTransition } from "react";
 
 type Props = {
   appointmentData: {
-    ownedPetId: string;
-    services: string[];
-    repeatCount?: number;
-    repeatInterval?: string | null;
-    timeSlot?: string;
+    petIds: string[];
+    serviceIds: string[];
+    dates: string[];
+    timeSlot: string;
+    isRecurring?: boolean;
+    recurringType?: string | null;
+    recurringCount?: number;
     userNote?: string;
     allergy?: string;
     sensitivity?: string;
@@ -36,7 +38,7 @@ export default function TestButton({ appointmentData }: Props) {
       if (result?.success) {
         toast.success("Sipariş başarıyla oluşturuldu!");
       } else {
-        toast.error(result?.error || "Bir hata oluştu.");
+        toast.error(result?.message || result?.error || "Bir hata oluştu.");
       }
     });
   };

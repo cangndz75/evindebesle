@@ -115,7 +115,7 @@ export default function Step1Page() {
       const species = getSpeciesById(petId)!;
       const ownedCount = userPets.filter((up) => up.species === species).length;
       const next = Math.max(0, (prev[petId] || 0) + delta);
-      if (next > ownedCount) return prev; // never exceed owned
+      if (next > ownedCount) return prev;
       if (selectedUserPets[species]?.length) {
         setSelectedUserPets((sel) => ({ ...sel, [species]: [] }));
       }
@@ -182,7 +182,8 @@ export default function Step1Page() {
     services.forEach((s) => params.append("service", s));
     params.set("district", districtId);
     params.set("fullAddress", fullAddress);
-    params.set("unitPrice", totalPrice.toString()); // Artık günlük fiyat
+    params.set("userAddressId", selectedAddressId!);
+    params.set("unitPrice", totalPrice.toString()); 
 
     router.push(`/request/step2?${params.toString()}`);
   };

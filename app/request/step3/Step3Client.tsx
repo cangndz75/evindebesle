@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -27,7 +27,14 @@ export default function Step3Client() {
   const formattedCardNumber = cardRaw.replace(/(.{4})/g, "$1 ").trim();
   const searchParams = useSearchParams();
   const totalPrice = Number(searchParams.get("totalPrice")) || 0;
+  const [draftAppointmentId, setDraftAppointmentId] = useState<string | null>(
+    null
+  );
 
+  useEffect(() => {
+    const id = searchParams.get("draftAppointmentId");
+    if (id) setDraftAppointmentId(id);
+  }, [searchParams]);
   return (
     <div className="min-h-screen grid md:grid-cols-2 overflow-hidden relative">
       <div className="flex flex-col px-4 py-6">
@@ -154,7 +161,7 @@ export default function Step3Client() {
                     {Array.from({ length: 10 }, (_, i) => {
                       const year = new Date().getFullYear() + i;
                       return (
-                        <option key={year} value={String(year).slice(2)}>
+                        <option key={year} value={String(year)}>
                           {year}
                         </option>
                       );
@@ -181,32 +188,33 @@ export default function Step3Client() {
                 className="w-full mt-4"
                 onClick={async () => {
                   try {
-                    const draftAppointmentId =
-                      searchParams.get("draftAppointmentId");
                     if (!draftAppointmentId) {
                       throw new Error("Taslak randevu ID'si bulunamadı.");
                     }
 
-                    const res = await fetch("/api/payment/initiate", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        cardNumber: cardRaw.replace(/\D/g, ""),
-                        cardHolderName: cardName,
-                        expireMonth: expiryMonth,
-                        expireYear: expiryYear,
-                        cvc: cvv,
-                        totalPrice,
-                        draftAppointmentId,
-                      }),
-                    });
+                    const res = await fetch(
+                      `${process.env.NEXT_PUBLIC_API_URL}/api/payment/initiate`,
+                      {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          cardNumber: cardRaw.replace(/\D/g, ""),
+                          cardHolderName: cardName,
+                          expireMonth: expiryMonth,
+                          expireYear: expiryYear.slice(-2),
+                          cvc: cvv,
+                          price: Number(totalPrice), // 'price' olarak gönderiyoruz
+                          draftAppointmentId,
+                        }),
+                      }
+                    );
 
                     const paymentData = await res.json();
                     console.log("💳 Ödeme Cevabı:", paymentData);
 
-                    if (paymentData?.paymentPageUrl) {
+                    if (paymentData?.paymentPageHtml) {
                       const popup = window.open("", "_blank");
-                      popup?.document.write(paymentData.paymentPageUrl);
+                      popup?.document.write(paymentData.paymentPageHtml);
                       popup?.document.close();
                     } else {
                       throw new Error("❌ Ödeme başlatılamadı.");

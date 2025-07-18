@@ -1,7 +1,6 @@
 import Iyzipay from "iyzipay";
 import { NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
-import type { PaymentRequestData } from "iyzipay";
 
 function createIyzipayClient() {
   return new Iyzipay({
@@ -11,10 +10,27 @@ function createIyzipayClient() {
   });
 }
 
+function formatDateForIyzico(date: Date) {
+  const yyyy = date.getFullYear();
+  const MM = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+  const HH = String(date.getHours()).padStart(2, "0");
+  const mm = String(date.getMinutes()).padStart(2, "0");
+  const ss = String(date.getSeconds()).padStart(2, "0");
+  return `${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}`;
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const { price, cardHolderName, cardNumber, expireMonth, expireYear, cvc } =
-      await req.json();
+    const {
+      price,
+      cardHolderName,
+      cardNumber,
+      expireMonth,
+      expireYear,
+      cvc,
+      draftAppointmentId,
+    } = await req.json();
 
     if (!price || !cardHolderName || !cardNumber || !expireMonth || !expireYear || !cvc) {
       return NextResponse.json({ error: "Eksik bilgi var" }, { status: 400 });
@@ -22,18 +38,19 @@ export async function POST(req: NextRequest) {
 
     const conversationId = uuidv4();
     const totalPrice = parseFloat(price).toFixed(2);
+    const now = new Date();
 
-    const paymentRequest: PaymentRequestData = {
+    const paymentRequest = {
       locale: Iyzipay.LOCALE.TR,
       conversationId,
       price: totalPrice,
       paidPrice: totalPrice,
       currency: Iyzipay.CURRENCY.TRY,
       installments: 1,
-      basketId: "B" + conversationId,
+      basketId: "BASKET-" + conversationId,
       paymentChannel: Iyzipay.PAYMENT_CHANNEL.WEB,
       paymentGroup: Iyzipay.PAYMENT_GROUP.PRODUCT,
-
+      callbackUrl: `${process.env.NEXT_PUBLIC_API_URL}/api/payment/callback?appointmentId=${draftAppointmentId}`,
       paymentCard: {
         cardAlias: `${cardHolderName}-${conversationId}`,
         cardHolderName,
@@ -43,7 +60,6 @@ export async function POST(req: NextRequest) {
         cvc,
         registerCard: 0,
       },
-
       buyer: {
         id: "BY-" + conversationId,
         name: cardHolderName.split(" ")[0] || "",
@@ -51,15 +67,14 @@ export async function POST(req: NextRequest) {
         gsmNumber: "+905350000000",
         email: "test@iyzico.com",
         identityNumber: "11111111111",
-        lastLoginDate: new Date().toISOString(),
-        registrationDate: new Date().toISOString(),
+        lastLoginDate: formatDateForIyzico(now),
+        registrationDate: formatDateForIyzico(now),
         registrationAddress: "Test Mah. Test Cad. No:1",
         ip: "85.34.78.112",
         city: "Istanbul",
         country: "Turkey",
         zipCode: "34732",
       },
-
       shippingAddress: {
         contactName: cardHolderName,
         city: "Istanbul",
@@ -67,7 +82,6 @@ export async function POST(req: NextRequest) {
         address: "Test Mah. Test Cad. No:1",
         zipCode: "34732",
       },
-
       billingAddress: {
         contactName: cardHolderName,
         city: "Istanbul",
@@ -75,7 +89,6 @@ export async function POST(req: NextRequest) {
         address: "Test Mah. Test Cad. No:1",
         zipCode: "34732",
       },
-
       basketItems: [
         {
           id: "BI-" + conversationId,
@@ -91,25 +104,25 @@ export async function POST(req: NextRequest) {
     const iyzipay = createIyzipayClient();
 
     const result = await new Promise<any>((resolve, reject) => {
-      iyzipay.payment.create(paymentRequest, (err, res) => {
+      iyzipay.threedsInitialize.create(paymentRequest, (err, res) => {
         if (err) return reject(err);
         resolve(res);
       });
     });
 
     if (result.status === "success") {
-      return NextResponse.json({ message: "Ödeme başarılı", data: result });
+      return NextResponse.json({
+        message: "3D Secure başlatıldı",
+        paymentPageUrl: result.paymentPageUrl,
+      });
     } else {
       return NextResponse.json(
-        { message: "Ödeme reddedildi", error: result.errorMessage },
+        { message: "3D Secure başlatılamadı", error: result.errorMessage },
         { status: 400 }
       );
     }
   } catch (e: any) {
     console.error("Sunucu hatası:", e);
-    return NextResponse.json(
-      { message: "Sunucu hatası", error: e.message },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Sunucu hatası", error: e.message }, { status: 500 });
   }
 }

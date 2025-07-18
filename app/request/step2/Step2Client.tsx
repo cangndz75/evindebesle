@@ -141,11 +141,32 @@ export default function Step2Client() {
     }
 
     const params = new URLSearchParams();
-    searchParams.forEach((val, key) => params.append(key, val));
+
+    // Tüm mevcut parametreleri koru
+    searchParams.forEach((val, key) => {
+      // Bu alanları tekrar ekleyeceğiz aşağıda, şimdilik geç
+      if (
+        key === "date" ||
+        key === "timeSlot" ||
+        key === "totalPrice" ||
+        key === "draftAppointmentId" ||
+        key === "recurring" ||
+        key === "recurringType" ||
+        key === "recurringCount"
+      ) {
+        return;
+      }
+      params.append(key, val);
+    });
+
+    // Tarihleri ekle
     dates.forEach((d) => params.append("date", d.toISOString().split("T")[0]));
+
+    // Yeni verileri set et
     params.set("timeSlot", timeSlot);
     params.set("totalPrice", calculatedPrice.toFixed(2));
     params.set("draftAppointmentId", draftAppointmentId);
+
     if (isRecurring) {
       params.set("recurring", "1");
       params.set("recurringType", recurringType);

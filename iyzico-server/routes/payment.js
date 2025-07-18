@@ -5,6 +5,11 @@ require("dotenv").config();
 
 const router = express.Router();
 
+const formatDateForIyzipay = () => {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(now.getSeconds()).padStart(2, "0")}`;
+};
+
 router.post("/initiate", (req, res) => {
   let {
     cardHolderName,
@@ -12,29 +17,19 @@ router.post("/initiate", (req, res) => {
     expireMonth,
     expireYear,
     cvc,
-    totalPrice,
+    price,
     draftAppointmentId,
   } = req.body;
 
-  // Eğer draftAppointmentId null/boşsa fallback olarak UUID ata
   if (!draftAppointmentId) {
     draftAppointmentId = uuidv4();
-    console.warn("draftAppointmentId eksik, yeni ID atandı:", draftAppointmentId);
   }
 
-  // Zorunlu alanları kontrol et
-  if (
-    !cardHolderName ||
-    !cardNumber ||
-    !expireMonth ||
-    !expireYear ||
-    !cvc ||
-    !totalPrice
-  ) {
-    return res.status(400).json({ error: "Eksik bilgi var" });
-  }
+  const finalPrice =
+    typeof price === "number" && !isNaN(price) && price > 0
+      ? price.toFixed(2)
+      : "0.00";
 
-  // iyzipay nesnesini burada yaratıyoruz (isteğe bağlı olarak en üste de alabilirsiniz)
   const iyzipay = new Iyzipay({
     apiKey: process.env.IYZIPAY_API_KEY,
     secretKey: process.env.IYZIPAY_SECRET_KEY,
@@ -44,19 +39,19 @@ router.post("/initiate", (req, res) => {
   const request = {
     locale: Iyzipay.LOCALE.TR,
     conversationId: uuidv4(),
-    price: totalPrice.toString(),
-    paidPrice: totalPrice.toString(),
+    price: finalPrice,
+    paidPrice: finalPrice,
     currency: Iyzipay.CURRENCY.TRY,
     installment: "1",
-    basketId: draftAppointmentId,          // draftAppointmentId kullanılıyor
+    basketId: draftAppointmentId,
     paymentChannel: Iyzipay.PAYMENT_CHANNEL.WEB,
     paymentGroup: Iyzipay.PAYMENT_GROUP.PRODUCT,
     paymentCard: {
-      cardHolderName,
-      cardNumber: cardNumber.replace(/\s/g, ""),
-      expireMonth,
-      expireYear,
-      cvc,
+      cardHolderName: cardHolderName || "Test User",
+      cardNumber: (cardNumber || "").replace(/\s/g, ""),
+      expireMonth: expireMonth || "01",
+      expireYear: expireYear || "30",
+      cvc: cvc || "000",
       registerCard: "0",
     },
     buyer: {
@@ -66,10 +61,10 @@ router.post("/initiate", (req, res) => {
       gsmNumber: "+905350000000",
       email: "test@iyzico.com",
       identityNumber: "74300864791",
-      lastLoginDate: new Date().toISOString(),
-      registrationDate: new Date().toISOString(),
+      lastLoginDate: formatDateForIyzipay(),
+      registrationDate: formatDateForIyzipay(),
       registrationAddress: "Test Mah. No:1",
-      ip: req.ip,
+      ip: req.ip || "127.0.0.1",
       city: "İstanbul",
       country: "Türkiye",
       zipCode: "34700",
@@ -94,10 +89,20 @@ router.post("/initiate", (req, res) => {
         name: "Evcil Hayvan Hizmeti",
         category1: "Hizmet",
         itemType: Iyzipay.BASKET_ITEM_TYPE.VIRTUAL,
-        price: totalPrice.toString(),
+        price: finalPrice,
       },
     ],
   };
+
+  console.log("📥 Ödeme isteği geldi:", {
+    cardHolderName,
+    cardNumber,
+    expireMonth,
+    expireYear,
+    cvc,
+    finalPrice,
+    draftAppointmentId,
+  });
 
   iyzipay.payment.create(request, (err, result) => {
     if (err) {
@@ -106,12 +111,9 @@ router.post("/initiate", (req, res) => {
     }
 
     if (result.status === "success") {
-      // 3D Secure gerekmiyorsa hemen return edilebilir, yoksa result.threeDSHtmlContent kullan.
       return res.json({ paymentPageHtml: result.threeDSHtmlContent || "" });
     } else {
-      return res
-        .status(400)
-        .json({ error: result.errorMessage || "Ödeme reddedildi" });
+      return res.status(400).json({ error: result.errorMessage || "Ödeme reddedildi" });
     }
   });
 });

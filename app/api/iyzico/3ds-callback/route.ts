@@ -8,11 +8,11 @@ export async function POST(req: NextRequest) {
     const conversationData = formData.get("conversationData")?.toString();
     const conversationId = formData.get("conversationId")?.toString();
 
-const iyzipay = new Iyzipay({
-  apiKey: process.env.IYZIPAY_API_KEY!,
-  secretKey: process.env.IYZIPAY_SECRET_KEY!,
-  uri: process.env.IYZIPAY_BASE_URL || "https://sandbox-api.iyzipay.com",
-});
+    const iyzipay = new Iyzipay({
+    apiKey: process.env.IYZIPAY_API_KEY!,
+    secretKey: process.env.IYZIPAY_SECRET_KEY!,
+    uri: process.env.IYZIPAY_BASE_URL?.trim() || "https://sandbox-api.iyzipay.com"
+    });
 
 
 

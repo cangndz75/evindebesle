@@ -3,31 +3,24 @@ import { NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 import type { PaymentRequestData } from "iyzipay";
 
-// .env anahtarlarının doğru olduğundan emin ol
-const iyzipay = new Iyzipay({
-  apiKey: process.env.IYZIPAY_API_KEY!,
-  secretKey: process.env.IYZIPAY_SECRET_KEY!,
-  uri: process.env.IYZIPAY_BASE_URL!,
-});
+function createIyzipayClient() {
+  return new Iyzipay({
+    apiKey: process.env.IYZIPAY_API_KEY!,
+    secretKey: process.env.IYZIPAY_SECRET_KEY!,
+    uri: process.env.IYZIPAY_BASE_URL?.trim() || "https://sandbox-api.iyzipay.com",
+  });
+}
 
 export async function POST(req: NextRequest) {
   try {
     const { price, cardHolderName, cardNumber, expireMonth, expireYear, cvc } =
       await req.json();
 
-    if (
-      !price ||
-      !cardHolderName ||
-      !cardNumber ||
-      !expireMonth ||
-      !expireYear ||
-      !cvc
-    ) {
+    if (!price || !cardHolderName || !cardNumber || !expireMonth || !expireYear || !cvc) {
       return NextResponse.json({ error: "Eksik bilgi var" }, { status: 400 });
     }
 
     const conversationId = uuidv4();
-    // Iyzipay SDK price alanlarını string ister
     const totalPrice = parseFloat(price).toFixed(2);
 
     const paymentRequest: PaymentRequestData = {
@@ -95,11 +88,14 @@ export async function POST(req: NextRequest) {
       ],
     };
 
-    const result = (await new Promise<any>((resolve, reject) =>
-      iyzipay.payment.create(paymentRequest, (err, res) =>
-        err ? reject(err) : resolve(res)
-      )
-    )) as { status?: string; errorMessage?: string };
+    const iyzipay = createIyzipayClient();
+
+    const result = await new Promise<any>((resolve, reject) => {
+      iyzipay.payment.create(paymentRequest, (err, res) => {
+        if (err) return reject(err);
+        resolve(res);
+      });
+    });
 
     if (result.status === "success") {
       return NextResponse.json({ message: "Ödeme başarılı", data: result });

@@ -67,7 +67,7 @@ export default function Step1Page() {
       .then((u: any) => {
         if (u.fullAddress) {
           const me: Address = {
-            id: "me",
+            id: u.id,
             districtId: u.districtId,
             fullAddress: u.fullAddress,
             isPrimary: true,

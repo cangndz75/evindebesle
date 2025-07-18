@@ -151,11 +151,11 @@ model OwnedPet {
   user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   pet          Pet    @relation(fields: [petId], references: [id], onDelete: Cascade)
 
-  appointments Appointment[] 
   reports      PetReport[]    
+  appointments AppointmentPet[]
 }
 
-// model UserPet {
+// model UserPet {s
 //   id        String   @id @default(uuid())
 //   userId    String
 //   petId     String
@@ -226,6 +226,11 @@ model Appointment {
   repeatCount     Int?
   repeatInterval  String?
   timeSlot        String?
+  recurringType   String?      
+  paidAt          DateTime?         
+  recurringCount  Int?   
+  finalPrice      Float? 
+  isPaid          Boolean  @default(false)            
 
   userNote        String?            
   allergy         String?            
@@ -237,14 +242,13 @@ model Appointment {
   discountReason  String?            
 
   user            User               @relation(fields: [userId], references: [id])
-  ownedPet        OwnedPet   @relation(fields: [ownedPetId], references: [id], onDelete: Cascade)
   address         UserAddress? @relation(fields: [userAddressId], references: [id])
-  ownedPetId      String
   services        AppointmentService[]
   checkItems      AppointmentCheck[]
   media           AppointmentMedia[]
   reviews         AppointmentReview[] 
   invoice         Invoice?
+  pets            AppointmentPet[]
 }
 
 
@@ -290,6 +294,15 @@ model AppointmentReview {
   user           User      @relation(fields: [userId], references: [id])
   appointment    Appointment @relation(fields: [appointmentId], references: [id])
 }
+
+model AppointmentPet {
+  id            String       @id @default(cuid())
+  appointment   Appointment  @relation(fields: [appointmentId], references: [id])
+  appointmentId String
+  ownedPet      OwnedPet     @relation(fields: [ownedPetId], references: [id])
+  ownedPetId    String
+}
+
 
 model PetReport {
   id        String   @id @default(cuid())
@@ -422,4 +435,18 @@ model UserCoupon {
 
   user      User     @relation(fields: [userId], references: [id])
   coupon    Coupon   @relation(fields: [couponId], references: [id])
+}
+
+model DraftAppointment {
+  id          String   @id @default(cuid())
+  userId      String
+  petIds      String   
+  serviceIds  String
+  dates       String
+  userAddressId String
+  timeSlot    String?
+  isRecurring Boolean
+  recurringType String?
+  recurringCount Int?
+  createdAt   DateTime @default(now())
 }

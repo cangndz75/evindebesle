@@ -58,29 +58,34 @@ export async function POST(req: NextRequest) {
 
     for (const ownedPetId of validOwnedPetIds) {
       for (const date of dates) {
-        const appointment = await prisma.appointment.create({
-          data: {
-            userId: user.id,
-            ownedPetId,
-            confirmedAt: new Date(date),
-            status: "SCHEDULED",
-            isRecurring: isRecurring || false,
-            repeatCount: isRecurring ? recurringCount : null,
-            repeatInterval: isRecurring ? recurringType : null,
-            timeSlot,
-            userNote: userNote || null,
-            allergy: allergy || null,
-            sensitivity: sensitivity || null,
-            specialRequest: specialRequest || null,
-            userAddressId,
-            services: {
-              create: serviceIds.map((serviceId: string) => ({
-                serviceId,
-              })),
-            },
+      const appointment = await prisma.appointment.create({
+        data: {
+          userId: user.id,
+          confirmedAt: new Date(date),
+          status: "SCHEDULED",
+          isRecurring: isRecurring || false,
+          repeatCount: isRecurring ? recurringCount : null,
+          repeatInterval: isRecurring ? recurringType : null,
+          timeSlot,
+          userNote: userNote || null,
+          allergy: allergy || null,
+          sensitivity: sensitivity || null,
+          specialRequest: specialRequest || null,
+          userAddressId,
+          services: {
+            create: serviceIds.map((serviceId: string) => ({
+              serviceId,
+            })),
           },
-        });
-
+          pets: {
+            create: [
+              {
+                ownedPetId,
+              },
+            ],
+          },
+        },
+      });
         appointments.push(appointment);
       }
     }
@@ -108,8 +113,14 @@ export async function GET() {
       where: { userId: user.id },
       orderBy: { confirmedAt: "desc" },
       include: {
-        ownedPet: {
-          include: { pet: true },
+        pets: {
+          include: {
+            ownedPet: {
+              include: {
+                pet: true,
+              },
+            },
+          },
         },
         services: {
           include: { service: true },

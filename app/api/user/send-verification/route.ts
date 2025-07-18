@@ -20,7 +20,7 @@ export async function POST() {
     },
   })
 
-    const verifyUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/verify-email?token=${token}`
+    const verifyUrl = `${process.env.FRONTEND_BASE_URL}/verify-email?token=${token}`
 
   const resend = new Resend(process.env.RESEND_API_KEY)
   await resend.emails.send({

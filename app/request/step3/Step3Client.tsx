@@ -26,7 +26,7 @@ export default function Step3Client() {
 
   const formattedCardNumber = cardRaw.replace(/(.{4})/g, "$1 ").trim();
   const searchParams = useSearchParams();
-  const totalPrice = parseInt(searchParams.get("totalPrice") || "0");
+  const totalPrice = Number(searchParams.get("totalPrice")) || 0;
 
   return (
     <div className="min-h-screen grid md:grid-cols-2 overflow-hidden relative">
@@ -177,7 +177,82 @@ export default function Step3Client() {
                 </div>
               </div>
 
-              <Button className="w-full mt-4">Ödemeyi Tamamla</Button>
+              <Button
+                className="w-full mt-4"
+                onClick={async () => {
+                  try {
+                    const petIds = searchParams.getAll("pet");
+                    const serviceIds = searchParams.getAll("service");
+                    const dates = searchParams.getAll("date");
+
+                    console.log("📦 Petler:", petIds);
+                    console.log("🧼 Hizmetler:", serviceIds);
+                    console.log("📅 Tarihler:", dates);
+
+                    const draftRes = await fetch("/api/draft-appointment", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        petIds,
+                        serviceIds,
+                        dates,
+                        isRecurring: searchParams.get("recurring") === "1",
+                        recurringType: searchParams.get("recurringType"),
+                        recurringCount: parseInt(
+                          searchParams.get("recurringCount") || "1"
+                        ),
+                        timeSlot: searchParams.get("timeSlot"),
+                        userAddressId: searchParams.get("userAddressId"),
+                      }),
+                    });
+
+                    const draftJson = await draftRes.json();
+                    console.log("📝 DRAFT RESPONSE:", draftJson);
+
+                    if (!draftRes.ok || !draftJson?.draftAppointmentId) {
+                      throw new Error(
+                        "❌ Draft oluşturulamadı: " +
+                          (draftJson?.error || "Bilinmeyen hata")
+                      );
+                    }
+
+                    const draftAppointmentId = draftJson.draftAppointmentId;
+                    console.log(
+                      "✅ Oluşan basketId (draftAppointmentId):",
+                      draftAppointmentId
+                    );
+
+                    const res = await fetch("/api/iyzico/initiate-payment", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        cardNumber: cardRaw.replace(/\D/g, ""),
+                        cardHolderName: cardName,
+                        expireMonth: expiryMonth,
+                        expireYear: expiryYear,
+                        cvc: cvv,
+                        totalPrice,
+                        draftAppointmentId,
+                      }),
+                    });
+
+                    const paymentData = await res.json();
+                    console.log("💳 Ödeme Cevabı:", paymentData);
+
+                    if (paymentData?.paymentPageUrl) {
+                      const popup = window.open("", "_blank");
+                      popup?.document.write(paymentData.paymentPageUrl);
+                      popup?.document.close();
+                    } else {
+                      throw new Error("❌ Ödeme başlatılamadı.");
+                    }
+                  } catch (err) {
+                    console.error("🔥 Genel Hata:", err);
+                  }
+                }}
+              >
+                Ödemeyi Tamamla
+              </Button>
               <Button
                 variant="outline"
                 className="w-full"

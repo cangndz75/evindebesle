@@ -17,17 +17,21 @@ export async function GET(
           email: true,
         },
       },
-      ownedPet: {
-        select: {
-          id: true,
-          name: true,
-          image: true,
-          age: true,
-          gender: true,
-          relation: true,
-          pet: {
+      pets: {
+        include: {
+          ownedPet: {
             select: {
-              species: true,
+              id: true,
+              name: true,
+              image: true,
+              age: true,
+              gender: true,
+              relation: true,
+              pet: {
+                select: {
+                  species: true,
+                },
+              },
             },
           },
         },

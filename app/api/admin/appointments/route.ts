@@ -12,37 +12,41 @@ export async function GET(req: NextRequest) {
     }
 
     const appointments = await prisma.appointment.findMany({
-    orderBy: { confirmedAt: "desc" },
-    include: {
+      orderBy: { confirmedAt: "desc" },
+      include: {
         user: {
-        select: {
+          select: {
             id: true,
             name: true,
             email: true,
+          },
         },
-        },
-        ownedPet: {
-        select: {
-            name: true,
-            image: true,
-            pet: {
-            select: {
-                species: true,
+        pets: {
+          include: {
+            ownedPet: {
+              select: {
+                name: true,
+                image: true,
+                pet: {
+                  select: {
+                    species: true,
+                  },
+                },
+              },
             },
-            },
-        },
+          },
         },
         services: {
-        include: {
+          include: {
             service: {
-            select: {
+              select: {
                 id: true,
                 name: true,
+              },
             },
-            },
+          },
         },
-        },
-    },
+      },
     });
 
     return NextResponse.json({ success: true, data: appointments }, { status: 200 });

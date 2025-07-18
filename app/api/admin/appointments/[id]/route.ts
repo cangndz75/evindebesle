@@ -25,9 +25,17 @@ export async function GET(
           },
         },
       },
-      ownedPet: { include: { pet: true } },
-      address: { include: { district: true } },
-      services: { include: { service: true } },
+      address: {
+        include: { district: true },
+      },
+      services: {
+        include: { service: true },
+      },
+      pets: {
+        include: {
+          ownedPet: true,
+        },
+      },
     },
   });
 
@@ -36,21 +44,20 @@ export async function GET(
   }
 
   const fallback = appointment.address || appointment.user.addresses?.[0];
+
   const normalized = {
     ...appointment,
     fullAddress: fallback?.fullAddress ?? "",
     district: fallback?.district ?? null,
-    pets: [
-      {
-        id: appointment.ownedPet.id,
-        name: appointment.ownedPet.name,
-        image: appointment.ownedPet.image,
-        allergy: appointment.allergy,
-        sensitivity: appointment.sensitivity,
-        specialRequest: appointment.specialRequest,
-        services: appointment.services,
-      },
-    ],
+    pets: appointment.pets.map((p) => ({
+      id: p.ownedPet.id,
+      name: p.ownedPet.name,
+      image: p.ownedPet.image,
+      allergy: appointment.allergy,
+      sensitivity: appointment.sensitivity,
+      specialRequest: appointment.specialRequest,
+      services: appointment.services,
+    })),
   };
 
   return NextResponse.json({ data: normalized }, { status: 200 });

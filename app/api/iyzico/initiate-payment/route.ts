@@ -27,6 +27,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    const basketId = draftAppointmentId; // ✅ burası önemli
     const priceStr = Number(totalPrice).toFixed(2);
 
     const { data } = await axios.post(
@@ -38,7 +39,7 @@ export async function POST(req: NextRequest) {
         paidPrice: priceStr,
         currency: "TRY",
         installment: 1,
-        basketId: draftAppointmentId, // ✅ burada kullanıyoruz
+        basketId,
         callbackUrl: `${process.env.FRONTEND_BASE_URL}/api/iyzico/confirm-payment`,
         paymentCard: {
           cardHolderName,
@@ -79,7 +80,7 @@ export async function POST(req: NextRequest) {
         },
         basketItems: [
           {
-            id: "BI101",
+            id: basketId,
             name: "Evcil Hayvan Hizmeti",
             category1: "Pet Bakım",
             itemType: "VIRTUAL",

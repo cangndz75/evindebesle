@@ -213,9 +213,13 @@ export default function Step3Client() {
                     console.log("💳 Ödeme Cevabı:", paymentData);
 
                     if (paymentData?.paymentPageHtml) {
+                      const decodedHtml = atob(paymentData.paymentPageHtml); 
                       const popup = window.open("", "_blank");
-                      popup?.document.write(paymentData.paymentPageHtml);
-                      popup?.document.close();
+                      if (popup) {
+                        popup.document.open();
+                        popup.document.write(decodedHtml);
+                        popup.document.close();
+                      }
                     } else {
                       throw new Error("❌ Ödeme başlatılamadı.");
                     }

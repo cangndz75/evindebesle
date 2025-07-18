@@ -230,7 +230,8 @@ model Appointment {
   paidAt          DateTime?         
   recurringCount  Int?   
   finalPrice      Float? 
-  isPaid          Boolean  @default(false)            
+  isPaid          Boolean  @default(false)     
+  paymentConversationId String?       
 
   userNote        String?            
   allergy         String?            

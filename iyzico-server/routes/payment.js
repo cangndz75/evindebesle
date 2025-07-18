@@ -25,10 +25,9 @@ router.post("/initiate", (req, res) => {
     draftAppointmentId = uuidv4();
   }
 
-  const finalPrice =
-    typeof price === "number" && !isNaN(price) && price > 0
-      ? price.toFixed(2)
-      : "0.00";
+  const finalPrice = typeof price === "number" && !isNaN(price) && price > 0
+    ? price.toFixed(2)
+    : "0.00";
 
   const iyzipay = new Iyzipay({
     apiKey: process.env.IYZIPAY_API_KEY,
@@ -36,9 +35,11 @@ router.post("/initiate", (req, res) => {
     uri: process.env.IYZIPAY_BASE_URL,
   });
 
+  const conversationId = uuidv4();
+
   const request = {
     locale: Iyzipay.LOCALE.TR,
-    conversationId: uuidv4(),
+    conversationId,
     price: finalPrice,
     paidPrice: finalPrice,
     currency: Iyzipay.CURRENCY.TRY,
@@ -46,13 +47,14 @@ router.post("/initiate", (req, res) => {
     basketId: draftAppointmentId,
     paymentChannel: Iyzipay.PAYMENT_CHANNEL.WEB,
     paymentGroup: Iyzipay.PAYMENT_GROUP.PRODUCT,
+    callbackUrl: `${process.env.NEXT_PUBLIC_API_URL}/api/payment/callback?appointmentId=${draftAppointmentId}`,
     paymentCard: {
       cardHolderName: cardHolderName || "Test User",
       cardNumber: (cardNumber || "").replace(/\s/g, ""),
       expireMonth: expireMonth || "01",
       expireYear: expireYear || "30",
       cvc: cvc || "000",
-      registerCard: "0",
+      registerCard: 0,
     },
     buyer: {
       id: "BY789",
@@ -94,26 +96,18 @@ router.post("/initiate", (req, res) => {
     ],
   };
 
-  console.log("📥 Ödeme isteği geldi:", {
-    cardHolderName,
-    cardNumber,
-    expireMonth,
-    expireYear,
-    cvc,
-    finalPrice,
-    draftAppointmentId,
-  });
+  console.log("📥 3D ödeme isteği geldi:", { finalPrice, draftAppointmentId });
 
-  iyzipay.payment.create(request, (err, result) => {
+  iyzipay.threedsInitialize.create(request, (err, result) => {
     if (err) {
-      console.error("💥 Sunucu hatası:", err);
+      console.error("💥 3D başlatma hatası:", err);
       return res.status(500).json({ error: "Sunucu hatası", detail: err.message });
     }
 
     if (result.status === "success") {
-      return res.json({ paymentPageHtml: result.threeDSHtmlContent || "" });
+      return res.json({ paymentPageHtml: result.threeDSHtmlContent });
     } else {
-      return res.status(400).json({ error: result.errorMessage || "Ödeme reddedildi" });
+      return res.status(400).json({ error: result.errorMessage || "3D ödeme başlatılamadı" });
     }
   });
 });

@@ -2,15 +2,20 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const paymentRoutes = require("./routes/payment");
+const callbackRoute = require("./routes/callback");
+const bodyParser = require("body-parser"); // 💡 eklendi
 
 dotenv.config();
 
 const app = express();
 app.use(cors());
+
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.text()); 
 app.use(express.json());
 
-// "/api/payment" altında initiate route'u dinleyeceğiz
 app.use("/api/payment", paymentRoutes);
+app.use("/api/payment/callback", callbackRoute);
 
 app.get("/", (req, res) => {
   res.send("✅ Iyzico ödeme sunucusu çalışıyor");

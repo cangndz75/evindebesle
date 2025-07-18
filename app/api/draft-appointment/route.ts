@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
         dates: JSON.stringify(dates),
         userAddressId,
         timeSlot,
-        isRecurring,
+        isRecurring: Boolean(isRecurring),
         recurringType,
         recurringCount,
       },

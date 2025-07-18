@@ -95,44 +95,67 @@ export default function Step2Client() {
       end: uniqueDates[uniqueDates.length - 1] ?? null,
     });
   };
-  const handleNext = () => {
+  const handleNext = async () => {
     if (dates.length === 0) {
       toast.error("Lütfen en az bir tarih seçin.");
       return;
     }
-
+    if (!timeSlot) {
+      toast.error("Lütfen bir saat dilimi seçin.");
+      return;
+    }
     if (isRecurring) {
       if (!recurringType) {
         toast.error("Lütfen tekrar sıklığını seçin.");
         return;
       }
-
-      if (!recurringCount || recurringCount < 1) {
+      if (recurringCount < 1) {
         toast.error("Tekrar sayısı en az 1 olmalıdır.");
         return;
       }
     }
 
-    if (!timeSlot) {
-      toast.error("Lütfen bir saat dilimi seçin.");
+    let draftAppointmentId: string;
+    try {
+      const draftRes = await fetch("/api/draft-appointment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          petIds: searchParams.getAll("pet"),
+          serviceIds: searchParams.getAll("service"),
+          dates: dates.map((d) => d.toISOString().split("T")[0]),
+          userAddressId: searchParams.get("userAddressId"),
+          timeSlot,
+          isRecurring: isRecurring ? 1 : 0,
+          recurringType,
+          recurringCount,
+        }),
+      });
+      if (!draftRes.ok) throw new Error("Draft oluşturma başarısız");
+      const draftJson = await draftRes.json();
+      draftAppointmentId = draftJson.draftAppointmentId;
+    } catch (err) {
+      console.error("Draft hatası:", err);
+      toast.error("Randevu hazırlanamıyor, lütfen tekrar deneyin.");
       return;
     }
 
     const params = new URLSearchParams();
     searchParams.forEach((val, key) => params.append(key, val));
     dates.forEach((d) => params.append("date", d.toISOString().split("T")[0]));
-
-    params.set("recurring", isRecurring ? "1" : "0");
-    if (isRecurring) {
-      params.set("recurringType", recurringType);
-      params.set("recurringCount", recurringCount.toString());
-    }
     params.set("timeSlot", timeSlot);
-    params.set("totalPrice", calculatedPrice.toString());
+    params.set("totalPrice", calculatedPrice.toFixed(2));
+    params.set("draftAppointmentId", draftAppointmentId);
+    if (isRecurring) {
+      params.set("recurring", "1");
+      params.set("recurringType", recurringType);
+      params.set("recurringCount", String(recurringCount));
+    } else {
+      params.set("recurring", "0");
+    }
 
     router.push(`/request/step3?${params.toString()}`);
   };
-
   return (
     <div className="h-screen grid md:grid-cols-2 overflow-hidden relative">
       <div className="flex flex-col justify-between px-6 py-6 overflow-hidden">

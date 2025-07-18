@@ -181,48 +181,13 @@ export default function Step3Client() {
                 className="w-full mt-4"
                 onClick={async () => {
                   try {
-                    const petIds = searchParams.getAll("pet");
-                    const serviceIds = searchParams.getAll("service");
-                    const dates = searchParams.getAll("date");
-
-                    console.log("📦 Petler:", petIds);
-                    console.log("🧼 Hizmetler:", serviceIds);
-                    console.log("📅 Tarihler:", dates);
-
-                    const draftRes = await fetch("/api/draft-appointment", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        petIds,
-                        serviceIds,
-                        dates,
-                        isRecurring: searchParams.get("recurring") === "1",
-                        recurringType: searchParams.get("recurringType"),
-                        recurringCount: parseInt(
-                          searchParams.get("recurringCount") || "1"
-                        ),
-                        timeSlot: searchParams.get("timeSlot"),
-                        userAddressId: searchParams.get("userAddressId"),
-                      }),
-                    });
-
-                    const draftJson = await draftRes.json();
-                    console.log("📝 DRAFT RESPONSE:", draftJson);
-
-                    if (!draftRes.ok || !draftJson?.draftAppointmentId) {
-                      throw new Error(
-                        "❌ Draft oluşturulamadı: " +
-                          (draftJson?.error || "Bilinmeyen hata")
-                      );
+                    const draftAppointmentId =
+                      searchParams.get("draftAppointmentId");
+                    if (!draftAppointmentId) {
+                      throw new Error("Taslak randevu ID'si bulunamadı.");
                     }
 
-                    const draftAppointmentId = draftJson.draftAppointmentId;
-                    console.log(
-                      "✅ Oluşan basketId (draftAppointmentId):",
-                      draftAppointmentId
-                    );
-
-                    const res = await fetch("/api/iyzico/initiate-payment", {
+                    const res = await fetch("/api/payment/initiate", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({

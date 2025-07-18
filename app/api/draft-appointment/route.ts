@@ -9,7 +9,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await req.json();
   const {
     petIds,
     serviceIds,
@@ -19,11 +18,9 @@ export async function POST(req: NextRequest) {
     isRecurring,
     recurringType,
     recurringCount,
-  } = body;
+  } = await req.json();
 
   try {
-    console.log("Gelen İstek:", JSON.stringify(body, null, 2));
-    
     const draft = await prisma.draftAppointment.create({
       data: {
         userId: session.user.id,
@@ -39,8 +36,8 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ draftAppointmentId: draft.id });
-  } catch (error) {
-    console.error("DraftAppointment oluşturulamadı:", error);
+  } catch (err) {
+    console.error("Draft oluşturma hatası:", err);
     return NextResponse.json({ error: "DB Hatası" }, { status: 500 });
   }
 }

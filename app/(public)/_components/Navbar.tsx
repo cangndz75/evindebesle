@@ -12,6 +12,7 @@ import {
   Info,
   Briefcase,
   Phone,
+  HelpCircle,
 } from "lucide-react";
 import {
   Sheet,
@@ -144,6 +145,13 @@ export default function Navbar() {
                 >
                   <Phone className="w-4 h-4" />
                   İletişim
+                </Link>
+                <Link
+                  href="/faq"
+                  className="flex items-center gap-2 hover:text-primary transition"
+                >
+                  <HelpCircle className="w-4 h-4" />
+                  Test
                 </Link>
               </div>
 

@@ -23,13 +23,13 @@ const iyzipay = new Iyzipay({
       conversationData,
     };
 
-    return await new Promise((resolve) => {
-    ;(iyzipay.threedsPayment as any).complete(request, (err: any, result: any) => {
+    return await new Promise<Response>((resolve) => {
+    (iyzipay.threedsPayment as any).complete(request, (err: any, result: any) => {
         if (err || result.status !== "success") {
         const failHtml = `
             <html><body>
             <h2 style="color:red">Ödeme başarısız.</h2>
-            <p>${result.errorMessage || "Bir hata oluştu."}</p>
+            <p>${result?.errorMessage || "Bir hata oluştu."}</p>
             </body></html>`;
         resolve(new Response(failHtml, { headers: { "Content-Type": "text/html" } }));
         } else {

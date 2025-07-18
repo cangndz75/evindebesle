@@ -126,7 +126,7 @@ export default function Step2Client() {
           dates: dates.map((d) => d.toISOString().split("T")[0]),
           userAddressId: searchParams.get("userAddressId"),
           timeSlot,
-          isRecurring: isRecurring ? 1 : 0,
+          isRecurring: Boolean(isRecurring),
           recurringType,
           recurringCount,
         }),

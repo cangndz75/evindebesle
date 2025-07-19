@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
           confirmedAt: new Date(date),
           status: "SCHEDULED",
           isRecurring: isRecurring || false,
-          repeatCount: isRecurring ? recurringCount : null,
+          recurringCount: isRecurring ? recurringCount : null,
           repeatInterval: isRecurring ? recurringType : null,
           timeSlot,
           userNote: userNote || null,

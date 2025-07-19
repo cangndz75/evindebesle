@@ -193,7 +193,7 @@ export default function Step3Client() {
                     }
 
                     const res = await fetch(
-                      `${process.env.NEXT_PUBLIC_API_URL}/api/payment/initiate`,
+                      `https://evindebesle-backend.onrender.com/api/payment/initiate`,
                       {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
@@ -213,7 +213,7 @@ export default function Step3Client() {
                     console.log("💳 Ödeme Cevabı:", paymentData);
 
                     if (paymentData?.paymentPageHtml) {
-                      const decodedHtml = atob(paymentData.paymentPageHtml); 
+                      const decodedHtml = atob(paymentData.paymentPageHtml);
                       const popup = window.open("", "_blank");
                       if (popup) {
                         popup.document.open();

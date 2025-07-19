@@ -15,12 +15,9 @@ export async function POST(req: NextRequest): Promise<Response> {
   const formData = await req.formData();
   const token = formData.get("token")?.toString();
   const conversationId = formData.get("conversationId")?.toString();
-  const appointmentId = req.nextUrl.searchParams.get("appointmentId");
+  const draftAppointmentId = req.nextUrl.searchParams.get("draftAppointmentId");
 
-  console.log("Gelen callback verisi:", { token, conversationId, appointmentId });
-
-  if (!token || !conversationId || !appointmentId) {
-    console.warn("Eksik veri:", { token, conversationId, appointmentId });
+  if (!token || !conversationId || !draftAppointmentId) {
     return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/payment-failed`);
   }
 
@@ -41,12 +38,10 @@ export async function POST(req: NextRequest): Promise<Response> {
       );
     });
 
-    if (!retrieveResult?.paymentId) {
-      console.error("Payment retrieve hatası:", retrieveResult);
+    const paymentId = retrieveResult?.paymentId;
+    if (!paymentId) {
       return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/payment-failed`);
     }
-
-    const paymentId = retrieveResult.paymentId;
 
     const threedsResult = await new Promise<any>((resolve, reject) => {
       iyzipay.threedsPayment.create(
@@ -64,31 +59,70 @@ export async function POST(req: NextRequest): Promise<Response> {
     });
 
     if (threedsResult.status !== "success") {
-      console.error("3D Secure onay hatası:", threedsResult);
       return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/payment-failed`);
     }
 
-    try {
-      await prisma.appointment.update({
-        where: { id: appointmentId },
-        data: {
-          status: AppointmentStatus.SCHEDULED,
-          confirmedAt: new Date(),
-          finalPrice: parseFloat(threedsResult.paidPrice?.toString?.() ?? "0"),
-          isPaid: true,
-          paymentConversationId: threedsResult.conversationId,
-          paidAt: new Date(),
-        },
-      });
-    } catch (dbErr) {
-      console.error("Veritabanı güncelleme hatası:", dbErr);
-    }
+    // 🔍 1. Draft'ı getir
+    const draft = await prisma.draftAppointment.findUnique({
+      where: { id: draftAppointmentId },
+    });
+    if (!draft) throw new Error("Draft bulunamadı.");
+
+    // 🔧 2. Randevuyu oluştur
+    const newAppointment = await prisma.appointment.create({
+      data: {
+        userId: draft.userId,
+        userAddressId: draft.userAddressId || undefined,
+        timeSlot: draft.timeSlot || undefined,
+        confirmedAt: new Date(),
+        isRecurring: draft.isRecurring || false,
+        recurringType: draft.recurringType || undefined,
+        recurringCount: draft.recurringCount || undefined,
+        finalPrice: parseFloat(threedsResult.paidPrice?.toString?.() ?? "0"),
+        isPaid: true,
+        paidAt: new Date(),
+        paymentConversationId: conversationId,
+        status: AppointmentStatus.SCHEDULED,
+      },
+    });
+
+    const appointmentId = newAppointment.id;
+
+    const petIds: string[] = JSON.parse(draft.petIds || "[]");
+    await prisma.appointmentPet.createMany({
+      data: petIds.map((petId) => ({
+        appointmentId,
+        ownedPetId: petId,
+      })),
+    });
+
+
+    const serviceIds: string[] = JSON.parse(draft.serviceIds || "[]");
+    await prisma.appointmentService.createMany({
+      data: serviceIds.map((serviceId) => ({
+        appointmentId,
+        serviceId,
+      })),
+    });
+
+    const dateStrings: string[] = JSON.parse(draft.dates || "[]");
+    await prisma.appointmentDate.createMany({
+      data: dateStrings.map((d) => ({
+        appointmentId,
+        date: new Date(d),
+      })),
+    });
+
+    // ✅ 6. Draft'ı sil
+    await prisma.draftAppointment.delete({
+      where: { id: draftAppointmentId },
+    });
 
     return NextResponse.redirect(
       `${process.env.NEXT_PUBLIC_SITE_URL}/success?appointmentId=${appointmentId}&paidPrice=${threedsResult.paidPrice}`
     );
-  } catch (e) {
-    console.error("Ödeme işlemi genel hata:", e);
+  } catch (err) {
+    console.error("Ödeme sonrası hata:", err);
     return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/payment-failed`);
   }
 }

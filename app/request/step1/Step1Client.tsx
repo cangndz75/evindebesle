@@ -63,8 +63,12 @@ export default function Step1Page() {
 
   useEffect(() => {
     fetch("/api/me")
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) return null;
+        return r.json();
+      })
       .then((u: any) => {
+        if (!u) return;
         if (u.fullAddress) {
           const me: Address = {
             id: u.id,
@@ -95,8 +99,11 @@ export default function Step1Page() {
 
   useEffect(() => {
     fetch("/api/user-pets")
-      .then((r) => r.json())
-      .then((data: UserPet[]) => setUserPets(data));
+      .then((r) => {
+        if (!r.ok) return [];
+        return r.json();
+      })
+      .then((data: UserPet[]) => setUserPets(Array.isArray(data) ? data : []));
   }, []);
 
   useEffect(() => {
@@ -113,7 +120,9 @@ export default function Step1Page() {
   const handleChange = (petId: string, delta: number) => {
     setCounts((prev) => {
       const species = getSpeciesById(petId)!;
-      const ownedCount = userPets.filter((up) => up.species === species).length;
+      const ownedCount = Array.isArray(userPets)
+        ? userPets.filter((up) => up.species === species).length
+        : 0;
       const next = Math.max(0, (prev[petId] || 0) + delta);
       if (next > ownedCount) return prev;
       if (selectedUserPets[species]?.length) {
@@ -183,7 +192,7 @@ export default function Step1Page() {
     params.set("district", districtId);
     params.set("fullAddress", fullAddress);
     params.set("userAddressId", selectedAddressId!);
-    params.set("unitPrice", totalPrice.toString()); 
+    params.set("unitPrice", totalPrice.toString());
 
     router.push(`/request/step2?${params.toString()}`);
   };

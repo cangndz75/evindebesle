@@ -222,15 +222,15 @@ model Appointment {
   assignedToId    String?
   status          AppointmentStatus  @default(SCHEDULED)
   summarySent     Boolean            @default(false)
+
   isRecurring     Boolean            @default(false)
-  repeatCount     Int?
-  repeatInterval  String?
-  timeSlot        String?
-  recurringType   String?      
-  paidAt          DateTime?         
+  recurringType   String?            
   recurringCount  Int?   
+
+  timeSlot        String?
+  paidAt          DateTime?         
   finalPrice      Float? 
-  isPaid          Boolean  @default(false)     
+  isPaid          Boolean            @default(false)     
   paymentConversationId String?       
 
   userNote        String?            
@@ -243,13 +243,23 @@ model Appointment {
   discountReason  String?            
 
   user            User               @relation(fields: [userId], references: [id])
-  address         UserAddress? @relation(fields: [userAddressId], references: [id])
+  address         UserAddress?       @relation(fields: [userAddressId], references: [id])
   services        AppointmentService[]
   checkItems      AppointmentCheck[]
   media           AppointmentMedia[]
   reviews         AppointmentReview[] 
   invoice         Invoice?
   pets            AppointmentPet[]
+  dates           AppointmentDate[]   
+}
+
+model AppointmentDate {
+  id            String      @id @default(uuid())
+  appointmentId String
+  date          DateTime
+  appointment   Appointment @relation(fields: [appointmentId], references: [id])
+
+  @@unique([appointmentId, date])
 }
 
 

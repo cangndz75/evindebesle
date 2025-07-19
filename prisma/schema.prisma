@@ -226,6 +226,7 @@ model Appointment {
   isRecurring     Boolean            @default(false)
   recurringType   String?            
   recurringCount  Int?   
+  repeatInterval  String?
 
   timeSlot        String?
   paidAt          DateTime?         

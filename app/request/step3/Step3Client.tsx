@@ -9,6 +9,7 @@ import { motion } from "framer-motion";
 import clsx from "clsx";
 import Stepper from "@/app/(public)/_components/Stepper";
 import { useRouter, useSearchParams } from "next/navigation";
+import { toast } from "sonner";
 
 export default function Step3Client() {
   const router = useRouter();
@@ -26,7 +27,14 @@ export default function Step3Client() {
 
   const formattedCardNumber = cardRaw.replace(/(.{4})/g, "$1 ").trim();
   const searchParams = useSearchParams();
-  const totalPrice = Number(searchParams.get("totalPrice")) || 0;
+  const totalPriceParam = searchParams.get("totalPrice");
+  const totalPrice = Number(totalPriceParam);
+
+  if (!totalPrice || isNaN(totalPrice) || totalPrice < 1) {
+    toast.error("Toplam tutar bulunamadı veya geçersiz.");
+    router.push("/request/step2");
+    return null;
+  }
   const [draftAppointmentId, setDraftAppointmentId] = useState<string | null>(
     null
   );
@@ -117,6 +125,7 @@ export default function Step3Client() {
                   onChange={(e) => handleCardInput(e.target.value)}
                   placeholder="0000 0000 0000 0000"
                   inputMode="numeric"
+                  autoComplete="cc-number"
                 />
               </div>
               <div>
@@ -193,7 +202,7 @@ export default function Step3Client() {
                     }
 
                     const res = await fetch(
-                      `https://evindebesle-backend.onrender.com/api/payment/initiate`,
+                      `${process.env.NEXT_PUBLIC_API_URL}/api/payment/initiate`,
                       {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
@@ -203,17 +212,23 @@ export default function Step3Client() {
                           expireMonth: expiryMonth,
                           expireYear: expiryYear.slice(-2),
                           cvc: cvv,
-                          price: Number(totalPrice), // 'price' olarak gönderiyoruz
+                          price: parseFloat(totalPrice.toFixed(2)),
                           draftAppointmentId,
                         }),
                       }
                     );
-
                     const paymentData = await res.json();
                     console.log("💳 Ödeme Cevabı:", paymentData);
 
                     if (paymentData?.paymentPageHtml) {
-                      const decodedHtml = atob(paymentData.paymentPageHtml);
+                      let decodedHtml = atob(paymentData.paymentPageHtml);
+
+                      // 👇 <body> tag'ına otomatik submit kodu enjekte ediyoruz
+                      decodedHtml = decodedHtml.replace(
+                        "<body>",
+                        `<body onload="document.forms[0].submit()">`
+                      );
+
                       const popup = window.open("", "_blank");
                       if (popup) {
                         popup.document.open();

@@ -1,5 +1,5 @@
 import Image from "next/image";
-import w1 from "@/public/w1.png";
+import w1 from "@/public/lgoo.png";
 
 export default function Hero() {
   return (

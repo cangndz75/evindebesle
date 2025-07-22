@@ -221,17 +221,17 @@ export default function Step3Client() {
                     console.log("💳 Ödeme Cevabı:", paymentData);
 
                     if (paymentData?.paymentPageHtml) {
-                      let decodedHtml = atob(paymentData.paymentPageHtml);
-
-                      // 👇 <body> tag'ına otomatik submit kodu enjekte ediyoruz
-                      decodedHtml = decodedHtml.replace(
-                        "<body>",
-                        `<body onload="document.forms[0].submit()">`
-                      );
-
                       const popup = window.open("", "_blank");
                       if (popup) {
                         popup.document.open();
+
+                        const decodedHtml = atob(
+                          paymentData.paymentPageHtml
+                        ).replace(
+                          "<body>",
+                          `<body onload="document.forms[0].submit()">`
+                        );
+
                         popup.document.write(decodedHtml);
                         popup.document.close();
                       }

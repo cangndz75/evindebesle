@@ -188,6 +188,13 @@ export default function Step1Page() {
         params.append(id, cnt.toString());
       }
     });
+
+    Object.values(selectedUserPets)
+      .flat()
+      .forEach((userPetId) => {
+        params.append("userPetId", userPetId);
+      });
+
     services.forEach((s) => params.append("service", s));
     params.set("district", districtId);
     params.set("fullAddress", fullAddress);

@@ -4,7 +4,7 @@ import { AppointmentStatus } from "@/lib/generated/prisma";
 
 export async function POST(req: NextRequest) {
   try {
-    const { appointmentId, paidPrice } = await req.json();
+    const { appointmentId, paidPrice, conversationId } = await req.json();
 
     if (!appointmentId || typeof paidPrice === "undefined") {
       console.warn("❌ Eksik parametre:", { appointmentId, paidPrice });
@@ -20,15 +20,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Draft bulunamadı" }, { status: 404 });
     }
 
-    const petIds = draft.petIds?.split(",") ?? [];
-    const serviceIds = draft.serviceIds?.split(",") ?? [];
-    const dates = draft.dates?.split(",").map((d) => new Date(d)) ?? [];
+    const petIds = draft.petIds?.split(",").filter((id: string) => id.trim().length > 0) || [];
+    const serviceIds = draft.serviceIds?.split(",").filter((id: string) => id.trim().length > 0) || [];
+    const dateStrings = draft.dates?.split(",").filter((d: string) => d.trim().length > 0) || [];
+    const dates = dateStrings
+      .map((d) => {
+        const date = new Date(d.trim());
+        return isNaN(date.getTime()) ? null : date;
+      })
+      .filter((d): d is Date => d !== null);
 
     if (!petIds.length || !serviceIds.length || !dates.length) {
-      return NextResponse.json(
-        { error: "Eksik draft verisi" },
-        { status: 400 }
-      );
+      console.warn("❌ Eksik draft verisi:", { petIds, serviceIds, dates });
+      return NextResponse.json({ error: "Eksik draft verisi" }, { status: 400 });
     }
 
     const created = await prisma.appointment.create({
@@ -44,17 +48,16 @@ export async function POST(req: NextRequest) {
         paidAt: new Date(),
         isPaid: true,
         confirmedAt: new Date(),
+        paymentConversationId: conversationId || null,
 
         services: {
-          create: serviceIds.map((id) => ({ serviceId: id })),
+          create: serviceIds.map((id: string) => ({ serviceId: id })),
         },
-
         pets: {
-          create: petIds.map((id) => ({ ownedPetId: id })),
+          create: petIds.map((id: string) => ({ ownedPetId: id })),
         },
-
         dates: {
-          create: dates.map((d) => ({ date: d })),
+          create: dates.map((d: Date) => ({ date: d })),
         },
       },
     });
@@ -70,9 +73,16 @@ export async function POST(req: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("💥 payment/complete hata:", error);
+    console.error("💥 payment/complete rotasında kritik hata:", error);
+    if (error instanceof Error) {
+      console.error("Hata Detayı (Stack Trace):", error.stack);
+      return NextResponse.json(
+        { error: error.message || "Randevu oluşturulamadı" },
+        { status: 500 }
+      );
+    }
     return NextResponse.json(
-      { error: "Randevu oluşturulamadı" },
+      { error: "Bilinmeyen bir hata nedeniyle randevu oluşturulamadı." },
       { status: 500 }
     );
   }

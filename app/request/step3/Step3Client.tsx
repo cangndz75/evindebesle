@@ -35,14 +35,19 @@ export default function Step3Client() {
     router.push("/request/step2");
     return null;
   }
-  const [draftAppointmentId, setDraftAppointmentId] = useState<string | null>(
-    null
-  );
+
+  const [draftAppointmentId, setDraftAppointmentId] = useState<string | null>(null);
 
   useEffect(() => {
     const id = searchParams.get("draftAppointmentId");
-    if (id) setDraftAppointmentId(id);
-  }, [searchParams]);
+    if (id) {
+      setDraftAppointmentId(id);
+    } else {
+      toast.error("Taslak randevu ID'si bulunamadı.");
+      router.push("/request/step2");
+    }
+  }, [searchParams, router]);
+
   return (
     <div className="min-h-screen grid md:grid-cols-2 overflow-hidden relative">
       <div className="flex flex-col px-4 py-6">
@@ -82,9 +87,6 @@ export default function Step3Client() {
                     "backface-hidden"
                   )}
                 >
-                  {/* <div className="text-right text-sm tracking-widest font-semibold">
-                    DISCOVER
-                  </div> */}
                   <div className="mt-6 text-xl tracking-widest font-mono">
                     {cardRaw ? formattedCardNumber : "•••• •••• •••• ••••"}
                   </div>
@@ -200,6 +202,9 @@ export default function Step3Client() {
                     if (!draftAppointmentId) {
                       throw new Error("Taslak randevu ID'si bulunamadı.");
                     }
+                    if (!cardRaw || !cardName || !expiryMonth || !expiryYear || !cvv) {
+                      throw new Error("Lütfen tüm kart bilgilerini doldurun.");
+                    }
 
                     const res = await fetch(
                       `${process.env.NEXT_PUBLIC_API_URL}/api/payment/initiate`,
@@ -217,29 +222,35 @@ export default function Step3Client() {
                         }),
                       }
                     );
+
                     const paymentData = await res.json();
                     console.log("💳 Ödeme Cevabı:", paymentData);
+
+                    if (!res.ok) {
+                      throw new Error(paymentData.error || "Ödeme başlatılamadı.");
+                    }
 
                     if (paymentData?.paymentPageHtml) {
                       const popup = window.open("", "_blank");
                       if (popup) {
                         popup.document.open();
-
-                        const decodedHtml = atob(
-                          paymentData.paymentPageHtml
-                        ).replace(
-                          "<body>",
-                          `<body onload="document.forms[0].submit()">`
-                        );
-
+                        const decodedHtml = atob(paymentData.paymentPageHtml);
+                        console.log("📄 Popup HTML:", decodedHtml);
                         popup.document.write(decodedHtml);
                         popup.document.close();
+                      } else {
+                        throw new Error(
+                          "Popup engellendi, lütfen tarayıcı ayarlarınızı kontrol edin."
+                        );
                       }
                     } else {
-                      throw new Error("❌ Ödeme başlatılamadı.");
+                      throw new Error("Ödeme sayfası HTML'si alınamadı.");
                     }
                   } catch (err) {
                     console.error("🔥 Genel Hata:", err);
+                    toast.error(
+                      err instanceof Error ? err.message : "Ödeme işlemi sırasında hata oluştu."
+                    );
                   }
                 }}
               >
@@ -268,13 +279,14 @@ export default function Step3Client() {
                       }),
                     });
 
-                    if (!res.ok) throw new Error();
+                    if (!res.ok) throw new Error("Sipariş oluşturulamadı.");
 
                     const data = await res.json();
                     console.log("Sipariş oluşturuldu:", data);
                     router.push("/success");
                   } catch (err) {
                     console.error("Sipariş oluşturulamadı", err);
+                    toast.error("Sipariş oluşturulamadı.");
                   }
                 }}
               >

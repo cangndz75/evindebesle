@@ -1,141 +1,97 @@
-import { getServerSession } from "next-auth";
-import { authConfig } from "@/lib/auth.config";
-import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { AppointmentStatus } from "@/lib/generated/prisma";
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authConfig);
-    const user = session?.user;
+    const { appointmentId, paidPrice, conversationId } = await req.json();
 
-    if (!user?.id) {
-      return NextResponse.json({ error: "Giriş yapmalısınız" }, { status: 401 });
+    console.log("🔔 Gelen veri:", { appointmentId, paidPrice, conversationId });
+
+    if (!appointmentId || typeof paidPrice === "undefined" || paidPrice === null) {
+      console.warn("❌ Eksik parametre:", { appointmentId, paidPrice });
+      return NextResponse.json({ error: "Eksik parametre (appointmentId veya paidPrice)" }, { status: 400 });
     }
 
-    const {
-      petIds,         
-      serviceIds,
-      dates,
-      isRecurring,
-      recurringType,
-      recurringCount,
-      timeSlot,
-      userNote,
-      allergy,
-      sensitivity,
-      specialRequest,
-    } = await req.json();
-
-    if (!petIds?.length || !Array.isArray(dates) || dates.length === 0 || !timeSlot) {
-      return NextResponse.json({ error: "Eksik bilgi" }, { status: 400 });
-    }
-
-    const userPets = await prisma.ownedPet.findMany({
-      where: { userId: user.id },
-      select: { id: true, petId: true },
+    const draft = await prisma.draftAppointment.findUnique({
+      where: { id: appointmentId },
     });
 
-    const matchedOwnedPets = userPets.filter((p) => petIds.includes(p.petId));
-    const validOwnedPetIds = matchedOwnedPets.map((p) => p.id);
+    console.log("🧾 Draft bulundu mu?", draft ? "Evet ✅" : "Hayır ❌");
 
-    if (validOwnedPetIds.length === 0) {
-      return NextResponse.json({ error: "Geçerli bir pet bulunamadı" }, { status: 400 });
+    if (!draft) {
+      return NextResponse.json({ error: "Draft bulunamadı" }, { status: 404 });
     }
 
-    const primaryAddress = await prisma.userAddress.findFirst({
-      where: {
-        userId: user.id,
-        isPrimary: true,
-      },
-    });
+    const petIds = Array.isArray(draft.petIds) ? draft.petIds : [];
+    const serviceIds = Array.isArray(draft.serviceIds) ? draft.serviceIds : [];
+    const dateStrings = Array.isArray(draft.dates) ? draft.dates : [];
+    const dates = dateStrings
+      .map((d: string) => {
+        const date = new Date(d.trim());
+        return isNaN(date.getTime()) ? null : date;
+      })
+      .filter((d): d is Date => d !== null);
 
-    if (!primaryAddress) {
-      return NextResponse.json({ error: "Primary adres bulunamadı" }, { status: 400 });
+    console.log("📋 petIds:", petIds);
+    console.log("📋 serviceIds:", serviceIds);
+    console.log("📋 dateStrings:", dateStrings);
+
+    if (!petIds.length || !serviceIds.length || !dates.length) {
+      console.warn("❌ Eksik draft verisi:", { petIds, serviceIds, dates });
+      return NextResponse.json({ error: "Eksik draft verisi (petIds, serviceIds veya dates)" }, { status: 400 });
     }
 
-    const userAddressId = primaryAddress.id;
-    const appointments = [];
-
-    for (const ownedPetId of validOwnedPetIds) {
-      for (const date of dates) {
-      const appointment = await prisma.appointment.create({
-        data: {
-          userId: user.id,
-          confirmedAt: new Date(date),
-          status: "SCHEDULED",
-          isRecurring: isRecurring || false,
-          recurringCount: isRecurring ? recurringCount : null,
-          repeatInterval: isRecurring ? recurringType : null,
-          timeSlot,
-          userNote: userNote || null,
-          allergy: allergy || null,
-          sensitivity: sensitivity || null,
-          specialRequest: specialRequest || null,
-          userAddressId,
-          services: {
-            create: serviceIds.map((serviceId: string) => ({
-              serviceId,
-            })),
-          },
-          pets: {
-            create: [
-              {
-                ownedPetId,
-              },
-            ],
-          },
-        },
-      });
-        appointments.push(appointment);
-      }
-    }
-
-    return NextResponse.json({ success: true, appointments });
-  } catch (error) {
-    console.error("Randevu oluşturma hatası:", error);
-    return NextResponse.json(
-      { success: false, message: "Bir hata oluştu." },
-      { status: 500 }
-    );
-  }
-}
-
-export async function GET() {
-  try {
-    const session = await getServerSession(authConfig);
-    const user = session?.user;
-
-    if (!user?.id) {
-      return NextResponse.json({ error: "Giriş yapmalısınız" }, { status: 401 });
-    }
-
-    const appointments = await prisma.appointment.findMany({
-      where: { userId: user.id },
-      orderBy: { confirmedAt: "desc" },
-      include: {
-        pets: {
-          include: {
-            ownedPet: {
-              include: {
-                pet: true,
-              },
-            },
-          },
-        },
+    const created = await prisma.appointment.create({
+      data: {
+        userId: draft.userId,
+        userAddressId: draft.userAddressId,
+        timeSlot: draft.timeSlot,
+        isRecurring: draft.isRecurring,
+        recurringType: draft.recurringType,
+        recurringCount: draft.recurringCount,
+        status: AppointmentStatus.SCHEDULED,
+        finalPrice: parseFloat(paidPrice),
+        paidAt: new Date(),
+        isPaid: true,
+        confirmedAt: new Date(),
+        paymentConversationId: conversationId || null,
         services: {
-          include: { service: true },
+          create: serviceIds.map((id: string) => ({ serviceId: id })),
         },
-        address: {
-          include: { district: true },
+        pets: {
+          create: petIds.map((id: string) => ({
+            ownedPet: {
+              connect: { id },
+            },
+          })),
+        },
+        dates: {
+          create: dates.map((d: Date) => ({ date: d })),
         },
       },
     });
 
-    return NextResponse.json({ success: true, data: appointments });
-  } catch (error) {
-    console.error("Randevular getirme hatası:", error);
+    console.log("🗑️ Draft siliniyor:", draft.id);
+    await prisma.draftAppointment.delete({ where: { id: appointmentId } });
+
+    console.log("✅ Randevu oluşturuldu:", created.id);
+
     return NextResponse.json(
-      { success: false, message: "Randevular alınamadı." },
+      { success: true, appointmentId: created.id },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("💥 payment/complete rotasında kritik hata:", error);
+    if (error instanceof Error) {
+      console.error("📌 Stack Trace:", error.stack);
+      return NextResponse.json(
+        { error: error.message || "Randevu oluşturulamadı" },
+        { status: 500 }
+      );
+    }
+    return NextResponse.json(
+      { error: "Bilinmeyen bir hata nedeniyle randevu oluşturulamadı." },
       { status: 500 }
     );
   }

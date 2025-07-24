@@ -10,7 +10,8 @@ export async function POST(req: NextRequest) {
   }
 
   const {
-    petIds,
+    petIds,          // sistemdeki sabit pet tablosundakiler
+    ownedPetIds,     // kullanıcıya ait olanlar
     serviceIds,
     dates,
     userAddressId,
@@ -21,20 +22,24 @@ export async function POST(req: NextRequest) {
   } = await req.json();
 
   try {
-    const draft = await prisma.draftAppointment.create({
-    data: {
-      userId: session.user.id,
-      petIds,
-      serviceIds,
-      dates,
-      userAddressId,
-      timeSlot,
-      isRecurring: Boolean(isRecurring),
-      recurringType,
-      recurringCount,
-    },
-  });
+    if ((!petIds || petIds.length === 0) && (!ownedPetIds || ownedPetIds.length === 0)) {
+      return NextResponse.json({ error: "En az bir pet seçilmelidir." }, { status: 400 });
+    }
 
+    const draft = await prisma.draftAppointment.create({
+      data: {
+        userId: session.user.id,
+        petIds: petIds || [],
+        ownedPetIds: ownedPetIds || [],
+        serviceIds: serviceIds || [],
+        dates: dates || [],
+        userAddressId,
+        timeSlot,
+        isRecurring: Boolean(isRecurring),
+        recurringType,
+        recurringCount,
+      },
+    });
 
     return NextResponse.json({ draftAppointmentId: draft.id });
   } catch (err) {

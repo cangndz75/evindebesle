@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -46,6 +46,12 @@ export default function Step2Client() {
     { label: "12:00 - 16:00", value: "12:00 - 16:00" },
     { label: "16:00 - 20:00", value: "16:00 - 20:00" },
   ];
+  const petIds = useMemo(() => searchParams.getAll("pet"), [searchParams]);
+  const serviceIds = useMemo(
+    () => searchParams.getAll("service"),
+    [searchParams]
+  );
+  const userAddressId = searchParams.get("userAddressId");
 
   const [timeSlot, setTimeSlot] = useState<string>("");
 
@@ -96,6 +102,10 @@ export default function Step2Client() {
     });
   };
   const handleNext = async () => {
+    console.log("✅ Dates:", dates);
+    console.log("✅ Pet IDs:", searchParams.getAll("pet"));
+    console.log("✅ Service IDs:", searchParams.getAll("service"));
+
     if (dates.length === 0) {
       toast.error("Lütfen en az bir tarih seçin.");
       return;
@@ -121,16 +131,19 @@ export default function Step2Client() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          petIds: searchParams.getAll("pet"),
-          serviceIds: searchParams.getAll("service"),
+          petIds,
+          serviceIds,
+          userPetId: searchParams.get("userPetId"),
           dates: dates.map((d) => d.toISOString().split("T")[0]),
-          userAddressId: searchParams.get("userAddressId"),
+          userAddressId,
           timeSlot,
           isRecurring: Boolean(isRecurring),
           recurringType,
           recurringCount,
         }),
       });
+      
+      console.log("Draft response:", draftRes);
       if (!draftRes.ok) throw new Error("Draft oluşturma başarısız");
       const draftJson = await draftRes.json();
       draftAppointmentId = draftJson.draftAppointmentId;

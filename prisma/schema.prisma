@@ -39,39 +39,39 @@ enum MediaType {
 }
 
 model User {
-  id          String   @id @default(uuid())
+  id          String  @id @default(uuid())
   name        String
-  email       String   @unique
+  email       String  @unique
   password    String
   phone       String?
   districtId  String?
   fullAddress String?
   image       String?
-  isAdmin     Boolean  @default(false)
+  isAdmin     Boolean @default(false)
 
-  subscriptionPlan        SubscriptionPlan @default(FREE)
-  preferredContactMethod  ContactMethod?
-  referralCode            String?
-  emailVerified           Boolean          @default(false)
-  emailVerifyToken        String?  
-  emailVerifyExpires      DateTime?
-  marketingEmailConsent   Boolean          @default(false)
-  profileNoteConsent      Boolean          @default(false) 
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  subscriptionPlan       SubscriptionPlan @default(FREE)
+  preferredContactMethod ContactMethod?
+  referralCode           String?
+  emailVerified          Boolean          @default(false)
+  emailVerifyToken       String?
+  emailVerifyExpires     DateTime?
+  marketingEmailConsent  Boolean          @default(false)
+  profileNoteConsent     Boolean          @default(false)
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
 
-  district     District?       @relation(fields: [districtId], references: [id])
-  sessions     Session[]
-  accounts     Account[]
-  ownedPets OwnedPet[]
-  appointments Appointment[]     
-  userCoupons  UserCoupon[]      
-  feedbacks    Feedback[]        
-  reviews      AppointmentReview[] 
-  userBadges   UserBadge[]
-  notificationLogs NotificationLog[]
-  emailLogs        EmailLog[]
-  addresses       UserAddress[]
+  district            District?            @relation(fields: [districtId], references: [id])
+  sessions            Session[]
+  accounts            Account[]
+  ownedPets           OwnedPet[]
+  appointments        Appointment[]
+  userCoupons         UserCoupon[]
+  feedbacks           Feedback[]
+  reviews             AppointmentReview[]
+  userBadges          UserBadge[]
+  notificationLogs    NotificationLog[]
+  emailLogs           EmailLog[]
+  addresses           UserAddress[]
   passwordResetTokens PasswordResetToken[]
 }
 
@@ -84,7 +84,6 @@ model PasswordResetToken {
   expiresAt DateTime
 }
 
-
 model Session {
   id        String   @id @default(uuid())
   expiresAt DateTime
@@ -94,8 +93,8 @@ model Session {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Account {
@@ -107,11 +106,11 @@ model Account {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Verification {
-  id         String   @id @default(uuid())
+  id         String    @id @default(uuid())
   identifier String
   value      String
   expiresAt  DateTime
@@ -123,35 +122,37 @@ model Pet {
   id        String   @id @default(uuid())
   name      String
   image     String?
-  species   String?        // Tür: Kedi, Köpek, vs.
-  breed     String?        // Irk
+  species   String? // Tür: Kedi, Köpek, vs.
+  breed     String? // Irk
   createdAt DateTime @default(now())
 
   ownedBy OwnedPet[]
-  prices    ServicePrice[] 
-  tags      ServiceTag[]   
+  prices  ServicePrice[]
+  tags    ServiceTag[]
+
+  appointments AppointmentPet[]
 }
 
 model OwnedPet {
-  id           String   @id @default(uuid())
-  userId       String
-  petId        String
-  name         String?
-  age          Int?
-  gender       String?        
-  image        String?
-  relation     String?        
-  allergy      String?        
-  sensitivity  String?      
-  specialNote  String?     
-  allowAdUse   Boolean @default(false) 
+  id          String  @id @default(uuid())
+  userId      String
+  petId       String
+  name        String?
+  age         Int?
+  gender      String?
+  image       String?
+  relation    String?
+  allergy     String?
+  sensitivity String?
+  specialNote String?
+  allowAdUse  Boolean @default(false)
 
-  createdAt    DateTime @default(now())
+  createdAt DateTime @default(now())
 
-  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  pet          Pet    @relation(fields: [petId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pet  Pet  @relation(fields: [petId], references: [id], onDelete: Cascade)
 
-  reports      PetReport[]    
+  reports      PetReport[]
   appointments AppointmentPet[]
 }
 
@@ -179,79 +180,79 @@ model OwnedPet {
 // }
 
 model Service {
-  id          String   @id @default(uuid())
-  name        String
-  description String?
-  image       String?
-  price       Int
-  isActive    Boolean  @default(true)
-  isWeeklyPopular Boolean @default(false) 
-  createdAt   DateTime @default(now())
+  id              String   @id @default(uuid())
+  name            String
+  description     String?
+  image           String?
+  price           Int
+  isActive        Boolean  @default(true)
+  isWeeklyPopular Boolean  @default(false)
+  createdAt       DateTime @default(now())
 
   appointmentServices AppointmentService[]
   checkItems          AppointmentCheck[]
   prices              ServicePrice[] // Hayvan türüne göre fiyat
-  tags                ServiceTag[]   // Kedi, Köpek vs. için uygunluk
+  tags                ServiceTag[] // Kedi, Köpek vs. için uygunluk
 }
+
 model ServicePrice {
-  id        String   @id @default(cuid())
+  id        String @id @default(cuid())
   serviceId String
   petId     String
   price     Int
 
-  service   Service  @relation(fields: [serviceId], references: [id])
-  pet       Pet      @relation(fields: [petId], references: [id])
+  service Service @relation(fields: [serviceId], references: [id])
+  pet     Pet     @relation(fields: [petId], references: [id])
 }
 
 model ServiceTag {
-  id        String   @id @default(cuid())
+  id        String @id @default(cuid())
   serviceId String
   petId     String
 
-  service   Service  @relation(fields: [serviceId], references: [id])
-  pet       Pet      @relation(fields: [petId], references: [id])
+  service Service @relation(fields: [serviceId], references: [id])
+  pet     Pet     @relation(fields: [petId], references: [id])
 }
 
-
 model Appointment {
-  id              String             @id @default(cuid())
-  userId          String
-  userAddressId   String?            
-  confirmedAt     DateTime           @default(now())
-  deliveredAt     DateTime?
-  assignedToId    String?
-  status          AppointmentStatus  @default(SCHEDULED)
-  summarySent     Boolean            @default(false)
+  id            String            @id @default(cuid())
+  userId        String
+  userAddressId String?
+  confirmedAt   DateTime          @default(now())
+  deliveredAt   DateTime?
+  assignedToId  String?
+  status        AppointmentStatus @default(SCHEDULED)
+  summarySent   Boolean           @default(false)
 
-  isRecurring     Boolean            @default(false)
-  recurringType   String?            
-  recurringCount  Int?   
-  repeatInterval  String?
+  isRecurring    Boolean @default(false)
+  recurringType  String?
+  recurringCount Int?
+  repeatInterval String?
 
-  timeSlot        String?
-  paidAt          DateTime?         
-  finalPrice      Float? 
-  isPaid          Boolean            @default(false)     
-  paymentConversationId String?       
+  timeSlot              String?
+  paidAt                DateTime?
+  finalPrice            Float?
+  isPaid                Boolean   @default(false)
+  paymentConversationId String?
 
-  userNote        String?            
-  allergy         String?            
-  sensitivity     String?            
-  specialRequest  String?            
-  adminNote       String?            
-  specialRequestStatus String?       
-  discountRate    Int?               
-  discountReason  String?            
+  userNote             String?
+  allergy              String?
+  sensitivity          String?
+  specialRequest       String?
+  adminNote            String?
+  specialRequestStatus String?
+  discountRate         Int?
+  discountReason       String?
 
-  user            User               @relation(fields: [userId], references: [id])
-  address         UserAddress?       @relation(fields: [userAddressId], references: [id])
-  services        AppointmentService[]
-  checkItems      AppointmentCheck[]
-  media           AppointmentMedia[]
-  reviews         AppointmentReview[] 
-  invoice         Invoice?
-  pets            AppointmentPet[]
-  dates           AppointmentDate[]   
+  user       User                 @relation(fields: [userId], references: [id])
+  address    UserAddress?         @relation(fields: [userAddressId], references: [id])
+  services   AppointmentService[]
+  checkItems AppointmentCheck[]
+  media      AppointmentMedia[]
+  reviews    AppointmentReview[]
+  invoice    Invoice?
+  pets       AppointmentPet[]
+  dates      AppointmentDate[]
 }
 
 model AppointmentDate {
@@ -263,66 +264,68 @@ model AppointmentDate {
   @@unique([appointmentId, date])
 }
 
-
 model AppointmentService {
-  id             String   @id @default(cuid())
-  appointmentId  String
-  serviceId      String
+  id            String @id @default(cuid())
+  appointmentId String
+  serviceId     String
 
-  appointment    Appointment @relation(fields: [appointmentId], references: [id])
-  service        Service     @relation(fields: [serviceId], references: [id])
+  appointment Appointment @relation(fields: [appointmentId], references: [id])
+  service     Service     @relation(fields: [serviceId], references: [id])
 }
 
 model AppointmentCheck {
-  id            String   @id @default(cuid())
+  id            String  @id @default(cuid())
   appointmentId String
   serviceId     String
   title         String
-  isChecked     Boolean  @default(false)
+  isChecked     Boolean @default(false)
   note          String?
 
-  appointment   Appointment @relation(fields: [appointmentId], references: [id])
-  service       Service     @relation(fields: [serviceId], references: [id])
+  appointment Appointment @relation(fields: [appointmentId], references: [id])
+  service     Service     @relation(fields: [serviceId], references: [id])
 }
 
 model AppointmentMedia {
-  id             String   @id @default(cuid())
-  appointmentId  String
-  url            String
-  type           MediaType
-  uploadedAt     DateTime @default(now())
+  id            String    @id @default(cuid())
+  appointmentId String
+  url           String
+  type          MediaType
+  uploadedAt    DateTime  @default(now())
 
-  appointment    Appointment @relation(fields: [appointmentId], references: [id])
+  appointment Appointment @relation(fields: [appointmentId], references: [id])
 }
 
 model AppointmentReview {
-  id             String   @id @default(cuid())
-  appointmentId  String
-  userId         String
-  rating         Int       
-  comment        String?
-  createdAt      DateTime @default(now())
+  id            String   @id @default(cuid())
+  appointmentId String
+  userId        String
+  rating        Int
+  comment       String?
+  createdAt     DateTime @default(now())
 
-  user           User      @relation(fields: [userId], references: [id])
-  appointment    Appointment @relation(fields: [appointmentId], references: [id])
+  user        User        @relation(fields: [userId], references: [id])
+  appointment Appointment @relation(fields: [appointmentId], references: [id])
 }
 
 model AppointmentPet {
-  id            String       @id @default(cuid())
-  appointment   Appointment  @relation(fields: [appointmentId], references: [id])
+  id            String      @id @default(cuid())
+  appointment   Appointment @relation(fields: [appointmentId], references: [id])
   appointmentId String
-  ownedPet      OwnedPet     @relation(fields: [ownedPetId], references: [id])
-  ownedPetId    String
+
+  ownedPetId String?
+  ownedPet   OwnedPet? @relation(fields: [ownedPetId], references: [id])
+
+  petId String?
+  pet   Pet?    @relation(fields: [petId], references: [id])
 }
 
-
 model PetReport {
-  id        String   @id @default(cuid())
-  userPetId String
-  title     String
-  content   String
-  createdAt DateTime @default(now())
-  ownedPet   OwnedPet   @relation(fields: [ownedPetId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  userPetId  String
+  title      String
+  content    String
+  createdAt  DateTime @default(now())
+  ownedPet   OwnedPet @relation(fields: [ownedPetId], references: [id], onDelete: Cascade)
   ownedPetId String
 }
 
@@ -331,62 +334,62 @@ model Feedback {
   userId    String
   subject   String
   message   String
-  status    String     @default("pending") 
-  createdAt DateTime   @default(now())
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
 
-  user      User       @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id])
 }
 
 model NotificationLog {
-  id            String   @id @default(cuid())
-  userId        String
-  type          String   
-  message       String
-  sentAt        DateTime @default(now())
-  retryCount    Int      @default(0)
-  success       Boolean  @default(true)
+  id         String   @id @default(cuid())
+  userId     String
+  type       String
+  message    String
+  sentAt     DateTime @default(now())
+  retryCount Int      @default(0)
+  success    Boolean  @default(true)
 
-  user          User     @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id])
 }
 
 model Invoice {
-  id             String   @id @default(cuid())
-  appointmentId  String   @unique
-  fileUrl        String
-  createdAt      DateTime @default(now())
+  id            String   @id @default(cuid())
+  appointmentId String   @unique
+  fileUrl       String
+  createdAt     DateTime @default(now())
 
-  appointment    Appointment @relation(fields: [appointmentId], references: [id])
+  appointment Appointment @relation(fields: [appointmentId], references: [id])
 }
 
 model EmailLog {
-  id        String   @id @default(cuid())
-  userId    String
-  subject   String
-  content   String
-  sentAt    DateTime @default(now())
-  type      String   
-  success   Boolean  @default(true)
+  id      String   @id @default(cuid())
+  userId  String
+  subject String
+  content String
+  sentAt  DateTime @default(now())
+  type    String
+  success Boolean  @default(true)
 
-  user      User     @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id])
 }
 
 model AdminDiscountConfig {
-  id            String   @id @default(cuid())
-  triggerCount  Int      
-  type          DiscountType
-  value         Int
-  isActive      Boolean  @default(true)
-  createdAt     DateTime @default(now())
+  id           String       @id @default(cuid())
+  triggerCount Int
+  type         DiscountType
+  value        Int
+  isActive     Boolean      @default(true)
+  createdAt    DateTime     @default(now())
 }
 
 model Badge {
   id          String   @id @default(cuid())
   name        String
   description String?
-  icon        String?     
+  icon        String?
   createdAt   DateTime @default(now())
 
-  userBadges  UserBadge[]
+  userBadges UserBadge[]
 }
 
 model UserBadge {
@@ -395,8 +398,8 @@ model UserBadge {
   badgeId  String
   earnedAt DateTime @default(now())
 
-  user     User     @relation(fields: [userId], references: [id])
-  badge    Badge    @relation(fields: [badgeId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+  badge Badge @relation(fields: [badgeId], references: [id])
 }
 
 model District {
@@ -418,41 +421,41 @@ model UserAddress {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  user     User     @relation(fields: [userId], references: [id])
-  district District @relation(fields: [districtId], references: [id])
+  user         User          @relation(fields: [userId], references: [id])
+  district     District      @relation(fields: [districtId], references: [id])
   appointments Appointment[]
 }
 
-
 model Coupon {
-  id            String   @id @default(cuid())
-  code          String   @unique
-  description   String?
-  discountType  DiscountType
-  value         Int
-  maxUsage      Int?
-  usageCount    Int      @default(0)
-  expiresAt     DateTime?
-  isActive      Boolean  @default(true)
-  createdAt     DateTime @default(now())
+  id           String       @id @default(cuid())
+  code         String       @unique
+  description  String?
+  discountType DiscountType
+  value        Int
+  maxUsage     Int?
+  usageCount   Int          @default(0)
+  expiresAt    DateTime?
+  isActive     Boolean      @default(true)
+  createdAt    DateTime     @default(now())
 
-  userCoupons   UserCoupon[]
+  userCoupons UserCoupon[]
 }
 
 model UserCoupon {
-  id        String   @id @default(cuid())
-  userId    String
-  couponId  String
-  usedAt    DateTime @default(now())
+  id       String   @id @default(cuid())
+  userId   String
+  couponId String
+  usedAt   DateTime @default(now())
 
-  user      User     @relation(fields: [userId], references: [id])
-  coupon    Coupon   @relation(fields: [couponId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+  coupon Coupon @relation(fields: [couponId], references: [id])
 }
 
 model DraftAppointment {
   id              String   @id @default(cuid())
   userId          String
-  petIds          String[]  
+  petIds          String[]    
+  ownedPetIds     String[]    
   serviceIds      String[]
   dates           String[]
   userAddressId   String

@@ -6,17 +6,20 @@ export async function POST(req: NextRequest) {
   try {
     const { appointmentId, paidPrice, conversationId } = await req.json();
 
-    if (!appointmentId || typeof paidPrice === "undefined") {
+    console.log("🔔 Gelen veri:", { appointmentId, paidPrice, conversationId });
+
+    if (!appointmentId || typeof paidPrice === "undefined" || paidPrice === null) {
       console.warn("❌ Eksik parametre:", { appointmentId, paidPrice });
-      return NextResponse.json({ error: "Eksik parametre" }, { status: 400 });
+      return NextResponse.json({ error: "Eksik parametre (appointmentId veya paidPrice)" }, { status: 400 });
     }
 
     const draft = await prisma.draftAppointment.findUnique({
       where: { id: appointmentId },
     });
 
+    console.log("🧾 Draft bulundu mu?", draft ? "Evet ✅" : "Hayır ❌");
+
     if (!draft) {
-      console.warn("❌ Draft bulunamadı:", appointmentId);
       return NextResponse.json({ error: "Draft bulunamadı" }, { status: 404 });
     }
 
@@ -30,9 +33,13 @@ export async function POST(req: NextRequest) {
       })
       .filter((d): d is Date => d !== null);
 
+    console.log("📆 Seçilen tarih sayısı:", dates.length);
+    console.log("🐾 Pet sayısı:", petIds.length);
+    console.log("🧼 Hizmet sayısı:", serviceIds.length);
+
     if (!petIds.length || !serviceIds.length || !dates.length) {
       console.warn("❌ Eksik draft verisi:", { petIds, serviceIds, dates });
-      return NextResponse.json({ error: "Eksik draft verisi" }, { status: 400 });
+      return NextResponse.json({ error: "Eksik draft verisi (petIds, serviceIds veya dates)" }, { status: 400 });
     }
 
     const created = await prisma.appointment.create({
@@ -49,7 +56,6 @@ export async function POST(req: NextRequest) {
         isPaid: true,
         confirmedAt: new Date(),
         paymentConversationId: conversationId || null,
-
         services: {
           create: serviceIds.map((id: string) => ({ serviceId: id })),
         },
@@ -62,11 +68,10 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    await prisma.draftAppointment.delete({
-      where: { id: appointmentId },
-    });
+    console.log("🗑️ Draft siliniyor:", draft.id);
+    await prisma.draftAppointment.delete({ where: { id: appointmentId } });
 
-    console.log("✅ Randevu başarıyla oluşturuldu:", created.id);
+    console.log("✅ Randevu oluşturuldu:", created.id);
 
     return NextResponse.json(
       { success: true, appointmentId: created.id },
@@ -75,7 +80,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("💥 payment/complete rotasında kritik hata:", error);
     if (error instanceof Error) {
-      console.error("Hata Detayı (Stack Trace):", error.stack);
+      console.error("📌 Stack Trace:", error.stack);
       return NextResponse.json(
         { error: error.message || "Randevu oluşturulamadı" },
         { status: 500 }

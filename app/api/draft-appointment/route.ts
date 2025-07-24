@@ -22,18 +22,19 @@ export async function POST(req: NextRequest) {
 
   try {
     const draft = await prisma.draftAppointment.create({
-      data: {
-        userId: session.user.id,
-        petIds: JSON.stringify(petIds),
-        serviceIds: JSON.stringify(serviceIds),
-        dates: JSON.stringify(dates),
-        userAddressId,
-        timeSlot,
-        isRecurring: Boolean(isRecurring),
-        recurringType,
-        recurringCount,
-      },
-    });
+    data: {
+      userId: session.user.id,
+      petIds,
+      serviceIds,
+      dates,
+      userAddressId,
+      timeSlot,
+      isRecurring: Boolean(isRecurring),
+      recurringType,
+      recurringCount,
+    },
+  });
+
 
     return NextResponse.json({ draftAppointmentId: draft.id });
   } catch (err) {

@@ -30,7 +30,7 @@ export default function PaymentForm() {
 
     // NEXT_PUBLIC_API_URL → http://localhost:3000
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/iyzico/initiate`,
+      `${process.env.API_URL}/api/iyzico/initiate`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },

@@ -23,11 +23,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Draft bulunamadı" }, { status: 404 });
     }
 
-    const petIds = draft.petIds?.split(",").filter((id: string) => id.trim().length > 0) || [];
-    const serviceIds = draft.serviceIds?.split(",").filter((id: string) => id.trim().length > 0) || [];
-    const dateStrings = draft.dates?.split(",").filter((d: string) => d.trim().length > 0) || [];
+    const petIds = draft.petIds || [];
+    const serviceIds = draft.serviceIds || [];
+    const dateStrings = draft.dates || [];
     const dates = dateStrings
-      .map((d) => {
+      .map((d: string) => {
         const date = new Date(d.trim());
         return isNaN(date.getTime()) ? null : date;
       })

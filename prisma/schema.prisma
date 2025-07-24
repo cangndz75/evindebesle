@@ -450,15 +450,15 @@ model UserCoupon {
 }
 
 model DraftAppointment {
-  id          String   @id @default(cuid())
-  userId      String
-  petIds      String   
-  serviceIds  String
-  dates       String
-  userAddressId String
-  timeSlot    String?
-  isRecurring Boolean
-  recurringType String?
-  recurringCount Int?
-  createdAt   DateTime @default(now())
+  id              String   @id @default(cuid())
+  userId          String
+  petIds          String[]  
+  serviceIds      String[]
+  dates           String[]
+  userAddressId   String
+  timeSlot        String?
+  isRecurring     Boolean
+  recurringType   String?
+  recurringCount  Int?
+  createdAt       DateTime @default(now())
 }

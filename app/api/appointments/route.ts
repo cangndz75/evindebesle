@@ -1,6 +1,58 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authConfig } from "@/lib/auth.config";
 import { prisma } from "@/lib/db";
 import { AppointmentStatus } from "@/lib/generated/prisma";
+
+// GET → Kullanıcının kendi randevularını getir
+export async function GET(req: NextRequest) {
+  try {
+    const session = await getServerSession(authConfig);
+    const user = session?.user;
+
+    if (!user?.id) {
+      return NextResponse.json({ error: "Giriş yapmalısınız" }, { status: 401 });
+    }
+
+    const appointments = await prisma.appointment.findMany({
+      where: { userId: user.id },
+      orderBy: { confirmedAt: "desc" },
+      include: {
+        pets: {
+          select: {
+            ownedPet: {
+              select: { name: true },
+            },
+          },
+        },
+        services: {
+          include: {
+            service: {
+              select: { name: true },
+            },
+          },
+        },
+        address: {
+          select: {
+            fullAddress: true,
+            district: {
+              select: { name: true },
+            },
+          },
+        },
+      },
+    });
+
+    return NextResponse.json({ success: true, data: appointments }, { status: 200 });
+  } catch (error) {
+    console.error("📛 Kullanıcı randevu listesi hatası:", error);
+    return NextResponse.json(
+      { success: false, message: "Randevular alınamadı." },
+      { status: 500 }
+    );
+  }
+}
+
 
 export async function POST(req: NextRequest) {
   try {

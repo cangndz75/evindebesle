@@ -6,9 +6,11 @@ export type AppointmentWithRelations = {
   user: {
     name: string | null;
   };
-  ownedPet: {
-    name: string;
-  };
+  pets: {
+    ownedPet?: {
+      name: string | null;
+    } | null;
+  }[];
   services: {
     service: {
       id: string;

@@ -4,23 +4,33 @@ import { useEffect, useState } from "react";
 import AppointmentRow from "./AppointmentsRow";
 
 export default function AppointmentsTable() {
-  const [appointments, setAppointments] = useState<AppointmentWithRelations[]>(
-    []
-  );
+  const [appointments, setAppointments] = useState<AppointmentWithRelations[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
+        setLoading(true);
         const res = await fetch("/api/admin/appointments");
+        if (!res.ok) throw new Error("Randevular alınamadı.");
         const data = await res.json();
-        setAppointments(data.data); 
+        if (!data.success) throw new Error(data.message || "Veriler alınamadı.");
+        setAppointments(data.data);
       } catch (err) {
-        console.error("Randevular alınamadı:", err);
+        console.error("❌ Randevular alınamadı:", err);
+        setError(err instanceof Error ? err.message : "Bilinmeyen bir hata oluştu.");
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchAppointments();
   }, []);
+
+  if (loading) return <div className="text-center py-4">Yükleniyor...</div>;
+  if (error) return <div className="text-center py-4 text-red-500">Hata: {error}</div>;
+  if (appointments.length === 0) return <div className="text-center py-4">Randevu bulunamadı.</div>;
 
   return (
     <div className="rounded-md border">
@@ -51,12 +61,14 @@ type AppointmentWithRelations = {
   id: string;
   confirmedAt: string;
   status: string;
-  user: {
+  user?: {
     name: string | null;
-  };
-  ownedPet: {
-    name: string;
-  };
+  } | null;
+  pets: {
+    ownedPet?: {
+      name: string | null;
+    } | null;
+  }[];
   services: {
     service: {
       id: string;

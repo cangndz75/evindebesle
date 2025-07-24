@@ -15,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import AppointmentCompleteModal from "../[id]/_components/AppointmentCompleteModal";
 
 type AppointmentWithRelations = {
   id: string;
@@ -80,7 +81,7 @@ export default function AppointmentLeftInfoCard({
         </Button>
       </div>
 
-      {(appointment.pets && appointment.pets.length > 0) ? (
+      {appointment.pets && appointment.pets.length > 0 ? (
         <Tabs defaultValue={appointment.pets[0].id} className="w-full">
           <TabsList>
             {appointment.pets?.map((pet) => (
@@ -118,9 +119,12 @@ export default function AppointmentLeftInfoCard({
                   </div>
                   <div className="flex flex-col items-end gap-2">
                     <Badge variant="outline">{appointment.status}</Badge>
-                    <Button size="sm" variant="outline">
-                      Durumu Değiştir
-                    </Button>
+                    <AppointmentCompleteModal
+                      appointmentId={appointment.id}
+                      petId={pet.id}
+                      petName={pet.name}
+                      serviceList={pet.services.map((s) => s.service)}
+                    />
                   </div>
                 </div>
 

@@ -142,11 +142,13 @@ export default function Step2Client() {
           recurringCount,
         }),
       });
-      
+
       console.log("Draft response:", draftRes);
       if (!draftRes.ok) throw new Error("Draft oluşturma başarısız");
       const draftJson = await draftRes.json();
-      draftAppointmentId = draftJson.draftAppointmentId;
+      draftAppointmentId = draftJson.id;
+      console.log("🎯 Draft yanıtı:", draftJson);
+      console.log("🎯 Draft ID:", draftAppointmentId);
     } catch (err) {
       console.error("Draft hatası:", err);
       toast.error("Randevu hazırlanamıyor, lütfen tekrar deneyin.");

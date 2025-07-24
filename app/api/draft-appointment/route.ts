@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ draftAppointmentId: draft.id });
+    return NextResponse.json({ id: draft.id });
   } catch (err) {
     console.error("❌ Draft oluşturma hatası:", err);
     return NextResponse.json({ error: "Sunucu hatası oluştu" }, { status: 500 });

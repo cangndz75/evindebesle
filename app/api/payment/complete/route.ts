@@ -4,29 +4,62 @@ import { AppointmentStatus } from "@/lib/generated/prisma";
 
 export async function POST(req: NextRequest) {
   try {
-    const { appointmentId, paidPrice, conversationId } = await req.json();
+    const { draftAppointmentId, paidPrice, conversationId } = await req.json();
 
-    if (!appointmentId || paidPrice === undefined || paidPrice === null) {
+    console.log("🔍 Gelen parametreler:", {
+      draftAppointmentId,
+      paidPrice,
+      conversationId,
+    });
+
+    if (!draftAppointmentId || paidPrice === undefined || paidPrice === null) {
+      console.warn("⚠️ Eksik temel parametre");
       return NextResponse.json({ error: "Eksik parametre" }, { status: 400 });
     }
 
     const draft = await prisma.draftAppointment.findUnique({
-      where: { id: appointmentId },
+      where: { id: draftAppointmentId },
+      select: {
+        id: true,
+        userId: true,
+        userAddressId: true,
+        isRecurring: true,
+        recurringType: true,
+        recurringCount: true,
+        timeSlot: true,
+        couponId: true,
+        userNote: true,
+        allergy: true,
+        sensitivity: true,
+        specialRequest: true,
+        petIds: true,
+        ownedPetIds: true,
+        serviceIds: true,
+        dates: true,
+      },
     });
 
     if (!draft) {
+      console.warn("⚠️ Draft bulunamadı:", draftAppointmentId);
       return NextResponse.json({ error: "Draft bulunamadı" }, { status: 404 });
     }
 
-    // Güvenlik kontrolü: Draft verilerini temizle ve doğrula
-    const petIds = Array.isArray(draft.petIds) ? draft.petIds : [];
-    const ownedPetIds = Array.isArray(draft.ownedPetIds) ? draft.ownedPetIds : [];
-    const serviceIds = Array.isArray(draft.serviceIds) ? draft.serviceIds : [];
-    const dateStrings = Array.isArray(draft.dates) ? draft.dates : [];
+console.log("🎯 Draft içeriği:", draft);
 
-    if (!petIds.length || !ownedPetIds.length || !serviceIds.length || !dateStrings.length) {
-      return NextResponse.json({ error: "Eksik draft verisi" }, { status: 400 });
-    }
+const petIds = Array.isArray(draft.petIds) ? draft.petIds : [];
+const ownedPetIds = Array.isArray(draft.ownedPetIds) ? draft.ownedPetIds : [];
+const serviceIds = Array.isArray(draft.serviceIds) ? draft.serviceIds : [];
+const dateStrings = Array.isArray(draft.dates) ? draft.dates : [];
+
+console.log("🔍 petIds:", petIds);
+console.log("🔍 ownedPetIds:", ownedPetIds);
+console.log("🔍 serviceIds:", serviceIds);
+console.log("🔍 dateStrings:", dateStrings);
+
+if (!petIds.length) return NextResponse.json({ error: "Eksik petIds" }, { status: 400 });
+if (!ownedPetIds.length) return NextResponse.json({ error: "Eksik ownedPetIds" }, { status: 400 });
+if (!serviceIds.length) return NextResponse.json({ error: "Eksik serviceIds" }, { status: 400 });
+if (!dateStrings.length) return NextResponse.json({ error: "Eksik dates" }, { status: 400 });
 
     const dates = dateStrings
       .map((d: string) => {
@@ -35,7 +68,8 @@ export async function POST(req: NextRequest) {
       })
       .filter((d): d is Date => d !== null);
 
-    // ✅ Gerçek randevuyu oluştur
+    console.log("🗓️ Geçerli tarihler:", dates);
+
     const created = await prisma.appointment.create({
       data: {
         userId: draft.userId,
@@ -45,7 +79,7 @@ export async function POST(req: NextRequest) {
         recurringType: draft.recurringType,
         recurringCount: draft.recurringCount,
         status: AppointmentStatus.SCHEDULED,
-        finalPrice: parseFloat(paidPrice),
+        finalPrice: parseFloat(String(paidPrice)),
         paidAt: new Date(),
         isPaid: true,
         confirmedAt: new Date(),
@@ -63,7 +97,9 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    await prisma.draftAppointment.delete({ where: { id: appointmentId } });
+    await prisma.draftAppointment.delete({ where: { id: draftAppointmentId } });
+
+    console.log("✅ Randevu oluşturuldu:", created.id);
 
     return NextResponse.json(
       { success: true, appointmentId: created.id },

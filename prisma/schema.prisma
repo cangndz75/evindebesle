@@ -244,6 +244,9 @@ model Appointment {
   discountRate         Int?
   discountReason       String?
 
+  couponId             String? 
+  coupon               Coupon?    @relation(fields: [couponId], references: [id])
+
   user       User                 @relation(fields: [userId], references: [id])
   address    UserAddress?         @relation(fields: [userAddressId], references: [id])
   services   AppointmentService[]
@@ -438,7 +441,9 @@ model Coupon {
   isActive     Boolean      @default(true)
   createdAt    DateTime     @default(now())
 
-  userCoupons UserCoupon[]
+  userCoupons      UserCoupon[]
+  draftAppointments DraftAppointment[]
+  appointments     Appointment[]
 }
 
 model UserCoupon {
@@ -452,16 +457,24 @@ model UserCoupon {
 }
 
 model DraftAppointment {
-  id              String   @id @default(cuid())
+  id              String   @id @default(uuid())
+  createdAt       DateTime @default(now())
   userId          String
-  petIds          String[]    
-  ownedPetIds     String[]    
-  serviceIds      String[]
-  dates           String[]
   userAddressId   String
-  timeSlot        String?
   isRecurring     Boolean
   recurringType   String?
   recurringCount  Int?
-  createdAt       DateTime @default(now())
+  timeSlot        String?
+  dates           String[]
+  petIds          String[]
+  ownedPetIds     String[]
+  serviceIds      String[]
+
+  couponId        String?   
+  coupon          Coupon?   @relation(fields: [couponId], references: [id])
+
+  userNote        String?
+  allergy         String?
+  sensitivity     String?
+  specialRequest  String?
 }

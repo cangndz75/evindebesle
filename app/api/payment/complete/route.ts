@@ -6,27 +6,27 @@ export async function POST(req: NextRequest) {
   try {
     const { appointmentId, paidPrice, conversationId } = await req.json();
 
-    console.log("🔔 Gelen veri:", { appointmentId, paidPrice, conversationId });
-
-    if (!appointmentId || typeof paidPrice === "undefined" || paidPrice === null) {
-      console.warn("❌ Eksik parametre:", { appointmentId, paidPrice });
-      return NextResponse.json({ error: "Eksik parametre (appointmentId veya paidPrice)" }, { status: 400 });
+    if (!appointmentId || paidPrice === undefined || paidPrice === null) {
+      return NextResponse.json({ error: "Eksik parametre" }, { status: 400 });
     }
 
     const draft = await prisma.draftAppointment.findUnique({
       where: { id: appointmentId },
     });
 
-    console.log("🧾 Draft bulundu mu?", draft ? "Evet ✅" : "Hayır ❌");
-
     if (!draft) {
       return NextResponse.json({ error: "Draft bulunamadı" }, { status: 404 });
     }
 
+    // Güvenlik kontrolü: Draft verilerini temizle ve doğrula
     const petIds = Array.isArray(draft.petIds) ? draft.petIds : [];
     const ownedPetIds = Array.isArray(draft.ownedPetIds) ? draft.ownedPetIds : [];
     const serviceIds = Array.isArray(draft.serviceIds) ? draft.serviceIds : [];
     const dateStrings = Array.isArray(draft.dates) ? draft.dates : [];
+
+    if (!petIds.length || !ownedPetIds.length || !serviceIds.length || !dateStrings.length) {
+      return NextResponse.json({ error: "Eksik draft verisi" }, { status: 400 });
+    }
 
     const dates = dateStrings
       .map((d: string) => {
@@ -35,10 +35,7 @@ export async function POST(req: NextRequest) {
       })
       .filter((d): d is Date => d !== null);
 
-    if ((!petIds.length && !ownedPetIds.length) || !serviceIds.length || !dates.length) {
-      return NextResponse.json({ error: "Eksik draft verisi (petIds/ownedPetIds, serviceIds veya dates)" }, { status: 400 });
-    }
-
+    // ✅ Gerçek randevuyu oluştur
     const created = await prisma.appointment.create({
       data: {
         userId: draft.userId,
@@ -57,28 +54,26 @@ export async function POST(req: NextRequest) {
         services: {
           create: serviceIds.map((id) => ({ serviceId: id })),
         },
-
         pets: {
-          create: [
-            ...ownedPetIds.map((id) => ({ ownedPetId: id })),
-            ...petIds.map((id) => ({ petId: id })),
-          ],
+          create: ownedPetIds.map((id) => ({ ownedPetId: id })),
         },
-
         dates: {
-          create: dates.map((date) => ({ date })),
+          create: dates.map((d) => ({ date: d })),
         },
       },
     });
 
     await prisma.draftAppointment.delete({ where: { id: appointmentId } });
 
-    return NextResponse.json({ success: true, appointmentId: created.id }, { status: 200 });
+    return NextResponse.json(
+      { success: true, appointmentId: created.id },
+      { status: 200 }
+    );
   } catch (error) {
-    console.error("💥 payment/complete rotasında kritik hata:", error);
-    if (error instanceof Error) {
-      return NextResponse.json({ error: error.message || "Randevu oluşturulamadı" }, { status: 500 });
-    }
-    return NextResponse.json({ error: "Bilinmeyen bir hata nedeniyle randevu oluşturulamadı." }, { status: 500 });
+    console.error("💥 payment/complete hatası:", error);
+    return NextResponse.json(
+      { error: "Randevu oluşturulamadı" },
+      { status: 500 }
+    );
   }
 }

@@ -50,6 +50,11 @@ export async function POST(req: NextRequest) {
         isRecurring: draft.isRecurring,
         recurringType: draft.recurringType,
         recurringCount: draft.recurringCount,
+        couponId: draft.couponId,
+        userNote: draft.userNote,
+        allergy: draft.allergy,
+        sensitivity: draft.sensitivity,
+        specialRequest: draft.specialRequest,
         status: AppointmentStatus.SCHEDULED,
         finalPrice: parseFloat(paidPrice),
         paidAt: new Date(),
@@ -61,9 +66,7 @@ export async function POST(req: NextRequest) {
         },
         pets: {
           create: petIds.map((id: string) => ({
-            ownedPet: {
-              connect: { id },
-            },
+            ownedPet: { connect: { id } },
           })),
         },
         dates: {

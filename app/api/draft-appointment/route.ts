@@ -10,10 +10,10 @@ export async function POST(req: NextRequest) {
   }
 
   const {
-    petIds,          // sistemdeki sabit pet tablosundakiler
-    ownedPetIds,     // kullanıcıya ait olanlar
-    serviceIds,
-    dates,
+    petIds = [],
+    ownedPetIds = [],
+    serviceIds = [],
+    dates = [],
     userAddressId,
     timeSlot,
     isRecurring,
@@ -21,29 +21,73 @@ export async function POST(req: NextRequest) {
     recurringCount,
   } = await req.json();
 
+  const userId = session.user.id;
+
   try {
-    if ((!petIds || petIds.length === 0) && (!ownedPetIds || ownedPetIds.length === 0)) {
-      return NextResponse.json({ error: "En az bir pet seçilmelidir." }, { status: 400 });
+    // ✅ 1. Kullanıcıya ait mi? (OwnedPet doğrulama)
+    const validOwnedPets = await prisma.ownedPet.findMany({
+      where: {
+        id: { in: ownedPetIds },
+        userId,
+      },
+      select: { id: true },
+    });
+    if (validOwnedPets.length !== ownedPetIds.length) {
+      return NextResponse.json({ error: "Geçersiz veya size ait olmayan ownedPet ID'leri" }, { status: 400 });
+    }
+
+    // ✅ 2. Pet ID'leri sistemde var mı?
+    const validPets = await prisma.pet.findMany({
+      where: {
+        id: { in: petIds },
+      },
+      select: { id: true },
+    });
+    if (validPets.length !== petIds.length) {
+      return NextResponse.json({ error: "Geçersiz pet ID'leri" }, { status: 400 });
+    }
+
+    // ✅ 3. Hizmet ID’leri sistemde var mı ve aktif mi?
+    const validServices = await prisma.service.findMany({
+      where: {
+        id: { in: serviceIds },
+        isActive: true,
+      },
+      select: { id: true },
+    });
+    if (validServices.length !== serviceIds.length) {
+      return NextResponse.json({ error: "Geçersiz veya pasif hizmet ID'leri" }, { status: 400 });
+    }
+
+    // ✅ 4. Adres kullanıcıya mı ait?
+    const address = await prisma.userAddress.findFirst({
+      where: {
+        id: userAddressId,
+        userId,
+      },
+    });
+    if (!address) {
+      return NextResponse.json({ error: "Adres size ait değil veya geçersiz" }, { status: 400 });
     }
 
     const draft = await prisma.draftAppointment.create({
       data: {
-        userId: session.user.id,
-        petIds: petIds || [],
-        ownedPetIds: ownedPetIds || [],
-        serviceIds: serviceIds || [],
-        dates: dates || [],
+        userId,
+        petIds,
+        ownedPetIds,
+        serviceIds,
+        dates,
         userAddressId,
         timeSlot,
         isRecurring: Boolean(isRecurring),
-        recurringType,
-        recurringCount,
+        recurringType: recurringType || null,
+        recurringCount: recurringCount || null,
       },
     });
 
     return NextResponse.json({ draftAppointmentId: draft.id });
   } catch (err) {
-    console.error("Draft oluşturma hatası:", err);
-    return NextResponse.json({ error: "DB Hatası" }, { status: 500 });
+    console.error("❌ Draft oluşturma hatası:", err);
+    return NextResponse.json({ error: "Sunucu hatası oluştu" }, { status: 500 });
   }
 }

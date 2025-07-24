@@ -49,15 +49,17 @@ export async function GET(
     ...appointment,
     fullAddress: fallback?.fullAddress ?? "",
     district: fallback?.district ?? null,
-    pets: appointment.pets.map((p) => ({
-      id: p.ownedPet.id,
-      name: p.ownedPet.name,
-      image: p.ownedPet.image,
-      allergy: appointment.allergy,
-      sensitivity: appointment.sensitivity,
-      specialRequest: appointment.specialRequest,
-      services: appointment.services,
-    })),
+    pets: appointment.pets
+      .filter((p) => p.ownedPet !== null)
+      .map((p) => ({
+        id: p.ownedPet!.id,
+        name: p.ownedPet!.name,
+        image: p.ownedPet!.image,
+        allergy: appointment.allergy,
+        sensitivity: appointment.sensitivity,
+        specialRequest: appointment.specialRequest,
+        services: appointment.services,
+      })),
   };
 
   return NextResponse.json({ data: normalized }, { status: 200 });

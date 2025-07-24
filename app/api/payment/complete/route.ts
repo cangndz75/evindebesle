@@ -1,24 +1,43 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/db";
+import { authConfig } from "@/lib/auth.config";
+import { z } from "zod";
 import { AppointmentStatus } from "@/lib/generated/prisma";
+
+const completeSchema = z.object({
+  draftAppointmentId: z.string().uuid("Geçersiz draftAppointmentId"),
+  paidPrice: z.number().positive("Geçersiz paidPrice"),
+  conversationId: z.string().optional(),
+  paymentId: z.string().optional(),
+});
 
 export async function POST(req: NextRequest) {
   try {
-    const { draftAppointmentId, paidPrice, conversationId } = await req.json();
-
-    console.log("🔍 Gelen parametreler:", {
-      draftAppointmentId,
-      paidPrice,
-      conversationId,
-    });
-
-    if (!draftAppointmentId || paidPrice === undefined || paidPrice === null) {
-      console.warn("⚠️ Eksik temel parametre");
-      return NextResponse.json({ error: "Eksik parametre" }, { status: 400 });
+    const session = await getServerSession(authConfig);
+    if (!session?.user?.id) {
+      console.warn("❌ Yetkisiz istek: Kullanıcı oturumu bulunamadı");
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const body = await req.json();
+    console.log("📥 Complete isteği alındı:", body);
+
+    // Zod ile veri doğrulama
+    const parsedBody = completeSchema.safeParse(body);
+    if (!parsedBody.success) {
+      console.warn("⚠️ Geçersiz veri:", parsedBody.error);
+      return NextResponse.json(
+        { error: "Geçersiz veri", details: parsedBody.error },
+        { status: 400 }
+      );
+    }
+
+    const { draftAppointmentId, paidPrice, conversationId, paymentId } = parsedBody.data;
+
+    // Draft kaydını çek
     const draft = await prisma.draftAppointment.findUnique({
-      where: { id: draftAppointmentId },
+      where: { id: draftAppointmentId, userId: session.user.id }, // userId kontrolü eklendi
       select: {
         id: true,
         userId: true,
@@ -40,27 +59,52 @@ export async function POST(req: NextRequest) {
     });
 
     if (!draft) {
-      console.warn("⚠️ Draft bulunamadı:", draftAppointmentId);
-      return NextResponse.json({ error: "Draft bulunamadı" }, { status: 404 });
+      console.warn("⚠️ Draft bulunamadı veya yetkisiz:", { draftAppointmentId, userId: session.user.id });
+      return NextResponse.json({ error: "Draft bulunamadı veya yetkisiz" }, { status: 404 });
     }
 
-console.log("🎯 Draft içeriği:", draft);
+    console.log("🎯 Draft içeriği:", draft);
 
-const petIds = Array.isArray(draft.petIds) ? draft.petIds : [];
-const ownedPetIds = Array.isArray(draft.ownedPetIds) ? draft.ownedPetIds : [];
-const serviceIds = Array.isArray(draft.serviceIds) ? draft.serviceIds : [];
-const dateStrings = Array.isArray(draft.dates) ? draft.dates : [];
+    // Dizileri güvenli bir şekilde al
+    const petIds = Array.isArray(draft.petIds) ? draft.petIds : [];
+    const ownedPetIds = Array.isArray(draft.ownedPetIds) ? draft.ownedPetIds : [];
+    const serviceIds = Array.isArray(draft.serviceIds) ? draft.serviceIds : [];
+    const dateStrings = Array.isArray(draft.dates) ? draft.dates : [];
 
-console.log("🔍 petIds:", petIds);
-console.log("🔍 ownedPetIds:", ownedPetIds);
-console.log("🔍 serviceIds:", serviceIds);
-console.log("🔍 dateStrings:", dateStrings);
+    console.log("🔍 petIds:", petIds);
+    console.log("🔍 ownedPetIds:", ownedPetIds);
+    console.log("🔍 serviceIds:", serviceIds);
+    console.log("🔍 dateStrings:", dateStrings);
 
-if (!petIds.length) return NextResponse.json({ error: "Eksik petIds" }, { status: 400 });
-if (!ownedPetIds.length) return NextResponse.json({ error: "Eksik ownedPetIds" }, { status: 400 });
-if (!serviceIds.length) return NextResponse.json({ error: "Eksik serviceIds" }, { status: 400 });
-if (!dateStrings.length) return NextResponse.json({ error: "Eksik dates" }, { status: 400 });
+    // Dizi doğrulamaları
+    if (!petIds.length) {
+      console.warn("⚠️ Eksik petIds:", { draftAppointmentId });
+      return NextResponse.json({ error: "petIds boş" }, { status: 400 });
+    }
+    if (!serviceIds.length) {
+      console.warn("⚠️ Eksik serviceIds:", { draftAppointmentId });
+      return NextResponse.json({ error: "serviceIds boş" }, { status: 400 });
+    }
+    if (!dateStrings.length) {
+      console.warn("⚠️ Eksik dateStrings:", { draftAppointmentId });
+      return NextResponse.json({ error: "dates boş" }, { status: 400 });
+    }
 
+    // ownedPetIds doğrulamasını kaldır
+    if (ownedPetIds.length > 0) {
+      const ownedPets = await prisma.ownedPet.findMany({
+        where: { id: { in: ownedPetIds }, userId: session.user.id },
+      });
+      if (ownedPets.length !== ownedPetIds.length) {
+        console.warn("⚠️ Geçersiz veya yetkisiz ownedPetIds:", ownedPetIds);
+        return NextResponse.json(
+          { error: "Geçersiz veya yetkisiz ownedPetIds" },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Tarihlerin geçerli olduğunu doğrula
     const dates = dateStrings
       .map((d: string) => {
         const date = new Date(d.trim());
@@ -68,8 +112,14 @@ if (!dateStrings.length) return NextResponse.json({ error: "Eksik dates" }, { st
       })
       .filter((d): d is Date => d !== null);
 
+    if (!dates.length) {
+      console.warn("⚠️ Geçersiz tarihler:", dateStrings);
+      return NextResponse.json({ error: "Geçerli tarih bulunamadı" }, { status: 400 });
+    }
+
     console.log("🗓️ Geçerli tarihler:", dates);
 
+    // Randevu oluştur
     const created = await prisma.appointment.create({
       data: {
         userId: draft.userId,
@@ -79,17 +129,27 @@ if (!dateStrings.length) return NextResponse.json({ error: "Eksik dates" }, { st
         recurringType: draft.recurringType,
         recurringCount: draft.recurringCount,
         status: AppointmentStatus.SCHEDULED,
-        finalPrice: parseFloat(String(paidPrice)),
+        finalPrice: paidPrice,
         paidAt: new Date(),
         isPaid: true,
         confirmedAt: new Date(),
         paymentConversationId: conversationId || null,
-
+        paymentId: paymentId || null,
+        couponId: draft.couponId,
+        userNote: draft.userNote,
+        allergy: draft.allergy,
+        sensitivity: draft.sensitivity,
+        specialRequest: draft.specialRequest,
         services: {
-          create: serviceIds.map((id) => ({ serviceId: id })),
+          create: serviceIds.map((id) => ({
+            service: { connect: { id } }, // Doğru ilişki bağlantısı
+          })),
         },
         pets: {
-          create: ownedPetIds.map((id) => ({ ownedPetId: id })),
+          create: petIds.map((petId, index) => ({
+            pet: { connect: { id: petId } },
+            ownedPet: ownedPetIds[index] ? { connect: { id: ownedPetIds[index] } } : undefined,
+          })),
         },
         dates: {
           create: dates.map((d) => ({ date: d })),
@@ -97,6 +157,7 @@ if (!dateStrings.length) return NextResponse.json({ error: "Eksik dates" }, { st
       },
     });
 
+    // Draft kaydını sil
     await prisma.draftAppointment.delete({ where: { id: draftAppointmentId } });
 
     console.log("✅ Randevu oluşturuldu:", created.id);
@@ -108,7 +169,7 @@ if (!dateStrings.length) return NextResponse.json({ error: "Eksik dates" }, { st
   } catch (error) {
     console.error("💥 payment/complete hatası:", error);
     return NextResponse.json(
-      { error: "Randevu oluşturulamadı" },
+      { error: "Randevu oluşturulamadı", details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }

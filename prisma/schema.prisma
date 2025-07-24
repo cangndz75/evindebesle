@@ -234,6 +234,7 @@ model Appointment {
   finalPrice            Float?
   isPaid                Boolean   @default(false)
   paymentConversationId String?
+  paymentId             String?
 
   userNote             String?
   allergy              String?

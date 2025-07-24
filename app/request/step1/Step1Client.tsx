@@ -52,6 +52,7 @@ export default function Step1Page() {
 
   const [isLoadingPets, setIsLoadingPets] = useState(true);
   const [isLoadingServices, setIsLoadingServices] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const [modalSpecies, setModalSpecies] = useState<string | null>(null);
   const [selectedUserPets, setSelectedUserPets] = useState<
@@ -68,7 +69,11 @@ export default function Step1Page() {
         return r.json();
       })
       .then((u: any) => {
-        if (!u) return;
+        if (!u) {
+          setIsAuthenticated(false);
+          return;
+        }
+        setIsAuthenticated(true);
         if (u.fullAddress) {
           const me: Address = {
             id: u.id,
@@ -81,6 +86,10 @@ export default function Step1Page() {
           setDistrictId(me.districtId);
           setFullAddress(me.fullAddress);
         }
+      })
+      .catch((err) => {
+        console.error("❌ Kullanıcı bilgisi alınamadı:", err);
+        setIsAuthenticated(false);
       });
   }, []);
 
@@ -94,6 +103,7 @@ export default function Step1Page() {
         selectedPetIds.forEach((id) => (init[id] = 0));
         setCounts(init);
       })
+      .catch((err) => console.error("❌ Pet verileri alınamadı:", err))
       .finally(() => setIsLoadingPets(false));
   }, []);
 
@@ -103,7 +113,8 @@ export default function Step1Page() {
         if (!r.ok) return [];
         return r.json();
       })
-      .then((data: UserPet[]) => setUserPets(Array.isArray(data) ? data : []));
+      .then((data: UserPet[]) => setUserPets(Array.isArray(data) ? data : []))
+      .catch((err) => console.error("❌ UserPet verileri alınamadı:", err));
   }, []);
 
   useEffect(() => {
@@ -114,17 +125,19 @@ export default function Step1Page() {
     fetch(`/api/services/filtered?${q.toString()}`)
       .then((r) => r.json())
       .then((sv: Service[]) => setAllServices(sv))
+      .catch((err) => console.error("❌ Hizmet verileri alınamadı:", err))
       .finally(() => setIsLoadingServices(false));
   }, [selectedPetIds]);
 
   const handleChange = (petId: string, delta: number) => {
     setCounts((prev) => {
       const species = getSpeciesById(petId)!;
-      const ownedCount = Array.isArray(userPets)
-        ? userPets.filter((up) => up.species === species).length
-        : 0;
+      const ownedCount = userPets.filter((up) => up.species === species).length;
       const next = Math.max(0, (prev[petId] || 0) + delta);
-      if (next > ownedCount) return prev;
+      if (next > ownedCount && isAuthenticated) {
+        toast.error(`Maksimum ${ownedCount} ${species} seçebilirsiniz.`);
+        return prev;
+      }
       if (selectedUserPets[species]?.length) {
         setSelectedUserPets((sel) => ({ ...sel, [species]: [] }));
       }
@@ -144,6 +157,7 @@ export default function Step1Page() {
     if (!fullAddress.trim()) return toast.error("Detaylı adres girin.");
     if (services.length === 0) return toast.error("En az 1 hizmet seçin.");
 
+    // Hizmet ve hayvan türü uyumluluğu kontrolü
     for (const serviceId of services) {
       const service = allServices.find((s) => s.id === serviceId);
       if (!service) continue;
@@ -167,6 +181,7 @@ export default function Step1Page() {
       }
     }
 
+    // Her seçilen hayvan için hizmet kontrolü
     for (const pet of selectedPets) {
       const count = counts[pet.id] || 0;
       if (count === 0) continue;
@@ -181,6 +196,26 @@ export default function Step1Page() {
       }
     }
 
+    // OwnedPetIds için doğrulama
+    if (isAuthenticated) {
+      for (const pet of selectedPets) {
+        const count = counts[pet.id] || 0;
+        if (count === 0) continue;
+        const species = pet.species;
+        const selectedUserPetIds = selectedUserPets[species] || [];
+        const ownedCount = userPets.filter(
+          (up) => up.species === species
+        ).length;
+
+        if (ownedCount > 0 && selectedUserPetIds.length !== count) {
+          toast.error(
+            `"${species}" için ${count} hayvan seçtiniz, ancak ${selectedUserPetIds.length} evcil hayvan seçildi. Lütfen doğru sayıda evcil hayvan seçin.`
+          );
+          return;
+        }
+      }
+    }
+
     const params = new URLSearchParams();
     Object.entries(counts).forEach(([id, cnt]) => {
       if (cnt > 0) {
@@ -189,17 +224,22 @@ export default function Step1Page() {
       }
     });
 
-    Object.values(selectedUserPets)
-      .flat()
-      .forEach((userPetId) => {
-        params.append("userPetId", userPetId);
-      });
+    // OwnedPetIds ekleme
+    if (isAuthenticated) {
+      Object.values(selectedUserPets)
+        .flat()
+        .forEach((userPetId) => {
+          params.append("userPetId", userPetId);
+        });
+    }
 
     services.forEach((s) => params.append("service", s));
-    params.set("district", districtId);
+    params.set("district", districtId!);
     params.set("fullAddress", fullAddress);
     params.set("userAddressId", selectedAddressId!);
     params.set("unitPrice", totalPrice.toString());
+
+    console.log("📤 Gönderilen parametreler:", params.toString());
 
     router.push(`/request/step2?${params.toString()}`);
   };
@@ -275,7 +315,7 @@ export default function Step1Page() {
                   const ownedCount = userPets.filter(
                     (up) => up.species === pet.species
                   ).length;
-                  const hasUserPet = ownedCount > 0;
+                  const hasUserPet = ownedCount > 0 && isAuthenticated;
                   return (
                     <div
                       key={pet.id}
@@ -308,7 +348,7 @@ export default function Step1Page() {
                           size="sm"
                           variant="outline"
                           onClick={() => handleChange(pet.id, 1)}
-                          disabled={cnt >= ownedCount}
+                          disabled={hasUserPet && cnt >= ownedCount}
                         >
                           <PlusIcon className="w-5 h-5" />
                         </Button>
@@ -397,7 +437,6 @@ export default function Step1Page() {
         </div>
       </div>
 
-      {/* PetSelectModal */}
       {modalSpecies && (
         <PetSelectModal
           species={modalSpecies}

@@ -146,7 +146,7 @@ export default function Step2Client() {
       console.log("Draft response:", draftRes);
       if (!draftRes.ok) throw new Error("Draft oluşturma başarısız");
       const draftJson = await draftRes.json();
-      draftAppointmentId = draftJson.id;
+      draftAppointmentId = draftJson?.data?.id;
       console.log("🎯 Draft yanıtı:", draftJson);
       console.log("🎯 Draft ID:", draftAppointmentId);
     } catch (err) {

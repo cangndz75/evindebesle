@@ -20,6 +20,7 @@ export default function Step3Client() {
   const [expiryYear, setExpiryYear] = useState("");
   const [cvv, setCvv] = useState("");
   const [isFlipped, setIsFlipped] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [draftAppointmentId, setDraftAppointmentId] = useState<string | null>(
     null
   );
@@ -57,14 +58,31 @@ export default function Step3Client() {
   const formattedCardNumber = cardRaw.replace(/(.{4})/g, "$1 ").trim();
 
   if (!draftAppointmentId) {
-    // Render etmeden önce null döndür
     return null;
   }
 
   const handlePayment = async () => {
+    setIsLoading(true);
     try {
       if (!cardRaw || !cardName || !expiryMonth || !expiryYear || !cvv) {
         throw new Error("Lütfen tüm kart bilgilerini doldurun.");
+      }
+
+      if (cardRaw.length !== 16) {
+        throw new Error("Kart numarası 16 haneli olmalıdır.");
+      }
+
+      if (cvv.length !== 3) {
+        throw new Error("CVV 3 haneli olmalıdır.");
+      }
+
+      const currentYear = new Date().getFullYear();
+      if (
+        Number(expiryYear) < currentYear ||
+        Number(expiryMonth) < 1 ||
+        Number(expiryMonth) > 12
+      ) {
+        throw new Error("Geçersiz son kullanma tarihi.");
       }
 
       console.log("📤 Ödeme isteği gönderiliyor:", {
@@ -77,29 +95,28 @@ export default function Step3Client() {
         draftAppointmentId,
       });
 
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/payment/initiate`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            cardNumber: cardRaw.replace(/\D/g, ""),
-            cardHolderName: cardName,
-            expireMonth: expiryMonth,
-            expireYear: expiryYear.slice(-2),
-            cvc: cvv,
-            price: parseFloat(totalPrice.toFixed(2)),
-            draftAppointmentId,
-          }),
-        }
-      );
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://evindebesle-backend.onrender.com";
+      const res = await fetch(`${apiUrl}/api/payment/initiate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cardNumber: cardRaw.replace(/\D/g, ""),
+          cardHolderName: cardName,
+          expireMonth: expiryMonth,
+          expireYear: expiryYear.slice(-2),
+          cvc: cvv,
+          price: parseFloat(totalPrice.toFixed(2)),
+          draftAppointmentId,
+        }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Ödeme başlatılamadı.");
+      }
 
       const paymentData = await res.json();
       console.log("💳 Ödeme cevabı:", paymentData);
-
-      if (!res.ok) {
-        throw new Error(paymentData.error || "Ödeme başlatılamadı.");
-      }
 
       if (paymentData?.paymentPageHtml) {
         const popup = window.open("", "_blank");
@@ -124,6 +141,8 @@ export default function Step3Client() {
           ? err.message
           : "Ödeme işlemi sırasında hata oluştu."
       );
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -204,6 +223,7 @@ export default function Step3Client() {
                 placeholder="0000 0000 0000 0000"
                 inputMode="numeric"
                 autoComplete="cc-number"
+                maxLength={19}
               />
             </div>
             <div>
@@ -216,6 +236,7 @@ export default function Step3Client() {
                   )
                 }
                 placeholder="Ad Soyad"
+                autoComplete="cc-name"
               />
             </div>
             <div className="grid grid-cols-3 gap-4">
@@ -265,14 +286,19 @@ export default function Step3Client() {
                   placeholder="CVV"
                   maxLength={3}
                   inputMode="numeric"
+                  autoComplete="cc-csc"
                   onFocus={() => setIsFlipped(true)}
                   onBlur={() => setIsFlipped(false)}
                 />
               </div>
             </div>
 
-            <Button className="w-full mt-4" onClick={handlePayment}>
-              Ödemeyi Tamamla
+            <Button
+              className="w-full mt-4"
+              onClick={handlePayment}
+              disabled={isLoading}
+            >
+              {isLoading ? "İşlem Yapılıyor..." : "Ödemeyi Tamamla"}
             </Button>
             <Button
               variant="outline"
@@ -290,7 +316,7 @@ export default function Step3Client() {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
-                      draftAppointmentId, // Ödemesiz tamamlamada da draftAppointmentId ekle
+                      draftAppointmentId,
                       petIds: searchParams.getAll("pet"),
                       serviceIds: searchParams.getAll("service"),
                       dates: searchParams.getAll("date"),

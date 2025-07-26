@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
 export async function GET(
-  _req: NextRequest,
-  { params }: { params: { id: string } }
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id: appointmentId } = params;
+  const { id: appointmentId } = await params;
 
   if (!appointmentId) {
     return NextResponse.json({ error: "Randevu ID eksik." }, { status: 400 });

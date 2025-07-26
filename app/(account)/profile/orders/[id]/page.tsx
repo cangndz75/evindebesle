@@ -11,6 +11,7 @@ import CompletedServicesList from "./_components/CompletedServicesList";
 import AppointmentTimeline from "./_components/AppointmentTimeline";
 import AppointmentMediaTab from "./_components/AppointmentMediaTab";
 import AppointmentNotesTab from "./_components/AppointmentNotesTab";
+import AppointmentTimelineWrapper from "./_components/AppointmentTimelineWrapper";
 
 export default function OrderDetailPage() {
   const { id } = useParams();
@@ -75,13 +76,13 @@ export default function OrderDetailPage() {
 
       <Tabs defaultValue="services">
         <TabsList className="h-auto rounded-none border-b bg-transparent p-0">
-          <TabsTrigger
+          {/* <TabsTrigger
             value="services"
             className="data-[state=active]:after:bg-black relative rounded-none px-4 py-3 font-medium text-base text-muted-foreground data-[state=active]:text-black after:absolute after:inset-x-0 after:bottom-0 after:h-0.5"
           >
             <FileText size={18} className="mr-2" />
             Hizmetler
-          </TabsTrigger>
+          </TabsTrigger> */}
           <TabsTrigger
             value="timeline"
             className="data-[state=active]:after:bg-black relative rounded-none px-4 py-3 font-medium text-base text-muted-foreground data-[state=active]:text-black after:absolute after:inset-x-0 after:bottom-0 after:h-0.5"
@@ -105,12 +106,12 @@ export default function OrderDetailPage() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="services" className="pt-6">
+        {/* <TabsContent value="services" className="pt-6">
           <CompletedServicesList services={appointment.services} />
-        </TabsContent>
+        </TabsContent> */}
 
         <TabsContent value="timeline" className="pt-6">
-          <AppointmentTimeline timeline={appointment.timeline || []} />
+          <AppointmentTimelineWrapper appointmentId={id as string} />
         </TabsContent>
 
         <TabsContent value="media" className="pt-6">

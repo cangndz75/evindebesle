@@ -44,6 +44,17 @@ export async function PATCH(
       },
     });
 
+    await prisma.appointmentService.updateMany({
+      where: {
+        appointmentId,
+        serviceId: { in: completedServiceIds },
+      },
+      data: {
+        isCompleted: true,
+        completedAt: new Date(completionDate),
+      },
+    });
+
     await prisma.appointmentCheck.deleteMany({
       where: {
         appointmentId,

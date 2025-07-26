@@ -273,8 +273,13 @@ model AppointmentService {
   appointmentId String
   serviceId     String
 
+  isCompleted   Boolean  @default(false)
+  completedAt   DateTime?
+  
   appointment Appointment @relation(fields: [appointmentId], references: [id])
   service     Service     @relation(fields: [serviceId], references: [id])
+
+  media       AppointmentMedia[]
 }
 
 model AppointmentCheck {
@@ -292,11 +297,14 @@ model AppointmentCheck {
 model AppointmentMedia {
   id            String    @id @default(cuid())
   appointmentId String
+  appointment   Appointment @relation(fields: [appointmentId], references: [id])
+
+  appointmentServiceId String?
+  service              AppointmentService? @relation(fields: [appointmentServiceId], references: [id])
+
   url           String
   type          MediaType
   uploadedAt    DateTime  @default(now())
-
-  appointment Appointment @relation(fields: [appointmentId], references: [id])
 }
 
 model AppointmentReview {

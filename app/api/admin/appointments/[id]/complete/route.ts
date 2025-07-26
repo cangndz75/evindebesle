@@ -6,9 +6,9 @@ import { authConfig } from "@/lib/auth.config";
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id: appointmentId } = params;
+  const { id: appointmentId } = await params;
   const {
     petId,
     completedServiceIds,
@@ -35,7 +35,6 @@ export async function PATCH(
   }
 
   try {
-    // Randevuyu güncelle
     await prisma.appointment.update({
       where: { id: appointmentId },
       data: {
@@ -45,7 +44,6 @@ export async function PATCH(
       },
     });
 
-    // Daha önceki check'leri temizle
     await prisma.appointmentCheck.deleteMany({
       where: {
         appointmentId,
@@ -53,7 +51,6 @@ export async function PATCH(
       },
     });
 
-    // Yeni check kayıtlarını oluştur
     const checkData = completedServiceIds.map((serviceId: string) => ({
       appointmentId,
       serviceId,
@@ -66,7 +63,6 @@ export async function PATCH(
       await prisma.appointmentCheck.createMany({ data: checkData });
     }
 
-    // Medya varsa kaydet
     if (media?.length) {
       const mediaData = media.map((m: any) => ({
         appointmentId,

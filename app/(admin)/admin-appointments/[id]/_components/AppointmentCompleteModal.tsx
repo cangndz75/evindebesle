@@ -70,18 +70,21 @@ export default function AppointmentCompleteModal({
     }
 
     try {
-      const res = await fetch("/api/admin/appointments/complete", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          appointmentId,
-          petId,
-          completedServiceIds: selectedServices,
-          completionDate,
-          adminNote,
-          media: mediaList,
-        }),
-      });
+      const res = await fetch(
+        `/api/admin/appointments/${appointmentId}/complete`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            appointmentId,
+            petId,
+            completedServiceIds: selectedServices,
+            completionDate,
+            adminNote,
+            media: mediaList,
+          }),
+        }
+      );
 
       if (!res.ok) throw new Error("Kaydetme başarısız.");
 
@@ -106,7 +109,8 @@ export default function AppointmentCompleteModal({
         <DialogHeader>
           <DialogTitle>{petName} için Tamamlama Formu</DialogTitle>
           <DialogDescription>
-            Hizmeti tamamladıktan sonra kaydedebilirsiniz. Bazı alanlar zorunludur.
+            Hizmeti tamamladıktan sonra kaydedebilirsiniz. Bazı alanlar
+            zorunludur.
           </DialogDescription>
         </DialogHeader>
 
@@ -125,7 +129,10 @@ export default function AppointmentCompleteModal({
                     ? `${selectedServices.length} hizmet seçildi`
                     : "Henüz hizmet seçilmedi"}
 
-                  <ServiceDialog open={showChecklist} onOpenChange={setShowChecklist}>
+                  <ServiceDialog
+                    open={showChecklist}
+                    onOpenChange={setShowChecklist}
+                  >
                     <ServiceDialogTrigger asChild>
                       <Button variant="outline" size="sm">
                         Seç
@@ -143,7 +150,10 @@ export default function AppointmentCompleteModal({
                         />
                       </ScrollArea>
                       <ServiceDialogFooter className="pt-4">
-                        <Button onClick={() => setShowChecklist(false)} className="w-full">
+                        <Button
+                          onClick={() => setShowChecklist(false)}
+                          className="w-full"
+                        >
                           Kaydet
                         </Button>
                       </ServiceDialogFooter>

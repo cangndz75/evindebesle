@@ -1,20 +1,44 @@
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
-const paymentRoutes = require("./routes/payment");
+const paymentRoutes = require("./routes/payment"); // initiate + callback burada
 
 dotenv.config();
 
 const app = express();
 
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://evindebesle.com",
+  "https://sandbox-api.iyzipay.com",     // Sadece fetch için gerekebilir
+  "https://sandbox-secure.iyzipay.com", // 3D iframe sunucusu
+];
+
+app.use((req, res, next) => {
+  console.log(`📥 ${req.method} - ${req.originalUrl}`);
+  next();
+});
+
 app.use(cors({
-  origin: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
-  methods: ["GET", "POST"],
+  origin: function (origin, callback) {
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    console.warn("⛔️ CORS reddedildi:", origin);
+    return callback(null, true); 
+  },
   credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
 
 app.use("/api/payment", paymentRoutes);
 

@@ -3,10 +3,17 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Image from "next/image";
-import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import PetEditModal from "../../PetEditModal";
+import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function PetDetailPage() {
   const router = useRouter();
@@ -15,6 +22,7 @@ export default function PetDetailPage() {
   const [loading, setLoading] = useState(true);
   const [openEdit, setOpenEdit] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const fetchPet = async () => {
     try {
@@ -27,16 +35,25 @@ export default function PetDetailPage() {
     }
   };
 
-  const handleDelete = async () => {
-    if (!confirm("Evcil hayvanı silmek istediğinize emin misiniz?")) return;
+  const handleDeleteClick = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
     setDeleting(true);
-    const res = await fetch(`/api/user-pets/${id}`, { method: "DELETE" });
+    const res = await fetch(`/api/user-pets/${id}`, {
+      method: "DELETE",
+    });
+
     if (res.ok) {
-      router.push("/account/profile");
+      toast.success("Evcil hayvan silindi.");
+      router.push("/profile/pets");
     } else {
-      alert("Silme işlemi başarısız oldu");
+      toast.error("Silme işlemi başarısız oldu.");
       setDeleting(false);
     }
+
+    setShowDeleteConfirm(false);
   };
 
   useEffect(() => {
@@ -70,41 +87,20 @@ export default function PetDetailPage() {
       </div>
 
       <div className="relative border p-4 rounded-lg flex items-start gap-6">
-        {/* SİLME BUTONU */}
         <Button
           size="sm"
           variant="destructive"
           className="absolute top-4 right-4"
-          onClick={handleDelete}
+          onClick={handleDeleteClick}
         >
-          {deleting ? (
-            <svg
-              className="animate-spin h-4 w-4 mr-2"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-              />
-            </svg>
-          ) : (
-            <>Evcil Hayvanı Sil</>
-          )}
+          Evcil Hayvanı Sil
         </Button>
 
         <Image
-          src={pet.image || "/https://res.cloudinary.com/dlahfchej/image/upload/v1752619388/8_kkoxpr.png"}
+          src={
+            pet.image ||
+            "https://res.cloudinary.com/dlahfchej/image/upload/v1752619388/8_kkoxpr.png"
+          }
           width={120}
           height={120}
           alt="Pet"
@@ -156,6 +152,29 @@ export default function PetDetailPage() {
           fetchPet();
         }}
       />
+
+      <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <DialogContent className="max-w-sm text-center">
+          <DialogHeader>
+            <DialogTitle>
+              Evcil hayvanı silmek istediğinize emin misiniz?
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="flex justify-center gap-4 mt-4">
+            <Button variant="ghost" onClick={() => setShowDeleteConfirm(false)}>
+              Vazgeç
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+              disabled={deleting}
+            >
+              {deleting ? "Siliniyor..." : "Sil"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

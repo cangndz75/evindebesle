@@ -10,6 +10,8 @@ import Stepper from "@/app/(public)/_components/Stepper";
 import FilteredServiceSelect from "@/app/(public)/_components/FilteredServiceSelect";
 import PetSelectModal from "../_components/PetSelectModal";
 import { toast } from "sonner";
+import { Textarea } from "@/components/ui/textarea";
+import PetNoteTabs from "./_components/PetNoteTabs";
 
 type Pet = { id: string; name: string; image: string; species: string };
 type UserPet = {
@@ -57,6 +59,13 @@ export default function Step1Page() {
   const [modalSpecies, setModalSpecies] = useState<string | null>(null);
   const [selectedUserPets, setSelectedUserPets] = useState<
     Record<string, string[]>
+  >({});
+
+  const [freeFormDetails, setFreeFormDetails] = useState<
+    Record<
+      string,
+      { allergy?: string; sensitivity?: string; specialNote?: string }[]
+    >
   >({});
 
   const getSpeciesById = (id: string) =>
@@ -134,17 +143,19 @@ export default function Step1Page() {
       const species = getSpeciesById(petId)!;
       const ownedCount = userPets.filter((up) => up.species === species).length;
       const next = Math.max(0, (prev[petId] || 0) + delta);
-      if (next > ownedCount && isAuthenticated) {
+
+      if (isAuthenticated && ownedCount > 0 && next > ownedCount) {
         toast.error(`Maksimum ${ownedCount} ${species} seçebilirsiniz.`);
         return prev;
       }
+
       if (selectedUserPets[species]?.length) {
         setSelectedUserPets((sel) => ({ ...sel, [species]: [] }));
       }
+
       return { ...prev, [petId]: next };
     });
   };
-
   const handleModalSave = (species: string, ids: string[]) => {
     setSelectedUserPets((prev) => ({ ...prev, [species]: ids }));
     setModalSpecies(null);
@@ -222,6 +233,16 @@ export default function Step1Page() {
         params.append("pet", id);
         params.append(id, cnt.toString());
       }
+    });
+
+    Object.entries(freeFormDetails).forEach(([petId, infos]) => {
+      infos.forEach((info, idx) => {
+        if (info.allergy) params.append(`${petId}_${idx}_allergy`, info.allergy);
+        if (info.sensitivity)
+          params.append(`${petId}_${idx}_sensitivity`, info.sensitivity);
+        if (info.specialNote)
+          params.append(`${petId}_${idx}_specialNote`, info.specialNote);
+      });
     });
 
     // OwnedPetIds ekleme
@@ -357,6 +378,31 @@ export default function Step1Page() {
                   );
                 })}
           </div>
+
+          {Object.entries(counts).map(([petId, count]) =>
+            count > 0 && userPets.length === 0 ? (
+              <PetNoteTabs
+                key={petId}
+                petId={petId}
+                speciesName={
+                  selectedPets.find((p) => p.id === petId)?.name || "Pet"
+                }
+                count={count}
+                details={Array.from({ length: count }, (_, i) => (freeFormDetails[petId]?.[i] || {}))}
+                onUpdate={(
+                  index: number,
+                  field: "allergy" | "sensitivity" | "specialNote",
+                  value: string
+                ) => {
+                  setFreeFormDetails((prev) => {
+                    const arr = prev[petId] ? [...prev[petId]] : [];
+                    arr[index] = { ...arr[index], [field]: value };
+                    return { ...prev, [petId]: arr };
+                  });
+                }}
+              />
+            ) : null
+          )}
 
           <div className="mt-6 rounded-2xl border bg-white p-4 shadow">
             <Label className="text-sm font-semibold mb-2">Adresim</Label>

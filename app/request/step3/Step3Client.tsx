@@ -24,6 +24,7 @@ export default function Step3Client() {
   const [draftAppointmentId, setDraftAppointmentId] = useState<string | null>(
     null
   );
+  const [paymentId, setPaymentId] = useState<string | null>(null); // Yeni state
 
   const totalPriceParam = searchParams.get("totalPrice");
   const totalPrice = Number(totalPriceParam);
@@ -95,7 +96,9 @@ export default function Step3Client() {
         draftAppointmentId,
       });
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://evindebesle-backend.onrender.com";
+      const apiUrl =
+        process.env.NEXT_PUBLIC_API_URL ||
+        "https://evindebesle-backend.onrender.com";
       const res = await fetch(`${apiUrl}/api/payment/initiate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -119,10 +122,16 @@ export default function Step3Client() {
       console.log("💳 Ödeme cevabı:", paymentData);
 
       if (paymentData?.paymentPageHtml) {
+        setPaymentId(paymentData.paymentId); // paymentId'yi kaydet
         const popup = window.open("", "_blank");
         if (popup) {
           popup.document.open();
-          const decodedHtml = atob(paymentData.paymentPageHtml);
+          let decodedHtml = atob(paymentData.paymentPageHtml);
+          // paymentId'yi forma ekle
+          decodedHtml = decodedHtml.replace(
+            "</form>",
+            `<input type="hidden" name="paymentId" value="${paymentData.paymentId}"></form>`
+          );
           console.log("📄 Popup HTML:", decodedHtml);
           popup.document.write(decodedHtml);
           popup.document.close();

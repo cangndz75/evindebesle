@@ -20,6 +20,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import AddressForm from "@/app/(account)/profile/addresses/AddressForm";
+import SecurePaymentInfo from "../_components/SecurePaymentInfo";
 
 type Pet = { id: string; name: string; image: string; species: string };
 type UserPet = {
@@ -343,7 +344,7 @@ export default function Step1Page() {
     setFullAddress(searchFullAddress);
   }
   return (
-    <div className="h-screen grid md:grid-cols-2 overflow-hidden">
+    <div className="grid md:grid-cols-2 h-screen">
       <div className="flex flex-col justify-between p-6 overflow-y-auto">
         <div>
           <div className="sticky top-0 bg-white pb-4 z-10">
@@ -513,14 +514,16 @@ export default function Step1Page() {
             )}
           </div>
         </div>
-
-        <div className="fixed bottom-0 left-0 w-full bg-white border-t px-4 py-3 flex justify-between items-center z-50">
-          <span className="font-semibold text-base">Toplam: {totalPrice}₺</span>
-          <Button onClick={handleSubmit}>Devam Et</Button>
-        </div>
       </div>
 
       <div className="relative hidden md:flex items-center justify-center bg-gray-50">
+        <div className="absolute bottom-6 right-6 bg-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-4 z-50">
+          <span className="font-semibold text-base whitespace-nowrap">
+            Toplam: {totalPrice}₺
+          </span>
+          <Button onClick={handleSubmit}>Devam Et</Button>
+        </div>
+
         <Image
           src="https://images.unsplash.com/photo-1530281700549-e82e7bf110d6?q=80&w=688"
           alt="Evde hayvan bakımı"
@@ -534,7 +537,6 @@ export default function Step1Page() {
           <p className="mt-2 font-semibold">Can · Türkiye</p>
         </div>
       </div>
-
       {modalSpecies && (
         <PetSelectModal
           species={modalSpecies}

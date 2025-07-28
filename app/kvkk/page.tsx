@@ -74,10 +74,10 @@ export default function KVKKPage() {
             yapılan üçüncü kişileri öğrenme ve zararların giderilmesini talep
             etme haklarına sahipsiniz. Taleplerinizi{" "}
             <a
-              href="mailto:evindebesle34@gmail.com"
+              href="mailto:info@evindebesle.com"
               className="underline text-blue-600"
             >
-              evindebesle34@gmail.com
+              info@evindebesle.com
             </a>{" "}
             adresine iletebilirsiniz.
           </p>

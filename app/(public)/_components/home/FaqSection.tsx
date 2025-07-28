@@ -3,9 +3,6 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import Image from "next/image";
-import mainImage from "@/public/w1.png";
-import extra1 from "@/public/w1.png";
-import extra2 from "@/public/w1.png";
 
 const faqs = [
   {
@@ -45,7 +42,7 @@ export default function FaqSection() {
   return (
     <section className="bg-gray-50 py-20 px-4">
       <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-start">
-        {/* FAQ */}
+        {/* SOL: FAQ */}
         <div>
           <h2 className="text-4xl font-bold mb-4">Sıkça Sorulan Sorular</h2>
           <p className="text-gray-600 mb-8">
@@ -90,32 +87,12 @@ export default function FaqSection() {
           </div>
         </div>
 
-        {/* Görseller */}
         <div className="space-y-4">
-          <div className="rounded-xl overflow-hidden shadow-lg">
-            {/* <Image
-              src="https://res.cloudinary.com/dlahfchej/image/upload/v1752619391/9_hsaz8i.png"
-              alt="Evcil Hayvan Görseli"
-              className="w-full h-auto object-cover rounded-xl"
-              width={250}
-              height={300}
-            /> */}
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <Image
-              src="https://res.cloudinary.com/dlahfchej/image/upload/v1752619390/11_uwaotv.png"
-              alt="Ek Görsel 1"
-              className="w-full aspect-square object-cover rounded-xl shadow-md"
-              width={250}
-              height={250}
-            />
-            <Image
-              src="https://res.cloudinary.com/dlahfchej/image/upload/v1752619388/14_mrxvcn.png"
-              alt="Ek Görsel 2"
-              className="w-full aspect-square object-cover rounded-xl shadow-md"
-              width={250}
-              height={250}
+          <div className="rounded-xl overflow-hidden shadow-lg aspect-[9/16] w-full max-w-sm mx-auto">
+            <video
+              src="https://res.cloudinary.com/dlahfchej/video/upload/v1753710168/VIDEO-2025-07-07-19-18-39_wse3zv.mp4"
+              controls
+              className="w-full h-full object-cover rounded-xl"
             />
           </div>
         </div>

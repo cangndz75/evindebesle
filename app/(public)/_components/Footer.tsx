@@ -61,7 +61,7 @@ export default function Footer() {
               <Image
                 src="https://res.cloudinary.com/dlahfchej/image/upload/v1753708468/logo_band_colored_2x_afo1no.png"
                 alt="iyzico ile öde"
-                width={300}
+                width={450}
                 height={32}
               />
             </div>

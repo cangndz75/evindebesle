@@ -10,6 +10,15 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
   }
 
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: {
+      name: true,
+      email: true,
+      phone: true,
+    },
+  });
+
   const primaryAddress = await prisma.userAddress.findFirst({
     where: {
       userId: session.user.id,
@@ -22,9 +31,8 @@ export async function GET() {
     },
   });
 
-  if (!primaryAddress) {
-    return NextResponse.json({ error: "Adres bulunamadı" }, { status: 404 });
-  }
-
-  return NextResponse.json(primaryAddress);
+  return NextResponse.json({
+    ...user,
+    primaryAddress: primaryAddress || null,
+  });
 }

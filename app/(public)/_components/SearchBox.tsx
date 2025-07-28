@@ -93,11 +93,14 @@ export default function SearchBox() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto -mt-16 relative z-10 shadow-lg rounded-xl bg-white p-4 flex flex-col md:flex-row md:items-center md:gap-4 gap-3">
+    <div className="max-w-6xl mx-auto -mt-16 relative z-10 shadow-lg rounded-xl bg-white p-4 flex flex-col md:flex-row md:items-center gap-3 flex-wrap md:flex-nowrap">
       {/* Pet Seçimi */}
-      <div className="flex-1 min-w-[180px] overflow-x-auto flex gap-2 px-1 scrollbar-hide">
+      <div className="flex gap-2 overflow-x-auto scrollbar-hide">
         {loadingPets ? (
-          <Skeleton className="w-full h-10 rounded-md" />
+          <>
+            <Skeleton className="w-24 h-10 rounded-full" />
+            <Skeleton className="w-24 h-10 rounded-full" />
+          </>
         ) : pets.length > 0 ? (
           pets.map((pet) => (
             <button
@@ -113,13 +116,12 @@ export default function SearchBox() {
             </button>
           ))
         ) : (
-          <div className="text-sm text-gray-500">
-            Evcil hayvan türü bulunamadı
-          </div>
+          <Skeleton className="w-32 h-10 rounded-full mb-2" />
         )}
       </div>
 
-      <div className="flex flex-col gap-2 min-w-[200px] flex-1">
+      {/* İlçe */}
+      <div className="min-w-[160px] w-full md:w-[160px]">
         <select
           value={districtId}
           onChange={(e) => setDistrictId(e.target.value)}
@@ -132,6 +134,10 @@ export default function SearchBox() {
             </option>
           ))}
         </select>
+      </div>
+
+      {/* Adres */}
+      <div className="flex-1 min-w-[200px]">
         <input
           type="text"
           value={fullAddress}
@@ -141,7 +147,8 @@ export default function SearchBox() {
         />
       </div>
 
-      <div className="flex-1 min-w-[180px]">
+      {/* Tarih */}
+      <div className="min-w-[220px] w-full md:w-[220px]">
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <button
@@ -171,7 +178,8 @@ export default function SearchBox() {
         </Popover>
       </div>
 
-      <div className="flex-shrink-0 mt-1 md:mt-0">
+      {/* Ara Butonu */}
+      <div className="flex-shrink-0">
         <Button
           onClick={handleSearch}
           disabled={

@@ -12,6 +12,14 @@ import PetSelectModal from "../_components/PetSelectModal";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import PetNoteTabs from "./_components/PetNoteTabs";
+import { useSession } from "next-auth/react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import AddressForm from "@/app/(account)/profile/addresses/AddressForm";
 
 type Pet = { id: string; name: string; image: string; species: string };
 type UserPet = {
@@ -29,6 +37,12 @@ type Address = {
   isPrimary: boolean;
 };
 
+type PrimaryAddress = {
+  id: string;
+  districtId: string;
+  fullAddress: string;
+};
+
 export default function Step1Page() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -37,6 +51,11 @@ export default function Step1Page() {
     [searchParams]
   );
   const [me, setMe] = useState<Address | null>(null);
+  const [primaryAddress, setPrimaryAddress] = useState<{
+    id: string;
+    fullAddress: string;
+    districtId: string;
+  } | null>(null);
 
   const [allPets, setAllPets] = useState<Pet[]>([]);
   const [userPets, setUserPets] = useState<UserPet[]>([]);
@@ -75,6 +94,20 @@ export default function Step1Page() {
 
   const searchDistrict = searchParams.get("district");
   const searchFullAddress = searchParams.get("fullAddress");
+  const { data: session } = useSession();
+  const [showAddressModal, setShowAddressModal] = useState(false);
+
+  useEffect(() => {
+    const fetchPrimaryAddress = async () => {
+      const res = await fetch("/api/me");
+      const data = await res.json();
+      if (res.ok) {
+        setPrimaryAddress(data.primaryAddress ?? null);
+      }
+    };
+
+    fetchPrimaryAddress();
+  }, []);
 
   useEffect(() => {
     if (!me && searchDistrict && searchFullAddress) {
@@ -415,32 +448,42 @@ export default function Step1Page() {
             ) : null
           )}
 
-          <div className="mt-6 rounded-2xl border bg-white p-4 shadow">
+          <div className="mt-6 rounded-2xl border bg-white p-4 shadow relative">
             <Label className="text-sm font-semibold mb-2">Adresim</Label>
-            {addresses.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
+
+            <Button
+              size="sm"
+              className="absolute top-4 right-4"
+              onClick={() => {
+                if (!session?.user) {
+                  router.push("/login");
+                } else {
+                  setShowAddressModal(true);
+                }
+              }}
+            >
+              + Adres Ekle
+            </Button>
+
+            {!primaryAddress ? (
+              <p className="text-sm text-muted-foreground mt-4">
                 Kayıtlı adresiniz yok.
               </p>
             ) : (
-              addresses.map((addr) => (
-                <label
-                  key={addr.id}
-                  className="flex items-center gap-2 text-sm mb-2"
-                >
-                  <input
-                    type="radio"
-                    name="addr"
-                    checked={selectedAddressId === addr.id}
-                    onChange={() => {
-                      setSelectedAddressId(addr.id);
-                      setDistrictId(addr.districtId);
-                      setFullAddress(addr.fullAddress);
-                    }}
-                    className="mr-2"
-                  />
-                  {addr.fullAddress}
-                </label>
-              ))
+              <label className="flex items-center gap-2 text-sm mt-4">
+                <input
+                  type="radio"
+                  name="addr"
+                  checked={selectedAddressId === primaryAddress.id}
+                  onChange={() => {
+                    setSelectedAddressId(primaryAddress.id);
+                    setDistrictId(primaryAddress.districtId);
+                    setFullAddress(primaryAddress.fullAddress);
+                  }}
+                  className="mr-2"
+                />
+                {primaryAddress.fullAddress}
+              </label>
             )}
           </div>
 
@@ -471,11 +514,9 @@ export default function Step1Page() {
           </div>
         </div>
 
-        <div className="mt-4 text-right">
-          <p className="text-lg font-semibold mb-2">Toplam: {totalPrice}₺</p>
-          <Button size="lg" className="w-full md:w-auto" onClick={handleSubmit}>
-            Devam Et
-          </Button>
+        <div className="fixed bottom-0 left-0 w-full bg-white border-t px-4 py-3 flex justify-between items-center z-50">
+          <span className="font-semibold text-base">Toplam: {totalPrice}₺</span>
+          <Button onClick={handleSubmit}>Devam Et</Button>
         </div>
       </div>
 
@@ -508,6 +549,35 @@ export default function Step1Page() {
           onClose={() => setModalSpecies(null)}
         />
       )}
+      <Dialog open={showAddressModal} onOpenChange={setShowAddressModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Yeni Adres Ekle</DialogTitle>
+          </DialogHeader>
+          <AddressForm
+            loading={false}
+            onSubmit={async (values) => {
+              await fetch("/api/address", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(values),
+              });
+
+              const res = await fetch("/api/address");
+              const data: Address[] = await res.json();
+              setAddresses(data);
+
+              const last = data[0];
+              setSelectedAddressId(last.id);
+              setDistrictId(last.districtId);
+              setFullAddress(last.fullAddress);
+
+              toast.success("Adres başarıyla eklendi.");
+              setShowAddressModal(false);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

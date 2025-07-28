@@ -36,6 +36,7 @@ export default function Step1Page() {
     () => searchParams.getAll("pet") as string[],
     [searchParams]
   );
+  const [me, setMe] = useState<Address | null>(null);
 
   const [allPets, setAllPets] = useState<Pet[]>([]);
   const [userPets, setUserPets] = useState<UserPet[]>([]);
@@ -44,6 +45,7 @@ export default function Step1Page() {
   const [services, setServices] = useState<string[]>(
     searchParams.getAll("service") as string[]
   );
+  const [user, setUser] = useState<any>(null);
 
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
@@ -71,36 +73,23 @@ export default function Step1Page() {
   const getSpeciesById = (id: string) =>
     allPets.find((p) => p.id === id)?.species;
 
+  const searchDistrict = searchParams.get("district");
+  const searchFullAddress = searchParams.get("fullAddress");
+
   useEffect(() => {
-    fetch("/api/me")
-      .then((r) => {
-        if (!r.ok) return null;
-        return r.json();
-      })
-      .then((u: any) => {
-        if (!u) {
-          setIsAuthenticated(false);
-          return;
-        }
-        setIsAuthenticated(true);
-        if (u.fullAddress) {
-          const me: Address = {
-            id: u.id,
-            districtId: u.districtId,
-            fullAddress: u.fullAddress,
-            isPrimary: true,
-          };
-          setAddresses([me]);
-          setSelectedAddressId(me.id);
-          setDistrictId(me.districtId);
-          setFullAddress(me.fullAddress);
-        }
-      })
-      .catch((err) => {
-        console.error("❌ Kullanıcı bilgisi alınamadı:", err);
-        setIsAuthenticated(false);
-      });
-  }, []);
+    if (!me && searchDistrict && searchFullAddress) {
+      const searchAddr: Address = {
+        id: "search",
+        districtId: searchDistrict,
+        fullAddress: searchFullAddress,
+        isPrimary: false,
+      };
+      setAddresses([searchAddr]);
+      setSelectedAddressId(searchAddr.id);
+      setDistrictId(searchDistrict);
+      setFullAddress(searchFullAddress);
+    }
+  }, [me, searchDistrict, searchFullAddress]);
 
   useEffect(() => {
     setIsLoadingPets(true);
@@ -138,6 +127,10 @@ export default function Step1Page() {
       .finally(() => setIsLoadingServices(false));
   }, [selectedPetIds]);
 
+  const isGuestUser = !isAuthenticated;
+  const isRegisteredNoPets = isAuthenticated && userPets.length === 0;
+  const isLoggedInWithPets = isAuthenticated && userPets.length > 0;
+
   const handleChange = (petId: string, delta: number) => {
     setCounts((prev) => {
       const species = getSpeciesById(petId)!;
@@ -168,7 +161,6 @@ export default function Step1Page() {
     if (!fullAddress.trim()) return toast.error("Detaylı adres girin.");
     if (services.length === 0) return toast.error("En az 1 hizmet seçin.");
 
-    // Hizmet ve hayvan türü uyumluluğu kontrolü
     for (const serviceId of services) {
       const service = allServices.find((s) => s.id === serviceId);
       if (!service) continue;
@@ -192,7 +184,6 @@ export default function Step1Page() {
       }
     }
 
-    // Her seçilen hayvan için hizmet kontrolü
     for (const pet of selectedPets) {
       const count = counts[pet.id] || 0;
       if (count === 0) continue;
@@ -207,7 +198,6 @@ export default function Step1Page() {
       }
     }
 
-    // OwnedPetIds için doğrulama
     if (isAuthenticated) {
       for (const pet of selectedPets) {
         const count = counts[pet.id] || 0;
@@ -228,6 +218,7 @@ export default function Step1Page() {
     }
 
     const params = new URLSearchParams();
+
     Object.entries(counts).forEach(([id, cnt]) => {
       if (cnt > 0) {
         params.append("pet", id);
@@ -235,17 +226,19 @@ export default function Step1Page() {
       }
     });
 
-    Object.entries(freeFormDetails).forEach(([petId, infos]) => {
-      infos.forEach((info, idx) => {
-        if (info.allergy) params.append(`${petId}_${idx}_allergy`, info.allergy);
-        if (info.sensitivity)
-          params.append(`${petId}_${idx}_sensitivity`, info.sensitivity);
-        if (info.specialNote)
-          params.append(`${petId}_${idx}_specialNote`, info.specialNote);
+    if (isGuestUser || isRegisteredNoPets) {
+      Object.entries(freeFormDetails).forEach(([petId, infos]) => {
+        infos.forEach((info, idx) => {
+          if (info.allergy)
+            params.append(`${petId}_${idx}_allergy`, info.allergy);
+          if (info.sensitivity)
+            params.append(`${petId}_${idx}_sensitivity`, info.sensitivity);
+          if (info.specialNote)
+            params.append(`${petId}_${idx}_specialNote`, info.specialNote);
+        });
       });
-    });
+    }
 
-    // OwnedPetIds ekleme
     if (isAuthenticated) {
       Object.values(selectedUserPets)
         .flat()
@@ -256,17 +249,20 @@ export default function Step1Page() {
 
     services.forEach((s) => params.append("service", s));
     params.set("district", districtId!);
+    if (startDate) params.set("startDate", startDate);
+    if (endDate) params.set("endDate", endDate);
     params.set("fullAddress", fullAddress);
     params.set("userAddressId", selectedAddressId!);
     params.set("unitPrice", totalPrice.toString());
 
     console.log("📤 Gönderilen parametreler:", params.toString());
-
     router.push(`/request/step2?${params.toString()}`);
   };
 
   const selectedPets = allPets.filter((p) => selectedPetIds.includes(p.id));
   const selectedSpecies = selectedPets.map((p) => p.species);
+  const startDate = searchParams.get("startDate");
+  const endDate = searchParams.get("endDate");
 
   const totalPrice = useMemo(() => {
     let total = 0;
@@ -301,6 +297,18 @@ export default function Step1Page() {
     return result;
   }, [counts, selectedPets]);
 
+  if (!user?.fullAddress && searchDistrict && searchFullAddress) {
+    const searchAddr: Address = {
+      id: "search",
+      districtId: searchDistrict,
+      fullAddress: searchFullAddress,
+      isPrimary: false,
+    };
+    setAddresses([searchAddr]);
+    setSelectedAddressId(searchAddr.id);
+    setDistrictId(searchDistrict);
+    setFullAddress(searchFullAddress);
+  }
   return (
     <div className="h-screen grid md:grid-cols-2 overflow-hidden">
       <div className="flex flex-col justify-between p-6 overflow-y-auto">
@@ -380,7 +388,7 @@ export default function Step1Page() {
           </div>
 
           {Object.entries(counts).map(([petId, count]) =>
-            count > 0 && userPets.length === 0 ? (
+            count > 0 && (isGuestUser || isRegisteredNoPets) ? (
               <PetNoteTabs
                 key={petId}
                 petId={petId}
@@ -388,7 +396,10 @@ export default function Step1Page() {
                   selectedPets.find((p) => p.id === petId)?.name || "Pet"
                 }
                 count={count}
-                details={Array.from({ length: count }, (_, i) => (freeFormDetails[petId]?.[i] || {}))}
+                details={Array.from(
+                  { length: count },
+                  (_, i) => freeFormDetails[petId]?.[i] || {}
+                )}
                 onUpdate={(
                   index: number,
                   field: "allergy" | "sensitivity" | "specialNote",

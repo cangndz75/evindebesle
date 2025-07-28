@@ -309,59 +309,6 @@ export default function Step3Client() {
             >
               {isLoading ? "İşlem Yapılıyor..." : "Ödemeyi Tamamla"}
             </Button>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={async () => {
-                try {
-                  console.log("📤 Ödemesiz tamamla isteği:", {
-                    petIds: searchParams.getAll("pet"),
-                    serviceIds: searchParams.getAll("service"),
-                    dates: searchParams.getAll("date"),
-                    draftAppointmentId,
-                  });
-
-                  const res = await fetch("/api/appointments", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      draftAppointmentId,
-                      petIds: searchParams.getAll("pet"),
-                      serviceIds: searchParams.getAll("service"),
-                      dates: searchParams.getAll("date"),
-                      isRecurring: searchParams.get("recurring") === "1",
-                      recurringType: searchParams.get("recurringType"),
-                      recurringCount: parseInt(
-                        searchParams.get("recurringCount") || "1"
-                      ),
-                      timeSlot: searchParams.get("timeSlot") || null,
-                      userNote: "",
-                      userAddressId: searchParams.get("userAddressId"),
-                    }),
-                  });
-
-                  if (!res.ok) {
-                    const errorData = await res.json();
-                    throw new Error(
-                      errorData.error || "Sipariş oluşturulamadı."
-                    );
-                  }
-
-                  const data = await res.json();
-                  console.log("✅ Sipariş oluşturuldu:", data);
-                  router.push("/success");
-                } catch (err) {
-                  console.error("❌ Sipariş oluşturma hatası:", err);
-                  toast.error(
-                    err instanceof Error
-                      ? err.message
-                      : "Sipariş oluşturulamadı."
-                  );
-                }
-              }}
-            >
-              Ödemesiz Tamamla (Test)
-            </Button>
           </div>
         </div>
       </div>

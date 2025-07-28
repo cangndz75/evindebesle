@@ -52,7 +52,7 @@ export default function Footer() {
               Gizlilik Sözleşmesi
             </Link>
             <Link href="/distance-selling" className="block hover:underline">
-              Kullanım Şartları
+              Mesafeli Satış Sözleşmesi
             </Link>
           </div>
 

@@ -51,6 +51,9 @@ export default function Footer() {
             <Link href="/privacy" className="block hover:underline">
               Gizlilik Sözleşmesi
             </Link>
+            <Link href="/distance-selling" className="block hover:underline">
+              Kullanım Şartları
+            </Link>
           </div>
 
           <div className="mt-6 flex flex-col items-end">

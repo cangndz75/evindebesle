@@ -7,7 +7,7 @@ const categories = [
   // "Ev Temizliği",
   "Evcil Hayvan Bakımı",
   "Evcil Hayvan Besleme",
-  "Mama ve Aksesuar Satışı",
+  "Mama ve Aksesuar",
   // "Özel Ders",
 ];
 

@@ -23,7 +23,7 @@ const features = [
       "Bakıcın talebini onayladıktan sonra, hizmet tarihini ve detaylarını kontrol et. İstersen bakıcı ile iletişime geç.",
     icon: Users,
     image:
-      "https://res.cloudinary.com/dlahfchej/image/upload/v1752619158/1_x7as6v.png",
+      "https://res.cloudinary.com/dlahfchej/image/upload/v1752621180/17_a2tgt3.png",
   },
   {
     step: "Adım 3",

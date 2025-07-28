@@ -15,7 +15,7 @@ const items = [
     img: "/feeding.jpg",
   },
   {
-    label: "Mama ve Aksesuar Satışı",
+    label: "Mama ve Aksesuar",
     color: "text-gray-600",
     img: "/activities.jpg",
   },

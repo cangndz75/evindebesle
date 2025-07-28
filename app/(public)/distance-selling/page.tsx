@@ -106,8 +106,7 @@ export default function DistanceSellingPage() {
               <br />
               <strong>Hizmet Ücreti:</strong> [Hizmet Ücreti] TL (KDV Dahil)
               <br />
-              <strong>Ödeme Şekli:</strong> Kredi Kartı / Banka Kartı / iyzico
-              Link ile Ödeme
+              <strong>Ödeme Şekli:</strong> Kredi Kartı / Banka Kartı (iyzico)
               <br />
               <strong>Hizmetin Sağlanacağı Adres:</strong> [Alıcının Adresi]
               <br />

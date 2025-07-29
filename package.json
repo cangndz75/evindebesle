@@ -40,6 +40,7 @@
     "dotenv": "^17.2.0",
     "express": "^5.1.0",
     "framer-motion": "^12.23.3",
+    "html2pdf.js": "^0.10.3",
     "input-otp": "^1.4.2",
     "iyzipay": "^2.0.64",
     "jsonwebtoken": "^9.0.2",

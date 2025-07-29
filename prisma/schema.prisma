@@ -257,6 +257,7 @@ model Appointment {
   invoice    Invoice?
   pets       AppointmentPet[]
   dates      AppointmentDate[]
+  petReport  PetReport[]
 }
 
 model AppointmentDate {
@@ -332,13 +333,21 @@ model AppointmentPet {
 }
 
 model PetReport {
-  id         String   @id @default(cuid())
-  userPetId  String
-  title      String
-  content    String
-  createdAt  DateTime @default(now())
-  ownedPet   OwnedPet @relation(fields: [ownedPetId], references: [id], onDelete: Cascade)
-  ownedPetId String
+  id            String   @id @default(cuid())
+  ownedPetId    String
+  appointmentId String?
+  mood          String[] @default([]) @db.Text         
+  behavior      String[] @default([]) @db.Text         
+  mealTime      String[] @default([]) @db.Text         
+  waterIntake   String[] @default([]) @db.Text         
+  walkTime      String[] @default([]) @db.Text         
+  sleepStatus   String[] @default([]) @db.Text         
+  toiletInfo    String?                                
+  comments      String?                                
+  createdAt     DateTime @default(now())
+
+  ownedPet      OwnedPet @relation(fields: [ownedPetId], references: [id], onDelete: Cascade)
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
 }
 
 model Feedback {

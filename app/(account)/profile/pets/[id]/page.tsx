@@ -23,6 +23,7 @@ export default function PetDetailPage() {
   const [openEdit, setOpenEdit] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [services, setServices] = useState<any[]>([]);
 
   const fetchPet = async () => {
     try {
@@ -35,9 +36,20 @@ export default function PetDetailPage() {
     }
   };
 
-  const handleDeleteClick = () => {
-    setShowDeleteConfirm(true);
+  const fetchPetServices = async () => {
+    try {
+      const res = await fetch(`/api/pet-report/${id}`);
+      const reports = await res.json();
+      const allServices = reports.flatMap(
+        (r: any) => r.appointment?.services || []
+      );
+      setServices(allServices);
+    } catch (err) {
+      console.error("Hizmet verisi alınamadı:", err);
+    }
   };
+
+  const handleDeleteClick = () => setShowDeleteConfirm(true);
 
   const confirmDelete = async () => {
     setDeleting(true);
@@ -58,6 +70,7 @@ export default function PetDetailPage() {
 
   useEffect(() => {
     fetchPet();
+    fetchPetServices();
   }, [id]);
 
   if (loading)
@@ -132,14 +145,34 @@ export default function PetDetailPage() {
       </div>
 
       <div className="mt-10">
-        <h2 className="text-lg font-bold mb-2">Aldığı Hizmetler</h2>
-        <div className="text-sm text-muted-foreground">
-          Henüz hizmet alınmamış.
-        </div>
+        <h2 className="text-lg font-bold mb-2">
+          Aldığı Hizmetler {services.length > 0 && `(${services.length})`}
+        </h2>
+        {services.length === 0 ? (
+          <div className="text-sm text-muted-foreground">
+            Henüz hizmet alınmamış.
+          </div>
+        ) : (
+          <ul className="text-sm text-muted-foreground list-disc pl-4">
+            {services.map((s, index) => (
+              <li key={s.id || index}>
+                {s.service?.name}{" "}
+                {s.isCompleted && (
+                  <span className="text-green-600 ml-1">(Tamamlandı)</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       <div className="mt-10">
-        <Button variant="outline">🪪 Pet Kartı Oluştur</Button>
+        <Button
+          variant="outline"
+          onClick={() => router.push(`/profile/pets/${id}/report`)}
+        >
+          🪪 Pet Kartı Oluştur
+        </Button>
       </div>
 
       <PetEditModal

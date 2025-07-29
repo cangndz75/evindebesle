@@ -19,6 +19,7 @@ import DatePicker from "@/app/(public)/_components/DatePicker";
 import { toast } from "sonner";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import ServiceModal from "../_components/ServiceModal";
+import { AccessInfoModal } from "../_components/AccessInfoModal";
 
 export default function Step2Client() {
   const router = useRouter();
@@ -52,8 +53,22 @@ export default function Step2Client() {
     [searchParams]
   );
   const userAddressId = searchParams.get("userAddressId");
+  const [accessModalOpen, setAccessModalOpen] = useState(false);
+  const [accessInfoFilled, setAccessInfoFilled] = useState(false);
 
   const [timeSlot, setTimeSlot] = useState<string>("");
+
+  useEffect(() => {
+    const checkAccessInfo = async () => {
+      const res = await fetch(
+        `/api/access-info?appointmentId=${searchParams.get("draftAppointmentId")}`
+      );
+      const data = await res.json();
+      if (data) setAccessInfoFilled(true);
+    };
+
+    checkAccessInfo();
+  }, []);
 
   useEffect(() => {
     const total = unitPrice * dates.length;
@@ -102,6 +117,11 @@ export default function Step2Client() {
     });
   };
   const handleNext = async () => {
+    if (!accessInfoFilled) {
+      setAccessModalOpen(true);
+      return;
+    }
+
     console.log("✅ Dates:", dates);
     console.log("✅ Pet IDs:", searchParams.getAll("pet"));
     console.log("✅ Service IDs:", searchParams.getAll("service"));
@@ -143,12 +163,9 @@ export default function Step2Client() {
         }),
       });
 
-      console.log("Draft response:", draftRes);
       if (!draftRes.ok) throw new Error("Draft oluşturma başarısız");
       const draftJson = await draftRes.json();
       draftAppointmentId = draftJson?.data?.id;
-      console.log("🎯 Draft yanıtı:", draftJson);
-      console.log("🎯 Draft ID:", draftAppointmentId);
     } catch (err) {
       console.error("Draft hatası:", err);
       toast.error("Randevu hazırlanamıyor, lütfen tekrar deneyin.");
@@ -157,9 +174,7 @@ export default function Step2Client() {
 
     const params = new URLSearchParams();
 
-    // Tüm mevcut parametreleri koru
     searchParams.forEach((val, key) => {
-      // Bu alanları tekrar ekleyeceğiz aşağıda, şimdilik geç
       if (
         key === "date" ||
         key === "timeSlot" ||
@@ -174,10 +189,8 @@ export default function Step2Client() {
       params.append(key, val);
     });
 
-    // Tarihleri ekle
     dates.forEach((d) => params.append("date", d.toISOString().split("T")[0]));
 
-    // Yeni verileri set et
     params.set("timeSlot", timeSlot);
     params.set("totalPrice", calculatedPrice.toFixed(2));
     params.set("draftAppointmentId", draftAppointmentId);
@@ -190,8 +203,11 @@ export default function Step2Client() {
       params.set("recurring", "0");
     }
 
+    params.set("accessInfo", "1");
+
     router.push(`/request/step3?${params.toString()}`);
   };
+
   return (
     <div className="h-screen grid md:grid-cols-2 overflow-hidden relative">
       <div className="flex flex-col justify-between px-6 py-6 overflow-hidden">
@@ -231,6 +247,14 @@ export default function Step2Client() {
               )}
             </div>
           </div>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => setAccessModalOpen(true)}
+          >
+            Erişim Bilgisi Ekle
+          </Button>
+
           <div className="flex items-center justify-between border rounded-lg px-4 py-3 mx-4 md:mx-8">
             <Label className="text-sm font-medium">
               Tekrarlayan Hizmet mi?
@@ -303,6 +327,16 @@ export default function Step2Client() {
           <p className="mt-2 font-semibold">Zeynep · İstanbul</p>
         </div>
       </div>
+      <AccessInfoModal
+        open={accessModalOpen}
+        onOpenChange={setAccessModalOpen}
+        appointmentId="draft-id"
+        onSuccess={() => {
+          setAccessInfoFilled(true);
+          setAccessModalOpen(false);
+          toast.success("Erişim bilgisi kaydedildi");
+        }}
+      />
     </div>
   );
 }

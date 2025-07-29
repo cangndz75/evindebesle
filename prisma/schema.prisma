@@ -258,6 +258,7 @@ model Appointment {
   pets       AppointmentPet[]
   dates      AppointmentDate[]
   petReport  PetReport[]
+  accessInfo AccessInfo?
 }
 
 model AppointmentDate {
@@ -495,4 +496,30 @@ model DraftAppointment {
   allergy         String?
   sensitivity     String?
   specialRequest  String?
+}
+
+model AccessInfo {
+  id              String      @id @default(uuid())
+  appointmentId   String      @unique
+  appointment     Appointment @relation(fields: [appointmentId], references: [id])
+
+  keyLocation               String?
+  keyInstruction            String?
+  keyPhotoUrl               String?
+  neighborName              String?
+  neighborFlatNumber        String?
+  doorPassword              String?
+  doorNote                  String?
+  alarmExists               Boolean   @default(false)
+  alarmPassword             String?
+  alarmInstruction          String?
+  alarmRoom                 String?
+  alarmTimeoutSeconds       Int?
+  notifySecurityGuard       Boolean   @default(false)
+  callBeforeEnter           Boolean   @default(false)
+  keyDropLocationAfterService String?
+  accessNote                String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

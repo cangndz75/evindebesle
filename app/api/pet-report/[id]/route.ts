@@ -5,15 +5,15 @@ import { prisma } from "@/lib/db";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id: petId } = await params;
+
   try {
     const session = await getServerSession(authConfig);
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    const petId = params.id;
 
     const pet = await prisma.ownedPet.findFirst({
       where: {
@@ -49,7 +49,7 @@ export async function GET(
 
     return NextResponse.json(reports);
   } catch (error) {
-    console.error("❌ /api/pet-reports/[id] GET hatası:", error);
+    console.error("❌ /api/pet-report/[id] GET hatası:", error);
     return NextResponse.json({ error: "Sunucu hatası" }, { status: 500 });
   }
 }

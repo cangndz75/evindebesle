@@ -5,10 +5,15 @@ export default function Footer() {
   return (
     <footer className="bg-[#f3f1ee] text-[#3a2f29] px-6 md:px-24 py-14 text-sm font-light tracking-wide">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-20">
-        {/* Sol blok */}
         <div className="flex flex-col justify-between">
           <div>
             <h1 className="text-2xl font-bold mb-6">evindebesle</h1>
+
+            <p className="text-sm">
+              <a href="mailto:info@evindebesle.com" className="underline">
+                info@evindebesle.com
+              </a>
+            </p>
           </div>
           <p className="text-xs text-[#6b6059]">
             © EvindeBesle 2025. Tüm hakları saklıdır.
@@ -24,17 +29,8 @@ export default function Footer() {
           <p className="mt-1">MERSİS No: 0302111904500001</p>
           <p className="mt-1">Vergi Dairesi: Yakacık | VKN: 3021119045</p>
           <p className="mt-1">Telefon: +90 216 519 26 00</p>
-          <p className="mt-2">
-            Kurumsal E-Posta:{" "}
-            <a href="mailto:info@evindebesle.com" className="underline">
-              info@evindebesle.com
-            </a>
-          </p>
-          <p>
-            <a href="https://evindebesle.com" className="underline">
-              evindebesle.com
-            </a>
-          </p>
+          <p className="mt-2"></p>
+          <p className="text-sm mb-1">İstanbul Ticaret Odası’na kayıtlıdır.</p>
         </div>
 
         {/* Sağ blok */}

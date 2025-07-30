@@ -16,7 +16,7 @@ const faqs = [
   {
     question: "Hangi hizmetleri sunuyorsunuz?",
     answer: [
-      "Evde besleme, oyun ve sosyalleşme, hijyen/temizlik ve veteriner takibi.",
+      "Evde besleme, oyun ve sosyalleşme, hijyen/temizlik takibi",
       "Her hayvana özel planlama yapılır, ekstra ücret sürprizi yoktur.",
     ],
   },

@@ -8,29 +8,24 @@ export default function Footer() {
         <div className="flex flex-col justify-between">
           <div>
             <h1 className="text-2xl font-bold mb-6">evindebesle</h1>
-
-            <p className="text-sm">
-              <a href="mailto:info@evindebesle.com" className="underline">
-                info@evindebesle.com
-              </a>
-            </p>
+            <p className="text-sm">İstanbul Ticaret Odası’na kayıtlıdır.</p>
           </div>
           <p className="text-xs text-[#6b6059]">
             © EvindeBesle 2025. Tüm hakları saklıdır.
           </p>
         </div>
 
-        {/* Orta blok */}
         <div className="leading-7 text-[15px]">
           <p className="font-medium">evindebesle bir DogoPet hizmetidir.</p>
           <p>
             Uptwins Blok, Orta, Yalnız Selvi Cd. No : 5AB, 34880 Kartal/İstanbul
           </p>
-          <p className="mt-1">MERSİS No: 0302111904500001</p>
-          <p className="mt-1">Vergi Dairesi: Yakacık | VKN: 3021119045</p>
           <p className="mt-1">Telefon: +90 216 519 26 00</p>
-          <p className="mt-2"></p>
-          <p className="text-sm mb-1">İstanbul Ticaret Odası’na kayıtlıdır.</p>
+          <p className="mt-2">
+            <a href="mailto:info@evindebesle.com" className="underline">
+              info@evindebesle.com
+            </a>
+          </p>
         </div>
 
         {/* Sağ blok */}

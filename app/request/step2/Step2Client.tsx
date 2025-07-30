@@ -53,22 +53,22 @@ export default function Step2Client() {
     [searchParams]
   );
   const userAddressId = searchParams.get("userAddressId");
-  const [accessModalOpen, setAccessModalOpen] = useState(false);
-  const [accessInfoFilled, setAccessInfoFilled] = useState(false);
+  // const [accessModalOpen, setAccessModalOpen] = useState(false);
+  // const [accessInfoFilled, setAccessInfoFilled] = useState(false);
 
   const [timeSlot, setTimeSlot] = useState<string>("");
 
-  useEffect(() => {
-    const checkAccessInfo = async () => {
-      const res = await fetch(
-        `/api/access-info?appointmentId=${searchParams.get("draftAppointmentId")}`
-      );
-      const data = await res.json();
-      if (data) setAccessInfoFilled(true);
-    };
+  // useEffect(() => {
+  //   const checkAccessInfo = async () => {
+  //     const res = await fetch(
+  //       `/api/access-info?appointmentId=${searchParams.get("draftAppointmentId")}`
+  //     );
+  //     const data = await res.json();
+  //     if (data) setAccessInfoFilled(true);
+  //   };
 
-    checkAccessInfo();
-  }, []);
+  //   checkAccessInfo();
+  // }, []);
 
   useEffect(() => {
     const total = unitPrice * dates.length;
@@ -117,10 +117,10 @@ export default function Step2Client() {
     });
   };
   const handleNext = async () => {
-    if (!accessInfoFilled) {
-      setAccessModalOpen(true);
-      return;
-    }
+    // if (!accessInfoFilled) {
+    //   setAccessModalOpen(true);
+    //   return;
+    // }
 
     console.log("✅ Dates:", dates);
     console.log("✅ Pet IDs:", searchParams.getAll("pet"));
@@ -203,7 +203,7 @@ export default function Step2Client() {
       params.set("recurring", "0");
     }
 
-    params.set("accessInfo", "1");
+    // params.set("accessInfo", "1");
 
     router.push(`/request/step3?${params.toString()}`);
   };
@@ -247,13 +247,13 @@ export default function Step2Client() {
               )}
             </div>
           </div>
-          <Button
+          {/* <Button
             variant="secondary"
             size="sm"
             onClick={() => setAccessModalOpen(true)}
           >
             Erişim Bilgisi Ekle
-          </Button>
+          </Button> */}
 
           <div className="flex items-center justify-between border rounded-lg px-4 py-3 mx-4 md:mx-8">
             <Label className="text-sm font-medium">
@@ -327,7 +327,7 @@ export default function Step2Client() {
           <p className="mt-2 font-semibold">Zeynep · İstanbul</p>
         </div>
       </div>
-      <AccessInfoModal
+      {/* <AccessInfoModal
         open={accessModalOpen}
         onOpenChange={setAccessModalOpen}
         appointmentId="draft-id"
@@ -336,7 +336,7 @@ export default function Step2Client() {
           setAccessModalOpen(false);
           toast.success("Erişim bilgisi kaydedildi");
         }}
-      />
+      /> */}
     </div>
   );
 }

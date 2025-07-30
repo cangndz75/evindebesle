@@ -21,6 +21,9 @@ export default function Footer() {
           <p>
             Uptwins Blok, Orta, Yalnız Selvi Cd. No : 5AB, 34880 Kartal/İstanbul
           </p>
+          <p className="mt-1">MERSİS No: 0302111904500001</p>
+          <p className="mt-1">Vergi Dairesi: Yakacık | VKN: 3021119045</p>
+          <p className="mt-1">Telefon: +90 216 519 26 00</p>
           <p className="mt-2">
             Kurumsal E-Posta:{" "}
             <a href="mailto:info@evindebesle.com" className="underline">
@@ -34,6 +37,7 @@ export default function Footer() {
           </p>
         </div>
 
+        {/* Sağ blok */}
         <div className="flex flex-col justify-between">
           <div className="space-y-2 text-[15px]">
             <Link href="/kvkk" className="block hover:underline">

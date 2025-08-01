@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 import { useRouter } from "next/navigation";
+import ReviewModal from "./_components/ReviewModal";
 
 type Appointment = {
   id: string;
@@ -88,9 +89,6 @@ export default function OrdersPage() {
               className="p-4 border rounded-md shadow-sm bg-white flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
             >
               <div className="flex flex-col">
-                {/* <span className="text-sm text-muted-foreground">
-                  {item.ownedPet?.name || "Evcil Hayvan"} için
-                </span> */}
                 <span className="font-semibold">
                   {item.ownedPet?.name || "Evcil Hayvan"} Randevu Detayı
                 </span>
@@ -104,7 +102,7 @@ export default function OrdersPage() {
                   </span>
                 )}
               </div>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 flex-wrap">
                 {renderStatus(item.status)}
                 <Button
                   variant="outline"
@@ -112,6 +110,9 @@ export default function OrdersPage() {
                 >
                   Detay
                 </Button>
+                {item.status === "COMPLETED" && (
+                  <ReviewModal appointmentId={item.id} />
+                )}
               </div>
             </div>
           ))}

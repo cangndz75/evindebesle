@@ -142,7 +142,7 @@ model OwnedPet {
   gender      String?
   image       String?
   relation    String?
-  allergy     String?
+  allergy     String[]
   sensitivity String?
   specialNote String?
   allowAdUse  Boolean @default(false)

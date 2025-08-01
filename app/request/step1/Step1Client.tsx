@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import AddressForm from "@/app/(account)/profile/addresses/AddressForm";
 import SecurePaymentInfo from "../_components/SecurePaymentInfo";
+import PetSelectorBlock from "./_components/PetSelectorBlock";
 
 type Pet = { id: string; name: string; image: string; species: string };
 type UserPet = {
@@ -57,6 +58,9 @@ export default function Step1Page() {
     fullAddress: string;
     districtId: string;
   } | null>(null);
+  const [selectedPetForSpecies, setSelectedPetForSpecies] = useState<
+    Record<string, string[]>
+  >({});
 
   const [allPets, setAllPets] = useState<Pet[]>([]);
   const [userPets, setUserPets] = useState<UserPet[]>([]);
@@ -365,60 +369,41 @@ export default function Step1Page() {
             Her tür için sayı belirtin
           </p>
 
-          <div className="grid grid-cols-2 gap-4">
-            {isLoadingPets
-              ? Array.from({ length: 4 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="h-[120px] bg-muted animate-pulse rounded-xl"
-                  />
-                ))
-              : selectedPets.map((pet) => {
-                  const cnt = counts[pet.id] || 0;
-                  const ownedCount = userPets.filter(
-                    (up) => up.species === pet.species
-                  ).length;
-                  const hasUserPet = ownedCount > 0 && isAuthenticated;
-                  return (
-                    <div
-                      key={pet.id}
-                      className="relative p-4 bg-white rounded-xl border flex flex-col items-center shadow-sm"
-                    >
-                      {cnt > 0 && hasUserPet && (
-                        <button
-                          onClick={() => setModalSpecies(pet.species)}
-                          className="absolute top-2 right-2 p-1"
-                        >
-                          <InfoIcon className="w-5 h-5 text-muted-foreground" />
-                        </button>
-                      )}
-
-                      <div className="font-medium mb-3 capitalize text-center">
-                        {pet.name}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleChange(pet.id, -1)}
-                        >
-                          <MinusIcon className="w-5 h-5" />
-                        </Button>
-                        <span className="w-8 text-center font-semibold">
-                          {cnt}
-                        </span>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleChange(pet.id, 1)}
-                          disabled={hasUserPet && cnt >= ownedCount}
-                        >
-                          <PlusIcon className="w-5 h-5" />
-                        </Button>
-                      </div>
+          <div className="space-y-6 mb-6">
+            {isLoadingPets || selectedPets.length === 0
+              ? Array.from({ length: 2 }).map((_, i) => (
+                  <div key={i} className="space-y-3">
+                    <div className="h-5 w-32 bg-muted animate-pulse rounded-md" />
+                    <div className="rounded-lg border p-4 space-y-2">
+                      <div className="h-6 bg-muted animate-pulse rounded" />
+                      <div className="h-6 bg-muted animate-pulse rounded" />
                     </div>
-                  );
-                })}
+                  </div>
+                ))
+              : selectedPets.map((pet) => (
+                  <PetSelectorBlock
+                    key={pet.species}
+                    species={pet.species}
+                    speciesName={pet.name}
+                    userPets={userPets}
+                    selectedIds={
+                      Array.isArray(selectedPetForSpecies[pet.species])
+                        ? selectedPetForSpecies[pet.species]
+                        : []
+                    }
+                    setSelectedIds={(ids) =>
+                      setSelectedPetForSpecies((prev) => ({
+                        ...prev,
+                        [pet.species]: ids,
+                      }))
+                    }
+                    onRefetch={async () => {
+                      const res = await fetch("/api/user-pets");
+                      const data = await res.json();
+                      setUserPets(Array.isArray(data) ? data : []);
+                    }}
+                  />
+                ))}
           </div>
 
           {Object.entries(counts).map(([petId, count]) =>

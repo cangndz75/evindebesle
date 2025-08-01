@@ -469,7 +469,7 @@ model UserCoupon {
   id       String   @id @default(cuid())
   userId   String
   couponId String
-  usedAt   DateTime @default(now())
+  usedAt   DateTime?
 
   user   User   @relation(fields: [userId], references: [id])
   coupon Coupon @relation(fields: [couponId], references: [id])

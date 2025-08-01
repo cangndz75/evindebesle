@@ -157,8 +157,37 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Draft kaydını sil
     await prisma.draftAppointment.delete({ where: { id: draftAppointmentId } });
+
+    if (draft.couponId) {
+      const existingUsage = await prisma.appointment.findFirst({
+        where: {
+          userId: session.user.id,
+          couponId: draft.couponId,
+          isPaid: true,
+        },
+      });
+
+      if (!existingUsage) {
+        await prisma.$transaction([
+          prisma.coupon.update({
+            where: { id: draft.couponId },
+            data: {
+              usageCount: { increment: 1 },
+            },
+          }),
+          prisma.userCoupon.updateMany({
+            where: {
+              userId: session.user.id,
+              couponId: draft.couponId,
+            },
+            data: {
+              usedAt: new Date(),
+            },
+          }),
+        ]);
+      }
+    }
 
     console.log("✅ Randevu oluşturuldu:", created.id);
 

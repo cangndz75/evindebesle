@@ -10,7 +10,7 @@ const updatePetSchema = z.object({
   age: z.number().int().min(0).optional(),
   gender: z.string().nullable().optional(),
   image: z.string().nullable().optional(),
-  allergy: z.string().nullable().optional(),
+  allergy: z.string().optional(),
   sensitivity: z.string().nullable().optional(),
   specialNote: z.string().nullable().optional(),
   relation: z.string().nullable().optional(),
@@ -93,7 +93,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         age: parsedBody.data.age,
         gender: parsedBody.data.gender,
         image: parsedBody.data.image || null,
-        allergy: parsedBody.data.allergy || null,
+        allergy: parsedBody.data.allergy
+          ? parsedBody.data.allergy.split(",").map((s: string) => s.trim())
+          : [],
         sensitivity: parsedBody.data.sensitivity || null,
         specialNote: parsedBody.data.specialNote || null,
         relation: parsedBody.data.relation || null,

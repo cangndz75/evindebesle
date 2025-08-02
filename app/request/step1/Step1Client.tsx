@@ -3,15 +3,12 @@
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { PlusIcon } from "lucide-react";
+import { PlusIcon, MinusIcon, CheckIcon } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import Image from "next/image";
 import Stepper from "@/app/(public)/_components/Stepper";
 import FilteredServiceSelect from "@/app/(public)/_components/FilteredServiceSelect";
-import PetSelectModal from "../_components/PetSelectModal";
 import { toast } from "sonner";
-import { Textarea } from "@/components/ui/textarea";
-import PetNoteTabs from "./_components/PetNoteTabs";
 import { useSession } from "next-auth/react";
 import {
   Dialog,
@@ -20,8 +17,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import AddressForm from "@/app/(account)/profile/addresses/AddressForm";
-import SecurePaymentInfo from "../_components/SecurePaymentInfo";
-import PetSelectorBlock from "./_components/PetSelectorBlock";
+import { CheckCircle2Icon, XIcon } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import clsx from "clsx";
 
 type Pet = { id: string; name: string; image: string; species: string };
 type UserPet = {
@@ -44,6 +42,98 @@ type PrimaryAddress = {
   districtId: string;
   fullAddress: string;
 };
+
+function PetSelectorBlock({
+  species,
+  speciesName,
+  userPets,
+  selectedIds,
+  setSelectedIds,
+  onRefetch,
+}: {
+  species: string;
+  speciesName: string;
+  userPets: UserPet[];
+  selectedIds: string[];
+  setSelectedIds: (ids: string[]) => void;
+  onRefetch: () => void;
+}) {
+  const router = useRouter();
+  const filtered = userPets.filter((p) => p.species === species);
+
+  const toggleSelect = async (id: string) => {
+    const newSelected = selectedIds.includes(id)
+      ? selectedIds.filter((pid) => pid !== id)
+      : [...selectedIds, id];
+    setSelectedIds(newSelected);
+    await onRefetch();
+  };
+
+  const selectedPet =
+    filtered.find((pet) => selectedIds.includes(pet.id)) || filtered[0];
+
+  return (
+    <div className="mb-8">
+      <h2 className="text-lg font-semibold mb-3">{speciesName}</h2>
+      {filtered.length === 0 ? (
+        <div className="border rounded-lg p-4">
+          <p className="mb-2 text-sm text-muted-foreground">
+            Kayıtlı bir {speciesName} yok. Hemen ekleyin!
+          </p>
+          <Button
+            variant="outline"
+            onClick={() =>
+              router.push(`/account/profile/pet/add?species=${species}`)
+            }
+          >
+            <PlusIcon className="mr-2 w-4 h-4" /> {speciesName} Ekle
+          </Button>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-4">
+          <button
+            onClick={() => toggleSelect(selectedPet.id)}
+            className={`relative w-32 h-32 rounded-xl overflow-hidden shadow-md border flex items-center justify-center bg-white transition-all ${
+              selectedIds.includes(selectedPet.id)
+                ? "border-lime-500 ring-2 ring-lime-400"
+                : "border-gray-200"
+            }`}
+          >
+            <div className="relative w-20 h-20">
+              <Image
+                src={
+                  selectedPet.image ||
+                  "https://example.com/default-pet-logo.png"
+                }
+                alt={selectedPet.userPetName || "Default Pet"}
+                fill
+                className="object-contain"
+              />
+            </div>
+            <div className="text-center mt-2">
+              <p className="text-sm font-medium">
+                {selectedPet.userPetName || "Test"}
+              </p>
+              <p className="text-xs text-muted-foreground">{speciesName}</p>
+            </div>
+            {selectedIds.includes(selectedPet.id) && (
+              <CheckIcon className="absolute top-2 right-2 w-5 h-5 text-lime-500 bg-white rounded-full" />
+            )}
+          </button>
+          <Button
+            variant="outline"
+            onClick={() =>
+              router.push(`/account/profile/pet/add?species=${species}`)
+            }
+            className="w-32"
+          >
+            <PlusIcon className="mr-2 w-4 h-4" /> {speciesName} Ekle
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Step1Page() {
   const searchParams = useSearchParams();
@@ -83,12 +173,6 @@ export default function Step1Page() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const [modalSpecies, setModalSpecies] = useState<string | null>(null);
-  const [freeFormDetails, setFreeFormDetails] = useState<
-    Record<
-      string,
-      { allergy?: string; sensitivity?: string; specialNote?: string }[]
-    >
-  >({});
 
   const getSpeciesById = (id: string) =>
     allPets.find((p) => p.id === id)?.species;
@@ -270,16 +354,7 @@ export default function Step1Page() {
     });
 
     if (isGuestUser || isRegisteredNoPets) {
-      Object.entries(freeFormDetails).forEach(([petId, infos]) => {
-        infos.forEach((info, idx) => {
-          if (info.allergy)
-            params.append(`${petId}_${idx}_allergy`, info.allergy);
-          if (info.sensitivity)
-            params.append(`${petId}_${idx}_sensitivity`, info.sensitivity);
-          if (info.specialNote)
-            params.append(`${petId}_${idx}_specialNote`, info.specialNote);
-        });
-      });
+      // Not ekleme kısmı kaldırıldı
     }
 
     if (isAuthenticated) {
@@ -397,6 +472,7 @@ export default function Step1Page() {
                           onClick={() => handleChange(pet.id, -1)}
                           disabled={(counts[pet.id] || 0) === 0}
                         >
+                          <MinusIcon className="w-4 h-4" />
                         </Button>
                         <span className="w-8 text-center">
                           {counts[pet.id] || 0}
@@ -416,7 +492,9 @@ export default function Step1Page() {
                         speciesName={pet.name}
                         userPets={userPets}
                         selectedIds={selectedUserPets[pet.species] || []}
-                        setSelectedIds={(ids) => handlePetSelect(pet.species, ids)}
+                        setSelectedIds={(ids) =>
+                          handlePetSelect(pet.species, ids)
+                        }
                         onRefetch={async () => {
                           const res = await fetch("/api/user-pets");
                           const data = await res.json();
@@ -424,37 +502,58 @@ export default function Step1Page() {
                         }}
                       />
                     )}
+                    {counts[pet.id] > 0 && (
+                      <div className="mt-2">
+                        <h3 className="text-md font-semibold mb-2">
+                          Seçilen {pet.name} Hayvanlar:
+                        </h3>
+                        <ScrollArea className="max-h-[150px] pr-2">
+                          <div className="grid grid-cols-2 gap-2">
+                            {selectedUserPets[pet.species]?.map((petId) => {
+                              const selectedPet = userPets.find(
+                                (p) => p.id === petId
+                              );
+                              return selectedPet ? (
+                                <div
+                                  key={petId}
+                                  className="relative flex flex-col items-center border rounded-xl p-2 text-sm transition hover:shadow-md bg-white"
+                                >
+                                  <div className="w-16 h-16 rounded-full overflow-hidden mb-1 relative">
+                                    <Image
+                                      src={
+                                        selectedPet.image || "/placeholder.jpg"
+                                      }
+                                      alt={
+                                        selectedPet.userPetName ||
+                                        selectedPet.petName ||
+                                        "Evcil Hayvan"
+                                      }
+                                      fill
+                                      className="object-cover"
+                                    />
+                                  </div>
+                                  <div className="text-center font-medium">
+                                    {selectedPet.userPetName ||
+                                      selectedPet.petName}
+                                  </div>
+                                  <CheckCircle2Icon className="absolute top-1 right-1 text-primary w-4 h-4" />
+                                </div>
+                              ) : null;
+                            })}
+                          </div>
+                        </ScrollArea>
+                        <Button
+                          variant="outline"
+                          onClick={() => setModalSpecies(pet.species)}
+                          className="w-full mt-2"
+                        >
+                          Evcil Hayvan Seç
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 ))}
           </div>
-
-          {Object.entries(counts).map(([petId, count]) =>
-            count > 0 && (isGuestUser || isRegisteredNoPets) ? (
-              <PetNoteTabs
-                key={petId}
-                petId={petId}
-                speciesName={
-                  selectedPets.find((p) => p.id === petId)?.name || "Pet"
-                }
-                count={count}
-                details={Array.from(
-                  { length: count },
-                  (_, i) => freeFormDetails[petId]?.[i] || {}
-                )}
-                onUpdate={(
-                  index: number,
-                  field: "allergy" | "sensitivity" | "specialNote",
-                  value: string
-                ) => {
-                  setFreeFormDetails((prev) => {
-                    const arr = prev[petId] ? [...prev[petId]] : [];
-                    arr[index] = { ...arr[index], [field]: value };
-                    return { ...prev, [petId]: arr };
-                  });
-                }}
-              />
-            ) : null
-          )}
 
           <div className="mt-6 rounded-2xl border bg-white p-4 shadow">
             <Label className="text-sm font-semibold mb-2">Adresim</Label>
@@ -546,18 +645,114 @@ export default function Step1Page() {
         </div>
       </div>
       {modalSpecies && (
-        <PetSelectModal
-          species={modalSpecies}
-          ownedPets={userPets.filter((up) => up.species === modalSpecies)}
-          maxCount={
-            counts[
-              selectedPetIds.find((id) => getSpeciesById(id) === modalSpecies)!
-            ] || 0
-          }
-          selectedIds={selectedUserPets[modalSpecies] || []}
-          onSave={handleModalSave}
-          onClose={() => setModalSpecies(null)}
-        />
+        <Dialog
+          open={!!modalSpecies}
+          onOpenChange={(open) => setModalSpecies(open ? modalSpecies : null)}
+        >
+          <DialogContent className="max-w-lg w-full">
+            <DialogHeader>
+              <DialogTitle>
+                {modalSpecies} için{" "}
+                {counts[
+                  selectedPetIds.find(
+                    (id) => getSpeciesById(id) === modalSpecies
+                  )!
+                ] || 0}{" "}
+                evcil hayvan seçin
+              </DialogTitle>
+              <p className="text-sm text-muted-foreground">
+                Seçilen: {selectedUserPets[modalSpecies]?.length || 0}/
+                {counts[
+                  selectedPetIds.find(
+                    (id) => getSpeciesById(id) === modalSpecies
+                  )!
+                ] || 0}
+              </p>
+            </DialogHeader>
+
+            <ScrollArea className="max-h-[300px] pr-2">
+              <div className="grid grid-cols-2 gap-3 mt-4">
+                {userPets.length === 0 ? (
+                  <p className="text-sm text-muted-foreground col-span-2 text-center">
+                    Bu tür için kayıtlı evcil hayvan bulunamadı.
+                  </p>
+                ) : (
+                  userPets
+                    .filter((up) => up.species === modalSpecies)
+                    .map((pet) => {
+                      const isSelected = (
+                        selectedUserPets[modalSpecies] || []
+                      ).includes(pet.id);
+                      return (
+                        <button
+                          key={pet.id}
+                          type="button"
+                          onClick={() => {
+                            const currentIds =
+                              selectedUserPets[modalSpecies] || [];
+                            const newIds = isSelected
+                              ? currentIds.filter((id) => id !== pet.id)
+                              : [...currentIds, pet.id];
+                            handlePetSelect(modalSpecies, newIds);
+                          }}
+                          className={clsx(
+                            "relative flex flex-col items-center border rounded-xl p-3 text-sm transition hover:shadow-md",
+                            isSelected
+                              ? "border-primary ring-2 ring-primary/50"
+                              : "bg-white"
+                          )}
+                        >
+                          <div className="w-20 h-20 rounded-full overflow-hidden mb-2 relative">
+                            <Image
+                              src={pet.image || "/placeholder.jpg"}
+                              alt={
+                                pet.userPetName || pet.petName || "Evcil Hayvan"
+                              }
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                          <div className="text-center font-medium">
+                            {pet.userPetName || pet.petName}
+                          </div>
+                          {isSelected && (
+                            <CheckCircle2Icon className="absolute top-2 right-2 text-primary w-5 h-5" />
+                          )}
+                        </button>
+                      );
+                    })
+                )}
+              </div>
+            </ScrollArea>
+
+            <div className="flex justify-between mt-4">
+              <Button variant="ghost" onClick={() => setModalSpecies(null)}>
+                <XIcon className="w-4 h-4 mr-1" />
+                Vazgeç
+              </Button>
+              <Button
+                disabled={
+                  (selectedUserPets[modalSpecies]?.length || 0) !==
+                    counts[
+                      selectedPetIds.find(
+                        (id) => getSpeciesById(id) === modalSpecies
+                      )!
+                    ] ||
+                  userPets.filter((up) => up.species === modalSpecies)
+                    .length === 0
+                }
+                onClick={() =>
+                  handleModalSave(
+                    modalSpecies,
+                    selectedUserPets[modalSpecies] || []
+                  )
+                }
+              >
+                Seçimi Onayla
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
       <Dialog open={showAddressModal} onOpenChange={setShowAddressModal}>
         <DialogContent>

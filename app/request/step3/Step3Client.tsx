@@ -28,6 +28,64 @@ export default function Step3Client() {
 
   const totalPriceParam = searchParams.get("totalPrice");
   const totalPrice = Number(totalPriceParam);
+  const [coupons, setCoupons] = useState<any[]>([]);
+  const [couponInput, setCouponInput] = useState("");
+  const [selectedCoupon, setSelectedCoupon] = useState<any | null>(null);
+
+  useEffect(() => {
+    fetch("/api/user-coupons")
+      .then((res) => res.json())
+      .then((data) => {
+        const usable = data.filter((uc: any) => uc.isUsable);
+        setCoupons(usable);
+      })
+      .catch((err) => {
+        console.error("Kuponlar alınamadı:", err);
+      });
+  }, []);
+
+  const handleAddCoupon = async () => {
+    if (!couponInput.trim()) return;
+
+    const alreadyExists = coupons.some(
+      (uc) =>
+        uc.coupon?.code?.toLowerCase() === couponInput.trim().toLowerCase()
+    );
+    if (alreadyExists) {
+      toast.warning("Bu kupon zaten tanımlı.");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/user-coupons", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: couponInput }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.error || "Kupon eklenemedi.");
+      } else {
+        toast.success("Kupon başarıyla tanımlandı.");
+        setCoupons((prev) => [...prev, data]);
+        setSelectedCoupon(data);
+        setCouponInput("");
+      }
+    } catch (err) {
+      console.error("Kupon ekleme hatası:", err);
+      toast.error("Beklenmedik bir hata oluştu.");
+    }
+  };
+
+  const discountedPrice =
+    selectedCoupon?.coupon?.discountType === "PERCENT"
+      ? Math.max(
+          totalPrice - (totalPrice * selectedCoupon.coupon.discountValue) / 100,
+          totalPrice - (selectedCoupon.coupon.maxDiscount || 999999)
+        )
+      : totalPrice - selectedCoupon?.coupon?.discountValue || totalPrice;
 
   // TotalPrice kontrolü
   useEffect(() => {
@@ -157,6 +215,51 @@ export default function Step3Client() {
 
   return (
     <div className="min-h-screen grid md:grid-cols-2 overflow-hidden relative">
+      <div className="mb-6 w-full max-w-md mx-auto">
+        {coupons.length > 0 ? (
+          <div className="rounded-lg border p-4 relative">
+            <div className="text-sm font-medium mb-2">İndirim Kuponlarım</div>
+            {coupons.map((uc) => (
+              <div
+                key={uc.coupon.id}
+                className={clsx(
+                  "flex justify-between items-center p-3 rounded-md border mb-2",
+                  uc.id === selectedCoupon?.id ? "border-primary" : ""
+                )}
+              >
+                <div>
+                  <div className="text-orange-600 font-semibold">
+                    %{uc.coupon.discountValue} İndirim
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Alt Limit: {uc.coupon.minPrice}₺ · Maks. İndirim:{" "}
+                    {uc.coupon.maxDiscount}₺
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  onClick={() => setSelectedCoupon(uc)}
+                  variant={uc.id === selectedCoupon?.id ? "default" : "outline"}
+                >
+                  Uygula
+                </Button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 justify-between border rounded-lg px-4 py-3 max-w-md mx-auto">
+            <Input
+              placeholder="Kupon kodu girin"
+              value={couponInput}
+              onChange={(e) => setCouponInput(e.target.value)}
+            />
+            <Button size="sm" onClick={handleAddCoupon}>
+              Ekle
+            </Button>
+          </div>
+        )}
+      </div>
+
       <div className="flex flex-col px-4 py-6">
         <div className="mb-6 space-y-2">
           <Stepper activeStep={3} />
@@ -173,7 +276,12 @@ export default function Step3Client() {
             <div className="text-sm text-muted-foreground font-medium">
               Toplam Tutar:{" "}
               <span className="text-lg font-bold text-black">
-                {totalPrice.toLocaleString()}₺
+                {discountedPrice.toLocaleString()}₺{" "}
+                {selectedCoupon && (
+                  <span className="text-sm line-through text-muted-foreground ml-2">
+                    {totalPrice.toLocaleString()}₺
+                  </span>
+                )}
               </span>
             </div>
           </div>

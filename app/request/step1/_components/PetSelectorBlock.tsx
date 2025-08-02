@@ -29,75 +29,30 @@ export default function PetSelectorBlock({
   userPets,
   selectedIds,
   setSelectedIds,
+  onRefetch,
 }: Props) {
   const router = useRouter();
   const filtered = userPets.filter((p) => p.species === species);
 
-  const toggleSelect = (id: string) => {
+  const toggleSelect = async (id: string) => {
     const newSelected = selectedIds.includes(id)
       ? selectedIds.filter((pid) => pid !== id)
       : [...selectedIds, id];
     setSelectedIds(newSelected);
+    await onRefetch();
   };
+
+  const selectedPet =
+    filtered.find((pet) => selectedIds.includes(pet.id)) || filtered[0];
 
   return (
     <div className="mb-8">
       <h2 className="text-lg font-semibold mb-3">{speciesName}</h2>
-
       {filtered.length === 0 ? (
         <div className="border rounded-lg p-4">
           <p className="mb-2 text-sm text-muted-foreground">
             Kayıtlı bir {speciesName} yok. Hemen ekleyin!
           </p>
-          <Button
-            onClick={() =>
-              router.push(`/account/profile/pet/add?species=${species}`)
-            }
-          >
-            + {speciesName} Ekle
-          </Button>
-        </div>
-      ) : (
-        <>
-          <div className="flex flex-wrap gap-4 mb-4">
-            {filtered.map((pet) => {
-              const selected = selectedIds.includes(pet.id);
-              return (
-                <button
-                  key={pet.id}
-                  onClick={() => toggleSelect(pet.id)}
-                  className={`relative w-32 rounded-xl overflow-hidden shadow-md border transition-all ${
-                    selected
-                      ? "border-lime-500 ring-2 ring-lime-400"
-                      : "border-gray-200"
-                  }`}
-                >
-                  <div className="w-20 h-20 bg-gray-100 relative rounded-full overflow-hidden mx-auto mt-4">
-                    {pet.image ? (
-                      <Image
-                        src={pet.image}
-                        alt={pet.userPetName}
-                        fill
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
-                        Fotoğraf yok
-                      </div>
-                    )}
-                    {selected && (
-                      <CheckIcon className="absolute top-1 right-1 w-5 h-5 text-lime-500 bg-white rounded-full" />
-                    )}
-                  </div>
-                  <div className="p-2 text-sm text-center">
-                    <div className="font-medium">{pet.userPetName}</div>
-                    <div className="text-muted-foreground">{pet.petName}</div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-
           <Button
             variant="outline"
             onClick={() =>
@@ -106,7 +61,48 @@ export default function PetSelectorBlock({
           >
             <PlusIcon className="mr-2 w-4 h-4" /> {speciesName} Ekle
           </Button>
-        </>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-4">
+          <button
+            onClick={() => toggleSelect(selectedPet.id)}
+            className={`relative w-32 h-32 rounded-xl overflow-hidden shadow-md border flex items-center justify-center bg-white transition-all ${
+              selectedIds.includes(selectedPet.id)
+                ? "border-lime-500 ring-2 ring-lime-400"
+                : "border-gray-200"
+            }`}
+          >
+            <div className="relative w-20 h-20">
+              <Image
+                src={
+                  selectedPet.image ||
+                  "https://example.com/default-pet-logo.png"
+                }
+                alt={selectedPet.userPetName || "Default Pet"}
+                fill
+                className="object-contain"
+              />
+            </div>
+            <div className="text-center mt-2">
+              <p className="text-sm font-medium">
+                {selectedPet.userPetName || "Test"}
+              </p>
+              <p className="text-xs text-muted-foreground">{speciesName}</p>
+            </div>
+            {selectedIds.includes(selectedPet.id) && (
+              <CheckIcon className="absolute top-2 right-2 w-5 h-5 text-lime-500 bg-white rounded-full" />
+            )}
+          </button>
+          <Button
+            variant="outline"
+            onClick={() =>
+              router.push(`/account/profile/pet/add?species=${species}`)
+            }
+            className="w-32"
+          >
+            <PlusIcon className="mr-2 w-4 h-4" /> {speciesName} Ekle
+          </Button>
+        </div>
       )}
     </div>
   );

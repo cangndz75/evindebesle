@@ -3,7 +3,7 @@
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { PlusIcon, MinusIcon, InfoIcon } from "lucide-react";
+import { PlusIcon } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import Image from "next/image";
 import Stepper from "@/app/(public)/_components/Stepper";
@@ -58,7 +58,7 @@ export default function Step1Page() {
     fullAddress: string;
     districtId: string;
   } | null>(null);
-  const [selectedPetForSpecies, setSelectedPetForSpecies] = useState<
+  const [selectedUserPets, setSelectedUserPets] = useState<
     Record<string, string[]>
   >({});
 
@@ -83,10 +83,6 @@ export default function Step1Page() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const [modalSpecies, setModalSpecies] = useState<string | null>(null);
-  const [selectedUserPets, setSelectedUserPets] = useState<
-    Record<string, string[]>
-  >({});
-
   const [freeFormDetails, setFreeFormDetails] = useState<
     Record<
       string,
@@ -180,16 +176,25 @@ export default function Step1Page() {
         return prev;
       }
 
-      if (selectedUserPets[species]?.length) {
-        setSelectedUserPets((sel) => ({ ...sel, [species]: [] }));
+      if (next === 0) {
+        setSelectedUserPets((prev) => {
+          const newSelected = { ...prev };
+          delete newSelected[species];
+          return newSelected;
+        });
       }
 
       return { ...prev, [petId]: next };
     });
   };
+
   const handleModalSave = (species: string, ids: string[]) => {
     setSelectedUserPets((prev) => ({ ...prev, [species]: ids }));
     setModalSpecies(null);
+  };
+
+  const handlePetSelect = (species: string, ids: string[]) => {
+    setSelectedUserPets((prev) => ({ ...prev, [species]: ids }));
   };
 
   const handleSubmit = () => {
@@ -347,6 +352,7 @@ export default function Step1Page() {
     setDistrictId(searchDistrict);
     setFullAddress(searchFullAddress);
   }
+
   return (
     <div className="grid md:grid-cols-2 h-screen">
       <div className="flex flex-col justify-between p-6 overflow-y-auto">
@@ -381,28 +387,44 @@ export default function Step1Page() {
                   </div>
                 ))
               : selectedPets.map((pet) => (
-                  <PetSelectorBlock
-                    key={pet.species}
-                    species={pet.species}
-                    speciesName={pet.name}
-                    userPets={userPets}
-                    selectedIds={
-                      Array.isArray(selectedPetForSpecies[pet.species])
-                        ? selectedPetForSpecies[pet.species]
-                        : []
-                    }
-                    setSelectedIds={(ids) =>
-                      setSelectedPetForSpecies((prev) => ({
-                        ...prev,
-                        [pet.species]: ids,
-                      }))
-                    }
-                    onRefetch={async () => {
-                      const res = await fetch("/api/user-pets");
-                      const data = await res.json();
-                      setUserPets(Array.isArray(data) ? data : []);
-                    }}
-                  />
+                  <div key={pet.species} className="space-y-3">
+                    <div className="flex items-center gap-4">
+                      <h2 className="text-lg font-semibold">{pet.name}</h2>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => handleChange(pet.id, -1)}
+                          disabled={(counts[pet.id] || 0) === 0}
+                        >
+                        </Button>
+                        <span className="w-8 text-center">
+                          {counts[pet.id] || 0}
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => handleChange(pet.id, 1)}
+                        >
+                          <PlusIcon className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    {counts[pet.id] > 0 && isLoggedInWithPets && (
+                      <PetSelectorBlock
+                        species={pet.species}
+                        speciesName={pet.name}
+                        userPets={userPets}
+                        selectedIds={selectedUserPets[pet.species] || []}
+                        setSelectedIds={(ids) => handlePetSelect(pet.species, ids)}
+                        onRefetch={async () => {
+                          const res = await fetch("/api/user-pets");
+                          const data = await res.json();
+                          setUserPets(Array.isArray(data) ? data : []);
+                        }}
+                      />
+                    )}
+                  </div>
                 ))}
           </div>
 
@@ -434,12 +456,34 @@ export default function Step1Page() {
             ) : null
           )}
 
-          <div className="mt-6 rounded-2xl border bg-white p-4 shadow relative">
+          <div className="mt-6 rounded-2xl border bg-white p-4 shadow">
             <Label className="text-sm font-semibold mb-2">Adresim</Label>
-
+            {!primaryAddress ? (
+              <p className="text-sm text-muted-foreground mt-4">
+                Kayıtlı adresiniz yok.
+              </p>
+            ) : (
+              <div className="mt-2">
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="radio"
+                    name="addr"
+                    checked={selectedAddressId === primaryAddress.id}
+                    onChange={() => {
+                      setSelectedAddressId(primaryAddress.id);
+                      setDistrictId(primaryAddress.districtId);
+                      setFullAddress(primaryAddress.fullAddress);
+                    }}
+                    className="mr-2"
+                  />
+                  {primaryAddress.fullAddress}
+                </label>
+              </div>
+            )}
             <Button
+              variant="outline"
               size="sm"
-              className="absolute top-4 right-4"
+              className="mt-2"
               onClick={() => {
                 if (!session?.user) {
                   router.push("/login");
@@ -448,29 +492,8 @@ export default function Step1Page() {
                 }
               }}
             >
-              + Adres Ekle
+              <PlusIcon className="mr-2 h-4 w-4" /> Adres Ekle
             </Button>
-
-            {!primaryAddress ? (
-              <p className="text-sm text-muted-foreground mt-4">
-                Kayıtlı adresiniz yok.
-              </p>
-            ) : (
-              <label className="flex items-center gap-2 text-sm mt-4">
-                <input
-                  type="radio"
-                  name="addr"
-                  checked={selectedAddressId === primaryAddress.id}
-                  onChange={() => {
-                    setSelectedAddressId(primaryAddress.id);
-                    setDistrictId(primaryAddress.districtId);
-                    setFullAddress(primaryAddress.fullAddress);
-                  }}
-                  className="mr-2"
-                />
-                {primaryAddress.fullAddress}
-              </label>
-            )}
           </div>
 
           <div className="mt-4 rounded-2xl border bg-white p-4 shadow">

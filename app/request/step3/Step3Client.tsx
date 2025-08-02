@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import clsx from "clsx";
 import Stepper from "@/app/(public)/_components/Stepper";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
+import Step3CouponList from "./_components/Step3CouponList";
 
 export default function Step3Client() {
   const router = useRouter();
@@ -24,13 +25,14 @@ export default function Step3Client() {
   const [draftAppointmentId, setDraftAppointmentId] = useState<string | null>(
     null
   );
-  const [paymentId, setPaymentId] = useState<string | null>(null); // Yeni state
+  const [paymentId, setPaymentId] = useState<string | null>(null);
 
   const totalPriceParam = searchParams.get("totalPrice");
   const totalPrice = Number(totalPriceParam);
   const [coupons, setCoupons] = useState<any[]>([]);
   const [couponInput, setCouponInput] = useState("");
   const [selectedCoupon, setSelectedCoupon] = useState<any | null>(null);
+  const [couponModalOpen, setCouponModalOpen] = useState(false);
 
   useEffect(() => {
     fetch("/api/user-coupons")
@@ -79,13 +81,20 @@ export default function Step3Client() {
     }
   };
 
-  const discountedPrice =
-    selectedCoupon?.coupon?.discountType === "PERCENT"
-      ? Math.max(
-          totalPrice - (totalPrice * selectedCoupon.coupon.discountValue) / 100,
-          totalPrice - (selectedCoupon.coupon.maxDiscount || 999999)
-        )
-      : totalPrice - selectedCoupon?.coupon?.discountValue || totalPrice;
+  const discountedPrice = useMemo(() => {
+    if (!selectedCoupon) return totalPrice;
+
+    if (selectedCoupon.coupon.discountType === "PERCENT") {
+      const discount = (totalPrice * selectedCoupon.coupon.value) / 100;
+      return Math.max(totalPrice - discount, 0);
+    }
+
+    if (selectedCoupon.coupon.discountType === "FIXED") {
+      return Math.max(totalPrice - selectedCoupon.coupon.value, 0);
+    }
+
+    return totalPrice;
+  }, [totalPrice, selectedCoupon]);
 
   // TotalPrice kontrolü
   useEffect(() => {
@@ -180,12 +189,11 @@ export default function Step3Client() {
       console.log("💳 Ödeme cevabı:", paymentData);
 
       if (paymentData?.paymentPageHtml) {
-        setPaymentId(paymentData.paymentId); // paymentId'yi kaydet
+        setPaymentId(paymentData.paymentId);
         const popup = window.open("", "_blank");
         if (popup) {
           popup.document.open();
           let decodedHtml = atob(paymentData.paymentPageHtml);
-          // paymentId'yi forma ekle
           decodedHtml = decodedHtml.replace(
             "</form>",
             `<input type="hidden" name="paymentId" value="${paymentData.paymentId}"></form>`
@@ -215,51 +223,6 @@ export default function Step3Client() {
 
   return (
     <div className="min-h-screen grid md:grid-cols-2 overflow-hidden relative">
-      <div className="mb-6 w-full max-w-md mx-auto">
-        {coupons.length > 0 ? (
-          <div className="rounded-lg border p-4 relative">
-            <div className="text-sm font-medium mb-2">İndirim Kuponlarım</div>
-            {coupons.map((uc) => (
-              <div
-                key={uc.coupon.id}
-                className={clsx(
-                  "flex justify-between items-center p-3 rounded-md border mb-2",
-                  uc.id === selectedCoupon?.id ? "border-primary" : ""
-                )}
-              >
-                <div>
-                  <div className="text-orange-600 font-semibold">
-                    %{uc.coupon.discountValue} İndirim
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    Alt Limit: {uc.coupon.minPrice}₺ · Maks. İndirim:{" "}
-                    {uc.coupon.maxDiscount}₺
-                  </div>
-                </div>
-                <Button
-                  size="sm"
-                  onClick={() => setSelectedCoupon(uc)}
-                  variant={uc.id === selectedCoupon?.id ? "default" : "outline"}
-                >
-                  Uygula
-                </Button>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="flex items-center gap-2 justify-between border rounded-lg px-4 py-3 max-w-md mx-auto">
-            <Input
-              placeholder="Kupon kodu girin"
-              value={couponInput}
-              onChange={(e) => setCouponInput(e.target.value)}
-            />
-            <Button size="sm" onClick={handleAddCoupon}>
-              Ekle
-            </Button>
-          </div>
-        )}
-      </div>
-
       <div className="flex flex-col px-4 py-6">
         <div className="mb-6 space-y-2">
           <Stepper activeStep={3} />
@@ -272,20 +235,50 @@ export default function Step3Client() {
             >
               ← Geri
             </Button>
-
-            <div className="text-sm text-muted-foreground font-medium">
-              Toplam Tutar:{" "}
-              <span className="text-lg font-bold text-black">
-                {discountedPrice.toLocaleString()}₺{" "}
-                {selectedCoupon && (
-                  <span className="text-sm line-through text-muted-foreground ml-2">
-                    {totalPrice.toLocaleString()}₺
-                  </span>
-                )}
-              </span>
+            <div className="flex items-center gap-2">
+              <div className="text-sm text-muted-foreground font-medium">
+                Toplam Tutar:{" "}
+                <span className="text-lg font-bold text-black">
+                  {discountedPrice.toLocaleString()}₺{" "}
+                  {selectedCoupon && (
+                    <span className="text-sm line-through text-muted-foreground ml-2">
+                      {totalPrice.toLocaleString()}₺
+                    </span>
+                  )}
+                </span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCouponModalOpen(true)}
+              >
+                Kuponlarım
+              </Button>
             </div>
           </div>
         </div>
+
+        {couponModalOpen && (
+          <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
+            <div className="bg-white rounded-lg w-[90%] max-w-md p-6 space-y-4">
+              <h2 className="text-lg font-semibold">Kuponlarım</h2>
+              <Step3CouponList
+                selectedCouponCode={selectedCoupon?.coupon?.code}
+                onApply={(coupon) => {
+                  setSelectedCoupon({ coupon, id: coupon.id });
+                  setCouponModalOpen(false);
+                }}
+              />
+              <Button
+                variant="secondary"
+                className="w-full"
+                onClick={() => setCouponModalOpen(false)}
+              >
+                Kapat
+              </Button>
+            </div>
+          </div>
+        )}
 
         <div className="w-full max-w-md mx-auto space-y-6">
           <div className="w-full h-[200px] perspective">

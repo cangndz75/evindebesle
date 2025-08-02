@@ -1,23 +1,17 @@
 "use client";
 
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from "@/components/ui/popover";
-import { Info } from "lucide-react";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 type Service = {
   id: string;
   name: string;
   price: number;
   description?: string;
+  imageUrl?: string; // Eğer varsa
   petTags: string[];
 };
 
@@ -62,65 +56,68 @@ export default function FilteredServiceSelect({
   );
 
   return (
-    <ScrollArea className="max-h-64 pr-2">
-      <TooltipProvider>
-        <div className="space-y-6">
-          {Object.entries(groupedBySpecies).map(([species, services]) => (
-            <div key={species} className="space-y-2">
-              <div className="text-md font-semibold capitalize underline">
-                {species} için hizmetler
+    <ScrollArea className="max-h-[500px] pr-2">
+      <div className="space-y-8">
+        {Object.entries(groupedBySpecies).map(([species, services]) => (
+          <div key={species}>
+            <h3 className="text-lg font-semibold mb-4">
+              {species} için Hizmetler
+            </h3>
+            {services.length === 0 ? (
+              <div className="text-sm text-muted-foreground italic">
+                Bu türe özel hizmet bulunamadı.
               </div>
-
-              {services.length === 0 ? (
-                <div className="text-sm text-muted-foreground italic">
-                  Bu tür için uygun hizmet bulunamadı.
-                </div>
-              ) : (
-                services.map((service) => (
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {services.map((service) => (
                   <div
-                    key={`${species}-${service.id}`}
-                    onClick={() => toggle(service, species)}
+                    key={service.id}
                     className={cn(
-                      "flex items-center justify-between border rounded-lg px-4 py-3 transition cursor-pointer",
-                      selected.includes(service.id)
-                        ? "bg-accent border-primary"
-                        : "hover:bg-muted"
+                      "border rounded-xl overflow-hidden bg-white shadow transition hover:shadow-md",
+                      selected.includes(service.id) && "ring-2 ring-primary"
                     )}
                   >
-                    <div className="flex items-center gap-2">
-                      <Checkbox
-                        checked={selected.includes(service.id)}
-                        onCheckedChange={() => toggle(service, species)}
-                        className="pointer-events-none"
+                    <div className="relative w-full h-36 bg-muted">
+                      <Image
+                        src={
+                          service.imageUrl ||
+                          "https://images.unsplash.com/photo-1579452113472-2f2a764188ac?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                        }
+                        alt={service.name}
+                        fill
+                        className="object-cover"
                       />
-                      <div>
-                        <Label className="font-medium">{service.name}</Label>
+                    </div>
+
+                    <div className="p-4 space-y-2">
+                      <div className="font-bold text-sm">{service.name}</div>
+                      <div className="text-sm text-muted-foreground line-clamp-2">
+                        {service.description || "Açıklama bulunmuyor"}
+                      </div>
+                      <div className="flex items-center justify-between mt-2">
+                        <span className="text-base font-semibold text-orange-600">
+                          {service.price}₺
+                        </span>
+                        <Button
+                          size="sm"
+                          variant={
+                            selected.includes(service.id)
+                              ? "secondary"
+                              : "outline"
+                          }
+                          onClick={() => toggle(service, species)}
+                        >
+                          {selected.includes(service.id) ? "Seçildi" : "Seç"}
+                        </Button>
                       </div>
                     </div>
-
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold bg-black text-white px-2 py-1 rounded">
-                        {service.price}₺
-                      </span>
-
-                      {service.description && (
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Info className="w-4 h-4 text-muted-foreground cursor-pointer" />
-                          </PopoverTrigger>
-                          <PopoverContent className="max-w-xs text-sm leading-snug">
-                            {service.description}
-                          </PopoverContent>
-                        </Popover>
-                      )}
-                    </div>
                   </div>
-                ))
-              )}
-            </div>
-          ))}
-        </div>
-      </TooltipProvider>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
     </ScrollArea>
   );
 }

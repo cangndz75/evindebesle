@@ -143,23 +143,29 @@ export default function Step1Page() {
     [searchParams]
   );
   const [me, setMe] = useState<Address | null>(null);
-  const [primaryAddress, setPrimaryAddress] = useState<{
-    id: string;
-    fullAddress: string;
-    districtId: string;
-  } | null>(null);
+  const [primaryAddress, setPrimaryAddress] = useState<PrimaryAddress | null>(
+    null
+  );
   const [selectedUserPets, setSelectedUserPets] = useState<
     Record<string, string[]>
   >({});
+  const [showAddressModal, setShowAddressModal] = useState(false);
 
   const [allPets, setAllPets] = useState<Pet[]>([]);
   const [userPets, setUserPets] = useState<UserPet[]>([]);
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [allServices, setAllServices] = useState<Service[]>([]);
-  const [services, setServices] = useState<string[]>(
-    searchParams.getAll("service") as string[]
-  );
-  const [user, setUser] = useState<any>(null);
+  const [services, setServices] = useState<Record<string, string[]>>({
+    ...selectedPetIds.reduce(
+      (acc, id) => {
+        const species = allPets.find((p) => p.id === id)?.species;
+        if (species) acc[species] = searchParams.getAll("service") as string[];
+        return acc;
+      },
+      {} as Record<string, string[]>
+    ),
+  });
+  const [userData, setUser] = useState<any>(null);
 
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
@@ -174,13 +180,10 @@ export default function Step1Page() {
 
   const [modalSpecies, setModalSpecies] = useState<string | null>(null);
 
+  const { data: session } = useSession();
+
   const getSpeciesById = (id: string) =>
     allPets.find((p) => p.id === id)?.species;
-
-  const searchDistrict = searchParams.get("district");
-  const searchFullAddress = searchParams.get("fullAddress");
-  const { data: session } = useSession();
-  const [showAddressModal, setShowAddressModal] = useState(false);
 
   useEffect(() => {
     const fetchPrimaryAddress = async () => {
@@ -190,45 +193,57 @@ export default function Step1Page() {
         setPrimaryAddress(data.primaryAddress ?? null);
       }
     };
-
     fetchPrimaryAddress();
   }, []);
 
   useEffect(() => {
-    if (!me && searchDistrict && searchFullAddress) {
+    if (
+      !me &&
+      searchParams.get("district") &&
+      searchParams.get("fullAddress")
+    ) {
       const searchAddr: Address = {
         id: "search",
-        districtId: searchDistrict,
-        fullAddress: searchFullAddress,
+        districtId: searchParams.get("district")!,
+        fullAddress: searchParams.get("fullAddress")!,
         isPrimary: false,
       };
       setAddresses([searchAddr]);
       setSelectedAddressId(searchAddr.id);
-      setDistrictId(searchDistrict);
-      setFullAddress(searchFullAddress);
+      setDistrictId(searchAddr.districtId);
+      setFullAddress(searchAddr.fullAddress);
     }
-  }, [me, searchDistrict, searchFullAddress]);
+  }, [me, searchParams]);
 
   useEffect(() => {
     setIsLoadingPets(true);
     fetch("/api/pets")
-      .then((r) => r.json())
+      .then((res) => res.json())
       .then((data: Pet[]) => {
         setAllPets(data);
-        const init: Record<string, number> = {};
-        selectedPetIds.forEach((id) => (init[id] = 0));
-        setCounts(init);
+        const initialCounts: Record<string, number> = {};
+        selectedPetIds.forEach((id) => {
+          initialCounts[id] = 0;
+        });
+        setCounts(initialCounts);
+
+        const initialServices: Record<string, string[]> = {};
+        selectedPetIds.forEach((id) => {
+          const species = getSpeciesById(id);
+          if (species)
+            initialServices[species] = searchParams.getAll(
+              "service"
+            ) as string[];
+        });
+        setServices((prev) => ({ ...prev, ...initialServices }));
       })
       .catch((err) => console.error("❌ Pet verileri alınamadı:", err))
       .finally(() => setIsLoadingPets(false));
-  }, []);
+  }, [selectedPetIds]);
 
   useEffect(() => {
     fetch("/api/user-pets")
-      .then((r) => {
-        if (!r.ok) return [];
-        return r.json();
-      })
+      .then((res) => (res.ok ? res.json() : []))
       .then((data: UserPet[]) => setUserPets(Array.isArray(data) ? data : []))
       .catch((err) => console.error("❌ UserPet verileri alınamadı:", err));
   }, []);
@@ -236,11 +251,11 @@ export default function Step1Page() {
   useEffect(() => {
     if (!selectedPetIds.length) return;
     setIsLoadingServices(true);
-    const q = new URLSearchParams();
-    selectedPetIds.forEach((id) => q.append("pet", id));
-    fetch(`/api/services/filtered?${q.toString()}`)
-      .then((r) => r.json())
-      .then((sv: Service[]) => setAllServices(sv))
+    const query = new URLSearchParams();
+    selectedPetIds.forEach((id) => query.append("pet", id));
+    fetch(`/api/services/filtered?${query.toString()}`)
+      .then((res) => res.json())
+      .then((data: Service[]) => setAllServices(data))
       .catch((err) => console.error("❌ Hizmet verileri alınamadı:", err))
       .finally(() => setIsLoadingServices(false));
   }, [selectedPetIds]);
@@ -263,13 +278,25 @@ export default function Step1Page() {
       if (next === 0) {
         setSelectedUserPets((prev) => {
           const newSelected = { ...prev };
-          delete newSelected[species];
+          if (newSelected[species]?.length === 0) delete newSelected[species];
           return newSelected;
+        });
+        setServices((prev) => {
+          const newServices = { ...prev };
+          if (newServices[species]?.length === 0) delete newServices[species];
+          return newServices;
         });
       }
 
       return { ...prev, [petId]: next };
     });
+  };
+
+  const handleServiceChange = (species: string, newServices: string[]) => {
+    setServices((prev) => ({
+      ...prev,
+      [species]: newServices,
+    }));
   };
 
   const handleModalSave = (species: string, ids: string[]) => {
@@ -282,41 +309,46 @@ export default function Step1Page() {
   };
 
   const handleSubmit = () => {
-    const totalPetCount = Object.values(counts).reduce((s, c) => s + c, 0);
+    const totalPetCount = Object.values(counts).reduce(
+      (sum, count) => sum + count,
+      0
+    );
     if (!totalPetCount) return toast.error("En az 1 hayvan belirtin.");
     if (!districtId) return toast.error("İlçe seçin.");
     if (!fullAddress.trim()) return toast.error("Detaylı adres girin.");
-    if (services.length === 0) return toast.error("En az 1 hizmet seçin.");
+    const hasAnyServices = Object.values(services).some((sv) => sv.length > 0);
+    if (!hasAnyServices) return toast.error("En az 1 hizmet seçin.");
 
-    for (const serviceId of services) {
-      const service = allServices.find((s) => s.id === serviceId);
-      if (!service) continue;
+    for (const species in services) {
+      const serviceIds = services[species];
+      for (const serviceId of serviceIds) {
+        const service = allServices.find((s) => s.id === serviceId);
+        if (!service) continue;
 
-      const matchedSpecies = service.petTags;
-      let totalCount = 0;
+        const matchedSpecies = service.petTags;
+        let totalCount = 0;
 
-      matchedSpecies.forEach((species) => {
-        selectedPets.forEach((pet) => {
-          if (pet.species === species) {
-            totalCount += counts[pet.id] || 0;
+        matchedSpecies.forEach((sp) => {
+          if (sp === species) {
+            selectedPets.forEach((pet) => {
+              if (pet.species === sp) totalCount += counts[pet.id] || 0;
+            });
           }
         });
-      });
 
-      if (totalCount === 0) {
-        toast.error(
-          `"${service.name}" hizmeti için hayvan seçilmedi. Lütfen önce hayvan sayısını belirtin.`
-        );
-        return;
+        if (totalCount === 0) {
+          toast.error(
+            `"${service.name}" hizmeti için ${species} seçilmedi. Lütfen önce hayvan sayısını belirtin.`
+          );
+          return;
+        }
       }
     }
 
     for (const pet of selectedPets) {
       const count = counts[pet.id] || 0;
       if (count === 0) continue;
-      const hasService = allServices.some(
-        (s) => services.includes(s.id) && s.petTags.includes(pet.species)
-      );
+      const hasService = services[pet.species]?.length > 0;
       if (!hasService) {
         toast.error(
           `"${pet.name}" için bir hizmet seçilmedi. Lütfen önce hizmet seçin.`
@@ -345,7 +377,6 @@ export default function Step1Page() {
     }
 
     const params = new URLSearchParams();
-
     Object.entries(counts).forEach(([id, cnt]) => {
       if (cnt > 0) {
         params.append("pet", id);
@@ -360,12 +391,14 @@ export default function Step1Page() {
     if (isAuthenticated) {
       Object.values(selectedUserPets)
         .flat()
-        .forEach((userPetId) => {
-          params.append("userPetId", userPetId);
-        });
+        .forEach((userPetId) => params.append("userPetId", userPetId));
     }
 
-    services.forEach((s) => params.append("service", s));
+    for (const species in services) {
+      services[species].forEach((serviceId) =>
+        params.append("service", serviceId)
+      );
+    }
     params.set("district", districtId!);
     if (startDate) params.set("startDate", startDate);
     if (endDate) params.set("endDate", endDate);
@@ -377,32 +410,36 @@ export default function Step1Page() {
     router.push(`/request/step2?${params.toString()}`);
   };
 
-  const selectedPets = allPets.filter((p) => selectedPetIds.includes(p.id));
-  const selectedSpecies = selectedPets.map((p) => p.species);
+  const selectedPets = useMemo(
+    () => allPets.filter((p) => selectedPetIds.includes(p.id)),
+    [allPets, selectedPetIds]
+  );
+  const selectedSpecies = useMemo(
+    () => selectedPets.map((p) => p.species),
+    [selectedPets]
+  );
   const startDate = searchParams.get("startDate");
   const endDate = searchParams.get("endDate");
 
   const totalPrice = useMemo(() => {
     let total = 0;
-
-    services.forEach((serviceId) => {
-      const service = allServices.find((s) => s.id === serviceId);
-      if (!service) return;
-
-      const matchedSpecies = service.petTags;
-      let totalCount = 0;
-
-      matchedSpecies.forEach((species) => {
-        selectedPets.forEach((pet) => {
-          if (pet.species === species) {
-            totalCount += counts[pet.id] || 0;
+    for (const species in services) {
+      const serviceIds = services[species];
+      serviceIds.forEach((serviceId) => {
+        const service = allServices.find((s) => s.id === serviceId);
+        if (!service) return;
+        const matchedSpecies = service.petTags;
+        let totalCount = 0;
+        matchedSpecies.forEach((sp) => {
+          if (sp === species) {
+            selectedPets.forEach((pet) => {
+              if (pet.species === sp) totalCount += counts[pet.id] || 0;
+            });
           }
         });
+        total += service.price * totalCount;
       });
-
-      total += service.price * totalCount;
-    });
-
+    }
     return total;
   }, [services, allServices, selectedPets, counts]);
 
@@ -415,17 +452,21 @@ export default function Step1Page() {
     return result;
   }, [counts, selectedPets]);
 
-  if (!user?.fullAddress && searchDistrict && searchFullAddress) {
+  if (
+    !userData?.fullAddress &&
+    searchParams.get("district") &&
+    searchParams.get("fullAddress")
+  ) {
     const searchAddr: Address = {
       id: "search",
-      districtId: searchDistrict,
-      fullAddress: searchFullAddress,
+      districtId: searchParams.get("district")!,
+      fullAddress: searchParams.get("fullAddress")!,
       isPrimary: false,
     };
     setAddresses([searchAddr]);
     setSelectedAddressId(searchAddr.id);
-    setDistrictId(searchDistrict);
-    setFullAddress(searchFullAddress);
+    setDistrictId(searchAddr.districtId);
+    setFullAddress(searchAddr.fullAddress);
   }
 
   return (
@@ -446,11 +487,11 @@ export default function Step1Page() {
           <h1 className="mt-6 text-2xl font-bold">
             Kaç hayvan için hizmet istiyorsunuz?
           </h1>
-          <p className="text-muted-foreground mb-4">
+          <p className="text-muted-foreground mb-6">
             Her tür için sayı belirtin
           </p>
 
-          <div className="space-y-6 mb-6">
+          <div className="space-y-12 mb-16">
             {isLoadingPets || selectedPets.length === 0
               ? Array.from({ length: 2 }).map((_, i) => (
                   <div key={i} className="space-y-3">
@@ -462,7 +503,7 @@ export default function Step1Page() {
                   </div>
                 ))
               : selectedPets.map((pet) => (
-                  <div key={pet.species} className="space-y-3">
+                  <div key={pet.species} className="space-y-6">
                     <div className="flex items-center gap-4">
                       <h2 className="text-lg font-semibold">{pet.name}</h2>
                       <div className="flex items-center gap-2">
@@ -551,74 +592,67 @@ export default function Step1Page() {
                         </Button>
                       </div>
                     )}
+                    {counts[pet.id] > 0 && (
+                      <div className="mt-4">
+                        <Label className="text-sm font-semibold mb-2">
+                          {pet.name} Hizmetleri
+                        </Label>
+                        <FilteredServiceSelect
+                          counts={{ [pet.species]: counts[pet.id] || 0 }}
+                          allServices={allServices}
+                          selectedPetSpecies={[pet.species]}
+                          selected={services[pet.species] || []}
+                          setSelected={(newServices) =>
+                            handleServiceChange(pet.species, newServices)
+                          }
+                        />
+                      </div>
+                    )}
                   </div>
                 ))}
           </div>
 
-          <div className="mt-6 rounded-2xl border bg-white p-4 shadow">
-            <Label className="text-sm font-semibold mb-2">Adresim</Label>
-            {!primaryAddress ? (
-              <p className="text-sm text-muted-foreground mt-4">
-                Kayıtlı adresiniz yok.
-              </p>
-            ) : (
-              <div className="mt-2">
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="radio"
-                    name="addr"
-                    checked={selectedAddressId === primaryAddress.id}
-                    onChange={() => {
-                      setSelectedAddressId(primaryAddress.id);
-                      setDistrictId(primaryAddress.districtId);
-                      setFullAddress(primaryAddress.fullAddress);
-                    }}
-                    className="mr-2"
-                  />
-                  {primaryAddress.fullAddress}
-                </label>
-              </div>
-            )}
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-2"
-              onClick={() => {
-                if (!session?.user) {
-                  router.push("/login");
-                } else {
-                  setShowAddressModal(true);
-                }
-              }}
-            >
-              <PlusIcon className="mr-2 h-4 w-4" /> Adres Ekle
-            </Button>
-          </div>
-
-          <div className="mt-4 rounded-2xl border bg-white p-4 shadow">
-            <Label className="text-sm font-semibold mb-2">Hizmet Türleri</Label>
-            {isLoadingServices ? (
-              <div className="space-y-2">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="h-10 bg-muted animate-pulse rounded-md mb-2"
-                  />
-                ))}
-              </div>
-            ) : allServices.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                Uygun hizmet bulunamadı.
-              </p>
-            ) : (
-              <FilteredServiceSelect
-                counts={speciesCounts}
-                allServices={allServices}
-                selectedPetSpecies={selectedSpecies}
-                selected={services}
-                setSelected={setServices}
-              />
-            )}
+          <div className="mt-16 pt-6">
+            <h2 className="text-2xl font-bold mb-6">Adresim</h2>
+            <div className="rounded-2xl border bg-white p-6 shadow">
+              <Label className="text-sm font-semibold mb-4">Adresim</Label>
+              {!primaryAddress ? (
+                <p className="text-sm text-muted-foreground mt-4">
+                  Kayıtlı adresiniz yok.
+                </p>
+              ) : (
+                <div className="mt-4">
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="radio"
+                      name="addr"
+                      checked={selectedAddressId === primaryAddress.id}
+                      onChange={() => {
+                        setSelectedAddressId(primaryAddress.id);
+                        setDistrictId(primaryAddress.districtId);
+                        setFullAddress(primaryAddress.fullAddress);
+                      }}
+                      className="mr-2"
+                    />
+                    {primaryAddress.fullAddress}
+                  </label>
+                </div>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-4"
+                onClick={() => {
+                  if (!session?.user) {
+                    router.push("/login");
+                  } else {
+                    setShowAddressModal(true);
+                  }
+                }}
+              >
+                <PlusIcon className="mr-2 h-4 w-4" /> Adres Ekle
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -630,7 +664,6 @@ export default function Step1Page() {
           </span>
           <Button onClick={handleSubmit}>Devam Et</Button>
         </div>
-
         <Image
           src="https://images.unsplash.com/photo-1530281700549-e82e7bf110d6?q=80&w=688"
           alt="Evde hayvan bakımı"
@@ -644,6 +677,7 @@ export default function Step1Page() {
           <p className="mt-2 font-semibold">Can · Türkiye</p>
         </div>
       </div>
+
       {modalSpecies && (
         <Dialog
           open={!!modalSpecies}
@@ -669,7 +703,6 @@ export default function Step1Page() {
                 ] || 0}
               </p>
             </DialogHeader>
-
             <ScrollArea className="max-h-[300px] pr-2">
               <div className="grid grid-cols-2 gap-3 mt-4">
                 {userPets.length === 0 ? (
@@ -724,11 +757,9 @@ export default function Step1Page() {
                 )}
               </div>
             </ScrollArea>
-
             <div className="flex justify-between mt-4">
               <Button variant="ghost" onClick={() => setModalSpecies(null)}>
-                <XIcon className="w-4 h-4 mr-1" />
-                Vazgeç
+                <XIcon className="w-4 h-4 mr-1" /> Vazgeç
               </Button>
               <Button
                 disabled={
@@ -754,6 +785,7 @@ export default function Step1Page() {
           </DialogContent>
         </Dialog>
       )}
+
       <Dialog open={showAddressModal} onOpenChange={setShowAddressModal}>
         <DialogContent>
           <DialogHeader>
@@ -767,16 +799,13 @@ export default function Step1Page() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(values),
               });
-
               const res = await fetch("/api/address");
               const data: Address[] = await res.json();
               setAddresses(data);
-
               const last = data[0];
               setSelectedAddressId(last.id);
               setDistrictId(last.districtId);
               setFullAddress(last.fullAddress);
-
               toast.success("Adres başarıyla eklendi.");
               setShowAddressModal(false);
             }}

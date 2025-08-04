@@ -215,24 +215,47 @@ export default function Navbar() {
                     <div className="bg-gradient-to-r from-fuchsia-600 to-rose-500 text-white p-4 font-semibold text-sm">
                       {session.user.name ?? "Misafir"}
                     </div>
-
                     <Link
-                      href="/orders"
+                      href="/profile/personal-info"
                       className="block px-4 py-2 text-sm hover:bg-gray-100"
                     >
-                      Tüm Siparişlerim
+                      Kişisel Bilgilerim
                     </Link>
                     <Link
+                      href="/profile/pets"
+                      className="block px-4 py-2 text-sm hover:bg-gray-100"
+                    >
+                      Evcil Hayvanlarım
+                    </Link>
+                    <Link
+                      href="/profile/addresses"
+                      className="block px-4 py-2 text-sm hover:bg-gray-100"
+                    >
+                      Adreslerim
+                    </Link>
+                    <Link
+                      href="/profile/access-info"
+                      className="block px-4 py-2 text-sm hover:bg-gray-100"
+                    >
+                      Erişim Bilgilerim
+                    </Link>
+                    <Link
+                      href="/profile/orders"
+                      className="block px-4 py-2 text-sm hover:bg-gray-100"
+                    >
+                      Tüm Randevularım
+                    </Link>
+                    {/* <Link
                       href="/reviews"
                       className="block px-4 py-2 text-sm hover:bg-gray-100"
                     >
                       Değerlendirmelerim
-                    </Link>
+                    </Link> */}
                     <Link
-                      href="/profile"
+                      href="/profile/coupons"
                       className="block px-4 py-2 text-sm hover:bg-gray-100"
                     >
-                      Kullanıcı Bilgilerim
+                      Kuponlarım
                     </Link>
                   </div>
                 )}

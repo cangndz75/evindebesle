@@ -3,6 +3,7 @@
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   LogOut,
@@ -28,11 +29,24 @@ import { Separator } from "@/components/ui/separator";
 export default function Navbar() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const hoverTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const handleLogout = async () => {
     await signOut({ redirect: false });
     toast.success("Çıkış yapıldı");
     router.push("/");
+  };
+
+  const handleMouseEnter = () => {
+    if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
+    setMenuOpen(true);
+  };
+
+  const handleMouseLeave = () => {
+    hoverTimeout.current = setTimeout(() => {
+      setMenuOpen(false);
+    }, 300);
   };
 
   return (
@@ -46,6 +60,7 @@ export default function Navbar() {
           EvindeBesle
         </Link>
 
+        {/* Masaüstü Menü */}
         <div className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground h-[64px]">
           <Link href="/about" className="hover:text-black transition">
             Hakkımızda
@@ -58,6 +73,7 @@ export default function Navbar() {
           </Link>
         </div>
 
+        {/* Mobil Menü + Giriş/Çıkış */}
         <div className="md:hidden flex items-center gap-2 h-[64px]">
           {session?.user ? (
             <Button
@@ -118,13 +134,6 @@ export default function Navbar() {
               </div>
 
               <div className="flex flex-col gap-4 text-sm text-gray-800">
-                {/* <Link
-                  href="/profile"
-                  className="flex items-center gap-2 hover:text-primary transition"
-                >
-                  <Info className="w-4 h-4" />
-                  Profilim
-                </Link> */}
                 <Link
                   href="/about"
                   className="flex items-center gap-2 hover:text-primary transition"
@@ -151,7 +160,7 @@ export default function Navbar() {
                   className="flex items-center gap-2 hover:text-primary transition"
                 >
                   <HelpCircle className="w-4 h-4" />
-                  Test
+                  Sık Sorulanlar
                 </Link>
               </div>
 
@@ -180,23 +189,56 @@ export default function Navbar() {
           </Sheet>
         </div>
 
+        {/* Masaüstü: Hesabım Dropdown ve Çıkış ayrı */}
         <div className="hidden md:flex items-center gap-4 min-w-[160px] justify-end">
           {status === "loading" ? (
             <div className="h-9 w-[100px]" />
           ) : session?.user ? (
             <>
-              <Link href="/profile">
-                <Button variant="outline" className="flex items-center gap-2">
+              <div
+                className="relative"
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+              >
+                <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-800 hover:bg-gray-100 rounded-md transition">
                   <Avatar className="w-6 h-6">
                     <AvatarImage src={session.user.image || "/logo.png"} />
                     <AvatarFallback>
                       {session.user.name?.charAt(0) ?? "U"}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="text-sm font-medium">Hesabım</span>
-                </Button>
-              </Link>
-              <Separator orientation="vertical" className="h-6" />
+                  Hesabım
+                </button>
+
+                {menuOpen && (
+                  <div className="absolute top-[110%] right-0 w-52 bg-white border rounded-md shadow-md z-50 overflow-hidden">
+                    <div className="bg-gradient-to-r from-fuchsia-600 to-rose-500 text-white p-4 font-semibold text-sm">
+                      {session.user.name ?? "Misafir"}
+                    </div>
+
+                    <Link
+                      href="/orders"
+                      className="block px-4 py-2 text-sm hover:bg-gray-100"
+                    >
+                      Tüm Siparişlerim
+                    </Link>
+                    <Link
+                      href="/reviews"
+                      className="block px-4 py-2 text-sm hover:bg-gray-100"
+                    >
+                      Değerlendirmelerim
+                    </Link>
+                    <Link
+                      href="/profile"
+                      className="block px-4 py-2 text-sm hover:bg-gray-100"
+                    >
+                      Kullanıcı Bilgilerim
+                    </Link>
+                  </div>
+                )}
+              </div>
+
+              {/* Çıkış butonu ayrı */}
               <Button variant="secondary" onClick={handleLogout}>
                 <LogOut className="w-4 h-4 mr-1" />
                 Çıkış

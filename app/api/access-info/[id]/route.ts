@@ -23,26 +23,8 @@ const schema = z.object({
   accessNote: z.string().optional(),
 });
 
-export async function GET(req: NextRequest) {
-  const session = await getServerSession(authConfig);
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  console.log("Session user ID:", session.user.id);
-
-  const access = await prisma.accessInfo.findFirst({
-    where: { userId: session.user.id },
-  });
-
-  if (!access) {
-    console.log("No accessInfo found for user:", session.user.id);
-  }
-
-  return NextResponse.json(access || null);
-}
-
-export async function POST(req: NextRequest) {
+// ✅ PATCH: accessInfo'yu userId ile güncelle
+export async function PATCH(req: NextRequest) {
   const session = await getServerSession(authConfig);
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -50,26 +32,44 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json();
   const parsed = schema.safeParse(body);
-
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid input" }, { status: 400 });
+    return NextResponse.json({ error: "Geçersiz veri" }, { status: 400 });
   }
 
-  const existing = await prisma.accessInfo.findFirst({
-    where: { userId: session.user.id },
-  });
+  try {
+    const existing = await prisma.accessInfo.findFirst({
+      where: { userId: session.user.id },
+    });
 
-  const accessInfo = existing
-    ? await prisma.accessInfo.update({
-        where: { id: existing.id },
-        data: parsed.data,
-      })
-    : await prisma.accessInfo.create({
-        data: {
-          userId: session.user.id,
-          ...parsed.data,
-        },
-      });
+    if (!existing) {
+      return NextResponse.json({ error: "Kayıt bulunamadı" }, { status: 404 });
+    }
 
-  return NextResponse.json(accessInfo);
+    const updated = await prisma.accessInfo.update({
+      where: { id: existing.id },
+      data: parsed.data,
+    });
+
+    return NextResponse.json(updated);
+  } catch (error) {
+    return NextResponse.json({ error: "Kayıt güncellenemedi" }, { status: 500 });
+  }
+}
+
+// ✅ DELETE: accessInfo'yu userId ile sil
+export async function DELETE(req: NextRequest) {
+  const session = await getServerSession(authConfig);
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    await prisma.accessInfo.deleteMany({
+      where: { userId: session.user.id },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return NextResponse.json({ error: "Silme işlemi başarısız" }, { status: 500 });
+  }
 }

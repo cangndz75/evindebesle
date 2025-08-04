@@ -73,6 +73,7 @@ model User {
   emailLogs           EmailLog[]
   addresses           UserAddress[]
   passwordResetTokens PasswordResetToken[]
+  accessInfo         AccessInfo?
 }
 
 model PasswordResetToken {
@@ -258,7 +259,6 @@ model Appointment {
   pets       AppointmentPet[]
   dates      AppointmentDate[]
   petReport  PetReport[]
-  accessInfo AccessInfo?
 }
 
 model AppointmentDate {
@@ -499,26 +499,26 @@ model DraftAppointment {
 }
 
 model AccessInfo {
-  id              String      @id @default(uuid())
-  appointmentId   String      @unique
-  appointment     Appointment @relation(fields: [appointmentId], references: [id])
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
 
-  keyLocation               String?
-  keyInstruction            String?
-  keyPhotoUrl               String?
-  neighborName              String?
-  neighborFlatNumber        String?
-  doorPassword              String?
-  doorNote                  String?
-  alarmExists               Boolean   @default(false)
-  alarmPassword             String?
-  alarmInstruction          String?
-  alarmRoom                 String?
-  alarmTimeoutSeconds       Int?
-  notifySecurityGuard       Boolean   @default(false)
-  callBeforeEnter           Boolean   @default(false)
+  keyLocation                 String?
+  keyInstruction              String?
+  keyPhotoUrl                 String?
+  neighborName                String?
+  neighborFlatNumber          String?
+  doorPassword                String?
+  doorNote                    String?
+  alarmExists                 Boolean  @default(false)
+  alarmPassword               String?
+  alarmInstruction            String?
+  alarmRoom                   String?
+  alarmTimeoutSeconds         Int?
+  notifySecurityGuard         Boolean  @default(false)
+  callBeforeEnter             Boolean  @default(false)
   keyDropLocationAfterService String?
-  accessNote                String?
+  accessNote                  String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

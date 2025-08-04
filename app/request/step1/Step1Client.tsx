@@ -474,7 +474,7 @@ export default function Step1Page() {
     <div className="grid md:grid-cols-2 h-screen">
       <div className="flex flex-col justify-between p-6 overflow-y-auto">
         <div>
-          <div className="sticky top-0 bg-white pb-4 z-10">
+          <div className="bg-background">
             <Stepper activeStep={1} />
           </div>
           <Button

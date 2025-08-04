@@ -656,16 +656,21 @@ export default function Step1Page() {
               </Button>
             </div>
           </div>
+
+          {/* Mobilde görünür, içerik akışında yer alır */}
+          <div className="md:hidden mt-6 px-4">
+            <div className="flex justify-between items-center bg-white border rounded-xl px-4 py-3 shadow-md">
+              <span className="font-semibold text-base whitespace-nowrap">
+                Toplam: {totalPrice}₺
+              </span>
+              <Button onClick={handleSubmit}>Devam Et</Button>
+            </div>
+          </div>
         </div>
       </div>
 
       <div className="relative hidden md:flex items-center justify-center bg-gray-50">
-        <div
-          className={cn(
-            "fixed md:absolute bottom-0 md:bottom-6 right-0 md:right-6 w-full md:w-auto",
-            "bg-white px-4 py-3 md:rounded-xl shadow-lg flex items-center justify-between md:justify-end gap-4 z-50"
-          )}
-        >
+        <div className="fixed bottom-0 left-0 w-full z-50 bg-white border-t px-4 py-3 flex items-center justify-between md:justify-end gap-4 shadow-md">
           <span className="font-semibold text-base whitespace-nowrap">
             Toplam: {totalPrice}₺
           </span>

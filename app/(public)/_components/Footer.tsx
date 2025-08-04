@@ -51,7 +51,7 @@ export default function Footer() {
             </Link>
           </div>
 
-          <div className="mt-6 flex flex-col items-end">
+          {/* <div className="mt-6 flex flex-col items-end">
             <div className="flex gap-3">
               <Image
                 src="https://res.cloudinary.com/dlahfchej/image/upload/v1753708468/logo_band_colored_2x_afo1no.png"
@@ -60,7 +60,7 @@ export default function Footer() {
                 height={32}
               />
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     </footer>

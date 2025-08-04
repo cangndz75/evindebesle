@@ -10,9 +10,9 @@ const steps = ["Hizmet Seçimi", "Tarih Seçimi", "Ödeme Planı"];
 
 export default function Stepper({ activeStep }: StepperProps) {
   return (
-    <div className="w-full px-4 py-4 flex flex-wrap justify-center md:justify-start gap-4">
+    <div className="w-full px-4 py-4 flex overflow-x-auto gap-6">
       {steps.map((step, index) => (
-        <div key={index} className="flex items-center gap-2">
+        <div key={index} className="flex items-center gap-2 flex-shrink-0">
           <div
             className={clsx(
               "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold",
@@ -25,7 +25,7 @@ export default function Stepper({ activeStep }: StepperProps) {
           </div>
           <span
             className={clsx(
-              "text-sm font-medium",
+              "text-sm font-medium whitespace-nowrap",
               activeStep === index + 1 ? "text-black" : "text-muted-foreground"
             )}
           >

@@ -33,20 +33,20 @@ export default function GizlilikPage() {
           <p className="mb-6">
             Tüm kişisel verileriniz, gizlilik ilkesine uygun olarak şifrelenmiş
             sunucularda saklanmakta ve yalnızca yetkili kişiler tarafından
-            erişilebilmektedir.
+            erişilebilmektedir. Kredi kartı bilgileriniz gibi hassas veriler hiçbir şekilde tarafımızda saklanmamaktadır.
           </p>
-          <p className="mb-6 font-semibold text-red-700">
+          {/* <p className="mb-6 font-semibold text-red-700">
             Kredi kartı bilgileriniz <u>hiçbir şekilde tarafımızda saklanmaz</u>
             . Tüm ödeme işlemleri, güvenli altyapıya sahip üçüncü taraf ödeme
             servis sağlayıcısı olan <strong>iyzico</strong> üzerinden
             gerçekleştirilir.
-          </p>
-          <p className="mb-6">
+          </p> */}
+          {/* <p className="mb-6">
             Sistemde yalnızca işlem geçmişi, ödeme tutarı, tarih ve işlem durumu
             gibi bilgiler kaydedilir. Kart numaranız, CVV kodu veya son kullanma
             tarihi gibi hassas ödeme verileri doğrudan iyzico sisteminde
             işlenir.
-          </p>
+          </p> */}
 
           <h2 className="text-lg font-semibold mb-4">
             Verilerin Kullanım Amacı

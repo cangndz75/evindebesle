@@ -106,7 +106,7 @@ export default function DistanceSellingPage() {
               <br />
               <strong>Hizmet Ücreti:</strong> [Hizmet Ücreti] TL (KDV Dahil)
               <br />
-              <strong>Ödeme Şekli:</strong> Kredi Kartı / Banka Kartı (iyzico)
+              <strong>Ödeme Şekli:</strong> Kredi Kartı / Banka Kartı 
               <br />
               <strong>Hizmetin Sağlanacağı Adres:</strong> [Alıcının Adresi]
               <br />
@@ -114,7 +114,7 @@ export default function DistanceSellingPage() {
             </p>
           </section>
 
-          <section className="mb-8">
+          {/* <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4">
               Madde 4 - Ödeme ve iyzico Entegrasyonu
             </h2>
@@ -152,7 +152,7 @@ export default function DistanceSellingPage() {
               Hizmeti Sözleşmesi’ne tabidir. Alıcı, bu sözleşmeyi iyzico
               platformunda onaylamış olduğunu beyan eder.
             </p>
-          </section>
+          </section> */}
 
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4">
@@ -259,10 +259,10 @@ export default function DistanceSellingPage() {
               9.2. Satıcı, Alıcı’yı hizmet süreci, ödeme ve iptal koşulları
               hakkında açık ve anlaşılır şekilde bilgilendirmekle yükümlüdür.
               <br />
-              9.3. Satıcı, iyzico aracılığıyla gerçekleştirilen ödemelerin
+              {/* 9.3. Satıcı, iyzico aracılığıyla gerçekleştirilen ödemelerin
               güvenliğini sağlamak için gerekli tüm önlemleri alır.
-              <br />
-              9.4. Satıcı, hizmet sırasında evcil hayvanın güvenliği ve sağlığı
+              <br /> */}
+              9.3. Satıcı, hizmet sırasında evcil hayvanın güvenliği ve sağlığı
               için gerekli özeni gösterir.
             </p>
           </section>

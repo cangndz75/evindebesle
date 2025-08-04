@@ -9,7 +9,6 @@ export default async function AppointmentDetailPage({
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Randevu Detayı</h1>
       <AppointmentDetailCard appointmentId={id} />
     </div>
   );

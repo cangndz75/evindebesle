@@ -74,15 +74,8 @@ export default function OrderDetailPage() {
         }))}
       />
 
-      <Tabs defaultValue="services">
+      <Tabs defaultValue="timeline">
         <TabsList className="h-auto rounded-none border-b bg-transparent p-0">
-          {/* <TabsTrigger
-            value="services"
-            className="data-[state=active]:after:bg-black relative rounded-none px-4 py-3 font-medium text-base text-muted-foreground data-[state=active]:text-black after:absolute after:inset-x-0 after:bottom-0 after:h-0.5"
-          >
-            <FileText size={18} className="mr-2" />
-            Hizmetler
-          </TabsTrigger> */}
           <TabsTrigger
             value="timeline"
             className="data-[state=active]:after:bg-black relative rounded-none px-4 py-3 font-medium text-base text-muted-foreground data-[state=active]:text-black after:absolute after:inset-x-0 after:bottom-0 after:h-0.5"
@@ -105,10 +98,6 @@ export default function OrderDetailPage() {
             Notlar
           </TabsTrigger>
         </TabsList>
-
-        {/* <TabsContent value="services" className="pt-6">
-          <CompletedServicesList services={appointment.services} />
-        </TabsContent> */}
 
         <TabsContent value="timeline" className="pt-6">
           <AppointmentTimelineWrapper appointmentId={id as string} />

@@ -62,7 +62,8 @@ export default function AppointmentDetailHeader({
         <div className="space-y-2">
           <CardTitle className="text-2xl font-semibold flex items-center gap-2">
             <PawPrint size={22} className="text-primary" />
-            {petName} - Randevu Detayı
+            {/* {petName} - Randevu Detayı */}
+            Randevu Detayı
           </CardTitle>
 
           <div className="text-base text-muted-foreground space-y-1">

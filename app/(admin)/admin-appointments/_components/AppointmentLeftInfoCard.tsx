@@ -23,7 +23,6 @@ type AppointmentWithRelations = {
   confirmedAt: string;
   repeatInterval?: string | null;
   repeatCount?: number | null;
-  adminNote?: string | null;
   fullAddress?: string;
   district?: {
     name: string;
@@ -31,7 +30,6 @@ type AppointmentWithRelations = {
   pets?: {
     id: string;
     name: string;
-    image?: string | null;
     allergy?: string | null;
     sensitivity?: string | null;
     specialRequest?: string | null;
@@ -41,6 +39,11 @@ type AppointmentWithRelations = {
         name: string;
       };
     }[];
+  }[];
+  media?: {
+    id: string;
+    type: "PHOTO" | "VIDEO" | "AUDIO";
+    url: string;
   }[];
 };
 
@@ -71,6 +74,9 @@ export default function AppointmentLeftInfoCard({
 
   if (loading) return <div>Yükleniyor...</div>;
   if (!appointment) return null;
+
+  // 📷 İlk fotoğraf medyasını al
+  const firstPhotoUrl = appointment.media?.find((m) => m.type === "PHOTO")?.url;
 
   return (
     <div className="border rounded-lg p-6 shadow-sm bg-white space-y-4">
@@ -128,10 +134,10 @@ export default function AppointmentLeftInfoCard({
                   </div>
                 </div>
 
-                {pet.image && (
+                {firstPhotoUrl && (
                   <img
-                    src={pet.image}
-                    alt="Pet Görseli"
+                    src={firstPhotoUrl}
+                    alt="Randevu Fotoğrafı"
                     className="w-full h-52 object-cover rounded-lg shadow"
                   />
                 )}
@@ -214,21 +220,6 @@ export default function AppointmentLeftInfoCard({
                     <p className="text-sm text-muted-foreground">
                       {pet.sensitivity}
                     </p>
-                  </div>
-                )}
-
-                {appointment.adminNote && (
-                  <div>
-                    <h4 className="font-semibold text-sm mb-1 flex items-center gap-1">
-                      <StickyNote className="w-4 h-4 text-muted-foreground" />
-                      Admin Notu
-                    </h4>
-                    <textarea
-                      className="w-full border rounded px-3 py-2 text-sm bg-muted"
-                      value={appointment.adminNote}
-                      rows={4}
-                      disabled
-                    />
                   </div>
                 )}
               </div>

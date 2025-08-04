@@ -11,6 +11,7 @@ import Stepper from "@/app/(public)/_components/Stepper";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import Step3CouponList from "./_components/Step3CouponList";
+import AddCouponModal from "@/app/(account)/profile/coupons/_components/AddCouponModal";
 
 export default function Step3Client() {
   const router = useRouter();
@@ -34,16 +35,19 @@ export default function Step3Client() {
   const [selectedCoupon, setSelectedCoupon] = useState<any | null>(null);
   const [couponModalOpen, setCouponModalOpen] = useState(false);
 
+  const fetchCoupons = async () => {
+    try {
+      const res = await fetch("/api/user-coupons");
+      const data = await res.json();
+      const usable = data.filter((uc: any) => uc.isUsable);
+      setCoupons(usable);
+    } catch (err) {
+      console.error("Kuponlar alınamadı:", err);
+    }
+  };
+
   useEffect(() => {
-    fetch("/api/user-coupons")
-      .then((res) => res.json())
-      .then((data) => {
-        const usable = data.filter((uc: any) => uc.isUsable);
-        setCoupons(usable);
-      })
-      .catch((err) => {
-        console.error("Kuponlar alınamadı:", err);
-      });
+    fetchCoupons();
   }, []);
 
   const handleAddCoupon = async () => {
@@ -89,14 +93,16 @@ export default function Step3Client() {
       return Math.max(totalPrice - discount, 0);
     }
 
-    if (selectedCoupon.coupon.discountType === "FIXED") {
+    if (
+      selectedCoupon.coupon.discountType === "FIXED" ||
+      selectedCoupon.coupon.discountType === "AMOUNT"
+    ) {
       return Math.max(totalPrice - selectedCoupon.coupon.value, 0);
     }
 
     return totalPrice;
   }, [totalPrice, selectedCoupon]);
 
-  // TotalPrice kontrolü
   useEffect(() => {
     if (!totalPrice || isNaN(totalPrice) || totalPrice < 1) {
       console.error("❌ Toplam tutar geçersiz:", totalPriceParam);
@@ -261,7 +267,10 @@ export default function Step3Client() {
         {couponModalOpen && (
           <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
             <div className="bg-white rounded-lg w-[90%] max-w-md p-6 space-y-4">
-              <h2 className="text-lg font-semibold">Kuponlarım</h2>
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold">Kuponlarım</h2>
+                <AddCouponModal onSuccess={fetchCoupons} />
+              </div>
               <Step3CouponList
                 selectedCouponCode={selectedCoupon?.coupon?.code}
                 onApply={(coupon) => {

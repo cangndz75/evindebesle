@@ -68,7 +68,12 @@ export default function FilteredServiceSelect({
                 Bu türe özel hizmet bulunamadı.
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              <div
+                className={cn(
+                  "flex gap-4 overflow-x-auto scrollbar-hide",
+                  "sm:grid sm:grid-cols-2 md:grid-cols-3"
+                )}
+              >
                 {services.map((service) => (
                   <div
                     key={service.id}

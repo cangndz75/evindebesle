@@ -20,6 +20,7 @@ import AddressForm from "@/app/(account)/profile/addresses/AddressForm";
 import { CheckCircle2Icon, XIcon } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import clsx from "clsx";
+import { cn } from "@/lib/utils";
 
 type Pet = { id: string; name: string; image: string; species: string };
 type UserPet = {
@@ -491,7 +492,7 @@ export default function Step1Page() {
             Her tür için sayı belirtin
           </p>
 
-          <div className="space-y-12 mb-16">
+          <div className="space-y-10 mb-24">
             {isLoadingPets || selectedPets.length === 0
               ? Array.from({ length: 2 }).map((_, i) => (
                   <div key={i} className="space-y-3">
@@ -504,8 +505,19 @@ export default function Step1Page() {
                 ))
               : selectedPets.map((pet) => (
                   <div key={pet.species} className="space-y-6">
-                    <div className="flex items-center gap-4">
-                      <h2 className="text-lg font-semibold">{pet.name}</h2>
+                    {/* Sayı seçici görselli UI */}
+                    <div className="flex items-center justify-between border rounded-xl p-4 shadow-sm bg-white">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 relative rounded-full overflow-hidden border">
+                          <Image
+                            src={pet.image || "/placeholder.jpg"}
+                            alt={pet.name}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                        <h2 className="text-base font-semibold">{pet.name}</h2>
+                      </div>
                       <div className="flex items-center gap-2">
                         <Button
                           variant="outline"
@@ -515,7 +527,7 @@ export default function Step1Page() {
                         >
                           <MinusIcon className="w-4 h-4" />
                         </Button>
-                        <span className="w-8 text-center">
+                        <span className="w-6 text-center font-semibold">
                           {counts[pet.id] || 0}
                         </span>
                         <Button
@@ -527,29 +539,15 @@ export default function Step1Page() {
                         </Button>
                       </div>
                     </div>
-                    {counts[pet.id] > 0 && isLoggedInWithPets && (
-                      <PetSelectorBlock
-                        species={pet.species}
-                        speciesName={pet.name}
-                        userPets={userPets}
-                        selectedIds={selectedUserPets[pet.species] || []}
-                        setSelectedIds={(ids) =>
-                          handlePetSelect(pet.species, ids)
-                        }
-                        onRefetch={async () => {
-                          const res = await fetch("/api/user-pets");
-                          const data = await res.json();
-                          setUserPets(Array.isArray(data) ? data : []);
-                        }}
-                      />
-                    )}
-                    {counts[pet.id] > 0 && (
+
+                    {/* Seçilen hayvanlar listesi */}
+                    {(counts[pet.id] > 0 || isLoggedInWithPets) && (
                       <div className="mt-2">
                         <h3 className="text-md font-semibold mb-2">
                           Seçilen {pet.name} Hayvanlar:
                         </h3>
-                        <ScrollArea className="max-h-[150px] pr-2">
-                          <div className="grid grid-cols-2 gap-2">
+                        <ScrollArea className="max-h-[300px] pr-2">
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                             {selectedUserPets[pet.species]?.map((petId) => {
                               const selectedPet = userPets.find(
                                 (p) => p.id === petId
@@ -592,20 +590,24 @@ export default function Step1Page() {
                         </Button>
                       </div>
                     )}
-                    {counts[pet.id] > 0 && (
+
+                    {/* Hizmet seçimi – mobilde yatay scroll */}
+                    {(counts[pet.id] > 0 || isLoggedInWithPets) && (
                       <div className="mt-4">
-                        <Label className="text-sm font-semibold mb-2">
+                        <Label className="text-sm font-semibold mb-2 block">
                           {pet.name} Hizmetleri
                         </Label>
-                        <FilteredServiceSelect
-                          counts={{ [pet.species]: counts[pet.id] || 0 }}
-                          allServices={allServices}
-                          selectedPetSpecies={[pet.species]}
-                          selected={services[pet.species] || []}
-                          setSelected={(newServices) =>
-                            handleServiceChange(pet.species, newServices)
-                          }
-                        />
+                        <div className="overflow-x-auto scrollbar-hide -mx-1 px-1">
+                          <FilteredServiceSelect
+                            counts={{ [pet.species]: counts[pet.id] || 0 }}
+                            allServices={allServices}
+                            selectedPetSpecies={[pet.species]}
+                            selected={services[pet.species] || []}
+                            setSelected={(newServices) =>
+                              handleServiceChange(pet.species, newServices)
+                            }
+                          />
+                        </div>
                       </div>
                     )}
                   </div>
@@ -658,7 +660,12 @@ export default function Step1Page() {
       </div>
 
       <div className="relative hidden md:flex items-center justify-center bg-gray-50">
-        <div className="absolute bottom-6 right-6 bg-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-4 z-50">
+        <div
+          className={cn(
+            "fixed md:absolute bottom-0 md:bottom-6 right-0 md:right-6 w-full md:w-auto",
+            "bg-white px-4 py-3 md:rounded-xl shadow-lg flex items-center justify-between md:justify-end gap-4 z-50"
+          )}
+        >
           <span className="font-semibold text-base whitespace-nowrap">
             Toplam: {totalPrice}₺
           </span>

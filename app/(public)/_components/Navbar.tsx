@@ -14,6 +14,10 @@ import {
   Briefcase,
   Phone,
   HelpCircle,
+  MapPin,
+  Key,
+  CalendarCheck,
+  Ticket,
 } from "lucide-react";
 import {
   Sheet,
@@ -169,7 +173,7 @@ export default function Navbar() {
               <div className="text-sm text-gray-800">
                 {session?.user ? (
                   <Link
-                    href="/profile"
+                    href="/profile/personal-info"
                     className="flex items-center gap-2 hover:text-primary transition"
                   >
                     <User className="w-4 h-4" />
@@ -211,57 +215,56 @@ export default function Navbar() {
                 </button>
 
                 {menuOpen && (
-                  <div className="absolute top-[110%] right-0 w-52 bg-white border rounded-md shadow-md z-50 overflow-hidden">
+                  <div className="absolute top-[110%] right-0 w-56 bg-white border rounded-md shadow-md z-50 overflow-hidden">
                     <div className="bg-gradient-to-r from-fuchsia-600 to-rose-500 text-white p-4 font-semibold text-sm">
                       {session.user.name ?? "Misafir"}
                     </div>
                     <Link
                       href="/profile/personal-info"
-                      className="block px-4 py-2 text-sm hover:bg-gray-100"
+                      className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100"
                     >
+                      <User className="w-4 h-4 text-muted-foreground" />
                       Kişisel Bilgilerim
                     </Link>
                     <Link
                       href="/profile/pets"
-                      className="block px-4 py-2 text-sm hover:bg-gray-100"
+                      className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100"
                     >
+                      <PawPrint className="w-4 h-4 text-muted-foreground" />
                       Evcil Hayvanlarım
                     </Link>
                     <Link
                       href="/profile/addresses"
-                      className="block px-4 py-2 text-sm hover:bg-gray-100"
+                      className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100"
                     >
+                      <MapPin className="w-4 h-4 text-muted-foreground" />
                       Adreslerim
                     </Link>
                     <Link
                       href="/profile/access-info"
-                      className="block px-4 py-2 text-sm hover:bg-gray-100"
+                      className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100"
                     >
+                      <Key className="w-4 h-4 text-muted-foreground" />
                       Erişim Bilgilerim
                     </Link>
                     <Link
                       href="/profile/orders"
-                      className="block px-4 py-2 text-sm hover:bg-gray-100"
+                      className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100"
                     >
+                      <CalendarCheck className="w-4 h-4 text-muted-foreground" />
                       Tüm Randevularım
                     </Link>
-                    {/* <Link
-                      href="/reviews"
-                      className="block px-4 py-2 text-sm hover:bg-gray-100"
-                    >
-                      Değerlendirmelerim
-                    </Link> */}
                     <Link
                       href="/profile/coupons"
-                      className="block px-4 py-2 text-sm hover:bg-gray-100"
+                      className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100"
                     >
+                      <Ticket className="w-4 h-4 text-muted-foreground" />
                       Kuponlarım
                     </Link>
                   </div>
                 )}
               </div>
 
-              {/* Çıkış butonu ayrı */}
               <Button variant="secondary" onClick={handleLogout}>
                 <LogOut className="w-4 h-4 mr-1" />
                 Çıkış

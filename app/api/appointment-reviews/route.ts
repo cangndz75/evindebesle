@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
+import { createAdminNotification } from "@/lib/notifications/createAdminNotification";
 
 const reviewSchema = z.object({
   appointmentId: z.string().min(1),
@@ -98,6 +99,15 @@ export async function POST(req: NextRequest) {
         comment,
       },
     });
+
+    await createAdminNotification({
+    userId: session.user.id,
+    type: "NEW_REVIEW",
+    message: `Yeni yorum yapıldı.<br/>
+    <strong>Puan:</strong> ${rating} / 5<br/>
+    <strong>Yorum:</strong> ${comment || "(yorum yok)"}`,
+  });
+
 
     return NextResponse.json({ success: true, review });
   } catch (error) {

@@ -365,7 +365,7 @@ model Feedback {
 model NotificationLog {
   id         String   @id @default(cuid())
   userId     String
-  type       String
+  type       String   
   message    String
   sentAt     DateTime @default(now())
   retryCount Int      @default(0)

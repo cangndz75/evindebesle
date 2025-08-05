@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
+import { createAdminNotification } from "@/lib/notifications/createAdminNotification";
 
 export async function POST(req: Request) {
   try {
@@ -26,6 +27,11 @@ export async function POST(req: Request) {
       },
     });
 
+    await createAdminNotification({
+      type: "NEW_USER",
+      userId: newUser.id,
+      message: `Yeni kullanıcı kaydı: ${newUser.name} (${newUser.email})`,
+    });
     console.log("[REGISTER_SUCCESS]", newUser.id);
 
     return NextResponse.json({ success: true, userId: newUser.id }, { status: 201 });

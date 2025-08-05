@@ -5,6 +5,7 @@ import { authConfig } from "@/lib/auth.config";
 import { z } from "zod";
 import { AppointmentStatus } from "@/lib/generated/prisma";
 import { generateAndSaveInvoice } from "@/lib/invoice/generateAndSaveInvoice";
+import { createAdminNotification } from "@/lib/notifications/createAdminNotification";
 
 const completeSchema = z.object({
   draftAppointmentId: z.string().uuid("Geçersiz draftAppointmentId"),
@@ -156,6 +157,19 @@ export async function POST(req: NextRequest) {
           create: dates.map((d) => ({ date: d })),
         },
       },
+      include: {
+        services: {
+          include: {
+            service: true,
+          },
+        },
+        pets: {
+          include: {
+            pet: true,
+            ownedPet: true,
+          },
+        },
+      },
     });
 
     await prisma.draftAppointment.delete({ where: { id: draftAppointmentId } });
@@ -189,6 +203,25 @@ export async function POST(req: NextRequest) {
         ]);
       }
     }
+
+    await createAdminNotification({
+      userId: session.user.id,
+      type: "NEW_APPOINTMENT",
+      message: `
+        <p><strong>Yeni bir randevu oluşturuldu.</strong></p>
+        <ul>
+          <li><strong>Kullanıcı:</strong> ${session.user.name} (${session.user.email})</li>
+          <li><strong>Randevu ID:</strong> ${created.id}</li>
+          <li><strong>Tarih:</strong> ${created.confirmedAt?.toLocaleString("tr-TR") || "-"}</li>
+          <li><strong>Toplam Tutar:</strong> ${created.finalPrice?.toFixed(2) || "0"} ₺</li>
+          <li><strong>Seçilen Hizmetler:</strong>
+            <ul>
+              ${created.services.map(s => `<li>${s.service.name} - ${s.service.price} ₺</li>`).join("")}
+            </ul>
+          </li>
+        </ul>
+      `,
+    });
 
     console.log("✅ Randevu oluşturuldu:", created.id);
 

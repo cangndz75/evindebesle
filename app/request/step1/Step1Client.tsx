@@ -670,18 +670,20 @@ export default function Step1Page() {
       </div>
 
       <div className="relative hidden md:flex items-center justify-center bg-gray-50">
-        <div className="fixed bottom-0 left-0 w-full z-50 bg-white border-t px-4 py-3 flex items-center justify-between md:justify-end gap-4 shadow-md">
-          <span className="font-semibold text-base whitespace-nowrap">
-            Toplam: {totalPrice}₺
-          </span>
-          <Button onClick={handleSubmit}>Devam Et</Button>
-        </div>
         <Image
           src="https://images.unsplash.com/photo-1530281700549-e82e7bf110d6?q=80&w=688"
           alt="Evde hayvan bakımı"
           fill
           className="object-cover"
         />
+
+        <div className="fixed bottom-6 right-6 z-50 bg-white border rounded-xl px-6 py-4 shadow-lg flex items-center gap-4">
+          <span className="font-semibold text-base whitespace-nowrap">
+            Toplam: {totalPrice}₺
+          </span>
+          <Button onClick={handleSubmit}>Devam Et</Button>
+        </div>
+
         <div className="absolute bottom-6 left-6 bg-white/90 rounded-lg p-4 shadow-md max-w-sm">
           <p className="italic text-sm text-gray-700">
             “Evde hayvan bakımı çok daha konforlu. Hizmet mükemmeldi.”
@@ -814,10 +816,15 @@ export default function Step1Page() {
               const res = await fetch("/api/address");
               const data: Address[] = await res.json();
               setAddresses(data);
-              const last = data[0];
-              setSelectedAddressId(last.id);
-              setDistrictId(last.districtId);
-              setFullAddress(last.fullAddress);
+
+              const primary = data.find((addr) => addr.isPrimary);
+              if (primary) {
+                setPrimaryAddress(primary);
+                setSelectedAddressId(primary.id);
+                setDistrictId(primary.districtId);
+                setFullAddress(primary.fullAddress);
+              }
+
               toast.success("Adres başarıyla eklendi.");
               setShowAddressModal(false);
             }}

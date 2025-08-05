@@ -22,12 +22,13 @@ export default function PetAddForm({ onSaved }: Props) {
   const [form, setForm] = useState({
     name: "",
     age: "",
-    allergy: "",
+    allergy: [] as string[],
     specialNote: "",
   });
 
   const [image, setImage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [allergyInput, setAllergyInput] = useState("");
 
   useEffect(() => {
     fetch("/api/pets")
@@ -49,6 +50,21 @@ export default function PetAddForm({ onSaved }: Props) {
     reader.readAsDataURL(file);
   };
 
+  const addAllergy = () => {
+    const trimmed = allergyInput.trim();
+    if (trimmed && !form.allergy.includes(trimmed)) {
+      setForm((prev) => ({ ...prev, allergy: [...prev.allergy, trimmed] }));
+      setAllergyInput("");
+    }
+  };
+
+  const removeAllergy = (item: string) => {
+    setForm((prev) => ({
+      ...prev,
+      allergy: prev.allergy.filter((a) => a !== item),
+    }));
+  };
+
   const handleChange = (e: any) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -66,13 +82,13 @@ export default function PetAddForm({ onSaved }: Props) {
         age: form.age ? Number(form.age) : null,
         petId: selectedSpecies,
         image,
-        allergy: form.allergy || null,
+        allergy: form.allergy,
         specialNote: form.specialNote || null,
       }),
     });
 
     setSaving(false);
-    setForm({ name: "", age: "", allergy: "", specialNote: "" });
+    setForm({ name: "", age: "", allergy: [], specialNote: "" });
     setImage(null);
     onSaved();
   };
@@ -124,14 +140,42 @@ export default function PetAddForm({ onSaved }: Props) {
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="allergy">Alerji</Label>
-          <Textarea
-            id="allergy"
-            name="allergy"
-            value={form.allergy}
-            onChange={handleChange}
-            placeholder="Yoksa boş bırakın"
-          />
+          <Label htmlFor="allergy">Alerji Bilgileri</Label>
+          <div className="flex gap-2 mt-1">
+            <Input
+              id="allergy"
+              value={allergyInput}
+              onChange={(e) => setAllergyInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addAllergy();
+                }
+              }}
+              placeholder="Örn: Tavuk eti"
+            />
+            <Button type="button" onClick={addAllergy}>
+              Ekle
+            </Button>
+          </div>
+
+          <div className="flex flex-wrap gap-2 mt-2">
+            {form.allergy.map((item, idx) => (
+              <div
+                key={idx}
+                className="flex items-center bg-muted text-sm px-2 py-1 rounded-full"
+              >
+                <span className="mr-2">{item}</span>
+                <button
+                  type="button"
+                  onClick={() => removeAllergy(item)}
+                  className="text-red-500 hover:text-red-700"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
         <div>
           <Label htmlFor="specialNote">Özel Not</Label>

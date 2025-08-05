@@ -7,11 +7,13 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import AddressForm from "./AddressForm";
 import EditAddressForm from "./EditAddressModal";
+import { toast } from "sonner";
 
 type District = { id: string; name: string };
 type Address = {
@@ -29,6 +31,7 @@ export default function AddressesPage() {
   const [formLoading, setFormLoading] = useState(false);
   const [openAdd, setOpenAdd] = useState(false);
   const [openEditId, setOpenEditId] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const fetchAddresses = async () => {
     const res = await fetch("/api/address");
@@ -81,10 +84,23 @@ export default function AddressesPage() {
     setFormLoading(false);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Bu adresi silmek istediğinize emin misiniz?")) return;
-    await fetch(`/api/address/${id}`, { method: "DELETE" });
-    await fetchAddresses();
+  const confirmDelete = async () => {
+    if (!deleteId) return;
+    try {
+      const res = await fetch(`/api/address/${deleteId}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        toast.success("Adres silindi");
+        await fetchAddresses();
+      } else {
+        toast.error("Adres silinemedi");
+      }
+    } catch (error) {
+      toast.error("Bir hata oluştu");
+    } finally {
+      setDeleteId(null);
+    }
   };
 
   return (
@@ -108,7 +124,6 @@ export default function AddressesPage() {
               key={address.id}
               className="border rounded-lg p-4 flex flex-col md:flex-row md:items-start justify-between gap-4"
             >
-              {/* SOL BLOK */}
               <div className="flex-1">
                 <div className="text-sm text-gray-500">İlçe:</div>
                 <div className="font-medium text-lg">
@@ -123,7 +138,6 @@ export default function AddressesPage() {
                 )}
               </div>
 
-              {/* SAĞ BUTONLAR */}
               <div className="flex flex-col items-end gap-2 min-w-[120px]">
                 <div className="flex gap-2">
                   <Button
@@ -136,7 +150,7 @@ export default function AddressesPage() {
                   <Button
                     size="icon"
                     variant="destructive"
-                    onClick={() => handleDelete(address.id)}
+                    onClick={() => setDeleteId(address.id)}
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -159,7 +173,6 @@ export default function AddressesPage() {
                 )}
               </div>
 
-              {/* GÜNCELLEME DİALOGU */}
               <Dialog
                 open={openEditId === address.id}
                 onOpenChange={() => setOpenEditId(null)}
@@ -189,6 +202,23 @@ export default function AddressesPage() {
             <DialogTitle>Yeni Adres Ekle</DialogTitle>
           </DialogHeader>
           <AddressForm loading={formLoading} onSubmit={handleAdd} />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Adresi Sil</DialogTitle>
+          </DialogHeader>
+          <p>Bu adresi silmek istediğinize emin misiniz?</p>
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => setDeleteId(null)}>
+              İptal
+            </Button>
+            <Button variant="destructive" onClick={confirmDelete}>
+              Sil
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

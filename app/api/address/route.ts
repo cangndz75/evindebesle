@@ -1,12 +1,17 @@
 import { getServerSession } from "next-auth";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { authConfig } from "@/lib/auth.config";
+import { z } from "zod";
+
+const addressSchema = z.object({
+  districtId: z.string().min(1),
+  fullAddress: z.string().min(5),
+});
 
 export async function GET() {
   const session = await getServerSession(authConfig);
-  if (!session?.user?.id)
-    return new NextResponse("Unauthorized", { status: 401 });
+  if (!session?.user?.id) return new NextResponse("Unauthorized", { status: 401 });
 
   const addresses = await prisma.userAddress.findMany({
     where: { userId: session.user.id },
@@ -25,12 +30,13 @@ export async function GET() {
   );
 }
 
-
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   const session = await getServerSession(authConfig);
   if (!session?.user?.id) return new NextResponse("Unauthorized", { status: 401 });
 
-  const { districtId, fullAddress } = await req.json();
+  const body = await req.json();
+  const parsed = addressSchema.safeParse(body);
+  if (!parsed.success) return NextResponse.json({ error: "Geçersiz veri" }, { status: 400 });
 
   const existingAddresses = await prisma.userAddress.findMany({
     where: { userId: session.user.id },
@@ -41,8 +47,8 @@ export async function POST(req: Request) {
   const newAddress = await prisma.userAddress.create({
     data: {
       userId: session.user.id,
-      districtId,
-      fullAddress,
+      districtId: parsed.data.districtId,
+      fullAddress: parsed.data.fullAddress,
       isPrimary: isFirst,
     },
   });
@@ -51,8 +57,8 @@ export async function POST(req: Request) {
     await prisma.user.update({
       where: { id: session.user.id },
       data: {
-        districtId,
-        fullAddress,
+        districtId: parsed.data.districtId,
+        fullAddress: parsed.data.fullAddress,
       },
     });
   }

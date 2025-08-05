@@ -1,9 +1,11 @@
 "use client";
 
 import Image from "next/image";
+import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 type Service = {
   id: string;
@@ -29,6 +31,17 @@ export default function FilteredServiceSelect({
   setSelected,
   counts,
 }: Props) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const scroll = (dir: "left" | "right") => {
+    if (!scrollRef.current) return;
+    const amount = scrollRef.current.offsetWidth * 0.8;
+    scrollRef.current.scrollBy({
+      left: dir === "left" ? -amount : amount,
+      behavior: "smooth",
+    });
+  };
+
   const toggle = (service: Service, species: string) => {
     const count = counts[species] ?? 0;
     if (count < 1) {
@@ -37,7 +50,7 @@ export default function FilteredServiceSelect({
     }
 
     if (selected.includes(service.id)) {
-      setSelected(selected.filter((s) => s !== service.id));
+      setSelected(selected.filter((id) => id !== service.id));
     } else {
       setSelected([...selected, service.id]);
     }
@@ -45,9 +58,9 @@ export default function FilteredServiceSelect({
 
   const groupedBySpecies = selectedPetSpecies.reduce(
     (acc, species) => {
-      const upperSpecies = species.toUpperCase();
+      const upper = species.toUpperCase();
       acc[species] = allServices.filter((s) =>
-        s.petTags.map((t) => t.toUpperCase()).includes(upperSpecies)
+        s.petTags.map((t) => t.toUpperCase()).includes(upper)
       );
       return acc;
     },
@@ -55,64 +68,90 @@ export default function FilteredServiceSelect({
   );
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-16">
       {Object.entries(groupedBySpecies).map(([species, services]) => (
-        <div key={species}>
-          <h3 className="text-lg font-semibold mb-4">
+        <div key={species} className="relative">
+          <h2 className="text-xl font-semibold mb-4">
             {species} için Hizmetler
-          </h3>
-          {services.length === 0 ? (
-            <div className="text-sm text-muted-foreground italic">
-              Bu türe özel hizmet bulunamadı.
-            </div>
-          ) : (
-            <div className="flex gap-4 overflow-x-auto pb-2 -mx-2 px-2 snap-x snap-mandatory">
-              {services.map((service) => (
-                <div
-                  key={service.id}
-                  className={cn(
-                    "min-w-[220px] snap-start border rounded-xl bg-white shadow transition hover:shadow-md",
-                    selected.includes(service.id) && "ring-2 ring-primary"
-                  )}
-                >
-                  <div className="relative w-full h-36 bg-muted rounded-t-xl overflow-hidden">
-                    <Image
-                      src={
-                        service.imageUrl ||
-                        "https://images.unsplash.com/photo-1579452113472-2f2a764188ac?q=80&w=1170&auto=format&fit=crop"
-                      }
-                      alt={service.name}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
+          </h2>
 
-                  <div className="p-4 space-y-2">
-                    <div className="font-bold text-sm">{service.name}</div>
-                    <div className="text-sm text-muted-foreground line-clamp-2">
-                      {service.description || "Açıklama bulunmuyor"}
-                    </div>
-                    <div className="flex items-center justify-between mt-2">
-                      <span className="text-base font-semibold text-orange-600">
-                        {service.price}₺
-                      </span>
-                      <Button
-                        size="sm"
-                        variant={
-                          selected.includes(service.id)
-                            ? "secondary"
-                            : "outline"
-                        }
-                        onClick={() => toggle(service, species)}
-                      >
-                        {selected.includes(service.id) ? "Seçildi" : "Seç"}
-                      </Button>
-                    </div>
+          {/* Scroll buttons */}
+          <Button
+            size="icon"
+            variant="ghost"
+            className="absolute left-0 top-[45%] z-10 hidden md:flex"
+            onClick={() => scroll("left")}
+          >
+            <ChevronLeft />
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="absolute right-0 top-[45%] z-10 hidden md:flex"
+            onClick={() => scroll("right")}
+          >
+            <ChevronRight />
+          </Button>
+
+          {/* Scrollable container */}
+          <div
+            ref={scrollRef}
+            className="flex overflow-x-auto gap-6 px-1"
+            style={{
+              scrollSnapType: "x mandatory",
+              WebkitOverflowScrolling: "touch",
+              scrollbarWidth: "none",
+              msOverflowStyle: "none",
+            }}
+          >
+            <style jsx>{`
+              div::-webkit-scrollbar {
+                display: none;
+              }
+            `}</style>
+
+            {services.map((service) => (
+              <div
+                key={service.id}
+                className={cn(
+                  "flex-shrink-0 w-[250px] rounded-xl border shadow-sm hover:shadow-md transition scroll-snap-align-start bg-white",
+                  selected.includes(service.id) && "ring-2 ring-primary"
+                )}
+              >
+                <div className="relative h-40 w-full rounded-t-xl overflow-hidden">
+                  <Image
+                    src={
+                      service.imageUrl ||
+                      "https://images.unsplash.com/photo-1579452113472-2f2a764188ac?q=80&w=1170"
+                    }
+                    alt={service.name}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <div className="p-4 space-y-1">
+                  <div className="font-semibold text-sm">{service.name}</div>
+                  <p className="text-muted-foreground text-sm line-clamp-2">
+                    {service.description || "Açıklama bulunmuyor"}
+                  </p>
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="text-orange-600 font-semibold text-base">
+                      {service.price}₺
+                    </span>
+                    <Button
+                      size="sm"
+                      variant={
+                        selected.includes(service.id) ? "secondary" : "outline"
+                      }
+                      onClick={() => toggle(service, species)}
+                    >
+                      {selected.includes(service.id) ? "Seçildi" : "Seç"}
+                    </Button>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
+              </div>
+            ))}
+          </div>
         </div>
       ))}
     </div>

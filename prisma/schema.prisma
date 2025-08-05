@@ -375,12 +375,19 @@ model NotificationLog {
 }
 
 model Invoice {
-  id            String   @id @default(cuid())
-  appointmentId String   @unique
-  fileUrl       String
-  createdAt     DateTime @default(now())
+  id             String   @id @default(cuid())
+  appointmentId  String   @unique
+  invoiceNo      String   @unique
+  ettn           String
+  fileUrl        String
+  totalPrice     Float
+  taxRate        Int       @default(20)
+  taxAmount      Float
+  isSent         Boolean   @default(false)
+  sentAt         DateTime?
+  createdAt      DateTime  @default(now())
 
-  appointment Appointment @relation(fields: [appointmentId], references: [id])
+  appointment    Appointment @relation(fields: [appointmentId], references: [id])
 }
 
 model EmailLog {

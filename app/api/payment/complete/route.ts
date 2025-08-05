@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { authConfig } from "@/lib/auth.config";
 import { z } from "zod";
 import { AppointmentStatus } from "@/lib/generated/prisma";
+import { generateAndSaveInvoice } from "@/lib/invoice/generateAndSaveInvoice";
 
 const completeSchema = z.object({
   draftAppointmentId: z.string().uuid("Geçersiz draftAppointmentId"),
@@ -190,6 +191,8 @@ export async function POST(req: NextRequest) {
     }
 
     console.log("✅ Randevu oluşturuldu:", created.id);
+
+    await generateAndSaveInvoice(created.id);
 
     return NextResponse.json(
       { success: true, appointmentId: created.id },

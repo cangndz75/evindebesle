@@ -29,6 +29,26 @@ import {
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+function MenuLink({
+  href,
+  icon,
+  children,
+}: {
+  href: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className="flex items-center gap-2 px-2 py-2 rounded-md hover:bg-gray-100 transition-colors"
+    >
+      {icon}
+      <span>{children}</span>
+    </Link>
+  );
+}
+
 
 export default function Navbar() {
   const { data: session, status } = useSession();
@@ -137,6 +157,54 @@ export default function Navbar() {
                 )}
               </div>
 
+              <div className="text-sm text-gray-800 space-y-2">
+                {session?.user ? (
+                  <>
+                    <MenuLink
+                      href="/profile/personal-info"
+                      icon={<User className="w-4 h-4" />}
+                    >
+                      Profilim
+                    </MenuLink>
+                    <MenuLink
+                      href="/profile/pets"
+                      icon={<PawPrint className="w-4 h-4" />}
+                    >
+                      Evcil Hayvanlarım
+                    </MenuLink>
+                    <MenuLink
+                      href="/profile/addresses"
+                      icon={<MapPin className="w-4 h-4" />}
+                    >
+                      Adreslerim
+                    </MenuLink>
+                    <MenuLink
+                      href="/profile/access-info"
+                      icon={<Key className="w-4 h-4" />}
+                    >
+                      Erişim Bilgilerim
+                    </MenuLink>
+                    <MenuLink
+                      href="/profile/orders"
+                      icon={<CalendarCheck className="w-4 h-4" />}
+                    >
+                      Randevularım
+                    </MenuLink>
+                    <MenuLink
+                      href="/profile/coupons"
+                      icon={<Ticket className="w-4 h-4" />}
+                    >
+                      Kuponlarım
+                    </MenuLink>
+                  </>
+                ) : (
+                  <MenuLink href="/login" icon={<User className="w-4 h-4" />}>
+                    Giriş Yap
+                  </MenuLink>
+                )}
+              </div>
+
+              <Separator className="my-4" />
               <div className="flex flex-col gap-4 text-sm text-gray-800">
                 <Link
                   href="/about"
@@ -159,35 +227,13 @@ export default function Navbar() {
                   <Phone className="w-4 h-4" />
                   İletişim
                 </Link>
-                <Link
+                {/* <Link
                   href="/faq"
                   className="flex items-center gap-2 hover:text-primary transition"
                 >
                   <HelpCircle className="w-4 h-4" />
                   Sık Sorulanlar
-                </Link>
-              </div>
-
-              <Separator className="my-4" />
-
-              <div className="text-sm text-gray-800">
-                {session?.user ? (
-                  <Link
-                    href="/profile/personal-info"
-                    className="flex items-center gap-2 hover:text-primary transition"
-                  >
-                    <User className="w-4 h-4" />
-                    Profilim
-                  </Link>
-                ) : (
-                  <Link
-                    href="/login"
-                    className="flex items-center gap-2 hover:text-primary transition"
-                  >
-                    <User className="w-4 h-4" />
-                    Giriş Yap
-                  </Link>
-                )}
+                </Link> */}
               </div>
             </SheetContent>
           </Sheet>

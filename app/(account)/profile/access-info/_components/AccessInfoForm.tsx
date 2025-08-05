@@ -76,14 +76,10 @@ export default function AccessInfoForm({ defaultData, onSaved }: Props) {
 
         const res = await fetch(
           `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/upload`,
-          {
-            method: "POST",
-            body: formData,
-          }
+          { method: "POST", body: formData }
         );
 
         if (!res.ok) throw new Error("Görsel yüklenemedi");
-
         const data = await res.json();
         imageUrl = data.secure_url;
       }
@@ -95,11 +91,11 @@ export default function AccessInfoForm({ defaultData, onSaved }: Props) {
       });
 
       if (!res.ok) throw new Error("Kayıt başarısız");
-      toast.success("Bilgiler kaydedildi");
+      toast.success("Erişim bilgileri başarıyla kaydedildi.");
       onSaved();
     } catch (err) {
       console.error(err);
-      toast.error("Hata oluştu");
+      toast.error("Bir hata oluştu.");
     } finally {
       setLoading(false);
     }
@@ -111,10 +107,11 @@ export default function AccessInfoForm({ defaultData, onSaved }: Props) {
         e.preventDefault();
         handleSubmit();
       }}
-      className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto px-1"
+      className="grid grid-cols-1 md:grid-cols-2 gap-6 max-h-[80vh] overflow-y-auto px-4 py-2 rounded-lg bg-white shadow-lg"
     >
+      {/* Satır 1 */}
       <div>
-        <Label>Anahtar Nerede?</Label>
+        <Label className="text-sm font-medium">Anahtar Nerede?</Label>
         <Input
           value={form.keyLocation}
           onChange={(e) => handleChange("keyLocation", e.target.value)}
@@ -128,6 +125,7 @@ export default function AccessInfoForm({ defaultData, onSaved }: Props) {
         />
       </div>
 
+      {/* Satır 2 */}
       <div>
         <Label>Anahtar Açıklaması</Label>
         <Textarea
@@ -143,6 +141,7 @@ export default function AccessInfoForm({ defaultData, onSaved }: Props) {
         />
       </div>
 
+      {/* Satır 3 */}
       <div>
         <Label>Kapı Şifresi</Label>
         <Input
@@ -173,14 +172,15 @@ export default function AccessInfoForm({ defaultData, onSaved }: Props) {
         />
       </div>
 
-      <div>
+      {/* Satır 5 - Switchler */}
+      <div className="flex items-center justify-between gap-2">
         <Label>Güvenliği Bilgilendir</Label>
         <Switch
           checked={form.notifySecurityGuard}
           onCheckedChange={(val) => handleChange("notifySecurityGuard", val)}
         />
       </div>
-      <div>
+      <div className="flex items-center justify-between gap-2">
         <Label>Giriş Öncesi Arayın</Label>
         <Switch
           checked={form.callBeforeEnter}
@@ -188,6 +188,7 @@ export default function AccessInfoForm({ defaultData, onSaved }: Props) {
         />
       </div>
 
+      {/* Satır 6 */}
       <div className="md:col-span-2">
         <Label>Hizmet Sonrası Anahtar Bırakma Yeri</Label>
         <Input
@@ -198,14 +199,16 @@ export default function AccessInfoForm({ defaultData, onSaved }: Props) {
         />
       </div>
 
-      <div className="md:col-span-2 pt-2">
-        <Label className="mb-1 block">Alarm Var mı?</Label>
+      {/* Satır 7 - Alarm Switch */}
+      <div className="md:col-span-2 flex items-center justify-between mt-2">
+        <Label className="font-medium">Alarm Var mı?</Label>
         <Switch
           checked={form.alarmExists}
           onCheckedChange={(val) => handleChange("alarmExists", val)}
         />
       </div>
 
+      {/* Alarm detayları */}
       {form.alarmExists && (
         <>
           <div>
@@ -233,7 +236,7 @@ export default function AccessInfoForm({ defaultData, onSaved }: Props) {
               }
             />
           </div>
-          <div className="md:col-span-1 md:col-start-1 md:col-end-3">
+          <div className="md:col-span-2">
             <Label>Alarm Açıklaması</Label>
             <Textarea
               value={form.alarmInstruction || ""}
@@ -243,14 +246,36 @@ export default function AccessInfoForm({ defaultData, onSaved }: Props) {
         </>
       )}
 
-      <div className="md:col-span-2 sticky bottom-0 bg-white pt-4 z-10">
-        <Button type="submit" disabled={loading} className="w-full flex items-center justify-center gap-2">
+      <div className="md:col-span-2 sticky bottom-0 left-0 bg-white pt-4 pb-2 z-10">
+        <Button
+          type="submit"
+          disabled={loading}
+          className="w-full h-11 rounded-xl text-base"
+        >
           {loading ? (
-            <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+            <svg
+              className="animate-spin h-5 w-5 text-white mr-2"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+              ></path>
             </svg>
-          ) : "Kaydet"}
+          ) : (
+            "Kaydet"
+          )}
         </Button>
       </div>
     </form>

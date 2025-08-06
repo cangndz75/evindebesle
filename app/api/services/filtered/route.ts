@@ -3,9 +3,11 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const petIds = searchParams.getAll("pet");
+  const speciesList = searchParams.getAll("species");
 
-  if (petIds.length === 0) {
+  console.log("API'ye gelen species:", speciesList); 
+
+  if (speciesList.length === 0) {
     return NextResponse.json([], { status: 200 });
   }
 
@@ -14,7 +16,11 @@ export async function GET(request: NextRequest) {
       isActive: true,
       tags: {
         some: {
-          petId: { in: petIds },
+          pet: {
+            species: {
+              in: speciesList,
+            },
+          },
         },
       },
     },

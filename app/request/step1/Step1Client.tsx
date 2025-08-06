@@ -200,12 +200,12 @@ export default function Step1Page() {
   useEffect(() => {
     if (
       !me &&
-      searchParams.get("district") &&
+      searchParams.get("districtId") &&
       searchParams.get("fullAddress")
     ) {
       const searchAddr: Address = {
         id: "search",
-        districtId: searchParams.get("district")!,
+        districtId: searchParams.get("districtId")!,
         fullAddress: searchParams.get("fullAddress")!,
         isPrimary: false,
       };
@@ -215,6 +215,18 @@ export default function Step1Page() {
       setFullAddress(searchAddr.fullAddress);
     }
   }, [me, searchParams]);
+
+  useEffect(() => {
+    console.log("Selected Pet IDs:", selectedPetIds);
+    console.log("Search Params:", {
+      districtId: searchParams.get("districtId"),
+      fullAddress: searchParams.get("fullAddress"),
+      startDate: searchParams.get("startDate"),
+      endDate: searchParams.get("endDate"),
+      pets: searchParams.getAll("pet"),
+      species: searchParams.getAll("species"),
+    });
+  }, [searchParams, selectedPetIds]);
 
   useEffect(() => {
     setIsLoadingPets(true);
@@ -230,11 +242,8 @@ export default function Step1Page() {
 
         const initialServices: Record<string, string[]> = {};
         selectedPetIds.forEach((id) => {
-          const species = getSpeciesById(id);
-          if (species)
-            initialServices[species] = searchParams.getAll(
-              "service"
-            ) as string[];
+          const species = data.find((p) => p.id === id)?.species;
+          if (species) initialServices[species] = [];
         });
         setServices((prev) => ({ ...prev, ...initialServices }));
       })
@@ -253,7 +262,11 @@ export default function Step1Page() {
     if (!selectedPetIds.length) return;
     setIsLoadingServices(true);
     const query = new URLSearchParams();
-    selectedPetIds.forEach((id) => query.append("pet", id));
+    selectedPetIds.forEach((id) => {
+      query.append("pet", id);
+      const species = getSpeciesById(id);
+      if (species) query.append("species", species);
+    });
     fetch(`/api/services/filtered?${query.toString()}`)
       .then((res) => res.json())
       .then((data: Service[]) => setAllServices(data))

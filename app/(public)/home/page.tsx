@@ -13,7 +13,7 @@ export default function HomePage() {
   return (
     <>
       <Hero />
-      <SearchBox />
+      {/* <SearchBox /> */}
       <HowItWorksSection />
       <PetTypeSelector />
       <CategoryMarquee />

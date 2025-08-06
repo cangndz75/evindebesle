@@ -8,7 +8,6 @@ import { ScrollTextIcon } from "lucide-react";
 export default function MembershipAgreementPage() {
   return (
     <>
-      <Navbar />
       <div className="bg-white py-10">
         <div className="max-w-4xl mx-auto px-4 text-sm leading-7">
           <div className="flex items-center gap-2 mb-6">

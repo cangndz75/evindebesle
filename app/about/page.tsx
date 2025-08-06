@@ -24,7 +24,6 @@ const features = [
 export default function AboutPage() {
   return (
     <div className="flex flex-col items-center justify-center">
-      <Navbar />
       <section className="w-full bg-gradient-to-br from-white to-slate-100 py-28 text-center px-6">
         <motion.h1
           className="text-4xl md:text-6xl font-bold mb-4"

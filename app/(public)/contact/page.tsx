@@ -6,7 +6,6 @@ import Footer from "../_components/Footer"
 export default function ContactPage() {
   return (
     <>
-      <Navbar />
 
       <section className="relative z-0 py-24 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

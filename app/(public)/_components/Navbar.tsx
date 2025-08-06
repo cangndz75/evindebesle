@@ -95,6 +95,9 @@ export default function Navbar() {
           <Link href="/contact" className="hover:text-black transition">
             İletişim
           </Link>
+          {/* <Link href="/blog" className="hover:text-black transition">
+            Blog
+          </Link> */}
         </div>
 
         {/* Mobil Menü + Giriş/Çıkış */}

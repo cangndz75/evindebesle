@@ -7,7 +7,6 @@ import Footer from "@/app/(public)/_components/Footer";
 export default function GizlilikPage() {
   return (
     <>
-      <Navbar />
       <div className="bg-white py-10">
         <div className="max-w-4xl mx-auto px-4">
           <div className="flex items-center gap-2 mb-6">

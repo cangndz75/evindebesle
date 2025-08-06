@@ -7,7 +7,6 @@ import ServiceGrid from "./_components/ServiceGrid"
 export default function ServicesPage() {
   return (
     <>
-      <Navbar />
       <main className="space-y-24 mt-0">
         <HeroSection />
         <BrandLogos />

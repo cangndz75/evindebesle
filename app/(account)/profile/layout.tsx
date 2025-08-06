@@ -6,7 +6,6 @@ import ProfileMobileHeader from "@/app/(account)/profile/_components/ProfileMobi
 export default function ProfileLayout({ children }: { children: ReactNode }) {
   return (
     <>
-      <Navbar />
       <div className="flex flex-col md:flex-row min-h-screen bg-white overflow-x-hidden">
         <aside className="hidden md:block w-64 border-r bg-gray-50 px-4 py-6 shrink-0">
           <Sidebar />

@@ -7,7 +7,6 @@ import Footer from "@/app/(public)/_components/Footer";
 export default function DistanceSellingPage() {
   return (
     <>
-      <Navbar />
       <div className="container mx-auto p-6 bg-white shadow-md rounded-lg max-w-4xl">
         <div className="flex items-center gap-2 mb-6">
           <Handshake className="text-teal-600 w-6 h-6" />

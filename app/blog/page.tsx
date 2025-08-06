@@ -1,8 +1,8 @@
+import { Suspense } from "react"
 import { getAllPosts } from "@/lib/blogData"
 import BlogCard from "./_components/BlogCard"
 import BlogSidebar from "./_components/BlogSidebar"
 import BlogPagination from "./_components/BlogPagination"
-
 
 export default async function BlogHomePage() {
   const posts = await getAllPosts()
@@ -13,7 +13,10 @@ export default async function BlogHomePage() {
         {posts.map((post) => (
           <BlogCard key={post.slug} post={post} />
         ))}
-        <BlogPagination />
+
+        <Suspense fallback={<div>Yükleniyor...</div>}>
+          <BlogPagination />
+        </Suspense>
       </div>
       <div className="lg:col-span-4">
         <BlogSidebar />

@@ -29,6 +29,12 @@ export default function PetTypeSelector() {
     );
   };
 
+  const goNext = () => {
+    const params = new URLSearchParams();
+    selected.forEach((id) => params.append("species", id));
+    router.push(`/request/multistep?${params.toString()}`);
+  };
+
   return (
     <section className="min-h-screen flex items-center justify-center py-24 px-4 bg-gradient-to-br from-lime-100 via-white to-lime-200">
       <div className="w-full max-w-7xl bg-white rounded-3xl p-10 shadow-2xl">
@@ -78,11 +84,7 @@ export default function PetTypeSelector() {
 
         <div className="text-center mt-10">
           <button
-            onClick={() => {
-              const params = new URLSearchParams();
-              selected.forEach((pet) => params.append("pet", pet));
-              router.push(`/request?${params.toString()}`);
-            }}
+            onClick={goNext}
             disabled={selected.length === 0}
             className={`px-10 py-4 rounded-full font-bold text-white transition-all duration-300 shadow-lg ${
               selected.length === 0

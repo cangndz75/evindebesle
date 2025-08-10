@@ -1,10 +1,10 @@
 import { Suspense } from "react";
-import Step1Page from "./step1/page";
+import MultiStepPage from "./multistep/page";
 
 export default function Page() {
   return (
     <Suspense fallback={<div>Yükleniyor...</div>}>
-      <Step1Page />
+      <MultiStepPage />
     </Suspense>
   );
 }

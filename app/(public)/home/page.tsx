@@ -29,7 +29,8 @@ export default function HomePage() {
               priority
             />
           </div>
-          <div className="w-full rounded-xl overflow-hidden shadow-lg">
+
+          <div className="hidden md:block">
             <Image
               src="https://res.cloudinary.com/dlahfchej/image/upload/v1754850604/banner2_upt5zl.png"
               alt="Randevu banner web"

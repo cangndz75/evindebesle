@@ -16,16 +16,30 @@ export default function HomePage() {
       {/* <SearchBox /> */}
       <HowItWorksSection />
       <section className="my-6 sm:my-10">
-        <div className="w-full">
-          <Image
-            src="https://res.cloudinary.com/dlahfchej/image/upload/v1754850604/banner2_upt5zl.png"
-            alt="Randevu banner"
-            width={7924}
-            height={1139}
-            className="w-full h-auto object-contain rounded-xl shadow-lg"
-            sizes="100vw"
-            priority
-          />
+        <div className="w-full rounded-xl overflow-hidden shadow-lg">
+          {/* Mobil (<= md) */}
+          <div className="block md:hidden">
+            <Image
+              src="https://res.cloudinary.com/dlahfchej/image/upload/v1754852424/ChatGPT_Image_10_A%C4%9Fu_2025_22_00_12_gpotrr.png"
+              alt="Randevu banner mobil"
+              width={1536}
+              height={1024}
+              className="w-full h-auto object-contain"
+              sizes="100vw"
+              priority
+            />
+          </div>
+          <div className="w-full rounded-xl overflow-hidden shadow-lg">
+            <Image
+              src="https://res.cloudinary.com/dlahfchej/image/upload/v1754850604/banner2_upt5zl.png"
+              alt="Randevu banner web"
+              width={7924}
+              height={1139}
+              className="w-full h-auto object-contain"
+              sizes="100vw"
+              priority
+            />
+          </div>
         </div>
       </section>
       <PetTypeSelector />

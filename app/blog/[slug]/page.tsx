@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import Script from "next/script";
 
 import BlogSidebar from "../_components/BlogSidebar";
 import Breadcrumbs from "./_components/Breadcrumbs";
@@ -15,7 +14,7 @@ import { getAllPosts, getPostBySlug, getRelatedPosts } from "@/lib/blogData";
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.evindebesle.com";
 
-export async function generateStaticParams(): Promise<Array<{ slug: string }>> {
+export async function generateStaticParams() {
   const posts = await getAllPosts();
   return posts.map((p) => ({ slug: p.slug }));
 }
@@ -23,11 +22,9 @@ export async function generateStaticParams(): Promise<Array<{ slug: string }>> {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: { slug: string };
 }): Promise<Metadata> {
-  const { slug } = await params;
-  const post = await getPostBySlug(slug);
-
+  const post = await getPostBySlug(params.slug);
   if (!post) {
     return {
       title: "Yazı bulunamadı | Evinde Besle",
@@ -55,35 +52,46 @@ export async function generateMetadata({
       images: [{ url: image }],
       siteName: "Evinde Besle",
     },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [image],
+    },
   };
 }
 
-/* ---------- Sayfa ---------- */
-type PageProps = {
-  params: Promise<{ slug: string }>;
-};
+type Props = { params: Promise<{ slug: string }> };
 
-export default async function BlogDetailPage({ params }: PageProps) {
+export default async function BlogDetailPage({ params }: Props) {
   const { slug } = await params;
-
   const post = await getPostBySlug(slug);
   if (!post) return notFound();
 
   const related = await getRelatedPosts(post.slug, post.category);
 
-  const articleLd = {
+  const blogPostingLd = {
     "@context": "https://schema.org",
-    "@type": "Article",
+    "@type": "BlogPosting",
+    mainEntityOfPage: `${SITE}/blog/${post.slug}`,
     headline: post.title,
     description: post.excerpt,
     image: post.imageUrl ? [post.imageUrl] : undefined,
     datePublished: post.date,
     dateModified: post.date,
     author: [{ "@type": "Organization", name: "Evinde Besle" }],
-    publisher: { "@type": "Organization", name: "Evinde Besle" },
-    mainEntityOfPage: `${SITE}/blog/${post.slug}`,
+    publisher: {
+      "@type": "Organization",
+      name: "Evinde Besle",
+      logo: {
+        "@type": "ImageObject",
+        url: `${SITE}/logo.png`,
+      },
+    },
     articleSection: post.category,
     keywords: (post.tags ?? []).join(", "),
+    wordCount: post.content?.split(/\s+/).filter(Boolean).length ?? undefined,
+    articleBody: post.content.replace(/\s+/g, " ").slice(0, 5000),
   };
 
   const breadcrumbLd = {
@@ -103,14 +111,11 @@ export default async function BlogDetailPage({ params }: PageProps) {
 
   return (
     <div className="container py-8">
-      {/* JSON‑LD */}
-      <Script
-        id="ld-article"
+      <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(blogPostingLd) }}
       />
-      <Script
-        id="ld-breadcrumb"
+      <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />

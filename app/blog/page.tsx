@@ -1,14 +1,17 @@
 import { Suspense } from "react";
 import { Home } from "lucide-react";
+import { Metadata } from "next";
+import Script from "next/script";
+
 import { getAllPosts } from "@/lib/blogData";
 import BlogCard from "./_components/BlogCard";
 import BlogSidebar from "./_components/BlogSidebar";
 import BlogPagination from "./_components/BlogPagination";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Metadata } from "next";
 
 const PAGE_SIZE = 9;
 
+// helpers
 const one = (v?: string | string[]) => (Array.isArray(v) ? v[0] : v);
 
 function slugify(s: string) {
@@ -33,6 +36,7 @@ function PaginationSkeleton() {
   );
 }
 
+// Mobile header: breadcrumb + başlık
 function BlogMobileHeader() {
   return (
     <div className="md:hidden rounded-xl bg-gradient-to-r from-primary/5 to-transparent">
@@ -50,18 +54,20 @@ function BlogMobileHeader() {
   );
 }
 
+/* --- SEO: metadata (Next 15: searchParams Promise) --- */
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams?: Record<string, string | string[] | undefined>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }): Promise<Metadata> {
+  const sp = (await searchParams) ?? {};
   const baseUrl =
     process.env.NEXT_PUBLIC_SITE_URL || "https://www.evindebesle.com";
   const canonicalUrl = `${baseUrl}/blog`;
 
-  const tag = one(searchParams?.tag)?.trim();
-  const category = one(searchParams?.category)?.trim();
-  const q = one(searchParams?.q)?.trim();
+  const tag = one(sp.tag)?.trim();
+  const category = one(sp.category)?.trim();
+  const q = one(sp.q)?.trim();
 
   let title = "Evcil Hayvan Bakım Blogu | Evinde Besle";
   let description =
@@ -78,21 +84,18 @@ export async function generateMetadata({
     description = `"${q}" ile ilgili blog sonuçlarını görüntüleyin.`;
   }
 
+  // Filtre/arama sayfalarını index dışı bırakıyoruz
   const noIndex = !!q || !!tag || !!category;
 
   return {
     title,
     description,
-    alternates: {
-      canonical: canonicalUrl,
-    },
-    robots: {
-      index: !noIndex,
-      follow: true,
-    },
+    alternates: { canonical: canonicalUrl },
+    robots: { index: !noIndex, follow: true },
   };
 }
 
+/* --- Page (Next 15: searchParams Promise) --- */
 export default async function BlogHomePage({
   searchParams,
 }: {
@@ -101,9 +104,9 @@ export default async function BlogHomePage({
   const posts = await getAllPosts();
   const sp = (await searchParams) ?? {};
 
-  const tag = one(sp?.tag)?.trim();
-  const category = one(sp?.category)?.trim();
-  const q = one(sp?.q)?.trim()?.toLowerCase();
+  const tag = one(sp.tag)?.trim();
+  const category = one(sp.category)?.trim();
+  const q = one(sp.q)?.trim()?.toLowerCase();
 
   let filtered = posts.slice();
 
@@ -144,30 +147,24 @@ export default async function BlogHomePage({
     description:
       "Evcil hayvan bakımı, beslenme, sağlık ve eğitim konularında en güncel blog yazıları.",
     url: `${baseUrl}/blog`,
-    blogPost: pageItems.map((post, index) => ({
+    blogPost: pageItems.map((post: any) => ({
       "@type": "BlogPosting",
       headline: post.title,
       image: post.image || `${baseUrl}/default-blog.jpg`,
       url: `${baseUrl}/blog/${post.slug}`,
       datePublished: post.date,
       dateModified: post.date,
-      author: {
-        "@type": "Organization",
-        name: "Evinde Besle",
-      },
+      author: { "@type": "Organization", name: "Evinde Besle" },
       publisher: {
         "@type": "Organization",
         name: "Evinde Besle",
-        logo: {
-          "@type": "ImageObject",
-          url: `${baseUrl}/logo.png`,
-        },
+        logo: { "@type": "ImageObject", url: `${baseUrl}/logo.png` },
       },
       description: post.excerpt,
     })),
     mainEntityOfPage: {
       "@type": "ItemList",
-      itemListElement: pageItems.map((post, index) => ({
+      itemListElement: pageItems.map((post: any, index: number) => ({
         "@type": "ListItem",
         position: index + 1 + (pageNum - 1) * PAGE_SIZE,
         url: `${baseUrl}/blog/${post.slug}`,
@@ -178,7 +175,8 @@ export default async function BlogHomePage({
 
   return (
     <>
-      <script
+      <Script
+        id="ld-blog"
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
@@ -193,7 +191,7 @@ export default async function BlogHomePage({
                 yeniden deneyin.
               </div>
             ) : (
-              pageItems.map((post) => (
+              pageItems.map((post: any) => (
                 <BlogCard key={`${post.slug}-${post.date}`} post={post} />
               ))
             )}

@@ -20,7 +20,7 @@ export default function BlogSearchBox() {
         <Input
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
-          placeholder="Enter Keyword"
+          placeholder="Yazı ara..."
           className="flex-1"
         />
         <Button size="icon" onClick={handleSearch}>

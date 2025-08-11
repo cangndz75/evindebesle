@@ -1,34 +1,48 @@
-"use client"
+import { getAllPosts } from "@/lib/blogData";
+import { BlogPost } from "@/lib/types";
+import Link from "next/link";
 
-import Image from "next/image"
-import Link from "next/link"
-import { getAllPosts } from "@/lib/blogData"
-import { useEffect, useState } from "react"
-import { BlogPost } from "@/lib/types"
 
-export default function BlogRecentPosts() {
-  const [posts, setPosts] = useState<BlogPost[]>([])
+function uniqBySlug(posts: BlogPost[]) {
+  const seen = new Set<string>();
+  return posts.filter((p) => {
+    if (seen.has(p.slug)) return false;
+    seen.add(p.slug);
+    return true;
+  });
+}
 
-  useEffect(() => {
-    getAllPosts().then(setPosts)
-  }, [])
+export default async function BlogRecentPosts({ limit = 5 }: { limit?: number }) {
+  const all = await getAllPosts();
+
+  const recent = uniqBySlug(
+    all
+      .slice()
+      .sort((a, b) => +new Date(b.date) - +new Date(a.date))
+  ).slice(0, limit);
 
   return (
     <div>
-      <h3 className="text-lg font-semibold mb-4 border-l-4 pl-2 border-primary">
-        Recent Post
+      <h3 className="mb-4 border-l-4 border-primary pl-2 text-lg font-semibold">
+        Son Yazılar
       </h3>
-      <div className="space-y-4">
-        {posts.slice(0, 3).map((post) => (
-          <Link href={`/blog/${post.slug}`} key={post.slug} className="flex items-center gap-3">
-            <Image src={post.imageUrl} alt={post.title} width={60} height={60} className="rounded-md object-cover" />
-            <div className="text-sm">
-              <p className="text-muted-foreground text-xs">{new Date(post.date).toLocaleDateString("tr-TR")}</p>
-              <p className="font-medium leading-snug">{post.title}</p>
-            </div>
-          </Link>
+      <ul className="space-y-3">
+        {recent.map((post, idx) => (
+          <li key={`${post.slug}-${post.date}-${idx}`}>
+            <Link
+              href={`/blog/${post.slug}`}
+              className="group block rounded-lg border border-transparent px-3 py-2 transition hover:border-muted-foreground/20 hover:bg-muted"
+            >
+              <div className="text-sm font-medium group-hover:underline">
+                {post.title}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {new Date(post.date).toLocaleDateString("tr-TR")}
+              </div>
+            </Link>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
-  )
+  );
 }

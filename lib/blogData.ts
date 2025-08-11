@@ -2,60 +2,110 @@ import { BlogPost } from "./types";
 
 export async function getAllPosts(): Promise<BlogPost[]> {
   return [
-    {
-      title: "Evde Evcil Hayvan Bakımı: Bilmeniz Gerekenler",
-      slug: "evde-evcil-hayvan-bakimi",
-      excerpt:
-        "Evcil dostunuzun sağlıklı ve mutlu kalması için günlük rutin, doğru beslenme ve güvenli bir çevre şart. Bu rehber temel bakım adımlarını pratik şekilde özetliyor.",
-      content: `
-# Evde Evcil Hayvan Bakımı: Bilmeniz Gerekenler
+{
+  title: "Tatile Çıkarken Evcil Hayvan Bakımı Nasıl Olmalı?",
+  slug: "tatile-cikarken-evcil-hayvan-bakimi",
+  excerpt:
+    "Tatil öncesi bakıcı seçimi, yazılı bakım notu, erişim ve güvenlik, günlük raporlama… Evinde Besle hizmetleriyle karşılaştırmalı, detaylı rehber.",
+  content: `
+# Tatile Çıkarken Evcil Hayvan Bakımı Nasıl Olmalı?
 
-Evde bakım; *tutarlı bir rutin*, **doğru beslenme** ve **güvenli ortam** üzerine kurulur. Aşağıdaki adımlar, hem kedi hem köpek sahipleri için uygulanabilir bir plan sunar.
+Tatile çıkmak keyifli; fakat evcil dostu geride bırakmak zor. **Doğru planlama**, **yazılı talimat** ve **güvenilir bakıcı** ile bu süreç hem sizin hem de dostunuz için stressiz olur.
 
-## 1) Günlük Rutin
-- **Mama & su**: Su kabını günde en az 1 kez tazeleyin; mamayı paket gramajına göre ölçün.
-- **Tuvalet**: Kedide kumu günlük toplayın; köpekte yürüyüş saatlerini sabitleyin.
-- **Oyun & ilgi**: 10–15 dakikalık 2–3 kısa oyun seansı obezite ve stresin önüne geçer.
-- **Gözlem**: İştah, dışkı/idrarda değişiklik, halsizlik gibi sinyalleri not edin.
+> *“Ev ortamında bakım, yeni ortamlara göre daha düşük stres yaratır.”* — **RSPCA**
 
-> İpucu: Rutin saatleri mümkün olduğunca değişmesin. Öngörülebilirlik = düşük stres.
+---
 
-## 2) Beslenme ve Su
-- **Yaşa/türe uygun mama**: Yavru, yetişkin, yaşlı ve ırka özgü formüller farklıdır.
-- **Ödül**: Günlük kalorinin **%10**’unu geçmesin.
-- **Kap seçimi**: Çelik/seramik tercih edin; plastik kaplarda koku ve bakteri birikimi artar.
+## 1) Bakıcı Seçimi
+- Referans ve değerlendirme puanlarını inceleyin.
+- Tatilden **önce tanışma** yapın; rutin, kurallar, yasak alanlar.
+- Anahtar/erişim yöntemini ve acil durum planını konuşun.
 
-## 3) Zihinsel ve Fiziksel Aktivite
-- **Kedi**: Tırmalama tahtası, zeka oyuncakları, pencere önü platformlar.
-- **Köpek**: Günde 2 yürüyüş + 1 zihin oyunu (lick mat, koklama oyunları).
-- **Rotasyon**: Oyuncakları haftalık döndürerek ilgiyi canlı tutun.
 
-## 4) Güvenli Ev Ortamı
-- Zehirli bitkileri (zambak, difenbahya vb.) uzaklaştırın.
-- Kabloları gizleyin; deterjan/ilaçları kilitli tutun.
-- Pencerelere sineklik ve güvenlik kilidi ekleyin.
+---
 
-## 5) Sağlık Takvimi
-- **Aşı & parazit**: Veteriner çizelgesini takip edin.
-- **Diş bakımı**: Haftada 2–3 kez fırçalama veya onaylı çiğneme ürünleri.
-- **Kilo**: Ayda bir aynı terazide ölçüm yapın.
+## 2) Yazılı Bakım Notu
 
-## SSS
-**S: Mama miktarını neye göre artırırım?**  
-**C:** Aktivite artışı veya veteriner önerisi yoksa artırmayın; obezite riski yükselir.
+- **Mama & su**: Ölçü (gr) + saatler  
+- **Tuvalet/kum**: Toplama sıklığı, yedek kum nerede  
+- **Oyun**: Sevdiği/sevmediği oyuncaklar  
+- **İlaç/alerji**: Doz–saat, uygulama yöntemi  
+- **Vet & acil iletişim**: Klinik ve telefonlar
 
-**S: Evde uzun süre yalnız kalacaksa?**  
-**C:** Otomatik su/mama + zeka oyuncağı + ziyaret planı şart. 24+ saat yalnızlık önerilmez.
+\`\`\`
+Örnek Not – Mırmır (Kedi, 3 Yaş)
+• Sabah 08:00 – 55 gr mama | Akşam 19:00 – 55 gr
+• Su: 2 seramik kap – akşam tazele
+• Kum: Her ziyarette toplama, haftada 1 tam değişim
+• Oyun: Oltalı 10 dk – lazer yok
+• Alerji: Tavuk verilmez | İlaç: Yok
+• Vet: X Klinik 0(216) 123 45 67
+\`\`\`
 
-**Özet:** Tutarlı rutin + güvenli ortam + düzenli sağlık kontrolleri = mutlu bir dost.
-      `,
-      imageUrl:
-        "https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=1600",
-      date: "2025-08-11",
-      author: "Evinde Besle",
-      tags: ["Pet Care", "Bakım", "Evde Bakım"],
-      category: "Pet Care",
-    },
+
+---
+
+## 3) Erişim ve Güvenlik
+- Kilit kutusu şifresi / komşu teslimi.  
+- Kamera varsa **aydınlatma metni** ile bilgilendirme.  
+- Pencere–sineklik kontrolü, deterjan/ilaçların kilitlenmesi.
+
+**Evinde Besle’de:** Erişim bilgileri **şifreli** saklanır.
+
+---
+
+## 4) Tatil Sırasında Raporlama
+- Günlük **fotoğraf + kısa not**: mama–su–tuvalet–oyun.  
+- Olağan dışı durumlarda **hemen arama** + uygulama bildirimi.
+
+**Evinde Besle:** Ziyaret biter bitmez **otomatik zaman damgalı** rapor, isteğe bağlı video.
+
+---
+
+## 5) Hizmet Paketleri (Örnek)
+- **Mini Ziyaret (15 dk):** Mama–su–kum kontrolü + kısa oyun  
+- **Standart (30 dk):** Tüm kontroller + oyun/sevgi + alan toparlama  
+- **Köpek Yürüyüş (30–45 dk):** Dışarı yürüyüş + rota/su molası
+
+---
+
+## 6) Karşılaştırma Tablosu
+
+| Özellik | **Evinde Besle** | **Geleneksel Pet Oteli** |
+|---|---|---|
+| **Ortam** | Yaşadığı ev | Yabancı ortam |
+| **Stres seviyesi** | Düşük | Daha yüksek (yeni kokular/hayvanlar) |
+| **Kişisel ilgi** | 1–1 bakım, isteğe göre özel rutin | Çoklu bakım, standart rutin |
+| **Hastalık riski** | Düşük | Görece yüksek (bulaşıcı hastalık) |
+| **Günlük rapor** | Fotoğraf/video anlık | Genelde yok veya sınırlı |
+| **Fiyat** | Hizmet başına | Günlük oda ücreti |
+
+---
+
+## 7) SSS
+**Otomatik mama/su cihazı tek başına yeter mi?**  
+Hayır. Arıza/boşalma riski var; **insan kontrolü** şart.
+
+**Kedi için ziyaret sıklığı?**  
+Çoğu yetişkin için günde **1–2**. Medikal takibi olanlarda **2** önerilir.
+
+**Kamera kullanıyorum, sorun olur mu?**  
+Sorun değil; bakıcıyı bilgilendirmek gerekir. Evinde Besle’de bu bilgi erişim formunda işaretlenir.
+
+---
+
+## 8) Sonuç
+Plan + şeffaf iletişim + güvenilir bakıcı = **huzurlu tatil**.  
+**Evinde Besle** ile dostunuz evinden ayrılmadan, sizin belirlediğiniz düzende bakım alır.
+
+> *“Alıştığı ortamda bakım, hayvanın davranışsal sağlığını korur.”* — **RSPCA**
+  `,
+  imageUrl: "https://images.unsplash.com/photo-1525253013412-55c1a69a5738?q=80&w=1600",
+  date: "2025-08-12",
+  author: "Evinde Besle",
+  tags: ["Tatil", "Bakıcı", "Evde Bakım"],
+  category: "Pet Care",
+},
     {
       title: "Tatile Çıkarken Evcil Hayvan Bakımı Nasıl Olmalı?",
       slug: "tatile-cikarken-evcil-hayvan-bakimi",
@@ -108,7 +158,7 @@ Tatile çıkarken evcil dostu evde bırakmak, *iyi planlama* gerektirir. Aşağ�
       date: "2025-08-12",
       author: "Evinde Besle",
       tags: ["Tatil", "Bakıcı", "Evde Bakım"],
-      category: "Pet Care",
+      category: "Evcil Hayvan Bakımı",
     },
     {
       title: "Kediler İçin Ev Ortamı Zenginleştirme Rehberi",

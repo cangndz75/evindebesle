@@ -1,5 +1,7 @@
 // app/blog/page.tsx
 import { Suspense } from "react";
+import Link from "next/link";
+import { Home } from "lucide-react";
 import { getAllPosts } from "@/lib/blogData";
 import BlogCard from "./_components/BlogCard";
 import BlogSidebar from "./_components/BlogSidebar";
@@ -8,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const PAGE_SIZE = 9;
 
-// util
+// utils
 function slugify(s: string) {
   return s
     .toLowerCase()
@@ -31,6 +33,24 @@ function PaginationSkeleton() {
   );
 }
 
+// Mobile header: breadcrumb + başlık
+function BlogMobileHeader() {
+  return (
+    <div className="md:hidden rounded-xl bg-gradient-to-r from-primary/5 to-transparent">
+      <div className="px-4 pt-4 pb-3">
+        <nav className="flex items-center gap-1 text-xs">
+          <Home className="w-4 h-4" />
+          <span className="text-muted-foreground">Ana Sayfa</span>
+          <span className="text-muted-foreground">›</span>
+          <span className="font-semibold text-primary">Blog</span>
+        </nav>
+        <hr className="my-3 border-border" />
+        <h1 className="text-2xl font-extrabold">Blog Yazıları</h1>
+      </div>
+    </div>
+  );
+}
+
 export default async function BlogHomePage({
   searchParams,
 }: {
@@ -38,7 +58,6 @@ export default async function BlogHomePage({
 }) {
   const posts = await getAllPosts();
 
-  // --- filtreler ---
   const tag = searchParams?.tag?.trim();
   const category = searchParams?.category?.trim();
   const q = searchParams?.q?.trim()?.toLowerCase();
@@ -47,16 +66,12 @@ export default async function BlogHomePage({
 
   if (tag) {
     const t = slugify(tag);
-    filtered = filtered.filter((p) =>
-      (p.tags ?? []).map(slugify).includes(t)
-    );
+    filtered = filtered.filter((p) => (p.tags ?? []).map(slugify).includes(t));
   }
-
   if (category) {
     const c = slugify(category);
     filtered = filtered.filter((p) => slugify(p.category) === c);
   }
-
   if (q) {
     filtered = filtered.filter(
       (p) =>
@@ -66,56 +81,52 @@ export default async function BlogHomePage({
     );
   }
 
-  // tekilleştir + tarihe göre sırala
   const uniqueSorted = uniqBySlug(filtered).sort(
     (a, b) => +new Date(b.date) - +new Date(a.date)
   );
 
-  // --- sayfalama ---
   const pageNum = Math.max(1, parseInt(searchParams?.page || "1", 10) || 1);
   const start = (pageNum - 1) * PAGE_SIZE;
   const pageItems = uniqueSorted.slice(start, start + PAGE_SIZE);
 
-  // dev’de çakışan slugları logla (opsiyonel)
-  if (process.env.NODE_ENV !== "production") {
-    const seen = new Set<string>();
-    const dups: string[] = [];
-    posts.forEach((p) => (seen.has(p.slug) ? dups.push(p.slug) : seen.add(p.slug)));
-    if (dups.length) console.warn("Duplicate slugs:", dups);
-  }
-
   return (
-    <div className="container grid grid-cols-1 lg:grid-cols-12 gap-8 py-10">
-      <div className="lg:col-span-8 space-y-10">
-        {pageItems.length === 0 ? (
-          <div className="rounded-xl border p-6 text-sm text-muted-foreground">
-            Sonuç bulunamadı. Filtreleri temizleyip tekrar deneyin.
-          </div>
-        ) : (
-          pageItems.map((post) => (
-            <BlogCard key={`${post.slug}-${post.date}`} post={post} />
-          ))
-        )}
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
+      <BlogMobileHeader />
 
-        <Suspense fallback={<PaginationSkeleton />}>
-          <BlogPagination />
-        </Suspense>
-      </div>
-
-      <div className="lg:col-span-4">
-        <Suspense
-          fallback={
-            <div className="space-y-4">
-              <Skeleton className="h-6 w-40" />
-              {[...Array(6)].map((_, i) => (
-                <Skeleton key={i} className="h-8 w-full" />
-              ))}
+      <div className="mt-4 grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="lg:col-span-8 space-y-10">
+          {pageItems.length === 0 ? (
+            <div className="rounded-xl border p-6 text-sm text-muted-foreground">
+              Aramanızla eşleşen yazı bulunamadı. Filtreleri temizleyip yeniden
+              deneyin.
             </div>
-          }
-        >
-          <BlogSidebar />
-        </Suspense>
+          ) : (
+            pageItems.map((post) => (
+              <BlogCard key={`${post.slug}-${post.date}`} post={post} />
+            ))
+          )}
+
+          <Suspense fallback={<PaginationSkeleton />}>
+            <BlogPagination />
+          </Suspense>
+        </div>
+
+        <div className="lg:col-span-4">
+          <Suspense
+            fallback={
+              <div className="space-y-4">
+                <Skeleton className="h-6 w-40" />
+                {[...Array(6)].map((_, i) => (
+                  <Skeleton key={i} className="h-8 w-full" />
+                ))}
+              </div>
+            }
+          >
+            <BlogSidebar />
+          </Suspense>
+        </div>
       </div>
+
     </div>
   );
 }

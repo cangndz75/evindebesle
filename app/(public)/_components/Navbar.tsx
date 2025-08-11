@@ -18,6 +18,7 @@ import {
   Key,
   CalendarCheck,
   Ticket,
+  Book,
 } from "lucide-react";
 import {
   Sheet,
@@ -48,7 +49,6 @@ function MenuLink({
     </Link>
   );
 }
-
 
 export default function Navbar() {
   const { data: session, status } = useSession();
@@ -229,6 +229,13 @@ export default function Navbar() {
                 >
                   <Phone className="w-4 h-4" />
                   İletişim
+                </Link>
+                <Link
+                  href="/blog"
+                  className="flex items-center gap-2 hover:text-primary transition"
+                >
+                  <Book className="w-4 h-4" />
+                  Blog
                 </Link>
                 {/* <Link
                   href="/faq"

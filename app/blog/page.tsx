@@ -1,6 +1,5 @@
 // app/blog/page.tsx
 import { Suspense } from "react";
-import Link from "next/link";
 import { Home } from "lucide-react";
 import { getAllPosts } from "@/lib/blogData";
 import BlogCard from "./_components/BlogCard";
@@ -10,7 +9,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const PAGE_SIZE = 9;
 
-// utils
+// helpers
+const one = (v?: string | string[]) => (Array.isArray(v) ? v[0] : v);
+
 function slugify(s: string) {
   return s
     .toLowerCase()
@@ -54,13 +55,14 @@ function BlogMobileHeader() {
 export default async function BlogHomePage({
   searchParams,
 }: {
-  searchParams?: { tag?: string; category?: string; q?: string; page?: string };
+  // Next.js'in beklediği geniş tip
+  searchParams?: Record<string, string | string[] | undefined>;
 }) {
   const posts = await getAllPosts();
 
-  const tag = searchParams?.tag?.trim();
-  const category = searchParams?.category?.trim();
-  const q = searchParams?.q?.trim()?.toLowerCase();
+  const tag = one(searchParams?.tag)?.trim();
+  const category = one(searchParams?.category)?.trim();
+  const q = one(searchParams?.q)?.trim()?.toLowerCase();
 
   let filtered = posts.slice();
 
@@ -85,7 +87,11 @@ export default async function BlogHomePage({
     (a, b) => +new Date(b.date) - +new Date(a.date)
   );
 
-  const pageNum = Math.max(1, parseInt(searchParams?.page || "1", 10) || 1);
+  // Dinamik sayfalama
+  const totalPages = Math.max(1, Math.ceil(uniqueSorted.length / PAGE_SIZE));
+  const pageNumRaw = Number(one(searchParams?.page) ?? "1") || 1;
+  const pageNum = Math.min(Math.max(pageNumRaw, 1), totalPages);
+
   const start = (pageNum - 1) * PAGE_SIZE;
   const pageItems = uniqueSorted.slice(start, start + PAGE_SIZE);
 
@@ -107,7 +113,7 @@ export default async function BlogHomePage({
           )}
 
           <Suspense fallback={<PaginationSkeleton />}>
-            <BlogPagination />
+            <BlogPagination totalPages={totalPages} />
           </Suspense>
         </div>
 
@@ -126,7 +132,6 @@ export default async function BlogHomePage({
           </Suspense>
         </div>
       </div>
-
     </div>
   );
 }

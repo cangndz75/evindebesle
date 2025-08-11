@@ -1,17 +1,26 @@
+// app/blog/_components/BlogPagination.tsx
 "use client";
 
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function BlogPagination() {
+type Props = { totalPages: number };
+
+export default function BlogPagination({ totalPages }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const currentPage = Number(searchParams.get("page") || "1");
-  const totalPages = 3;
+
+  // 1 sayfadan azsa gizle
+  if (!totalPages || totalPages <= 1) return null;
+
+  const raw = Number(searchParams.get("page") || "1");
+  const currentPage = Math.min(Math.max(raw, 1), totalPages);
 
   const changePage = (page: number) => {
-    router.push(`/blog?page=${page}`);
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
+    params.set("page", String(page));
+    router.push(`/blog?${params.toString()}`);
   };
 
   const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
@@ -22,7 +31,7 @@ export default function BlogPagination() {
         variant="outline"
         size="icon"
         onClick={() => changePage(currentPage - 1)}
-        disabled={currentPage === 1}
+        disabled={currentPage <= 1}
       >
         <ChevronLeft className="w-4 h-4" />
       </Button>
@@ -42,7 +51,7 @@ export default function BlogPagination() {
         variant="outline"
         size="icon"
         onClick={() => changePage(currentPage + 1)}
-        disabled={currentPage === totalPages}
+        disabled={currentPage >= totalPages}
       >
         <ChevronRight className="w-4 h-4" />
       </Button>

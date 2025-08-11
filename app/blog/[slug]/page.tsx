@@ -1,3 +1,4 @@
+// app/blog/[slug]/page.tsx
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
@@ -14,7 +15,7 @@ import { getAllPosts, getPostBySlug, getRelatedPosts } from "@/lib/blogData";
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.evindebesle.com";
 
-export async function generateStaticParams() {
+export async function generateStaticParams(): Promise<Array<{ slug: string }>> {
   const posts = await getAllPosts();
   return posts.map((p) => ({ slug: p.slug }));
 }
@@ -22,9 +23,11 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  const post = await getPostBySlug(params.slug);
+  const { slug } = await params;
+  const post = await getPostBySlug(slug);
+
   if (!post) {
     return {
       title: "Yazı bulunamadı | Evinde Besle",
@@ -61,9 +64,9 @@ export async function generateMetadata({
   };
 }
 
-type Props = { params: Promise<{ slug: string }> };
+type PageProps = { params: Promise<{ slug: string }> };
 
-export default async function BlogDetailPage({ params }: Props) {
+export default async function BlogDetailPage({ params }: PageProps) {
   const { slug } = await params;
   const post = await getPostBySlug(slug);
   if (!post) return notFound();

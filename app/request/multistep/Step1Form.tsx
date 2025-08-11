@@ -857,10 +857,12 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
               ) : (
                 <FilteredServiceSelect
                   allServices={services}
-                  speciesList={[sp]} // sadece bu tür
+                  speciesList={petTypes.filter((pt) =>
+                    selectedSpecies.includes(pt.id)
+                  )}
                   selectedBySpecies={selectedServicesBySpecies}
                   setSelectedBySpecies={setSelectedServicesBySpecies}
-                  counts={serviceCounts}
+                  counts={serviceCounts} 
                 />
               )}
             </ScrollArea>

@@ -29,21 +29,17 @@ type Coupon = {
 
 interface SummarySidebarProps {
   formData: {
-    // Seçimler
-    selectedSpecies: string[]; // tür ID’leri
-    selectedUserPetsBySpecies: Record<string, string[]>; // { speciesId: userPetId[] }
-    selectedServices: string[]; // serviceId[]
-    // Referans veriler (görüntüleme/hesap)
-    services: Service[]; // tüm servislerin düz listesi
-    petTypes: PetType[]; // tür isimlerini bulmak için
-    // Tarih / saat / tekrar
+    selectedSpecies: string[];
+    selectedUserPetsBySpecies: Record<string, string[]>;
+    selectedServices: string[];
+    selectedServicesBySpecies?: Record<string, string[]>;
+    services: Service[];
+    petTypes: PetType[];
     dateRange?: { from?: Date | string; to?: Date | string };
-    timeSlot?: string; // "morning" | "noon" | "evening"
+    timeSlot?: string;
     repeatType?: "none" | "daily" | "weekly" | "monthly";
     repeatCount?: number | null;
-    // Adres
     address?: Address | null;
-    // Kupon
     appliedCoupon?: Coupon | null;
   };
   onStart?: (payload: { totalPrice: number; discountedPrice: number }) => void;
@@ -65,6 +61,7 @@ export default function SummarySidebar({
     selectedSpecies,
     selectedUserPetsBySpecies,
     selectedServices,
+    selectedServicesBySpecies,
     services,
     petTypes,
     dateRange,
@@ -75,15 +72,17 @@ export default function SummarySidebar({
     appliedCoupon,
   } = formData || {};
 
-  const selectedServiceIds = useMemo(
-    () =>
-      Array.isArray((formData as any).selectedServices)
-        ? (formData as any).selectedServices
-        : Object.values(
-            (formData as any).selectedServicesBySpecies || {}
-          ).flat(),
-    [formData]
-  );
+  // Tür bazlı veya tek liste olarak seçilen servis ID'leri
+  const selectedServiceIds = useMemo(() => {
+    if (Array.isArray(selectedServices)) return selectedServices;
+    if (
+      selectedServicesBySpecies &&
+      typeof selectedServicesBySpecies === "object"
+    ) {
+      return Object.values(selectedServicesBySpecies).flat();
+    }
+    return [];
+  }, [selectedServices, selectedServicesBySpecies]);
 
   const speciesName = (id: string) =>
     petTypes?.find((p) => p.id === id)?.name || id;
@@ -107,47 +106,47 @@ export default function SummarySidebar({
   }, [petTypes]);
 
   const lineItems = useMemo(() => {
-    // Gelen seçim array değilse, { speciesId: string[] } yapısından düz listeye çevir
-    const selectedServiceIds = Array.isArray(selectedServices)
-      ? selectedServices
-      : Object.values(selectedServices || {}).flat();
-
     if (!services || !selectedServiceIds.length) return [];
 
     return selectedServiceIds
-      .map((sid) => services.find((s) => s.id === sid))
-      .filter(Boolean)
-      .map((svc) => {
-        const affectedSpeciesIds = (svc!.petTags || [])
-          .map((name) => speciesIdByName[(name || "").toUpperCase()])
-          .filter(Boolean);
+      .map((sid: string) => services.find((s: Service) => s.id === sid))
+      .filter((svc: Service | undefined): svc is Service => Boolean(svc))
+      .map((svc: Service) => {
+        const affectedSpeciesIds = (svc.petTags || [])
+          .map((name: string) => speciesIdByName[(name || "").toUpperCase()])
+          .filter((spId: string | undefined): spId is string => Boolean(spId));
 
         const totalCount = affectedSpeciesIds.reduce(
-          (sum, spId) => sum + (countsBySpecies[spId] || 0),
+          (sum: number, spId: string) => sum + (countsBySpecies[spId] || 0),
           0
         );
 
-        const subtotal = (svc!.price || 0) * totalCount;
-
         return {
-          id: svc!.id,
-          name: svc!.name,
-          unitPrice: svc!.price || 0,
+          id: svc.id,
+          name: svc.name,
+          unitPrice: svc.price || 0,
           count: totalCount,
-          subtotal,
-          speciesNames: affectedSpeciesIds.map(speciesName),
+          subtotal: (svc.price || 0) * totalCount,
+          speciesNames: affectedSpeciesIds.map((spId: string) =>
+            speciesName(spId)
+          ),
         };
       })
-      .filter((x) => x.count > 0);
+      .filter((item: { count: number }) => item.count > 0);
   }, [
     services,
-    selectedServices,
+    selectedServiceIds,
     speciesIdByName,
     countsBySpecies,
     speciesName,
   ]);
+
   const totalPrice = useMemo(
-    () => lineItems.reduce((sum, li) => sum + li.subtotal, 0),
+    () =>
+      lineItems.reduce(
+        (sum: number, li: { subtotal: number }) => sum + li.subtotal,
+        0
+      ),
     [lineItems]
   );
 
@@ -162,12 +161,12 @@ export default function SummarySidebar({
 
   const defaultStart = async () => {
     try {
-      if (!selectedServices?.length) {
+      if (!selectedServiceIds.length) {
         toast.error("Lütfen en az bir hizmet seçin.");
         return;
       }
       const totalPets = Object.values(selectedUserPetsBySpecies || {}).reduce(
-        (s, arr) => s + (arr?.length || 0),
+        (s: number, arr: string[]) => s + (arr?.length || 0),
         0
       );
       if (totalPets < 1) {
@@ -216,8 +215,8 @@ export default function SummarySidebar({
       <CardHeader>
         <CardTitle className="text-lg">Sipariş Özeti</CardTitle>
       </CardHeader>
-
       <CardContent className="space-y-4 text-sm text-muted-foreground">
+        {/* Seçilen türler */}
         <div>
           <p className="text-xs italic text-primary mb-1">
             Seçilen Hayvan Türleri
@@ -231,6 +230,7 @@ export default function SummarySidebar({
           </div>
         </div>
 
+        {/* Seçilen hizmetler */}
         <div>
           <p className="text-xs italic text-primary mb-1">Seçilen Hizmetler</p>
           {lineItems.length === 0 ? (
@@ -253,6 +253,7 @@ export default function SummarySidebar({
           )}
         </div>
 
+        {/* Zaman bilgisi */}
         {(from || to || timeSlot) && (
           <div>
             <p className="text-xs text-muted">Zaman</p>
@@ -273,6 +274,7 @@ export default function SummarySidebar({
           </div>
         )}
 
+        {/* Adres */}
         {address?.fullAddress && (
           <div>
             <p className="text-xs text-muted">Adres</p>
@@ -280,6 +282,7 @@ export default function SummarySidebar({
           </div>
         )}
 
+        {/* Kupon */}
         {appliedCoupon && (
           <div className="flex items-center justify-between">
             <span>

@@ -11,7 +11,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const PAGE_SIZE = 9;
 
-// helpers
 const one = (v?: string | string[]) => (Array.isArray(v) ? v[0] : v);
 
 function slugify(s: string) {

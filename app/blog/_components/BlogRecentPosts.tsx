@@ -5,20 +5,13 @@ import Link from "next/link";
 
 function uniqBySlug(posts: BlogPost[]) {
   const seen = new Set<string>();
-  return posts.filter((p) => {
-    if (seen.has(p.slug)) return false;
-    seen.add(p.slug);
-    return true;
-  });
+  return posts.filter((p) => (seen.has(p.slug) ? false : (seen.add(p.slug), true)));
 }
 
 export default async function BlogRecentPosts({ limit = 5 }: { limit?: number }) {
   const all = await getAllPosts();
-
   const recent = uniqBySlug(
-    all
-      .slice()
-      .sort((a, b) => +new Date(b.date) - +new Date(a.date))
+    all.slice().sort((a, b) => +new Date(b.date) - +new Date(a.date))
   ).slice(0, limit);
 
   return (
@@ -33,9 +26,7 @@ export default async function BlogRecentPosts({ limit = 5 }: { limit?: number })
               href={`/blog/${post.slug}`}
               className="group block rounded-lg border border-transparent px-3 py-2 transition hover:border-muted-foreground/20 hover:bg-muted"
             >
-              <div className="text-sm font-medium group-hover:underline">
-                {post.title}
-              </div>
+              <div className="text-sm font-medium group-hover:underline">{post.title}</div>
               <div className="text-xs text-muted-foreground">
                 {new Date(post.date).toLocaleDateString("tr-TR")}
               </div>

@@ -1,4 +1,5 @@
 export type BlogPost = {
+  image: string
   title: string
   slug: string
   excerpt: string

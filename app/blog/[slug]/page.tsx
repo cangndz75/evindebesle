@@ -1,6 +1,6 @@
-// app/blog/[slug]/page.tsx
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import Script from "next/script";
 
 import BlogSidebar from "../_components/BlogSidebar";
 import Breadcrumbs from "./_components/Breadcrumbs";
@@ -15,31 +15,31 @@ import { getAllPosts, getPostBySlug, getRelatedPosts } from "@/lib/blogData";
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.evindebesle.com";
 
-/* ---------- SSG: tüm yazılar için statik paramlar ---------- */
-export async function generateStaticParams() {
+export async function generateStaticParams(): Promise<Array<{ slug: string }>> {
   const posts = await getAllPosts();
   return posts.map((p) => ({ slug: p.slug }));
 }
 
-/* ---------- SEO metadata ---------- */
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  const post = await getPostBySlug(params.slug);
-  if (!post)
+  const { slug } = await params;
+  const post = await getPostBySlug(slug);
+
+  if (!post) {
     return {
       title: "Yazı bulunamadı | Evinde Besle",
       robots: { index: false, follow: true },
     };
+  }
 
   const url = `${SITE}/blog/${post.slug}`;
   const title = `${post.title} | Evinde Besle`;
   const description =
     (post.excerpt ?? "").slice(0, 160) ||
     "Evcil hayvan bakımı ve evde bakım rehberleri.";
-
   const image = post.imageUrl ?? `${SITE}/og-default.jpg`;
 
   return {
@@ -55,26 +55,22 @@ export async function generateMetadata({
       images: [{ url: image }],
       siteName: "Evinde Besle",
     },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-      images: [image],
-    },
   };
 }
 
 /* ---------- Sayfa ---------- */
-type Props = { params: Promise<{ slug: string }> }; // projendeki Promise kalıbına uyduk
+type PageProps = {
+  params: Promise<{ slug: string }>;
+};
 
-export default async function BlogDetailPage({ params }: Props) {
+export default async function BlogDetailPage({ params }: PageProps) {
   const { slug } = await params;
+
   const post = await getPostBySlug(slug);
   if (!post) return notFound();
 
   const related = await getRelatedPosts(post.slug, post.category);
 
-  // JSON-LD: Article
   const articleLd = {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -90,7 +86,6 @@ export default async function BlogDetailPage({ params }: Props) {
     keywords: (post.tags ?? []).join(", "),
   };
 
-  // JSON-LD: Breadcrumb
   const breadcrumbLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -108,11 +103,14 @@ export default async function BlogDetailPage({ params }: Props) {
 
   return (
     <div className="container py-8">
-      <script
+      {/* JSON‑LD */}
+      <Script
+        id="ld-article"
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleLd) }}
       />
-      <script
+      <Script
+        id="ld-breadcrumb"
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />

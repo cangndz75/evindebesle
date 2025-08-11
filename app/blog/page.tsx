@@ -1,4 +1,3 @@
-// app/blog/page.tsx
 import { Suspense } from "react";
 import { Home } from "lucide-react";
 import { getAllPosts } from "@/lib/blogData";
@@ -6,10 +5,10 @@ import BlogCard from "./_components/BlogCard";
 import BlogSidebar from "./_components/BlogSidebar";
 import BlogPagination from "./_components/BlogPagination";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Metadata } from "next";
 
 const PAGE_SIZE = 9;
 
-// helpers
 const one = (v?: string | string[]) => (Array.isArray(v) ? v[0] : v);
 
 function slugify(s: string) {
@@ -51,13 +50,55 @@ function BlogMobileHeader() {
   );
 }
 
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams?: Record<string, string | string[] | undefined>;
+}): Promise<Metadata> {
+  const baseUrl =
+    process.env.NEXT_PUBLIC_SITE_URL || "https://www.evindebesle.com";
+  const canonicalUrl = `${baseUrl}/blog`;
+
+  const tag = one(searchParams?.tag)?.trim();
+  const category = one(searchParams?.category)?.trim();
+  const q = one(searchParams?.q)?.trim();
+
+  let title = "Evcil Hayvan Bakım Blogu | Evinde Besle";
+  let description =
+    "Evcil hayvan bakımı, beslenme, sağlık ve eğitim konularında en güncel blog yazılarımızı keşfedin.";
+
+  if (tag) {
+    title = `${tag} Hakkında Blog Yazıları | Evinde Besle`;
+    description = `${tag} ile ilgili en güncel blog yazılarını okuyun.`;
+  } else if (category) {
+    title = `${category} Kategorisi Blog Yazıları | Evinde Besle`;
+    description = `${category} kategorisinde evcil hayvan bakımıyla ilgili yazılar.`;
+  } else if (q) {
+    title = `"${q}" Arama Sonuçları | Evinde Besle Blog`;
+    description = `"${q}" ile ilgili blog sonuçlarını görüntüleyin.`;
+  }
+
+  const noIndex = !!q || !!tag || !!category;
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: canonicalUrl,
+    },
+    robots: {
+      index: !noIndex,
+      follow: true,
+    },
+  };
+}
+
 export default async function BlogHomePage({
   searchParams,
 }: {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const posts = await getAllPosts();
-
   const sp = (await searchParams) ?? {};
 
   const tag = one(sp?.tag)?.trim();
@@ -87,7 +128,6 @@ export default async function BlogHomePage({
     (a, b) => +new Date(b.date) - +new Date(a.date)
   );
 
-  // Dinamik sayfalama
   const totalPages = Math.max(1, Math.ceil(uniqueSorted.length / PAGE_SIZE));
   const pageNumRaw = Number(one(sp.page) ?? "1") || 1;
   const pageNum = Math.min(Math.max(pageNumRaw, 1), totalPages);
@@ -95,43 +135,90 @@ export default async function BlogHomePage({
   const start = (pageNum - 1) * PAGE_SIZE;
   const pageItems = uniqueSorted.slice(start, start + PAGE_SIZE);
 
+  const baseUrl =
+    process.env.NEXT_PUBLIC_SITE_URL || "https://www.evindebesle.com";
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    name: "Evinde Besle Blog",
+    description:
+      "Evcil hayvan bakımı, beslenme, sağlık ve eğitim konularında en güncel blog yazıları.",
+    url: `${baseUrl}/blog`,
+    blogPost: pageItems.map((post, index) => ({
+      "@type": "BlogPosting",
+      headline: post.title,
+      image: post.image || `${baseUrl}/default-blog.jpg`,
+      url: `${baseUrl}/blog/${post.slug}`,
+      datePublished: post.date,
+      dateModified: post.date,
+      author: {
+        "@type": "Organization",
+        name: "Evinde Besle",
+      },
+      publisher: {
+        "@type": "Organization",
+        name: "Evinde Besle",
+        logo: {
+          "@type": "ImageObject",
+          url: `${baseUrl}/logo.png`,
+        },
+      },
+      description: post.excerpt,
+    })),
+    mainEntityOfPage: {
+      "@type": "ItemList",
+      itemListElement: pageItems.map((post, index) => ({
+        "@type": "ListItem",
+        position: index + 1 + (pageNum - 1) * PAGE_SIZE,
+        url: `${baseUrl}/blog/${post.slug}`,
+      })),
+      numberOfItems: pageItems.length,
+    },
+  };
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
-      <BlogMobileHeader />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
+        <BlogMobileHeader />
 
-      <div className="mt-4 grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div className="lg:col-span-8 space-y-10">
-          {pageItems.length === 0 ? (
-            <div className="rounded-xl border p-6 text-sm text-muted-foreground">
-              Aramanızla eşleşen yazı bulunamadı. Filtreleri temizleyip yeniden
-              deneyin.
-            </div>
-          ) : (
-            pageItems.map((post) => (
-              <BlogCard key={`${post.slug}-${post.date}`} post={post} />
-            ))
-          )}
-
-          <Suspense fallback={<PaginationSkeleton />}>
-            <BlogPagination totalPages={totalPages} />
-          </Suspense>
-        </div>
-
-        <div className="lg:col-span-4">
-          <Suspense
-            fallback={
-              <div className="space-y-4">
-                <Skeleton className="h-6 w-40" />
-                {[...Array(6)].map((_, i) => (
-                  <Skeleton key={i} className="h-8 w-full" />
-                ))}
+        <div className="mt-4 grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div className="lg:col-span-8 space-y-10">
+            {pageItems.length === 0 ? (
+              <div className="rounded-xl border p-6 text-sm text-muted-foreground">
+                Aramanızla eşleşen yazı bulunamadı. Filtreleri temizleyip
+                yeniden deneyin.
               </div>
-            }
-          >
-            <BlogSidebar />
-          </Suspense>
+            ) : (
+              pageItems.map((post) => (
+                <BlogCard key={`${post.slug}-${post.date}`} post={post} />
+              ))
+            )}
+
+            <Suspense fallback={<PaginationSkeleton />}>
+              <BlogPagination totalPages={totalPages} />
+            </Suspense>
+          </div>
+
+          <div className="lg:col-span-4">
+            <Suspense
+              fallback={
+                <div className="space-y-4">
+                  <Skeleton className="h-6 w-40" />
+                  {[...Array(6)].map((_, i) => (
+                    <Skeleton key={i} className="h-8 w-full" />
+                  ))}
+                </div>
+              }
+            >
+              <BlogSidebar />
+            </Suspense>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

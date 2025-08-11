@@ -1,11 +1,11 @@
-import { Suspense } from "react"
-import { getAllPosts } from "@/lib/blogData"
-import BlogCard from "./_components/BlogCard"
-import BlogSidebar from "./_components/BlogSidebar"
-import BlogPagination from "./_components/BlogPagination"
+import { Suspense } from "react";
+import { getAllPosts } from "@/lib/blogData";
+import BlogCard from "./_components/BlogCard";
+import BlogSidebar from "./_components/BlogSidebar";
+import BlogPagination from "./_components/BlogPagination";
 
 export default async function BlogHomePage() {
-  const posts = await getAllPosts()
+  const posts = await getAllPosts();
 
   return (
     <div className="container grid grid-cols-1 lg:grid-cols-12 gap-8 py-10">
@@ -19,8 +19,10 @@ export default async function BlogHomePage() {
         </Suspense>
       </div>
       <div className="lg:col-span-4">
-        <BlogSidebar />
+        <Suspense fallback={<div className="space-y-4">Yükleniyor…</div>}>
+          <BlogSidebar />
+        </Suspense>
       </div>
     </div>
-  )
+  );
 }

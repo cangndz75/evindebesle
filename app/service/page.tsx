@@ -85,7 +85,6 @@ export default function TeslimatVeIadePage() {
           </p>
         </div>
       </div>
-      <Footer />
     </>
   );
 }

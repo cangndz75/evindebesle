@@ -158,7 +158,6 @@ export default function AboutPage() {
 
       <FaqSection />
       <FooterBanner />
-      <Footer />
     </div>
   );
 }

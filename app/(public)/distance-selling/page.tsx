@@ -312,7 +312,6 @@ export default function DistanceSellingPage() {
           </section>
         </div>
       </div>
-      <Footer />
     </>
   );
 }

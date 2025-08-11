@@ -92,7 +92,7 @@ export default function RegisterForm() {
         </Button>
       </div>
 
-      <div className="text-sm text-center text-muted-foreground pt-4">
+      {/* <div className="text-sm text-center text-muted-foreground pt-4">
         Hesabın var mı?{" "}
         <Link
           href="/login"
@@ -100,7 +100,7 @@ export default function RegisterForm() {
         >
           Giriş Yap
         </Link>
-      </div>
+      </div> */}
     </div>
   );
 }

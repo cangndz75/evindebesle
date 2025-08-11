@@ -87,7 +87,6 @@ export default function KVKKPage() {
           </p>
         </div>
       </div>
-      <Footer />
     </>
   );
 }

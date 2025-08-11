@@ -112,7 +112,6 @@ export default function MembershipAgreementPage() {
           </p>
         </div>
       </div>
-      <Footer />
     </>
   );
 }

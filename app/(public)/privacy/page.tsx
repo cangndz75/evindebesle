@@ -92,7 +92,6 @@ export default function GizlilikPage() {
           </p>
         </div>
       </div>
-      <Footer />
     </>
   );
 }

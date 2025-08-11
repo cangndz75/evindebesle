@@ -12,7 +12,6 @@ export default function ServicesPage() {
         <BrandLogos />
         <ServiceGrid />
       </main>
-      <Footer />
     </>
   )
 }

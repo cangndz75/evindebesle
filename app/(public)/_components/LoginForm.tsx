@@ -145,16 +145,6 @@ export default function LoginForm() {
 
       <div className="text-sm text-center text-muted-foreground pt-6 space-y-1">
         <div>
-          Hesabın yok mu?{" "}
-          <Link
-            href="/register"
-            className="text-violet-700 font-semibold hover:underline"
-          >
-            Kayıt Ol
-          </Link>
-        </div>
-
-        <div>
           <Link
             href="/forgot-password"
             className="text-sm text-gray-500 hover:underline"

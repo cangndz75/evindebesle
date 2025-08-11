@@ -34,7 +34,6 @@ function PaginationSkeleton() {
   );
 }
 
-// Mobile header: breadcrumb + başlık
 function BlogMobileHeader() {
   return (
     <div className="md:hidden rounded-xl bg-gradient-to-r from-primary/5 to-transparent">
@@ -55,14 +54,15 @@ function BlogMobileHeader() {
 export default async function BlogHomePage({
   searchParams,
 }: {
-  // Next.js'in beklediği geniş tip
-  searchParams?: Record<string, string | string[] | undefined>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const posts = await getAllPosts();
 
-  const tag = one(searchParams?.tag)?.trim();
-  const category = one(searchParams?.category)?.trim();
-  const q = one(searchParams?.q)?.trim()?.toLowerCase();
+  const sp = (await searchParams) ?? {};
+
+  const tag = one(sp?.tag)?.trim();
+  const category = one(sp?.category)?.trim();
+  const q = one(sp?.q)?.trim()?.toLowerCase();
 
   let filtered = posts.slice();
 
@@ -89,7 +89,7 @@ export default async function BlogHomePage({
 
   // Dinamik sayfalama
   const totalPages = Math.max(1, Math.ceil(uniqueSorted.length / PAGE_SIZE));
-  const pageNumRaw = Number(one(searchParams?.page) ?? "1") || 1;
+  const pageNumRaw = Number(one(sp.page) ?? "1") || 1;
   const pageNum = Math.min(Math.max(pageNumRaw, 1), totalPages);
 
   const start = (pageNum - 1) * PAGE_SIZE;

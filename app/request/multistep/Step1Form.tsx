@@ -311,20 +311,37 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
     setFormData,
   ]);
 
-  // Derived total (tür bazlı)
+  const serviceDayCount = useMemo(() => {
+    if (!selectedDates.length) return 0;
+    const dayKeys = new Set(
+      selectedDates.map((d) =>
+        new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+      )
+    );
+    return dayKeys.size;
+  }, [selectedDates]);
+
   const totalPrice = useMemo(() => {
-    let total = 0;
+    let base = 0;
     selectedSpecies.forEach((sid) => {
       const count = serviceCounts[sid] || 0;
       if (count < 1) return;
       const chosen = selectedServicesBySpecies[sid] || [];
       chosen.forEach((serviceId) => {
         const svc = services.find((s) => s.id === serviceId);
-        if (svc) total += (svc.price || 0) * count;
+        if (svc) base += (svc.price || 0) * count;
       });
     });
-    return total;
-  }, [selectedSpecies, serviceCounts, selectedServicesBySpecies, services]);
+
+    const days = Math.max(serviceDayCount, 1);
+    return base * days;
+  }, [
+    selectedSpecies,
+    serviceCounts,
+    selectedServicesBySpecies,
+    services,
+    serviceDayCount,
+  ]);
 
   const discountedPrice = useMemo(() => {
     if (!appliedCoupon) return totalPrice;
@@ -845,29 +862,21 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
         <Label className="flex items-center gap-2">
           <PawPrint className="w-4 h-4" /> Hizmetler
         </Label>
-
-        {petTypes.map((sp) => (
-          <div key={sp.id} className="mb-8">
-            <h3 className="font-semibold text-lg mb-3">
-              {sp.name} için Hizmetler
-            </h3>
-            <ScrollArea className="h-auto max-h-[420px] border rounded-md p-4 bg-white pb-8">
-              {loadingServices ? (
-                <Skeleton className="w-full h-20" />
-              ) : (
-                <FilteredServiceSelect
-                  allServices={services}
-                  speciesList={petTypes.filter((pt) =>
-                    selectedSpecies.includes(pt.id)
-                  )}
-                  selectedBySpecies={selectedServicesBySpecies}
-                  setSelectedBySpecies={setSelectedServicesBySpecies}
-                  counts={serviceCounts} 
-                />
+        <ScrollArea className="h-auto max-h-[420px] border rounded-md p-4 bg-white pb-8">
+          {loadingServices ? (
+            <Skeleton className="w-full h-20" />
+          ) : (
+            <FilteredServiceSelect
+              allServices={services}
+              speciesList={petTypes.filter((pt) =>
+                selectedSpecies.includes(pt.id)
               )}
-            </ScrollArea>
-          </div>
-        ))}
+              selectedBySpecies={selectedServicesBySpecies}
+              setSelectedBySpecies={setSelectedServicesBySpecies}
+              counts={serviceCounts}
+            />
+          )}
+        </ScrollArea>
       </div>
 
       {/* Ayırıcı */}
@@ -998,13 +1007,13 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
           </div>
         </div>
         <div className="flex flex-col md:flex-row items-center justify-between gap-3 pt-2">
-          <Button
+          {/* <Button
             className="w-full md:w-auto"
             onClick={handlePayment}
             disabled={isPaying}
           >
             {isPaying ? "İşlem Yapılıyor..." : "Hizmeti Başlat (Ödeme Yap)"}
-          </Button>
+          </Button> */}
 
           <Button
             type="button"

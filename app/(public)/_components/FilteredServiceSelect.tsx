@@ -13,19 +13,27 @@ type Service = {
   price: number;
   description?: string;
   imageUrl?: string;
-  petTags: string[]; // isimler
+  petTags: string[]; // isimler (ör. "Kedi", "Köpek")
 };
 
 interface Props {
   allServices: Service[];
   speciesList: { id: string; name: string }[];
-  // ✅ tür bazlı seçim
   selectedBySpecies: Record<string, string[]>;
   setSelectedBySpecies: React.Dispatch<
     React.SetStateAction<Record<string, string[]>>
   >;
-  // UI kontrolu: bu türden kaç owned pet seçilmiş
-  counts: Record<string, number>;
+  counts: Record<string, number>; // Bu türden kaç owned pet seçilmiş
+}
+
+// küçük yardımcı: diziyi id'ye göre tekilleştir
+function uniqueById<T extends { id: string }>(arr: T[]) {
+  const seen = new Set<string>();
+  return arr.filter((item) => {
+    if (seen.has(item.id)) return false;
+    seen.add(item.id);
+    return true;
+  });
 }
 
 export default function FilteredServiceSelect({
@@ -35,12 +43,14 @@ export default function FilteredServiceSelect({
   setSelectedBySpecies,
   counts,
 }: Props) {
-  const scrollRef = useRef<HTMLDivElement>(null);
+  // her tür bloğu için ayrı scroll ref tut
+  const listRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  const scroll = (dir: "left" | "right") => {
-    if (!scrollRef.current) return;
-    const amount = scrollRef.current.offsetWidth * 0.8;
-    scrollRef.current.scrollBy({
+  const scroll = (speciesId: string, dir: "left" | "right") => {
+    const el = listRefs.current[speciesId];
+    if (!el) return;
+    const amount = el.offsetWidth * 0.8;
+    el.scrollBy({
       left: dir === "left" ? -amount : amount,
       behavior: "smooth",
     });
@@ -60,20 +70,28 @@ export default function FilteredServiceSelect({
     });
   };
 
-  // Tür bazlı grupla: servis.petTags (isim) == species.name
-  const bySpecies = speciesList.reduce<Record<string, Service[]>>((acc, sp) => {
-    const upper = sp.name.toUpperCase();
-    acc[sp.id] = allServices.filter((s) =>
-      s.petTags.some((t) => (t || "").toUpperCase() === upper)
-    );
-    return acc;
-  }, {});
+  // Tekilleştirilmiş tür listesi
+  const uniqueSpecies = uniqueById(speciesList);
+
+  // Tür bazlı hizmet listesi: petTags ile eşleşme
+  const bySpecies = uniqueSpecies.reduce<Record<string, Service[]>>(
+    (acc, sp) => {
+      const upper = sp.name.trim().toUpperCase();
+      acc[sp.id] = allServices.filter((s) =>
+        s.petTags.some((t) => (t || "").trim().toUpperCase() === upper)
+      );
+      return acc;
+    },
+    {}
+  );
 
   return (
     <div className="space-y-16">
-      {speciesList.map((sp) => {
+      {uniqueSpecies.map((sp) => {
         const services = bySpecies[sp.id] || [];
         const selectedForThis = selectedBySpecies[sp.id] || [];
+
+        if (services.length === 0) return null;
 
         return (
           <div key={sp.id} className="relative">
@@ -81,25 +99,32 @@ export default function FilteredServiceSelect({
               {sp.name} için Hizmetler
             </h2>
 
+            {/* Sol ok */}
             <Button
+              type="button"
               size="icon"
-              variant="ghost"
-              className="absolute left-0 top-[45%] z-10 hidden md:flex"
-              onClick={() => scroll("left")}
+              className="absolute -left-4 top-1/2 -translate-y-1/2 z-20 flex h-10 w-10 rounded-full bg-white text-black shadow-lg border hover:bg-gray-100"
+              onClick={() => scroll(sp.id, "left")}
+              aria-label="Sola kaydır"
             >
-              <ChevronLeft />
+              <ChevronLeft className="h-5 w-5" />
             </Button>
+
+            {/* Sağ ok */}
             <Button
+              type="button"
               size="icon"
-              variant="ghost"
-              className="absolute right-0 top-[45%] z-10 hidden md:flex"
-              onClick={() => scroll("right")}
+              className="absolute -right-4 top-1/2 -translate-y-1/2 z-20 flex h-10 w-10 rounded-full bg-white text-black shadow-lg border hover:bg-gray-100"
+              onClick={() => scroll(sp.id, "right")}
+              aria-label="Sağa kaydır"
             >
-              <ChevronRight />
+              <ChevronRight className="h-5 w-5" />
             </Button>
 
             <div
-              ref={scrollRef}
+              ref={(el) => {
+                listRefs.current[sp.id] = el;
+              }}
               className="flex overflow-x-auto gap-6 px-1"
               style={{
                 scrollSnapType: "x mandatory",
@@ -108,6 +133,7 @@ export default function FilteredServiceSelect({
                 msOverflowStyle: "none",
               }}
             >
+              {/* scrollbar gizle */}
               <style jsx>{`
                 div::-webkit-scrollbar {
                   display: none;
@@ -136,7 +162,9 @@ export default function FilteredServiceSelect({
                       />
                     </div>
                     <div className="p-4 space-y-1">
-                      <div className="font-semibold text-sm">{service.name}</div>
+                      <div className="font-semibold text-sm">
+                        {service.name}
+                      </div>
                       <p className="text-muted-foreground text-sm line-clamp-2">
                         {service.description || "Açıklama bulunmuyor"}
                       </p>

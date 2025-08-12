@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 import { useRouter } from "next/navigation";
@@ -9,6 +9,12 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 type PetType = { id: string; name: string };
 type Service = {
@@ -31,11 +37,11 @@ interface SummarySidebarProps {
   formData: {
     selectedSpecies: string[];
     selectedUserPetsBySpecies: Record<string, string[]>;
-    selectedServices: string[];
     selectedServicesBySpecies?: Record<string, string[]>;
     services: Service[];
     petTypes: PetType[];
-    dateRange?: { from?: Date | string; to?: Date | string };
+    dateRange?: { from?: Date | string; to?: Date | string } | null;
+    dates?: Array<Date | string>;
     timeSlot?: string;
     repeatType?: "none" | "daily" | "weekly" | "monthly";
     repeatCount?: number | null;
@@ -58,13 +64,13 @@ export default function SummarySidebar({
   const router = useRouter();
 
   const {
-    selectedSpecies,
-    selectedUserPetsBySpecies,
-    selectedServices,
-    selectedServicesBySpecies,
-    services,
-    petTypes,
+    selectedSpecies = [],
+    selectedUserPetsBySpecies = {},
+    selectedServicesBySpecies = {},
+    services = [],
+    petTypes = [],
     dateRange,
+    dates,
     timeSlot,
     repeatType = "none",
     repeatCount,
@@ -72,82 +78,109 @@ export default function SummarySidebar({
     appliedCoupon,
   } = formData || {};
 
-  // Tür bazlı veya tek liste olarak seçilen servis ID'leri
-  const selectedServiceIds = useMemo(() => {
-    if (Array.isArray(selectedServices)) return selectedServices;
-    if (
-      selectedServicesBySpecies &&
-      typeof selectedServicesBySpecies === "object"
-    ) {
-      return Object.values(selectedServicesBySpecies).flat();
-    }
-    return [];
-  }, [selectedServices, selectedServicesBySpecies]);
+  // Agreements modal + checkbox state
+  const [agreementsOpen, setAgreementsOpen] = useState(false);
+  const [agreementsAccepted, setAgreementsAccepted] = useState(false);
 
   const speciesName = (id: string) =>
     petTypes?.find((p) => p.id === id)?.name || id;
 
+  // Tür → seçili owned-pet adedi
   const countsBySpecies = useMemo(() => {
     const counts: Record<string, number> = {};
-    (selectedSpecies || []).forEach((sid) => {
+    selectedSpecies.forEach((sid) => {
       counts[sid] = selectedUserPetsBySpecies?.[sid]?.length || 0;
     });
     return counts;
   }, [selectedSpecies, selectedUserPetsBySpecies]);
 
-  const speciesIdByName = useMemo(() => {
-    const map: Record<string, string> = {};
-    (petTypes || []).forEach((pt) => {
-      if (pt.name) {
-        map[pt.name.toUpperCase()] = pt.id;
+  // Servis lookup
+  const serviceById = useMemo(() => {
+    const map: Record<string, Service> = {};
+    for (const s of services) map[s.id] = s;
+    return map;
+  }, [services]);
+
+  type Line = {
+    id: string;
+    name: string;
+    unitPrice: number;
+    count: number;
+    speciesNames: string[];
+    subtotal: number;
+  };
+
+  const lineItems: Line[] = useMemo(() => {
+    const agg: Record<string, Omit<Line, "subtotal">> = {};
+
+    Object.entries(selectedServicesBySpecies).forEach(([speciesId, svcIds]) => {
+      const petCount = countsBySpecies[speciesId] || 0;
+      if (petCount < 1) return;
+      for (const sid of svcIds || []) {
+        const svc = serviceById[sid];
+        if (!svc) continue;
+        if (!agg[sid]) {
+          agg[sid] = {
+            id: sid,
+            name: svc.name,
+            unitPrice: svc.price || 0,
+            count: 0,
+            speciesNames: [],
+          };
+        }
+        agg[sid].count += petCount;
+        const nm = speciesName(speciesId);
+        if (!agg[sid].speciesNames.includes(nm)) agg[sid].speciesNames.push(nm);
       }
     });
-    return map;
-  }, [petTypes]);
 
-  const lineItems = useMemo(() => {
-    if (!services || !selectedServiceIds.length) return [];
+    return Object.values(agg)
+      .map((x) => ({ ...x, subtotal: x.unitPrice * x.count }))
+      .filter((x) => x.count > 0);
+  }, [selectedServicesBySpecies, countsBySpecies, serviceById, speciesName]);
 
-    return selectedServiceIds
-      .map((sid: string) => services.find((s: Service) => s.id === sid))
-      .filter((svc: Service | undefined): svc is Service => Boolean(svc))
-      .map((svc: Service) => {
-        const affectedSpeciesIds = (svc.petTags || [])
-          .map((name: string) => speciesIdByName[(name || "").toUpperCase()])
-          .filter((spId: string | undefined): spId is string => Boolean(spId));
+  // Benzersiz gün sayısı
+  const serviceDayCount = useMemo(() => {
+    const list: Date[] = Array.isArray(dates)
+      ? dates.map((d) => new Date(d as any))
+      : [];
 
-        const totalCount = affectedSpeciesIds.reduce(
-          (sum: number, spId: string) => sum + (countsBySpecies[spId] || 0),
-          0
+    if (!list.length && (dateRange?.from || dateRange?.to)) {
+      const from = dateRange?.from ? new Date(dateRange.from) : null;
+      const to = dateRange?.to ? new Date(dateRange.to) : null;
+      if (from && to) {
+        const cur = new Date(
+          from.getFullYear(),
+          from.getMonth(),
+          from.getDate()
         );
+        const end = new Date(to.getFullYear(), to.getMonth(), to.getDate());
+        while (cur <= end) {
+          list.push(new Date(cur));
+          cur.setDate(cur.getDate() + 1);
+        }
+      } else if (from) {
+        list.push(new Date(from));
+      }
+    }
 
-        return {
-          id: svc.id,
-          name: svc.name,
-          unitPrice: svc.price || 0,
-          count: totalCount,
-          subtotal: (svc.price || 0) * totalCount,
-          speciesNames: affectedSpeciesIds.map((spId: string) =>
-            speciesName(spId)
-          ),
-        };
-      })
-      .filter((item: { count: number }) => item.count > 0);
-  }, [
-    services,
-    selectedServiceIds,
-    speciesIdByName,
-    countsBySpecies,
-    speciesName,
-  ]);
+    if (!list.length) return 1;
+    const keys = new Set(
+      list.map((d) =>
+        new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+      )
+    );
+    return Math.max(keys.size, 1);
+  }, [dates, dateRange]);
+
+  const baseTotal = useMemo(
+    () => lineItems.reduce((sum, li) => sum + li.subtotal, 0),
+    [lineItems]
+  );
 
   const totalPrice = useMemo(
-    () =>
-      lineItems.reduce(
-        (sum: number, li: { subtotal: number }) => sum + li.subtotal,
-        0
-      ),
-    [lineItems]
+    () => baseTotal * serviceDayCount,
+    [baseTotal, serviceDayCount]
   );
 
   const discountedPrice = useMemo(() => {
@@ -159,25 +192,33 @@ export default function SummarySidebar({
     return Math.max(totalPrice - appliedCoupon.value, 0);
   }, [appliedCoupon, totalPrice]);
 
+  // Submit validation (button disabled logic)
+  const totalPets = useMemo(
+    () =>
+      Object.values(selectedUserPetsBySpecies || {}).reduce(
+        (s, arr) => s + (arr?.length || 0),
+        0
+      ),
+    [selectedUserPetsBySpecies]
+  );
+  const hasServices = lineItems.length > 0;
+  const hasPets = totalPets > 0;
+  const hasAddress = Boolean(address?.id);
+  const hasTimeSlot = Boolean(timeSlot);
+  const hasDates = Boolean(
+    (dates && dates.length > 0) || (dateRange?.from && dateRange?.to)
+  );
+  const canStart =
+    hasServices &&
+    hasPets &&
+    hasAddress &&
+    hasTimeSlot &&
+    hasDates &&
+    agreementsAccepted;
+
   const defaultStart = async () => {
     try {
-      if (!selectedServiceIds.length) {
-        toast.error("Lütfen en az bir hizmet seçin.");
-        return;
-      }
-      const totalPets = Object.values(selectedUserPetsBySpecies || {}).reduce(
-        (s: number, arr: string[]) => s + (arr?.length || 0),
-        0
-      );
-      if (totalPets < 1) {
-        toast.error("Lütfen evcil hayvan seçin.");
-        return;
-      }
-      if (!address?.id) {
-        toast.error("Lütfen adres seçin.");
-        return;
-      }
-
+      if (!canStart) return;
       const res = await fetch("/api/draft-appointment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -200,11 +241,9 @@ export default function SummarySidebar({
   };
 
   const handleStart = () => {
-    if (onStart) {
-      onStart({ totalPrice, discountedPrice });
-    } else {
-      defaultStart();
-    }
+    if (!canStart) return;
+    if (onStart) onStart({ totalPrice, discountedPrice });
+    else defaultStart();
   };
 
   const from = dateRange?.from ? new Date(dateRange.from) : null;
@@ -222,7 +261,7 @@ export default function SummarySidebar({
             Seçilen Hayvan Türleri
           </p>
           <div className="flex flex-wrap gap-2 mt-1">
-            {(selectedSpecies || []).map((id) => (
+            {selectedSpecies.map((id) => (
               <Badge key={id} variant="secondary">
                 {speciesName(id)}
               </Badge>
@@ -242,6 +281,12 @@ export default function SummarySidebar({
                   <div className="min-w-0">
                     <div className="truncate">
                       {li.name} <span className="opacity-70">× {li.count}</span>
+                      {li.speciesNames.length > 0 && (
+                        <span className="opacity-60">
+                          {" "}
+                          • {li.speciesNames.join(", ")}
+                        </span>
+                      )}
                     </div>
                   </div>
                   <div className="whitespace-nowrap">
@@ -296,7 +341,12 @@ export default function SummarySidebar({
           </div>
         )}
 
+        {/* Toplamlar */}
         <div className="border-t pt-2">
+          <div className="flex items-center justify-between text-xs opacity-70">
+            <span>Gün sayısı</span>
+            <span>× {serviceDayCount}</span>
+          </div>
           <div className="flex items-center justify-between text-base">
             <span>Toplam:</span>
             <span className="font-semibold">
@@ -313,9 +363,14 @@ export default function SummarySidebar({
           )}
         </div>
 
-        <Button className="w-full mt-2" onClick={handleStart}>
+        <Button
+          className="w-full mt-2"
+          onClick={handleStart}
+          disabled={!canStart}
+        >
           Hizmeti Başlat
         </Button>
+        
       </CardContent>
     </Card>
   );

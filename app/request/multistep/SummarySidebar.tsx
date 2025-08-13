@@ -9,12 +9,19 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import AgreementsCheckbox from "../_components/AgreementsCheckbox";
+import { useEffect } from "react";
+
+type MeResponse = {
+  name?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  primaryAddress?: {
+    id: string;
+    districtId: string;
+    fullAddress: string;
+  } | null;
+} | null;
 
 type PetType = { id: string; name: string };
 type Service = {
@@ -33,6 +40,11 @@ type Coupon = {
   value: number;
 };
 
+type AgreementsStateType = {
+  preInfoAccepted: boolean;
+  distanceAccepted: boolean;
+};
+
 interface SummarySidebarProps {
   formData: {
     selectedSpecies: string[];
@@ -47,21 +59,109 @@ interface SummarySidebarProps {
     repeatCount?: number | null;
     address?: Address | null;
     appliedCoupon?: Coupon | null;
+
+    paymentMethod?: string | null;
+    recipientName?: string | null;
+    invoiceAddressText?: string | null;
   };
   onStart?: (payload: { totalPrice: number; discountedPrice: number }) => void;
 }
 
-const SLOT_LABELS: Record<string, string> = {
-  morning: "Sabah (08:00 - 12:00)",
-  noon: "Öğle (12:00 - 16:00)",
-  evening: "Akşam (16:00 - 20:00)",
-};
+function buildDraftPayload(formData: any, totalPrice: number, isTest = false) {
+  const {
+    selectedUserPetsBySpecies = {},
+    selectedServicesBySpecies = {},
+    address,
+    repeatType = "none",
+    selectedSpecies,
+    services,
+    petTypes,
+    dateRange,
+    dates,
+    timeSlot,
+    repeatCount,
+    appliedCoupon,
+    paymentMethod,
+    recipientName,
+    invoiceAddressText,
+  } = formData ?? {};
+
+  // ✅ Kullanıcının sahip olduğu pet kayıtlarının ID'leri
+  const ownedPetIds: string[] = Object.values<string[]>(
+    selectedUserPetsBySpecies
+  ).flat();
+
+  // Servis ID'leri
+  const serviceIds: string[] = Array.from(
+    new Set(Object.values<string[]>(selectedServicesBySpecies).flat())
+  );
+
+  const userAddressId = address?.id as string | undefined;
+  const isRecurring = repeatType !== "none";
+  return {
+    ownedPetIds,
+    serviceIds,
+    userAddressId,
+    isRecurring,
+
+    totalPrice,
+    isTest,
+
+    // opsiyoneller
+    selectedSpecies,
+    services,
+    petTypes,
+    dateRange,
+    dates,
+    timeSlot,
+    repeatType,
+    repeatCount,
+    appliedCoupon,
+    paymentMethod,
+    recipientName,
+    invoiceAddressText,
+  };
+}
 
 export default function SummarySidebar({
   formData,
   onStart,
 }: SummarySidebarProps) {
   const router = useRouter();
+  const [me, setMe] = useState<MeResponse>(null);
+
+  const SLOT_LABELS: Record<string, string> = {
+    morning: "Sabah (08:00 - 12:00)",
+    noon: "Öğle (12:00 - 16:00)",
+    evening: "Akşam (16:00 - 20:00)",
+  };
+
+  const SELLER_INFO = {
+    title: "Dogo Petshop LTD. ŞTİ.",
+    address:
+      "Uptwins Blok, Orta, Yalnız Selvi Cd. No: 5AB, 34880 Kartal/İstanbul",
+    tax: "Yakacık Vergi Dairesi | VKN: 3021119045 • MERSİS: 0302111904500001 • Tel: +90 216 519 26 00 • E-posta: info@evindebesle.com",
+  };
+
+  const PLATFORM_INFO = {
+    title: "evindebesle.com",
+    address: "evindebesle.com",
+  };
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const res = await fetch("/api/user/me", { cache: "no-store" });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (alive) setMe(data);
+      } catch {}
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const {
     selectedSpecies = [],
@@ -76,11 +176,15 @@ export default function SummarySidebar({
     repeatCount,
     address,
     appliedCoupon,
+    paymentMethod,
+    recipientName,
+    invoiceAddressText,
   } = formData || {};
 
-  // Agreements modal + checkbox state
-  const [agreementsOpen, setAgreementsOpen] = useState(false);
-  const [agreementsAccepted, setAgreementsAccepted] = useState(false);
+  const [agreements, setAgreements] = useState<AgreementsStateType>({
+    preInfoAccepted: false,
+    distanceAccepted: false,
+  });
 
   const speciesName = (id: string) =>
     petTypes?.find((p) => p.id === id)?.name || id;
@@ -137,7 +241,7 @@ export default function SummarySidebar({
     return Object.values(agg)
       .map((x) => ({ ...x, subtotal: x.unitPrice * x.count }))
       .filter((x) => x.count > 0);
-  }, [selectedServicesBySpecies, countsBySpecies, serviceById, speciesName]);
+  }, [selectedServicesBySpecies, countsBySpecies, serviceById, petTypes]);
 
   // Benzersiz gün sayısı
   const serviceDayCount = useMemo(() => {
@@ -192,7 +296,7 @@ export default function SummarySidebar({
     return Math.max(totalPrice - appliedCoupon.value, 0);
   }, [appliedCoupon, totalPrice]);
 
-  // Submit validation (button disabled logic)
+  // Validation
   const totalPets = useMemo(
     () =>
       Object.values(selectedUserPetsBySpecies || {}).reduce(
@@ -208,24 +312,25 @@ export default function SummarySidebar({
   const hasDates = Boolean(
     (dates && dates.length > 0) || (dateRange?.from && dateRange?.to)
   );
-  const canStart =
-    hasServices &&
-    hasPets &&
-    hasAddress &&
-    hasTimeSlot &&
-    hasDates &&
-    agreementsAccepted;
+  const canStartCore =
+    hasServices && hasPets && hasAddress && hasTimeSlot && hasDates;
 
+  const canStartPaid =
+    canStartCore && agreements.preInfoAccepted && agreements.distanceAccepted;
+  const canStartTest =
+    canStartCore && agreements.preInfoAccepted && agreements.distanceAccepted;
+
+  // API – normal
   const defaultStart = async () => {
     try {
-      if (!canStart) return;
+      if (!canStartPaid) return;
+
+      const payload = buildDraftPayload(formData, discountedPrice, false);
+
       const res = await fetch("/api/draft-appointment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...formData,
-          totalPrice: discountedPrice,
-        }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.message || "Taslak oluşturulamadı.");
@@ -236,15 +341,66 @@ export default function SummarySidebar({
         `/request/step3?totalPrice=${discountedPrice}&draftAppointmentId=${id}`
       );
     } catch (err: any) {
-      toast.error(err?.message || "Hizmeti başlatılamadı.");
+      toast.error(err?.message || "Hizmet başlatılamadı.");
+    }
+  };
+
+  // API – test (kartsız)
+  const startTest = async () => {
+    try {
+      if (!canStartTest) return;
+
+      const payload = buildDraftPayload(formData, 0, true);
+
+      const res = await fetch("/api/draft-appointment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok)
+        throw new Error(data?.message || "Test taslak oluşturulamadı.");
+
+      toast.success("Test (kartsız) taslak randevu oluşturuldu.");
+      const id = data?.id || data?.draftAppointmentId;
+      router.push(
+        `/request/step3?totalPrice=0&draftAppointmentId=${id}&mode=test`
+      );
+    } catch (err: any) {
+      toast.error(err?.message || "Test başlatılamadı.");
     }
   };
 
   const handleStart = () => {
-    if (!canStart) return;
+    if (!canStartPaid) return;
     if (onStart) onStart({ totalPrice, discountedPrice });
     else defaultStart();
   };
+
+  // Modal satırları
+  const agreementItems = useMemo(
+    () =>
+      lineItems.map((li) => ({
+        description: li.name,
+        quantity: li.count,
+        unitPrice: li.unitPrice,
+      })),
+    [lineItems]
+  );
+
+  // İndirimler
+  const agreementDiscounts = useMemo(() => {
+    if (!appliedCoupon) return [];
+    const label =
+      appliedCoupon.discountType === "PERCENT"
+        ? `Kupon -%${appliedCoupon.value}`
+        : "Kupon İndirimi";
+    const amount =
+      appliedCoupon.discountType === "PERCENT"
+        ? Math.round((totalPrice * appliedCoupon.value) / 100)
+        : appliedCoupon.value;
+    return [{ label, amount }];
+  }, [appliedCoupon, totalPrice]);
 
   const from = dateRange?.from ? new Date(dateRange.from) : null;
   const to = dateRange?.to ? new Date(dateRange.to) : null;
@@ -254,6 +410,7 @@ export default function SummarySidebar({
       <CardHeader>
         <CardTitle className="text-lg">Sipariş Özeti</CardTitle>
       </CardHeader>
+
       <CardContent className="space-y-4 text-sm text-muted-foreground">
         {/* Seçilen türler */}
         <div>
@@ -363,14 +520,63 @@ export default function SummarySidebar({
           )}
         </div>
 
-        <Button
-          className="w-full mt-2"
-          onClick={handleStart}
-          disabled={!canStart}
-        >
-          Hizmeti Başlat
-        </Button>
-        
+        <AgreementsCheckbox
+          value={agreements}
+          onChange={setAgreements}
+          // — Sipariş satırları & fiyat —
+          items={agreementItems}
+          shippingFee={0}
+          discounts={agreementDiscounts}
+          paymentMethod={paymentMethod || "Online Ödeme"}
+          // — Adresler (form > kullanıcı primaryAddress) —
+          deliveryAddress={
+            address?.fullAddress || me?.primaryAddress?.fullAddress || ""
+          }
+          invoiceAddress={
+            invoiceAddressText ||
+            address?.fullAddress ||
+            me?.primaryAddress?.fullAddress ||
+            ""
+          }
+          recipientName={recipientName || me?.name || ""}
+          // — Tarih & slot —
+          orderDate={from ? format(from, "d.M.yyyy", { locale: tr }) : ""}
+          deliveryType="Adrese Hizmet"
+          deliveryDeadlineLabel="Hizmet Tarihi"
+          deliveryDeadline={
+            from && to
+              ? `${format(from, "d.M.yyyy", { locale: tr })} - ${format(to, "d.M.yyyy", { locale: tr })}`
+              : from
+                ? format(from, "d.M.yyyy", { locale: tr })
+                : ""
+          }
+          cargoHandOverLabel="Planlanan Zaman Aralığı"
+          cargoHandOverDate={timeSlot ? SLOT_LABELS[timeSlot] || timeSlot : ""}
+          // — Başlıklar için dinamik taraf bilgileri —
+          buyer={{ name: me?.name || "", email: me?.email || "" }}
+          seller={SELLER_INFO}
+          platform={PLATFORM_INFO}
+        />
+
+        <div className="grid grid-cols-1 gap-2 pt-1">
+          <Button
+            className="w-full"
+            onClick={handleStart}
+            disabled={!canStartPaid}
+          >
+            Hizmeti Başlat
+          </Button>
+
+          <Button
+            type="button"
+            variant="secondary"
+            className="w-full"
+            onClick={startTest}
+            disabled={!canStartTest}
+          >
+            Test Modu (Kartsız) Başlat
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

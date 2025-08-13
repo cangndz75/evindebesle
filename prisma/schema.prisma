@@ -483,26 +483,36 @@ model UserCoupon {
 }
 
 model DraftAppointment {
-  id              String   @id @default(uuid())
-  createdAt       DateTime @default(now())
-  userId          String
-  userAddressId   String
-  isRecurring     Boolean
-  recurringType   String?
-  recurringCount  Int?
-  timeSlot        String?
-  dates           String[]
-  petIds          String[]
-  ownedPetIds     String[]
-  serviceIds      String[]
+  id             String   @id @default(uuid())
+  createdAt      DateTime @default(now())
+  userId         String
+  userAddressId  String
 
-  couponId        String?   
-  coupon          Coupon?   @relation(fields: [couponId], references: [id])
+  // rezervasyon
+  isRecurring    Boolean
+  recurringType  String?
+  recurringCount Int?
+  timeSlot       String?
 
-  userNote        String?
-  allergy         String?
-  sensitivity     String?
-  specialRequest  String?
+  // tarih/saat
+  dates          String[]
+
+  // kimlikler
+  ownedPetIds    String[]     // ZORUNLU: kullanıcıya ait OwnedPet ID'leri
+  petIds String[] @default([])
+  serviceIds     String[]
+
+  // ödemeye hazırlık
+  finalPrice     Decimal?     @db.Decimal(10,2)
+  isTest         Boolean      @default(false)
+
+  couponId       String?
+  coupon         Coupon?      @relation(fields: [couponId], references: [id])
+
+  userNote       String?
+  allergy        String?
+  sensitivity    String?
+  specialRequest String?
 }
 
 model AccessInfo {

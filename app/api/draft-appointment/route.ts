@@ -4,9 +4,8 @@ import { prisma } from "@/lib/db";
 import { authConfig } from "@/lib/auth.config";
 import { z } from "zod";
 
-const draftAppointmentSchema = z.object({
-  petIds: z.array(z.string().uuid()).min(1, "En az bir petId gerekli"),
-  ownedPetIds: z.array(z.string().uuid()).optional(),
+const schema = z.object({
+  ownedPetIds: z.array(z.string().uuid()).min(1, "En az bir ownedPetId gerekli"),
   serviceIds: z.array(z.string().uuid()).min(1, "En az bir serviceId gerekli"),
   dates: z.array(z.string()).min(1, "En az bir tarih gerekli"),
   userAddressId: z.string().uuid("Geçersiz userAddressId"),
@@ -14,37 +13,46 @@ const draftAppointmentSchema = z.object({
   isRecurring: z.boolean(),
   recurringType: z.string().optional(),
   recurringCount: z.number().int().min(1).optional(),
+
+  // opsiyoneller
+  isTest: z.boolean().optional(),
+  totalPrice: z.number().min(0).optional(),
 });
+
+function toMidnightISO(s: string) {
+  const d = new Date(s);
+  if (isNaN(d.getTime())) return null;
+  d.setHours(0, 0, 0, 0);
+  return d.toISOString();
+}
 
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authConfig);
     if (!session?.user?.id) {
-      console.warn("❌ Yetkisiz istek: Kullanıcı oturumu bulunamadı");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await req.json();
     console.log("📥 Gelen draft verileri:", body);
 
-    // userPetId yerine ownedPetIds olarak düzelt
-    if (body.userPetId) {
-      body.ownedPetIds = Array.isArray(body.userPetId) ? body.userPetId : [body.userPetId];
-      delete body.userPetId;
+    // Backward-compat: petIds geldiyse ownedPetIds'e map et
+    if (Array.isArray(body.petIds) && !Array.isArray(body.ownedPetIds)) {
+      body.ownedPetIds = body.petIds;
+      delete body.petIds;
     }
 
-    const parsedBody = draftAppointmentSchema.safeParse(body);
-    if (!parsedBody.success) {
-      console.warn("⚠️ Geçersiz veri:", parsedBody.error);
+    const parsed = schema.safeParse(body);
+    if (!parsed.success) {
+      console.warn("⚠️ Geçersiz veri:", parsed.error);
       return NextResponse.json(
-        { error: "Geçersiz veri", details: parsedBody.error },
+        { error: "Geçersiz veri", details: parsed.error },
         { status: 400 }
       );
     }
 
     const {
-      petIds,
-      ownedPetIds = [],
+      ownedPetIds,
       serviceIds,
       dates,
       userAddressId,
@@ -52,69 +60,86 @@ export async function POST(req: NextRequest) {
       isRecurring,
       recurringType,
       recurringCount,
-    } = parsedBody.data;
+      isTest = false,
+      totalPrice = 0,
+    } = parsed.data;
 
-    const pets = await prisma.pet.findMany({
-      where: { id: { in: petIds } },
+    // OwnedPet aitlik kontrolü
+    const ownedPets = await prisma.ownedPet.findMany({
+      where: { id: { in: ownedPetIds }, userId: session.user.id },
+      select: { id: true, petId: true },
     });
-    if (pets.length !== petIds.length) {
-      console.warn("⚠️ Geçersiz petIds:", petIds);
-      return NextResponse.json({ error: "Geçersiz petId'ler" }, { status: 400 });
+    if (ownedPets.length !== ownedPetIds.length) {
+      const valid = new Set(ownedPets.map(p => p.id));
+      const invalid = ownedPetIds.filter(id => !valid.has(id));
+      return NextResponse.json(
+        { error: "Geçersiz veya yetkisiz ownedPetIds", invalidOwnedPetIds: invalid },
+        { status: 400 }
+      );
     }
 
-    if (ownedPetIds.length > 0) {
-      const ownedPets = await prisma.ownedPet.findMany({
-        where: { id: { in: ownedPetIds }, userId: session.user.id },
-      });
-      if (ownedPets.length !== ownedPetIds.length) {
-        console.warn("⚠️ Geçersiz veya yetkisiz ownedPetIds:", ownedPetIds);
-        return NextResponse.json(
-          { error: "Geçersiz veya yetkisiz ownedPetIds" },
-          { status: 400 }
-        );
-      }
-    }
-
+    // Service doğrulama
     const services = await prisma.service.findMany({
       where: { id: { in: serviceIds } },
+      select: { id: true },
     });
     if (services.length !== serviceIds.length) {
-      console.warn("⚠️ Geçersiz serviceIds:", serviceIds);
-      return NextResponse.json({ error: "Geçersiz serviceId'ler" }, { status: 400 });
+      const valid = new Set(services.map(s => s.id));
+      const invalid = serviceIds.filter(id => !valid.has(id));
+      return NextResponse.json(
+        { error: "Geçersiz serviceId'ler", invalidServiceIds: invalid },
+        { status: 400 }
+      );
     }
 
+    // Adres aitliği
     const address = await prisma.userAddress.findFirst({
       where: { id: userAddressId, userId: session.user.id },
+      select: { id: true },
     });
     if (!address) {
-      console.warn("⚠️ Geçersiz veya yetkisiz userAddressId:", userAddressId);
       return NextResponse.json(
         { error: "Geçersiz veya yetkisiz userAddressId" },
         { status: 400 }
       );
     }
 
-    const draftAppointment = await prisma.draftAppointment.create({
+    // Tarihleri normalize et
+    const normalizedDates = dates
+      .map(toMidnightISO)
+      .filter((v): v is string => Boolean(v));
+
+    // 🔄 petIds'i OwnedPet'ten türet (species tablosu referansı)
+    const petIds = Array.from(
+      new Set(ownedPets.map(p => p.petId).filter(Boolean) as string[])
+    );
+
+    const draft = await prisma.draftAppointment.create({
       data: {
-        userId: session.user.id, // Doğrudan userId
-        userAddressId, // Doğrudan userAddressId
-        petIds,
-        ownedPetIds,
-        serviceIds,
-        dates,
-        timeSlot,
+        userId: session.user.id,
+        userAddressId,
+        timeSlot: timeSlot ?? null,
         isRecurring,
-        recurringType,
-        recurringCount,
+        recurringType: recurringType ?? null,
+        recurringCount: recurringCount ?? null,
+        isTest,
+        finalPrice: totalPrice,
+
+        // asıl diziler
+        ownedPetIds,
+        petIds,          // opsiyonel ama dolduruyoruz
+        serviceIds,
+        dates: normalizedDates,
       },
+      select: { id: true },
     });
 
-    console.log("✅ DraftAppointment oluşturuldu:", draftAppointment.id);
+    console.log("✅ DraftAppointment oluşturuldu:", draft.id);
 
-    return NextResponse.json({
-      success: true,
-      data: { draftAppointmentId: draftAppointment.id, ...draftAppointment },
-    });
+    return NextResponse.json(
+      { success: true, data: { draftAppointmentId: draft.id } },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("❌ POST /api/draft-appointment hatası:", error);
     return NextResponse.json(

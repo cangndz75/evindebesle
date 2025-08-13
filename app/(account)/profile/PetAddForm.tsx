@@ -9,6 +9,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 type Props = {
   onSaved: () => void;
+  /** Step1'den tür UUID gönderilebilir. Varsa varsayılan seçim olarak kullanılır. */
+  species?: string;
 };
 
 type PetType = {
@@ -16,13 +18,14 @@ type PetType = {
   name: string;
 };
 
-export default function PetAddForm({ onSaved }: Props) {
+export default function PetAddForm({ onSaved, species }: Props) {
   const [speciesOptions, setSpeciesOptions] = useState<PetType[]>([]);
   const [selectedSpecies, setSelectedSpecies] = useState<string | null>(null);
+
   const [form, setForm] = useState({
     name: "",
     age: "",
-    allergy: [] as string[],
+    allergy: [] as string[], // array olarak gönderiliyor
     specialNote: "",
   });
 
@@ -30,26 +33,44 @@ export default function PetAddForm({ onSaved }: Props) {
   const [saving, setSaving] = useState(false);
   const [allergyInput, setAllergyInput] = useState("");
 
+  // Türleri çek ve başlangıç türünü belirle
   useEffect(() => {
-    fetch("/api/pets")
-      .then((res) => res.json())
-      .then((data) => {
-        setSpeciesOptions(data);
-        if (data.length > 0) setSelectedSpecies(data[0].id);
-      });
-  }, []);
+    let mounted = true;
+    (async () => {
+      const res = await fetch("/api/pets");
+      const data: PetType[] = await res.json();
+      if (!mounted) return;
 
+      setSpeciesOptions(data);
+      if (data.length === 0) {
+        setSelectedSpecies(null);
+        return;
+      }
+
+      // Prop ile gelen tür varsa onu default yap; yoksa ilkini seç
+      if (species && data.some((p) => p.id === species)) {
+        setSelectedSpecies(species);
+      } else {
+        setSelectedSpecies(data[0].id);
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
+  }, [species]);
+
+  // Görsel seçimi (base64)
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onloadend = () => {
-      setImage(reader.result as string);
-    };
+    reader.onloadend = () => setImage(reader.result as string);
     reader.readAsDataURL(file);
   };
 
+  // Alerji chip ekleme/çıkarma
   const addAllergy = () => {
     const trimmed = allergyInput.trim();
     if (trimmed && !form.allergy.includes(trimmed)) {
@@ -65,37 +86,59 @@ export default function PetAddForm({ onSaved }: Props) {
     }));
   };
 
-  const handleChange = (e: any) => {
+  // Text input değişimleri
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Kaydet
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!selectedSpecies) return;
+
     setSaving(true);
+    try {
+      const res = await fetch("/api/user-pets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name,
+          age: form.age ? Number(form.age) : null,
+          petId: selectedSpecies,        // <- tür UUID backend'de petId olarak karşılanıyor
+          image,
+          allergy: form.allergy,         // zod: z.array(z.string()).optional()
+          specialNote: form.specialNote || null,
+        }),
+      });
 
-    await fetch("/api/user-pets", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: form.name,
-        age: form.age ? Number(form.age) : null,
-        petId: selectedSpecies,
-        image,
-        allergy: form.allergy,
-        specialNote: form.specialNote || null,
-      }),
-    });
+      // Hata kontrolü
+      if (!res.ok) {
+        let msg = "Kaydedilemedi.";
+        try {
+          const err = await res.json();
+          msg = err?.error || msg;
+        } catch {}
+        throw new Error(msg);
+      }
 
-    setSaving(false);
-    setForm({ name: "", age: "", allergy: [], specialNote: "" });
-    setImage(null);
-    onSaved();
+      // Temizle + üst bileşene haber ver
+      setForm({ name: "", age: "", allergy: [], specialNote: "" });
+      setImage(null);
+      onSaved();
+    } catch (err) {
+      // Basit fallback; istersen burada toast kullanabilirsin
+      console.error(err);
+      alert((err as Error)?.message || "Kaydedilemedi.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <form className="space-y-6 w-full pb-10" onSubmit={handleSubmit}>
-      <div className="grid grid-cols-2 gap-4">
+      {/* Ad & Yaş */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <Label htmlFor="name">Ad</Label>
           <Input
@@ -122,12 +165,13 @@ export default function PetAddForm({ onSaved }: Props) {
         </div>
       </div>
 
+      {/* Tür seçimi */}
       <div>
         <Label className="mb-2 block text-sm font-medium">Tür</Label>
         <RadioGroup
           value={selectedSpecies ?? ""}
           onValueChange={setSelectedSpecies}
-          className="flex gap-4"
+          className="flex flex-wrap gap-4"
         >
           {speciesOptions.map((pet) => (
             <div key={pet.id} className="flex items-center gap-2">
@@ -138,7 +182,8 @@ export default function PetAddForm({ onSaved }: Props) {
         </RadioGroup>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      {/* Alerji & Özel not */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <Label htmlFor="allergy">Alerji Bilgileri</Label>
           <div className="flex gap-2 mt-1">
@@ -170,6 +215,8 @@ export default function PetAddForm({ onSaved }: Props) {
                   type="button"
                   onClick={() => removeAllergy(item)}
                   className="text-red-500 hover:text-red-700"
+                  aria-label={`${item} alerjisini kaldır`}
+                  title="Kaldır"
                 >
                   ✕
                 </button>
@@ -177,6 +224,7 @@ export default function PetAddForm({ onSaved }: Props) {
             ))}
           </div>
         </div>
+
         <div>
           <Label htmlFor="specialNote">Özel Not</Label>
           <Textarea
@@ -189,9 +237,11 @@ export default function PetAddForm({ onSaved }: Props) {
         </div>
       </div>
 
+      {/* Görsel */}
       <div className="space-y-2">
         <Label className="block text-sm font-medium">Görsel</Label>
         {image ? (
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={image}
             alt="Pet"
@@ -210,11 +260,17 @@ export default function PetAddForm({ onSaved }: Props) {
         />
       </div>
 
+      {/* Butonlar */}
       <div className="flex justify-end gap-2 pt-6">
-        <Button variant="outline" type="button" onClick={onSaved}>
+        <Button
+          variant="outline"
+          type="button"
+          onClick={onSaved}
+          disabled={saving}
+        >
           İptal
         </Button>
-        <Button type="submit" disabled={saving}>
+        <Button type="submit" disabled={saving || !selectedSpecies}>
           {saving ? (
             <>
               <svg
@@ -237,6 +293,7 @@ export default function PetAddForm({ onSaved }: Props) {
                   d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
                 ></path>
               </svg>
+              
             </>
           ) : (
             "Kaydet"

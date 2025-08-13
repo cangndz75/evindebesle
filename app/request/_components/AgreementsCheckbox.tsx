@@ -1,21 +1,25 @@
 "use client";
 
-import React from "react";
-import AgreementsModal, { PRE_INFO_HTML, DISTANCE_SALES_HTML } from "./AgreementsModal";
+import * as React from "react";
+import AgreementsModal from "./AgreementsModal";
+import { useAgreementsDocs } from "@/hooks/useAgreementsDocs";
 
-type AgreementsState = {
+export type AgreementsState = {
   preInfoAccepted: boolean;
   distanceAccepted: boolean;
 };
 
+type LineItem = { description: string; quantity: number; unitPrice: number; subtotal?: number };
+type Discount = { label: string; amount: number };
+
 type AgreementsCheckboxProps = {
   value: AgreementsState;
-  onChange: (next: AgreementsState) => void;
+  onChange: React.Dispatch<React.SetStateAction<AgreementsState>>;
 
-  // Modal için dinamik veriler
-  items: { description: string; quantity: number; unitPrice: number; subtotal?: number }[];
+  // dinamik içerik kaynağı – Summary’den doluyor
+  items: LineItem[];
   shippingFee?: number;
-  discounts?: { label: string; amount: number }[];
+  discounts?: Discount[];
   paymentMethod?: string;
   deliveryAddress?: string;
   invoiceAddress?: string;
@@ -26,31 +30,30 @@ type AgreementsCheckboxProps = {
   deliveryDeadline?: string;
   cargoHandOverLabel?: string;
   cargoHandOverDate?: string;
+
+  buyer?: { name?: string; email?: string };
+  seller?: { title?: string; address?: string; tax?: string };
+  platform?: { title?: string; address?: string };
 };
 
-export default function AgreementsCheckbox({
-  value,
-  onChange,
-  items,
-  shippingFee,
-  discounts,
-  paymentMethod,
-  deliveryAddress,
-  invoiceAddress,
-  recipientName,
-  orderDate,
-  deliveryType,
-  deliveryDeadlineLabel,
-  deliveryDeadline,
-  cargoHandOverLabel,
-  cargoHandOverDate,
-}: AgreementsCheckboxProps) {
-  const [open, setOpen] = React.useState(false);
-  const [modalTab, setModalTab] = React.useState<"preinfo" | "distance">("preinfo");
+export default function AgreementsCheckbox(props: AgreementsCheckboxProps) {
+  const { value, onChange, ...input } = props;
 
-  const openModal = (tab: "preinfo" | "distance") => {
-    setModalTab(tab);
-    setOpen(true);
+  // modal state
+  const [open, setOpen] = React.useState(false);
+  const [tab, setTab] = React.useState<"preinfo" | "distance">("preinfo");
+
+  // dinamik sözleşme metinleri — Summary verilerinden üretilir
+  const { loading, preInfoHTML, distanceSalesHTML } = useAgreementsDocs(input);
+
+  // kullanıcı doğrudan checkbox'a basarsa önce modal aç
+  const tryTogglePre = () => {
+    if (!value.preInfoAccepted) setTab("preinfo"), setOpen(true);
+    else onChange(p => ({ ...p, preInfoAccepted: false }));
+  };
+  const tryToggleDist = () => {
+    if (!value.distanceAccepted) setTab("distance"), setOpen(true);
+    else onChange(p => ({ ...p, distanceAccepted: false }));
   };
 
   return (
@@ -58,24 +61,27 @@ export default function AgreementsCheckbox({
       <div className="space-y-3 bg-neutral-50/60 border rounded-2xl p-4">
         <AgreementRow
           checked={value.preInfoAccepted}
-          onToggle={() => onChange({ ...value, preInfoAccepted: !value.preInfoAccepted })}
+          onToggle={tryTogglePre}
           label={
             <>
               Ön Bilgilendirme Koşullarını{" "}
-              <button type="button" onClick={() => openModal("preinfo")} className="underline underline-offset-2 hover:no-underline text-orange-600">
+              <button type="button" onClick={() => (setTab("preinfo"), setOpen(true))}
+                className="underline underline-offset-2 hover:no-underline text-orange-600">
                 oku
               </button>{" "}
               ve kabul ediyorum.
             </>
           }
         />
+
         <AgreementRow
           checked={value.distanceAccepted}
-          onToggle={() => onChange({ ...value, distanceAccepted: !value.distanceAccepted })}
+          onToggle={tryToggleDist}
           label={
             <>
               Mesafeli Satış Sözleşmesi’ni{" "}
-              <button type="button" onClick={() => openModal("distance")} className="underline underline-offset-2 hover:no-underline text-orange-600">
+              <button type="button" onClick={() => (setTab("distance"), setOpen(true))}
+                className="underline underline-offset-2 hover:no-underline text-orange-600">
                 oku
               </button>{" "}
               ve kabul ediyorum.
@@ -85,38 +91,21 @@ export default function AgreementsCheckbox({
       </div>
 
       <AgreementsModal
-        isOpen={open}
-        onClose={() => setOpen(false)}
-        defaultTab={modalTab}
-        items={items}
-        shippingFee={shippingFee}
-        discounts={discounts}
-        paymentMethod={paymentMethod}
-        deliveryAddress={deliveryAddress}
-        invoiceAddress={invoiceAddress}
-        recipientName={recipientName}
-        orderDate={orderDate}
-        deliveryType={deliveryType}
-        deliveryDeadlineLabel={deliveryDeadlineLabel}
-        deliveryDeadline={deliveryDeadline}
-        cargoHandOverLabel={cargoHandOverLabel}
-        cargoHandOverDate={cargoHandOverDate}
-        preInfoHTML={PRE_INFO_HTML}
-        distanceSalesHTML={DISTANCE_SALES_HTML}
+        open={open}
+        onOpenChange={setOpen}
+        defaultTab={tab}
+        preInfoHTML={loading ? "<p>Yükleniyor…</p>" : preInfoHTML}
+        distanceSalesHTML={loading ? "<p>Yükleniyor…</p>" : distanceSalesHTML}
+        onAcceptPreInfo={() => onChange(p => ({ ...p, preInfoAccepted: true }))}
+        onAcceptDistance={() => onChange(p => ({ ...p, distanceAccepted: true }))}
       />
     </>
   );
 }
 
 function AgreementRow({
-  checked,
-  onToggle,
-  label,
-}: {
-  checked: boolean;
-  onToggle: () => void;
-  label: React.ReactNode;
-}) {
+  checked, onToggle, label,
+}: { checked: boolean; onToggle: () => void; label: React.ReactNode }) {
   return (
     <label className="group flex items-start gap-3 cursor-pointer">
       <input

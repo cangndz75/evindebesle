@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/dialog";
 import AddressForm from "@/app/(account)/profile/addresses/AddressForm";
 import { Separator } from "@/components/ui/separator";
+import Step1PetAddModal from "../_components/Step1PetAddModal";
 
 interface Props {
   allServices: Service[];
@@ -123,7 +124,19 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
   const [serviceCounts, setServiceCounts] = useState<Record<string, number>>(
     {}
   );
+  const [petAddOpen, setPetAddOpen] = useState(false);
+  const [petAddSpecies, setPetAddSpecies] = useState<string | null>(null);
 
+  const refetchUserPets = async () => {
+    setLoadingUserPets(true);
+    try {
+      const r = await fetch("/api/user-pets");
+      const data = await r.json();
+      setUserPets(Array.isArray(data) ? data : []);
+    } finally {
+      setLoadingUserPets(false);
+    }
+  };
   const [couponInput, setCouponInput] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
 
@@ -605,9 +618,10 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() =>
-                        router.push(`/account/profile/pet/add?species=${spId}`)
-                      }
+                      onClick={() => {
+                        setPetAddSpecies(spId);
+                        setPetAddOpen(true);
+                      }}
                     >
                       <PlusIcon className="w-4 h-4 mr-2" />
                       {speciesName(spId)} Ekle
@@ -1026,6 +1040,16 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
           </Button>
         </div>
       </div>
+      <Step1PetAddModal
+        open={petAddOpen}
+        species={petAddSpecies ?? undefined}
+        onClose={() => setPetAddOpen(false)}
+        onAdded={async () => {
+          await refetchUserPets(); 
+          setPetAddOpen(false);
+          toast.success("Evcil hayvan eklendi.");
+        }}
+      />
     </div>
   );
 }

@@ -29,8 +29,9 @@ export default function Footer() {
         </div>
 
         {/* Sağ blok */}
-        <div className="flex flex-col justify-between">
-          <div className="space-y-2 text-[15px]">
+        {/* Sağ blok */}
+        <div className="flex flex-col justify-between items-start md:items-end">
+          <div className="space-y-2 text-[15px] md:text-right">
             <Link href="/kvkk" className="block hover:underline">
               KVKK Aydınlatma Metni
             </Link>
@@ -51,16 +52,15 @@ export default function Footer() {
             </Link>
           </div>
 
-          {/* <div className="mt-6 flex flex-col items-end">
-            <div className="flex gap-3">
-              <Image
-                src="https://res.cloudinary.com/dlahfchej/image/upload/v1753708468/logo_band_colored_2x_afo1no.png"
-                alt="iyzico ile öde"
-                width={450}
-                height={32}
-              />
-            </div>
-          </div> */}
+          <div className="mt-6">
+            <Image
+              src="https://res.cloudinary.com/dlahfchej/image/upload/v1755085903/logo_band_colored_2x_vraqrx.png"
+              alt="Ödeme Yöntemleri"
+              width={260}
+              height={50}
+              className="object-contain"
+            />
+          </div>
         </div>
       </div>
     </footer>

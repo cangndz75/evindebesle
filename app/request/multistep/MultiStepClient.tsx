@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Step1Form from "./Step1Form";
 import Step2Form from "./Step2Form";
-import Step3Client from "../step3/Step3Client";
 import SummarySidebar from "./SummarySidebar";
 
 export default function MultiStepClient() {

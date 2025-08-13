@@ -448,7 +448,6 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
 
   // Taslak body (server şemasına uygun)
   const buildDraftBody = () => {
-    const petIds = selectedSpecies; // tür id’leri
     const ownedPetIds = Object.values(selectedUserPetsBySpecies).flat();
     const serviceIds = Array.from(
       new Set(Object.values(selectedServicesBySpecies).flat())
@@ -458,7 +457,6 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
     const isRecurring = repeatType !== "none";
 
     return {
-      petIds,
       ownedPetIds,
       serviceIds,
       dates,
@@ -558,19 +556,26 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
 
       const draftAppointmentId = await createDraft();
       toast.success(`Taslak oluşturuldu (test): ${draftAppointmentId}`);
-      const appointmentRes = await fetch("/api/appointments/test-complete", {
+
+      const appointmentRes = await fetch("/api/appointments/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           draftAppointmentId,
-          paidPrice: discountedPrice,
+          paidPrice: 0, // TEST MODU: 0 TL
           conversationId: "TEST-MODE",
         }),
       });
+
       if (!appointmentRes.ok) {
-        const errData = await appointmentRes.json();
-        return toast.error(errData?.error || "Test randevusu oluşturulamadı");
+        let errMsg = "Test randevusu oluşturulamadı";
+        try {
+          const errData = await appointmentRes.json();
+          errMsg = errData?.error || errMsg;
+        } catch {}
+        return toast.error(errMsg);
       }
+
       toast.success("Test randevusu oluşturuldu ve tabloya eklendi.");
     } catch (e: any) {
       toast.error(e?.message || "Randevu hatası.");
@@ -1045,7 +1050,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
         species={petAddSpecies ?? undefined}
         onClose={() => setPetAddOpen(false)}
         onAdded={async () => {
-          await refetchUserPets(); 
+          await refetchUserPets();
           setPetAddOpen(false);
           toast.success("Evcil hayvan eklendi.");
         }}

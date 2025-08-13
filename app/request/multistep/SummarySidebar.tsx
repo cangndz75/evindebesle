@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 import { useRouter } from "next/navigation";
@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import AgreementsCheckbox from "../_components/AgreementsCheckbox";
-import { useEffect } from "react";
 
 type MeResponse = {
   name?: string | null;
@@ -67,6 +66,35 @@ interface SummarySidebarProps {
   onStart?: (payload: { totalPrice: number; discountedPrice: number }) => void;
 }
 
+function toMidnightISO(d: Date) {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x.toISOString();
+}
+
+function collectDates(formData: any): string[] {
+  const { dates, dateRange } = formData || {};
+  if (Array.isArray(dates) && dates.length) {
+    return dates.map((d: any) => toMidnightISO(new Date(d)));
+  }
+  const from = dateRange?.from ? new Date(dateRange.from) : null;
+  const to = dateRange?.to ? new Date(dateRange.to) : null;
+  const out: string[] = [];
+  if (from && to) {
+    const cur = new Date(from);
+    cur.setHours(0, 0, 0, 0);
+    const end = new Date(to);
+    end.setHours(0, 0, 0, 0);
+    while (cur <= end) {
+      out.push(cur.toISOString());
+      cur.setDate(cur.getDate() + 1);
+    }
+    return out;
+  }
+  if (from) return [toMidnightISO(from)];
+  return [];
+}
+
 function buildDraftPayload(formData: any, totalPrice: number, isTest = false) {
   const {
     selectedUserPetsBySpecies = {},
@@ -77,7 +105,6 @@ function buildDraftPayload(formData: any, totalPrice: number, isTest = false) {
     services,
     petTypes,
     dateRange,
-    dates,
     timeSlot,
     repeatCount,
     appliedCoupon,
@@ -86,33 +113,31 @@ function buildDraftPayload(formData: any, totalPrice: number, isTest = false) {
     invoiceAddressText,
   } = formData ?? {};
 
-  // ✅ Kullanıcının sahip olduğu pet kayıtlarının ID'leri
   const ownedPetIds: string[] = Object.values<string[]>(
     selectedUserPetsBySpecies
   ).flat();
 
-  // Servis ID'leri
   const serviceIds: string[] = Array.from(
     new Set(Object.values<string[]>(selectedServicesBySpecies).flat())
   );
 
   const userAddressId = address?.id as string | undefined;
   const isRecurring = repeatType !== "none";
+
   return {
     ownedPetIds,
     serviceIds,
     userAddressId,
     isRecurring,
-
     totalPrice,
     isTest,
 
-    // opsiyoneller
+    // opsiyonel alanlar (server tarafında saklamak isteyen akışlar için)
     selectedSpecies,
     services,
     petTypes,
     dateRange,
-    dates,
+    dates: collectDates(formData),
     timeSlot,
     repeatType,
     repeatCount,
@@ -189,7 +214,6 @@ export default function SummarySidebar({
   const speciesName = (id: string) =>
     petTypes?.find((p) => p.id === id)?.name || id;
 
-  // Tür → seçili owned-pet adedi
   const countsBySpecies = useMemo(() => {
     const counts: Record<string, number> = {};
     selectedSpecies.forEach((sid) => {
@@ -198,7 +222,6 @@ export default function SummarySidebar({
     return counts;
   }, [selectedSpecies, selectedUserPetsBySpecies]);
 
-  // Servis lookup
   const serviceById = useMemo(() => {
     const map: Record<string, Service> = {};
     for (const s of services) map[s.id] = s;
@@ -243,7 +266,6 @@ export default function SummarySidebar({
       .filter((x) => x.count > 0);
   }, [selectedServicesBySpecies, countsBySpecies, serviceById, petTypes]);
 
-  // Benzersiz gün sayısı
   const serviceDayCount = useMemo(() => {
     const list: Date[] = Array.isArray(dates)
       ? dates.map((d) => new Date(d as any))
@@ -296,7 +318,6 @@ export default function SummarySidebar({
     return Math.max(totalPrice - appliedCoupon.value, 0);
   }, [appliedCoupon, totalPrice]);
 
-  // Validation
   const totalPets = useMemo(
     () =>
       Object.values(selectedUserPetsBySpecies || {}).reduce(
@@ -305,6 +326,7 @@ export default function SummarySidebar({
       ),
     [selectedUserPetsBySpecies]
   );
+
   const hasServices = lineItems.length > 0;
   const hasPets = totalPets > 0;
   const hasAddress = Boolean(address?.id);
@@ -320,64 +342,65 @@ export default function SummarySidebar({
   const canStartTest =
     canStartCore && agreements.preInfoAccepted && agreements.distanceAccepted;
 
-  // API – normal
-  const defaultStart = async () => {
-    try {
-      if (!canStartPaid) return;
-
-      const payload = buildDraftPayload(formData, discountedPrice, false);
-
-      const res = await fetch("/api/draft-appointment", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.message || "Taslak oluşturulamadı.");
-
-      toast.success("Taslak randevu oluşturuldu.");
-      const id = data?.id || data?.draftAppointmentId;
-      router.push(
-        `/request/step3?totalPrice=${discountedPrice}&draftAppointmentId=${id}`
-      );
-    } catch (err: any) {
-      toast.error(err?.message || "Hizmet başlatılamadı.");
-    }
+  // ---- STEP3 YÖNLENDİRMESİ KALDIRILDI ----
+  // Artık handleStart sadece parent'a fiyat bilgisi geçer (ör. kart formu Step1'deyse).
+  const handleStart = () => {
+    if (!canStartPaid) return;
+    if (onStart) onStart({ totalPrice, discountedPrice });
+    else toast.info("Ödeme için gerekli bilgiler ana formdan tamamlanmalı.");
   };
 
-  // API – test (kartsız)
+  // Taslak oluşturucu (ortak kullanım)
+  const createDraft = async (price: number, isTest: boolean) => {
+    const payload = buildDraftPayload(formData, price, isTest);
+    const res = await fetch("/api/draft-appointment", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok)
+      throw new Error(data?.message || data?.error || "Taslak oluşturulamadı.");
+    return data?.draftAppointmentId || data?.id;
+  };
+
   const startTest = async () => {
     try {
       if (!canStartTest) return;
 
-      const payload = buildDraftPayload(formData, 0, true);
+      const draftId = await createDraft(0, true);
 
-      const res = await fetch("/api/draft-appointment", {
+      const completeRes = await fetch("/api/appointments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          draftAppointmentId: draftId,
+          paidPrice: 0,
+          conversationId: "TEST-MODE",
+        }),
       });
-      const data = await res.json();
-      if (!res.ok)
-        throw new Error(data?.message || "Test taslak oluşturulamadı.");
 
-      toast.success("Test (kartsız) taslak randevu oluşturuldu.");
-      const id = data?.id || data?.draftAppointmentId;
+      const completeData = await completeRes.json();
+      if (!completeRes.ok)
+        throw new Error(
+          completeData?.message ||
+            completeData?.error ||
+            "Randevu oluşturulamadı."
+        );
+
+      const appointmentId: string =
+        completeData?.appointmentId || completeData?.id;
+
+      toast.success("Test randevusu oluşturuldu.");
       router.push(
-        `/request/step3?totalPrice=0&draftAppointmentId=${id}&mode=test`
+        appointmentId ? `/success?appointmentId=${appointmentId}` : `/success`
       );
     } catch (err: any) {
-      toast.error(err?.message || "Test başlatılamadı.");
+      toast.error(err?.message || "Test randevusu oluşturulamadı.");
     }
   };
 
-  const handleStart = () => {
-    if (!canStartPaid) return;
-    if (onStart) onStart({ totalPrice, discountedPrice });
-    else defaultStart();
-  };
-
-  // Modal satırları
+  // Agreements modal satırları
   const agreementItems = useMemo(
     () =>
       lineItems.map((li) => ({
@@ -388,7 +411,6 @@ export default function SummarySidebar({
     [lineItems]
   );
 
-  // İndirimler
   const agreementDiscounts = useMemo(() => {
     if (!appliedCoupon) return [];
     const label =
@@ -523,12 +545,10 @@ export default function SummarySidebar({
         <AgreementsCheckbox
           value={agreements}
           onChange={setAgreements}
-          // — Sipariş satırları & fiyat —
           items={agreementItems}
           shippingFee={0}
           discounts={agreementDiscounts}
           paymentMethod={paymentMethod || "Online Ödeme"}
-          // — Adresler (form > kullanıcı primaryAddress) —
           deliveryAddress={
             address?.fullAddress || me?.primaryAddress?.fullAddress || ""
           }
@@ -539,7 +559,6 @@ export default function SummarySidebar({
             ""
           }
           recipientName={recipientName || me?.name || ""}
-          // — Tarih & slot —
           orderDate={from ? format(from, "d.M.yyyy", { locale: tr }) : ""}
           deliveryType="Adrese Hizmet"
           deliveryDeadlineLabel="Hizmet Tarihi"
@@ -552,7 +571,6 @@ export default function SummarySidebar({
           }
           cargoHandOverLabel="Planlanan Zaman Aralığı"
           cargoHandOverDate={timeSlot ? SLOT_LABELS[timeSlot] || timeSlot : ""}
-          // — Başlıklar için dinamik taraf bilgileri —
           buyer={{ name: me?.name || "", email: me?.email || "" }}
           seller={SELLER_INFO}
           platform={PLATFORM_INFO}

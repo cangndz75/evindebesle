@@ -497,17 +497,15 @@ model DraftAppointment {
   // tarih/saat
   dates          String[]
 
-  // kimlikler
-  ownedPetIds    String[]     // ZORUNLU: kullanıcıya ait OwnedPet ID'leri
-  petIds String[] @default([])
+  ownedPetIds    String[]       
+  petIds         String[] @default([])
   serviceIds     String[]
 
-  // ödemeye hazırlık
-  finalPrice     Decimal?     @db.Decimal(10,2)
-  isTest         Boolean      @default(false)
+  finalPrice     Decimal? @db.Decimal(10, 2)
+  isTest         Boolean  @default(false)
 
   couponId       String?
-  coupon         Coupon?      @relation(fields: [couponId], references: [id])
+  coupon         Coupon?  @relation(fields: [couponId], references: [id])
 
   userNote       String?
   allergy        String?

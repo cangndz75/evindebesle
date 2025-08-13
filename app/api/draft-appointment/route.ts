@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { prisma } from "@/lib/db";
 import { authConfig } from "@/lib/auth.config";
+import { prisma } from "@/lib/db";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 
 const schema = z.object({
   ownedPetIds: z.array(z.string().uuid()).min(1, "En az bir ownedPetId gerekli"),
@@ -36,7 +37,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     console.log("📥 Gelen draft verileri:", body);
 
-    // Backward-compat: petIds geldiyse ownedPetIds'e map et
+    // backward compat: petIds → ownedPetIds
     if (Array.isArray(body.petIds) && !Array.isArray(body.ownedPetIds)) {
       body.ownedPetIds = body.petIds;
       delete body.petIds;
@@ -46,7 +47,7 @@ export async function POST(req: NextRequest) {
     if (!parsed.success) {
       console.warn("⚠️ Geçersiz veri:", parsed.error);
       return NextResponse.json(
-        { error: "Geçersiz veri", details: parsed.error },
+        { error: "Geçersiz veri", details: parsed.error.flatten() },
         { status: 400 }
       );
     }
@@ -61,7 +62,7 @@ export async function POST(req: NextRequest) {
       recurringType,
       recurringCount,
       isTest = false,
-      totalPrice = 0,
+      totalPrice,
     } = parsed.data;
 
     // OwnedPet aitlik kontrolü
@@ -70,8 +71,8 @@ export async function POST(req: NextRequest) {
       select: { id: true, petId: true },
     });
     if (ownedPets.length !== ownedPetIds.length) {
-      const valid = new Set(ownedPets.map(p => p.id));
-      const invalid = ownedPetIds.filter(id => !valid.has(id));
+      const valid = new Set(ownedPets.map((p) => p.id));
+      const invalid = ownedPetIds.filter((id) => !valid.has(id));
       return NextResponse.json(
         { error: "Geçersiz veya yetkisiz ownedPetIds", invalidOwnedPetIds: invalid },
         { status: 400 }
@@ -84,15 +85,15 @@ export async function POST(req: NextRequest) {
       select: { id: true },
     });
     if (services.length !== serviceIds.length) {
-      const valid = new Set(services.map(s => s.id));
-      const invalid = serviceIds.filter(id => !valid.has(id));
+      const valid = new Set(services.map((s) => s.id));
+      const invalid = serviceIds.filter((id) => !valid.has(id));
       return NextResponse.json(
         { error: "Geçersiz serviceId'ler", invalidServiceIds: invalid },
         { status: 400 }
       );
     }
 
-    // Adres aitliği
+    // Adres aitlik kontrolü
     const address = await prisma.userAddress.findFirst({
       where: { id: userAddressId, userId: session.user.id },
       select: { id: true },
@@ -108,10 +109,16 @@ export async function POST(req: NextRequest) {
     const normalizedDates = dates
       .map(toMidnightISO)
       .filter((v): v is string => Boolean(v));
+    if (normalizedDates.length === 0) {
+      return NextResponse.json(
+        { error: "Geçerli tarih bulunamadı" },
+        { status: 400 }
+      );
+    }
 
-    // 🔄 petIds'i OwnedPet'ten türet (species tablosu referansı)
+    // petIds'i OwnedPet'ten türet
     const petIds = Array.from(
-      new Set(ownedPets.map(p => p.petId).filter(Boolean) as string[])
+      new Set(ownedPets.map((p) => p.petId).filter(Boolean) as string[])
     );
 
     const draft = await prisma.draftAppointment.create({
@@ -122,12 +129,13 @@ export async function POST(req: NextRequest) {
         isRecurring,
         recurringType: recurringType ?? null,
         recurringCount: recurringCount ?? null,
-        isTest,
-        finalPrice: totalPrice,
 
-        // asıl diziler
+      ...(typeof isTest === "boolean" ? { isTest } : {}),
+      ...(typeof totalPrice === "number" ? { finalPrice: Number(totalPrice) } : {}),
+
+
         ownedPetIds,
-        petIds,          // opsiyonel ama dolduruyoruz
+        petIds,
         serviceIds,
         dates: normalizedDates,
       },
@@ -137,7 +145,7 @@ export async function POST(req: NextRequest) {
     console.log("✅ DraftAppointment oluşturuldu:", draft.id);
 
     return NextResponse.json(
-      { success: true, data: { draftAppointmentId: draft.id } },
+      { success: true, draftAppointmentId: draft.id },
       { status: 200 }
     );
   } catch (error) {

@@ -19,7 +19,6 @@ import DatePicker from "@/app/(public)/_components/DatePicker";
 import { toast } from "sonner";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import ServiceModal from "../_components/ServiceModal";
-import { AccessInfoModal } from "../_components/AccessInfoModal";
 
 export default function Step2Client() {
   const router = useRouter();

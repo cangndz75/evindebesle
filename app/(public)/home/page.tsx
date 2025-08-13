@@ -9,6 +9,12 @@ import HowItWorksSection from "../_components/HowItWorksSection";
 import PetTypeSelector from "../_components/PetTypeSelector";
 import SearchBox from "../_components/SearchBox";
 
+export const metadata = {
+  title: "Tatile Giderken Evcil Hayvan Nereye Bırakılır? | Evinde Besle",
+  description:
+    "Tatile çıkarken kediniz veya köpeğiniz için güvenli bakım ve konaklama hizmetleri. Evcil hayvan oteli, evde bakım ve deneyimli bakıcılar bir arada.",
+};
+
 export default function HomePage() {
   return (
     <>

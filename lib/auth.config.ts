@@ -30,6 +30,7 @@ export const authConfig: AuthOptions = {
           isAdmin: user.isAdmin,
           districtId: user.districtId,
           fullAddress: user.fullAddress,
+          isTestUser: user.isTestUser ?? false,
         };
       },
     }),
@@ -44,6 +45,7 @@ export const authConfig: AuthOptions = {
         session.user.isAdmin = token.isAdmin;
         session.user.districtId = token.districtId;
         session.user.fullAddress = token.fullAddress;
+        session.user.isTestUser = Boolean(token.isTestUser);
       }
       return session;
     },
@@ -53,6 +55,7 @@ export const authConfig: AuthOptions = {
         token.isAdmin = user.isAdmin;
         token.districtId = user.districtId;
         token.fullAddress = user.fullAddress;
+        token.isTestUser = user.isTestUser ?? false;
       }
       return token;
     },

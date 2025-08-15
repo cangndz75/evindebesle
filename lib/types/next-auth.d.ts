@@ -10,6 +10,7 @@ declare module "next-auth" {
       image?: string | null;
       districtId?: string | null;
       fullAddress?: string | null;
+      isTestUser?: boolean;
     }
   }
 

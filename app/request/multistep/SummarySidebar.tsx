@@ -10,11 +10,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import AgreementsCheckbox from "../_components/AgreementsCheckbox";
+import { useSession } from "next-auth/react";
 
 type MeResponse = {
   name?: string | null;
   email?: string | null;
   phone?: string | null;
+  isTestUser?: boolean; // 👈 opsiyonel eklendi
   primaryAddress?: {
     id: string;
     districtId: string;
@@ -58,7 +60,6 @@ interface SummarySidebarProps {
     repeatCount?: number | null;
     address?: Address | null;
     appliedCoupon?: Coupon | null;
-
     paymentMethod?: string | null;
     recipientName?: string | null;
     invoiceAddressText?: string | null;
@@ -132,7 +133,7 @@ function buildDraftPayload(formData: any, totalPrice: number, isTest = false) {
     totalPrice,
     isTest,
 
-    // opsiyonel alanlar (server tarafında saklamak isteyen akışlar için)
+    // opsiyonel saklanacak alanlar
     selectedSpecies,
     services,
     petTypes,
@@ -153,33 +154,30 @@ export default function SummarySidebar({
   onStart,
 }: SummarySidebarProps) {
   const router = useRouter();
+  const { status, data: session } = useSession();
+
+  // ✅ Tek yerde toplanan kontrol
+  const [canTest, setCanTest] = useState(false);
+
+  // 1) Session yüklendiğinde kontrol et
+  useEffect(() => {
+    if (status === "authenticated") {
+      setCanTest(Boolean(session?.user?.isTestUser));
+    }
+    if (status === "unauthenticated") {
+      setCanTest(false);
+    }
+  }, [status, session]);
+
+  // 2) /api/user/me yanıtı (opsiyonel) — session eksikse tamamlar
   const [me, setMe] = useState<MeResponse>(null);
-
-  const SLOT_LABELS: Record<string, string> = {
-    morning: "Sabah (08:00 - 12:00)",
-    noon: "Öğle (12:00 - 16:00)",
-    evening: "Akşam (16:00 - 20:00)",
-  };
-
-  const SELLER_INFO = {
-    title: "Dogo Petshop LTD. ŞTİ.",
-    address:
-      "Uptwins Blok, Orta, Yalnız Selvi Cd. No: 5AB, 34880 Kartal/İstanbul",
-    tax: "Yakacık Vergi Dairesi | VKN: 3021119045 • MERSİS: 0302111904500001 • Tel: +90 216 519 26 00 • E-posta: info@evindebesle.com",
-  };
-
-  const PLATFORM_INFO = {
-    title: "evindebesle.com",
-    address: "evindebesle.com",
-  };
-
   useEffect(() => {
     let alive = true;
     (async () => {
       try {
         const res = await fetch("/api/user/me", { cache: "no-store" });
         if (!res.ok) return;
-        const data = await res.json();
+        const data = (await res.json()) as MeResponse;
         if (alive) setMe(data);
       } catch {}
     })();
@@ -187,6 +185,13 @@ export default function SummarySidebar({
       alive = false;
     };
   }, []);
+
+  // 2b) me.isTestUser geldiyse canTest'i güncelle
+  useEffect(() => {
+    if (me && typeof me.isTestUser !== "undefined") {
+      setCanTest(Boolean(me.isTestUser));
+    }
+  }, [me]);
 
   const {
     selectedSpecies = [],
@@ -210,6 +215,24 @@ export default function SummarySidebar({
     preInfoAccepted: false,
     distanceAccepted: false,
   });
+
+  const SLOT_LABELS: Record<string, string> = {
+    morning: "Sabah (08:00 - 12:00)",
+    noon: "Öğle (12:00 - 16:00)",
+    evening: "Akşam (16:00 - 20:00)",
+  };
+
+  const SELLER_INFO = {
+    title: "Dogo Petshop LTD. ŞTİ.",
+    address:
+      "Uptwins Blok, Orta, Yalnız Selvi Cd. No: 5AB, 34880 Kartal/İstanbul",
+    tax: "Yakacık Vergi Dairesi | VKN: 3021119045 • MERSİS: 0302111904500001 • Tel: +90 216 519 26 00 • E-posta: info@evindebesle.com",
+  };
+
+  const PLATFORM_INFO = {
+    title: "evindebesle.com",
+    address: "evindebesle.com",
+  };
 
   const speciesName = (id: string) =>
     petTypes?.find((p) => p.id === id)?.name || id;
@@ -342,15 +365,14 @@ export default function SummarySidebar({
   const canStartTest =
     canStartCore && agreements.preInfoAccepted && agreements.distanceAccepted;
 
-  // ---- STEP3 YÖNLENDİRMESİ KALDIRILDI ----
-  // Artık handleStart sadece parent'a fiyat bilgisi geçer (ör. kart formu Step1'deyse).
+  // STEP3 yönlendirmesi kaldırıldı — parent'a fiyat geç
   const handleStart = () => {
     if (!canStartPaid) return;
     if (onStart) onStart({ totalPrice, discountedPrice });
     else toast.info("Ödeme için gerekli bilgiler ana formdan tamamlanmalı.");
   };
 
-  // Taslak oluşturucu (ortak kullanım)
+  // Taslak oluşturucu (ortak)
   const createDraft = async (price: number, isTest: boolean) => {
     const payload = buildDraftPayload(formData, price, isTest);
     const res = await fetch("/api/draft-appointment", {
@@ -396,11 +418,10 @@ export default function SummarySidebar({
         appointmentId ? `/success?appointmentId=${appointmentId}` : `/success`
       );
     } catch (err: any) {
-      toast.error(err?.message || "Test randevusu oluşturulamadı.");
+      toast.error(err?.message || "Randevu oluşturulamadı.");
     }
   };
 
-  // Agreements modal satırları
   const agreementItems = useMemo(
     () =>
       lineItems.map((li) => ({
@@ -434,7 +455,7 @@ export default function SummarySidebar({
       </CardHeader>
 
       <CardContent className="space-y-4 text-sm text-muted-foreground">
-        {/* Seçilen türler */}
+        {/* Türler */}
         <div>
           <p className="text-xs italic text-primary mb-1">
             Seçilen Hayvan Türleri
@@ -448,7 +469,7 @@ export default function SummarySidebar({
           </div>
         </div>
 
-        {/* Seçilen hizmetler */}
+        {/* Hizmetler */}
         <div>
           <p className="text-xs italic text-primary mb-1">Seçilen Hizmetler</p>
           {lineItems.length === 0 ? (
@@ -477,7 +498,7 @@ export default function SummarySidebar({
           )}
         </div>
 
-        {/* Zaman bilgisi */}
+        {/* Zaman */}
         {(from || to || timeSlot) && (
           <div>
             <p className="text-xs text-muted">Zaman</p>
@@ -585,15 +606,17 @@ export default function SummarySidebar({
             Hizmeti Başlat
           </Button>
 
-          <Button
-            type="button"
-            variant="secondary"
-            className="w-full"
-            onClick={startTest}
-            disabled={!canStartTest}
-          >
-            Test Modu (Kartsız) Başlat
-          </Button>
+          {canTest && (
+            <Button
+              type="button"
+              variant="secondary"
+              className="w-full"
+              onClick={startTest}
+              disabled={!canStartTest}
+            >
+              Test Modu (Kartsız) Başlat
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>

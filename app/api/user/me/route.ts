@@ -20,6 +20,7 @@ export async function GET() {
         phone: true,
         emailVerified: true,
         marketingEmailConsent: true,
+        isTestUser: true,
       },
     }),
     prisma.userAddress.findFirst({

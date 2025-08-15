@@ -47,7 +47,7 @@ type UserPet = {
   userPetName: string;
   petName?: string | null;
   image?: string | null;
-  species: string; // backend isim döndürüyor ("Kedi")
+  species: string;
 };
 type Service = {
   id: string;
@@ -55,7 +55,7 @@ type Service = {
   price: number;
   description?: string;
   imageUrl?: string;
-  petTags: string[]; // isimler: ["Kedi","Köpek"]
+  petTags: string[];
 };
 type Address = {
   id: string;
@@ -73,7 +73,7 @@ type Coupon = {
 interface Step1FormProps {
   formData: any;
   setFormData: (data: any) => void;
-  onNext: () => void; // korunuyor ama kullanılmıyor
+  onNext: () => void;
 }
 
 const TIME_SLOTS = [
@@ -101,7 +101,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
   const [userPets, setUserPets] = useState<UserPet[]>([]);
   const [selectedUserPetsBySpecies, setSelectedUserPetsBySpecies] = useState<
     Record<string, string[]>
-  >({}); // { speciesId: ownedPetId[] }
+  >({});
 
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
@@ -116,11 +116,9 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
   const [repeatModalOpen, setRepeatModalOpen] = useState(false);
 
   const [services, setServices] = useState<Service[]>([]);
-  // ✅ Tür bazlı seçim
   const [selectedServicesBySpecies, setSelectedServicesBySpecies] = useState<
     Record<string, string[]>
-  >({}); // { speciesId: serviceId[] }
-  // UI için: { speciesId: selectedOwnedPetCount }
+  >({});
   const [serviceCounts, setServiceCounts] = useState<Record<string, number>>(
     {}
   );
@@ -153,6 +151,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
   const [loadingUserPets, setLoadingUserPets] = useState(true);
   const [loadingAddresses, setLoadingAddresses] = useState(true);
   const [loadingServices, setLoadingServices] = useState(false);
+  const isTestUser = Boolean(session?.user?.isTestUser);
 
   // Helpers
   const speciesName = (id: string) =>
@@ -215,7 +214,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
     appliedCoupon,
   ]);
 
-  // Species from URL (ilk yüklemede)
+  // Species from URL
   useEffect(() => {
     if (initialSpeciesFromUrl.length)
       setSelectedSpecies((prev) =>
@@ -257,7 +256,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
     refetchAddresses();
   }, []);
 
-  // Services (filtered by species names)
+  // Services
   useEffect(() => {
     if (!selectedSpecies.length || !petTypes.length) return;
     const params = new URLSearchParams();
@@ -272,7 +271,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
       .finally(() => setLoadingServices(false));
   }, [selectedSpecies, petTypes]);
 
-  // UserPet counts -> control service enable
+  // UserPet counts
   useEffect(() => {
     const counts: Record<string, number> = {};
     selectedSpecies.forEach((sid) => {
@@ -281,7 +280,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
     setServiceCounts(counts);
   }, [selectedSpecies, selectedUserPetsBySpecies]);
 
-  // FormData’yı SummarySidebar için sürekli güncel tut
+  // FormData for summary
   useEffect(() => {
     const selectedAddress =
       addresses.find((a) => a.id === selectedAddressId) || null;
@@ -291,7 +290,6 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
       selectedSpecies,
       selectedUserPetsBySpecies,
       selectedServicesBySpecies,
-      // Summary için referans listeler:
       services,
       petTypes,
       address: selectedAddress,
@@ -446,7 +444,6 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
     return null;
   };
 
-  // Taslak body (server şemasına uygun)
   const buildDraftBody = () => {
     const ownedPetIds = Object.values(selectedUserPetsBySpecies).flat();
     const serviceIds = Array.from(
@@ -485,62 +482,8 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
     );
   };
 
-  const handlePayment = async () => {
-    const err = validatePayForm();
-    if (err) return toast.error(err);
-    setIsPaying(true);
-    try {
-      // 1) Taslak oluştur
-      const draftAppointmentId = await createDraft();
-
-      // 2) Ödeme başlat
-      const apiUrl =
-        process.env.NEXT_PUBLIC_API_URL ||
-        "https://evindebesle-backend.onrender.com";
-
-      const res = await fetch(`${apiUrl}/api/payment/initiate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          cardNumber: cardRaw,
-          cardHolderName: cardName,
-          expireMonth: expiryMonth,
-          expireYear: expiryYear.slice(-2),
-          cvc: cvv,
-          price: parseFloat(discountedPrice.toFixed(2)),
-          draftAppointmentId,
-        }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data?.error || "Ödeme başlatılamadı.");
-      }
-      const paymentData = await res.json();
-      if (paymentData?.paymentPageHtml) {
-        const popup = window.open("", "_blank");
-        if (!popup) throw new Error("Popup engellendi.");
-        popup.document.open();
-        let decodedHtml = atob(paymentData.paymentPageHtml);
-        decodedHtml = decodedHtml.replace(
-          "</form>",
-          `<input type="hidden" name="paymentId" value="${paymentData.paymentId}"></form>`
-        );
-        popup.document.write(decodedHtml);
-        popup.document.close();
-      } else {
-        throw new Error("Ödeme sayfası HTML'i alınamadı.");
-      }
-    } catch (e: any) {
-      toast.error(e?.message || "Ödeme hatası.");
-    } finally {
-      setIsPaying(false);
-    }
-  };
-
   const handleCreateDraftWithoutPayment = async () => {
     try {
-      // basit validasyon
       if (!selectedAddressId) return toast.error("Adres seçin.");
       if (!selectedDates.length) return toast.error("Tarih seçin.");
       const totalPets = Object.values(selectedUserPetsBySpecies).reduce(
@@ -562,7 +505,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           draftAppointmentId,
-          paidPrice: 0, // TEST MODU: 0 TL
+          paidPrice: 0,
           conversationId: "TEST-MODE",
         }),
       });
@@ -584,7 +527,9 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
 
   // --- Render ---
   return (
-    <div className="space-y-10">
+    <div className="space-y-10 overflow-x-hidden pb-8">
+      {" "}
+      {/* overflow fix + alt boşluk */}
       {/* Evcil hayvanlarım */}
       <div className="space-y-6">
         <Label className="flex items-center gap-2">
@@ -639,7 +584,10 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
                       ekleyebilirsiniz.
                     </p>
                   ) : (
-                    <ScrollArea className="max-h-[220px]">
+                    <div
+                      className="max-h-[220px] overflow-y-auto -mr-1 pr-1"
+                      style={{ WebkitOverflowScrolling: "touch" }}
+                    >
                       <div className="flex flex-wrap gap-3">
                         {list.map((p) => {
                           const isActive = chosen.includes(p.id);
@@ -674,7 +622,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
                           );
                         })}
                       </div>
-                    </ScrollArea>
+                    </div>
                   )}
                 </div>
               );
@@ -857,7 +805,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
                           : Number(e.target.value)
                       )
                     }
-                    className="w-32"
+                    className="w-32 text-[16px] h-11" /* iOS zoom fix */
                   />
                 </div>
               )}
@@ -877,11 +825,34 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
           </DialogContent>
         </Dialog>
       </div>
-      <div className="space-y-2 relative z-0">
+      {/* Hizmetler */}
+      <div className="space-y-2">
         <Label className="flex items-center gap-2">
           <PawPrint className="w-4 h-4" /> Hizmetler
         </Label>
-        <ScrollArea className="h-auto max-h-[420px] border rounded-md p-4 bg-white pb-8">
+
+        {/* Mobilde nested scroll yok */}
+        <div className="md:hidden border rounded-md p-4 bg-white">
+          {loadingServices ? (
+            <Skeleton className="w-full h-20" />
+          ) : (
+            <FilteredServiceSelect
+              allServices={services}
+              speciesList={petTypes.filter((pt) =>
+                selectedSpecies.includes(pt.id)
+              )}
+              selectedBySpecies={selectedServicesBySpecies}
+              setSelectedBySpecies={setSelectedServicesBySpecies}
+              counts={serviceCounts}
+            />
+          )}
+        </div>
+
+        {/* md+ için ScrollArea */}
+        <ScrollArea
+          className="hidden md:block h-auto max-h-[420px] border rounded-md p-4 bg-white"
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
           {loadingServices ? (
             <Skeleton className="w-full h-20" />
           ) : (
@@ -897,12 +868,10 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
           )}
         </ScrollArea>
       </div>
-
       {/* Ayırıcı */}
-      <Separator className="my-6 relative z-0" />
-
-      {/* Kupon + ödeme formu burada */}
-      <div className="space-y-6 border rounded-2xl p-6 bg-white relative z-0">
+      <Separator className="my-6" />
+      {/* Kupon + ödeme formu */}
+      <div className="space-y-6 border rounded-2xl p-6 bg-white">
         {/* Kupon */}
         <div className="space-y-2">
           <Label className="flex items-center gap-2">
@@ -914,6 +883,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
               placeholder="Kupon kodu"
               value={couponInput}
               onChange={(e) => setCouponInput(e.target.value)}
+              className="text-[16px] h-11" /* iOS zoom fix */
             />
             {appliedCoupon ? (
               <Button variant="secondary" onClick={handleRemoveCoupon}>
@@ -932,6 +902,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
             </p>
           )}
         </div>
+
         <div className="flex items-center justify-between text-lg">
           <div>
             <span className="text-muted-foreground">Toplam: </span>
@@ -945,6 +916,8 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
             )}
           </div>
         </div>
+
+        {/* Kart */}
         <div className="space-y-3">
           <Label className="flex items-center gap-2">
             <CreditCard className="w-4 h-4" /> Kart Bilgileri
@@ -959,6 +932,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
                 inputMode="numeric"
                 autoComplete="cc-number"
                 maxLength={19}
+                className="text-[16px] h-11" /* iOS zoom fix */
               />
             </div>
             <div>
@@ -972,6 +946,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
                 }
                 placeholder="Ad Soyad"
                 autoComplete="cc-name"
+                className="text-[16px] h-11" /* iOS zoom fix */
               />
             </div>
             <div>
@@ -979,7 +954,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
               <select
                 value={expiryMonth}
                 onChange={(e) => setExpiryMonth(e.target.value)}
-                className="w-full rounded-md border px-3 py-2"
+                className="w-full rounded-md border px-3 py-2 text-[16px] h-11 bg-white" /* iOS zoom fix */
               >
                 <option value="">Ay</option>
                 {Array.from({ length: 12 }, (_, i) => {
@@ -997,7 +972,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
               <select
                 value={expiryYear}
                 onChange={(e) => setExpiryYear(e.target.value)}
-                className="w-full rounded-md border px-3 py-2"
+                className="w-full rounded-md border px-3 py-2 text-[16px] h-11 bg-white" /* iOS zoom fix */
               >
                 <option value="">Yıl</option>
                 {Array.from({ length: 10 }, (_, i) => {
@@ -1021,28 +996,24 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
                 maxLength={3}
                 inputMode="numeric"
                 autoComplete="cc-csc"
+                className="text-[16px] h-11" /* iOS zoom fix */
               />
             </div>
           </div>
         </div>
-        <div className="flex flex-col md:flex-row items-center justify-between gap-3 pt-2">
-          {/* <Button
-            className="w-full md:w-auto"
-            onClick={handlePayment}
-            disabled={isPaying}
-          >
-            {isPaying ? "İşlem Yapılıyor..." : "Hizmeti Başlat (Ödeme Yap)"}
-          </Button> */}
 
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full md:w-auto"
-            onClick={handleCreateDraftWithoutPayment}
-          >
-            <TestTube className="w-4 h-4 mr-2" />
-            Test (Ödeme Atlansın)
-          </Button>
+        <div className="flex flex-col md:flex-row items-center justify-between gap-3 pt-2">
+          {isTestUser && (
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full md:w-auto"
+              onClick={handleCreateDraftWithoutPayment}
+            >
+              <TestTube className="w-4 h-4 mr-2" />
+              Test (Ödeme Atlansın)
+            </Button>
+          )}
         </div>
       </div>
       <Step1PetAddModal

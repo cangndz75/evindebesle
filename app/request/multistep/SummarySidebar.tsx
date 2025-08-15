@@ -9,6 +9,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import AgreementsCheckbox from "../_components/AgreementsCheckbox";
 import { useSession } from "next-auth/react";
 
@@ -16,7 +18,7 @@ type MeResponse = {
   name?: string | null;
   email?: string | null;
   phone?: string | null;
-  isTestUser?: boolean; // 👈 opsiyonel eklendi
+  isTestUser?: boolean;
   primaryAddress?: {
     id: string;
     districtId: string;
@@ -33,14 +35,12 @@ type Service = {
   petTags: string[];
 };
 type Address = { id: string; fullAddress: string; districtId: string };
-
 type Coupon = {
   id?: string;
   code: string;
   discountType: "PERCENT" | "FIXED" | "AMOUNT";
   value: number;
 };
-
 type AgreementsStateType = {
   preInfoAccepted: boolean;
   distanceAccepted: boolean;
@@ -64,7 +64,7 @@ interface SummarySidebarProps {
     recipientName?: string | null;
     invoiceAddressText?: string | null;
   };
-  onStart?: (payload: { totalPrice: number; discountedPrice: number }) => void;
+  onStart?: (payload: { totalPrice: number; discountedPrice: number }) => void; // prod akışı için opsiyonel
 }
 
 function toMidnightISO(d: Date) {
@@ -133,7 +133,7 @@ function buildDraftPayload(formData: any, totalPrice: number, isTest = false) {
     totalPrice,
     isTest,
 
-    // opsiyonel saklanacak alanlar
+    // Opsiyoneller (izleme/rapor için saklıyoruz)
     selectedSpecies,
     services,
     petTypes,
@@ -156,20 +156,14 @@ export default function SummarySidebar({
   const router = useRouter();
   const { status, data: session } = useSession();
 
-  // ✅ Tek yerde toplanan kontrol
+  // Test yetkisi
   const [canTest, setCanTest] = useState(false);
-
-  // 1) Session yüklendiğinde kontrol et
   useEffect(() => {
-    if (status === "authenticated") {
+    if (status === "authenticated")
       setCanTest(Boolean(session?.user?.isTestUser));
-    }
-    if (status === "unauthenticated") {
-      setCanTest(false);
-    }
+    if (status === "unauthenticated") setCanTest(false);
   }, [status, session]);
 
-  // 2) /api/user/me yanıtı (opsiyonel) — session eksikse tamamlar
   const [me, setMe] = useState<MeResponse>(null);
   useEffect(() => {
     let alive = true;
@@ -185,8 +179,6 @@ export default function SummarySidebar({
       alive = false;
     };
   }, []);
-
-  // 2b) me.isTestUser geldiyse canTest'i güncelle
   useEffect(() => {
     if (me && typeof me.isTestUser !== "undefined") {
       setCanTest(Boolean(me.isTestUser));
@@ -216,6 +208,20 @@ export default function SummarySidebar({
     distanceAccepted: false,
   });
 
+  // Kart formu (ödemeler Summary’de)
+  const [cardRaw, setCardRaw] = useState("");
+  const [cardName, setCardName] = useState("");
+  const [expiryMonth, setExpiryMonth] = useState("");
+  const [expiryYear, setExpiryYear] = useState("");
+  const [cvv, setCvv] = useState("");
+  const [isPaying, setIsPaying] = useState(false);
+
+  const formattedCardNumber = cardRaw.replace(/(.{4})/g, "$1 ").trim();
+  const handleCardInput = (v: string) => {
+    const digitsOnly = v.replace(/\D/g, "").slice(0, 16);
+    setCardRaw(digitsOnly);
+  };
+
   const SLOT_LABELS: Record<string, string> = {
     morning: "Sabah (08:00 - 12:00)",
     noon: "Öğle (12:00 - 16:00)",
@@ -228,7 +234,6 @@ export default function SummarySidebar({
       "Uptwins Blok, Orta, Yalnız Selvi Cd. No: 5AB, 34880 Kartal/İstanbul",
     tax: "Yakacık Vergi Dairesi | VKN: 3021119045 • MERSİS: 0302111904500001 • Tel: +90 216 519 26 00 • E-posta: info@evindebesle.com",
   };
-
   const PLATFORM_INFO = {
     title: "evindebesle.com",
     address: "evindebesle.com",
@@ -262,7 +267,6 @@ export default function SummarySidebar({
 
   const lineItems: Line[] = useMemo(() => {
     const agg: Record<string, Omit<Line, "subtotal">> = {};
-
     Object.entries(selectedServicesBySpecies).forEach(([speciesId, svcIds]) => {
       const petCount = countsBySpecies[speciesId] || 0;
       if (petCount < 1) return;
@@ -283,7 +287,6 @@ export default function SummarySidebar({
         if (!agg[sid].speciesNames.includes(nm)) agg[sid].speciesNames.push(nm);
       }
     });
-
     return Object.values(agg)
       .map((x) => ({ ...x, subtotal: x.unitPrice * x.count }))
       .filter((x) => x.count > 0);
@@ -326,12 +329,10 @@ export default function SummarySidebar({
     () => lineItems.reduce((sum, li) => sum + li.subtotal, 0),
     [lineItems]
   );
-
   const totalPrice = useMemo(
     () => baseTotal * serviceDayCount,
     [baseTotal, serviceDayCount]
   );
-
   const discountedPrice = useMemo(() => {
     if (!appliedCoupon) return totalPrice;
     if (appliedCoupon.discountType === "PERCENT") {
@@ -365,14 +366,14 @@ export default function SummarySidebar({
   const canStartTest =
     canStartCore && agreements.preInfoAccepted && agreements.distanceAccepted;
 
-  // STEP3 yönlendirmesi kaldırıldı — parent'a fiyat geç
+  // Prod akışını üst bileşen yürütecekse payload ver
   const handleStart = () => {
     if (!canStartPaid) return;
     if (onStart) onStart({ totalPrice, discountedPrice });
     else toast.info("Ödeme için gerekli bilgiler ana formdan tamamlanmalı.");
   };
 
-  // Taslak oluşturucu (ortak)
+  // Ortak taslak oluşturucu
   const createDraft = async (price: number, isTest: boolean) => {
     const payload = buildDraftPayload(formData, price, isTest);
     const res = await fetch("/api/draft-appointment", {
@@ -386,39 +387,92 @@ export default function SummarySidebar({
     return data?.draftAppointmentId || data?.id;
   };
 
-  const startTest = async () => {
+  // Validasyonlar
+  const validateCore = () => {
+    if (!hasAddress) return "Lütfen adres seçin.";
+    if (!hasDates) return "Lütfen tarih aralığı seçin.";
+    if (!hasPets) return "Lütfen evcil hayvan seçin.";
+    if (!hasServices) return "Lütfen en az bir hizmet seçin.";
+    if (!hasTimeSlot) return "Lütfen saat aralığı seçin.";
+    return null;
+  };
+  const validateCard = () => {
+    if (discountedPrice <= 0) return "Tutar 0 olamaz.";
+    if (!cardRaw || !cardName || !expiryMonth || !expiryYear || !cvv)
+      return "Kart bilgilerini doldurun.";
+    if (cardRaw.length !== 16) return "Kart numarası 16 hane olmalı.";
+    if (cvv.length !== 3) return "CVV 3 hane olmalı.";
+    const cy = new Date().getFullYear();
+    if (
+      Number(expiryYear) < cy ||
+      Number(expiryMonth) < 1 ||
+      Number(expiryMonth) > 12
+    )
+      return "Geçersiz son kullanma tarihi.";
+    return null;
+  };
+
+  // Test: ödeme ATLAMA (paidPrice: 0)
+  const handleCreateDraftWithoutPayment = async () => {
     try {
-      if (!canStartTest) return;
+      const e = validateCore();
+      if (e) return toast.error(e);
 
       const draftId = await createDraft(0, true);
-
-      const completeRes = await fetch("/api/appointments", {
+      const resp = await fetch("/api/appointments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           draftAppointmentId: draftId,
           paidPrice: 0,
           conversationId: "TEST-MODE",
+          paymentId: "SKIP",
         }),
       });
+      const data = await resp.json();
+      if (!resp.ok)
+        throw new Error(data?.error || "Test randevusu oluşturulamadı");
 
-      const completeData = await completeRes.json();
-      if (!completeRes.ok)
-        throw new Error(
-          completeData?.message ||
-            completeData?.error ||
-            "Randevu oluşturulamadı."
-        );
+      toast.success("Test randevusu (ödemesiz) oluşturuldu.");
+      const apptId = data?.appointmentId;
+      router.push(apptId ? `/success?appointmentId=${apptId}` : `/success`);
+    } catch (e: any) {
+      toast.error(e?.message || "Randevu hatası.");
+    }
+  };
 
-      const appointmentId: string =
-        completeData?.appointmentId || completeData?.id;
+  // Test: ödeme YAP (mock) → doğrudan appointments (paidPrice = discountedPrice)
+  const handleMockPayment = async () => {
+    try {
+      const e1 = validateCore();
+      if (e1) return toast.error(e1);
+      const e2 = validateCard();
+      if (e2) return toast.error(e2);
 
-      toast.success("Test randevusu oluşturuldu.");
-      router.push(
-        appointmentId ? `/success?appointmentId=${appointmentId}` : `/success`
-      );
-    } catch (err: any) {
-      toast.error(err?.message || "Randevu oluşturulamadı.");
+      setIsPaying(true);
+
+      const draftId = await createDraft(discountedPrice, true);
+      const resp = await fetch("/api/appointments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          draftAppointmentId: draftId,
+          paidPrice: discountedPrice,
+          conversationId: "TEST-MODE",
+          paymentId: `MOCK-${Date.now()}`,
+        }),
+      });
+      const data = await resp.json();
+      if (!resp.ok)
+        throw new Error(data?.error || "Ödeme / randevu tamamlanamadı");
+
+      toast.success("Test ödemesi başarılı, randevu oluşturuldu.");
+      const apptId = data?.appointmentId;
+      router.push(apptId ? `/success?appointmentId=${apptId}` : `/success`);
+    } catch (e: any) {
+      toast.error(e?.message || "Ödeme hatası");
+    } finally {
+      setIsPaying(false);
     }
   };
 
@@ -453,7 +507,6 @@ export default function SummarySidebar({
       <CardHeader>
         <CardTitle className="text-lg">Sipariş Özeti</CardTitle>
       </CardHeader>
-
       <CardContent className="space-y-4 text-sm text-muted-foreground">
         {/* Türler */}
         <div>
@@ -563,6 +616,7 @@ export default function SummarySidebar({
           )}
         </div>
 
+        {/* Mesafeli satış + ön bilgilendirme */}
         <AgreementsCheckbox
           value={agreements}
           onChange={setAgreements}
@@ -597,7 +651,94 @@ export default function SummarySidebar({
           platform={PLATFORM_INFO}
         />
 
+        {/* KART FORMU (test mock için) */}
+        {canStartCore && (
+          <div className="space-y-3 border rounded-lg p-4">
+            <Label className="block">Kart Bilgileri (Test)</Label>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <Label>Kart Numarası</Label>
+                <Input
+                  value={formattedCardNumber}
+                  onChange={(e) => handleCardInput(e.target.value)}
+                  placeholder="0000 0000 0000 0000"
+                  inputMode="numeric"
+                  autoComplete="cc-number"
+                  maxLength={19}
+                  className="text-[16px] h-11"
+                />
+              </div>
+              <div>
+                <Label>Kart Üzerindeki İsim</Label>
+                <Input
+                  value={cardName}
+                  onChange={(e) =>
+                    setCardName(
+                      e.target.value.replace(/[^A-Za-zÇçĞğİıÖöŞşÜü\s]/g, "")
+                    )
+                  }
+                  placeholder="Ad Soyad"
+                  autoComplete="cc-name"
+                  className="text-[16px] h-11"
+                />
+              </div>
+              <div>
+                <Label>Ay</Label>
+                <select
+                  value={expiryMonth}
+                  onChange={(e) => setExpiryMonth(e.target.value)}
+                  className="w-full rounded-md border px-3 py-2 text-[16px] h-11 bg-white"
+                >
+                  <option value="">Ay</option>
+                  {Array.from({ length: 12 }, (_, i) => {
+                    const m = String(i + 1).padStart(2, "0");
+                    return (
+                      <option key={m} value={m}>
+                        {m}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+              <div>
+                <Label>Yıl</Label>
+                <select
+                  value={expiryYear}
+                  onChange={(e) => setExpiryYear(e.target.value)}
+                  className="w-full rounded-md border px-3 py-2 text-[16px] h-11 bg-white"
+                >
+                  <option value="">Yıl</option>
+                  {Array.from({ length: 10 }, (_, i) => {
+                    const y = new Date().getFullYear() + i;
+                    return (
+                      <option key={y} value={String(y)}>
+                        {y}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+              <div>
+                <Label>CVV</Label>
+                <Input
+                  value={cvv}
+                  onChange={(e) =>
+                    setCvv(e.target.value.replace(/\D/g, "").slice(0, 3))
+                  }
+                  placeholder="CVV"
+                  maxLength={3}
+                  inputMode="numeric"
+                  autoComplete="cc-csc"
+                  className="text-[16px] h-11"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Butonlar */}
         <div className="grid grid-cols-1 gap-2 pt-1">
+          {/* Prod akışı istersen onStart ile dışarı veriyoruz */}
           <Button
             className="w-full"
             onClick={handleStart}
@@ -606,16 +747,27 @@ export default function SummarySidebar({
             Hizmeti Başlat
           </Button>
 
+          {/* Test akışları (sadece test kullanıcıları) */}
           {canTest && (
-            <Button
-              type="button"
-              variant="secondary"
-              className="w-full"
-              onClick={startTest}
-              disabled={!canStartTest}
-            >
-              Test Modu (Kartsız) Başlat
-            </Button>
+            <>
+              <Button
+                type="button"
+                className="w-full"
+                onClick={handleMockPayment}
+                disabled={!canStartTest || isPaying}
+              >
+                {isPaying ? "İşleniyor..." : "Test Ödeme Yap (Mock)"}
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                className="w-full"
+                onClick={handleCreateDraftWithoutPayment}
+                disabled={!canStartTest}
+              >
+                Test Modu (Kartsız) Başlat
+              </Button>
+            </>
           )}
         </div>
       </CardContent>

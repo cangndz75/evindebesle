@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import {
   MapPin,
   PawPrint,
@@ -11,8 +11,6 @@ import {
   Clock3,
   Repeat,
   Percent,
-  CreditCard,
-  TestTube,
   KeyRound,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -33,15 +31,9 @@ import {
 import AddressForm from "@/app/(account)/profile/addresses/AddressForm";
 import { Separator } from "@/components/ui/separator";
 import Step1PetAddModal from "../_components/Step1PetAddModal";
-import AccessInfoForm, { AccessInfo } from "@/app/(account)/profile/access-info/_components/AccessInfoForm";
-
-interface Props {
-  allServices: Service[];
-  speciesList: string[];
-  selectedBySpecies: Record<string, string[]>;
-  setSelectedBySpecies: (data: Record<string, string[]>) => void;
-  counts: Record<string, number>;
-}
+import AccessInfoForm, {
+  AccessInfo,
+} from "@/app/(account)/profile/access-info/_components/AccessInfoForm";
 
 type PetType = { id: string; name: string; image?: string };
 type UserPet = {
@@ -87,7 +79,6 @@ const TIME_SLOTS = [
 type RepeatType = "none" | "daily" | "weekly" | "monthly";
 
 export default function Step1Form({ setFormData }: Step1FormProps) {
-  const router = useRouter();
   const { data: session } = useSession();
   const userId = session?.user?.id ?? "guest";
   const isLoggedIn = Boolean(session?.user?.id);
@@ -130,33 +121,14 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
   const [loadingAccessInfo, setLoadingAccessInfo] = useState(true);
   const [accessInfoOpen, setAccessInfoOpen] = useState(false);
 
-  const refetchUserPets = async () => {
-    setLoadingUserPets(true);
-    try {
-      const r = await fetch("/api/user-pets");
-      const data = await r.json();
-      setUserPets(Array.isArray(data) ? data : []);
-    } finally {
-      setLoadingUserPets(false);
-    }
-  };
   const [couponInput, setCouponInput] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
-
-  // Payment
-  const [cardRaw, setCardRaw] = useState("");
-  const [cardName, setCardName] = useState("");
-  const [expiryMonth, setExpiryMonth] = useState("");
-  const [expiryYear, setExpiryYear] = useState("");
-  const [cvv, setCvv] = useState("");
-  const [isPaying, setIsPaying] = useState(false);
 
   // Loading
   const [loadingPets, setLoadingPets] = useState(true);
   const [loadingUserPets, setLoadingUserPets] = useState(true);
   const [loadingAddresses, setLoadingAddresses] = useState(true);
   const [loadingServices, setLoadingServices] = useState(false);
-  const isTestUser = Boolean(session?.user?.isTestUser);
 
   // Helpers
   const speciesName = (id: string) =>
@@ -227,7 +199,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
       );
   }, [initialSpeciesFromUrl]);
 
-  // Fetches
+  // Fetch: pets
   useEffect(() => {
     setLoadingPets(true);
     fetch("/api/pets")
@@ -236,6 +208,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
       .finally(() => setLoadingPets(false));
   }, []);
 
+  // Fetch: user pets
   useEffect(() => {
     setLoadingUserPets(true);
     fetch("/api/user-pets")
@@ -244,6 +217,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
       .finally(() => setLoadingUserPets(false));
   }, []);
 
+  // Fetch: addresses
   const refetchAddresses = async () => {
     setLoadingAddresses(true);
     try {
@@ -261,7 +235,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
     refetchAddresses();
   }, []);
 
-  // Services
+  // Fetch: services by selected species
   useEffect(() => {
     if (!selectedSpecies.length || !petTypes.length) return;
     const params = new URLSearchParams();
@@ -276,7 +250,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
       .finally(() => setLoadingServices(false));
   }, [selectedSpecies, petTypes]);
 
-  // UserPet counts
+  // UserPet counts (per species)
   useEffect(() => {
     const counts: Record<string, number> = {};
     selectedSpecies.forEach((sid) => {
@@ -285,7 +259,28 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
     setServiceCounts(counts);
   }, [selectedSpecies, selectedUserPetsBySpecies]);
 
-  // FormData for summary
+  // Access info
+  const refetchAccessInfo = async () => {
+    setLoadingAccessInfo(true);
+    try {
+      const res = await fetch("/api/access-info");
+      if (!res.ok) {
+        setAccessInfo(null);
+      } else {
+        const data = await res.json();
+        setAccessInfo(data || null);
+      }
+    } catch {
+      setAccessInfo(null);
+    } finally {
+      setLoadingAccessInfo(false);
+    }
+  };
+  useEffect(() => {
+    if (isLoggedIn) refetchAccessInfo();
+  }, [isLoggedIn]);
+
+  // Summary binding
   useEffect(() => {
     const selectedAddress =
       addresses.find((a) => a.id === selectedAddressId) || null;
@@ -329,6 +324,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
     setFormData,
   ]);
 
+  // Day count
   const serviceDayCount = useMemo(() => {
     if (!selectedDates.length) return 0;
     const dayKeys = new Set(
@@ -339,27 +335,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
     return dayKeys.size;
   }, [selectedDates]);
 
-  const refetchAccessInfo = async () => {
-    setLoadingAccessInfo(true);
-    try {
-      const res = await fetch("/api/access-info");
-      if (!res.ok) {
-        setAccessInfo(null);
-      } else {
-        const data = await res.json();
-        setAccessInfo(data || null);
-      }
-    } catch {
-      setAccessInfo(null);
-    } finally {
-      setLoadingAccessInfo(false);
-    }
-  };
-
-  useEffect(() => {
-    if (isLoggedIn) refetchAccessInfo();
-  }, [isLoggedIn]);
-
+  // Totals (sadece gösterim — ödeme Summary’de)
   const totalPrice = useMemo(() => {
     let base = 0;
     selectedSpecies.forEach((sid) => {
@@ -371,7 +347,6 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
         if (svc) base += (svc.price || 0) * count;
       });
     });
-
     const days = Math.max(serviceDayCount, 1);
     return base * days;
   }, [
@@ -437,127 +412,8 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
     setCouponInput("");
   };
 
-  // Payment
-  const formattedCardNumber = cardRaw.replace(/(.{4})/g, "$1 ").trim();
-  const handleCardInput = (v: string) => {
-    const digitsOnly = v.replace(/\D/g, "").slice(0, 16);
-    setCardRaw(digitsOnly);
-  };
-
-  const validatePayForm = () => {
-    if (!selectedAddressId) return "Lütfen adres seçin.";
-    if (!selectedDates.length) return "Lütfen tarih aralığı seçin.";
-    const totalPets = Object.values(selectedUserPetsBySpecies).reduce(
-      (s, arr) => s + (arr?.length || 0),
-      0
-    );
-    if (totalPets < 1) return "Lütfen evcil hayvan seçin.";
-    const anyService = Object.values(selectedServicesBySpecies).some(
-      (arr) => (arr?.length || 0) > 0
-    );
-    if (!anyService) return "Lütfen en az bir hizmet seçin.";
-    if (!timeSlot) return "Lütfen saat aralığı seçin.";
-    if (discountedPrice <= 0) return "Tutar 0 olamaz.";
-    if (!cardRaw || !cardName || !expiryMonth || !expiryYear || !cvv)
-      return "Kart bilgilerini doldurun.";
-    if (cardRaw.length !== 16) return "Kart numarası 16 hane olmalı.";
-    if (cvv.length !== 3) return "CVV 3 hane olmalı.";
-    const cy = new Date().getFullYear();
-    if (
-      Number(expiryYear) < cy ||
-      Number(expiryMonth) < 1 ||
-      Number(expiryMonth) > 12
-    )
-      return "Geçersiz son kullanma tarihi.";
-    return null;
-  };
-
-  const buildDraftBody = () => {
-    const ownedPetIds = Object.values(selectedUserPetsBySpecies).flat();
-    const serviceIds = Array.from(
-      new Set(Object.values(selectedServicesBySpecies).flat())
-    );
-    const dates = selectedDates.map((d) => d.toISOString());
-    const userAddressId = selectedAddressId!;
-    const isRecurring = repeatType !== "none";
-
-    return {
-      ownedPetIds,
-      serviceIds,
-      dates,
-      userAddressId,
-      timeSlot,
-      isRecurring,
-      recurringType: isRecurring ? repeatType : undefined,
-      recurringCount: isRecurring ? (repeatCount ?? undefined) : undefined,
-    };
-  };
-
-  const createDraft = async () => {
-    const body = buildDraftBody();
-    const res = await fetch("/api/draft-appointment", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      console.warn("⚠️ Geçersiz veri:", data?.details || data);
-      throw new Error(data?.error || "Taslak oluşturulamadı");
-    }
-    return (
-      data?.data?.draftAppointmentId || data?.draftAppointmentId || data?.id
-    );
-  };
-
-  const handleCreateDraftWithoutPayment = async () => {
-    try {
-      if (!selectedAddressId) return toast.error("Adres seçin.");
-      if (!selectedDates.length) return toast.error("Tarih seçin.");
-      const totalPets = Object.values(selectedUserPetsBySpecies).reduce(
-        (s, arr) => s + (arr?.length || 0),
-        0
-      );
-      if (totalPets < 1) return toast.error("Evcil hayvan seçin.");
-      const anyService = Object.values(selectedServicesBySpecies).some(
-        (arr) => (arr?.length || 0) > 0
-      );
-      if (!anyService) return toast.error("Hizmet seçin.");
-      if (!timeSlot) return toast.error("Saat aralığı seçin.");
-
-      const draftAppointmentId = await createDraft();
-      toast.success(`Taslak oluşturuldu (test): ${draftAppointmentId}`);
-
-      const appointmentRes = await fetch("/api/appointments/complete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          draftAppointmentId,
-          paidPrice: 0,
-          conversationId: "TEST-MODE",
-        }),
-      });
-
-      if (!appointmentRes.ok) {
-        let errMsg = "Test randevusu oluşturulamadı";
-        try {
-          const errData = await appointmentRes.json();
-          errMsg = errData?.error || errMsg;
-        } catch {}
-        return toast.error(errMsg);
-      }
-
-      toast.success("Test randevusu oluşturuldu ve tabloya eklendi.");
-    } catch (e: any) {
-      toast.error(e?.message || "Randevu hatası.");
-    }
-  };
-
-  // --- Render ---
   return (
     <div className="space-y-10 overflow-x-hidden pb-8">
-      {" "}
-      {/* overflow fix + alt boşluk */}
       {/* Evcil hayvanlarım */}
       <div className="space-y-6">
         <Label className="flex items-center gap-2">
@@ -661,6 +517,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
           </div>
         )}
       </div>
+
       {/* Adres */}
       <div className="space-y-3">
         <Label className="flex items-center gap-2">
@@ -743,6 +600,8 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Erişim Bilgileri */}
       {isLoggedIn && (
         <div className="space-y-3">
           <Label className="flex items-center gap-2">
@@ -827,6 +686,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
           </Dialog>
         </div>
       )}
+
       {/* Tarih + Saat + Tekrar */}
       <div className="space-y-6">
         <div className="space-y-2">
@@ -923,7 +783,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
                           : Number(e.target.value)
                       )
                     }
-                    className="w-32 text-[16px] h-11" /* iOS zoom fix */
+                    className="w-32 text-[16px] h-11"
                   />
                 </div>
               )}
@@ -943,13 +803,13 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
           </DialogContent>
         </Dialog>
       </div>
+
       {/* Hizmetler */}
       <div className="space-y-2">
         <Label className="flex items-center gap-2">
           <PawPrint className="w-4 h-4" /> Hizmetler
         </Label>
 
-        {/* Mobilde nested scroll yok */}
         <div className="md:hidden border rounded-md p-4 bg-white">
           {loadingServices ? (
             <Skeleton className="w-full h-20" />
@@ -966,7 +826,6 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
           )}
         </div>
 
-        {/* md+ için ScrollArea */}
         <ScrollArea
           className="hidden md:block h-auto max-h-[420px] border rounded-md p-4 bg-white"
           style={{ WebkitOverflowScrolling: "touch" }}
@@ -986,11 +845,12 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
           )}
         </ScrollArea>
       </div>
+
       {/* Ayırıcı */}
       <Separator className="my-6" />
-      {/* Kupon + ödeme formu */}
+
+      {/* Kupon + Toplam (ödeme Summary’de) */}
       <div className="space-y-6 border rounded-2xl p-6 bg-white">
-        {/* Kupon */}
         <div className="space-y-2">
           <Label className="flex items-center gap-2">
             <Percent className="w-4 h-4" /> Kupon
@@ -1001,7 +861,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
               placeholder="Kupon kodu"
               value={couponInput}
               onChange={(e) => setCouponInput(e.target.value)}
-              className="text-[16px] h-11" /* iOS zoom fix */
+              className="text-[16px] h-11"
             />
             {appliedCoupon ? (
               <Button variant="secondary" onClick={handleRemoveCoupon}>
@@ -1034,114 +894,24 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
             )}
           </div>
         </div>
-
-        {/* Kart */}
-        <div className="space-y-3">
-          <Label className="flex items-center gap-2">
-            <CreditCard className="w-4 h-4" /> Kart Bilgileri
-          </Label>
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <Label>Kart Numarası</Label>
-              <Input
-                value={formattedCardNumber}
-                onChange={(e) => handleCardInput(e.target.value)}
-                placeholder="0000 0000 0000 0000"
-                inputMode="numeric"
-                autoComplete="cc-number"
-                maxLength={19}
-                className="text-[16px] h-11" /* iOS zoom fix */
-              />
-            </div>
-            <div>
-              <Label>Kart Üzerindeki İsim</Label>
-              <Input
-                value={cardName}
-                onChange={(e) =>
-                  setCardName(
-                    e.target.value.replace(/[^A-Za-zÇçĞğİıÖöŞşÜü\s]/g, "")
-                  )
-                }
-                placeholder="Ad Soyad"
-                autoComplete="cc-name"
-                className="text-[16px] h-11" /* iOS zoom fix */
-              />
-            </div>
-            <div>
-              <Label>Ay</Label>
-              <select
-                value={expiryMonth}
-                onChange={(e) => setExpiryMonth(e.target.value)}
-                className="w-full rounded-md border px-3 py-2 text-[16px] h-11 bg-white" /* iOS zoom fix */
-              >
-                <option value="">Ay</option>
-                {Array.from({ length: 12 }, (_, i) => {
-                  const m = String(i + 1).padStart(2, "0");
-                  return (
-                    <option key={m} value={m}>
-                      {m}
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
-            <div>
-              <Label>Yıl</Label>
-              <select
-                value={expiryYear}
-                onChange={(e) => setExpiryYear(e.target.value)}
-                className="w-full rounded-md border px-3 py-2 text-[16px] h-11 bg-white" /* iOS zoom fix */
-              >
-                <option value="">Yıl</option>
-                {Array.from({ length: 10 }, (_, i) => {
-                  const y = new Date().getFullYear() + i;
-                  return (
-                    <option key={y} value={String(y)}>
-                      {y}
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
-            <div>
-              <Label>CVV</Label>
-              <Input
-                value={cvv}
-                onChange={(e) =>
-                  setCvv(e.target.value.replace(/\D/g, "").slice(0, 3))
-                }
-                placeholder="CVV"
-                maxLength={3}
-                inputMode="numeric"
-                autoComplete="cc-csc"
-                className="text-[16px] h-11" /* iOS zoom fix */
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-col md:flex-row items-center justify-between gap-3 pt-2">
-          {isTestUser && (
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full md:w-auto"
-              onClick={handleCreateDraftWithoutPayment}
-            >
-              <TestTube className="w-4 h-4 mr-2" />
-              Test (Ödeme Atlansın)
-            </Button>
-          )}
-        </div>
       </div>
+
       <Step1PetAddModal
         open={petAddOpen}
         species={petAddSpecies ?? undefined}
         onClose={() => setPetAddOpen(false)}
         onAdded={async () => {
-          await refetchUserPets();
-          setPetAddOpen(false);
-          toast.success("Evcil hayvan eklendi.");
+          try {
+            setLoadingUserPets(true);
+            const r = await fetch("/api/user-pets");
+            const data = await r.json();
+            setUserPets(Array.isArray(data) ? data : []);
+            toast.success("Evcil hayvan eklendi.");
+          } catch {
+            toast.error("Evcil hayvan listesi yenilenemedi.");
+          } finally {
+            setLoadingUserPets(false);
+          }
         }}
       />
     </div>

@@ -88,6 +88,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
   const router = useRouter();
   const { data: session } = useSession();
   const userId = session?.user?.id ?? "guest";
+  const isLoggedIn = Boolean(session?.user?.id);
 
   const searchParams = useSearchParams();
   const initialSpeciesFromUrl = useMemo(
@@ -95,7 +96,6 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
     [searchParams]
   );
 
-  // --- State ---
   const [petTypes, setPetTypes] = useState<PetType[]>([]);
   const [selectedSpecies, setSelectedSpecies] = useState<string[]>([]);
   const [userPets, setUserPets] = useState<UserPet[]>([]);
@@ -565,23 +565,26 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
                     <h3 className="text-base font-semibold">
                       {speciesName(spId)}
                     </h3>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setPetAddSpecies(spId);
-                        setPetAddOpen(true);
-                      }}
-                    >
-                      <PlusIcon className="w-4 h-4 mr-2" />
-                      {speciesName(spId)} Ekle
-                    </Button>
+                    {isLoggedIn && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setPetAddSpecies(spId);
+                          setPetAddOpen(true);
+                        }}
+                      >
+                        <PlusIcon className="w-4 h-4 mr-2" />
+                        {speciesName(spId)} Ekle
+                      </Button>
+                    )}
                   </div>
 
                   {list.length === 0 ? (
                     <p className="text-sm text-muted-foreground">
-                      Bu tür için kayıtlı evcil hayvanınız yok. Yukarıdan
-                      ekleyebilirsiniz.
+                      {isLoggedIn
+                        ? "Bu tür için kayıtlı evcil hayvanınız yok. Yukarıdan ekleyebilirsiniz."
+                        : "Bu tür için kayıtlı evcil hayvanınız yok. Evcil hayvan eklemek için giriş yapın."}
                     </p>
                   ) : (
                     <div
@@ -641,16 +644,19 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
         ) : addresses.length === 0 ? (
           <div className="border rounded-xl p-4 bg-white">
             <p className="text-sm text-muted-foreground mb-3">
-              Kayıtlı adresiniz yok. Yeni adres ekleyin.
+              Kayıtlı adresiniz yok.{" "}
+              {isLoggedIn ? "Yeni adres ekleyin." : "Lütfen giriş yapın."}
             </p>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setAddressModalOpen(true)}
-            >
-              <PlusIcon className="w-4 h-4 mr-2" />
-              Adres Ekle
-            </Button>
+            {isLoggedIn && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setAddressModalOpen(true)}
+              >
+                <PlusIcon className="w-4 h-4 mr-2" />
+                Adres Ekle
+              </Button>
+            )}
           </div>
         ) : (
           <div className="space-y-2">

@@ -13,6 +13,7 @@ import {
   Percent,
   CreditCard,
   TestTube,
+  KeyRound,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,7 @@ import {
 import AddressForm from "@/app/(account)/profile/addresses/AddressForm";
 import { Separator } from "@/components/ui/separator";
 import Step1PetAddModal from "../_components/Step1PetAddModal";
+import AccessInfoForm, { AccessInfo } from "@/app/(account)/profile/access-info/_components/AccessInfoForm";
 
 interface Props {
   allServices: Service[];
@@ -124,6 +126,9 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
   );
   const [petAddOpen, setPetAddOpen] = useState(false);
   const [petAddSpecies, setPetAddSpecies] = useState<string | null>(null);
+  const [accessInfo, setAccessInfo] = useState<AccessInfo | null>(null);
+  const [loadingAccessInfo, setLoadingAccessInfo] = useState(true);
+  const [accessInfoOpen, setAccessInfoOpen] = useState(false);
 
   const refetchUserPets = async () => {
     setLoadingUserPets(true);
@@ -305,6 +310,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
       repeatType,
       repeatCount,
       appliedCoupon,
+      accessInfo,
     }));
   }, [
     addresses,
@@ -319,6 +325,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
     repeatType,
     repeatCount,
     appliedCoupon,
+    accessInfo,
     setFormData,
   ]);
 
@@ -331,6 +338,27 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
     );
     return dayKeys.size;
   }, [selectedDates]);
+
+  const refetchAccessInfo = async () => {
+    setLoadingAccessInfo(true);
+    try {
+      const res = await fetch("/api/access-info");
+      if (!res.ok) {
+        setAccessInfo(null);
+      } else {
+        const data = await res.json();
+        setAccessInfo(data || null);
+      }
+    } catch {
+      setAccessInfo(null);
+    } finally {
+      setLoadingAccessInfo(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isLoggedIn) refetchAccessInfo();
+  }, [isLoggedIn]);
 
   const totalPrice = useMemo(() => {
     let base = 0;
@@ -715,6 +743,90 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
           </DialogContent>
         </Dialog>
       </div>
+      {isLoggedIn && (
+        <div className="space-y-3">
+          <Label className="flex items-center gap-2">
+            <KeyRound className="w-4 h-4" /> Erişim Bilgilerim
+          </Label>
+
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              Evinize erişim için anahtar/şifre gibi bilgiler.
+            </p>
+            <Button onClick={() => setAccessInfoOpen(true)}>
+              <PlusIcon className="w-4 h-4 mr-2" />
+              {accessInfo ? "Düzenle" : "Ekle"}
+            </Button>
+          </div>
+
+          {loadingAccessInfo ? (
+            <Skeleton className="h-16 w-full" />
+          ) : accessInfo ? (
+            <div className="border rounded-lg p-4 space-y-3 text-sm bg-white">
+              <div>
+                <strong>Anahtar:</strong> {accessInfo.keyLocation}
+              </div>
+              {accessInfo.keyInstruction && (
+                <div>
+                  <strong>Açıklama:</strong> {accessInfo.keyInstruction}
+                </div>
+              )}
+              {accessInfo.doorPassword && (
+                <div>
+                  <strong>Kapı Şifresi:</strong> {accessInfo.doorPassword}
+                </div>
+              )}
+              {accessInfo.doorNote && (
+                <div>
+                  <strong>Kapı Notu:</strong> {accessInfo.doorNote}
+                </div>
+              )}
+              {accessInfo.alarmExists && (
+                <div>
+                  <strong>Alarm:</strong> Var (
+                  {accessInfo.alarmRoom || "Oda belirtilmemiş"})
+                </div>
+              )}
+              {accessInfo.keyPhotoUrl && (
+                <div>
+                  <strong>Fotoğraf:</strong>
+                  <img
+                    src={accessInfo.keyPhotoUrl}
+                    alt="Anahtar Foto"
+                    className="w-32 mt-2 rounded border"
+                  />
+                </div>
+              )}
+              {accessInfo.accessNote && (
+                <div>
+                  <strong>Genel Not:</strong> {accessInfo.accessNote}
+                </div>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Herhangi bir erişim bilginiz yok.
+            </p>
+          )}
+
+          <Dialog open={accessInfoOpen} onOpenChange={setAccessInfoOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>
+                  {accessInfo ? "Bilgiyi Düzenle" : "Yeni Erişim Bilgisi Ekle"}
+                </DialogTitle>
+              </DialogHeader>
+              <AccessInfoForm
+                defaultData={accessInfo ?? undefined}
+                onSaved={async () => {
+                  setAccessInfoOpen(false);
+                  await refetchAccessInfo();
+                }}
+              />
+            </DialogContent>
+          </Dialog>
+        </div>
+      )}
       {/* Tarih + Saat + Tekrar */}
       <div className="space-y-6">
         <div className="space-y-2">

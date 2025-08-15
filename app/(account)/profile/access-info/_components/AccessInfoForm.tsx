@@ -46,7 +46,10 @@ export default function AccessInfoForm({ defaultData, onSaved }: Props) {
     alarmInstruction: defaultData?.alarmInstruction || "",
     alarmRoom: defaultData?.alarmRoom || "",
     alarmPassword: defaultData?.alarmPassword || "",
-    alarmTimeoutSeconds: defaultData?.alarmTimeoutSeconds || 5,
+    alarmTimeoutSeconds:
+      typeof defaultData?.alarmTimeoutSeconds === "number"
+        ? defaultData.alarmTimeoutSeconds
+        : 5,
     notifySecurityGuard: defaultData?.notifySecurityGuard || false,
     callBeforeEnter: defaultData?.callBeforeEnter || false,
     keyDropLocationAfterService: defaultData?.keyDropLocationAfterService || "",
@@ -67,18 +70,17 @@ export default function AccessInfoForm({ defaultData, onSaved }: Props) {
       let imageUrl = form.keyPhotoUrl;
 
       if (imageFile) {
-        const formData = new FormData();
-        formData.append("file", imageFile);
-        formData.append(
+        const fd = new FormData();
+        fd.append("file", imageFile);
+        fd.append(
           "upload_preset",
           process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!
         );
 
         const res = await fetch(
           `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/upload`,
-          { method: "POST", body: formData }
+          { method: "POST", body: fd }
         );
-
         if (!res.ok) throw new Error("Görsel yüklenemedi");
         const data = await res.json();
         imageUrl = data.secure_url;
@@ -89,9 +91,9 @@ export default function AccessInfoForm({ defaultData, onSaved }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...form, keyPhotoUrl: imageUrl }),
       });
-
       if (!res.ok) throw new Error("Kayıt başarısız");
-      toast.success("Erişim bilgileri başarıyla kaydedildi.");
+
+      toast.success("Erişim bilgileri kaydedildi.");
       onSaved();
     } catch (err) {
       console.error(err);
@@ -101,182 +103,300 @@ export default function AccessInfoForm({ defaultData, onSaved }: Props) {
     }
   };
 
+  const iOSField = "text-[16px] h-11"; // iOS zoom fix
+
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
+        if (!form.keyLocation.trim()) {
+          toast.error("Lütfen 'Anahtar Nerede?' alanını doldurun.");
+          return;
+        }
         handleSubmit();
       }}
-      className="grid grid-cols-1 md:grid-cols-2 gap-6 max-h-[80vh] overflow-y-auto px-4 py-2 rounded-lg bg-white shadow-lg"
+      className="relative max-h-[78vh] overflow-y-auto px-2 sm:px-4"
+      style={{ WebkitOverflowScrolling: "touch" }}
     >
-      {/* Satır 1 */}
-      <div>
-        <Label className="text-sm font-medium">Anahtar Nerede?</Label>
-        <Input
-          value={form.keyLocation}
-          onChange={(e) => handleChange("keyLocation", e.target.value)}
-        />
-      </div>
-      <div>
-        <Label>Komşu Adı</Label>
-        <Input
-          value={form.neighborName}
-          onChange={(e) => handleChange("neighborName", e.target.value)}
-        />
-      </div>
+      {/* --- Bölüm: Anahtar & Komşu --- */}
+      <section className="rounded-2xl border bg-white p-4 sm:p-5 shadow-sm space-y-4 mb-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-base font-semibold">Anahtar & Komşu</h3>
+        </div>
 
-      {/* Satır 2 */}
-      <div>
-        <Label>Anahtar Açıklaması</Label>
-        <Textarea
-          value={form.keyInstruction}
-          onChange={(e) => handleChange("keyInstruction", e.target.value)}
-        />
-      </div>
-      <div>
-        <Label>Komşu Daire No</Label>
-        <Input
-          value={form.neighborFlatNumber}
-          onChange={(e) => handleChange("neighborFlatNumber", e.target.value)}
-        />
-      </div>
-
-      {/* Satır 3 */}
-      <div>
-        <Label>Kapı Şifresi</Label>
-        <Input
-          value={form.doorPassword}
-          onChange={(e) => handleChange("doorPassword", e.target.value)}
-        />
-      </div>
-      <div>
-        <Label>Kapı Notu</Label>
-        <Textarea
-          value={form.doorNote}
-          onChange={(e) => handleChange("doorNote", e.target.value)}
-        />
-      </div>
-
-      <div>
-        <Label>Anahtar Fotoğrafı</Label>
-        <ImageUpload
-          value={form.keyPhotoUrl || ""}
-          onFileSelect={(file) => setImageFile(file)}
-        />
-      </div>
-      <div>
-        <Label>Genel Not</Label>
-        <Textarea
-          value={form.accessNote}
-          onChange={(e) => handleChange("accessNote", e.target.value)}
-        />
-      </div>
-
-      {/* Satır 5 - Switchler */}
-      <div className="flex items-center justify-between gap-2">
-        <Label>Güvenliği Bilgilendir</Label>
-        <Switch
-          checked={form.notifySecurityGuard}
-          onCheckedChange={(val) => handleChange("notifySecurityGuard", val)}
-        />
-      </div>
-      <div className="flex items-center justify-between gap-2">
-        <Label>Giriş Öncesi Arayın</Label>
-        <Switch
-          checked={form.callBeforeEnter}
-          onCheckedChange={(val) => handleChange("callBeforeEnter", val)}
-        />
-      </div>
-
-      {/* Satır 6 */}
-      <div className="md:col-span-2">
-        <Label>Hizmet Sonrası Anahtar Bırakma Yeri</Label>
-        <Input
-          value={form.keyDropLocationAfterService}
-          onChange={(e) =>
-            handleChange("keyDropLocationAfterService", e.target.value)
-          }
-        />
-      </div>
-
-      {/* Satır 7 - Alarm Switch */}
-      <div className="md:col-span-2 flex items-center justify-between mt-2">
-        <Label className="font-medium">Alarm Var mı?</Label>
-        <Switch
-          checked={form.alarmExists}
-          onCheckedChange={(val) => handleChange("alarmExists", val)}
-        />
-      </div>
-
-      {/* Alarm detayları */}
-      {form.alarmExists && (
-        <>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <Label>Alarm Şifresi</Label>
+            <Label className="text-sm">
+              Anahtar Nerede? <span className="text-red-500">*</span>
+            </Label>
             <Input
-              value={form.alarmPassword || ""}
-              onChange={(e) => handleChange("alarmPassword", e.target.value)}
+              aria-label="Anahtar Nerede"
+              placeholder="Örn: Apartman görevlisinde / Posta kutusunda"
+              value={form.keyLocation}
+              onChange={(e) => handleChange("keyLocation", e.target.value)}
+              className={iOSField}
             />
           </div>
+
           <div>
-            <Label>Alarm Odası</Label>
+            <Label className="text-sm">Komşu Adı</Label>
             <Input
-              value={form.alarmRoom || ""}
-              onChange={(e) => handleChange("alarmRoom", e.target.value)}
+              aria-label="Komşu Adı"
+              placeholder="Örn: Ayşe Hanım"
+              value={form.neighborName}
+              onChange={(e) => handleChange("neighborName", e.target.value)}
+              className={iOSField}
             />
           </div>
+
           <div>
-            <Label>Alarm Süresi (sn)</Label>
-            <Input
-              type="number"
-              min={0}
-              value={form.alarmTimeoutSeconds || 0}
-              onChange={(e) =>
-                handleChange("alarmTimeoutSeconds", Number(e.target.value))
-              }
-            />
-          </div>
-          <div className="md:col-span-2">
-            <Label>Alarm Açıklaması</Label>
+            <Label className="text-sm">Anahtar Açıklaması</Label>
             <Textarea
-              value={form.alarmInstruction || ""}
-              onChange={(e) => handleChange("alarmInstruction", e.target.value)}
+              aria-label="Anahtar Açıklaması"
+              placeholder="Anahtarın konumu veya alınış şekliyle ilgili notlar"
+              value={form.keyInstruction}
+              onChange={(e) => handleChange("keyInstruction", e.target.value)}
+              className="min-h-[88px] text-[16px]"
             />
           </div>
-        </>
-      )}
 
-      <div className="md:col-span-2 sticky bottom-0 left-0 bg-white pt-4 pb-2 z-10">
-        <Button
-          type="submit"
-          disabled={loading}
-          className="w-full h-11 rounded-xl text-base"
-        >
-          {loading ? (
-            <svg
-              className="animate-spin h-5 w-5 text-white mr-2"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
+          <div>
+            <Label className="text-sm">Komşu Daire No</Label>
+            <Input
+              aria-label="Komşu Daire No"
+              placeholder="Örn: 4B"
+              value={form.neighborFlatNumber}
+              onChange={(e) =>
+                handleChange("neighborFlatNumber", e.target.value)
+              }
+              className={iOSField}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* --- Bölüm: Kapı Bilgisi --- */}
+      <section className="rounded-2xl border bg-white p-4 sm:p-5 shadow-sm space-y-4 mb-4">
+        <h3 className="text-base font-semibold">Kapı Bilgisi</h3>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label className="text-sm">Kapı Şifresi</Label>
+            <Input
+              aria-label="Kapı Şifresi"
+              placeholder="Şifre (varsa)"
+              value={form.doorPassword}
+              onChange={(e) => handleChange("doorPassword", e.target.value)}
+              className={iOSField}
+            />
+          </div>
+
+          <div>
+            <Label className="text-sm">Kapı Notu</Label>
+            <Textarea
+              aria-label="Kapı Notu"
+              placeholder="Örn: Kapı kolu sıkıdır, yukarı kaldırarak açın"
+              value={form.doorNote}
+              onChange={(e) => handleChange("doorNote", e.target.value)}
+              className="min-h-[88px] text-[16px]"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* --- Bölüm: Medya & Not --- */}
+      <section className="rounded-2xl border bg-white p-4 sm:p-5 shadow-sm space-y-4 mb-4">
+        <h3 className="text-base font-semibold">Medya & Not</h3>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label className="text-sm">Anahtar Fotoğrafı</Label>
+            <div className="rounded-xl border p-3">
+              <ImageUpload
+                value={form.keyPhotoUrl || ""}
+                onFileSelect={(file) => setImageFile(file)}
+              />
+              <p className="mt-2 text-xs text-muted-foreground">
+                (İsteğe bağlı) Anahtarın veya konumunun fotoğrafı.
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <Label className="text-sm">Genel Not</Label>
+            <Textarea
+              aria-label="Genel Not"
+              placeholder="Eklemek istediğiniz genel notlar"
+              value={form.accessNote}
+              onChange={(e) => handleChange("accessNote", e.target.value)}
+              className="min-h-[120px] text-[16px]"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* --- Bölüm: Tercihler --- */}
+      <section className="rounded-2xl border bg-white p-4 sm:p-5 shadow-sm space-y-3 mb-4">
+        <h3 className="text-base font-semibold">Tercihler</h3>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="flex items-center justify-between rounded-xl border p-3">
+            <div>
+              <Label className="text-sm">Güvenliği Bilgilendir</Label>
+              <p className="text-xs text-muted-foreground">
+                Site güvenliğine haber verilsin.
+              </p>
+            </div>
+            <Switch
+              checked={form.notifySecurityGuard}
+              onCheckedChange={(v) => handleChange("notifySecurityGuard", v)}
+              aria-label="Güvenliği Bilgilendir"
+            />
+          </div>
+
+          <div className="flex items-center justify-between rounded-xl border p-3">
+            <div>
+              <Label className="text-sm">Giriş Öncesi Arayın</Label>
+              <p className="text-xs text-muted-foreground">
+                Girişten önce telefonla bilgi verilsin.
+              </p>
+            </div>
+            <Switch
+              checked={form.callBeforeEnter}
+              onCheckedChange={(v) => handleChange("callBeforeEnter", v)}
+              aria-label="Giriş Öncesi Arayın"
+            />
+          </div>
+        </div>
+
+        <div className="mt-2">
+          <Label className="text-sm">Hizmet Sonrası Anahtar Bırakma Yeri</Label>
+          <Input
+            aria-label="Hizmet Sonrası Anahtar Bırakma Yeri"
+            placeholder="Örn: Aynı yer / Kapı altı / Güvenlik"
+            value={form.keyDropLocationAfterService}
+            onChange={(e) =>
+              handleChange("keyDropLocationAfterService", e.target.value)
+            }
+            className={iOSField}
+          />
+        </div>
+      </section>
+
+      {/* --- Bölüm: Alarm --- */}
+      <section className="rounded-2xl border bg-white p-4 sm:p-5 shadow-sm space-y-4 mb-24">
+        <div className="flex items-center justify-between">
+          <h3 className="text-base font-semibold">Alarm Bilgisi</h3>
+          <div className="flex items-center gap-2">
+            <Label className="text-sm">Alarm Var mı?</Label>
+            <Switch
+              checked={form.alarmExists}
+              onCheckedChange={(v) => handleChange("alarmExists", v)}
+              aria-label="Alarm Var mı?"
+            />
+          </div>
+        </div>
+
+        {form.alarmExists && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label className="text-sm">Alarm Şifresi</Label>
+              <Input
+                aria-label="Alarm Şifresi"
+                placeholder="****"
+                value={form.alarmPassword || ""}
+                onChange={(e) => handleChange("alarmPassword", e.target.value)}
+                className={iOSField}
+              />
+            </div>
+
+            <div>
+              <Label className="text-sm">Alarm Odası</Label>
+              <Input
+                aria-label="Alarm Odası"
+                placeholder="Örn: Salon"
+                value={form.alarmRoom || ""}
+                onChange={(e) => handleChange("alarmRoom", e.target.value)}
+                className={iOSField}
+              />
+            </div>
+
+            <div>
+              <Label className="text-sm">Alarm Süresi (sn)</Label>
+              <Input
+                aria-label="Alarm Süresi (saniye)"
+                type="number"
+                inputMode="numeric"
+                min={0}
+                value={
+                  typeof form.alarmTimeoutSeconds === "number"
+                    ? form.alarmTimeoutSeconds
+                    : 0
+                }
+                onChange={(e) =>
+                  handleChange(
+                    "alarmTimeoutSeconds",
+                    e.target.value === ""
+                      ? 0
+                      : Math.max(0, Number(e.target.value))
+                  )
+                }
+                className={iOSField}
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <Label className="text-sm">Alarm Açıklaması</Label>
+              <Textarea
+                aria-label="Alarm Açıklaması"
+                placeholder="Alarm kurulumu/iptali hakkında kısa açıklama"
+                value={form.alarmInstruction || ""}
+                onChange={(e) =>
+                  handleChange("alarmInstruction", e.target.value)
+                }
+                className="min-h-[100px] text-[16px]"
+              />
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* Sticky Save */}
+      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-20 px-4 pb-4">
+        <div className="mx-auto max-w-[680px] sm:max-w-[720px] md:max-w-[900px]">
+          <div className="pointer-events-auto rounded-2xl border bg-white/95 backdrop-blur p-2 shadow-lg">
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full h-11 rounded-xl text-base"
             >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              ></circle>
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-              ></path>
-            </svg>
-          ) : (
-            "Kaydet"
-          )}
-        </Button>
+              {loading ? (
+                <svg
+                  className="animate-spin h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                  ></path>
+                </svg>
+              ) : (
+                "Kaydet"
+              )}
+            </Button>
+          </div>
+        </div>
       </div>
     </form>
   );

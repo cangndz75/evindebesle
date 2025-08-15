@@ -9,8 +9,6 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import AgreementsCheckbox from "../_components/AgreementsCheckbox";
 import { useSession } from "next-auth/react";
 
@@ -46,6 +44,14 @@ type AgreementsStateType = {
   distanceAccepted: boolean;
 };
 
+type PaymentCard = {
+  number: string; // 16 hane (sadece rakam)
+  name: string;
+  expireMonth: string; // "01".."12"
+  expireYear: string; // "2025" gibi
+  cvc: string; // "123"
+};
+
 interface SummarySidebarProps {
   formData: {
     selectedSpecies: string[];
@@ -63,8 +69,8 @@ interface SummarySidebarProps {
     paymentMethod?: string | null;
     recipientName?: string | null;
     invoiceAddressText?: string | null;
+    paymentCard?: PaymentCard | null; // Step1'den gelir
   };
-  onStart?: (payload: { totalPrice: number; discountedPrice: number }) => void; // prod akışı için opsiyonel
 }
 
 function toMidnightISO(d: Date) {
@@ -72,12 +78,10 @@ function toMidnightISO(d: Date) {
   x.setHours(0, 0, 0, 0);
   return x.toISOString();
 }
-
 function collectDates(formData: any): string[] {
   const { dates, dateRange } = formData || {};
-  if (Array.isArray(dates) && dates.length) {
+  if (Array.isArray(dates) && dates.length)
     return dates.map((d: any) => toMidnightISO(new Date(d)));
-  }
   const from = dateRange?.from ? new Date(dateRange.from) : null;
   const to = dateRange?.to ? new Date(dateRange.to) : null;
   const out: string[] = [];
@@ -102,12 +106,12 @@ function buildDraftPayload(formData: any, totalPrice: number, isTest = false) {
     selectedServicesBySpecies = {},
     address,
     repeatType = "none",
+    repeatCount,
     selectedSpecies,
     services,
     petTypes,
     dateRange,
     timeSlot,
-    repeatCount,
     appliedCoupon,
     paymentMethod,
     recipientName,
@@ -117,11 +121,9 @@ function buildDraftPayload(formData: any, totalPrice: number, isTest = false) {
   const ownedPetIds: string[] = Object.values<string[]>(
     selectedUserPetsBySpecies
   ).flat();
-
   const serviceIds: string[] = Array.from(
     new Set(Object.values<string[]>(selectedServicesBySpecies).flat())
   );
-
   const userAddressId = address?.id as string | undefined;
   const isRecurring = repeatType !== "none";
 
@@ -130,10 +132,13 @@ function buildDraftPayload(formData: any, totalPrice: number, isTest = false) {
     serviceIds,
     userAddressId,
     isRecurring,
+    recurringType: isRecurring ? repeatType : undefined,
+    recurringCount: isRecurring ? (repeatCount ?? undefined) : undefined,
+
+    // server kendi hesaplıyor ama göndermemiz sorun değil
     totalPrice,
     isTest,
 
-    // Opsiyoneller (izleme/rapor için saklıyoruz)
     selectedSpecies,
     services,
     petTypes,
@@ -149,14 +154,10 @@ function buildDraftPayload(formData: any, totalPrice: number, isTest = false) {
   };
 }
 
-export default function SummarySidebar({
-  formData,
-  onStart,
-}: SummarySidebarProps) {
+export default function SummarySidebar({ formData }: SummarySidebarProps) {
   const router = useRouter();
   const { status, data: session } = useSession();
 
-  // Test yetkisi
   const [canTest, setCanTest] = useState(false);
   useEffect(() => {
     if (status === "authenticated")
@@ -201,6 +202,7 @@ export default function SummarySidebar({
     paymentMethod,
     recipientName,
     invoiceAddressText,
+    paymentCard, // Step1'den gelen kart
   } = formData || {};
 
   const [agreements, setAgreements] = useState<AgreementsStateType>({
@@ -208,26 +210,11 @@ export default function SummarySidebar({
     distanceAccepted: false,
   });
 
-  // Kart formu (ödemeler Summary’de)
-  const [cardRaw, setCardRaw] = useState("");
-  const [cardName, setCardName] = useState("");
-  const [expiryMonth, setExpiryMonth] = useState("");
-  const [expiryYear, setExpiryYear] = useState("");
-  const [cvv, setCvv] = useState("");
-  const [isPaying, setIsPaying] = useState(false);
-
-  const formattedCardNumber = cardRaw.replace(/(.{4})/g, "$1 ").trim();
-  const handleCardInput = (v: string) => {
-    const digitsOnly = v.replace(/\D/g, "").slice(0, 16);
-    setCardRaw(digitsOnly);
-  };
-
   const SLOT_LABELS: Record<string, string> = {
     morning: "Sabah (08:00 - 12:00)",
     noon: "Öğle (12:00 - 16:00)",
     evening: "Akşam (16:00 - 20:00)",
   };
-
   const SELLER_INFO = {
     title: "Dogo Petshop LTD. ŞTİ.",
     address:
@@ -296,7 +283,6 @@ export default function SummarySidebar({
     const list: Date[] = Array.isArray(dates)
       ? dates.map((d) => new Date(d as any))
       : [];
-
     if (!list.length && (dateRange?.from || dateRange?.to)) {
       const from = dateRange?.from ? new Date(dateRange.from) : null;
       const to = dateRange?.to ? new Date(dateRange.to) : null;
@@ -311,11 +297,8 @@ export default function SummarySidebar({
           list.push(new Date(cur));
           cur.setDate(cur.getDate() + 1);
         }
-      } else if (from) {
-        list.push(new Date(from));
-      }
+      } else if (from) list.push(new Date(from));
     }
-
     if (!list.length) return 1;
     const keys = new Set(
       list.map((d) =>
@@ -360,20 +343,12 @@ export default function SummarySidebar({
   );
   const canStartCore =
     hasServices && hasPets && hasAddress && hasTimeSlot && hasDates;
-
   const canStartPaid =
     canStartCore && agreements.preInfoAccepted && agreements.distanceAccepted;
   const canStartTest =
     canStartCore && agreements.preInfoAccepted && agreements.distanceAccepted;
 
-  // Prod akışını üst bileşen yürütecekse payload ver
-  const handleStart = () => {
-    if (!canStartPaid) return;
-    if (onStart) onStart({ totalPrice, discountedPrice });
-    else toast.info("Ödeme için gerekli bilgiler ana formdan tamamlanmalı.");
-  };
-
-  // Ortak taslak oluşturucu
+  // Taslak oluştur (server schema ile uyumlu)
   const createDraft = async (price: number, isTest: boolean) => {
     const payload = buildDraftPayload(formData, price, isTest);
     const res = await fetch("/api/draft-appointment", {
@@ -384,10 +359,13 @@ export default function SummarySidebar({
     const data = await res.json();
     if (!res.ok)
       throw new Error(data?.message || data?.error || "Taslak oluşturulamadı.");
-    return data?.draftAppointmentId || data?.id;
+    return {
+      id: data?.draftAppointmentId || data?.id,
+      finalPrice: data?.finalPrice ?? price,
+    };
   };
 
-  // Validasyonlar
+  // Ortak kontroller
   const validateCore = () => {
     if (!hasAddress) return "Lütfen adres seçin.";
     if (!hasDates) return "Lütfen tarih aralığı seçin.";
@@ -396,67 +374,34 @@ export default function SummarySidebar({
     if (!hasTimeSlot) return "Lütfen saat aralığı seçin.";
     return null;
   };
-  const validateCard = () => {
-    if (discountedPrice <= 0) return "Tutar 0 olamaz.";
-    if (!cardRaw || !cardName || !expiryMonth || !expiryYear || !cvv)
-      return "Kart bilgilerini doldurun.";
-    if (cardRaw.length !== 16) return "Kart numarası 16 hane olmalı.";
-    if (cvv.length !== 3) return "CVV 3 hane olmalı.";
+  const validateCardFromFormData = (card?: PaymentCard | null) => {
+    if (!card) return "Kart bilgilerini Step1’de doldurun.";
+    const num = String(card.number || "").replace(/\D/g, "");
+    const cvc = String(card.cvc || "").replace(/\D/g, "");
+    const mm = Number(card.expireMonth);
+    const yy = Number(card.expireYear);
     const cy = new Date().getFullYear();
-    if (
-      Number(expiryYear) < cy ||
-      Number(expiryMonth) < 1 ||
-      Number(expiryMonth) > 12
-    )
-      return "Geçersiz son kullanma tarihi.";
+    if (num.length !== 16) return "Kart numarası 16 hane olmalı (Step1).";
+    if (cvc.length !== 3) return "CVV 3 hane olmalı (Step1).";
+    if (!card.name?.trim()) return "Kart üzerindeki isim gerekli (Step1).";
+    if (mm < 1 || mm > 12) return "Ay değeri 01–12 aralığında olmalı (Step1).";
+    if (yy < cy) return "Son kullanma yılı geçersiz (Step1).";
     return null;
   };
 
-  // Test: ödeme ATLAMA (paidPrice: 0)
-  const handleCreateDraftWithoutPayment = async () => {
-    try {
-      const e = validateCore();
-      if (e) return toast.error(e);
-
-      const draftId = await createDraft(0, true);
-      const resp = await fetch("/api/appointments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          draftAppointmentId: draftId,
-          paidPrice: 0,
-          conversationId: "TEST-MODE",
-          paymentId: "SKIP",
-        }),
-      });
-      const data = await resp.json();
-      if (!resp.ok)
-        throw new Error(data?.error || "Test randevusu oluşturulamadı");
-
-      toast.success("Test randevusu (ödemesiz) oluşturuldu.");
-      const apptId = data?.appointmentId;
-      router.push(apptId ? `/success?appointmentId=${apptId}` : `/success`);
-    } catch (e: any) {
-      toast.error(e?.message || "Randevu hatası.");
-    }
-  };
-
-  // Test: ödeme YAP (mock) → doğrudan appointments (paidPrice = discountedPrice)
   const handleMockPayment = async () => {
     try {
       const e1 = validateCore();
       if (e1) return toast.error(e1);
-      const e2 = validateCard();
+      const e2 = validateCardFromFormData(paymentCard);
       if (e2) return toast.error(e2);
 
-      setIsPaying(true);
-
-      const draftId = await createDraft(discountedPrice, true);
-      const resp = await fetch("/api/appointments", {
+      const draft = await createDraft(discountedPrice, true);
+      const resp = await fetch("/payment/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          draftAppointmentId: draftId,
+          draftAppointmentId: draft.id,
           paidPrice: discountedPrice,
           conversationId: "TEST-MODE",
           paymentId: `MOCK-${Date.now()}`,
@@ -465,14 +410,47 @@ export default function SummarySidebar({
       const data = await resp.json();
       if (!resp.ok)
         throw new Error(data?.error || "Ödeme / randevu tamamlanamadı");
-
       toast.success("Test ödemesi başarılı, randevu oluşturuldu.");
-      const apptId = data?.appointmentId;
-      router.push(apptId ? `/success?appointmentId=${apptId}` : `/success`);
+      router.push(
+        data?.appointmentId
+          ? `/success?appointmentId=${data.appointmentId}`
+          : `/success`
+      );
     } catch (e: any) {
       toast.error(e?.message || "Ödeme hatası");
-    } finally {
-      setIsPaying(false);
+    }
+  };
+
+  const handleStartLivePayment = async () => {
+    try {
+      const e1 = validateCore();
+      if (e1) return toast.error(e1);
+      const e2 = validateCardFromFormData(paymentCard);
+      if (e2) return toast.error(e2);
+
+      const draft = await createDraft(discountedPrice, false);
+
+      const resp = await fetch("/payment/complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          draftAppointmentId: draft.id,
+          paidPrice: discountedPrice, // PSP yokken doğrudan tamamlıyoruz
+          conversationId: "DIRECT-NO-3DS",
+          paymentId: `CARD-${String(paymentCard!.number).slice(-4)}-${Date.now()}`,
+        }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data?.error || "Ödeme tamamlanamadı");
+
+      toast.success("Ödeme alındı. Randevunuz oluşturuldu.");
+      router.push(
+        data?.appointmentId
+          ? `/success?appointmentId=${data.appointmentId}`
+          : `/success`
+      );
+    } catch (err: any) {
+      toast.error(err?.message || "Ödeme/rezervasyon hatası");
     }
   };
 
@@ -580,7 +558,7 @@ export default function SummarySidebar({
           </div>
         )}
 
-        {/* Kupon */}
+        {/* Kupon ve Toplamlar */}
         {appliedCoupon && (
           <div className="flex items-center justify-between">
             <span>
@@ -593,8 +571,6 @@ export default function SummarySidebar({
             </span>
           </div>
         )}
-
-        {/* Toplamlar */}
         <div className="border-t pt-2">
           <div className="flex items-center justify-between text-xs opacity-70">
             <span>Gün sayısı</span>
@@ -616,7 +592,7 @@ export default function SummarySidebar({
           )}
         </div>
 
-        {/* Mesafeli satış + ön bilgilendirme */}
+        {/* Sözleşmeler */}
         <AgreementsCheckbox
           value={agreements}
           onChange={setAgreements}
@@ -651,123 +627,24 @@ export default function SummarySidebar({
           platform={PLATFORM_INFO}
         />
 
-        {/* KART FORMU (test mock için) */}
-        {canStartCore && (
-          <div className="space-y-3 border rounded-lg p-4">
-            <Label className="block">Kart Bilgileri (Test)</Label>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <Label>Kart Numarası</Label>
-                <Input
-                  value={formattedCardNumber}
-                  onChange={(e) => handleCardInput(e.target.value)}
-                  placeholder="0000 0000 0000 0000"
-                  inputMode="numeric"
-                  autoComplete="cc-number"
-                  maxLength={19}
-                  className="text-[16px] h-11"
-                />
-              </div>
-              <div>
-                <Label>Kart Üzerindeki İsim</Label>
-                <Input
-                  value={cardName}
-                  onChange={(e) =>
-                    setCardName(
-                      e.target.value.replace(/[^A-Za-zÇçĞğİıÖöŞşÜü\s]/g, "")
-                    )
-                  }
-                  placeholder="Ad Soyad"
-                  autoComplete="cc-name"
-                  className="text-[16px] h-11"
-                />
-              </div>
-              <div>
-                <Label>Ay</Label>
-                <select
-                  value={expiryMonth}
-                  onChange={(e) => setExpiryMonth(e.target.value)}
-                  className="w-full rounded-md border px-3 py-2 text-[16px] h-11 bg-white"
-                >
-                  <option value="">Ay</option>
-                  {Array.from({ length: 12 }, (_, i) => {
-                    const m = String(i + 1).padStart(2, "0");
-                    return (
-                      <option key={m} value={m}>
-                        {m}
-                      </option>
-                    );
-                  })}
-                </select>
-              </div>
-              <div>
-                <Label>Yıl</Label>
-                <select
-                  value={expiryYear}
-                  onChange={(e) => setExpiryYear(e.target.value)}
-                  className="w-full rounded-md border px-3 py-2 text-[16px] h-11 bg-white"
-                >
-                  <option value="">Yıl</option>
-                  {Array.from({ length: 10 }, (_, i) => {
-                    const y = new Date().getFullYear() + i;
-                    return (
-                      <option key={y} value={String(y)}>
-                        {y}
-                      </option>
-                    );
-                  })}
-                </select>
-              </div>
-              <div>
-                <Label>CVV</Label>
-                <Input
-                  value={cvv}
-                  onChange={(e) =>
-                    setCvv(e.target.value.replace(/\D/g, "").slice(0, 3))
-                  }
-                  placeholder="CVV"
-                  maxLength={3}
-                  inputMode="numeric"
-                  autoComplete="cc-csc"
-                  className="text-[16px] h-11"
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Butonlar */}
         <div className="grid grid-cols-1 gap-2 pt-1">
-          {/* Prod akışı istersen onStart ile dışarı veriyoruz */}
           <Button
             className="w-full"
-            onClick={handleStart}
+            onClick={handleStartLivePayment}
             disabled={!canStartPaid}
           >
-            Hizmeti Başlat
+            Hizmeti Başlat (Ödeme)
           </Button>
 
-          {/* Test akışları (sadece test kullanıcıları) */}
           {canTest && (
-            <>
-              <Button
-                type="button"
-                className="w-full"
-                onClick={handleMockPayment}
-                disabled={!canStartTest || isPaying}
-              >
-                {isPaying ? "İşleniyor..." : "Test Ödeme Yap (Mock)"}
-              </Button>
-              <Button
-                type="button"
-                variant="secondary"
-                className="w-full"
-                onClick={handleCreateDraftWithoutPayment}
-                disabled={!canStartTest}
-              >
-                Test Modu (Kartsız) Başlat
-              </Button>
-            </>
+            <Button
+              type="button"
+              className="w-full"
+              onClick={handleMockPayment}
+              disabled={!canStartTest}
+            >
+              Test Ödeme Yap (Mock)
+            </Button>
           )}
         </div>
       </CardContent>

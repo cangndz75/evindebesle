@@ -11,6 +11,7 @@ import {
   Clock3,
   Repeat,
   Percent,
+  CreditCard,
   KeyRound,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -89,6 +90,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
     [searchParams]
   );
 
+  // --- State
   const [petTypes, setPetTypes] = useState<PetType[]>([]);
   const [selectedSpecies, setSelectedSpecies] = useState<string[]>([]);
   const [userPets, setUserPets] = useState<UserPet[]>([]);
@@ -115,8 +117,10 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
   const [serviceCounts, setServiceCounts] = useState<Record<string, number>>(
     {}
   );
+
   const [petAddOpen, setPetAddOpen] = useState(false);
   const [petAddSpecies, setPetAddSpecies] = useState<string | null>(null);
+
   const [accessInfo, setAccessInfo] = useState<AccessInfo | null>(null);
   const [loadingAccessInfo, setLoadingAccessInfo] = useState(true);
   const [accessInfoOpen, setAccessInfoOpen] = useState(false);
@@ -124,13 +128,20 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
   const [couponInput, setCouponInput] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
 
-  // Loading
+  // Kart bilgileri (Step1’de toplanır, Summary’de kullanılır)
+  const [cardRaw, setCardRaw] = useState("");
+  const [cardName, setCardName] = useState("");
+  const [expiryMonth, setExpiryMonth] = useState("");
+  const [expiryYear, setExpiryYear] = useState("");
+  const [cvv, setCvv] = useState("");
+
+  // Loading flags
   const [loadingPets, setLoadingPets] = useState(true);
   const [loadingUserPets, setLoadingUserPets] = useState(true);
   const [loadingAddresses, setLoadingAddresses] = useState(true);
   const [loadingServices, setLoadingServices] = useState(false);
 
-  // Helpers
+  // --- Helpers
   const speciesName = (id: string) =>
     petTypes.find((p) => p.id === id)?.name || id;
 
@@ -143,13 +154,12 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
     return `requestDraft.${userId}.${scope}.v1`;
   }, [userId, initialSpeciesFromUrl, selectedSpecies]);
 
-  // Load draft
+  // --- Load draft (kart hariç)
   useEffect(() => {
     try {
       const saved = localStorage.getItem(draftKey);
       if (!saved) return;
       const d = JSON.parse(saved);
-
       setSelectedSpecies((prev) =>
         prev.length ? prev : d.selectedSpecies || []
       );
@@ -164,7 +174,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
     } catch {}
   }, [draftKey]);
 
-  // Save draft
+  // --- Save draft (kart hariç)
   useEffect(() => {
     const draft = {
       selectedSpecies,
@@ -191,7 +201,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
     appliedCoupon,
   ]);
 
-  // Species from URL
+  // --- URL’den tür ön-seçimi
   useEffect(() => {
     if (initialSpeciesFromUrl.length)
       setSelectedSpecies((prev) =>
@@ -199,7 +209,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
       );
   }, [initialSpeciesFromUrl]);
 
-  // Fetch: pets
+  // --- Fetches
   useEffect(() => {
     setLoadingPets(true);
     fetch("/api/pets")
@@ -208,16 +218,20 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
       .finally(() => setLoadingPets(false));
   }, []);
 
-  // Fetch: user pets
-  useEffect(() => {
+  const refetchUserPets = async () => {
     setLoadingUserPets(true);
-    fetch("/api/user-pets")
-      .then(async (r) => (r.status === 401 ? [] : r.ok ? r.json() : []))
-      .then((data) => setUserPets(Array.isArray(data) ? data : []))
-      .finally(() => setLoadingUserPets(false));
+    try {
+      const r = await fetch("/api/user-pets");
+      const data = await r.json();
+      setUserPets(Array.isArray(data) ? data : []);
+    } finally {
+      setLoadingUserPets(false);
+    }
+  };
+  useEffect(() => {
+    refetchUserPets();
   }, []);
 
-  // Fetch: addresses
   const refetchAddresses = async () => {
     setLoadingAddresses(true);
     try {
@@ -235,7 +249,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
     refetchAddresses();
   }, []);
 
-  // Fetch: services by selected species
+  // Hizmetler
   useEffect(() => {
     if (!selectedSpecies.length || !petTypes.length) return;
     const params = new URLSearchParams();
@@ -250,7 +264,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
       .finally(() => setLoadingServices(false));
   }, [selectedSpecies, petTypes]);
 
-  // UserPet counts (per species)
+  // Pet adetleri
   useEffect(() => {
     const counts: Record<string, number> = {};
     selectedSpecies.forEach((sid) => {
@@ -264,12 +278,8 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
     setLoadingAccessInfo(true);
     try {
       const res = await fetch("/api/access-info");
-      if (!res.ok) {
-        setAccessInfo(null);
-      } else {
-        const data = await res.json();
-        setAccessInfo(data || null);
-      }
+      if (!res.ok) setAccessInfo(null);
+      else setAccessInfo((await res.json()) || null);
     } catch {
       setAccessInfo(null);
     } finally {
@@ -280,10 +290,13 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
     if (isLoggedIn) refetchAccessInfo();
   }, [isLoggedIn]);
 
-  // Summary binding
+  // --- Summary’ye formData push (KART DAHİL)
   useEffect(() => {
     const selectedAddress =
       addresses.find((a) => a.id === selectedAddressId) || null;
+
+    const hasCard =
+      !!cardRaw || !!cardName || !!expiryMonth || !!expiryYear || !!cvv;
 
     setFormData((prev: any) => ({
       ...prev,
@@ -306,6 +319,16 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
       repeatCount,
       appliedCoupon,
       accessInfo,
+
+      paymentCard: hasCard
+        ? {
+            number: cardRaw,
+            name: cardName,
+            expireMonth: expiryMonth,
+            expireYear: expiryYear,
+            cvc: cvv,
+          }
+        : null,
     }));
   }, [
     addresses,
@@ -321,10 +344,15 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
     repeatCount,
     appliedCoupon,
     accessInfo,
+    cardRaw,
+    cardName,
+    expiryMonth,
+    expiryYear,
+    cvv,
     setFormData,
   ]);
 
-  // Day count
+  // --- Tutar hesapları (sadece gösterim için)
   const serviceDayCount = useMemo(() => {
     if (!selectedDates.length) return 0;
     const dayKeys = new Set(
@@ -335,7 +363,6 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
     return dayKeys.size;
   }, [selectedDates]);
 
-  // Totals (sadece gösterim — ödeme Summary’de)
   const totalPrice = useMemo(() => {
     let base = 0;
     selectedSpecies.forEach((sid) => {
@@ -366,7 +393,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
     return Math.max(totalPrice - appliedCoupon.value, 0);
   }, [appliedCoupon, totalPrice]);
 
-  // Helpers
+  // --- Helpers (UI)
   const petsOfSpecies = (speciesId: string) => {
     const name = speciesName(speciesId);
     return userPets.filter(
@@ -384,7 +411,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
     });
   };
 
-  // Coupon
+  // Kupon
   const handleApplyCoupon = async () => {
     if (!couponInput.trim()) return;
     try {
@@ -412,6 +439,14 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
     setCouponInput("");
   };
 
+  // Kart inputları
+  const formattedCardNumber = cardRaw.replace(/(.{4})/g, "$1 ").trim();
+  const handleCardInput = (v: string) => {
+    const digitsOnly = v.replace(/\D/g, "").slice(0, 16);
+    setCardRaw(digitsOnly);
+  };
+
+  // --- Render
   return (
     <div className="space-y-10 overflow-x-hidden pb-8">
       {/* Evcil hayvanlarım */}
@@ -693,8 +728,8 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
           <Label className="flex items-center gap-2">
             <CalendarDays className="w-4 h-4" /> Tarih Aralığı
           </Label>
-          <DatePicker selected={selectedDates} onSelect={setSelectedDates} />
         </div>
+        <DatePicker selected={selectedDates} onSelect={setSelectedDates} />
 
         <div className="grid md:grid-cols-2 gap-6">
           <div className="space-y-2">
@@ -810,6 +845,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
           <PawPrint className="w-4 h-4" /> Hizmetler
         </Label>
 
+        {/* Mobil */}
         <div className="md:hidden border rounded-md p-4 bg-white">
           {loadingServices ? (
             <Skeleton className="w-full h-20" />
@@ -826,6 +862,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
           )}
         </div>
 
+        {/* Desktop ScrollArea */}
         <ScrollArea
           className="hidden md:block h-auto max-h-[420px] border rounded-md p-4 bg-white"
           style={{ WebkitOverflowScrolling: "touch" }}
@@ -849,8 +886,9 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
       {/* Ayırıcı */}
       <Separator className="my-6" />
 
-      {/* Kupon + Toplam (ödeme Summary’de) */}
+      {/* Kupon + Kart (sadece veri toplama) */}
       <div className="space-y-6 border rounded-2xl p-6 bg-white">
+        {/* Kupon */}
         <div className="space-y-2">
           <Label className="flex items-center gap-2">
             <Percent className="w-4 h-4" /> Kupon
@@ -871,6 +909,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
               <Button onClick={handleApplyCoupon}>Uygula</Button>
             )}
           </div>
+
           {appliedCoupon && (
             <p className="text-sm text-muted-foreground">
               Uygulanan: <strong>{appliedCoupon.code}</strong>{" "}
@@ -881,6 +920,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
           )}
         </div>
 
+        {/* Toplam gösterimi */}
         <div className="flex items-center justify-between text-lg">
           <div>
             <span className="text-muted-foreground">Toplam: </span>
@@ -894,6 +934,91 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
             )}
           </div>
         </div>
+
+        {/* Kart (Sadece input, ödeme Summary’de) */}
+        <div className="space-y-3">
+          <Label className="flex items-center gap-2">
+            <CreditCard className="w-4 h-4" /> Kart Bilgileri
+          </Label>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <Label>Kart Numarası</Label>
+              <Input
+                value={formattedCardNumber}
+                onChange={(e) => handleCardInput(e.target.value)}
+                placeholder="0000 0000 0000 0000"
+                inputMode="numeric"
+                autoComplete="cc-number"
+                maxLength={19}
+                className="text-[16px] h-11"
+              />
+            </div>
+            <div>
+              <Label>Kart Üzerindeki İsim</Label>
+              <Input
+                value={cardName}
+                onChange={(e) =>
+                  setCardName(
+                    e.target.value.replace(/[^A-Za-zÇçĞğİıÖöŞşÜü\s]/g, "")
+                  )
+                }
+                placeholder="Ad Soyad"
+                autoComplete="cc-name"
+                className="text-[16px] h-11"
+              />
+            </div>
+            <div>
+              <Label>Ay</Label>
+              <select
+                value={expiryMonth}
+                onChange={(e) => setExpiryMonth(e.target.value)}
+                className="w-full rounded-md border px-3 py-2 text-[16px] h-11 bg-white"
+              >
+                <option value="">Ay</option>
+                {Array.from({ length: 12 }, (_, i) => {
+                  const m = String(i + 1).padStart(2, "0");
+                  return (
+                    <option key={m} value={m}>
+                      {m}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+            <div>
+              <Label>Yıl</Label>
+              <select
+                value={expiryYear}
+                onChange={(e) => setExpiryYear(e.target.value)}
+                className="w-full rounded-md border px-3 py-2 text-[16px] h-11 bg-white"
+              >
+                <option value="">Yıl</option>
+                {Array.from({ length: 10 }, (_, i) => {
+                  const y = new Date().getFullYear() + i;
+                  return (
+                    <option key={y} value={String(y)}>
+                      {y}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+            <div>
+              <Label>CVV</Label>
+              <Input
+                value={cvv}
+                onChange={(e) =>
+                  setCvv(e.target.value.replace(/\D/g, "").slice(0, 3))
+                }
+                placeholder="CVV"
+                maxLength={3}
+                inputMode="numeric"
+                autoComplete="cc-csc"
+                className="text-[16px] h-11"
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
       <Step1PetAddModal
@@ -901,17 +1026,9 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
         species={petAddSpecies ?? undefined}
         onClose={() => setPetAddOpen(false)}
         onAdded={async () => {
-          try {
-            setLoadingUserPets(true);
-            const r = await fetch("/api/user-pets");
-            const data = await r.json();
-            setUserPets(Array.isArray(data) ? data : []);
-            toast.success("Evcil hayvan eklendi.");
-          } catch {
-            toast.error("Evcil hayvan listesi yenilenemedi.");
-          } finally {
-            setLoadingUserPets(false);
-          }
+          await refetchUserPets();
+          setPetAddOpen(false);
+          toast.success("Evcil hayvan eklendi.");
         }}
       />
     </div>

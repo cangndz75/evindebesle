@@ -28,36 +28,41 @@ const REPEAT_OPTIONS = [
   { label: "Aylık", value: "monthly" },
 ];
 
+type RepeatType = "none" | "daily" | "weekly" | "monthly";
+
 export default function Step2Form({
   formData,
   setFormData,
   onNext,
   onBack,
 }: Step2FormProps) {
-  const [timeSlot, setTimeSlot] = useState<string>(formData.timeSlot || "");
-  const [repeatType, setRepeatType] = useState<string>(
-    formData.recurringType || "none"
+  const [timeSlot, setTimeSlot] = useState<string>(formData?.timeSlot || "");
+  const [repeatType, setRepeatType] = useState<RepeatType>(
+    formData?.repeatType || "none"
   );
   const [repeatCount, setRepeatCount] = useState<number | null>(
-    formData.recurringCount ?? null
+    formData?.repeatCount ?? null
   );
 
   const handleNext = () => {
     if (!timeSlot) return toast.error("Lütfen saat aralığı seçin.");
-
-    const updated = {
-      ...formData,
-      timeSlot,
-      isRecurring: repeatType !== "none",
-      recurringType: repeatType !== "none" ? repeatType : null,
-      recurringCount: repeatType !== "none" ? repeatCount : null,
-    };
-
-    if (updated.isRecurring && !repeatCount) {
+    if (repeatType !== "none" && !repeatCount) {
       return toast.error("Lütfen tekrar sayısını girin.");
     }
 
-    setFormData(updated);
+    const isRecurring = repeatType !== "none";
+
+    setFormData({
+      ...formData,
+      timeSlot,
+      repeatType,
+      repeatCount,
+
+      isRecurring,
+      recurringType: isRecurring ? repeatType : undefined,
+      recurringCount: isRecurring ? (repeatCount ?? undefined) : undefined,
+    });
+
     onNext();
   };
 
@@ -89,7 +94,7 @@ export default function Step2Form({
         </Label>
         <RadioGroup
           value={repeatType}
-          onValueChange={setRepeatType}
+          onValueChange={(v: RepeatType) => setRepeatType(v)}
           className="space-y-2"
         >
           {REPEAT_OPTIONS.map((option) => (
@@ -108,7 +113,10 @@ export default function Step2Form({
               type="number"
               min={1}
               value={repeatCount || ""}
-              onChange={(e) => setRepeatCount(Number(e.target.value))}
+              onChange={(e) => {
+                const val = Number(e.target.value);
+                setRepeatCount(Number.isNaN(val) ? null : val);
+              }}
               className="w-32"
             />
           </div>

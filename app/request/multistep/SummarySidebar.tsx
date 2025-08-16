@@ -135,7 +135,7 @@ function buildDraftPayload(formData: any, totalPrice: number, isTest = false) {
     recurringType: isRecurring ? repeatType : undefined,
     recurringCount: isRecurring ? (repeatCount ?? undefined) : undefined,
 
-    // server kendi hesaplıyor ama göndermemiz sorun değil
+    // server kendi hesaplıyor ama göndersek de sorun değil
     totalPrice,
     isTest,
 
@@ -393,11 +393,16 @@ export default function SummarySidebar({ formData }: SummarySidebarProps) {
     try {
       const e1 = validateCore();
       if (e1) return toast.error(e1);
-      const e2 = validateCardFromFormData(paymentCard);
-      if (e2) return toast.error(e2);
 
       const draft = await createDraft(discountedPrice, true);
-      const resp = await fetch("/payment/complete", {
+      console.log(">>> calling /api/payment/complete", {
+        draftAppointmentId: draft.id,
+        paidPrice: discountedPrice,
+        conversationId: "TEST-MODE",
+        paymentId: `MOCK-${Date.now()}`,
+      });
+
+      const resp = await fetch("/api/payment/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -407,7 +412,10 @@ export default function SummarySidebar({ formData }: SummarySidebarProps) {
           paymentId: `MOCK-${Date.now()}`,
         }),
       });
-      const data = await resp.json();
+
+      console.log(">>> response status", resp.status);
+      const data = await resp.json().catch(() => null);
+      console.log(">>> response data", data);
       if (!resp.ok)
         throw new Error(data?.error || "Ödeme / randevu tamamlanamadı");
       toast.success("Test ödemesi başarılı, randevu oluşturuldu.");
@@ -421,6 +429,7 @@ export default function SummarySidebar({ formData }: SummarySidebarProps) {
     }
   };
 
+  // CANLI ÖDEME: kart doğrulaması ZORUNLU
   const handleStartLivePayment = async () => {
     try {
       const e1 = validateCore();
@@ -430,7 +439,7 @@ export default function SummarySidebar({ formData }: SummarySidebarProps) {
 
       const draft = await createDraft(discountedPrice, false);
 
-      const resp = await fetch("/payment/complete", {
+      const resp = await fetch("/api/payment/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -633,7 +642,7 @@ export default function SummarySidebar({ formData }: SummarySidebarProps) {
             onClick={handleStartLivePayment}
             disabled={!canStartPaid}
           >
-            Hizmeti Başlat (Ödeme)
+            Hizmeti Başlat
           </Button>
 
           {canTest && (

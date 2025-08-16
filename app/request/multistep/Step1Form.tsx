@@ -209,7 +209,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
       );
   }, [initialSpeciesFromUrl]);
 
-  // --- Fetches
+  // --- Fetch: pet types
   useEffect(() => {
     setLoadingPets(true);
     fetch("/api/pets")
@@ -218,6 +218,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
       .finally(() => setLoadingPets(false));
   }, []);
 
+  // --- Fetch: user pets
   const refetchUserPets = async () => {
     setLoadingUserPets(true);
     try {
@@ -232,6 +233,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
     refetchUserPets();
   }, []);
 
+  // --- Fetch: addresses
   const refetchAddresses = async () => {
     setLoadingAddresses(true);
     try {
@@ -249,7 +251,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
     refetchAddresses();
   }, []);
 
-  // Hizmetler
+  // --- Fetch: services by species
   useEffect(() => {
     if (!selectedSpecies.length || !petTypes.length) return;
     const params = new URLSearchParams();
@@ -264,7 +266,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
       .finally(() => setLoadingServices(false));
   }, [selectedSpecies, petTypes]);
 
-  // Pet adetleri
+  // --- Pet counts per species (for service quantities)
   useEffect(() => {
     const counts: Record<string, number> = {};
     selectedSpecies.forEach((sid) => {
@@ -273,7 +275,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
     setServiceCounts(counts);
   }, [selectedSpecies, selectedUserPetsBySpecies]);
 
-  // Access info
+  // --- Access info
   const refetchAccessInfo = async () => {
     setLoadingAccessInfo(true);
     try {
@@ -290,7 +292,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
     if (isLoggedIn) refetchAccessInfo();
   }, [isLoggedIn]);
 
-  // --- Summary’ye formData push (KART DAHİL)
+  // --- Push to Summary (includes paymentCard)
   useEffect(() => {
     const selectedAddress =
       addresses.find((a) => a.id === selectedAddressId) || null;
@@ -352,7 +354,7 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
     setFormData,
   ]);
 
-  // --- Tutar hesapları (sadece gösterim için)
+  // --- Totals (display only)
   const serviceDayCount = useMemo(() => {
     if (!selectedDates.length) return 0;
     const dayKeys = new Set(
@@ -728,8 +730,8 @@ export default function Step1Form({ setFormData }: Step1FormProps) {
           <Label className="flex items-center gap-2">
             <CalendarDays className="w-4 h-4" /> Tarih Aralığı
           </Label>
+          <DatePicker selected={selectedDates} onSelect={setSelectedDates} />
         </div>
-        <DatePicker selected={selectedDates} onSelect={setSelectedDates} />
 
         <div className="grid md:grid-cols-2 gap-6">
           <div className="space-y-2">

@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db";
 import { TAMI, generateJWKSignature, tamiHeaders } from "@/lib/tami";
 import { PaymentSessionStatus } from "@/lib/generated/prisma";
 
-export const runtime = "nodejs";
+export const runtime = "nodejs"; 
 
 type Card = { number: string; name: string; expireMonth: string; expireYear: string; cvc: string };
 type Body = {

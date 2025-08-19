@@ -38,6 +38,16 @@ enum MediaType {
   AUDIO
 }
 
+enum PaymentSessionStatus {
+  INIT          // kayıt açıldı
+  AUTH_SENT     // /payment/auth atıldı, 3D HTML kaydedildi
+  AUTH_OK       // 3D doğrulama success (callback success=true)
+  CAPTURED      // complete-3ds başarılı (tahsil edildi)
+  CAPTURE_FAIL  // complete-3ds başarısız
+  FAILED        // auth/callback genel hata
+}
+
+
 model User {
   id          String  @id @default(uuid())
   name        String
@@ -538,4 +548,31 @@ model AccessInfo {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model PaymentSession {
+  id                 String                @id @default(cuid())
+  userId             String
+  draftAppointmentId String
+
+  amount             Int
+  currency           String                @default("TRY")
+
+  orderId            String?               @unique
+  correlationId      String?
+
+  status             PaymentSessionStatus  @default(INIT)
+
+  threeDSHtml        String?               // base64 decode edilmiş HTML
+  threeDSResultRaw   String?               // callback'te gelen tüm alanlar (JSON string)
+  mdStatus           String?
+  success            Boolean?
+
+  paymentId          String?               // genelde orderId (PSP tarafındaki id)
+  appointmentId      String?               // randevu id (tahsilat başarılıysa)
+
+  error              String?
+
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
 }

@@ -429,7 +429,6 @@ export default function SummarySidebar({ formData }: SummarySidebarProps) {
     }
   };
 
-  // CANLI ÖDEME: kart doğrulaması ZORUNLU
   const handleStartLivePayment = async () => {
     try {
       const e1 = validateCore();
@@ -439,30 +438,24 @@ export default function SummarySidebar({ formData }: SummarySidebarProps) {
 
       const draft = await createDraft(discountedPrice, false);
 
-      const resp = await fetch("/api/payment/complete", {
+      const resp = await fetch("/api/tami/start", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           draftAppointmentId: draft.id,
-          paidPrice: discountedPrice, // PSP yokken doğrudan tamamlıyoruz
-          conversationId: "DIRECT-NO-3DS",
-          paymentId: `CARD-${String(paymentCard!.number).slice(-4)}-${Date.now()}`,
+          amount: discountedPrice,
+          currency: "TRY",
+          card: paymentCard,
         }),
       });
       const data = await resp.json();
-      if (!resp.ok) throw new Error(data?.error || "Ödeme tamamlanamadı");
+      if (!resp.ok) throw new Error(data?.error || "3D başlatma hatası");
 
-      toast.success("Ödeme alındı. Randevunuz oluşturuldu.");
-      router.push(
-        data?.appointmentId
-          ? `/success?appointmentId=${data.appointmentId}`
-          : `/success`
-      );
+      router.push(`/payment/3ds?sid=${data.sessionId}`);
     } catch (err: any) {
-      toast.error(err?.message || "Ödeme/rezervasyon hatası");
+      toast.error(err?.message || "Ödeme başlatılamadı");
     }
   };
-
   const agreementItems = useMemo(
     () =>
       lineItems.map((li) => ({

@@ -2,10 +2,25 @@ import { prisma } from "@/lib/db";
 
 export const runtime = "nodejs";
 
-export default async function Page({ searchParams }: { searchParams: Promise<{ sid?: string; status?: string }> }) {
-  const { sid = "", status = "" } = await searchParams;
+export default async function Page({
+  searchParams,
+}: {
+  searchParams?: { sid?: string; status?: string };
+}) {
+  const sid = searchParams?.sid ?? "";
+  const status = searchParams?.status ?? "";
 
-  const ps = await prisma.paymentSession.findUnique({ where: { id: sid } });
+  const ps = sid
+    ? await prisma.paymentSession.findUnique({ where: { id: sid } })
+    : null;
+
+  if (!ps) {
+    return <div className="p-6">Oturum bulunamadı.</div>;
+  }
+
+  if (!ps.threeDSHtml) {
+    return <div className="p-6">3D doğrulama içeriği henüz hazır değil.</div>;
+  }
 
   return (
     <div className="max-w-lg mx-auto p-6 space-y-4">
@@ -19,7 +34,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
           <pre className="text-xs whitespace-pre-wrap">{ps.error}</pre>
         </details>
       )}
-      <a className="text-blue-600 underline" href="/">Anasayfa</a>
+      <a className="text-blue-600 underline" href="/">
+        Anasayfa
+      </a>
     </div>
   );
 }

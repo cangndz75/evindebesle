@@ -2,8 +2,12 @@ import { prisma } from "@/lib/db";
 
 export const runtime = "nodejs";
 
-export default async function Page({ params }: { params: { sessionId: string } }) {
-  const { sessionId } = params;
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ sessionId: string }>;
+}) {
+  const { sessionId } = await params;
 
   const ps = await prisma.paymentSession.findUnique({ where: { id: sessionId } });
 

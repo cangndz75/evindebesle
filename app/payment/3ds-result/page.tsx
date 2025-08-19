@@ -5,10 +5,9 @@ export const runtime = "nodejs";
 export default async function Page({
   searchParams,
 }: {
-  searchParams?: { sid?: string; status?: string };
+  searchParams: Promise<{ sid?: string; status?: string }>;
 }) {
-  const sid = searchParams?.sid ?? "";
-  const status = searchParams?.status ?? "";
+  const { sid = "", status = "" } = await searchParams;
 
   const ps = sid
     ? await prisma.paymentSession.findUnique({ where: { id: sid } })

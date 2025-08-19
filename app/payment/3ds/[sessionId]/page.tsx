@@ -2,9 +2,10 @@ import { prisma } from "@/lib/db";
 
 export const runtime = "nodejs";
 
-export default async function Page({ searchParams }: { searchParams: { sid?: string } }) {
-  const sid = searchParams?.sid || "";
-  const ps = await prisma.paymentSession.findUnique({ where: { id: sid } });
+export default async function Page({ params }: { params: { sessionId: string } }) {
+  const { sessionId } = params;
+
+  const ps = await prisma.paymentSession.findUnique({ where: { id: sessionId } });
 
   if (!ps) return <div className="p-6">Oturum bulunamadı.</div>;
   if (!ps.threeDSHtml) return <div className="p-6">3D doğrulama içeriği henüz hazır değil.</div>;

@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import FinalizeCapture from "./FinalizeCapture";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -23,55 +24,5 @@ export default async function ResultPage({ searchParams }: Props) {
       <div className="mt-8 text-sm text-gray-500">Oturum: {sid}</div>
       <div className="mt-6"><Link href="/" className="underline">Ana sayfaya dön</Link></div>
     </main>
-  );
-}
-
-"use client";
-import { useEffect, useState } from "react";
-
-function FinalizeCapture({ sid, autoStart }: { sid: string; autoStart?: boolean }) {
-  const [state, setState] = useState<"idle"|"posting"|"ok"|"fail">("idle");
-  const [detail, setDetail] = useState<string>("");
-
-  async function run() {
-    try {
-      setState("posting");
-      const res = await fetch("/api/payment/complete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId: sid }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (res.ok && data?.ok !== false) {
-        setState("ok");
-        setDetail("Ödeme tahsil edildi.");
-      } else {
-        setState("fail");
-        setDetail(data?.detail?.errorMessage || data?.error || "Tahsilat başarısız.");
-      }
-    } catch (e: any) {
-      setState("fail");
-      setDetail(String(e?.message ?? e));
-    }
-  }
-
-  useEffect(() => { if (autoStart && state === "idle") run(); }, [autoStart, state]);
-
-  if (!autoStart && state === "idle") {
-    return <button onClick={run} className="rounded-lg px-4 py-2 bg-black text-white">Ödemeyi Tamamla</button>;
-  }
-
-  return (
-    <div className="rounded-lg border p-4">
-      {state === "posting" && <div>Ödeme tahsil ediliyor…</div>}
-      {state === "ok" && <div className="text-green-600 font-medium">Başarılı ✓</div>}
-      {state === "fail" && (
-        <div className="text-red-600">
-          Başarısız. <button onClick={run} className="underline">Tekrar dene</button>
-          {detail ? <div className="mt-2 text-xs text-gray-500">{detail}</div> : null}
-        </div>
-      )}
-      {state === "idle" && autoStart && <div>Hazırlanıyor…</div>}
-    </div>
   );
 }

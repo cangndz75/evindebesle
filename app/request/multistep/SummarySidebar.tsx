@@ -436,18 +436,34 @@ export default function SummarySidebar({ formData }: SummarySidebarProps) {
       const e2 = validateCardFromFormData(paymentCard);
       if (e2) return toast.error(e2);
 
+      // 1) Taslak oluştur
       const draft = await createDraft(discountedPrice, false);
 
-      const resp = await fetch("/api/tami/start", {
+      // 2) Tutarı kuruşa çevir
+      const amountKurus = Math.round(Number(discountedPrice) * 100);
+
+      // 3) Kart payload (normalize + cvv map)
+      const cardPayload = paymentCard
+        ? {
+            number: String(paymentCard.number || "").replace(/\s+/g, ""),
+            name: String(paymentCard.name || "").trim(),
+            expireMonth: String(parseInt(paymentCard.expireMonth || "0", 10)),
+            expireYear: String(paymentCard.expireYear || ""),
+            cvv: String(paymentCard.cvc || ""),
+          }
+        : undefined;
+
+      const resp = await fetch("/api/payment/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           draftAppointmentId: draft.id,
-          amount: discountedPrice,
+          amount: amountKurus, // <— kuruş
           currency: "TRY",
-          card: paymentCard,
+          card: cardPayload,
         }),
       });
+
       const data = await resp.json();
       if (!resp.ok) throw new Error(data?.error || "3D başlatma hatası");
 

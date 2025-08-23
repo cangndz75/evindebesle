@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { TAMI, generateJWKSignature, tamiHeaders } from "@/lib/tami";
 import { PaymentSessionStatus } from "@/lib/generated/prisma";
 import { finalizeAppointmentFromDraftInternal } from "@/lib/payment";
+import { generateJWKSignature, TAMI, tamiHeaders } from "@/lib/tami";
 
 export const runtime = "nodejs";
 
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
     // --- Complete-3DS çağrısı ---
     const payload = { orderId };
     const securityHash = generateJWKSignature(payload);
-    const capRes = await fetch(`${TAMI.baseURL}/payment/complete-3ds`, {
+    const capRes = await fetch(`${TAMI.BASE_URL}/payment/complete-3ds`, {
       method: "POST",
       headers: tamiHeaders(),
       body: JSON.stringify({ ...payload, securityHash }),

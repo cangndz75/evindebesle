@@ -1,10 +1,9 @@
-// lib/tami/hash.ts
 import crypto from "crypto";
 import { TAMI } from "./config";
 
-// Tami’nin verdiği sabit girdiler (NOT: bunlar “çıktı” değil, dokümandaki fixed_* inputları)
+// Tami'den verilen sabit girdiler (ENV):
 const FIXED_KID_VALUE = process.env.TAMI_FIXED_KID_VALUE || "";
-const FIXED_K_VALUE = process.env.TAMI_FIXED_K_VALUE || "";
+const FIXED_K_VALUE   = process.env.TAMI_FIXED_K_VALUE || "";
 
 function sha512_b64(s: string) {
   return crypto.createHash("sha512").update(s, "utf8").digest("base64");
@@ -14,20 +13,22 @@ function b64url(buf: Buffer | string) {
   return b.toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
 }
 
-// Doküman: kid = B64(SHA512(secretKey + fixed_kid_value))
-//          k   = B64(SHA512(secretKey + fixed_k_value + merchant + terminal))
+// kid = B64(SHA512(secretKey + fixed_kid_value))
+//  k  = B64(SHA512(secretKey + fixed_k_value + merchant + terminal))
 function buildKidAndKey() {
   if (!FIXED_KID_VALUE || !FIXED_K_VALUE) {
     throw new Error("Missing TAMI_FIXED_KID_VALUE or TAMI_FIXED_K_VALUE in .env");
   }
   const kidB64 = sha512_b64(TAMI.SECRET_KEY + FIXED_KID_VALUE);
   const kB64   = sha512_b64(TAMI.SECRET_KEY + FIXED_K_VALUE + TAMI.MERCHANT_ID + TAMI.TERMINAL_ID);
-  // HMAC key olarak bytes kullanacağız
   const keyBytes = Buffer.from(kB64, "base64");
+
+  // debug (güvenli kısa log)
+  console.log("[TAMI JWK] kid(b64):", kidB64.slice(0, 12) + "...", "keyBytes:", keyBytes.length + "B");
   return { kid: kidB64, keyBytes };
 }
 
-/** v2 securityHash: HS512 ile JWS (securityHash alanı HARİÇ) */
+/** v2 securityHash: HS512 JWS (payload = securityHash HARİÇ body) */
 export function generateJwkSecurityHash(payload: any): string {
   const { securityHash, ...rest } = payload || {};
   const json = JSON.stringify(rest);

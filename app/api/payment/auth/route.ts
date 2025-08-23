@@ -1,4 +1,3 @@
-// app/api/payment/auth/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
@@ -13,7 +12,7 @@ export const dynamic = "force-dynamic";
 type Card = { number: string; name: string; expireMonth: string; expireYear: string; cvc: string };
 type Body = {
   draftAppointmentId: string;
-  amount: number;              // TL veya kuruş gelebilir (oto çevrilir)
+  amount: number;              // TL veya kuruş gelebilir (oto normalize)
   currency?: "TRY";
   card: Card;
   buyer?: any;
@@ -57,19 +56,19 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const orderId = ps.id;                // pratik: session id
+    const orderId = ps.id;
     const correlationId = newCorrelationId();
     const callbackUrl = `${TAMI.APP_BASE_URL}/api/payment/3ds-return?sid=${ps.id}`;
 
-    // Buyer zorunlular
+    // buyer zorunlu alanlar: name / surName
     const fullName = String(input?.buyer?.name || session.user.name || "Test Hesap").trim();
     const [first, ...rest] = fullName.split(/\s+/);
     const name = first || "Musteri";
     const surName = (input?.buyer?.surName || rest.join(" ") || "Soyisim").trim();
 
-    // Body (securityHash HARİÇ) — JWK ile imzalanacak
+    // Body (securityHash HARİÇ)
     const tamiBodyBase: any = {
-      amount: amountTL,                     // TL sayısal
+      amount: amountTL,
       orderId,
       currency: input.currency || "TRY",
       installmentCount: 1,
@@ -118,7 +117,7 @@ export async function POST(req: NextRequest) {
       },
     };
 
-    // Maskeleyip logla (debug)
+    // Maskeleyip logla
     try {
       const masked = {
         ...tamiBodyBase,

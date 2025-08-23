@@ -5,11 +5,13 @@ export const runtime = "nodejs";
 export default async function Page({
   params,
 }: {
-  params: { sessionId: string };
+  params: any;
 }) {
-  const { sessionId } = params;
+  const sessionId = params?.sessionId as string;
 
-  const ps = await prisma.paymentSession.findUnique({ where: { id: sessionId } });
+  const ps = await prisma.paymentSession.findUnique({
+    where: { id: sessionId },
+  });
 
   if (!ps) {
     return <div className="p-6">Oturum bulunamadı.</div>;

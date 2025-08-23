@@ -6,14 +6,27 @@ export const runtime = "nodejs";
 export default async function Page({
   searchParams,
 }: {
-  searchParams?: Record<string, string | string[] | undefined>;
+  searchParams: Record<string, string | string[] | undefined>;
 }) {
-  const sid = typeof searchParams?.sid === "string" ? searchParams.sid : "";
+  const sid =
+    typeof searchParams?.sid === "string"
+      ? searchParams.sid
+      : Array.isArray(searchParams?.sid)
+      ? searchParams.sid[0]
+      : "";
+
   const status =
-    typeof searchParams?.status === "string" ? searchParams.status : "";
+    typeof searchParams?.status === "string"
+      ? searchParams.status
+      : Array.isArray(searchParams?.status)
+      ? searchParams.status[0]
+      : "";
+
   const appointmentId =
     typeof searchParams?.appointmentId === "string"
       ? searchParams.appointmentId
+      : Array.isArray(searchParams?.appointmentId)
+      ? searchParams.appointmentId[0]
       : undefined;
 
   const ps = sid

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { verify3DHashedData, signRequestWithJWK } from "@/lib/tami/hash";
+import { securityHashForComplete, verify3DHashedData } from "@/lib/tami/hash";
 import { TAMI, tamiHeaders } from "@/lib/tami/config";
 import { PaymentSessionStatus } from "@/lib/generated/prisma";
 
@@ -37,9 +37,10 @@ export async function POST(req: NextRequest) {
       .catch(() => null);
 
     if (ps && ok && ps.orderId) {
-      // complete-3ds JWK hash: body yalnızca orderId içerir
-      const bodyWithoutHash = { orderId: ps.orderId };
-      const payload = { ...bodyWithoutHash, securityHash: signRequestWithJWK(bodyWithoutHash) };
+      const payload = {
+        orderId: ps.orderId,
+        securityHash: securityHashForComplete(ps.orderId),
+      };
 
       console.log("[TAMI CAPTURE] correlationId:", ps.correlationId, "orderId:", ps.orderId);
 
@@ -56,7 +57,7 @@ export async function POST(req: NextRequest) {
           where: { id: ps.id },
           data: {
             status: PaymentSessionStatus.CAPTURED,
-            appointmentId: undefined, // finalize’i sen ayrı yapıyorsun
+            appointmentId: undefined,
             paymentId: data?.bankReferenceNumber ?? data?.orderId ?? undefined,
           },
         });

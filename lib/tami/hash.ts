@@ -1,69 +1,74 @@
+// lib/tami/hash.ts
 import crypto from "crypto";
 import { TAMI } from "./config";
 
-/** base64url yardımcıları */
-const b64url = (buf: Buffer) =>
-  buf.toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/,"");
+// Tami’nin verdiği sabit girdiler (NOT: bunlar “çıktı” değil, dokümandaki fixed_* inputları)
+const FIXED_KID_VALUE = process.env.TAMI_FIXED_KID_VALUE || "";
+const FIXED_K_VALUE = process.env.TAMI_FIXED_K_VALUE || "";
 
-/** kid = Base64( SHA512( secretKey + FIXED_KID_VALUE ) ) */
-function makeKid(): string {
-  const h = crypto.createHash("sha512");
-  h.update(TAMI.SECRET_KEY + TAMI.FIXED_KID_VALUE, "utf8");
-  return h.digest("base64");
+function sha512_b64(s: string) {
+  return crypto.createHash("sha512").update(s, "utf8").digest("base64");
+}
+function b64url(buf: Buffer | string) {
+  const b = Buffer.isBuffer(buf) ? buf : Buffer.from(buf, "utf8");
+  return b.toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
 }
 
-/** k   = Base64( SHA512( secretKey + FIXED_K_VALUE + merchant + terminal ) ) */
-function makeK(): string {
-  const h = crypto.createHash("sha512");
-  h.update(TAMI.SECRET_KEY + TAMI.FIXED_K_VALUE + TAMI.MERCHANT_ID + TAMI.TERMINAL_ID, "utf8");
-  return h.digest("base64");
+// Doküman: kid = B64(SHA512(secretKey + fixed_kid_value))
+//          k   = B64(SHA512(secretKey + fixed_k_value + merchant + terminal))
+function buildKidAndKey() {
+  if (!FIXED_KID_VALUE || !FIXED_K_VALUE) {
+    throw new Error("Missing TAMI_FIXED_KID_VALUE or TAMI_FIXED_K_VALUE in .env");
+  }
+  const kidB64 = sha512_b64(TAMI.SECRET_KEY + FIXED_KID_VALUE);
+  const kB64   = sha512_b64(TAMI.SECRET_KEY + FIXED_K_VALUE + TAMI.MERCHANT_ID + TAMI.TERMINAL_ID);
+  // HMAC key olarak bytes kullanacağız
+  const keyBytes = Buffer.from(kB64, "base64");
+  return { kid: kidB64, keyBytes };
 }
 
-/**
- * JWK/HS512 ile body’yi imzalar → securityHash (JWT benzeri 3 parçalı token)
- * DİKKAT: İmzalanan input **securityHash alanını içermemelidir** (doküman notu).
- */
-export function signRequestWithJWK(bodyWithoutSecurityHash: unknown): string {
-  const kid = makeKid();
-  const kB64 = makeK();
-  const key = Buffer.from(kB64, "base64");
+/** v2 securityHash: HS512 ile JWS (securityHash alanı HARİÇ) */
+export function generateJwkSecurityHash(payload: any): string {
+  const { securityHash, ...rest } = payload || {};
+  const json = JSON.stringify(rest);
 
-  const header = { kty: "oct", use: "sig", alg: "HS512", kid };
-  const headerB64 = b64url(Buffer.from(JSON.stringify(header), "utf8"));
-  const payloadB64 = b64url(Buffer.from(JSON.stringify(bodyWithoutSecurityHash), "utf8"));
+  const { kid, keyBytes } = buildKidAndKey();
+  const header = { kid, typ: "JWT", alg: "HS512" };
 
-  const signer = crypto.createHmac("sha512", key);
-  signer.update(`${headerB64}.${payloadB64}`, "utf8");
-  const sigB64 = b64url(signer.digest());
+  const h = b64url(JSON.stringify(header));
+  const p = b64url(json);
+  const signingInput = `${h}.${p}`;
 
-  const token = `${headerB64}.${payloadB64}.${sigB64}`;
-  console.log("[TAMI JWK] kid=%s… k=%s… token=%s…",
-    kid.slice(0, 6), kB64.slice(0, 6), token.slice(0, 10));
-  return token;
+  const sig = crypto.createHmac("sha512", keyBytes).update(signingInput, "utf8").digest();
+  const s = b64url(sig);
+  return `${signingInput}.${s}`;
 }
 
-/** (Opsiyonel) 3DS dönen hashedData doğrulaması — JWK ile ilgili değildir. */
+/** /payment/complete-3ds → HMAC-SHA256 (base64) */
+export function securityHashForComplete(orderId: string) {
+  const data = [orderId, TAMI.MERCHANT_ID, TAMI.TERMINAL_ID].join("|");
+  return crypto.createHmac("sha256", Buffer.from(TAMI.SECRET_KEY, "utf8")).update(data, "utf8").digest("base64");
+}
+
+/** (opsiyonel) 3DS callback hash doğrulaması */
 export function verify3DHashedData(form: FormData) {
-  const s = [
-    String(form.get("cardOrganization") ?? form.get("cardOrg") ?? ""),
-    String(form.get("cardBrand") ?? ""),
-    String(form.get("cardType") ?? ""),
-    String(form.get("maskedNumber") ?? ""),
-    String(form.get("installmentCount") ?? "1"),
-    String(form.get("currencyCode") ?? form.get("currency") ?? "TRY"),
-    String(form.get("originalAmount") ?? form.get("txnAmount") ?? ""),
-    String(form.get("orderId") ?? ""),
-    String(form.get("systemTime") ?? ""),
-    String(form.get("success") ?? form.get("status") ?? ""),
+  const g = (k: string) => String(form.get(k) ?? "");
+  const data = [
+    g("cardOrganization") || g("cardOrg"),
+    g("cardBrand"),
+    g("cardType"),
+    g("maskedNumber"),
+    g("installmentCount") || "1",
+    g("currencyCode") || g("currency") || "TRY",
+    g("originalAmount") || g("txnAmount"),
+    g("orderId"),
+    g("systemTime"),
+    g("success") || g("status"),
   ].join("");
 
-  const provided = String(form.get("hashedData") ?? "");
+  const provided = g("hashedData");
   if (!provided) return { ok: true, reason: "no-hash" as const };
 
-  const expected = crypto
-    .createHmac("sha256", Buffer.from(TAMI.SECRET_KEY, "utf8"))
-    .update(Buffer.from(s, "utf8"))
-    .digest("base64");
-
+  const expected = crypto.createHmac("sha256", Buffer.from(TAMI.SECRET_KEY, "utf8")).update(data, "utf8").digest("base64");
   return { ok: expected === provided, expected, provided };
 }

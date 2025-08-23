@@ -1,159 +1,186 @@
+// app/api/payment/auth/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { prisma } from "@/lib/db";
-import { TAMI, tamiHeaders } from "@/lib/tami/config";
-import { signRequestWithJWK } from "@/lib/tami/hash";
-import crypto from "crypto";
+import { PaymentSessionStatus } from "@/lib/generated/prisma";
+import { TAMI, tamiHeaders, newCorrelationId } from "@/lib/tami/config";
+import { generateJwkSecurityHash } from "@/lib/tami/hash";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function generateOrderId() {
-  const ts = Date.now().toString();
-  const rnd = Math.floor(Math.random() * 1e6).toString().padStart(6, "0");
-  return `${TAMI.MERCHANT_ID}${ts.slice(-10)}${rnd}`;
+type Card = { number: string; name: string; expireMonth: string; expireYear: string; cvc: string };
+type Body = {
+  draftAppointmentId: string;
+  amount: number;              // TL veya kuruş gelebilir (oto çevrilir)
+  currency?: "TRY";
+  card: Card;
+  buyer?: any;
+  billingAddress?: any;
+  shippingAddress?: any;
+  basket?: any;
+};
+
+function getClientIp(req: NextRequest) {
+  const xf = req.headers.get("x-forwarded-for");
+  if (xf) return xf.split(",")[0].trim();
+  return req.headers.get("x-real-ip") || "127.0.0.1";
 }
+const normPhone = (v?: string | null) =>
+  (String(v ?? "").replace(/\D/g, "").slice(-10) || "5555555555");
 
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authConfig);
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      select: { id: true },
-    });
-    if (!user) return NextResponse.json({ error: "USER_NOT_FOUND" }, { status: 401 });
-
-    const body = await req.json();
-    const {
-      draftAppointmentId,
-      amount,                    // kuruş (number) veya "1650.00"
-      currency = "TRY",
-      installmentCount = 1,
-      card,
-      billingAddress,
-      shippingAddress,
-      buyer,
-      basket,
-      motoInd = false,
-    } = body ?? {};
-
-    if (!draftAppointmentId) {
-      return NextResponse.json({ error: "MISSING_DRAFT_ID" }, { status: 400 });
+    const input: Body = await req.json();
+    if (!input?.draftAppointmentId || !input?.amount || !input?.card?.number) {
+      return NextResponse.json({ error: "MISSING_PARAMS" }, { status: 400 });
     }
 
-    const draft = await prisma.draftAppointment.findUnique({
-      where: { id: draftAppointmentId },
-      select: { userId: true },
-    });
-    if (!draft || draft.userId !== user.id) {
-      return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
-    }
+    // amount: kuruş geldiyse TL'ye çevir (165000 -> 1650)
+    const amountTL =
+      input.amount >= 1000 ? Number((input.amount / 100).toFixed(2)) : Number(input.amount);
 
-    // amount → kuruş
-    const amountKurus =
-      typeof amount === "number" ? amount : Math.round(Number(amount) * 100);
-    if (!amountKurus || isNaN(amountKurus) || amountKurus <= 0) {
-      return NextResponse.json({ error: "INVALID_AMOUNT" }, { status: 400 });
-    }
-
-    // Body amount = TL number (örn. 1650)
-    const amountForBody = Number((amountKurus / 100).toFixed(2));
-    const inst = Number(installmentCount) || 1;
-
-    const orderId = generateOrderId();
-    const correlationId = crypto.randomUUID();
-
+    // PaymentSession (kuruş olarak sakla)
     const ps = await prisma.paymentSession.create({
       data: {
-        userId: user.id,
-        draftId: draftAppointmentId,
-        amount: amountKurus,
-        currency,
-        status: "AUTH_SENT",
-        orderId,
-        correlationId,
+        userId: session.user.id,
+        draftId: input.draftAppointmentId,
+        amount: Math.round(amountTL * 100),
+        currency: input.currency || "TRY",
+        status: PaymentSessionStatus.INIT,
       },
     });
 
+    const orderId = ps.id;                // pratik: session id
+    const correlationId = newCorrelationId();
     const callbackUrl = `${TAMI.APP_BASE_URL}/api/payment/3ds-return?sid=${ps.id}`;
 
-    const cardPayload = card
-      ? {
-          holderName: card.name,
-          cvv: String(card.cvv ?? card.cvc ?? "").trim(),
-          expireMonth: Number(card.expireMonth),
-          expireYear: Number(card.expireYear),
-          number: String(card.number || "").replace(/\s+/g, ""),
-        }
-      : undefined;
+    // Buyer zorunlular
+    const fullName = String(input?.buyer?.name || session.user.name || "Test Hesap").trim();
+    const [first, ...rest] = fullName.split(/\s+/);
+    const name = first || "Musteri";
+    const surName = (input?.buyer?.surName || rest.join(" ") || "Soyisim").trim();
 
-    // ——— securityHash için JWK/HS512 ile İMZALANACAK GÖVDE ———
-    const bodyWithoutHash = {
-      amount: amountForBody,
+    // Body (securityHash HARİÇ) — JWK ile imzalanacak
+    const tamiBodyBase: any = {
+      amount: amountTL,                     // TL sayısal
       orderId,
-      currency,
-      installmentCount: inst,
-      card: cardPayload,
-      buyer: buyer ?? {
-        ipAddress: req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "127.0.0.1",
-        buyerId: user.id,
-        emailAddress: session.user.email,
-      },
-      billingAddress,
-      shippingAddress,
-      basket,
+      currency: input.currency || "TRY",
+      installmentCount: 1,
       paymentGroup: "PRODUCT",
       paymentChannel: "WEB",
-      motoInd,
       callbackUrl,
+      card: {
+        holderName: input.card.name,
+        cvv: String(input.card.cvc || "").trim(),
+        expireMonth: Number(input.card.expireMonth),
+        expireYear: Number(input.card.expireYear),
+        number: String(input.card.number || "").replace(/\s+/g, ""),
+      },
+      buyer: input.buyer ?? {
+        ipAddress: getClientIp(req),
+        name,
+        surName,
+        emailAddress: session.user.email || "noreply@example.com",
+        buyerId: session.user.id,
+        phoneNumber: normPhone((session as any)?.user?.phone),
+      },
+      billingAddress: input.billingAddress ?? {
+        address: "N/A",
+        city: "İstanbul",
+        country: "Türkiye",
+        contactName: `${name} ${surName}`,
+      },
+      shippingAddress: input.shippingAddress ?? {
+        address: "N/A",
+        city: "İstanbul",
+        country: "Türkiye",
+        contactName: `${name} ${surName}`,
+      },
+      basket: input.basket ?? {
+        basketId: orderId,
+        basketItems: [
+          {
+            itemId: "service",
+            name: "Evde Hizmet",
+            itemType: "VIRTUAL",
+            numberOfProducts: 1,
+            unitPrice: amountTL,
+            totalPrice: amountTL,
+          },
+        ],
+      },
     };
 
-    const securityHash = signRequestWithJWK(bodyWithoutHash);
+    // Maskeleyip logla (debug)
+    try {
+      const masked = {
+        ...tamiBodyBase,
+        card: {
+          ...tamiBodyBase.card,
+          number: tamiBodyBase.card.number.replace(/\d(?=\d{4})/g, "•"),
+          cvv: "***",
+        },
+      };
+      console.log(
+        "[TAMI AUTH] orderId:", orderId,
+        "correlationId:", correlationId,
+        "payload(base)=", JSON.stringify(masked)
+      );
+    } catch {}
 
-    const payload = { ...bodyWithoutHash, securityHash };
-
-    console.log(
-      "[TAMI AUTH] orderId:", orderId,
-      "correlationId:", correlationId,
-      "amount:", payload.amount,
-      "installment:", inst
-    );
+    // JWK/HS512 → securityHash
+    const securityHash = generateJwkSecurityHash(tamiBodyBase);
+    const tamiBody = { ...tamiBodyBase, securityHash };
 
     const res = await fetch(`${TAMI.BASE_URL}/payment/auth`, {
       method: "POST",
       headers: tamiHeaders(correlationId),
-      body: JSON.stringify(payload),
+      body: JSON.stringify(tamiBody),
     });
 
     const data = await res.json().catch(() => ({}));
     console.log("[TAMI AUTH] status:", res.status, "resp:", data);
 
-    if (!res.ok || data?.success === false) {
+    if (!res.ok || data?.success === false || !data?.threeDSHtmlContent) {
       await prisma.paymentSession.update({
         where: { id: ps.id },
-        data: { status: "FAILED", error: data?.errorMessage || "AUTH_FAILED" },
+        data: {
+          status: PaymentSessionStatus.FAILED,
+          error: data?.errorMessage || JSON.stringify(data || {}),
+          correlationId,
+          orderId,
+        },
       });
-      return NextResponse.json({ error: "AUTH_FAILED", detail: data }, { status: 400 });
+      return NextResponse.json({ error: "TAMI_AUTH_FAILED", detail: data }, { status: 400 });
     }
 
-    const b64 = data?.threeDSHtmlContent ?? data?.threeDSHtml ?? data?.html;
-    const threeDSHtml = b64 ? Buffer.from(b64, "base64").toString("utf-8") : null;
+    const html = Buffer.from(
+      data?.threeDSHtmlContent ?? data?.threeDSHtml ?? data?.html,
+      "base64"
+    ).toString("utf8");
 
     await prisma.paymentSession.update({
       where: { id: ps.id },
-      data: { threeDSHtml: threeDSHtml ?? undefined },
+      data: {
+        orderId: data.orderId ?? orderId,
+        correlationId: data.correlationId ?? correlationId,
+        status: PaymentSessionStatus.AUTH_SENT,
+        threeDSHtml: html,
+      },
     });
 
     return NextResponse.json({ sessionId: ps.id, orderId });
-  } catch (err: any) {
-    console.error("[TAMI AUTH] EX:", err);
+  } catch (e: any) {
+    console.error("[TAMI AUTH] EX:", e);
     return NextResponse.json(
-      { error: "AUTH_EXCEPTION", detail: String(err?.message ?? err) },
+      { error: "AUTH_EXCEPTION", detail: String(e?.message ?? e) },
       { status: 500 }
     );
   }

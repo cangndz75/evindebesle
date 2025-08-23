@@ -12,19 +12,23 @@ export async function POST(req: NextRequest) {
     const success = String(form.get("success") || "").toLowerCase() === "true";
     const orderId = String(form.get("orderId") || "");
     const mdStatus = String(form.get("mdStatus") || "");
-    const systemTime = String(form.get("systemTime") || "");
-    const maskedNumber = String(form.get("maskedNumber") || "");
     const allEntries = Object.fromEntries(form.entries());
 
     const ps = await prisma.paymentSession.findFirst({ where: { orderId } });
     if (!ps) {
-      return NextResponse.json({ error: "paymentSession bulunamadı" }, { status: 404 });
+      return NextResponse.json(
+        { error: "paymentSession bulunamadı" },
+        { status: 404 }
+      );
     }
 
+    // 3DS sonucu güncelle
     await prisma.paymentSession.update({
       where: { id: ps.id },
       data: {
-        status: success ? PaymentSessionStatus.AUTH_OK : PaymentSessionStatus.FAILED,
+        status: success
+          ? PaymentSessionStatus.AUTH_OK
+          : PaymentSessionStatus.FAILED,
         mdStatus,
         success,
         threeDSResultRaw: JSON.stringify(allEntries),
@@ -32,10 +36,13 @@ export async function POST(req: NextRequest) {
     });
 
     if (!success) {
-      const url = `${process.env.NEXT_PUBLIC_SITE_URL || process.env.FRONTEND_BASE_URL}/payment/3ds-result?sid=${ps.id}&status=fail`;
+      const url = `${
+        process.env.NEXT_PUBLIC_SITE_URL || process.env.FRONTEND_BASE_URL
+      }/payment/3ds-result?sid=${ps.id}&status=fail`;
       return NextResponse.redirect(url);
     }
 
+    // --- Complete-3DS çağrısı ---
     const payload = { orderId };
     const securityHash = generateJWKSignature(payload);
     const capRes = await fetch(`${TAMI.baseURL}/payment/complete-3ds`, {
@@ -48,14 +55,19 @@ export async function POST(req: NextRequest) {
     if (!capRes.ok || !cap?.success) {
       await prisma.paymentSession.update({
         where: { id: ps.id },
-        data: { status: PaymentSessionStatus.CAPTURE_FAIL, error: JSON.stringify(cap || {}) },
+        data: {
+          status: PaymentSessionStatus.CAPTURE_FAIL,
+          error: JSON.stringify(cap || {}),
+        },
       });
-      const url = `${process.env.NEXT_PUBLIC_SITE_URL || process.env.FRONTEND_BASE_URL}/payment/3ds-result?sid=${ps.id}&status=capture-fail`;
+      const url = `${
+        process.env.NEXT_PUBLIC_SITE_URL || process.env.FRONTEND_BASE_URL
+      }/payment/3ds-result?sid=${ps.id}&status=capture-fail`;
       return NextResponse.redirect(url);
     }
 
     const appointment = await finalizeAppointmentFromDraftInternal({
-      draftAppointmentId: ps.draftAppointmentId,
+      draftAppointmentId: ps.draftId!,
       userId: ps.userId,
       paidPrice: ps.amount,
       conversationId: cap.correlationId || "TAMI-3DS",
@@ -71,9 +83,14 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const url = `${process.env.NEXT_PUBLIC_SITE_URL || process.env.FRONTEND_BASE_URL}/success?appointmentId=${appointment.id}`;
+    const url = `${
+      process.env.NEXT_PUBLIC_SITE_URL || process.env.FRONTEND_BASE_URL
+    }/payment/3ds-result?sid=${ps.id}&status=ok&appointmentId=${appointment.id}`;
     return NextResponse.redirect(url);
   } catch (e: any) {
-    return NextResponse.json({ error: e?.message || "callback error" }, { status: 500 });
+    return NextResponse.json(
+      { error: e?.message || "callback error" },
+      { status: 500 }
+    );
   }
 }

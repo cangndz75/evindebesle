@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     const ps = await prisma.paymentSession.create({
       data: {
         userId: session.user.id,
-        draftAppointmentId: input.draftAppointmentId,
+        draftId: input.draftAppointmentId,
         amount: Math.round(Number(input.amount)),
         currency: input.currency || "TRY",
         status: PaymentSessionStatus.INIT,

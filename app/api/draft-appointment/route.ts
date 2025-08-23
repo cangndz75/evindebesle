@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { prisma } from "@/lib/db";
+import { Prisma } from "@/lib/generated/prisma";
 import { z } from "zod";
 
 const schema = z.object({
@@ -14,17 +15,18 @@ const schema = z.object({
   recurringType: z.string().optional(),
   recurringCount: z.number().int().min(1).optional(),
 
-  // Opsiyonel: test bayrağı
+  // Opsiyonel
   isTest: z.boolean().optional(),
+  couponId: z.string().uuid().optional(),
 
-  // Opsiyonel: satır bazında miktar gönderirsen Tami basket kurallarına birebir yaklaşır
-  lineItems: z.array(z.object({
-    serviceId: z.string().uuid(),
-    quantity: z.number().int().min(1),
-  })).optional(),
+  lineItems: z.array(
+    z.object({
+      serviceId: z.string().uuid(),
+      quantity: z.number().int().min(1),
+    })
+  ).optional(),
 
-  // Güvenlik: client totalPrice kabul etmiyoruz (gelirse da görmezden geleceğiz)
-  totalPrice: z.number().min(0).optional(),
+  totalPrice: z.number().min(0).optional(), 
 });
 
 function toMidnightISO(s: string) {
@@ -42,7 +44,8 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    // backward compat: petIds → ownedPetIds
+
+    // backward compat
     if (Array.isArray(body.petIds) && !Array.isArray(body.ownedPetIds)) {
       body.ownedPetIds = body.petIds;
       delete body.petIds;
@@ -66,13 +69,13 @@ export async function POST(req: NextRequest) {
       recurringType,
       recurringCount,
       isTest = false,
+      couponId,
       lineItems,
-      // totalPrice (bilerek kullanılmıyor)
     } = parsed.data;
 
-    // --- Aidiyet ve doğrulamalar ---
+    // Aidiyet ve doğrulamalar
 
-    // OwnedPet aidiyet
+    // OwnedPet doğrulama
     const ownedPets = await prisma.ownedPet.findMany({
       where: { id: { in: ownedPetIds }, userId: session.user.id },
       select: { id: true, petId: true },
@@ -101,7 +104,7 @@ export async function POST(req: NextRequest) {
     }
     const svcMap = new Map(svcList.map((s) => [s.id, s]));
 
-    // Adres aidiyet
+    // Adres doğrulama
     const address = await prisma.userAddress.findFirst({
       where: { id: userAddressId, userId: session.user.id },
       select: { id: true },
@@ -113,41 +116,33 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Tarihleri normalize et
+    // Tarihler normalize
     const normalizedDates = dates
       .map(toMidnightISO)
       .filter((v): v is string => Boolean(v));
-
     if (normalizedDates.length === 0) {
-      return NextResponse.json(
-        { error: "Geçerli tarih bulunamadı" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Geçerli tarih bulunamadı" }, { status: 400 });
     }
 
-    // Geçmiş tarih engeli (opsiyonel ama faydalı)
+    // Geçmiş tarih engeli (opsiyonel)
     const todayMid = toMidnightISO(new Date().toISOString());
-    if (todayMid && normalizedDates.some(d => d < todayMid)) {
-      // İstersen soft allow yapabilirsin, burada örnek olsun diye engelliyorum
-      // return NextResponse.json({ error: "Geçmiş tarihe randevu oluşturulamaz" }, { status: 400 });
+    if (todayMid && normalizedDates.some((d) => d < todayMid)) {
+      // burayı soft allow bırakabiliriz
     }
 
-    // petIds'i OwnedPet'ten türet (bilgi amaçlı)
     const petIds = Array.from(
       new Set(ownedPets.map((p) => p.petId).filter(Boolean) as string[])
     );
 
-    // --- Fiyat hesaplama sunucuda ---
     // Gün sayısı
     const uniqueDayCount = new Set(normalizedDates).size || 1;
 
-    // Satırların belirlenmesi
+    // Satırlar
     const totalSelectedPets = ownedPets.length;
     const rawLines = (lineItems && lineItems.length)
       ? lineItems
       : serviceIds.map((sid) => ({ serviceId: sid, quantity: totalSelectedPets }));
 
-    // Satır toplamları
     const lineTotals = rawLines.map((li) => {
       const svc = svcMap.get(li.serviceId)!;
       const unitPrice = Number(svc.price || 0);
@@ -159,7 +154,19 @@ export async function POST(req: NextRequest) {
     const baseTotal = lineTotals.reduce((s, x) => s + x.subtotal, 0);
     const amount = baseTotal * uniqueDayCount;
 
-    // --- Draft create ---
+    let finalPrice = amount;
+    if (couponId) {
+      const coupon = await prisma.coupon.findUnique({ where: { id: couponId } });
+      if (coupon) {
+        if (coupon.discountType === "PERCENT") {
+          finalPrice = Math.max(amount - (amount * coupon.value) / 100, 0);
+        } else {
+          finalPrice = Math.max(amount - coupon.value, 0);
+        }
+      }
+    }
+
+    // Draft create
     const draft = await prisma.draftAppointment.create({
       data: {
         userId: session.user.id,
@@ -168,12 +175,9 @@ export async function POST(req: NextRequest) {
         isRecurring,
         recurringType: recurringType ?? null,
         recurringCount: recurringCount ?? null,
-
-        // Güvenli: server hesapladığı tutarı yazar
-        finalPrice: Number(amount),
-
-        // İsteğe bağlı test işareti
+        finalPrice: new Prisma.Decimal(finalPrice),
         ...(typeof isTest === "boolean" ? { isTest } : {}),
+        ...(couponId ? { couponId } : {}),
 
         ownedPetIds,
         petIds,

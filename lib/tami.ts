@@ -57,7 +57,7 @@ export function tamiHeaders() {
   return {
     "Content-Type": "application/json",
     "Accept-Language": "tr",
-    "PG-Api-Version": "v2",
+    "PG-Api-Version": process.env.TAMI_AUTH_HASH_VERSION || "2.0",
     "PG-Auth-Token": pgAuthToken(),
     correlationId: correlationId(),
   };

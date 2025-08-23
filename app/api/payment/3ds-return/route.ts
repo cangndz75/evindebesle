@@ -9,26 +9,36 @@ export async function POST(req: NextRequest) {
   const form = await req.formData();
 
   const rawSuccess = String(form.get("success") ?? form.get("status") ?? "");
-  const ok = ["true", "1", "ok"].includes(rawSuccess.toLowerCase());
   const mdStatus = String(form.get("mdStatus") ?? "");
-
   const verify = verify3DHashedData(form);
 
+  const ok =
+    ["true", "1", "ok"].includes(rawSuccess.toLowerCase()) && verify.ok;
+
   if (sid) {
-    await prisma.paymentSession.update({
-      where: { id: sid },
-      data: {
-        status: ok ? "AUTH_OK" : "FAILED",
-        success: ok,
-        mdStatus,
-        orderId: String(form.get("orderId") ?? undefined) || undefined,
-        threeDSResultRaw: JSON.stringify(Object.fromEntries(form.entries())),
-        error: verify.ok ? undefined : "HASH_MISMATCH",
-      },
-    }).catch(() => null);
+    await prisma.paymentSession
+      .update({
+        where: { id: sid },
+        data: {
+          status: ok ? "AUTH_OK" : "FAILED",
+          success: ok,
+          mdStatus,
+          orderId: String(form.get("orderId") ?? undefined) || undefined,
+          threeDSResultRaw: JSON.stringify(
+            Object.fromEntries(form.entries())
+          ),
+          error: !verify.ok
+            ? "HASH_MISMATCH"
+            : String(form.get("errorMessage") ?? undefined) || undefined,
+        },
+      })
+      .catch(() => null);
   }
 
-  const url = new URL(`/payment/result?sid=${sid}&status=${ok ? "ok" : "fail"}`, req.nextUrl);
+  const url = new URL(
+    `/payment/3ds-result?sid=${sid}&status=${ok ? "ok" : "fail"}`,
+    req.nextUrl
+  );
   return NextResponse.redirect(url);
 }
 

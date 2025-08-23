@@ -8,9 +8,16 @@ import { securityHashForAuth } from "@/lib/tami/hash";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+function generateOrderId() {
+  const ts = Date.now().toString(); // 13
+  const rnd = Math.floor(Math.random() * 1e6)
+    .toString()
+    .padStart(6, "0"); // 6
+  return `${TAMI.MERCHANT_ID}${ts.slice(-10)}${rnd}`;
+}
+
 export async function POST(req: NextRequest) {
   try {
-    // 1) Kullanıcı
     const session = await getServerSession(authConfig);
     if (!session?.user?.email) {
       return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
@@ -19,13 +26,13 @@ export async function POST(req: NextRequest) {
       where: { email: session.user.email },
       select: { id: true },
     });
-    if (!user) return NextResponse.json({ error: "USER_NOT_FOUND" }, { status: 401 });
+    if (!user)
+      return NextResponse.json({ error: "USER_NOT_FOUND" }, { status: 401 });
 
-    // 2) Body
     const body = await req.json();
     const {
       draftAppointmentId,
-      amount,                 // kuruş (number) veya "decimal string"
+      amount,
       currency = "TRY",
       installmentCount = 1,
       card,
@@ -36,10 +43,12 @@ export async function POST(req: NextRequest) {
     } = body ?? {};
 
     if (!draftAppointmentId) {
-      return NextResponse.json({ error: "MISSING_DRAFT_ID" }, { status: 400 });
+      return NextResponse.json(
+        { error: "MISSING_DRAFT_ID" },
+        { status: 400 }
+      );
     }
 
-    // IDOR koruma
     const draft = await prisma.draftAppointment.findUnique({
       where: { id: draftAppointmentId },
       select: { userId: true },
@@ -48,31 +57,39 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
     }
 
-    // 3) Amount → decimal
-    let decimalAmount = "0.00";
-    if (typeof amount === "number") decimalAmount = (amount / 100).toFixed(2);
-    else if (typeof amount === "string") decimalAmount = Number(amount).toFixed(2);
-    else return NextResponse.json({ error: "INVALID_AMOUNT" }, { status: 400 });
 
+    const amountKurus =
+      typeof amount === "number"
+        ? amount
+        : Math.round(Number(amount) * 100);
+
+    if (!amountKurus || isNaN(amountKurus) || amountKurus <= 0) {
+      return NextResponse.json(
+        { error: "INVALID_AMOUNT" },
+        { status: 400 }
+      );
+    }
+
+    const decimalAmount = (amountKurus / 100).toFixed(2);
     const inst = Number(installmentCount) || 1;
 
-    // 4) PaymentSession
+    const externalOrderId = generateOrderId();
+
     const ps = await prisma.paymentSession.create({
       data: {
         userId: user.id,
         draftAppointmentId,
-        amount: typeof amount === "number" ? amount : Math.round(Number(amount) * 100),
+        amount: amountKurus, // kuruş
         currency,
         status: "AUTH_SENT",
+        orderId: externalOrderId,
       },
     });
 
-    // 5) Return URL (browser dönüş)
     const callbackUrl = `${TAMI.APP_BASE_URL}/api/payment/3ds-return?sid=${ps.id}`;
 
-    // 6) securityHash
     const securityHash = securityHashForAuth({
-      orderId: ps.id,
+      orderId: externalOrderId,
       amountDecimal: decimalAmount,
       currency,
       installmentCount: inst,
@@ -81,7 +98,6 @@ export async function POST(req: NextRequest) {
       callbackUrl,
     });
 
-    // 7) Kart payload normalize (cvc→cvv, "04"→4)
     const cardPayload = card
       ? {
           holderName: card.name,
@@ -92,14 +108,13 @@ export async function POST(req: NextRequest) {
         }
       : undefined;
 
-    // 8) AUTH payload (merchant/terminal body’ye ekli)
     const payload: any = {
       merchantId: TAMI.MERCHANT_ID,
       terminalId: TAMI.TERMINAL_ID,
-      orderId: ps.id,
-      amount: Number(decimalAmount), // 16.5 vs 16.50 önemli değil
+      orderId: externalOrderId,
+      amount: Number(decimalAmount),
       currency,
-      installmentCount: inst,        // Peşin: 1
+      installmentCount: inst,
       paymentGroup: "PRODUCT",
       paymentChannel: "WEB",
       callbackUrl,
@@ -108,57 +123,58 @@ export async function POST(req: NextRequest) {
       billingAddress,
       shippingAddress,
       buyer: buyer ?? {
-        ipAddress: req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "127.0.0.1",
+        ipAddress:
+          req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+          "127.0.0.1",
         buyerId: user.id,
         emailAddress: session.user.email,
       },
       basket,
     };
 
-    // DEBUG (PAN/CVV maskele)
-    const dbg = {
-      ...payload,
-      card: payload.card ? {
-        ...payload.card,
-        number: payload.card.number ? "****" + payload.card.number.slice(-4) : undefined,
-        cvv: payload.card.cvv ? "***" : undefined,
-      } : undefined,
-      securityHash: securityHash.slice(0, 6) + "...",
-    };
-    console.log("[TAMI AUTH] v=", TAMI.AUTH_HASH_VERSION, " →", dbg);
-
-    // 9) Tami AUTH
     const res = await fetch(`${TAMI.BASE_URL}/payment/auth`, {
       method: "POST",
       headers: tamiHeaders(),
       body: JSON.stringify(payload),
     });
-
     const data = await res.json().catch(() => ({}));
-    console.log("[TAMI AUTH] ←", res.status, data?.errorCode || data?.errorMessage || data?.success);
 
     if (!res.ok || data?.success === false) {
       await prisma.paymentSession.update({
         where: { id: ps.id },
-        data: { status: "FAILED", error: data?.errorMessage || "AUTH_FAILED" },
+        data: {
+          status: "FAILED",
+          error: data?.errorMessage || "AUTH_FAILED",
+        },
       });
-      return NextResponse.json({ error: "AUTH_FAILED", detail: data }, { status: 400 });
+      return NextResponse.json(
+        { error: "AUTH_FAILED", detail: data },
+        { status: 400 }
+      );
     }
 
-    const b64 = data?.threeDSHtmlContent ?? data?.threeDSHtml ?? data?.html;
-    const threeDSHtml = b64 ? Buffer.from(b64, "base64").toString("utf-8") : null;
+    const b64 =
+      data?.threeDSHtmlContent ?? data?.threeDSHtml ?? data?.html;
+    const threeDSHtml = b64
+      ? Buffer.from(b64, "base64").toString("utf-8")
+      : null;
 
     await prisma.paymentSession.update({
       where: { id: ps.id },
       data: {
-        orderId: data?.orderId ?? ps.id,
         correlationId: data?.correlationId ?? undefined,
         threeDSHtml: threeDSHtml ?? undefined,
       },
     });
 
-    return NextResponse.json({ sessionId: ps.id, orderId: data?.orderId ?? ps.id });
+    return NextResponse.json({
+      sessionId: ps.id,
+      orderId: externalOrderId,
+    });
   } catch (err: any) {
-    return NextResponse.json({ error: "AUTH_EXCEPTION", detail: String(err?.message ?? err) }, { status: 500 });
+    return NextResponse.json(
+      { error: "AUTH_EXCEPTION", detail: String(err?.message ?? err) },
+      { status: 500 }
+    );
   }
 }

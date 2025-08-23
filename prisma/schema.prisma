@@ -230,6 +230,9 @@ model Appointment {
   id            String            @id @default(cuid())
   userId        String
   userAddressId String?
+  draftId       String?          
+  draft         DraftAppointment? @relation(fields: [draftId], references: [id])
+
   confirmedAt   DateTime          @default(now())
   deliveredAt   DateTime?
   assignedToId  String?
@@ -499,14 +502,12 @@ model DraftAppointment {
   userId         String
   userAddressId  String
 
-  // rezervasyon
   isRecurring    Boolean
   recurringType  String?
   recurringCount Int?
   timeSlot       String?
 
-  // tarih/saat
-  dates          String[]
+  dates          String[]    
 
   ownedPetIds    String[]       
   petIds         String[] @default([])
@@ -522,6 +523,8 @@ model DraftAppointment {
   allergy        String?
   sensitivity    String?
   specialRequest String?
+
+  appointments   Appointment[]   
 }
 
 model AccessInfo {

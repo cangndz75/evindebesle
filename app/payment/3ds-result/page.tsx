@@ -3,12 +3,16 @@ import { prisma } from "@/lib/db";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-export default async function Page({
-  searchParams,
-}: {
-  searchParams: { sid?: string; status?: string; appointmentId?: string };
-}) {
-  const { sid = "", status = "", appointmentId } = searchParams;
+type PageProps = {
+  searchParams?: {
+    sid?: string;
+    status?: string;
+    appointmentId?: string;
+  };
+};
+
+export default async function Page({ searchParams }: PageProps) {
+  const { sid = "", status = "", appointmentId } = searchParams ?? {};
 
   const ps = sid
     ? await prisma.paymentSession.findUnique({ where: { id: sid } })

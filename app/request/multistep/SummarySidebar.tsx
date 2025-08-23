@@ -467,7 +467,7 @@ export default function SummarySidebar({ formData }: SummarySidebarProps) {
       const data = await resp.json();
       if (!resp.ok) throw new Error(data?.error || "3D başlatma hatası");
 
-      router.push(`/payment/3ds?sid=${data.sessionId}`);
+      router.push(`/payment/3ds/${data.sessionId}`);
     } catch (err: any) {
       toast.error(err?.message || "Ödeme başlatılamadı");
     }

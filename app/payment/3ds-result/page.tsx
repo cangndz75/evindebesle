@@ -6,9 +6,15 @@ export const runtime = "nodejs";
 export default async function Page({
   searchParams,
 }: {
-  searchParams?: { sid?: string; status?: string; appointmentId?: string };
+  searchParams?: Record<string, string | string[] | undefined>;
 }) {
-  const { sid = "", status = "", appointmentId } = searchParams ?? {};
+  const sid = typeof searchParams?.sid === "string" ? searchParams.sid : "";
+  const status =
+    typeof searchParams?.status === "string" ? searchParams.status : "";
+  const appointmentId =
+    typeof searchParams?.appointmentId === "string"
+      ? searchParams.appointmentId
+      : undefined;
 
   const ps = sid
     ? await prisma.paymentSession.findUnique({ where: { id: sid } })

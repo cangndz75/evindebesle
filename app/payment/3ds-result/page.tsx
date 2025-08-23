@@ -3,15 +3,11 @@ import { prisma } from "@/lib/db";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-type PageProps = {
-  searchParams?: {
-    sid?: string;
-    status?: string;
-    appointmentId?: string;
-  };
-};
-
-export default async function Page({ searchParams }: PageProps) {
+export default async function Page({
+  searchParams,
+}: {
+  searchParams?: { sid?: string; status?: string; appointmentId?: string };
+}) {
   const { sid = "", status = "", appointmentId } = searchParams ?? {};
 
   const ps = sid

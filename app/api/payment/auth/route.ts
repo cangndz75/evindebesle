@@ -78,8 +78,8 @@ export async function POST(req: NextRequest) {
     const ps = await prisma.paymentSession.create({
       data: {
         userId: user.id,
-        draftAppointmentId,
-        amount: amountKurus, // kuruş
+        draftId: draftAppointmentId,
+        amount: amountKurus,
         currency,
         status: "AUTH_SENT",
         orderId: externalOrderId,

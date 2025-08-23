@@ -556,7 +556,7 @@ model AccessInfo {
 model PaymentSession {
   id                 String                @id @default(cuid())
   userId             String
-  draftAppointmentId String
+  draftId            String?
 
   amount             Int
   currency           String                @default("TRY")

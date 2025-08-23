@@ -61,10 +61,10 @@ export async function POST(req: NextRequest) {
     const appointment = await prisma.appointment.create({
       data: {
         userId: ps.userId,
-        draftId: ps.draftAppointmentId, // artık schema'da var
+        draftId: ps.draftId,
         isPaid: true,
         paidAt: new Date(),
-        finalPrice: ps.amount ? ps.amount / 100 : undefined, // kuruş → TL
+        finalPrice: ps.amount ? ps.amount / 100 : undefined,
         paymentId: data?.bankReferenceNumber ?? data?.orderId ?? undefined,
         paymentConversationId: data?.correlationId ?? undefined,
       },

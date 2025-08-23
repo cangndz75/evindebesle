@@ -3,31 +3,10 @@ import { prisma } from "@/lib/db";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-export default async function Page({
-  searchParams,
-}: {
-  searchParams: Record<string, string | string[] | undefined>;
-}) {
-  const sid =
-    typeof searchParams?.sid === "string"
-      ? searchParams.sid
-      : Array.isArray(searchParams?.sid)
-      ? searchParams.sid[0]
-      : "";
-
-  const status =
-    typeof searchParams?.status === "string"
-      ? searchParams.status
-      : Array.isArray(searchParams?.status)
-      ? searchParams.status[0]
-      : "";
-
-  const appointmentId =
-    typeof searchParams?.appointmentId === "string"
-      ? searchParams.appointmentId
-      : Array.isArray(searchParams?.appointmentId)
-      ? searchParams.appointmentId[0]
-      : undefined;
+export default async function Page({ searchParams }: any) {
+  const sid = searchParams?.sid ?? "";
+  const status = searchParams?.status ?? "";
+  const appointmentId = searchParams?.appointmentId ?? "";
 
   const ps = sid
     ? await prisma.paymentSession.findUnique({ where: { id: sid } })

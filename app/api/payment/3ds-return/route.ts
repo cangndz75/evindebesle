@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 import { securityHashForComplete, verify3DHashedData } from "@/lib/tami/hash";
 import { TAMI, tamiHeaders } from "@/lib/tami/config";
@@ -75,11 +75,20 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const url = new URL(`/payment/3ds-result?sid=${sid}&status=${status}`, req.nextUrl);
-  return NextResponse.redirect(url);
+  return new Response(`<!doctype html>
+<html lang="tr"><head>
+  <meta charset="utf-8" />
+  <title>Yönlendiriliyor…</title>
+  <script>window.location.href="/payment/3ds-result?sid=${sid}&status=${status}"</script>
+</head>
+<body><p>Sonuç sayfasına yönlendiriliyorsunuz…</p></body></html>`, {
+    headers: { "Content-Type": "text/html; charset=utf-8" },
+  });
 }
 
 export async function GET(req: NextRequest) {
   const url = new URL(`/payment/3ds-result?${req.nextUrl.searchParams}`, req.nextUrl);
-  return NextResponse.redirect(url);
+  return new Response(`<!doctype html><script>window.location.href="${url.toString()}"</script>`, {
+    headers: { "Content-Type": "text/html; charset=utf-8" },
+  });
 }

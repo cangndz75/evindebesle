@@ -1,4 +1,4 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { securityHashForComplete, verify3DHashedData } from "@/lib/tami/hash";
 import { TAMI, tamiHeaders } from "@/lib/tami/config";
@@ -42,22 +42,18 @@ export async function POST(req: NextRequest) {
         securityHash: securityHashForComplete(ps.orderId),
       };
 
-      console.log("[TAMI CAPTURE] correlationId:", ps.correlationId, "orderId:", ps.orderId);
-
       const res = await fetch(`${TAMI.BASE_URL}/payment/complete-3ds`, {
         method: "POST",
         headers: tamiHeaders(ps.correlationId || undefined),
         body: JSON.stringify(payload),
       });
       const data = await res.json().catch(() => ({}));
-      console.log("[TAMI CAPTURE] status:", res.status, "resp:", data);
 
       if (res.ok && data?.success !== false) {
         await prisma.paymentSession.update({
           where: { id: ps.id },
           data: {
             status: PaymentSessionStatus.CAPTURED,
-            appointmentId: undefined,
             paymentId: data?.bankReferenceNumber ?? data?.orderId ?? undefined,
           },
         });
@@ -75,20 +71,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  return new Response(`<!doctype html>
-<html lang="tr"><head>
-  <meta charset="utf-8" />
-  <title>Yönlendiriliyor…</title>
-  <script>window.location.href="/payment/3ds-result?sid=${sid}&status=${status}"</script>
-</head>
-<body><p>Sonuç sayfasına yönlendiriliyorsunuz…</p></body></html>`, {
-    headers: { "Content-Type": "text/html; charset=utf-8" },
-  });
-}
+  const url = new URL(`/payment/3ds-result?sid=${sid}&status=${status}`, req.nextUrl);
 
-export async function GET(req: NextRequest) {
-  const url = new URL(`/payment/3ds-result?${req.nextUrl.searchParams}`, req.nextUrl);
-  return new Response(`<!doctype html><script>window.location.href="${url.toString()}"</script>`, {
-    headers: { "Content-Type": "text/html; charset=utf-8" },
-  });
+  return NextResponse.redirect(url, { status: 303 });
 }

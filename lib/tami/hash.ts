@@ -8,7 +8,7 @@ const FIXED_KID = process.env.TAMI_FIXED_KID_VALUE?.trim()!;
 const FIXED_K   = process.env.TAMI_FIXED_K_VALUE?.trim()!;
 
 /**
- * kid = Base64(SHA512(secretKey + FIXED_KID))
+ * kid = Base64(SHA512(secretKey + fixedKid))
  */
 function makeKid(secret: string): string {
   const raw = createHash("sha512")
@@ -18,11 +18,11 @@ function makeKid(secret: string): string {
 }
 
 /**
- * k = Base64(SHA512(secretKey + FIXED_K + merchantId + terminalId))
+ * k = Base64(SHA512(merchantId + terminalId + secretKey + fixedK))
  */
 function makeK(secret: string, mid: string, tid: string): string {
   const raw = createHash("sha512")
-    .update(secret + FIXED_K + mid + tid, "utf8")
+    .update(mid + tid + secret + FIXED_K, "utf8")
     .digest();
   return raw.toString("base64");
 }
@@ -48,7 +48,7 @@ export async function generateSecurityHashV2(bodyWithoutHash: any): Promise<stri
     .sign(key);
 
   console.log("[TAMI][SECURITY_HASH_OUT]", jws);
-  return jws; // compact JWS string
+  return jws;
 }
 
 /**
@@ -59,32 +59,4 @@ export function securityHashForComplete(orderId: string) {
   return createHash("sha256")
     .update(data + TAMI.SECRET_KEY, "utf8")
     .digest("base64");
-}
-
-/**
- * 3DS callback doğrulama
- */
-export function verify3DHashedData(form: FormData) {
-  const g = (k: string) => String(form.get(k) ?? "");
-  const data = [
-    g("cardOrganization") || g("cardOrg"),
-    g("cardBrand"),
-    g("cardType"),
-    g("maskedNumber"),
-    g("installmentCount") || "1",
-    g("currencyCode") || g("currency") || "TRY",
-    g("originalAmount") || g("txnAmount"),
-    g("orderId"),
-    g("systemTime"),
-    g("success") || g("status"),
-  ].join("");
-
-  const provided = g("hashedData");
-  if (!provided) return { ok: true, reason: "no-hash" as const };
-
-  const expected = createHash("sha256")
-    .update(data + TAMI.SECRET_KEY, "utf8")
-    .digest("base64");
-
-  return { ok: expected === provided, expected, provided };
 }

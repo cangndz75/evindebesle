@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 type Card = { number: string; name: string; expireMonth: string; expireYear: string; cvc: string };
 type Body = {
   draftAppointmentId: string;
-  amount: number; // kuruş ya da TL gelebilir
+  amount: number; // kuruş veya TL
   currency?: "TRY";
   card: Card;
   buyer?: any;
@@ -57,13 +57,11 @@ export async function POST(req: NextRequest) {
     const correlationId = newCorrelationId();
     const callbackUrl = `${TAMI.APP_BASE_URL}/api/payment/3ds-return?sid=${ps.id}`;
 
-    // buyer
     const fullName = String(input?.buyer?.name || session.user.name || "Musteri").trim();
     const [first, ...rest] = fullName.split(/\s+/);
     const name = first || "Musteri";
     const surName = (input?.buyer?.surName || rest.join(" ") || "Soyisim").trim();
 
-    // Body (hash öncesi)
     const tamiBodyBase: any = {
       amount: amountTL,
       orderId,
@@ -74,7 +72,7 @@ export async function POST(req: NextRequest) {
       callbackUrl,
       card: {
         holderName: input.card.name,
-        cvv: String(input.card.cvc || "").trim(), // 🟢 cvv
+        cvv: String(input.card.cvc || "").trim(),
         expireMonth: Number(input.card.expireMonth),
         expireYear: Number(input.card.expireYear),
         number: String(input.card.number || "").replace(/\s+/g, ""),
@@ -114,9 +112,11 @@ export async function POST(req: NextRequest) {
       },
     };
 
-    // ✅ SecurityHash (HS512 JWS)
+    // ✅ SecurityHash ekle
     const securityHash = await generateSecurityHashV2(tamiBodyBase);
     const tamiBody = { ...tamiBodyBase, securityHash };
+
+    console.log("[TAMI AUTH][REQUEST_BODY]", tamiBody);
 
     const res = await fetch(`${TAMI.BASE_URL}/payment/auth`, {
       method: "POST",
@@ -124,8 +124,21 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify(tamiBody),
     });
 
-    const data = await res.json().catch(() => ({}));
-    console.log("[TAMI AUTH][RESPONSE]", res.status, data);
+    // 🔴 tüm request ve response loglansın
+    console.log("[TAMI AUTH][REQUEST_URL]", `${TAMI.BASE_URL}/payment/auth`);
+    console.log("[TAMI AUTH][HEADERS]", tamiHeaders(correlationId));
+    console.log("[TAMI AUTH][REQUEST_BODY]", JSON.stringify(tamiBody, null, 2));
+
+    let data: any = {};
+    try {
+      data = await res.json();
+    } catch (err) {
+      console.error("[TAMI AUTH][JSON_PARSE_ERR]", err);
+    }
+
+    console.log("[TAMI AUTH][RESPONSE_STATUS]", res.status);
+    console.log("[TAMI AUTH][RESPONSE_BODY]", data);
+
 
     if (!res.ok || data?.success === false || !data?.threeDSHtmlContent) {
       await prisma.paymentSession.update({

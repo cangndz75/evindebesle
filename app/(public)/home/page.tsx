@@ -9,6 +9,7 @@ import HowItWorksSection from "../_components/HowItWorksSection";
 import PetTypeSelector from "../_components/PetTypeSelector";
 import SearchBox from "../_components/SearchBox";
 import ServicesSection from "../_components/ServicesSection";
+import StorePage from "../_components/StorePage";
 
 export const metadata = {
   title: "Evinde Besle",
@@ -53,6 +54,7 @@ export default function HomePage() {
       <PetTypeSelector />
       <CategoryMarquee />
       <ServicesSection />
+      <StorePage />
       <FaqSection />
       <FooterBanner />
     </>

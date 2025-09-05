@@ -1,18 +1,26 @@
+// app/api/payment/auth/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { prisma } from "@/lib/db";
 import { PaymentSessionStatus } from "@/lib/generated/prisma";
 import { TAMI, tamiHeaders, newCorrelationId } from "@/lib/tami/config";
-import { generateJwkSecurityHash } from "@/lib/tami/hash";
+import { generateSecurityHashV2 } from "@/lib/tami/hash";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-type Card = { number: string; name: string; expireMonth: string; expireYear: string; cvc: string };
+type Card = {
+  number: string;
+  name: string;
+  expireMonth: string;
+  expireYear: string;
+  cvc: string;
+};
+
 type Body = {
   draftAppointmentId: string;
-  amount: number;              // TL veya kuruş gelebilir (oto normalize)
+  amount: number;
   currency?: "TRY";
   card: Card;
   buyer?: any;
@@ -26,6 +34,7 @@ function getClientIp(req: NextRequest) {
   if (xf) return xf.split(",")[0].trim();
   return req.headers.get("x-real-ip") || "127.0.0.1";
 }
+
 const normPhone = (v?: string | null) =>
   (String(v ?? "").replace(/\D/g, "").slice(-10) || "5555555555");
 
@@ -117,34 +126,22 @@ export async function POST(req: NextRequest) {
       },
     };
 
-    const securityHash = generateJwkSecurityHash(tamiBodyBase);
-    const tamiBody = { ...tamiBodyBase, securityHash };
+const securityHash = await generateSecurityHashV2(tamiBodyBase);
+console.log("[TAMI AUTH][securityHash]", securityHash);
 
-    // Maskeleyip logla
-    try {
-      const masked = {
-        ...tamiBody,
-        card: {
-          ...tamiBody.card,
-          number: tamiBody.card.number.replace(/\d(?=\d{4})/g, "•"),
-          cvv: "***",
-        },
-      };
-      console.log(
-        "[TAMI AUTH] orderId:", orderId,
-        "correlationId:", correlationId,
-        "payload=", JSON.stringify(masked)
-      );
-    } catch {}
+const tamiBody = { ...tamiBodyBase, securityHash };
+console.log("[TAMI AUTH][REQUEST_BODY]", JSON.stringify(tamiBody, null, 2));
 
-    const res = await fetch(`${TAMI.BASE_URL}/payment/auth`, {
-      method: "POST",
-      headers: tamiHeaders(correlationId),
-      body: JSON.stringify(tamiBody),
-    });
+const res = await fetch(`${TAMI.BASE_URL}/payment/auth`, {
+  method: "POST",
+  headers: tamiHeaders(correlationId),
+  body: JSON.stringify(tamiBody),
+});
 
-    const data = await res.json().catch(() => ({}));
-    console.log("[TAMI AUTH] status:", res.status, "resp:", data);
+console.log("[TAMI AUTH][HEADERS]", tamiHeaders(correlationId));
+
+const data = await res.json().catch(() => ({}));
+console.log("[TAMI AUTH][RESPONSE]", res.status, data);
 
     if (!res.ok || data?.success === false || !data?.threeDSHtmlContent) {
       await prisma.paymentSession.update({

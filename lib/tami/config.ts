@@ -21,41 +21,46 @@ function ensureEnv() {
 
 /**
  * PG-Auth-Token = merchantId:terminalId:SHA256(merchantId + terminalId + secretKey)
- * encoding: base64 (varsayılan) | hex
+ * Hash → Base64 (dokümana göre).
  */
 export function buildPgAuthToken(): string {
   ensureEnv();
-  type Enc = "hex" | "base64";
-  const encEnv = String(
-    process.env.TAMI_PG_TOKEN_HASH_ENCODING || "base64"
-  ).toLowerCase();
-  const encoding: Enc = encEnv === "hex" ? "hex" : "base64";
-
   const preimage = `${TAMI.MERCHANT_ID}${TAMI.TERMINAL_ID}${TAMI.SECRET_KEY}`;
-  const digest = crypto
-    .createHash("sha256")
-    .update(preimage, "utf8")
-    .digest(encoding);
+  const digest = crypto.createHash("sha256").update(preimage, "utf8").digest("base64");
+  const token = `${TAMI.MERCHANT_ID}:${TAMI.TERMINAL_ID}:${digest}`;
 
-  // Güvenli kısa log
-  console.log("[TAMI] PG-Auth preimage = MID:TID:SECRET ; hash (%s) = %s...", encoding, digest.slice(0, 8));
-  return `${TAMI.MERCHANT_ID}:${TAMI.TERMINAL_ID}:${digest}`;
+  console.log("[TAMI][PG-Auth-Token]", {
+    preimage,
+    digest,
+    token,
+    mid: TAMI.MERCHANT_ID,
+    tid: TAMI.TERMINAL_ID,
+    secret: TAMI.SECRET_KEY,
+  });
+
+  return token;
 }
 
+/**
+ * CorrelationId → "Correlation" + random sayı (her işlemde farklı olmalı).
+ */
 export function newCorrelationId(): string {
-  return typeof crypto.randomUUID === "function"
-    ? crypto.randomUUID()
-    : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const rand = Math.floor(100000 + Math.random() * 900000); // 6 haneli random
+  return `Correlation${rand}`;
 }
 
 /** Ortak header set’i */
-export function tamiHeaders(correlationId?: string): HeadersInit {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    "Accept-Language": "tr",
-    "PG-Api-Version": TAMI.API_VERSION,
-    "PG-Auth-Token": buildPgAuthToken(),
-  };
-  if (correlationId) headers["CorrelationId"] = correlationId;
+export function tamiHeaders(correlationId?: string): [string, string][] {
+  const headers: [string, string][] = [
+    ["Content-Type", "application/json"],
+    ["Accept-Language", "tr"],
+    ["PG-Api-Version", TAMI.API_VERSION],
+    ["PG-Auth-Token", buildPgAuthToken()], // case %100 korunur
+  ];
+
+  if (correlationId) {
+    headers.push(["CorrelationId", correlationId]);
+  }
+
   return headers;
 }

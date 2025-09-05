@@ -450,9 +450,10 @@ export default function SummarySidebar({ formData }: SummarySidebarProps) {
             name: String(paymentCard.name || "").trim(),
             expireMonth: String(parseInt(paymentCard.expireMonth || "0", 10)),
             expireYear: String(paymentCard.expireYear || ""),
-            cvv: String(paymentCard.cvc || ""),
+            cvc: String(paymentCard.cvc || ""),
           }
         : undefined;
+      console.log("[DEBUG FRONT cardPayload]", cardPayload);
 
       const resp = await fetch("/api/payment/auth", {
         method: "POST",

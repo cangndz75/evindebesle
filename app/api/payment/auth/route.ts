@@ -1,26 +1,18 @@
-// app/api/payment/auth/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { prisma } from "@/lib/db";
 import { PaymentSessionStatus } from "@/lib/generated/prisma";
 import { TAMI, tamiHeaders, newCorrelationId } from "@/lib/tami/config";
-import { generateSecurityHash } from "@/lib/tami/hash";
+import { generateSecurityHashV2 } from "@/lib/tami/hash";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-type Card = {
-  number: string;
-  name: string;
-  expireMonth: string;
-  expireYear: string;
-  cvc: string;
-};
-
+type Card = { number: string; name: string; expireMonth: string; expireYear: string; cvc: string };
 type Body = {
   draftAppointmentId: string;
-  amount: number;
+  amount: number; // kuruş ya da TL gelebilir
   currency?: "TRY";
   card: Card;
   buyer?: any;
@@ -35,9 +27,6 @@ function getClientIp(req: NextRequest) {
   return req.headers.get("x-real-ip") || "127.0.0.1";
 }
 
-const normPhone = (v?: string | null) =>
-  (String(v ?? "").replace(/\D/g, "").slice(-10) || "5555555555");
-
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authConfig);
@@ -50,16 +39,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "MISSING_PARAMS" }, { status: 400 });
     }
 
-    // amount: kuruş geldiyse TL'ye çevir (165000 -> 1650)
+    // amount: kuruş geldiyse TL’ye çevir
     const amountTL =
       input.amount >= 1000 ? Number((input.amount / 100).toFixed(2)) : Number(input.amount);
 
-    // PaymentSession (kuruş olarak sakla)
     const ps = await prisma.paymentSession.create({
       data: {
         userId: session.user.id,
         draftId: input.draftAppointmentId,
-        amount: Math.round(amountTL * 100),
+        amount: Math.round(amountTL * 100), // kuruş sakla
         currency: input.currency || "TRY",
         status: PaymentSessionStatus.INIT,
       },
@@ -69,13 +57,13 @@ export async function POST(req: NextRequest) {
     const correlationId = newCorrelationId();
     const callbackUrl = `${TAMI.APP_BASE_URL}/api/payment/3ds-return?sid=${ps.id}`;
 
-    // buyer zorunlu alanlar: name / surName
-    const fullName = String(input?.buyer?.name || session.user.name || "Test Hesap").trim();
+    // buyer
+    const fullName = String(input?.buyer?.name || session.user.name || "Musteri").trim();
     const [first, ...rest] = fullName.split(/\s+/);
     const name = first || "Musteri";
     const surName = (input?.buyer?.surName || rest.join(" ") || "Soyisim").trim();
 
-    // Body (securityHash HARİÇ)
+    // Body (hash öncesi)
     const tamiBodyBase: any = {
       amount: amountTL,
       orderId,
@@ -86,7 +74,7 @@ export async function POST(req: NextRequest) {
       callbackUrl,
       card: {
         holderName: input.card.name,
-        cvv: String(input.card.cvc || "").trim(),
+        cvv: String(input.card.cvc || "").trim(), // 🟢 cvv
         expireMonth: Number(input.card.expireMonth),
         expireYear: Number(input.card.expireYear),
         number: String(input.card.number || "").replace(/\s+/g, ""),
@@ -97,7 +85,7 @@ export async function POST(req: NextRequest) {
         surName,
         emailAddress: session.user.email || "noreply@example.com",
         buyerId: session.user.id,
-        phoneNumber: normPhone((session as any)?.user?.phone),
+        phoneNumber: "5555555555",
       },
       billingAddress: input.billingAddress ?? {
         address: "N/A",
@@ -126,22 +114,18 @@ export async function POST(req: NextRequest) {
       },
     };
 
-const securityHash = await generateSecurityHash(tamiBodyBase);
-console.log("[TAMI AUTH][securityHash]", securityHash);
+    // ✅ SecurityHash (HS512 JWS)
+    const securityHash = await generateSecurityHashV2(tamiBodyBase);
+    const tamiBody = { ...tamiBodyBase, securityHash };
 
-const tamiBody = { ...tamiBodyBase, securityHash };
-console.log("[TAMI AUTH][REQUEST_BODY]", JSON.stringify(tamiBody, null, 2));
+    const res = await fetch(`${TAMI.BASE_URL}/payment/auth`, {
+      method: "POST",
+      headers: tamiHeaders(correlationId),
+      body: JSON.stringify(tamiBody),
+    });
 
-const res = await fetch(`${TAMI.BASE_URL}/payment/auth`, {
-  method: "POST",
-  headers: tamiHeaders(correlationId),
-  body: JSON.stringify(tamiBody),
-});
-
-console.log("[TAMI AUTH][HEADERS]", tamiHeaders(correlationId));
-
-const data = await res.json().catch(() => ({}));
-console.log("[TAMI AUTH][RESPONSE]", res.status, data);
+    const data = await res.json().catch(() => ({}));
+    console.log("[TAMI AUTH][RESPONSE]", res.status, data);
 
     if (!res.ok || data?.success === false || !data?.threeDSHtmlContent) {
       await prisma.paymentSession.update({

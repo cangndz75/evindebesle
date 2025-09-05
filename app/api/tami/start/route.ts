@@ -4,14 +4,13 @@ import { authConfig } from "@/lib/auth.config";
 import { prisma } from "@/lib/db";
 import { PaymentSessionStatus } from "@/lib/generated/prisma";
 import { TAMI, tamiHeaders, newCorrelationId } from "@/lib/tami/config";
-import { generateJwkSecurityHash } from "@/lib/tami/hash";
 
 export const runtime = "nodejs";
 
 type Card = { number: string; name: string; expireMonth: string; expireYear: string; cvc: string };
 type Body = {
   draftAppointmentId: string;
-  amount: number;              // TL cinsinden (ör: 1650)
+  amount: number; // TL cinsinden (ör: 1650)
   currency?: "TRY";
   card: Card;
   buyer?: any;
@@ -50,14 +49,13 @@ export async function POST(req: NextRequest) {
     });
 
     // Tami için orderId ve correlationId
-    const orderId = ps.id; // istersen burada özel bir format da üretebilirsin
+    const orderId = ps.id;
     const correlationId = newCorrelationId();
-
     const callbackUrl = `${TAMI.APP_BASE_URL}/api/payment/3ds-return?sid=${ps.id}`;
 
-    // Body (securityHash HARİÇ) —> JWK/HS512 ile imzalanacak
-    const tamiBodyBase: any = {
-      amount: Number(input.amount),        // TL sayısal
+    // Body (securityHash yok artık)
+    const tamiBody: any = {
+      amount: Number(input.amount),
       orderId,
       currency: input.currency || "TRY",
       installmentCount: 1,
@@ -111,12 +109,11 @@ export async function POST(req: NextRequest) {
       },
     };
 
-    // JWK/HS512 → securityHash
-    const securityHash = generateJwkSecurityHash(tamiBodyBase);
-
-    const tamiBody = { ...tamiBodyBase, securityHash };
-
-    console.log("[TAMI AUTH] orderId:", orderId, "correlationId:", correlationId, "amount:", tamiBody.amount);
+    console.log(
+      "[TAMI AUTH] orderId:", orderId,
+      "correlationId:", correlationId,
+      "amount:", tamiBody.amount
+    );
 
     const res = await fetch(`${TAMI.BASE_URL}/payment/auth`, {
       method: "POST",
@@ -130,7 +127,10 @@ export async function POST(req: NextRequest) {
     if (!res.ok || data?.success === false || !data?.threeDSHtmlContent) {
       await prisma.paymentSession.update({
         where: { id: ps.id },
-        data: { status: PaymentSessionStatus.FAILED, error: data?.errorMessage || JSON.stringify(data || {}) },
+        data: {
+          status: PaymentSessionStatus.FAILED,
+          error: data?.errorMessage || JSON.stringify(data || {}),
+        },
       });
       return NextResponse.json({ error: "TAMI_AUTH_FAILED", detail: data }, { status: 400 });
     }

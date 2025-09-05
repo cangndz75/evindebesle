@@ -117,26 +117,25 @@ export async function POST(req: NextRequest) {
       },
     };
 
+    const securityHash = generateJwkSecurityHash(tamiBodyBase);
+    const tamiBody = { ...tamiBodyBase, securityHash };
+
     // Maskeleyip logla
     try {
       const masked = {
-        ...tamiBodyBase,
+        ...tamiBody,
         card: {
-          ...tamiBodyBase.card,
-          number: tamiBodyBase.card.number.replace(/\d(?=\d{4})/g, "•"),
+          ...tamiBody.card,
+          number: tamiBody.card.number.replace(/\d(?=\d{4})/g, "•"),
           cvv: "***",
         },
       };
       console.log(
         "[TAMI AUTH] orderId:", orderId,
         "correlationId:", correlationId,
-        "payload(base)=", JSON.stringify(masked)
+        "payload=", JSON.stringify(masked)
       );
     } catch {}
-
-    // JWK/HS512 → securityHash
-    const securityHash = generateJwkSecurityHash(tamiBodyBase);
-    const tamiBody = { ...tamiBodyBase, securityHash };
 
     const res = await fetch(`${TAMI.BASE_URL}/payment/auth`, {
       method: "POST",

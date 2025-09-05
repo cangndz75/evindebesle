@@ -17,6 +17,7 @@ export async function GET() {
     id: service.id,
     name: service.name,
     description: service.description,
+    image: service.image || null,
     price: service.price,
     petTags: service.tags
       .map((tag) => tag.pet?.species?.toUpperCase())

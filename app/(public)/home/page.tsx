@@ -8,6 +8,7 @@ import FaqSection from "../_components/home/FaqSection";
 import HowItWorksSection from "../_components/HowItWorksSection";
 import PetTypeSelector from "../_components/PetTypeSelector";
 import SearchBox from "../_components/SearchBox";
+import ServicesSection from "../_components/ServicesSection";
 
 export const metadata = {
   title: "Evinde Besle",
@@ -51,6 +52,7 @@ export default function HomePage() {
       </section>
       <PetTypeSelector />
       <CategoryMarquee />
+      <ServicesSection />
       <FaqSection />
       <FooterBanner />
     </>

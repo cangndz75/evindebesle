@@ -4,8 +4,8 @@ import { TAMI } from "./config";
 
 /** fixed değerler geldiyse onları, yoksa fallback üretim */
 function computeKidAndK() {
-  const fixedKid = process.env.TAMI_FIXED_KID?.trim();
-  const fixedK   = process.env.TAMI_FIXED_K?.trim();
+  const fixedKid = process.env.TAMI_FIXED_KID_VALUE?.trim();
+  const fixedK   = process.env.TAMI_FIXED_K_VALUE?.trim();
 
   if (fixedKid && fixedK) {
     const kid = crypto.createHash("sha512").update(TAMI.SECRET_KEY + fixedKid, "utf8").digest("base64");

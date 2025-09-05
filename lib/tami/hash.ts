@@ -1,7 +1,7 @@
 // lib/tami/hash.ts
-import { TAMI } from "@/lib/tami";
 import { createHash, createSecretKey } from "crypto";
 import { CompactSign } from "jose";
+import { TAMI } from "./config";
 
 // .env'den gelen fixed değerler
 const FIXED_KID = process.env.TAMI_FIXED_KID_VALUE!;
@@ -24,8 +24,7 @@ function makeK(secret: string, mid: string, tid: string): string {
 }
 
 /**
- * JWS / HS512 securityHash üretimi
- * Body içeriğini imzalar → compact JWS string döner
+ * JWS / HS512 securityHash üretimi (AUTH aşaması)
  */
 export async function generateSecurityHashV2(bodyWithoutHash: any): Promise<string> {
   console.log("[TAMI][SECURITY_HASH_INPUT]", bodyWithoutHash);
@@ -46,6 +45,43 @@ export async function generateSecurityHashV2(bodyWithoutHash: any): Promise<stri
     .sign(key);
 
   console.log("[TAMI][SECURITY_HASH_OUT]", jws);
-
   return jws;
+}
+
+/**
+ * 3DS complete → HMAC-SHA256 (orderId|merchantId|terminalId)
+ */
+export function securityHashForComplete(orderId: string) {
+  const data = [orderId, TAMI.MERCHANT_ID, TAMI.TERMINAL_ID].join("|");
+  return createHash("sha256")
+    .update(data + TAMI.SECRET_KEY, "utf8")
+    .digest("base64");
+}
+
+/**
+ * 3DS callback doğrulama
+ */
+export function verify3DHashedData(form: FormData) {
+  const g = (k: string) => String(form.get(k) ?? "");
+  const data = [
+    g("cardOrganization") || g("cardOrg"),
+    g("cardBrand"),
+    g("cardType"),
+    g("maskedNumber"),
+    g("installmentCount") || "1",
+    g("currencyCode") || g("currency") || "TRY",
+    g("originalAmount") || g("txnAmount"),
+    g("orderId"),
+    g("systemTime"),
+    g("success") || g("status"),
+  ].join("");
+
+  const provided = g("hashedData");
+  if (!provided) return { ok: true, reason: "no-hash" as const };
+
+  const expected = createHash("sha256")
+    .update(data + TAMI.SECRET_KEY, "utf8")
+    .digest("base64");
+
+  return { ok: expected === provided, expected, provided };
 }

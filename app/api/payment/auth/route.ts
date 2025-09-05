@@ -5,7 +5,7 @@ import { authConfig } from "@/lib/auth.config";
 import { prisma } from "@/lib/db";
 import { PaymentSessionStatus } from "@/lib/generated/prisma";
 import { TAMI, tamiHeaders, newCorrelationId } from "@/lib/tami/config";
-import { generateSecurityHashV2 } from "@/lib/tami/hash";
+import { generateSecurityHash } from "@/lib/tami/hash";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -126,7 +126,7 @@ export async function POST(req: NextRequest) {
       },
     };
 
-const securityHash = await generateSecurityHashV2(tamiBodyBase);
+const securityHash = await generateSecurityHash(tamiBodyBase);
 console.log("[TAMI AUTH][securityHash]", securityHash);
 
 const tamiBody = { ...tamiBodyBase, securityHash };

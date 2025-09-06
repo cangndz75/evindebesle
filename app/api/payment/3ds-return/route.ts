@@ -1,95 +1,77 @@
 // app/api/payment/3ds-return/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { securityHashForComplete, verify3DHashedData } from "@/lib/tami/hash";
-import { TAMI, tamiHeaders } from "@/lib/tami/config";
 import { PaymentSessionStatus } from "@/lib/generated/prisma";
+import { finalizeAppointmentFromDraftInternal } from "@/lib/payment";
+import { securityHashForComplete } from "@/lib/tami/hash";
+import { TAMI, tamiHeaders } from "@/lib/tami";
 
-export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
-  const sid = req.nextUrl.searchParams.get("sid") || "";
-  const form = await req.formData();
+  try {
+    const sid = req.nextUrl.searchParams.get("sid") || "";
+    const form = await req.formData();
 
-  const rawSuccess = String(form.get("success") ?? form.get("status") ?? "");
-  const mdStatus = String(form.get("mdStatus") ?? "");
-  const verify = verify3DHashedData(form);
+    const success = String(form.get("success") || "").toLowerCase() === "true";
+    const orderId = String(form.get("orderId") || "");
+    const mdStatus = String(form.get("mdStatus") || "");
+    const allEntries = Object.fromEntries(form.entries());
 
-  const ok =
-    ["true", "1", "ok"].includes(rawSuccess.toLowerCase()) && verify.ok;
-
-  let status: PaymentSessionStatus = ok
-    ? PaymentSessionStatus.AUTH_OK
-    : PaymentSessionStatus.FAILED;
-
-  if (sid) {
-    const ps = await prisma.paymentSession
-      .update({
-        where: { id: sid },
-        data: {
-          status,
-          success: ok,
-          mdStatus,
-          orderId: String(form.get("orderId") ?? undefined) || undefined,
-          threeDSResultRaw: JSON.stringify(Object.fromEntries(form.entries())),
-          error: !verify.ok
-            ? "HASH_MISMATCH"
-            : String(form.get("errorMessage") ?? undefined) || undefined,
-        },
-      })
-      .catch(() => null);
-
-    if (ps && ok && ps.orderId) {
-      const payload = {
-        orderId: ps.orderId,
-        securityHash: securityHashForComplete(ps.orderId),
-      };
-
-      console.log("[TAMI 3DS-COMPLETE][REQUEST]", payload);
-
-      const res = await fetch(`${TAMI.BASE_URL}/payment/complete-3ds`, {
-        method: "POST",
-        headers: tamiHeaders(ps.correlationId || undefined),
-        body: JSON.stringify(payload),
-      });
-
-      let data: any = {};
-      try {
-        data = await res.json();
-      } catch (err) {
-        console.error("[TAMI 3DS-COMPLETE][JSON_PARSE_ERR]", err);
-      }
-
-      console.log("[TAMI 3DS-COMPLETE][RESPONSE_STATUS]", res.status);
-      console.log("[TAMI 3DS-COMPLETE][RESPONSE_BODY]", data);
-
-      if (res.ok && data?.success !== false) {
-        await prisma.paymentSession.update({
-          where: { id: ps.id },
-          data: {
-            status: PaymentSessionStatus.CAPTURED,
-            paymentId:
-              data?.bankReferenceNumber ?? data?.orderId ?? undefined,
-          },
-        });
-        status = PaymentSessionStatus.CAPTURED;
-      } else {
-        await prisma.paymentSession.update({
-          where: { id: ps.id },
-          data: {
-            status: PaymentSessionStatus.CAPTURE_FAIL,
-            error: data?.errorMessage || "CAPTURE_FAILED",
-          },
-        });
-        status = PaymentSessionStatus.CAPTURE_FAIL;
-      }
+    const ps = await prisma.paymentSession.findFirst({ where: { orderId } });
+    if (!ps) {
+      return NextResponse.json({ error: "paymentSession not found" }, { status: 404 });
     }
+
+    await prisma.paymentSession.update({
+      where: { id: ps.id },
+      data: {
+        status: success ? PaymentSessionStatus.AUTH_OK : PaymentSessionStatus.FAILED,
+        mdStatus,
+        success,
+        threeDSResultRaw: JSON.stringify(allEntries),
+      },
+    });
+
+    if (!success) {
+      return NextResponse.redirect(`${TAMI.APP_BASE_URL}/payment/3ds-result?sid=${ps.id}&status=fail`);
+    }
+
+    const payload = { orderId, securityHash: securityHashForComplete(orderId) };
+    const capRes = await fetch(`${TAMI.BASE_URL}/payment/complete-3ds`, {
+      method: "POST",
+      headers: tamiHeaders(),
+      body: JSON.stringify(payload),
+    });
+    const cap = await capRes.json().catch(() => ({}));
+
+    if (!capRes.ok || !cap?.success) {
+      await prisma.paymentSession.update({
+        where: { id: ps.id },
+        data: { status: PaymentSessionStatus.CAPTURE_FAIL, error: JSON.stringify(cap || {}) },
+      });
+      return NextResponse.redirect(`${TAMI.APP_BASE_URL}/payment/3ds-result?sid=${ps.id}&status=capture-fail`);
+    }
+
+    const appointment = await finalizeAppointmentFromDraftInternal({
+      draftAppointmentId: ps.draftId!,
+      userId: ps.userId,
+      paidPrice: ps.amount,
+      conversationId: cap.correlationId || "TAMI-3DS",
+      paymentId: cap.orderId || orderId,
+    });
+
+    await prisma.paymentSession.update({
+      where: { id: ps.id },
+      data: {
+        status: PaymentSessionStatus.CAPTURED,
+        appointmentId: appointment.id,
+        paymentId: cap.orderId || orderId,
+      },
+    });
+
+    return NextResponse.redirect(`${TAMI.APP_BASE_URL}/payment/3ds-result?sid=${ps.id}&status=ok&appointmentId=${appointment.id}`);
+  } catch (e: any) {
+    return NextResponse.json({ error: e?.message || "callback error" }, { status: 500 });
   }
-
-  const url = new URL(
-    `/payment/3ds-result?sid=${sid}&status=${status}`,
-    req.nextUrl
-  );
-
-  return NextResponse.redirect(url, { status: 303 });
 }

@@ -1,46 +1,41 @@
 // lib/tami/hash.ts
-import { createHash, createSecretKey } from "crypto";
+import crypto from "crypto";
 import { CompactSign } from "jose";
 import { TAMI } from "./config";
 
-const FIXED_KID = (process.env.TAMI_FIXED_KID_VALUE || "").trim();
-const FIXED_K   = (process.env.TAMI_FIXED_K_VALUE || "").trim();
-
 /**
- * kid = Base64(SHA512(secretKey + fixed_kid_value))
+ * kid ve k değerlerini hesapla (dokümana %100 uygun)
  */
-function makeKid(secret: string): string {
-  return createHash("sha512").update(secret + FIXED_KID, "utf8").digest("base64");
-}
+function getJwkResource() {
+  const FIXED_KID = (process.env.TAMI_FIXED_KID_VALUE || "").trim();
+  const FIXED_K   = (process.env.TAMI_FIXED_K_VALUE || "").trim();
 
-/**
- * k = Base64(SHA512(secretKey + fixed_k_value + merchantId + terminalId))
- * !!! SIRA ÖNEMLİ !!!
- */
-function makeK(secret: string, mid: string, tid: string): string {
-  return createHash("sha512").update(secret + FIXED_K + mid + tid, "utf8").digest("base64");
+  const kid = crypto
+    .createHash("sha512")
+    .update(TAMI.SECRET_KEY + FIXED_KID, "utf8")
+    .digest("base64");
+
+  const k = crypto
+    .createHash("sha512")
+    .update(TAMI.SECRET_KEY + FIXED_K + TAMI.MERCHANT_ID + TAMI.TERMINAL_ID, "utf8")
+    .digest("base64");
+
+  return { kid, k };
 }
 
 /**
  * JWS / HS512 securityHash üretimi (AUTH için)
- * Not: input içinde yanlışlıkla "securityHash" varsa imza öncesi çıkartıyoruz.
  */
-export async function generateSecurityHashV2(input: unknown): Promise<string> {
-  const kid = makeKid(TAMI.SECRET_KEY);
-  const k   = makeK(TAMI.SECRET_KEY, TAMI.MERCHANT_ID, TAMI.TERMINAL_ID);
+export async function generateSecurityHashV2(input: any): Promise<string> {
+  const { kid, k } = getJwkResource();
 
-  // payload'tan securityHash alanını ayıkla
   const payloadObj =
     input && typeof input === "object"
-      ? JSON.parse(
-          JSON.stringify(input, (key, value) =>
-            key === "securityHash" ? undefined : value
-          )
-        )
+      ? JSON.parse(JSON.stringify(input, (key, value) => (key === "securityHash" ? undefined : value)))
       : input;
 
   const protectedHeader = { alg: "HS512" as const, typ: "JWT" as const, kid };
-  const key = createSecretKey(Buffer.from(k, "base64"));
+  const key = crypto.createSecretKey(Buffer.from(k, "base64"));
   const payload = Buffer.from(JSON.stringify(payloadObj), "utf8");
 
   const jws = await new CompactSign(payload)
@@ -55,30 +50,5 @@ export async function generateSecurityHashV2(input: unknown): Promise<string> {
  */
 export function securityHashForComplete(orderId: string) {
   const data = [orderId, TAMI.MERCHANT_ID, TAMI.TERMINAL_ID].join("|");
-  return createHash("sha256").update(data + TAMI.SECRET_KEY, "utf8").digest("base64");
-}
-
-/**
- * 3DS callback (hashedData doğrulaması)
- */
-export function verify3DHashedData(form: FormData) {
-  const g = (k: string) => String(form.get(k) ?? "");
-
-  const data =
-    (g("cardOrganization") || g("cardOrg")) +
-    g("cardBrand") +
-    g("cardType") +
-    g("maskedNumber") +
-    (g("installmentCount") || "1") +
-    (g("currencyCode") || g("currency") || "TRY") +
-    (g("originalAmount") || g("txnAmount")) +
-    g("orderId") +
-    g("systemTime") +
-    (g("success") || g("status"));
-
-  const provided = g("hashedData");
-  if (!provided) return { ok: true as const, reason: "no-hash" as const };
-
-  const expected = createHash("sha256").update(data + TAMI.SECRET_KEY, "utf8").digest("base64");
-  return { ok: expected === provided, expected, provided };
+  return crypto.createHash("sha256").update(data + TAMI.SECRET_KEY, "utf8").digest("base64");
 }

@@ -1,2 +1,2 @@
 export { TAMI, tamiHeaders, buildPgAuthToken } from "./config";
-export { generateJWKSignature } from "./jwk";
+export { getJwkResource } from "./jwk";

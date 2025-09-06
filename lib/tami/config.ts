@@ -1,3 +1,4 @@
+// lib/tami/config.ts
 import crypto from "crypto";
 
 export const TAMI = {
@@ -20,47 +21,27 @@ function ensureEnv() {
 }
 
 /**
- * PG-Auth-Token = merchantId:terminalId:SHA256(merchantId + terminalId + secretKey)
- * Hash → Base64 (dokümana göre).
+ * PG-Auth-Token = merchantId:terminalId:Base64(SHA256(merchantId + terminalId + secretKey))
  */
 export function buildPgAuthToken(): string {
   ensureEnv();
   const preimage = `${TAMI.MERCHANT_ID}${TAMI.TERMINAL_ID}${TAMI.SECRET_KEY}`;
   const digest = crypto.createHash("sha256").update(preimage, "utf8").digest("base64");
-  const token = `${TAMI.MERCHANT_ID}:${TAMI.TERMINAL_ID}:${digest}`;
-
-  console.log("[TAMI][PG-Auth-Token]", {
-    preimage,
-    digest,
-    token,
-    mid: TAMI.MERCHANT_ID,
-    tid: TAMI.TERMINAL_ID,
-    secret: TAMI.SECRET_KEY,
-  });
-
-  return token;
+  return `${TAMI.MERCHANT_ID}:${TAMI.TERMINAL_ID}:${digest}`;
 }
 
-/**
- * CorrelationId → "Correlation" + random sayı (her işlemde farklı olmalı).
- */
 export function newCorrelationId(): string {
-  const rand = Math.floor(100000 + Math.random() * 900000); // 6 haneli random
+  const rand = Math.floor(100000 + Math.random() * 900000);
   return `Correlation${rand}`;
 }
 
-/** Ortak header set’i */
 export function tamiHeaders(correlationId?: string): [string, string][] {
   const headers: [string, string][] = [
     ["Content-Type", "application/json"],
     ["Accept-Language", "tr"],
     ["PG-Api-Version", TAMI.API_VERSION],
-    ["PG-Auth-Token", buildPgAuthToken()], // case %100 korunur
+    ["PG-Auth-Token", buildPgAuthToken()],
   ];
-
-  if (correlationId) {
-    headers.push(["CorrelationId", correlationId]);
-  }
-
+  if (correlationId) headers.push(["CorrelationId", correlationId]);
   return headers;
 }

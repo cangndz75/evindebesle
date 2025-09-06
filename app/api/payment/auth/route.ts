@@ -1,3 +1,4 @@
+// app/api/payment/auth/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
@@ -47,7 +48,7 @@ export async function POST(req: NextRequest) {
       data: {
         userId: session.user.id,
         draftId: input.draftAppointmentId,
-        amount: Math.round(amountTL * 100), // kuruş sakla
+        amount: Math.round(amountTL * 100), // kuruş olarak sakla
         currency: input.currency || "TRY",
         status: PaymentSessionStatus.INIT,
       },
@@ -112,33 +113,31 @@ export async function POST(req: NextRequest) {
       },
     };
 
-    // ✅ SecurityHash ekle
+    // ✅ SecurityHash (HS512 JWS)
     const securityHash = await generateSecurityHashV2(tamiBodyBase);
     const tamiBody = { ...tamiBodyBase, securityHash };
 
-    console.log("[TAMI AUTH][REQUEST_BODY]", tamiBody);
+    const url = `${TAMI.BASE_URL}/payment/auth`;
+    const headers = tamiHeaders(correlationId);
 
-    const res = await fetch(`${TAMI.BASE_URL}/payment/auth`, {
+    // DEBUG (gerekirse maskeyle)
+    console.log("[TAMI AUTH][REQUEST_URL]", url);
+    console.log("[TAMI AUTH][HEADERS]", headers);
+    console.log("[TAMI AUTH][REQUEST_BODY]", JSON.stringify(tamiBody, null, 2));
+
+    const res = await fetch(url, {
       method: "POST",
-      headers: tamiHeaders(correlationId),
+      headers,
       body: JSON.stringify(tamiBody),
     });
-
-    // 🔴 tüm request ve response loglansın
-    console.log("[TAMI AUTH][REQUEST_URL]", `${TAMI.BASE_URL}/payment/auth`);
-    console.log("[TAMI AUTH][HEADERS]", tamiHeaders(correlationId));
-    console.log("[TAMI AUTH][REQUEST_BODY]", JSON.stringify(tamiBody, null, 2));
 
     let data: any = {};
     try {
       data = await res.json();
-    } catch (err) {
-      console.error("[TAMI AUTH][JSON_PARSE_ERR]", err);
-    }
+    } catch {}
 
     console.log("[TAMI AUTH][RESPONSE_STATUS]", res.status);
     console.log("[TAMI AUTH][RESPONSE_BODY]", data);
-
 
     if (!res.ok || data?.success === false || !data?.threeDSHtmlContent) {
       await prisma.paymentSession.update({

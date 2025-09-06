@@ -1,3 +1,4 @@
+// app/api/payment/3ds-return/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { securityHashForComplete, verify3DHashedData } from "@/lib/tami/hash";
@@ -13,7 +14,9 @@ export async function POST(req: NextRequest) {
   const rawSuccess = String(form.get("success") ?? form.get("status") ?? "");
   const mdStatus = String(form.get("mdStatus") ?? "");
   const verify = verify3DHashedData(form);
-  const ok = ["true", "1", "ok"].includes(rawSuccess.toLowerCase()) && verify.ok;
+
+  const ok =
+    ["true", "1", "ok"].includes(rawSuccess.toLowerCase()) && verify.ok;
 
   let status: PaymentSessionStatus = ok
     ? PaymentSessionStatus.AUTH_OK
@@ -42,19 +45,24 @@ export async function POST(req: NextRequest) {
         securityHash: securityHashForComplete(ps.orderId),
       };
 
+      console.log("[TAMI 3DS-COMPLETE][REQUEST]", payload);
+
       const res = await fetch(`${TAMI.BASE_URL}/payment/complete-3ds`, {
         method: "POST",
         headers: tamiHeaders(ps.correlationId || undefined),
         body: JSON.stringify(payload),
       });
+
       const data = await res.json().catch(() => ({}));
+      console.log("[TAMI 3DS-COMPLETE][RESPONSE]", res.status, data);
 
       if (res.ok && data?.success !== false) {
         await prisma.paymentSession.update({
           where: { id: ps.id },
           data: {
             status: PaymentSessionStatus.CAPTURED,
-            paymentId: data?.bankReferenceNumber ?? data?.orderId ?? undefined,
+            paymentId:
+              data?.bankReferenceNumber ?? data?.orderId ?? undefined,
           },
         });
         status = PaymentSessionStatus.CAPTURED;
@@ -71,7 +79,10 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const url = new URL(`/payment/3ds-result?sid=${sid}&status=${status}`, req.nextUrl);
+  const url = new URL(
+    `/payment/3ds-result?sid=${sid}&status=${status}`,
+    req.nextUrl
+  );
 
   return NextResponse.redirect(url, { status: 303 });
 }

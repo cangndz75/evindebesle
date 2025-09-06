@@ -1,9 +1,7 @@
-// lib/tami/hash.ts
 import { createHash, createSecretKey } from "crypto";
 import { CompactSign } from "jose";
 import { TAMI } from "./config";
 
-// .env’den gelen fixed değerler
 const FIXED_KID = process.env.TAMI_FIXED_KID_VALUE?.trim()!;
 const FIXED_K   = process.env.TAMI_FIXED_K_VALUE?.trim()!;
 
@@ -59,4 +57,39 @@ export function securityHashForComplete(orderId: string) {
   return createHash("sha256")
     .update(data + TAMI.SECRET_KEY, "utf8")
     .digest("base64");
+}
+
+/**
+ * 3DS callback doğrulama (hashedData kontrolü)
+ */
+export function verify3DHashedData(form: FormData) {
+  const g = (k: string) => String(form.get(k) ?? "");
+  const data = [
+    g("cardOrganization") || g("cardOrg"),
+    g("cardBrand"),
+    g("cardType"),
+    g("maskedNumber"),
+    g("installmentCount") || "1",
+    g("currencyCode") || g("currency") || "TRY",
+    g("originalAmount") || g("txnAmount"),
+    g("orderId"),
+    g("systemTime"),
+    g("success") || g("status"),
+  ].join("");
+
+  const provided = g("hashedData");
+  if (!provided) {
+    console.warn("[TAMI][3DS_VERIFY] hashedData boş geldi");
+    return { ok: true, reason: "no-hash" as const };
+  }
+
+  const expected = createHash("sha256")
+    .update(data + TAMI.SECRET_KEY, "utf8")
+    .digest("base64");
+
+  const ok = expected === provided;
+
+  console.log("[TAMI][3DS_VERIFY]", { ok, expected, provided });
+
+  return { ok, expected, provided };
 }

@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { PaymentSessionStatus } from "@/lib/generated/prisma";
 import { finalizeAppointmentFromDraftInternal } from "@/lib/payment";
-import { generateJWKSignature, TAMI, tamiHeaders } from "@/lib/tami";
+import { securityHashForComplete } from "@/lib/tami/hash";
+import { TAMI, tamiHeaders } from "@/lib/tami";
 
 export const runtime = "nodejs";
 
@@ -35,6 +36,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Başarısızsa direkt redirect
     if (!success) {
       const url = `${
         process.env.NEXT_PUBLIC_SITE_URL || process.env.FRONTEND_BASE_URL
@@ -43,12 +45,15 @@ export async function POST(req: NextRequest) {
     }
 
     // --- Complete-3DS çağrısı ---
-    const payload = { orderId };
-    const securityHash = generateJWKSignature(payload);
+    const payload = {
+      orderId,
+      securityHash: securityHashForComplete(orderId),
+    };
+
     const capRes = await fetch(`${TAMI.BASE_URL}/payment/complete-3ds`, {
       method: "POST",
       headers: tamiHeaders(),
-      body: JSON.stringify({ ...payload, securityHash }),
+      body: JSON.stringify(payload),
     });
     const cap = await capRes.json().catch(() => ({}));
 
@@ -66,6 +71,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.redirect(url);
     }
 
+    // Başarılı → Appointment finalize et
     const appointment = await finalizeAppointmentFromDraftInternal({
       draftAppointmentId: ps.draftId!,
       userId: ps.userId,

@@ -29,7 +29,7 @@ export async function generateSecurityHashV2(input: unknown): Promise<string> {
   const kid = makeKid(TAMI.SECRET_KEY);
   const k   = makeK(TAMI.SECRET_KEY, TAMI.MERCHANT_ID, TAMI.TERMINAL_ID);
 
-  // payload'tan securityHash alanını ayıkla (imzaya dahil edilmemeli)
+  // payload'tan securityHash alanını ayıkla
   const payloadObj =
     input && typeof input === "object"
       ? JSON.parse(
@@ -47,7 +47,7 @@ export async function generateSecurityHashV2(input: unknown): Promise<string> {
     .setProtectedHeader(protectedHeader)
     .sign(key);
 
-  return jws; // Compact JWS
+  return jws;
 }
 
 /**
@@ -60,8 +60,6 @@ export function securityHashForComplete(orderId: string) {
 
 /**
  * 3DS callback (hashedData doğrulaması)
- * cardOrg/Brand/Type + maskedNumber + installmentCount + currency + originalAmount
- * + orderId + systemTime + success  → HMAC-SHA256(... + secretKey) Base64
  */
 export function verify3DHashedData(form: FormData) {
   const g = (k: string) => String(form.get(k) ?? "");

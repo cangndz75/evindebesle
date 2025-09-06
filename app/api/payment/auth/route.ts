@@ -1,4 +1,3 @@
-// app/api/payment/auth/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
@@ -10,10 +9,17 @@ import { generateSecurityHashV2 } from "@/lib/tami/hash";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-type Card = { number: string; name: string; expireMonth: string; expireYear: string; cvc: string };
+type Card = {
+  number: string;
+  name: string;
+  expireMonth: string;
+  expireYear: string;
+  cvc: string;
+};
+
 type Body = {
   draftAppointmentId: string;
-  amount: number; // kuruş veya TL
+  amount: number; // kuruş ya da TL gelebilir
   currency?: "TRY";
   card: Card;
   buyer?: any;
@@ -44,11 +50,12 @@ export async function POST(req: NextRequest) {
     const amountTL =
       input.amount >= 1000 ? Number((input.amount / 100).toFixed(2)) : Number(input.amount);
 
+    // PaymentSession kaydı
     const ps = await prisma.paymentSession.create({
       data: {
         userId: session.user.id,
         draftId: input.draftAppointmentId,
-        amount: Math.round(amountTL * 100), // kuruş olarak sakla
+        amount: Math.round(amountTL * 100), // kuruş saklıyoruz
         currency: input.currency || "TRY",
         status: PaymentSessionStatus.INIT,
       },
@@ -58,11 +65,13 @@ export async function POST(req: NextRequest) {
     const correlationId = newCorrelationId();
     const callbackUrl = `${TAMI.APP_BASE_URL}/api/payment/3ds-return?sid=${ps.id}`;
 
+    // Buyer
     const fullName = String(input?.buyer?.name || session.user.name || "Musteri").trim();
     const [first, ...rest] = fullName.split(/\s+/);
     const name = first || "Musteri";
     const surName = (input?.buyer?.surName || rest.join(" ") || "Soyisim").trim();
 
+    // Body (securityHash hariç)
     const tamiBodyBase: any = {
       amount: amountTL,
       orderId,
@@ -113,28 +122,26 @@ export async function POST(req: NextRequest) {
       },
     };
 
-    // ✅ SecurityHash (HS512 JWS)
+    // ✅ SecurityHash ekle
     const securityHash = await generateSecurityHashV2(tamiBodyBase);
     const tamiBody = { ...tamiBodyBase, securityHash };
 
-    const url = `${TAMI.BASE_URL}/payment/auth`;
-    const headers = tamiHeaders(correlationId);
-
-    // DEBUG (gerekirse maskeyle)
-    console.log("[TAMI AUTH][REQUEST_URL]", url);
-    console.log("[TAMI AUTH][HEADERS]", headers);
+    console.log("[TAMI AUTH][REQUEST_URL]", `${TAMI.BASE_URL}/payment/auth`);
+    console.log("[TAMI AUTH][HEADERS]", tamiHeaders(correlationId));
     console.log("[TAMI AUTH][REQUEST_BODY]", JSON.stringify(tamiBody, null, 2));
 
-    const res = await fetch(url, {
+    const res = await fetch(`${TAMI.BASE_URL}/payment/auth`, {
       method: "POST",
-      headers,
+      headers: tamiHeaders(correlationId),
       body: JSON.stringify(tamiBody),
     });
 
     let data: any = {};
     try {
       data = await res.json();
-    } catch {}
+    } catch (err) {
+      console.error("[TAMI AUTH][JSON_PARSE_ERR]", err);
+    }
 
     console.log("[TAMI AUTH][RESPONSE_STATUS]", res.status);
     console.log("[TAMI AUTH][RESPONSE_BODY]", data);
@@ -152,6 +159,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "TAMI_AUTH_FAILED", detail: data }, { status: 400 });
     }
 
+    // HTML çöz
     const html = Buffer.from(
       data?.threeDSHtmlContent ?? data?.threeDSHtml ?? data?.html,
       "base64"

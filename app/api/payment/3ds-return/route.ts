@@ -14,7 +14,9 @@ export async function POST(req: NextRequest) {
   const rawSuccess = String(form.get("success") ?? form.get("status") ?? "");
   const mdStatus = String(form.get("mdStatus") ?? "");
   const verify = verify3DHashedData(form);
-  const ok = ["true", "1", "ok"].includes(rawSuccess.toLowerCase()) && verify.ok;
+
+  const ok =
+    ["true", "1", "ok"].includes(rawSuccess.toLowerCase()) && verify.ok;
 
   let status: PaymentSessionStatus = ok
     ? PaymentSessionStatus.AUTH_OK
@@ -51,15 +53,23 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify(payload),
       });
 
-      const data = await res.json().catch(() => ({}));
-      console.log("[TAMI 3DS-COMPLETE][RESPONSE]", res.status, data);
+      let data: any = {};
+      try {
+        data = await res.json();
+      } catch (err) {
+        console.error("[TAMI 3DS-COMPLETE][JSON_PARSE_ERR]", err);
+      }
+
+      console.log("[TAMI 3DS-COMPLETE][RESPONSE_STATUS]", res.status);
+      console.log("[TAMI 3DS-COMPLETE][RESPONSE_BODY]", data);
 
       if (res.ok && data?.success !== false) {
         await prisma.paymentSession.update({
           where: { id: ps.id },
           data: {
             status: PaymentSessionStatus.CAPTURED,
-            paymentId: data?.bankReferenceNumber ?? data?.orderId ?? undefined,
+            paymentId:
+              data?.bankReferenceNumber ?? data?.orderId ?? undefined,
           },
         });
         status = PaymentSessionStatus.CAPTURED;
@@ -76,6 +86,10 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const url = new URL(`/payment/3ds-result?sid=${sid}&status=${status}`, req.nextUrl);
+  const url = new URL(
+    `/payment/3ds-result?sid=${sid}&status=${status}`,
+    req.nextUrl
+  );
+
   return NextResponse.redirect(url, { status: 303 });
 }

@@ -2,60 +2,37 @@
 import crypto from "crypto";
 import { TAMI } from "./config";
 
-/** fixed değerler geldiyse onları, yoksa fallback üretim */
-function computeKidAndK() {
-  const fixedKid = process.env.TAMI_FIXED_KID_VALUE?.trim();
-  const fixedK   = process.env.TAMI_FIXED_K_VALUE?.trim();
-
-  if (fixedKid && fixedK) {
-    const kid = crypto.createHash("sha512").update(TAMI.SECRET_KEY + fixedKid, "utf8").digest("base64");
-    const k   = crypto
-      .createHash("sha512")
-      .update(TAMI.SECRET_KEY + fixedK + TAMI.MERCHANT_ID + TAMI.TERMINAL_ID, "utf8")
-      .digest("base64");
-    return { kid, k };
-  }
-
-  // fallback
-  const kid = crypto.createHash("sha256").update(TAMI.SECRET_KEY, "utf8").digest("base64");
-  const k   = crypto
-    .createHash("sha512")
-    .update(TAMI.SECRET_KEY + TAMI.MERCHANT_ID + TAMI.TERMINAL_ID, "utf8")
-    .digest("base64");
-  return { kid, k };
-}
-
-function b64url(buf: Buffer) {
-  return buf.toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
-}
-
 /**
- * securityHash (JWS compact) — HS512
- * header: { alg:"HS512", typ:"JWT", kid }
- * payload: request body (içindeki "securityHash" alanı hariç!)
- * signature: HMAC-SHA512( base64url(header) + "." + base64url(payload), key=base64decode(k) )
+ * JWKResource oluşturma
+ * kid = Base64(SHA512(secretKey + FIXED_KID_VALUE))
+ * k   = Base64(SHA512(secretKey + FIXED_K_VALUE + merchantId + terminalId))
  */
-export function generateJWKSignature(input: unknown): string {
-  const { kid, k } = computeKidAndK();
-
-  let payloadObj: any;
-  if (input && typeof input === "object") {
-    payloadObj = JSON.parse(JSON.stringify(input));
-    if ("securityHash" in payloadObj) delete payloadObj.securityHash;
-  } else {
-    payloadObj = input;
+export function getJwkResource() {
+  if (!TAMI.SECRET_KEY || !TAMI.MERCHANT_ID || !TAMI.TERMINAL_ID) {
+    throw new Error("Missing TAMI env variables");
   }
 
-  const header = { alg: "HS512", typ: "JWT", kid };
-  const h = b64url(Buffer.from(JSON.stringify(header), "utf8"));
-  const p = b64url(Buffer.from(JSON.stringify(payloadObj), "utf8"));
-  const signingInput = `${h}.${p}`;
+  const FIXED_KID = (process.env.TAMI_FIXED_KID_VALUE || "").trim();
+  const FIXED_K   = (process.env.TAMI_FIXED_K_VALUE || "").trim();
 
-  const key = Buffer.from(k, "base64");
-  const sig = crypto.createHmac("sha512", key).update(signingInput, "utf8").digest();
-  const s = b64url(sig);
+  const kid = crypto
+    .createHash("sha512")
+    .update(TAMI.SECRET_KEY + FIXED_KID, "utf8")
+    .digest("base64");
 
-  const token = `${h}.${p}.${s}`;
-  console.log("[TAMI JWS] kid:", kid.slice(0, 8) + "...", "k(b64):", k.slice(0, 8) + "...");
-  return token;
+  const k = crypto
+    .createHash("sha512")
+    .update(TAMI.SECRET_KEY + FIXED_K + TAMI.MERCHANT_ID + TAMI.TERMINAL_ID, "utf8")
+    .digest("base64");
+
+  const jwk = {
+    kty: "oct",
+    use: "sig",
+    kid,
+    k,
+    alg: "HS512",
+  };
+
+  console.log("[TAMI JWK]", jwk);
+  return jwk;
 }

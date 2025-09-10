@@ -24,13 +24,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "MISSING_PARAMS" }, { status: 400 });
     }
 
-    const amountTL = input.amount >= 1000 ? Number((input.amount / 100).toFixed(2)) : Number(input.amount);
+    const amountTL = Number((input.amount / 100).toFixed(2));
 
     const ps = await prisma.paymentSession.create({
       data: {
         userId: session.user.id,
         draftId: input.draftAppointmentId,
-        amount: Math.round(amountTL * 100),
+        amount: input.amount,
         currency: input.currency || "TRY",
         status: PaymentSessionStatus.INIT,
       },
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
       buyer: {
         ipAddress: req.headers.get("x-forwarded-for") || "127.0.0.1",
         name: session.user.name || "Müşteri",
-        surName: "Soyisim",
+        surName: session.user.name?.split(" ").slice(-1)[0] || "Soyisim",
         emailAddress: session.user.email || "noreply@example.com",
         buyerId: session.user.id,
         phoneNumber: "5555555555",
@@ -68,12 +68,18 @@ export async function POST(req: NextRequest) {
     const securityHash = await generateSecurityHashV2(tamiBodyBase);
     const tamiBody = { ...tamiBodyBase, securityHash };
 
+    console.log("[TAMI AUTH] signed payload =", tamiBodyBase);
+    console.log("[TAMI AUTH] request body =", tamiBody);
+
+    const headers = Object.fromEntries(tamiHeaders(correlationId));
+    console.log("[TAMI HEADERS] Sent Headers =", headers);
     const res = await fetch(`${TAMI.BASE_URL}/payment/auth`, {
       method: "POST",
-      headers: tamiHeaders(correlationId),
+      headers,
       body: JSON.stringify(tamiBody),
     });
     const data = await res.json().catch(() => ({}));
+    console.log("[TAMI AUTH] response =", data);
 
     if (!res.ok || data?.success === false || !data?.threeDSHtmlContent) {
       await prisma.paymentSession.update({
@@ -102,6 +108,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ sessionId: ps.id, orderId });
   } catch (e: any) {
+    console.error("[TAMI AUTH] exception", e);
     return NextResponse.json({ error: "AUTH_EXCEPTION", detail: String(e?.message ?? e) }, { status: 500 });
   }
 }

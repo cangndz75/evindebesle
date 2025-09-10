@@ -1,4 +1,3 @@
-// lib/tami/config.ts
 import crypto from "crypto";
 
 export const TAMI = {
@@ -8,7 +7,9 @@ export const TAMI = {
   MERCHANT_ID: process.env.TAMI_MERCHANT_ID ?? "",
   TERMINAL_ID: process.env.TAMI_TERMINAL_ID ?? "",
   SECRET_KEY: process.env.TAMI_SECRET_KEY ?? "",
-  API_VERSION: process.env.TAMI_API_VERSION || "v2",
+  API_VERSION: process.env.TAMI_API_VERSION || "v3",
+  FIXED_K_VALUE: process.env.TAMI_FIXED_K_VALUE ?? "",
+  FIXED_KID_VALUE: process.env.TAMI_FIXED_KID_VALUE ?? "",
 };
 
 function ensureEnv() {
@@ -17,6 +18,8 @@ function ensureEnv() {
   if (!TAMI.MERCHANT_ID) miss.push("TAMI_MERCHANT_ID");
   if (!TAMI.TERMINAL_ID) miss.push("TAMI_TERMINAL_ID");
   if (!TAMI.SECRET_KEY) miss.push("TAMI_SECRET_KEY");
+  if (!TAMI.FIXED_K_VALUE) miss.push("TAMI_FIXED_K_VALUE");
+  if (!TAMI.FIXED_KID_VALUE) miss.push("TAMI_FIXED_KID_VALUE");
   if (miss.length) throw new Error(`Missing env for TAMI: ${miss.join(", ")}`);
 }
 
@@ -30,9 +33,11 @@ export function buildPgAuthToken(): string {
   return `${TAMI.MERCHANT_ID}:${TAMI.TERMINAL_ID}:${digest}`;
 }
 
+/**
+ * CorrelationId → her zaman unique UUID
+ */
 export function newCorrelationId(): string {
-  const rand = Math.floor(100000 + Math.random() * 900000);
-  return `Correlation${rand}`;
+  return `Correlation-${crypto.randomUUID()}`;
 }
 
 export function tamiHeaders(correlationId?: string): [string, string][] {
@@ -42,6 +47,8 @@ export function tamiHeaders(correlationId?: string): [string, string][] {
     ["PG-Api-Version", TAMI.API_VERSION],
     ["PG-Auth-Token", buildPgAuthToken()],
   ];
-  if (correlationId) headers.push(["CorrelationId", correlationId]);
+  const correlation = correlationId || newCorrelationId();
+  headers.push(["CorrelationId", correlation]);
+  console.log("[TAMI HEADERS] Generated Headers =", Object.fromEntries(headers));
   return headers;
 }

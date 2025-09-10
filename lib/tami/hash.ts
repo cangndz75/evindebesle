@@ -1,24 +1,15 @@
 // lib/tami/hash.ts
 import crypto from "crypto";
 import { CompactSign } from "jose";
-import { TAMI } from "./config";
 
-/**
- * kid ve k değerlerini hesapla (dokümana %100 uygun)
- */
+// kid ve k değerlerini .env’den doğrudan al, hashleme
 function getJwkResource() {
-  const FIXED_KID = (process.env.TAMI_FIXED_KID_VALUE || "").trim();
-  const FIXED_K   = (process.env.TAMI_FIXED_K_VALUE || "").trim();
+  const kid = (process.env.TAMI_FIXED_KID_VALUE || "").trim();
+  const k = (process.env.TAMI_FIXED_K_VALUE || "").trim();
 
-  const kid = crypto
-    .createHash("sha512")
-    .update(TAMI.SECRET_KEY + FIXED_KID, "utf8")
-    .digest("base64");
-
-  const k = crypto
-    .createHash("sha512")
-    .update(TAMI.SECRET_KEY + FIXED_K + TAMI.MERCHANT_ID + TAMI.TERMINAL_ID, "utf8")
-    .digest("base64");
+  if (!kid || !k) {
+    throw new Error("Missing TAMI_FIXED_KID_VALUE or TAMI_FIXED_K_VALUE");
+  }
 
   return { kid, k };
 }
@@ -46,9 +37,9 @@ export async function generateSecurityHashV2(input: any): Promise<string> {
 }
 
 /**
- * 3DS complete → HMAC-SHA256 (orderId|merchantId|terminalId + secretKey)
+ * 3DS complete için securityHash → JWS/HS512 (dökümana uygun, orderId ile)
  */
-export function securityHashForComplete(orderId: string) {
-  const data = [orderId, TAMI.MERCHANT_ID, TAMI.TERMINAL_ID].join("|");
-  return crypto.createHash("sha256").update(data + TAMI.SECRET_KEY, "utf8").digest("base64");
+export async function securityHashForComplete(orderId: string): Promise<string> {
+  const payload = { orderId };
+  return generateSecurityHashV2(payload);
 }

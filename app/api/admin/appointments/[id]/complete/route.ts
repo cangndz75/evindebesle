@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { AppointmentStatus, MediaType } from "@/lib/generated/prisma";
+import { AppointmentStatus, MediaType } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 

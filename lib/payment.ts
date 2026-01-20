@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { AppointmentStatus } from "@/lib/generated/prisma";
+import { AppointmentStatus } from "@prisma/client";
 import { generateAndSaveInvoice } from "@/lib/invoice/generateAndSaveInvoice";
 import { createAdminNotification } from "@/lib/notifications/createAdminNotification";
 

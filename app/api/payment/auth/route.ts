@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { prisma } from "@/lib/db";
-import { PaymentSessionStatus } from "@/lib/generated/prisma";
+import { PaymentSessionStatus } from "@prisma/client";
 import { TAMI, tamiHeaders, newCorrelationId } from "@/lib/tami/config";
 import { generateSecurityHashV2 } from "@/lib/tami/hash";
 

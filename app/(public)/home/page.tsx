@@ -1,62 +1,45 @@
-import Image from "next/image";
-import CategoryMarquee from "../_components/CategoryMarquee";
-import CategorySection from "../_components/CategorySection";
-import Footer from "../_components/Footer";
-import FooterBanner from "../_components/FooterBanner";
-import Hero from "../_components/Hero";
-import FaqSection from "../_components/home/FaqSection";
-import HowItWorksSection from "../_components/HowItWorksSection";
-import PetTypeSelector from "../_components/PetTypeSelector";
-import SearchBox from "../_components/SearchBox";
-import ServicesSection from "../_components/ServicesSection";
-import StorePage from "../_components/StorePage";
+import AnnouncementBar from "@/components/home/AnnouncementBar";
+import CampaignStrip from "@/components/home/CampaignStrip";
+import ByltStyleHero from "@/components/home/ByltStyleHero";
+import ProductShowcase from "@/components/home/ProductShowcase";
+import EditorialBanner from "@/components/home/EditorialBanner";
+import CollectionCarousel from "@/components/home/CollectionCarousel";
+import BrandShowcase from "@/components/home/BrandShowcase";
+import SplitShowcase from "@/components/home/SplitShowcase";
+import TwoUpEditorialTiles from "@/components/home/TwoUpEditorialTiles";
+import CategoryRail from "@/components/home/CategoryRail";
+import FeaturedCardsRow from "@/components/home/FeaturedCardsRow";
+import ProductCarousel from "@/components/home/ProductCarousel";
+import EditorialTiles from "@/components/home/EditorialTiles";
+import TabbedBestSellers from "@/components/home/TabbedBestSellers";
+import NewsletterSignup from "@/components/home/NewsletterSignup";
+import FooterAccordion from "@/components/home/FooterAccordion";
+import { newArrivals, bestSellersWomen, womensBrands, mensBrands } from "@/lib/homeData";
 
 export const metadata = {
-  title: "Evinde Besle",
+  title: "Dark Velvet - Premium İç Çamaşırı",
   description:
-    "Tatile çıkarken kediniz veya köpeğiniz için güvenli bakım ve konaklama hizmetleri. Evcil hayvan oteli, evde bakım ve deneyimli bakıcılar bir arada.",
+    "Dark Velvet - Erkek ve kadın premium iç çamaşırı koleksiyonu. Zarif tasarımlar, konforlu kumaşlar ve modern stil.",
 };
 
 export default function HomePage() {
   return (
     <>
-      <Hero />
-      {/* <SearchBox /> */}
-      <HowItWorksSection />
-      <section className="my-6 sm:my-10">
-        <div className="w-full rounded-xl overflow-hidden shadow-lg">
-          {/* Mobil (<= md) */}
-          <div className="block md:hidden">
-            <Image
-              src="https://res.cloudinary.com/dlahfchej/image/upload/v1754852424/ChatGPT_Image_10_A%C4%9Fu_2025_22_00_12_gpotrr.png"
-              alt="Randevu banner mobil"
-              width={1536}
-              height={1024}
-              className="w-full h-auto object-contain"
-              sizes="100vw"
-              priority
-            />
-          </div>
-
-          <div className="hidden md:block">
-            <Image
-              src="https://res.cloudinary.com/dlahfchej/image/upload/v1754850604/banner2_upt5zl.png"
-              alt="Randevu banner web"
-              width={7924}
-              height={1139}
-              className="w-full h-auto object-contain"
-              sizes="100vw"
-              priority
-            />
-          </div>
-        </div>
-      </section>
-      <PetTypeSelector />
-      <CategoryMarquee />
-      <ServicesSection />
-      <StorePage />
-      <FaqSection />
-      <FooterBanner />
+      <ByltStyleHero />
+      <ProductShowcase />
+      <EditorialBanner />
+      <BrandShowcase title="WOMENS BRANDS" items={womensBrands} />
+      <BrandShowcase title="MEN'S BRANDS" items={mensBrands} />
+      <CollectionCarousel />
+      <SplitShowcase />
+      <TwoUpEditorialTiles />
+      <CategoryRail />
+      <FeaturedCardsRow />
+      <ProductCarousel title="Yeni Gelenler" products={newArrivals} viewAllLink="/women/new" />
+      <EditorialTiles />
+      <TabbedBestSellers />
+      <NewsletterSignup />
+      <FooterAccordion />
     </>
   );
 }

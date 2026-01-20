@@ -18,7 +18,15 @@ export async function POST(req: NextRequest) {
   try {
     const res = await new Promise<{ secure_url: string }>((resolve, reject) => {
       cloudinary.uploader.upload_stream(
-        { folder: "evindebesle" },
+        { 
+          folder: "evindebesle",
+          // Optimizasyon ayarları
+          quality: "auto:good", // Otomatik kalite optimizasyonu
+          fetch_format: "auto", // Modern format (WebP) kullan
+          width: 2000,
+          height: 2000,
+          crop: "limit", // Maksimum boyut sınırı
+        },
         (err, result) => {
           if (err || !result) return reject(err);
           resolve(result as any);

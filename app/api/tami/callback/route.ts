@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { PaymentSessionStatus } from "@/lib/generated/prisma";
+import { PaymentSessionStatus } from "@prisma/client";
 import { finalizeAppointmentFromDraftInternal } from "@/lib/payment";
 import { securityHashForComplete } from "@/lib/tami/hash";
 import { TAMI, tamiHeaders } from "@/lib/tami";

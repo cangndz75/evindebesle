@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../lib/generated/prisma"
 }
 
 datasource db {
@@ -85,6 +84,7 @@ model User {
   addresses           UserAddress[]
   passwordResetTokens PasswordResetToken[]
   accessInfo         AccessInfo?
+  favorites          ProductFavorite[]
 }
 
 model PasswordResetToken {
@@ -578,4 +578,166 @@ model PaymentSession {
 
   createdAt          DateTime              @default(now())
   updatedAt          DateTime              @updatedAt
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  UNISEX
+}
+
+enum SizeType {
+  LETTER  // XS, S, M, L, XL
+  NUMBER  // 30, 32, 34, 36, 38
+}
+
+model Product {
+  id              String   @id @default(cuid())
+  name            String
+  slug            String?  @unique // URL-friendly slug (drop-cut-long-sleeve-lux)
+  stockCode       String?  @unique // Stok kodu
+  description     String?  // Kısa açıklama
+  detailText      String?  @db.Text // Detaylı metin (HTML olabilir)
+  price           Float
+  image           String?  // Ana görsel
+  primaryImage    String?  // Birincil görsel (hover'da gösterilecek)
+  secondaryImage  String?  // İkincil görsel (hover'da gösterilecek)
+  gender          Gender?  // Cinsiyet
+  sizeType        SizeType? // Beden tipi (LETTER veya NUMBER)
+  fabricType      String?  // Kumaş tipi (Pamuk, Polyester, vb.)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  colors          ProductColor[]
+  sizes           ProductSize[]
+  tags            ProductTag[]
+  combinations    ProductCombination[] @relation("ProductCombinations")
+  relatedProducts ProductCombination[] @relation("RelatedProducts")
+  reviews         ProductReview[]
+  sizeOptions     ProductSizeOption[]
+  variants        ProductVariant[]
+  favorites       ProductFavorite[]
+}
+
+model ProductColor {
+  id        String   @id @default(cuid())
+  productId String
+  name      String   // Renk adı (Kırmızı, Mavi, vb.)
+  hexCode   String?  // Hex renk kodu (#FF0000)
+  images    String[] // Bu renge ait fotoğraflar (URL array)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variants ProductVariant[] // Bir renk için birden fazla variant (her beden için)
+
+  @@index([productId])
+}
+
+model ProductVariant {
+  id         String   @id @default(cuid())
+  productId String
+  colorId   String?  // Hangi renge ait variant (opsiyonel - ana ürün için null olabilir)
+  sizeId    String?  // Hangi bedene ait variant (opsiyonel)
+  variantCode String  @unique // Unique variant kodu (rastgele oluşturulacak)
+  price     Float?   // Variant'a özel fiyat (opsiyonel)
+  stock     Int      @default(0) // Variant stoku
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  color   ProductColor? @relation(fields: [colorId], references: [id], onDelete: SetNull)
+  size    ProductSize?  @relation(fields: [sizeId], references: [id], onDelete: SetNull)
+
+  @@unique([productId, colorId, sizeId])
+  @@index([productId])
+  @@index([colorId])
+  @@index([sizeId])
+}
+
+model ProductSize {
+  id        String   @id @default(cuid())
+  productId String
+  name      String   // Beden adı (XS, S, M, L, XL veya 30, 32, 34, vb.)
+  stock     Int      @default(0) // Stok adedi (genel stok - renk bazlı değil)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variants ProductVariant[] // Bir beden için birden fazla variant (her renk için)
+
+  @@unique([productId, name])
+  @@index([productId])
+}
+
+model ProductTag {
+  id        String   @id @default(cuid())
+  productId String
+  name      String   // Etiket adı (Moda, Etiket, vb.)
+  createdAt DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, name])
+  @@index([productId])
+}
+
+model ProductCombination {
+  id              String   @id @default(cuid())
+  productId       String   // Ana ürün
+  relatedProductId String // Kombine edilen ürün
+  createdAt       DateTime @default(now())
+
+  product         Product @relation("ProductCombinations", fields: [productId], references: [id], onDelete: Cascade)
+  relatedProduct  Product @relation("RelatedProducts", fields: [relatedProductId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, relatedProductId])
+  @@index([productId])
+  @@index([relatedProductId])
+}
+
+model ProductReview {
+  id        String   @id @default(cuid())
+  productId String
+  userId    String?  // Kullanıcı ID (opsiyonel, misafir yorumları için)
+  userName  String?  // Kullanıcı adı (misafir yorumları için)
+  rating    Int      // 1-5 arası puan
+  comment   String?  @db.Text
+  isApproved Boolean @default(false) // Admin onayı
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@index([isApproved])
+}
+
+model ProductSizeOption {
+  id        String   @id @default(cuid())
+  productId String
+  name      String   // Seçenek adı (XS, S, M, L, XL veya 30, 32, 34, vb.)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, name])
+  @@index([productId])
+}
+
+model ProductFavorite {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([userId])
+  @@index([productId])
 }

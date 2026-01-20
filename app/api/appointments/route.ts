@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { prisma } from "@/lib/db";
-import { AppointmentStatus } from "@/lib/generated/prisma";
+import { AppointmentStatus } from "@prisma/client";
 import { z } from "zod";
 import { createAdminNotification } from "@/lib/notifications/createAdminNotification";
 import { generateAndSaveInvoice } from "@/lib/invoice/generateAndSaveInvoice";

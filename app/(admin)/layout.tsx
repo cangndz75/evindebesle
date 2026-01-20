@@ -14,6 +14,7 @@ import {
   List,
   Briefcase,
   LogOut,
+  Package,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -42,6 +43,11 @@ const navLinks = [
     label: "Hizmetler",
     href: "/admin-services",
     icon: <Briefcase className="w-5 h-5" />,
+  },
+  {
+    label: "Ürünler",
+    href: "/admin-products",
+    icon: <Package className="w-5 h-5" />,
   },
   {
     label: "İndirim Kuponları",

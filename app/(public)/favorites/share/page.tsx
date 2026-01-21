@@ -5,9 +5,10 @@ import SharedFavoritesClient from "./_components/SharedFavoritesClient";
 export default async function SharedFavoritesPage({
   searchParams,
 }: {
-  searchParams: { lid?: string };
+  searchParams: Promise<{ lid?: string }>;
 }) {
-  const shareId = searchParams.lid;
+  const params = await searchParams;
+  const shareId = params.lid;
 
   if (!shareId) {
     notFound();
@@ -31,7 +32,7 @@ export default async function SharedFavoritesPage({
   }
 
   // Kullanıcının favorilerini getir
-  const favorites = await prisma.productFavorite.findMany({
+  const favoritesRaw = await prisma.productFavorite.findMany({
     where: { userId: wishlistShare.userId },
     include: {
       product: {
@@ -51,6 +52,17 @@ export default async function SharedFavoritesPage({
     },
     orderBy: { createdAt: "desc" },
   });
+
+  const favorites = favoritesRaw.map((favorite) => ({
+    ...favorite,
+    product: {
+      ...favorite.product,
+      colors: favorite.product.colors.map((color) => ({
+        ...color,
+        hexCode: color.hexCode ?? undefined,
+      })),
+    },
+  }));
 
   return (
     <SharedFavoritesClient

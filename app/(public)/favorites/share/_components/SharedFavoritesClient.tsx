@@ -13,10 +13,10 @@ type ProductColor = {
 type Product = {
   id: string;
   name: string;
-  slug?: string;
+  slug?: string | null;
   price: number;
-  image?: string;
-  primaryImage?: string;
+  image?: string | null;
+  primaryImage?: string | null;
   colors: ProductColor[];
   sizes: any[];
   tags: any[];

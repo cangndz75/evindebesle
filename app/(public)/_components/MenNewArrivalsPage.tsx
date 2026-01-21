@@ -62,19 +62,21 @@ export default function MenNewArrivalsPage() {
   const [selectedColor, setSelectedColor] = useState<{ productId: string; colorImage: string } | null>(null);
 
   // Filter new arrivals for men (you can adjust this logic)
-  const products: Product[] = newArrivals
-    .filter((p) => p.category === "men" || !p.category) // Filter men's products or all if no category
-    .map((p) => ({
-      id: p.id,
-      name: p.name,
-      price: p.price,
-      originalPrice: p.originalPrice,
-      image: p.image,
-      hoverImage: p.hoverImage,
-      colors: p.colors || [],
-      badge: p.badge || "Yeni",
-      inColors: p.colors?.length,
-    }));
+  const products: Product[] = newArrivals.map((p) => ({
+    id: p.id,
+    name: p.title,
+    price: p.price,
+    originalPrice: p.originalPrice,
+    image: p.image,
+    hoverImage: p.hoverImage,
+    colors: (p.colors || []).map((colorValue, idx) => ({
+      name: `Renk ${idx + 1}`,
+      value: colorValue,
+      image: p.image, // Use main image as fallback for color image
+    })),
+    badge: p.badge,
+    inColors: p.colors?.length,
+  }));
 
   const handleColorInteraction = (productId: string, colorImage: string) => {
     setHoveredColor({ productId, colorImage });

@@ -5,6 +5,12 @@ import { generateVariantCode } from "@/lib/slug";
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const search = searchParams.get("search");
+  const stockStatus = searchParams.get("stockStatus"); // "all", "inStock", "outOfStock", "lowStock"
+  const sortBy = searchParams.get("sortBy"); // "name", "stock", "newest", "oldest"
+  const gender = searchParams.get("gender"); // "MALE", "FEMALE", "UNISEX"
+  const sizeType = searchParams.get("sizeType"); // "LETTER", "NUMBER"
+  const minStock = searchParams.get("minStock");
+  const maxStock = searchParams.get("maxStock");
 
   const where: any = {};
 
@@ -14,6 +20,14 @@ export async function GET(request: NextRequest) {
       { stockCode: { contains: search, mode: "insensitive" } },
       { description: { contains: search, mode: "insensitive" } },
     ];
+  }
+
+  if (gender) {
+    where.gender = gender;
+  }
+
+  if (sizeType) {
+    where.sizeType = sizeType;
   }
 
   const products = await prisma.product.findMany({
@@ -47,10 +61,55 @@ export async function GET(request: NextRequest) {
         orderBy: { createdAt: "desc" },
       },
     },
-    orderBy: { createdAt: "desc" },
   });
 
-  return NextResponse.json(products);
+  // Stok durumuna göre filtreleme
+  let filteredProducts = products;
+  if (stockStatus && stockStatus !== "all") {
+    filteredProducts = products.filter((product) => {
+      const totalStock = (product.sizes || []).reduce((sum, s) => sum + (s.stock || 0), 0);
+      
+      if (stockStatus === "inStock") {
+        return totalStock > 0;
+      } else if (stockStatus === "outOfStock") {
+        return totalStock === 0;
+      } else if (stockStatus === "lowStock") {
+        return totalStock > 0 && totalStock <= 10;
+      }
+      return true;
+    });
+  }
+
+  // Stok aralığına göre filtreleme
+  if (minStock || maxStock) {
+    filteredProducts = filteredProducts.filter((product) => {
+      const totalStock = (product.sizes || []).reduce((sum, s) => sum + (s.stock || 0), 0);
+      if (minStock && totalStock < parseInt(minStock)) return false;
+      if (maxStock && totalStock > parseInt(maxStock)) return false;
+      return true;
+    });
+  }
+
+  // Sıralama
+  let sortedProducts = [...filteredProducts];
+  if (sortBy === "name") {
+    sortedProducts.sort((a, b) => a.name.localeCompare(b.name, "tr"));
+  } else if (sortBy === "stock") {
+    sortedProducts.sort((a, b) => {
+      const stockA = (a.sizes || []).reduce((sum, s) => sum + (s.stock || 0), 0);
+      const stockB = (b.sizes || []).reduce((sum, s) => sum + (s.stock || 0), 0);
+      return stockB - stockA;
+    });
+  } else if (sortBy === "newest") {
+    sortedProducts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  } else if (sortBy === "oldest") {
+    sortedProducts.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  } else {
+    // Varsayılan: en yeni
+    sortedProducts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  return NextResponse.json(sortedProducts);
 }
 
 export async function POST(req: Request) {
@@ -63,6 +122,7 @@ export async function POST(req: Request) {
       description,
       detailText,
       price,
+      originalPrice,
       image,
       primaryImage,
       secondaryImage,
@@ -126,6 +186,7 @@ export async function POST(req: Request) {
         description: description || undefined,
         detailText: detailText || undefined,
         price: parseFloat(price),
+        originalPrice: originalPrice ? parseFloat(originalPrice) : undefined,
         image: image || undefined,
         primaryImage: primaryImage || image || undefined,
         secondaryImage: secondaryImage || undefined,

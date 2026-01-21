@@ -19,7 +19,7 @@ export default function AuthLayout({
           {children}
         </div>
       ) : (
-        <div className="grid min-h-screen grid-cols-1 md:grid-cols-2 bg-white">
+        <div className="h-screen overflow-hidden bg-white">
           {children}
         </div>
       )}

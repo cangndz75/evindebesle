@@ -2,15 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
+import { LogOut, ChevronRight } from "lucide-react";
 
 const links = [
   { href: "/profile/personal-info", label: "Kişisel Bilgilerim" },
-  { href: "/profile/pets", label: "Evcil Hayvanlarım" },
   { href: "/profile/addresses", label: "Adreslerim" },
-  { href: "/profile/access-info", label: "Erişim Bilgilerim" },
-  { href: "/profile/orders", label: "Randevularım" },
-  { href: "/profile/coupons", label: "İndirim Kuponlarım" },
+  { href: "/profile/orders", label: "Siparişlerim" },
 ];
 
 export default function Sidebar() {
@@ -18,47 +16,55 @@ export default function Sidebar() {
   const { data: session } = useSession();
 
   const fullName = session?.user?.name || "Kullanıcı";
-  const initials = fullName
-    .split(" ")
-    .map((word) => word[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
+
+  const handleLogout = async () => {
+    await signOut({ redirect: false });
+    // Session'ı tamamen temizlemek için sayfayı yenile
+    window.location.href = "/auth-tabs";
+  };
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center space-x-3">
-        <div className="w-12 h-12 bg-blue-200 rounded-full flex items-center justify-center text-white font-bold text-xl">
-          {initials}
-        </div>
-        <div>
-          <p className="font-semibold text-lg">{fullName}</p>
-          <Link
-            href="/logout"
-            className="text-sm text-gray-500 hover:underline"
-          >
-            Çıkış Yap
-          </Link>
-        </div>
+      {/* Kullanıcı Bilgisi */}
+      <div>
+        <p className="text-base font-light text-black mb-4">{fullName}</p>
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-2 text-sm font-light text-red-600 hover:text-red-700 transition-colors group"
+        >
+          <span>Çıkış yap</span>
+          <LogOut className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
+        </button>
       </div>
 
+      {/* Navigation */}
       <nav className="space-y-1">
-        {links.map((link) => {
-          const isActive = pathname === link.href;
-          return (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`group flex justify-between items-center px-3 py-2 rounded-md transition-all 
-              ${isActive ? "bg-blue-50 text-blue-600 font-medium" : "text-gray-700 hover:bg-gray-100"}`}
-            >
-              <span>{link.label}</span>
-              {isActive && (
-                <span className="text-blue-600 font-bold">&gt;</span>
-              )}
-            </Link>
-          );
-        })}
+        <div className="mb-4">
+          <h3 className="text-xs font-medium text-black uppercase tracking-wider mb-3">
+            Kişisel Bilgilerim
+          </h3>
+          <div className="space-y-1">
+            {links.map((link) => {
+              const isActive = pathname === link.href;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`group flex items-center justify-between px-0 py-2 text-sm font-light transition-colors ${
+                    isActive
+                      ? "text-black"
+                      : "text-gray-600 hover:text-black"
+                  }`}
+                >
+                  <span>{link.label}</span>
+                  {isActive && (
+                    <ChevronRight className="h-4 w-4 text-black" />
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
       </nav>
     </div>
   );

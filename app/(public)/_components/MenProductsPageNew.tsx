@@ -3,13 +3,15 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect, useMemo } from "react";
-import { Heart, ChevronDown } from "lucide-react";
+import { Heart, ChevronDown, ShoppingBag } from "lucide-react";
+import { toast } from "sonner";
 import ProductFilters from "./ProductFilters";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
 
 type ProductColor = {
   name: string;
@@ -42,8 +44,9 @@ type Product = {
   secondaryImage?: string;
   gender?: "MALE" | "FEMALE" | "UNISEX";
   fabricType?: string;
-  colors: (ProductColor & { variant?: ProductVariant })[];
+  colors: (ProductColor & { variant?: ProductVariant; id?: string; variants?: any[] })[];
   sizes: ProductSize[];
+  sizeOptions?: Array<{ name: string; isActive: boolean }>;
   tags: ProductTag[];
 };
 
@@ -71,7 +74,7 @@ const categories = [
   "Active",
 ];
 
-function FavoriteButton({ productId }: { productId: string }) {
+function FavoriteButton({ productId, productName }: { productId: string; productName: string }) {
   const [isFavorite, setIsFavorite] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -99,6 +102,9 @@ function FavoriteButton({ productId }: { productId: string }) {
           method: "DELETE",
         });
         setIsFavorite(false);
+        toast.success(`${productName} favorilerden çıkarıldı`, {
+          position: "bottom-left",
+        });
       } else {
         await fetch("/api/favorites", {
           method: "POST",
@@ -106,9 +112,15 @@ function FavoriteButton({ productId }: { productId: string }) {
           body: JSON.stringify({ productId }),
         });
         setIsFavorite(true);
+        toast.success(`${productName} favorilere eklendi`, {
+          position: "bottom-left",
+        });
       }
+      // Header'daki favori sayısını güncellemek için event dispatch et
+      window.dispatchEvent(new Event("favoriteUpdated"));
     } catch (error) {
       console.error("Error toggling favorite:", error);
+      toast.error("Bir hata oluştu");
     } finally {
       setIsLoading(false);
     }
@@ -116,14 +128,14 @@ function FavoriteButton({ productId }: { productId: string }) {
 
   return (
     <button
-      className="absolute top-3 right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center transition-all hover:scale-110 z-10 disabled:opacity-50"
+      className="absolute top-3 right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center transition-all hover:scale-110 z-10 disabled:opacity-50 shadow-sm"
       onClick={handleToggle}
       disabled={isLoading}
       aria-label={isFavorite ? "Favorilerden Çıkar" : "Favorilere Ekle"}
     >
       <Heart
         className={`w-4 h-4 transition-colors ${
-          isFavorite ? "fill-red-500 text-red-500" : "text-[#111]"
+          isFavorite ? "fill-[#111] text-[#111]" : "text-[#111]"
         }`}
       />
     </button>
@@ -456,7 +468,7 @@ export default function MenProductsPage() {
               const finalUrl = variant ? `${productUrl}?variant=${variant}` : productUrl;
 
               return (
-                <div key={product.id} className="group">
+                <div key={product.id} className="group relative overflow-hidden">
                   <Link href={finalUrl} className="block">
                     <div className="relative aspect-[3/4] mb-4 overflow-hidden bg-gray-100">
                       <Image
@@ -481,7 +493,8 @@ export default function MenProductsPage() {
                           unoptimized
                         />
                       )}
-                      <FavoriteButton productId={product.id} />
+                      <FavoriteButton productId={product.id} productName={product.name} />
+                      
                     </div>
                   </Link>
 
@@ -499,6 +512,107 @@ export default function MenProductsPage() {
                         {product.colors.length} renk seçeneği
                       </p>
                     )}
+                  </div>
+
+                  {/* Hover'da Hızlı Ekle Bölümü - Altından animasyonlu çıkar */}
+                  <div className="absolute bottom-0 left-0 right-0 bg-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out border-t border-gray-200 shadow-lg z-20 overflow-hidden">
+                    <div className="p-4">
+                      <p className="text-xs font-light text-[#111] mb-3 text-center">Hızlı ekle</p>
+                      <div className="flex flex-wrap gap-2 justify-center">
+                        {(() => {
+                          // Önce sizes'ı kontrol et, yoksa sizeOptions'ı kullan
+                          const availableSizes = product.sizes && product.sizes.length > 0
+                            ? product.sizes
+                            : product.sizeOptions && product.sizeOptions.length > 0
+                            ? product.sizeOptions.map(so => ({ name: so.name, stock: 0, id: undefined }))
+                            : [];
+                          
+                          if (availableSizes.length === 0) {
+                            return (
+                              <p className="text-xs text-gray-500">Beden seçeneği bulunmuyor</p>
+                            );
+                          }
+
+                          // Seçili renge göre variant stok kontrolü
+                          const currentColorId = displayColorObj?.id || product.colors[0]?.id;
+                          
+                          return availableSizes.map((size, sizeIdx) => {
+                            const sizeName = typeof size === 'string' ? size : size.name;
+                            const sizeStock = typeof size === 'object' ? size.stock : 0;
+                            const sizeId = typeof size === 'object' && (size as any).id 
+                              ? (size as any).id 
+                              : null;
+                            
+                            // Variant stok kontrolü (seçili renge göre)
+                            let variantStock = 0;
+                            if (currentColorId && displayColorObj?.variants) {
+                              const variant = displayColorObj.variants.find((v: any) => 
+                                v.colorId === currentColorId && v.sizeId === sizeId
+                              );
+                              variantStock = variant?.stock || 0;
+                            }
+                            
+                            const finalStock = variantStock > 0 ? variantStock : sizeStock;
+                            const isOutOfStock = finalStock <= 0;
+                            
+                            return (
+                              <button
+                                key={sizeIdx}
+                                onClick={async (e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  
+                                  if (isOutOfStock) {
+                                    toast.error("Bu beden stokta yok", {
+                                      position: "bottom-left",
+                                    });
+                                    return;
+                                  }
+
+                                  try {
+                                    const res = await fetch("/api/cart", {
+                                      method: "POST",
+                                      headers: { "Content-Type": "application/json" },
+                                      body: JSON.stringify({
+                                        productId: product.id,
+                                        colorId: currentColorId || null,
+                                        sizeId: sizeId || null,
+                                        quantity: 1,
+                                      }),
+                                    });
+
+                                    if (res.ok) {
+                                      window.dispatchEvent(new Event("cartUpdated"));
+                                      toast.success(`${product.name} (${sizeName}) sepete eklendi`, {
+                                        position: "bottom-left",
+                                      });
+                                    } else {
+                                      const error = await res.json();
+                                      toast.error(error.error || "Sepete eklenirken bir hata oluştu", {
+                                        position: "bottom-left",
+                                      });
+                                    }
+                                  } catch (error) {
+                                    console.error("Error adding to cart:", error);
+                                    toast.error("Sepete eklenirken bir hata oluştu", {
+                                      position: "bottom-left",
+                                    });
+                                  }
+                                }}
+                                disabled={isOutOfStock}
+                                className={`px-3 py-1.5 text-xs font-light border transition-all ${
+                                  isOutOfStock
+                                    ? "border-gray-200 text-gray-400 line-through cursor-not-allowed bg-white"
+                                    : "border-gray-300 hover:border-[#111] hover:bg-[#111] hover:text-white bg-white text-[#111]"
+                                }`}
+                              >
+                                {sizeName}
+                              </button>
+                            );
+                          });
+                        })()}
+                      </div>
+                    </div>
                   </div>
 
                   {product.colors.length > 0 && (

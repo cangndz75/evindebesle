@@ -138,15 +138,18 @@ export default function ModernNavbar() {
             >
               <User className="w-5 h-5" />
             </Link>
-            <button
+            <Link
+              href={session?.user ? "/favorites" : "/auth-tabs"}
               className="relative text-black hover:opacity-70 transition-opacity"
               aria-label="Favoriler"
             >
               <Heart className="w-5 h-5" />
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-black text-white text-[10px] rounded-full flex items-center justify-center font-light">
-                3
-              </span>
-            </button>
+              {session?.user && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-black text-white text-[10px] rounded-full flex items-center justify-center font-light">
+                  3
+                </span>
+              )}
+            </Link>
             <button
               className="relative text-black hover:opacity-70 transition-opacity"
               aria-label="Sepet"

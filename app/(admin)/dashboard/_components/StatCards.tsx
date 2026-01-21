@@ -65,22 +65,24 @@ export default function StatCards() {
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
       {cards.map((card) => (
         <Card
           key={card.title}
           onClick={() => router.push(card.href)}
-          className="cursor-pointer hover:shadow-md transition"
+          className="cursor-pointer hover:shadow-md transition border border-gray-200"
         >
-          <CardHeader className="flex justify-between items-center">
-            <div>
-              <CardTitle>{card.title}</CardTitle>
-              <CardDescription>{card.description}</CardDescription>
+          <CardHeader className="flex flex-row justify-between items-start p-4 pb-2">
+            <div className="flex-1 min-w-0">
+              <CardTitle className="text-sm md:text-base font-semibold truncate">{card.title}</CardTitle>
+              <CardDescription className="text-xs md:text-sm mt-1">{card.description}</CardDescription>
             </div>
-            <div className="p-2 rounded-full bg-muted">{card.icon}</div>
+            <div className="p-2 md:p-3 rounded-full bg-gray-50 flex-shrink-0 ml-2">
+              {card.icon}
+            </div>
           </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{card.value}</p>
+          <CardContent className="p-4 pt-2">
+            <p className="text-xl md:text-3xl font-bold">{card.value}</p>
           </CardContent>
         </Card>
       ))}

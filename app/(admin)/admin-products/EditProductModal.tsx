@@ -70,6 +70,7 @@ export function EditProductModal({
   const [description, setDescription] = useState(product.description || "");
   const [detailText, setDetailText] = useState(product.detailText || "");
   const [price, setPrice] = useState(product.price.toString());
+  const [originalPrice, setOriginalPrice] = useState(((product as any).originalPrice || "").toString());
   const [image, setImage] = useState(product.image || "");
   const [uploadedImages, setUploadedImages] = useState<string[]>(() => {
     // Mevcut fotoğrafları başlangıç değeri olarak ekle
@@ -137,6 +138,7 @@ export function EditProductModal({
         setDescription(fullProduct.description || "");
         setDetailText(fullProduct.detailText || "");
         setPrice(fullProduct.price.toString());
+        setOriginalPrice(((fullProduct as any).originalPrice || "").toString());
         setImage(fullProduct.image || "");
         setGender(fullProduct.gender || "");
         setSizeType(fullProduct.sizeType || "");
@@ -351,6 +353,7 @@ export function EditProductModal({
         description: description || undefined,
         detailText: detailText || undefined,
         price: parseFloat(price),
+        originalPrice: originalPrice ? parseFloat(originalPrice) : undefined,
         image: image || undefined,
         primaryImage: primaryImage || undefined,
         secondaryImage: secondaryImage || undefined,
@@ -485,6 +488,24 @@ export function EditProductModal({
                   disabled={loading}
                 />
               </div>
+              <div>
+                <Label>Orijinal Fiyat (İndirimli ürünler için)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={originalPrice}
+                  onChange={(e) => setOriginalPrice(e.target.value)}
+                  placeholder="0.00"
+                  disabled={loading}
+                />
+                {originalPrice && price && parseFloat(originalPrice) > parseFloat(price) && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    İndirim: %{Math.round(((parseFloat(originalPrice) - parseFloat(price)) / parseFloat(originalPrice)) * 100)}
+                  </p>
+                )}
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Cinsiyet</Label>
                 <Select value={gender} onValueChange={(v: any) => setGender(v)} disabled={loading}>

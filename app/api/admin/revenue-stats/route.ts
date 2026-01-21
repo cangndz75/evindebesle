@@ -17,26 +17,54 @@ export async function GET(req: NextRequest) {
 
   const days = eachDayOfInterval({ start, end });
 
-  const revenue = await prisma.appointment.findMany({
-    where: {
-      isPaid: true,
-      confirmedAt: {
-        gte: start,
-        lte: end,
+  // Hem randevu hem de ürün siparişlerinden gelir hesapla
+  const [appointmentRevenue, orderRevenue] = await Promise.all([
+    prisma.appointment.findMany({
+      where: {
+        isPaid: true,
+        confirmedAt: {
+          gte: start,
+          lte: end,
+        },
       },
-    },
-    select: {
-      confirmedAt: true,
-      finalPrice: true,
-    },
-  });
+      select: {
+        confirmedAt: true,
+        finalPrice: true,
+      },
+    }),
+    prisma.order.findMany({
+      where: {
+        paymentStatus: "PAID",
+        createdAt: {
+          gte: start,
+          lte: end,
+        },
+      },
+      select: {
+        createdAt: true,
+        total: true,
+      },
+    }),
+  ]);
+
+  // Randevu gelirlerini birleştir
+  const revenue = [
+    ...appointmentRevenue.map((r) => ({
+      date: r.confirmedAt,
+      amount: r.finalPrice || 0,
+    })),
+    ...orderRevenue.map((r) => ({
+      date: r.createdAt,
+      amount: r.total || 0,
+    })),
+  ];
 
   const grouped: Record<string, number> = {};
 
-  for (const appt of revenue) {
-    if (!appt.confirmedAt || !appt.finalPrice) continue;
-    const dateStr = format(new Date(appt.confirmedAt), "yyyy-MM-dd");
-    grouped[dateStr] = (grouped[dateStr] || 0) + appt.finalPrice;
+  for (const item of revenue) {
+    if (!item.date || !item.amount) continue;
+    const dateStr = format(new Date(item.date), "yyyy-MM-dd");
+    grouped[dateStr] = (grouped[dateStr] || 0) + item.amount;
   }
 
   const data = days.map((day) => {

@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
             colors: {
               take: 1,
               include: {
-                variant: true,
+                variants: true,
               },
             },
             sizes: true,

@@ -30,9 +30,23 @@ export default function MarketingConsentToggle() {
   if (loading) return null
 
   return (
-    <div className="flex items-center justify-between border-t pt-4 mt-4">
-      <span className="text-sm text-gray-700">Kampanya ve fırsat e-postalarını almak istiyorum</span>
-      <Switch checked={consent} onCheckedChange={handleChange} />
+    <div className="rounded-2xl border border-gray-200 bg-white p-6">
+      <div className="flex items-center justify-between">
+        <div className="flex-1 pr-4">
+          <h3 className="text-sm font-medium text-black mb-1">
+            Kampanya ve Fırsat Bildirimleri
+          </h3>
+          <p className="text-xs text-gray-600 font-light leading-relaxed">
+            Özel indirimler, yeni ürünler ve kampanyalardan haberdar olmak için 
+            e-posta bildirimlerini açabilirsiniz. İstediğiniz zaman kapatabilirsiniz.
+          </p>
+        </div>
+        <Switch 
+          checked={consent} 
+          onCheckedChange={handleChange}
+          className="shrink-0"
+        />
+      </div>
     </div>
   )
 }

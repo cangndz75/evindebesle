@@ -16,6 +16,7 @@ export async function PATCH(
       description,
       detailText,
       price,
+      originalPrice,
       image,
       primaryImage,
       secondaryImage,
@@ -74,6 +75,7 @@ export async function PATCH(
     if (description !== undefined) updateData.description = description;
     if (detailText !== undefined) updateData.detailText = detailText;
     if (price !== undefined) updateData.price = parseFloat(price);
+    if (originalPrice !== undefined) updateData.originalPrice = originalPrice ? parseFloat(originalPrice) : null;
     if (image !== undefined) updateData.image = image;
     if (primaryImage !== undefined) updateData.primaryImage = primaryImage;
     if (secondaryImage !== undefined) updateData.secondaryImage = secondaryImage;

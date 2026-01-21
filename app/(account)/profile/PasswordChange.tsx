@@ -30,22 +30,73 @@ export default function PasswordChange() {
   }
 
   return (
-    <div className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium mb-1">Mevcut Şifre</label>
-        <Input type="password" value={current} onChange={(e) => setCurrent(e.target.value)} />
+    <div className="space-y-6">
+      <div className="rounded-2xl border border-gray-200 bg-white p-6 space-y-6">
+        <div>
+          <label className="block text-sm font-medium text-black mb-2">
+            Mevcut Şifre
+          </label>
+          <Input 
+            type="password" 
+            value={current} 
+            onChange={(e) => setCurrent(e.target.value)}
+            className="h-11 border-gray-300 focus:border-black focus:ring-black rounded-lg"
+            placeholder="Mevcut şifrenizi girin"
+          />
+          <p className="mt-1.5 text-xs text-gray-500 font-light">
+            Şifrenizi değiştirmek için mevcut şifrenizi girmeniz gerekmektedir.
+          </p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-black mb-2">
+            Yeni Şifre
+          </label>
+          <Input 
+            type="password" 
+            value={next} 
+            onChange={(e) => setNext(e.target.value)}
+            className="h-11 border-gray-300 focus:border-black focus:ring-black rounded-lg"
+            placeholder="Yeni şifrenizi girin"
+          />
+          <p className="mt-1.5 text-xs text-gray-500 font-light">
+            Şifreniz en az 8 karakter uzunluğunda olmalı ve güçlü bir şifre seçmenizi öneririz.
+          </p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-black mb-2">
+            Yeni Şifre (Tekrar)
+          </label>
+          <Input 
+            type="password" 
+            value={confirm} 
+            onChange={(e) => setConfirm(e.target.value)}
+            className="h-11 border-gray-300 focus:border-black focus:ring-black rounded-lg"
+            placeholder="Yeni şifrenizi tekrar girin"
+          />
+          <p className="mt-1.5 text-xs text-gray-500 font-light">
+            Güvenlik için yeni şifrenizi tekrar girin.
+          </p>
+        </div>
       </div>
-      <div>
-        <label className="block text-sm font-medium mb-1">Yeni Şifre</label>
-        <Input type="password" value={next} onChange={(e) => setNext(e.target.value)} />
+
+      <div className="pt-2">
+        <Button 
+          onClick={handleChangePassword} 
+          disabled={saving}
+          className="h-11 px-8 bg-black text-white hover:bg-black/90 rounded-full text-sm font-light"
+        >
+          {saving ? (
+            <span className="flex items-center gap-2">
+              <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              Güncelleniyor...
+            </span>
+          ) : (
+            "Şifreyi Güncelle"
+          )}
+        </Button>
       </div>
-      <div>
-        <label className="block text-sm font-medium mb-1">Yeni Şifre (Tekrar)</label>
-        <Input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
-      </div>
-      <Button onClick={handleChangePassword} disabled={saving}>
-        {saving ? "Güncelleniyor..." : "Şifreyi Güncelle"}
-      </Button>
     </div>
   )
 }

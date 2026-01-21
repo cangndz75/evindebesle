@@ -94,6 +94,7 @@ export async function GET(request: NextRequest) {
         },
       },
       sizes: true,
+      sizeOptions: true,
       tags: true,
       reviews: {
         where: { isApproved: true },

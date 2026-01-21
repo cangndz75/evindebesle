@@ -11,6 +11,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import AnnouncementBanner from "@/components/home/AnnouncementBanner";
 
 type ColorOption = {
   name: string;
@@ -157,6 +158,7 @@ export default function WomenProductsPage() {
 
   return (
     <div className="min-h-screen bg-white">
+      <AnnouncementBanner variant="pink" className="mb-0" />
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
         {/* Breadcrumb */}
         <nav className="mb-4">

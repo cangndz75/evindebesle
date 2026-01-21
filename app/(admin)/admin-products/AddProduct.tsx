@@ -37,7 +37,7 @@ type SizeOption = {
   name: string;
 };
 
-export function AddProductModal({ onSuccess }: { onSuccess: () => void }) {
+export function AddProductModal({ onSuccess, children }: { onSuccess: () => void | Promise<void>; children?: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   
@@ -47,6 +47,7 @@ export function AddProductModal({ onSuccess }: { onSuccess: () => void }) {
   const [description, setDescription] = useState("");
   const [detailText, setDetailText] = useState("");
   const [price, setPrice] = useState("");
+  const [originalPrice, setOriginalPrice] = useState("");
   const [image, setImage] = useState("");
   const [uploadedImages, setUploadedImages] = useState<string[]>([]); // Yüklenen tüm fotoğraflar
   const [primaryImage, setPrimaryImage] = useState("");
@@ -305,6 +306,7 @@ export function AddProductModal({ onSuccess }: { onSuccess: () => void }) {
     setDescription("");
     setDetailText("");
     setPrice("");
+    setOriginalPrice("");
     setImage("");
     setPrimaryImage("");
     setSecondaryImage("");
@@ -330,57 +332,82 @@ export function AddProductModal({ onSuccess }: { onSuccess: () => void }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="w-full sm:w-auto">
-          Yeni Ürün Ekle
-        </Button>
+        {children || (
+          <Button variant="outline" className="w-full sm:w-auto">
+            Yeni Ürün Ekle
+          </Button>
+        )}
       </DialogTrigger>
 
-      <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle>Yeni Ürün Ekle</DialogTitle>
+      <DialogContent className="max-w-4xl h-[95vh] md:h-[90vh] w-[95vw] md:w-full flex flex-col p-0 md:p-6">
+        <DialogHeader className="px-4 md:px-0 pt-4 md:pt-0">
+          <DialogTitle className="text-xl md:text-2xl font-bold">Yeni Ürün Ekle</DialogTitle>
         </DialogHeader>
 
         <Tabs defaultValue="basic" className="w-full flex-1 flex flex-col overflow-hidden">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="basic">Temel</TabsTrigger>
-            <TabsTrigger value="colors">Renkler</TabsTrigger>
-            <TabsTrigger value="stock">Stok</TabsTrigger>
-            <TabsTrigger value="details">Detaylar</TabsTrigger>
-            <TabsTrigger value="combinations">Kombinler</TabsTrigger>
-          </TabsList>
+          <div className="px-4 md:px-0 border-b border-gray-200 overflow-x-auto">
+            <TabsList className="grid w-full grid-cols-5 min-w-[500px] md:min-w-0 h-12 md:h-10">
+              <TabsTrigger value="basic" className="text-xs md:text-sm px-2 md:px-4">Temel</TabsTrigger>
+              <TabsTrigger value="colors" className="text-xs md:text-sm px-2 md:px-4">Renkler</TabsTrigger>
+              <TabsTrigger value="stock" className="text-xs md:text-sm px-2 md:px-4">Stok</TabsTrigger>
+              <TabsTrigger value="details" className="text-xs md:text-sm px-2 md:px-4">Detaylar</TabsTrigger>
+              <TabsTrigger value="combinations" className="text-xs md:text-sm px-2 md:px-4">Kombinler</TabsTrigger>
+            </TabsList>
+          </div>
 
-          <TabsContent value="basic" className="space-y-4 mt-4 flex-1 overflow-y-auto">
-            <div>
-              <Label>Ürün Adı *</Label>
+          <TabsContent value="basic" className="space-y-5 md:space-y-4 mt-4 md:mt-4 flex-1 overflow-y-auto px-4 md:px-0 pb-4 md:pb-0">
+            <div className="space-y-2">
+              <Label className="text-sm md:text-base font-semibold">Ürün Adı *</Label>
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Ürün adı"
+                className="h-12 md:h-10 text-base md:text-sm"
               />
             </div>
-            <div>
-              <Label>Stok Kodu</Label>
+            <div className="space-y-2">
+              <Label className="text-sm md:text-base font-semibold">Stok Kodu</Label>
               <Input
                 value={stockCode}
                 onChange={(e) => setStockCode(e.target.value)}
                 placeholder="SKU-001"
+                className="h-12 md:h-10 text-base md:text-sm"
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Fiyat *</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-4">
+              <div className="space-y-2">
+                <Label className="text-sm md:text-base font-semibold">Fiyat *</Label>
                 <Input
                   type="number"
                   step="0.01"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
                   placeholder="0.00"
+                  className="h-12 md:h-10 text-base md:text-sm"
                 />
               </div>
-              <div>
-                <Label>Cinsiyet</Label>
+              <div className="space-y-2">
+                <Label className="text-sm md:text-base font-semibold">Orijinal Fiyat (İndirimli ürünler için)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={originalPrice}
+                  onChange={(e) => setOriginalPrice(e.target.value)}
+                  placeholder="0.00"
+                  className="h-12 md:h-10 text-base md:text-sm"
+                />
+                {originalPrice && price && parseFloat(originalPrice) > parseFloat(price) && (
+                  <p className="text-xs md:text-xs text-green-600 font-medium mt-1">
+                    İndirim: %{Math.round(((parseFloat(originalPrice) - parseFloat(price)) / parseFloat(originalPrice)) * 100)}
+                  </p>
+                )}
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-4">
+              <div className="space-y-2">
+                <Label className="text-sm md:text-base font-semibold">Cinsiyet</Label>
                 <Select value={gender} onValueChange={(v: any) => setGender(v)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-12 md:h-10 text-base md:text-sm">
                     <SelectValue placeholder="Seçiniz" />
                   </SelectTrigger>
                   <SelectContent>
@@ -391,9 +418,9 @@ export function AddProductModal({ onSuccess }: { onSuccess: () => void }) {
                 </Select>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Beden Tipi</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-4">
+              <div className="space-y-2">
+                <Label className="text-sm md:text-base font-semibold">Beden Tipi</Label>
                 <Select value={sizeType} onValueChange={(v: any) => {
                   const oldSizeType = sizeType;
                   setSizeType(v);
@@ -407,7 +434,7 @@ export function AddProductModal({ onSuccess }: { onSuccess: () => void }) {
                     setSizeOptions(numberSizes.map(s => ({ name: s })));
                   }
                 }}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-12 md:h-10 text-base md:text-sm">
                     <SelectValue placeholder="Seçiniz" />
                   </SelectTrigger>
                   <SelectContent>
@@ -416,19 +443,20 @@ export function AddProductModal({ onSuccess }: { onSuccess: () => void }) {
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label>Kumaş Tipi</Label>
+              <div className="space-y-2">
+                <Label className="text-sm md:text-base font-semibold">Kumaş Tipi</Label>
                 <Input
                   value={fabricType}
                   onChange={(e) => setFabricType(e.target.value)}
                   placeholder="Örn: Pamuk, Polyester"
+                  className="h-12 md:h-10 text-base md:text-sm"
                 />
               </div>
             </div>
             {sizeType && (
-              <div>
-                <Label>Beden Seçenekleri</Label>
-                <div className="flex flex-wrap gap-2 mt-2">
+              <div className="space-y-2">
+                <Label className="text-sm md:text-base font-semibold">Beden Seçenekleri</Label>
+                <div className="flex flex-wrap gap-3 md:gap-2 mt-2">
                   {(sizeType === "LETTER" ? letterSizes : numberSizes).map((size) => (
                     <div key={size} className="flex items-center space-x-2">
                       <Checkbox
@@ -441,8 +469,9 @@ export function AddProductModal({ onSuccess }: { onSuccess: () => void }) {
                             setSelectedSizeOptions(selectedSizeOptions.filter(s => s !== size));
                           }
                         }}
+                        className="w-5 h-5 md:w-4 md:h-4"
                       />
-                      <Label htmlFor={`size-${size}`} className="cursor-pointer">
+                      <Label htmlFor={`size-${size}`} className="cursor-pointer text-base md:text-sm">
                         {size}
                       </Label>
                     </div>
@@ -450,51 +479,58 @@ export function AddProductModal({ onSuccess }: { onSuccess: () => void }) {
                 </div>
               </div>
             )}
-            <div>
-              <Label>Kısa Açıklama</Label>
+            <div className="space-y-2">
+              <Label className="text-sm md:text-base font-semibold">Kısa Açıklama</Label>
               <Textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Kısa ürün açıklaması"
-                rows={3}
+                rows={4}
+                className="text-base md:text-sm min-h-[100px] md:min-h-[80px]"
               />
             </div>
-            <div>
-              <Label>Slug (URL)</Label>
-              <p className="text-sm text-muted-foreground mt-1 p-2 bg-gray-50 rounded border">
+            <div className="space-y-2">
+              <Label className="text-sm md:text-base font-semibold">Slug (URL)</Label>
+              <p className="text-sm md:text-sm text-gray-600 mt-1 p-3 md:p-2 bg-gray-50 rounded-md border border-gray-200">
                 {generateSlug(name) || "Ürün adı girildiğinde otomatik oluşturulacak"}
               </p>
             </div>
             
             {/* Ana Renk */}
-            <div className="border-t pt-4 mt-4">
-              <Label className="text-base font-semibold mb-3 block">Ana Renk</Label>
+            <div className="border-t border-gray-200 pt-5 md:pt-4 mt-5 md:mt-4">
+              <Label className="text-base md:text-base font-semibold mb-4 md:mb-3 block">Ana Renk</Label>
               {!primaryColor ? (
-                <div className="space-y-2">
-                  <div className="flex gap-2 flex-wrap">
+                <div className="space-y-3 md:space-y-2">
+                  <div className="flex flex-col md:flex-row gap-3 md:gap-2">
                     <Input
                       placeholder="Renk adı (örn: Kırmızı)"
                       value={primaryColorName}
                       onChange={(e) => setPrimaryColorName(e.target.value)}
-                      className="flex-1 min-w-[150px]"
+                      className="flex-1 min-w-0 h-12 md:h-10 text-base md:text-sm"
                     />
                     <div className="flex items-center gap-2">
                       <input
                         type="color"
                         value={primaryColorHex || "#FF0000"}
                         onChange={(e) => setPrimaryColorHex(e.target.value)}
-                        className="w-12 h-10 rounded border cursor-pointer"
+                        className="w-14 h-12 md:w-12 md:h-10 rounded-md border-2 border-gray-300 cursor-pointer"
                         title="Renk seç"
                       />
                       <Input
                         placeholder="#FF0000"
                         value={primaryColorHex}
                         onChange={(e) => setPrimaryColorHex(e.target.value)}
-                        className="w-24"
+                        className="w-28 md:w-24 h-12 md:h-10 text-base md:text-sm"
                       />
                     </div>
-                    <Button type="button" onClick={addPrimaryColor} disabled={!primaryColorName}>
-                      <Plus className="w-4 h-4" />
+                    <Button 
+                      type="button" 
+                      onClick={addPrimaryColor} 
+                      disabled={!primaryColorName}
+                      className="h-12 md:h-10 px-6 md:px-4"
+                    >
+                      <Plus className="w-5 h-5 md:w-4 md:h-4 mr-2 md:mr-0" />
+                      <span className="md:hidden">Ekle</span>
                     </Button>
                   </div>
                 </div>
@@ -604,9 +640,9 @@ export function AddProductModal({ onSuccess }: { onSuccess: () => void }) {
                 </div>
               )}
             </div>
-            <div>
-              <Label>Ana Görsel</Label>
-              <div className="space-y-2">
+            <div className="space-y-2">
+              <Label className="text-sm md:text-base font-semibold">Ana Görsel</Label>
+              <div className="space-y-3 md:space-y-2">
                 <div className="flex gap-2">
                   <div className="relative flex-1">
                     <Input
@@ -639,13 +675,13 @@ export function AddProductModal({ onSuccess }: { onSuccess: () => void }) {
                     <Button
                       type="button"
                       variant="default"
-                      className="w-full"
+                      className="w-full h-12 md:h-10 text-base md:text-sm bg-black hover:bg-gray-800 text-white"
                       onClick={() => document.getElementById("main-image-upload")?.click()}
                       disabled={loading}
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="w-4 h-4 mr-2"
+                        className="w-5 h-5 md:w-4 md:h-4 mr-2"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -657,12 +693,13 @@ export function AddProductModal({ onSuccess }: { onSuccess: () => void }) {
                           d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                         />
                       </svg>
-                      {loading ? "Yükleniyor..." : "Fotoğraf Yükle (Çoklu Seçim)"}
+                      {loading ? "Yükleniyor..." : "Fotoğraf Yükle"}
                     </Button>
                   </div>
                 </div>
                 <Input
                   value={image}
+                  className="h-12 md:h-10 text-base md:text-sm"
                   onChange={(e) => {
                     setImage(e.target.value);
                     // URL'den eklendiğinde uploadedImages'a da ekle
@@ -800,9 +837,9 @@ export function AddProductModal({ onSuccess }: { onSuccess: () => void }) {
             </div>
           </TabsContent>
 
-          <TabsContent value="colors" className="space-y-4 mt-4 flex-1 overflow-y-auto">
+          <TabsContent value="colors" className="space-y-5 md:space-y-4 mt-4 md:mt-4 flex-1 overflow-y-auto px-4 md:px-0 pb-4 md:pb-0">
             <div className="space-y-2">
-              <Label>Yeni Renk Ekle</Label>
+              <Label className="text-sm md:text-base font-semibold">Yeni Renk Ekle</Label>
               <div className="flex gap-2 flex-wrap">
                 <Input
                   placeholder="Renk adı (örn: Kırmızı)"
@@ -945,9 +982,9 @@ export function AddProductModal({ onSuccess }: { onSuccess: () => void }) {
             </div>
           </TabsContent>
 
-          <TabsContent value="stock" className="space-y-4 mt-4 flex-1 overflow-y-auto">
+          <TabsContent value="stock" className="space-y-5 md:space-y-4 mt-4 md:mt-4 flex-1 overflow-y-auto px-4 md:px-0 pb-4 md:pb-0">
             {/* Ana Ürün Stok ve Fiyat */}
-            <div className="space-y-4 border-b pb-4">
+            <div className="space-y-4 border-b border-gray-200 pb-4">
               <div>
                 <Label className="text-lg font-semibold">Ana Ürün</Label>
                 <p className="text-sm text-muted-foreground mb-4">Ana ürün için genel stok ve fiyat ayarları</p>
@@ -1140,9 +1177,9 @@ export function AddProductModal({ onSuccess }: { onSuccess: () => void }) {
             )}
           </TabsContent>
 
-          <TabsContent value="details" className="space-y-4 mt-4 flex-1 overflow-y-auto">
-            <div>
-              <Label>Detay Metni (HTML desteklenir)</Label>
+          <TabsContent value="details" className="space-y-5 md:space-y-4 mt-4 md:mt-4 flex-1 overflow-y-auto px-4 md:px-0 pb-4 md:pb-0">
+            <div className="space-y-2">
+              <Label className="text-sm md:text-base font-semibold">Detay Metni (HTML desteklenir)</Label>
               <Textarea
                 value={detailText}
                 onChange={(e) => setDetailText(e.target.value)}
@@ -1191,9 +1228,9 @@ export function AddProductModal({ onSuccess }: { onSuccess: () => void }) {
             </div>
           </TabsContent>
 
-          <TabsContent value="combinations" className="space-y-4 mt-4 flex-1 overflow-y-auto">
-            <div>
-              <Label>Ürün Ara</Label>
+          <TabsContent value="combinations" className="space-y-5 md:space-y-4 mt-4 md:mt-4 flex-1 overflow-y-auto px-4 md:px-0 pb-4 md:pb-0">
+            <div className="space-y-2">
+              <Label className="text-sm md:text-base font-semibold">Ürün Ara</Label>
               <Input
                 placeholder="Ürün adı ile ara..."
                 value={searchProduct}
@@ -1201,6 +1238,7 @@ export function AddProductModal({ onSuccess }: { onSuccess: () => void }) {
                   setSearchProduct(e.target.value);
                   searchProducts(e.target.value);
                 }}
+                className="h-12 md:h-10 text-base md:text-sm"
               />
               {searchResults.length > 0 && (
                 <div className="mt-2 border rounded-lg max-h-40 overflow-y-auto">
@@ -1243,19 +1281,24 @@ export function AddProductModal({ onSuccess }: { onSuccess: () => void }) {
           </TabsContent>
         </Tabs>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)} disabled={loading}>
+        <DialogFooter className="px-4 md:px-0 pb-4 md:pb-0 pt-4 md:pt-0 border-t border-gray-200 md:border-0 flex-col sm:flex-row gap-2 md:gap-0">
+          <Button 
+            variant="outline" 
+            onClick={() => setOpen(false)} 
+            disabled={loading}
+            className="w-full sm:w-auto h-12 md:h-10 text-base md:text-sm order-2 sm:order-1"
+          >
             İptal
           </Button>
           <Button
             disabled={loading || !name || !price}
             onClick={handleSubmit}
-            className="w-full sm:w-auto"
+            className="w-full sm:w-auto h-12 md:h-10 text-base md:text-sm order-1 sm:order-2 bg-black hover:bg-gray-800 text-white"
           >
             {loading ? (
               <>
                 <svg
-                  className="animate-spin h-4 w-4 mr-2 inline-block"
+                  className="animate-spin h-5 w-5 md:h-4 md:w-4 mr-2 inline-block"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"

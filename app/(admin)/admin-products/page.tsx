@@ -26,7 +26,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { ChevronLeftIcon, ChevronRightIcon, Edit, Trash2, ChevronDown, ChevronUp, Filter, X } from "lucide-react";
 import { EditProductModal } from "./EditProductModal";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -36,8 +36,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { AddProductModal } from "./AddProduct";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 
 type Product = {
   id: string;
@@ -70,10 +78,38 @@ export default function ProductsPage() {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  
+  // Filtreleme state'leri
+  const [stockStatus, setStockStatus] = useState<"all" | "inStock" | "outOfStock" | "lowStock">("all");
+  const [sortBy, setSortBy] = useState<"name" | "stock" | "newest" | "oldest">("newest");
+  const [gender, setGender] = useState<string>("");
+  const [sizeType, setSizeType] = useState<string>("");
+  const [minStock, setMinStock] = useState<string>("");
+  const [maxStock, setMaxStock] = useState<string>("");
+  const [filterModalOpen, setFilterModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const fetchProducts = (search?: string) => {
+  const fetchProducts = (search?: string, filters?: {
+    stockStatus?: string;
+    sortBy?: string;
+    gender?: string;
+    sizeType?: string;
+    minStock?: string;
+    maxStock?: string;
+  }) => {
     setLoading(true);
-    const url = search ? `/api/admin-products?search=${encodeURIComponent(search)}` : "/api/admin-products";
+    const params = new URLSearchParams();
+    
+    if (search) params.append("search", search);
+    if (filters?.stockStatus && filters.stockStatus !== "all") params.append("stockStatus", filters.stockStatus);
+    if (filters?.sortBy) params.append("sortBy", filters.sortBy);
+    if (filters?.gender) params.append("gender", filters.gender);
+    if (filters?.sizeType) params.append("sizeType", filters.sizeType);
+    if (filters?.minStock) params.append("minStock", filters.minStock);
+    if (filters?.maxStock) params.append("maxStock", filters.maxStock);
+    
+    const url = `/api/admin-products?${params.toString()}`;
     fetch(url)
       .then((res) => res.json())
       .then((res) => {
@@ -87,10 +123,52 @@ export default function ProductsPage() {
   };
 
   useEffect(() => {
-    fetchProducts();
-  }, []);
+    fetchProducts(searchQuery, {
+      stockStatus,
+      sortBy,
+      gender,
+      sizeType,
+      minStock,
+      maxStock,
+    });
+  }, [stockStatus, sortBy, gender, sizeType, minStock, maxStock]);
 
-  const refresh = () => fetchProducts();
+  const handleApplyFilters = () => {
+    fetchProducts(searchQuery, {
+      stockStatus,
+      sortBy,
+      gender,
+      sizeType,
+      minStock,
+      maxStock,
+    });
+    setFilterModalOpen(false);
+  };
+
+  const handleResetFilters = () => {
+    setStockStatus("all");
+    setSortBy("newest");
+    setGender("");
+    setSizeType("");
+    setMinStock("");
+    setMaxStock("");
+    fetchProducts(searchQuery, {
+      stockStatus: "all",
+      sortBy: "newest",
+    });
+    setFilterModalOpen(false);
+  };
+
+  const refresh = () => {
+    fetchProducts(searchQuery, {
+      stockStatus,
+      sortBy,
+      gender,
+      sizeType,
+      minStock,
+      maxStock,
+    });
+  };
 
   const columns: ColumnDef<Product>[] = [
     {
@@ -308,27 +386,244 @@ export default function ProductsPage() {
     state: { sorting, pagination, columnFilters, columnVisibility },
   });
 
+  const toggleRow = (id: string) => {
+    const newExpanded = new Set(expandedRows);
+    if (newExpanded.has(id)) {
+      newExpanded.delete(id);
+    } else {
+      newExpanded.add(id);
+    }
+    setExpandedRows(newExpanded);
+  };
+
+  const genderMap: Record<string, string> = {
+    MALE: "Erkek",
+    FEMALE: "Kadın",
+    UNISEX: "Unisex",
+  };
+
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <Input
-          placeholder="Ürün adı, stok kodu veya açıklamaya göre ara..."
-          value={(table.getColumn("name")?.getFilterValue() as string) || ""}
-          onChange={(e) => {
-            table.getColumn("name")?.setFilterValue(e.target.value);
-            // API'ye arama isteği gönder
-            const searchValue = e.target.value;
-            if (searchValue.length >= 2 || searchValue.length === 0) {
-              fetchProducts(searchValue);
-            }
-          }}
-          className="max-w-xs flex-1 min-w-[200px]"
-        />
+    <div className="space-y-4 p-4 md:p-6">
+      {/* Header - Mobilde daha kompakt */}
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Input
+              placeholder="Ürün adı, SKU, açıklama..."
+              value={searchQuery}
+              onChange={(e) => {
+                const value = e.target.value;
+                setSearchQuery(value);
+                if (value.length >= 2 || value.length === 0) {
+                  fetchProducts(value, {
+                    stockStatus,
+                    sortBy,
+                    gender,
+                    sizeType,
+                    minStock,
+                    maxStock,
+                  });
+                }
+              }}
+              className="w-full h-10 md:h-10 pl-10"
+            />
+            <svg
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+          </div>
+          <Sheet open={filterModalOpen} onOpenChange={setFilterModalOpen}>
+            <SheetTrigger asChild>
+              <Button variant="outline" className="h-10 px-4">
+                <Filter className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">Filtrele</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-full sm:w-[500px] overflow-y-auto">
+              <SheetHeader>
+                <SheetTitle className="text-left text-xl font-bold">Filtrele ve Sırala</SheetTitle>
+              </SheetHeader>
+              
+              <div className="mt-6 space-y-6 pb-6">
+                {/* Sıralama */}
+                <div>
+                  <h3 className="text-sm font-semibold mb-3">Sıralama</h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      variant={sortBy === "name" ? "default" : "outline"}
+                      className={`h-10 ${sortBy === "name" ? "bg-black text-white" : ""}`}
+                      onClick={() => setSortBy("name")}
+                    >
+                      Ada göre
+                    </Button>
+                    <Button
+                      variant={sortBy === "stock" ? "default" : "outline"}
+                      className={`h-10 ${sortBy === "stock" ? "bg-black text-white" : ""}`}
+                      onClick={() => setSortBy("stock")}
+                    >
+                      Stoka göre
+                    </Button>
+                    <Button
+                      variant={sortBy === "newest" ? "default" : "outline"}
+                      className={`h-10 ${sortBy === "newest" ? "bg-black text-white" : ""}`}
+                      onClick={() => setSortBy("newest")}
+                    >
+                      En yeni
+                    </Button>
+                    <Button
+                      variant={sortBy === "oldest" ? "default" : "outline"}
+                      className={`h-10 ${sortBy === "oldest" ? "bg-black text-white" : ""}`}
+                      onClick={() => setSortBy("oldest")}
+                    >
+                      En eski
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Kategori (Cinsiyet) */}
+                <div>
+                  <h3 className="text-sm font-semibold mb-3">Kategori</h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      variant={gender === "MALE" ? "default" : "outline"}
+                      className={`h-10 ${gender === "MALE" ? "bg-black text-white" : ""}`}
+                      onClick={() => setGender(gender === "MALE" ? "" : "MALE")}
+                    >
+                      Erkek
+                    </Button>
+                    <Button
+                      variant={gender === "FEMALE" ? "default" : "outline"}
+                      className={`h-10 ${gender === "FEMALE" ? "bg-black text-white" : ""}`}
+                      onClick={() => setGender(gender === "FEMALE" ? "" : "FEMALE")}
+                    >
+                      Kadın
+                    </Button>
+                    <Button
+                      variant={gender === "UNISEX" ? "default" : "outline"}
+                      className={`h-10 ${gender === "UNISEX" ? "bg-black text-white" : ""}`}
+                      onClick={() => setGender(gender === "UNISEX" ? "" : "UNISEX")}
+                    >
+                      Unisex
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Beden Tipi */}
+                <div>
+                  <h3 className="text-sm font-semibold mb-3">Beden Tipi</h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      variant={sizeType === "LETTER" ? "default" : "outline"}
+                      className={`h-10 ${sizeType === "LETTER" ? "bg-black text-white" : ""}`}
+                      onClick={() => setSizeType(sizeType === "LETTER" ? "" : "LETTER")}
+                    >
+                      Harf (XS, S, M...)
+                    </Button>
+                    <Button
+                      variant={sizeType === "NUMBER" ? "default" : "outline"}
+                      className={`h-10 ${sizeType === "NUMBER" ? "bg-black text-white" : ""}`}
+                      onClick={() => setSizeType(sizeType === "NUMBER" ? "" : "NUMBER")}
+                    >
+                      Numara (30, 32...)
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Stok Aralığı */}
+                <div>
+                  <h3 className="text-sm font-semibold mb-3">Stok Aralığı</h3>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      placeholder="Min"
+                      value={minStock}
+                      onChange={(e) => setMinStock(e.target.value)}
+                      className="h-10"
+                    />
+                    <span className="text-gray-400">-</span>
+                    <Input
+                      type="number"
+                      placeholder="Max"
+                      value={maxStock}
+                      onChange={(e) => setMaxStock(e.target.value)}
+                      className="h-10"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer Buttons */}
+              <div className="sticky bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 flex gap-2 mt-6">
+                <Button
+                  variant="outline"
+                  onClick={handleResetFilters}
+                  className="flex-1 h-12"
+                >
+                  Sıfırla
+                </Button>
+                <Button
+                  onClick={handleApplyFilters}
+                  className="flex-1 h-12 bg-black text-white hover:bg-gray-800"
+                >
+                  Uygula
+                </Button>
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
+
+        {/* Stok Durumu Filtreleri */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-2">
+          <Button
+            variant={stockStatus === "all" ? "default" : "outline"}
+            size="sm"
+            className={`whitespace-nowrap h-9 ${stockStatus === "all" ? "bg-black text-white" : ""}`}
+            onClick={() => setStockStatus("all")}
+          >
+            Tümü
+          </Button>
+          <Button
+            variant={stockStatus === "inStock" ? "default" : "outline"}
+            size="sm"
+            className={`whitespace-nowrap h-9 ${stockStatus === "inStock" ? "bg-black text-white" : ""}`}
+            onClick={() => setStockStatus("inStock")}
+          >
+            Stokta
+          </Button>
+          <Button
+            variant={stockStatus === "outOfStock" ? "default" : "outline"}
+            size="sm"
+            className={`whitespace-nowrap h-9 ${stockStatus === "outOfStock" ? "bg-black text-white" : ""}`}
+            onClick={() => setStockStatus("outOfStock")}
+          >
+            Tükendi
+          </Button>
+          <Button
+            variant={stockStatus === "lowStock" ? "default" : "outline"}
+            size="sm"
+            className={`whitespace-nowrap h-9 ${stockStatus === "lowStock" ? "bg-black text-white" : ""}`}
+            onClick={() => setStockStatus("lowStock")}
+          >
+            Düşük Stok
+          </Button>
+        </div>
+
         <div className="flex-shrink-0">
           <AddProductModal onSuccess={refresh} />
         </div>
       </div>
-      <div className="rounded-md border overflow-x-auto">
+
+      {/* Desktop: Table View */}
+      <div className="hidden md:block rounded-md border overflow-x-auto">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((group) => (
@@ -377,6 +672,200 @@ export default function ProductsPage() {
             )}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Mobile: Card View */}
+      <div className="md:hidden space-y-3">
+        {loading ? (
+          [...Array(5)].map((_, i) => (
+            <Card key={`skeleton-${i}`} className="p-4">
+              <Skeleton className="h-32 w-full" />
+            </Card>
+          ))
+        ) : table.getRowModel().rows.length ? (
+          table.getRowModel().rows.map((row) => {
+            const product = row.original;
+            const isExpanded = expandedRows.has(product.id);
+            const totalStock = (product.sizes || []).reduce((sum, s) => sum + (s.stock || 0), 0);
+            
+            return (
+              <Card key={product.id} className="border border-gray-200 overflow-hidden">
+                <CardContent className="p-0">
+                  {/* Ana Bilgiler */}
+                  <div className="p-4 flex gap-3">
+                    {/* Görsel */}
+                    <div className="flex-shrink-0">
+                      {product.image ? (
+                        <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100">
+                          <img 
+                            src={product.image} 
+                            alt={product.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center text-xs text-gray-400">
+                          Görsel Yok
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Ürün Bilgileri */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-sm text-gray-900 truncate">
+                            {product.name}
+                          </h3>
+                          {product.stockCode && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              {product.stockCode}
+                            </p>
+                          )}
+                        </div>
+                        <Badge 
+                          variant={product.isActive ? "default" : "secondary"}
+                          className="text-xs flex-shrink-0"
+                        >
+                          {product.isActive ? "Aktif" : "Pasif"}
+                        </Badge>
+                      </div>
+
+                      <div className="mt-2 flex items-center gap-3 flex-wrap">
+                        <div>
+                          <span className="text-xs text-gray-500">Fiyat:</span>
+                          <span className="text-sm font-semibold text-gray-900 ml-1">
+                            {product.price.toFixed(2)} ₺
+                          </span>
+                        </div>
+                        {totalStock > 0 && (
+                          <div>
+                            <span className="text-xs text-gray-500">Stok:</span>
+                            <span className="text-sm font-medium text-gray-900 ml-1">
+                              {totalStock}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Hızlı Bilgiler */}
+                      <div className="mt-2 flex items-center gap-2 flex-wrap">
+                        {product.gender && (
+                          <Badge variant="outline" className="text-xs">
+                            {genderMap[product.gender] || product.gender}
+                          </Badge>
+                        )}
+                        {product.sizeType && (
+                          <Badge variant="outline" className="text-xs">
+                            {product.sizeType === "LETTER" ? "Harf" : "Numara"}
+                          </Badge>
+                        )}
+                        {(product.colors || []).length > 0 && (
+                          <Badge variant="outline" className="text-xs">
+                            {(product.colors || []).length} Renk
+                          </Badge>
+                        )}
+                        {(product.sizes || []).length > 0 && (
+                          <Badge variant="outline" className="text-xs">
+                            {(product.sizes || []).length} Beden
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Detaylar Butonu ve İşlemler */}
+                  <div className="border-t border-gray-200 px-4 py-2 flex items-center justify-between bg-gray-50">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => toggleRow(product.id)}
+                      className="text-xs h-8"
+                    >
+                      {isExpanded ? (
+                        <>
+                          <ChevronUp className="w-4 h-4 mr-1" />
+                          Detayları Gizle
+                        </>
+                      ) : (
+                        <>
+                          <ChevronDown className="w-4 h-4 mr-1" />
+                          Detayları Göster
+                        </>
+                      )}
+                    </Button>
+                    <div className="flex items-center gap-1">
+                      <EditProductModal
+                        product={product}
+                        onSuccess={refresh}
+                        trigger={
+                          <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                        }
+                      />
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0 text-red-500 hover:text-red-600"
+                        onClick={() => setDeleteId(product.id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Genişletilmiş Detaylar */}
+                  {isExpanded && (
+                    <div className="border-t border-gray-200 p-4 space-y-3 bg-white">
+                      {product.stockCode && (
+                        <div>
+                          <span className="text-xs font-medium text-gray-500">Stok Kodu:</span>
+                          <p className="text-sm text-gray-900 mt-1">{product.stockCode}</p>
+                        </div>
+                      )}
+                      {product.description && (
+                        <div>
+                          <span className="text-xs font-medium text-gray-500">Açıklama:</span>
+                          <p className="text-sm text-gray-900 mt-1">{product.description}</p>
+                        </div>
+                      )}
+                      {(product.colors || []).length > 0 && (
+                        <div>
+                          <span className="text-xs font-medium text-gray-500">Renkler:</span>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {product.colors!.map((color, idx) => (
+                              <Badge key={idx} variant="outline" className="text-xs">
+                                {color.name}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {(product.sizes || []).length > 0 && (
+                        <div>
+                          <span className="text-xs font-medium text-gray-500">Bedenler:</span>
+                          <div className="flex flex-wrap gap-2 mt-1">
+                            {product.sizes!.map((size, idx) => (
+                              <div key={idx} className="text-xs">
+                                <span className="font-medium">{size.name}:</span>
+                                <span className="text-gray-600 ml-1">{size.stock || 0}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })
+        ) : (
+          <Card className="p-8 text-center">
+            <p className="text-gray-500">Kayıt bulunamadı</p>
+          </Card>
+        )}
       </div>
       <Dialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <DialogContent className="max-w-sm">
@@ -433,8 +922,8 @@ export default function ProductsPage() {
       </Dialog>
 
       {!loading && (
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <div>
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-muted-foreground">
+          <div className="text-xs sm:text-sm">
             {data.length > 0 && (
               <>
                 Gösterilen: {pagination.pageIndex * pagination.pageSize + 1}–
@@ -452,6 +941,7 @@ export default function ProductsPage() {
               disabled={!table.getCanPreviousPage()}
               size="sm"
               variant="outline"
+              className="h-8"
             >
               <ChevronLeftIcon size={16} />
             </Button>
@@ -460,6 +950,7 @@ export default function ProductsPage() {
               disabled={!table.getCanNextPage()}
               size="sm"
               variant="outline"
+              className="h-8"
             >
               <ChevronRightIcon size={16} />
             </Button>

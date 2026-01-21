@@ -24,7 +24,8 @@ export default function ProfileMobileHeader() {
   const handleLogout = async () => {
     await signOut({ redirect: false });
     toast.success("Çıkış yapıldı");
-    router.push("/");
+    // Session'ı tamamen temizlemek için sayfayı yenile
+    window.location.href = "/auth-tabs";
   };
 
   return (

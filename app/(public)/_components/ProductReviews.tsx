@@ -50,25 +50,34 @@ function formatDate(date: Date): string {
 
 interface ProductReviewsProps {
   productId: string;
-  reviews?: { id: string; userName: string; rating: number; comment: string; createdAt: Date }[];
+  selectedColorId?: string;
+  reviews?: { id: string; userName: string; rating: number; comment: string; createdAt: Date; colorId?: string; colorName?: string }[];
 }
 
-export default function ProductReviews({ productId, reviews = [] }: ProductReviewsProps) {
+export default function ProductReviews({ productId, selectedColorId, reviews = [] }: ProductReviewsProps) {
   const [showAllModal, setShowAllModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("highest");
   const [filterRating, setFilterRating] = useState<number | null>(null);
 
-  // Calculate average rating
+  // Seçili renge göre filtrelenmiş yorumlar
+  const filteredReviews = useMemo(() => {
+    if (selectedColorId) {
+      return reviews.filter((r) => r.colorId === selectedColorId || !r.colorId);
+    }
+    return reviews;
+  }, [reviews, selectedColorId]);
+
+  // Calculate average rating (filtrelenmiş yorumlara göre)
   const averageRating = useMemo(() => {
-    if (reviews.length === 0) return "0.0";
-    const total = reviews.reduce((sum, review) => sum + review.rating, 0);
-    return (total / reviews.length).toFixed(1);
-  }, [reviews]);
+    if (filteredReviews.length === 0) return "0.0";
+    const total = filteredReviews.reduce((sum, review) => sum + review.rating, 0);
+    return (total / filteredReviews.length).toFixed(1);
+  }, [filteredReviews]);
 
   // Filter and sort reviews
   const displayedReviews = useMemo(() => {
-    let filtered = reviews.map((r) => ({
+    let filtered = filteredReviews.map((r) => ({
       id: r.id,
       reviewerName: r.userName,
       isVerified: false,
@@ -127,6 +136,11 @@ export default function ProductReviews({ productId, reviews = [] }: ProductRevie
   const initialReviews = displayedReviews.slice(0, 2);
   const remainingCount = displayedReviews.length - 2;
 
+  // Ürüne ait yorum yoksa hiçbir şey gösterme
+  if (filteredReviews.length === 0) {
+    return null;
+  }
+
   return (
     <>
       <section className="max-w-4xl mx-auto px-4 md:px-8 py-12 border-t border-gray-200">
@@ -152,31 +166,58 @@ export default function ProductReviews({ productId, reviews = [] }: ProductRevie
             </div>
           </div>
           <p className="text-sm text-gray-600 font-light">
-            {reviews.length} yoruma dayanarak
+            {filteredReviews.length} yoruma dayanarak
           </p>
         </div>
 
-        {reviews.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-600 font-light">Henüz yorum yapılmamış.</p>
+        {/* Filtreleme UI - Ana Sayfada */}
+        <div className="mb-8 space-y-4">
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Yorumlarda ara..."
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 focus:outline-none focus:border-black text-sm font-light"
+            />
           </div>
-        )}
+
+          {/* Rating Filter */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-sm text-gray-600 font-light">Filtrele:</span>
+            {[5, 4, 3, 2, 1].map((rating) => (
+              <button
+                key={rating}
+                onClick={() => setFilterRating(filterRating === rating ? null : rating)}
+                className={`px-3 py-1 text-sm border transition-colors font-light ${
+                  filterRating === rating
+                    ? "border-black bg-black text-white"
+                    : "border-gray-300 hover:border-black"
+                }`}
+              >
+                {rating} Yıldız
+              </button>
+            ))}
+          </div>
+        </div>
 
         {/* Initial Reviews */}
         <div className="space-y-8 mb-8">
-          {initialReviews.map((review) => (
+          {displayedReviews.slice(0, 2).map((review) => (
             <ReviewCard key={review.id} review={review} />
           ))}
         </div>
 
         {/* Load More Button */}
-        {remainingCount > 0 && (
+        {displayedReviews.length > 2 && (
           <div className="text-center">
             <button
               onClick={() => setShowAllModal(true)}
               className="px-8 py-3 border border-black text-black text-sm font-light uppercase tracking-wide hover:bg-black hover:text-white transition-colors"
             >
-              Daha Fazla Yükle ({remainingCount})
+              Daha Fazla Yükle ({displayedReviews.length - 2})
             </button>
           </div>
         )}

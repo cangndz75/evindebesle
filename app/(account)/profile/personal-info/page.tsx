@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -38,55 +37,100 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="max-w-xl mx-auto px-4 py-6">
-      <h1 className="text-2xl font-bold mb-4">Kişisel Bilgiler</h1>
+    <div className="w-full">
+      {/* Başlık */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-light tracking-tight text-black mb-2">
+          Kişisel Bilgilerim
+        </h1>
+        <p className="text-sm text-gray-600 font-light">
+          Hesap bilgilerinizi ve şifrenizi buradan güncelleyebilirsiniz.
+        </p>
+      </div>
 
-      <div className="flex space-x-2 mb-4">
+      {/* Tab Navigation */}
+      <div className="flex items-center gap-1 border-b border-gray-200 mb-8">
         <button
           onClick={() => setActiveTab("profile")}
-          className={`px-4 py-2 rounded-full text-sm font-medium ${activeTab === "profile" ? "bg-black text-white" : "bg-gray-100 text-gray-800"}`}
+          className={`px-6 py-3 text-sm font-light transition-colors relative ${
+            activeTab === "profile"
+              ? "text-black"
+              : "text-gray-500 hover:text-black"
+          }`}
         >
           Profil Detayları
+          {activeTab === "profile" && (
+            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-black" />
+          )}
         </button>
         <button
           onClick={() => setActiveTab("password")}
-          className={`px-4 py-2 rounded-full text-sm font-medium ${activeTab === "password" ? "bg-black text-white" : "bg-gray-100 text-gray-800"}`}
+          className={`px-6 py-3 text-sm font-light transition-colors relative ${
+            activeTab === "password"
+              ? "text-black"
+              : "text-gray-500 hover:text-black"
+          }`}
         >
           Şifre Değiştirme
+          {activeTab === "password" && (
+            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-black" />
+          )}
         </button>
       </div>
 
-      <EmailVerifyNotice />
+      {/* Email Verification Notice */}
+      <div className="mb-8">
+        <EmailVerifyNotice />
+      </div>
 
-      {activeTab === "profile" && (
-        <>
-          <ProfileDetails />
-          <MarketingConsentToggle />
-        </>
-      )}
+      {/* Content */}
+      <div className="max-w-2xl">
+        {activeTab === "profile" && (
+          <div className="space-y-8">
+            <ProfileDetails />
+            <div className="pt-6 border-t border-gray-200">
+              <MarketingConsentToggle />
+            </div>
+          </div>
+        )}
 
-      {activeTab === "password" && <PasswordChange />}
+        {activeTab === "password" && (
+          <div className="space-y-8">
+            <PasswordChange />
+          </div>
+        )}
 
-      <AlertDialog>
-        <AlertDialogTrigger asChild>
-          <button className="mt-6 text-sm text-red-600 hover:underline">
-            Hesabı Sil
-          </button>
-        </AlertDialogTrigger>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              Hesabınızı silmek istediğinize emin misiniz?
-            </AlertDialogTitle>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Vazgeç</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteAccount}>
-              Evet, Sil
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        {/* Delete Account */}
+        <div className="mt-12 pt-8 border-t border-gray-200">
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium text-black">Hesap İşlemleri</h3>
+            <p className="text-xs text-gray-600 font-light">
+              Hesabınızı kalıcı olarak silmek istiyorsanız aşağıdaki butona tıklayın.
+              Bu işlem geri alınamaz.
+            </p>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <button className="mt-4 text-sm text-red-600 hover:text-red-700 font-light underline">
+                  Hesabı Sil
+                </button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>
+                    Hesabınızı silmek istediğinize emin misiniz?
+                  </AlertDialogTitle>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Vazgeç</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDeleteAccount}>
+                    Evet, Sil
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

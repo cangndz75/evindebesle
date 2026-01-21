@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -13,6 +13,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import ShoppingCart from "@/app/(public)/_components/ShoppingCart";
 
 type MenuKey = "men" | "women" | "kids" | "bundles" | "lastcall";
 
@@ -42,7 +43,100 @@ export default function SiteHeader() {
   const { data: session } = useSession();
   const [menuOpen, setMenuOpen] = useState(false);
   const [openMenu, setOpenMenu] = useState<MenuKey | null>(null);
+  const [cartOpen, setCartOpen] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
+  const [favoriteCount, setFavoriteCount] = useState(0);
   const closeTimer = useRef<number | null>(null);
+
+  // Sepet sayısını yükle
+  useEffect(() => {
+    const loadCartCount = async () => {
+      if (!session?.user) {
+        setCartCount(0);
+        return;
+      }
+      try {
+        const res = await fetch("/api/cart");
+        if (res.ok) {
+          const items = await res.json();
+          const total = items.reduce((sum: number, item: any) => sum + item.quantity, 0);
+          setCartCount(total);
+        }
+      } catch (error) {
+        console.error("Error loading cart count:", error);
+      }
+    };
+
+    loadCartCount();
+    // Her 5 saniyede bir güncelle
+    const interval = setInterval(loadCartCount, 5000);
+    return () => clearInterval(interval);
+  }, [session]);
+
+  // Favori sayısını yükle
+  useEffect(() => {
+    const loadFavoriteCount = async () => {
+      if (!session?.user) {
+        setFavoriteCount(0);
+        return;
+      }
+      try {
+        const res = await fetch("/api/favorites");
+        if (res.ok) {
+          const favorites = await res.json();
+          setFavoriteCount(favorites.length || 0);
+        }
+      } catch (error) {
+        console.error("Error loading favorite count:", error);
+      }
+    };
+
+    loadFavoriteCount();
+    // Her 5 saniyede bir güncelle
+    const interval = setInterval(loadFavoriteCount, 5000);
+    return () => clearInterval(interval);
+  }, [session]);
+
+  // Favori güncellemelerini dinle
+  useEffect(() => {
+    const handleFavoriteUpdate = () => {
+      if (session?.user) {
+        fetch("/api/favorites")
+          .then((res) => res.json())
+          .then((favorites) => setFavoriteCount(favorites.length || 0))
+          .catch((error) => console.error("Error loading favorite count:", error));
+      }
+    };
+
+    window.addEventListener("favoriteUpdated", handleFavoriteUpdate);
+    return () => window.removeEventListener("favoriteUpdated", handleFavoriteUpdate);
+  }, [session]);
+
+  // Sepet güncellemelerini dinle
+  useEffect(() => {
+    const handleCartUpdate = () => {
+      if (session?.user) {
+        fetch("/api/cart")
+          .then((res) => res.json())
+          .then((items) => {
+            const total = items.reduce((sum: number, item: any) => sum + item.quantity, 0);
+            setCartCount(total);
+          })
+          .catch((error) => console.error("Error loading cart count:", error));
+      }
+    };
+
+    const handleOpenCart = () => {
+      setCartOpen(true);
+    };
+
+    window.addEventListener("cartUpdated", handleCartUpdate);
+    window.addEventListener("openCart", handleOpenCart);
+    return () => {
+      window.removeEventListener("cartUpdated", handleCartUpdate);
+      window.removeEventListener("openCart", handleOpenCart);
+    };
+  }, [session]);
 
   const mega = useMemo<Record<MenuKey, { left: MegaGroup[]; rightPromo: Promo }>>(
     () => ({
@@ -300,12 +394,23 @@ export default function SiteHeader() {
                 </div>
               </SheetContent>
             </Sheet>
+            
+            {/* Mobile Logo - Hamburger yanında */}
+            <Link
+              href="/home"
+              className="md:hidden ml-3"
+              aria-label="Ana Sayfa"
+            >
+              <span className="text-xl font-serif font-light tracking-wider text-[#111] whitespace-nowrap">
+                DARK VELVET
+              </span>
+            </Link>
           </div>
 
-          {/* Orta: Logo - Absolute positioned for perfect centering */}
+          {/* Orta: Logo - Absolute positioned for perfect centering (Desktop only) */}
           <Link
             href="/home"
-            className="absolute left-1/2 -translate-x-1/2"
+            className="hidden md:block absolute left-1/2 -translate-x-1/2"
             aria-label="Ana Sayfa"
           >
             <span className="text-2xl md:text-3xl font-serif font-light tracking-wider text-[#111]">
@@ -316,7 +421,7 @@ export default function SiteHeader() {
           {/* Sağ: İkonlar */}
           <div className="flex items-center gap-4 md:gap-6">
             <button
-              className="hover:opacity-70 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 rounded text-[#111] focus-visible:ring-[#111]"
+              className="hidden md:flex hover:opacity-70 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 rounded text-[#111] focus-visible:ring-[#111]"
               aria-label="Ara"
             >
               <Search className="w-5 h-5" />
@@ -329,25 +434,29 @@ export default function SiteHeader() {
               <User className="w-5 h-5" />
             </Link>
             <Link
-              href="/favorites"
+              href={session?.user ? "/favorites" : "/auth-tabs"}
               className="relative hover:opacity-70 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 rounded text-[#111] focus-visible:ring-[#111]"
               aria-label="Favoriler"
             >
               <Heart className="w-5 h-5" />
-              <span className="absolute -top-1 -right-1 w-4 h-4 text-white text-[10px] rounded-full flex items-center justify-center font-light bg-[#111]">
-                0
-              </span>
+              {favoriteCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 text-white text-[10px] rounded-full flex items-center justify-center font-light bg-[#111]">
+                  {favoriteCount}
+                </span>
+              )}
             </Link>
-            <Link
-              href="/cart"
+            <button
+              onClick={() => setCartOpen(true)}
               className="relative hover:opacity-70 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 rounded text-[#111] focus-visible:ring-[#111]"
               aria-label="Sepet"
             >
               <ShoppingBag className="w-5 h-5" />
-              <span className="absolute -top-1 -right-1 w-4 h-4 text-white text-[10px] rounded-full flex items-center justify-center font-light bg-[#111]">
-                0
-              </span>
-            </Link>
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 text-white text-[10px] rounded-full flex items-center justify-center font-light bg-[#111]">
+                  {cartCount}
+                </span>
+              )}
+            </button>
           </div>
         </div>
       </nav>
@@ -410,6 +519,9 @@ export default function SiteHeader() {
           </div>
         </div>
       )}
+
+      {/* Shopping Cart Sidebar */}
+      <ShoppingCart isOpen={cartOpen} onClose={() => setCartOpen(false)} />
       </header>
     </>
   );

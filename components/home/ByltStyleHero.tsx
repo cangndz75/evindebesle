@@ -15,6 +15,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import SearchModal from "./SearchModal";
+import AnnouncementBanner from "./AnnouncementBanner";
 
 type MenuKey = "men" | "women" | "kids" | "bundles" | "lastcall";
 
@@ -276,11 +277,7 @@ export default function DarkVelvetHeroHeader() {
         <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/30 to-black/40" />
       </div>
 
-      <div className="fixed top-0 left-0 right-0 z-[60]">
-        <div className="bg-black text-white text-[11px] tracking-[0.18em] uppercase text-center h-9 flex items-center justify-center">
-          ÜCRETSİZ KARGO 999₺+
-        </div>
-      </div>
+      <AnnouncementBanner />
 
       <header
         className={[
@@ -493,7 +490,7 @@ export default function DarkVelvetHeroHeader() {
               </button>
               
               {/* Mobile: User Icon */}
-              <Link href={user ? "/profile" : "/login"} className="md:hidden hover:opacity-70 transition-opacity p-1">
+              <Link href={user ? "/profile/personal-info" : "/auth-tabs"} className="md:hidden hover:opacity-70 transition-opacity p-1">
                 <User className="h-5 w-5" />
               </Link>
               
@@ -514,7 +511,7 @@ export default function DarkVelvetHeroHeader() {
                   <User className="h-5 w-5" />
                 </Link>
                 <Link
-                  href="/favorites"
+                  href={user ? "/favorites" : "/auth-tabs"}
                   className="hover:opacity-70 transition-opacity relative"
                   aria-label="Favoriler"
                 >

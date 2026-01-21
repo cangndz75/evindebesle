@@ -85,6 +85,10 @@ model User {
   passwordResetTokens PasswordResetToken[]
   accessInfo         AccessInfo?
   favorites          ProductFavorite[]
+  wishlistShare      WishlistShare?
+  productViews       ProductViewHistory[]
+  cartItems          CartItem[]
+  orders             Order[]
 }
 
 model PasswordResetToken {
@@ -464,9 +468,11 @@ model UserAddress {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  user         User          @relation(fields: [userId], references: [id])
-  district     District      @relation(fields: [districtId], references: [id])
-  appointments Appointment[]
+  user              User          @relation(fields: [userId], references: [id])
+  district          District      @relation(fields: [districtId], references: [id])
+  appointments      Appointment[]
+  shippingOrders    Order[]       @relation("ShippingAddress")
+  billingOrders     Order[]       @relation("BillingAddress")
 }
 
 model Coupon {
@@ -484,6 +490,7 @@ model Coupon {
   userCoupons      UserCoupon[]
   draftAppointments DraftAppointment[]
   appointments     Appointment[]
+  orders           Order[]
 }
 
 model UserCoupon {
@@ -599,6 +606,7 @@ model Product {
   description     String?  // Kısa açıklama
   detailText      String?  @db.Text // Detaylı metin (HTML olabilir)
   price           Float
+  originalPrice   Float?  // Orijinal fiyat (indirimli ürünler için)
   image           String?  // Ana görsel
   primaryImage    String?  // Birincil görsel (hover'da gösterilecek)
   secondaryImage  String?  // İkincil görsel (hover'da gösterilecek)
@@ -618,6 +626,9 @@ model Product {
   sizeOptions     ProductSizeOption[]
   variants        ProductVariant[]
   favorites       ProductFavorite[]
+  viewHistory     ProductViewHistory[]
+  cartItems       CartItem[]
+  orderItems      OrderItem[]
 }
 
 model ProductColor {
@@ -631,6 +642,9 @@ model ProductColor {
 
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   variants ProductVariant[] // Bir renk için birden fazla variant (her beden için)
+  reviews ProductReview[] // Bu renge ait yorumlar
+  cartItems CartItem[]
+  orderItems OrderItem[]
 
   @@index([productId])
 }
@@ -667,6 +681,8 @@ model ProductSize {
 
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   variants ProductVariant[] // Bir beden için birden fazla variant (her renk için)
+  cartItems CartItem[]
+  orderItems OrderItem[]
 
   @@unique([productId, name])
   @@index([productId])
@@ -701,6 +717,7 @@ model ProductCombination {
 model ProductReview {
   id        String   @id @default(cuid())
   productId String
+  colorId   String?  // Renk ID (opsiyonel, renk bazlı yorumlar için)
   userId    String?  // Kullanıcı ID (opsiyonel, misafir yorumları için)
   userName  String?  // Kullanıcı adı (misafir yorumları için)
   rating    Int      // 1-5 arası puan
@@ -710,8 +727,10 @@ model ProductReview {
   updatedAt DateTime @updatedAt
 
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  color   ProductColor? @relation(fields: [colorId], references: [id], onDelete: SetNull)
 
   @@index([productId])
+  @@index([colorId])
   @@index([isApproved])
 }
 
@@ -739,5 +758,152 @@ model ProductFavorite {
 
   @@unique([userId, productId])
   @@index([userId])
+  @@index([productId])
+}
+
+model WishlistShare {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  shareId   String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([shareId])
+}
+
+model ProductViewHistory {
+  id        String   @id @default(cuid())
+  userId    String?  // Kullanıcı ID (opsiyonel, misafir görüntülemeleri için)
+  productId String
+  viewedAt  DateTime @default(now())
+
+  user    User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([productId])
+  @@index([viewedAt])
+  @@unique([userId, productId, viewedAt])
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  colorId   String?  // Seçilen renk
+  sizeId    String?  // Seçilen beden
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  color   ProductColor? @relation(fields: [colorId], references: [id], onDelete: SetNull)
+  size    ProductSize? @relation(fields: [sizeId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, productId, colorId, sizeId])
+  @@index([userId])
+  @@index([productId])
+}
+
+model CompanySettings {
+  id                    String   @id @default(cuid())
+  freeShippingThreshold Float    @default(99.0) // Ücretsiz kargo eşiği (TL)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@unique([id])
+}
+
+enum OrderStatus {
+  PENDING      // Beklemede
+  PREPARING    // Hazırlanıyor
+  SHIPPED      // Kargoya verildi
+  DELIVERED    // Teslim edildi
+  CANCELLED    // İptal edildi
+}
+
+enum PaymentStatus {
+  PENDING      // Ödeme bekleniyor
+  PAID         // Ödendi
+  FAILED       // Ödeme başarısız
+  REFUNDED     // İade edildi
+}
+
+model Order {
+  id              String        @id @default(cuid())
+  orderNumber     String        @unique // Sipariş numarası (örn: ORD-20250121-001)
+  userId          String
+  status          OrderStatus   @default(PENDING)
+  paymentStatus   PaymentStatus @default(PENDING)
+  
+  // Fiyat bilgileri
+  subtotal        Float         // Ara toplam (ürünler)
+  shippingCost    Float         @default(0) // Kargo ücreti
+  discount        Float         @default(0) // İndirim tutarı
+  total           Float         // Toplam tutar
+  
+  // Adres bilgileri
+  shippingAddressId String?      // Teslimat adresi
+  billingAddressId  String?      // Fatura adresi
+  
+  // Ödeme bilgileri
+  paymentId       String?       // Ödeme ID (iyzico/tami)
+  paymentMethod   String?       // Ödeme yöntemi
+  paidAt          DateTime?
+  
+  // Kargo bilgileri
+  trackingNumber  String?       // Kargo takip numarası
+  shippedAt       DateTime?
+  deliveredAt     DateTime?
+  
+  // Kupon
+  couponId       String?
+  coupon         Coupon?       @relation(fields: [couponId], references: [id])
+  
+  // Notlar
+  customerNote   String?       @db.Text // Müşteri notu
+  adminNote      String?       @db.Text // Admin notu
+  
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shippingAddress UserAddress? @relation("ShippingAddress", fields: [shippingAddressId], references: [id])
+  billingAddress  UserAddress? @relation("BillingAddress", fields: [billingAddressId], references: [id])
+  items          OrderItem[]
+  
+  @@index([userId])
+  @@index([orderNumber])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id          String   @id @default(cuid())
+  orderId     String
+  productId   String
+  colorId     String?
+  sizeId      String?
+  
+  productName String   // Ürün adı (snapshot)
+  colorName   String?  // Renk adı (snapshot)
+  sizeName    String?  // Beden adı (snapshot)
+  image       String?  // Ürün görseli (snapshot)
+  
+  quantity    Int      // Adet
+  unitPrice   Float    // Birim fiyat (snapshot)
+  totalPrice  Float    // Toplam fiyat (quantity * unitPrice)
+  
+  createdAt   DateTime @default(now())
+  
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product     Product  @relation(fields: [productId], references: [id])
+  color       ProductColor? @relation(fields: [colorId], references: [id])
+  size        ProductSize? @relation(fields: [sizeId], references: [id])
+  
+  @@index([orderId])
   @@index([productId])
 }

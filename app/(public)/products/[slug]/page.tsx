@@ -44,6 +44,15 @@ export default async function ProductSlugPage({
       },
       reviews: {
         where: { isApproved: true },
+        include: {
+          color: {
+            select: {
+              id: true,
+              name: true,
+              hexCode: true,
+            },
+          },
+        },
         orderBy: { createdAt: "desc" },
       },
       combinations: {
@@ -82,7 +91,7 @@ export default async function ProductSlugPage({
     id: product.id,
     name: product.name,
     price: product.price,
-    originalPrice: undefined,
+    originalPrice: product.originalPrice || undefined,
     description: product.description || "",
     images: (() => {
       // Renk images'ı parse et (eğer string ise)
@@ -155,12 +164,14 @@ export default async function ProductSlugPage({
       if (product.sizes && product.sizes.length > 0) {
         console.log('[ProductSlugPage] Using sizes');
         return product.sizes.map((s) => ({
+          id: s.id,
           name: s.name,
           stock: s.stock,
         }));
       } else if (product.sizeOptions && product.sizeOptions.length > 0) {
         console.log('[ProductSlugPage] Using sizeOptions');
         return product.sizeOptions.map((so) => ({
+          id: so.id,
           name: so.name,
           stock: 0, // sizeOptions için stok bilgisi yok, varsayılan 0
         }));
@@ -179,6 +190,8 @@ export default async function ProductSlugPage({
       rating: r.rating,
       comment: r.comment || "",
       createdAt: r.createdAt,
+      colorId: r.colorId,
+      colorName: r.color?.name,
     })),
     details: product.detailText ? [product.detailText] : [],
     fabric: product.fabricType || "",

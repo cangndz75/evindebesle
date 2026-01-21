@@ -21,21 +21,37 @@ export default function RevenueChart() {
   }, []);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Gelir Grafiği</CardTitle>
+    <Card className="border border-gray-200">
+      <CardHeader className="p-4 md:p-6">
+        <CardTitle className="text-lg md:text-xl">Gelir Grafiği</CardTitle>
       </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
+      <CardContent className="p-4 md:p-6">
+        <ResponsiveContainer width="100%" height={250}>
           <LineChart data={data}>
-            <XAxis dataKey="date" />
-            <YAxis />
-            <Tooltip />
+            <XAxis 
+              dataKey="date" 
+              tick={{ fontSize: 12 }}
+              angle={-45}
+              textAnchor="end"
+              height={60}
+            />
+            <YAxis 
+              tick={{ fontSize: 12 }}
+              width={60}
+            />
+            <Tooltip 
+              contentStyle={{ 
+                fontSize: '12px',
+                padding: '8px',
+                borderRadius: '6px'
+              }}
+            />
             <Line
               type="monotone"
               dataKey="revenue"
               stroke="#10b981"
               strokeWidth={2}
+              dot={{ r: 4 }}
             />
           </LineChart>
         </ResponsiveContainer>

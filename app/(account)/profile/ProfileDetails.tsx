@@ -67,37 +67,68 @@ export default function ProfileDetails() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div>
-        <label className="block text-sm font-medium mb-1">Ad</label>
+        <label className="block text-sm font-medium text-black mb-2">
+          Ad Soyad
+        </label>
         <Input
           value={user.name || ""}
           onChange={(e) => setUser({ ...user, name: e.target.value })}
+          className="h-11 border-gray-300 focus:border-black focus:ring-black rounded-lg"
+          placeholder="Adınızı ve soyadınızı girin"
         />
+        <p className="mt-1.5 text-xs text-gray-500 font-light">
+          Hesabınızda görünecek adınız ve soyadınız.
+        </p>
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1">E-posta</label>
-        <Input value={user.email || ""} disabled />
+        <label className="block text-sm font-medium text-black mb-2">
+          E-posta Adresi
+        </label>
+        <Input 
+          value={user.email || ""} 
+          disabled
+          className="h-11 border-gray-300 bg-gray-50 rounded-lg cursor-not-allowed"
+        />
+        <p className="mt-1.5 text-xs text-gray-500 font-light">
+          E-posta adresiniz değiştirilemez. Değiştirmek için lütfen destek ekibimizle iletişime geçin.
+        </p>
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1">Telefon</label>
+        <label className="block text-sm font-medium text-black mb-2">
+          Telefon Numarası
+        </label>
         <Input
           value={user.phone || ""}
           onChange={(e) => setUser({ ...user, phone: e.target.value })}
+          className="h-11 border-gray-300 focus:border-black focus:ring-black rounded-lg"
+          placeholder="5XX XXX XX XX"
+          type="tel"
         />
+        <p className="mt-1.5 text-xs text-gray-500 font-light">
+          Sipariş ve teslimat bilgilendirmeleri için kullanılacaktır.
+        </p>
       </div>
 
-      <Button onClick={updateUser} disabled={updating}>
-        {updating ? (
-          <div className="flex items-center gap-2">
-            <Loader2 className="h-4 w-4 animate-spin" />
-          </div>
-        ) : (
-          "Kaydet"
-        )}
-      </Button>
+      <div className="pt-4">
+        <Button 
+          onClick={updateUser} 
+          disabled={updating}
+          className="h-11 px-8 bg-black text-white hover:bg-black/90 rounded-full text-sm font-light"
+        >
+          {updating ? (
+            <div className="flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Güncelleniyor...</span>
+            </div>
+          ) : (
+            "Değişiklikleri Kaydet"
+          )}
+        </Button>
+      </div>
     </div>
   );
 }

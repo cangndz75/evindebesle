@@ -327,7 +327,7 @@ export default function MenProductsPage() {
     });
   };
 
-  const handleColorClick = (productId: string, color: ProductColor, e: React.MouseEvent) => {
+  const handleColorClick = (productId: string, color: Product['colors'][number], e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     const colorImage = color.images[0] || "";

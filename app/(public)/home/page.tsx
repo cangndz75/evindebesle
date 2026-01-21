@@ -14,7 +14,138 @@ import EditorialTiles from "@/components/home/EditorialTiles";
 import TabbedBestSellers from "@/components/home/TabbedBestSellers";
 import NewsletterSignup from "@/components/home/NewsletterSignup";
 import FooterAccordion from "@/components/home/FooterAccordion";
-import { newArrivals, bestSellersWomen, womensBrands, mensBrands } from "@/lib/homeData";
+import { womensBrands, mensBrands } from "@/lib/homeData";
+import { prisma } from "@/lib/db";
+import type { Product } from "@/lib/homeData";
+
+// Performans için ISR - 5 dakikada bir yenilenir
+export const revalidate = 300;
+
+async function getNewArrivals(gender?: "MALE" | "FEMALE"): Promise<Product[]> {
+  try {
+    const products = await prisma.product.findMany({
+      where: {
+        isActive: true,
+        ...(gender && { gender }),
+        tags: {
+          some: {
+            name: {
+              in: ["yeni ürün", "yeni", "yeni gelenler", "new", "new arrival"],
+            },
+          },
+        },
+      },
+      include: {
+        colors: {
+          take: 1,
+          select: {
+            images: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 8,
+    });
+
+    return products.map((product) => {
+      const firstColor = product.colors[0];
+      const colorImages = firstColor?.images || [];
+      const mainImage = product.primaryImage || product.image || colorImages[0] || "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop";
+      const hoverImage = product.secondaryImage || colorImages[1] || mainImage;
+
+      return {
+        id: product.id,
+        title: product.name,
+        price: product.price,
+        originalPrice: product.originalPrice || undefined,
+        image: mainImage,
+        hoverImage: hoverImage !== mainImage ? hoverImage : undefined,
+        badge: product.originalPrice ? "İndirim" : "Yeni",
+        colors: product.colors.map((c) => c.images[0] || "").filter(Boolean),
+      };
+    });
+  } catch (error) {
+    console.error("Error fetching new arrivals:", error);
+    return [];
+  }
+}
+
+async function getBestSellers(gender?: "MALE" | "FEMALE"): Promise<Product[]> {
+  try {
+    const products = await prisma.product.findMany({
+      where: {
+        isActive: true,
+        ...(gender && { gender }),
+        OR: [
+          {
+            tags: {
+              some: {
+                name: {
+                  in: ["çok satan", "best seller", "bestseller", "en çok satan"],
+                },
+              },
+            },
+          },
+          {
+            orderItems: {
+              some: {},
+            },
+          },
+        ],
+      },
+      include: {
+        colors: {
+          take: 1,
+          select: {
+            images: true,
+          },
+        },
+        _count: {
+          select: {
+            orderItems: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 8,
+    });
+
+    // Sipariş sayısına göre sırala
+    products.sort((a, b) => {
+      const aCount = a._count.orderItems;
+      const bCount = b._count.orderItems;
+      if (bCount !== aCount) {
+        return bCount - aCount;
+      }
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+
+    return products.map((product) => {
+      const firstColor = product.colors[0];
+      const colorImages = firstColor?.images || [];
+      const mainImage = product.primaryImage || product.image || colorImages[0] || "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop";
+      const hoverImage = product.secondaryImage || colorImages[1] || mainImage;
+
+      return {
+        id: product.id,
+        title: product.name,
+        price: product.price,
+        originalPrice: product.originalPrice || undefined,
+        image: mainImage,
+        hoverImage: hoverImage !== mainImage ? hoverImage : undefined,
+        badge: product.originalPrice ? "İndirim" : undefined,
+        colors: product.colors.map((c) => c.images[0] || "").filter(Boolean),
+      };
+    });
+  } catch (error) {
+    console.error("Error fetching best sellers:", error);
+    return [];
+  }
+}
 
 export const metadata = {
   title: "Dark Velvet - Premium İç Çamaşırı",
@@ -22,7 +153,14 @@ export const metadata = {
     "Dark Velvet - Erkek ve kadın premium iç çamaşırı koleksiyonu. Zarif tasarımlar, konforlu kumaşlar ve modern stil.",
 };
 
-export default function HomePage() {
+export default async function HomePage() {
+  // Paralel olarak tüm verileri çek (performans için)
+  const [newArrivals, bestSellersWomen, bestSellersMen] = await Promise.all([
+    getNewArrivals(),
+    getBestSellers("FEMALE"),
+    getBestSellers("MALE"),
+  ]);
+
   return (
     <>
       <ByltStyleHero />
@@ -32,12 +170,15 @@ export default function HomePage() {
       <BrandShowcase title="MEN'S BRANDS" items={mensBrands} />
       <CollectionCarousel />
       <SplitShowcase />
-      <TwoUpEditorialTiles />
-      <CategoryRail />
+      {/* <TwoUpEditorialTiles /> */}
+      {/* <CategoryRail /> */}
       <FeaturedCardsRow />
       <ProductCarousel title="Yeni Gelenler" products={newArrivals} viewAllLink="/women/new" />
       <EditorialTiles />
-      <TabbedBestSellers />
+      <TabbedBestSellers 
+        bestSellersWomen={bestSellersWomen}
+        bestSellersMen={bestSellersMen}
+      />
       <NewsletterSignup />
       <FooterAccordion />
     </>

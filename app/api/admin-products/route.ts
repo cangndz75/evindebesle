@@ -30,86 +30,94 @@ export async function GET(request: NextRequest) {
     where.sizeType = sizeType;
   }
 
-  const products = await prisma.product.findMany({
-    where,
-    include: {
-      colors: true,
-      sizes: true,
-      tags: true,
-      sizeOptions: true,
-      variants: {
-        include: {
-          color: true,
-          size: true,
+  try {
+    const products = await prisma.product.findMany({
+      where,
+      include: {
+        colors: true,
+        sizes: true,
+        tags: true,
+        sizeOptions: true,
+        variants: {
+          include: {
+            color: true,
+            size: true,
+          },
         },
-      },
-      combinations: {
-        include: {
-          relatedProduct: {
-            select: {
-              id: true,
-              name: true,
-              image: true,
-              price: true,
+        combinations: {
+          include: {
+            relatedProduct: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+                price: true,
+              },
             },
           },
         },
+        reviews: {
+          where: { isApproved: true },
+          take: 5,
+          orderBy: { createdAt: "desc" },
+        },
       },
-      reviews: {
-        where: { isApproved: true },
-        take: 5,
-        orderBy: { createdAt: "desc" },
-      },
-    },
-  });
-
-  // Stok durumuna göre filtreleme
-  let filteredProducts = products;
-  if (stockStatus && stockStatus !== "all") {
-    filteredProducts = products.filter((product) => {
-      const totalStock = (product.sizes || []).reduce((sum, s) => sum + (s.stock || 0), 0);
-      
-      if (stockStatus === "inStock") {
-        return totalStock > 0;
-      } else if (stockStatus === "outOfStock") {
-        return totalStock === 0;
-      } else if (stockStatus === "lowStock") {
-        return totalStock > 0 && totalStock <= 10;
-      }
-      return true;
     });
-  }
 
-  // Stok aralığına göre filtreleme
-  if (minStock || maxStock) {
-    filteredProducts = filteredProducts.filter((product) => {
-      const totalStock = (product.sizes || []).reduce((sum, s) => sum + (s.stock || 0), 0);
-      if (minStock && totalStock < parseInt(minStock)) return false;
-      if (maxStock && totalStock > parseInt(maxStock)) return false;
-      return true;
-    });
-  }
+    // Stok durumuna göre filtreleme
+    let filteredProducts = products;
+    if (stockStatus && stockStatus !== "all") {
+      filteredProducts = products.filter((product) => {
+        const totalStock = (product.sizes || []).reduce((sum, s) => sum + (s.stock || 0), 0);
+        
+        if (stockStatus === "inStock") {
+          return totalStock > 0;
+        } else if (stockStatus === "outOfStock") {
+          return totalStock === 0;
+        } else if (stockStatus === "lowStock") {
+          return totalStock > 0 && totalStock <= 10;
+        }
+        return true;
+      });
+    }
 
-  // Sıralama
-  let sortedProducts = [...filteredProducts];
-  if (sortBy === "name") {
-    sortedProducts.sort((a, b) => a.name.localeCompare(b.name, "tr"));
-  } else if (sortBy === "stock") {
-    sortedProducts.sort((a, b) => {
-      const stockA = (a.sizes || []).reduce((sum, s) => sum + (s.stock || 0), 0);
-      const stockB = (b.sizes || []).reduce((sum, s) => sum + (s.stock || 0), 0);
-      return stockB - stockA;
-    });
-  } else if (sortBy === "newest") {
-    sortedProducts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  } else if (sortBy === "oldest") {
-    sortedProducts.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-  } else {
-    // Varsayılan: en yeni
-    sortedProducts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }
+    // Stok aralığına göre filtreleme
+    if (minStock || maxStock) {
+      filteredProducts = filteredProducts.filter((product) => {
+        const totalStock = (product.sizes || []).reduce((sum, s) => sum + (s.stock || 0), 0);
+        if (minStock && totalStock < parseInt(minStock)) return false;
+        if (maxStock && totalStock > parseInt(maxStock)) return false;
+        return true;
+      });
+    }
 
-  return NextResponse.json(sortedProducts);
+    // Sıralama
+    let sortedProducts = [...filteredProducts];
+    if (sortBy === "name") {
+      sortedProducts.sort((a, b) => a.name.localeCompare(b.name, "tr"));
+    } else if (sortBy === "stock") {
+      sortedProducts.sort((a, b) => {
+        const stockA = (a.sizes || []).reduce((sum, s) => sum + (s.stock || 0), 0);
+        const stockB = (b.sizes || []).reduce((sum, s) => sum + (s.stock || 0), 0);
+        return stockB - stockA;
+      });
+    } else if (sortBy === "newest") {
+      sortedProducts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    } else if (sortBy === "oldest") {
+      sortedProducts.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    } else {
+      // Varsayılan: en yeni
+      sortedProducts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }
+
+    return NextResponse.json(sortedProducts);
+  } catch (error: any) {
+    console.error("Ürünler yüklenirken hata:", error);
+    return NextResponse.json(
+      { error: error.message || "Ürünler yüklenirken bir hata oluştu" },
+      { status: 500 }
+    );
+  }
 }
 
 export async function POST(req: Request) {

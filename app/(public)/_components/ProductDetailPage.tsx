@@ -26,6 +26,7 @@ interface ProductDetailPageProps {
     washing?: string;
     delivery?: string;
     sizeNotes?: string;
+    gender?: "MALE" | "FEMALE" | "UNISEX";
     reviews?: { id: string; userName: string; rating: number; comment: string; createdAt: Date; colorId?: string; colorName?: string }[];
   };
 }
@@ -71,6 +72,12 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
   const [isFavorite, setIsFavorite] = useState(false);
   const [isLoadingFavorite, setIsLoadingFavorite] = useState(false);
   const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
+  const [liveStock, setLiveStock] = useState<number | null>(null);
+  const [isSticky, setIsSticky] = useState(false);
+  
+  // Kadın ürünü kontrolü - Tüm ürünler aynı görünümde
+  const isWomenProduct = false;
+  
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     details: true,
     fabric: false,
@@ -101,7 +108,7 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
 
   // Seçili renge göre fotoğrafları al
   const getCurrentColorImages = () => {
-    const currentColor = product.colors[selectedColor];
+    const currentColor = product.colors?.[selectedColor];
     if (currentColor?.images && currentColor.images.length > 0) {
       // images array'ini parse et (eğer string ise)
       let parsedImages: string[] = [];
@@ -159,7 +166,7 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
 
   // Seçili renge göre variant stok kontrolü
   const getVariantStock = (sizeName: string): number => {
-    const currentColor = product.colors[selectedColor];
+    const currentColor = product.colors?.[selectedColor];
     if (!currentColor?.id) {
       // Renk yoksa ProductSize'dan stok kontrolü yap
       return getSizeStock(sizeName);
@@ -246,6 +253,57 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
     recordView();
   }, [product.id]);
 
+  // Sticky bottom bar için scroll kontrolü
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY;
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
+      
+      // Sayfa yeterince kaydırıldıysa sticky yap
+      if (scrollPosition > 300 && scrollPosition + windowHeight < documentHeight - 100) {
+        setIsSticky(true);
+      } else {
+        setIsSticky(false);
+      }
+    };
+    
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Canlı stok kontrolü - Mobil için
+  useEffect(() => {
+    if (!selectedSize || !selectedColor) return;
+    
+    const checkStock = async () => {
+      try {
+        const currentColor = product.colors?.[selectedColor];
+        const sizeObj = product.sizes?.find(
+          (s: any) => typeof s === 'object' && s.name === selectedSize
+        );
+        
+        if (currentColor?.id && sizeObj && typeof sizeObj === 'object' && 'id' in sizeObj) {
+          const res = await fetch(`/api/products/${product.id}/stock?colorId=${currentColor.id}&sizeId=${sizeObj.id}`);
+          if (res.ok) {
+            const data = await res.json();
+            setLiveStock(data.stock || 0);
+          }
+        } else {
+          // Fallback: getVariantStock kullan
+          setLiveStock(getVariantStock(selectedSize));
+        }
+      } catch (error) {
+        console.error("Error checking stock:", error);
+        setLiveStock(getVariantStock(selectedSize));
+      }
+    };
+    
+    checkStock();
+    const interval = setInterval(checkStock, 30000); // Her 30 saniyede bir kontrol et
+    return () => clearInterval(interval);
+  }, [selectedSize, selectedColor, product.id]);
+
   // Favorilere ekle/çıkar
   const toggleFavorite = async () => {
     setIsLoadingFavorite(true);
@@ -295,10 +353,10 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
   };
 
   return (
-    <div className="w-full bg-white min-h-screen">
+    <div className="w-full min-h-screen bg-white">
       {/* Breadcrumb */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 pt-6 pb-4">
-        <nav className="flex items-center gap-2 text-sm text-gray-500 font-light">
+        <nav className="flex items-center gap-2 text-sm font-light text-gray-500">
           <Link href="/home" className="hover:text-black transition-colors">
             Ana Sayfa
           </Link>
@@ -479,7 +537,7 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
                 {product.price} ₺
               </span>
               {product.originalPrice && (
-                <span className="text-lg text-gray-400 line-through ml-3">
+                <span className="text-lg line-through ml-3 text-gray-400">
                   {product.originalPrice} ₺
                 </span>
               )}
@@ -517,10 +575,10 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
             {/* Renk Seçimi - Hidden on mobile, shown on desktop */}
             <div className="hidden md:block mb-8">
               <p className="text-sm font-light text-black mb-3">
-                Renk: <span className="font-normal">{product.colors[selectedColor].name}</span>
+                Renk: <span className="font-normal">{product.colors?.[selectedColor]?.name || "Renk seçilmedi"}</span>
               </p>
               <div className="flex gap-3">
-                {product.colors.map((color, idx) => {
+                {product.colors?.map((color, idx) => {
                   // Renk için ilk fotoğrafı al
                   const colorImage = color.images && color.images.length > 0 
                     ? (typeof color.images === 'string' 
@@ -566,12 +624,40 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
               </div>
             </div>
 
-            {/* Beden Seçimi */}
+            {/* Beden Seçimi - Hem Mobil Hem Desktop */}
             <div className="mb-8">
               <div className="mb-4">
                 <p className="text-sm font-light text-black mb-3">
                   Beden: <span className="text-gray-500">{selectedSize || "Seçiniz"}</span>
                 </p>
+                
+                {/* Stok Gösterimi - Hem Mobil Hem Desktop */}
+                {selectedSize && (
+                  <div className="mb-3 p-3 rounded-md bg-gray-50 border border-gray-200">
+                    <p className="text-sm font-medium text-gray-700">
+                      Stok Durumu
+                    </p>
+                    {liveStock !== null ? (
+                      <p className={`text-xs mt-1 ${liveStock > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {liveStock > 0 
+                          ? `Bu üründen sadece ${liveStock} adet kaldı. Acele et!`
+                          : "Bu ürün şu anda stokta yok."
+                        }
+                      </p>
+                    ) : (
+                      <p className="text-xs mt-1 text-gray-500">Stok kontrol ediliyor...</p>
+                    )}
+                    {liveStock !== null && liveStock > 0 && liveStock <= 6 && (
+                      <div className="mt-2 h-2 rounded-full overflow-hidden bg-gray-200">
+                        <div 
+                          className="h-full transition-all bg-amber-500"
+                          style={{ width: `${(liveStock / 10) * 100}%` }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+                
                 <div className="flex gap-2 flex-wrap">
                   {(() => {
                     const availableSizes = getAvailableSizesForColor();
@@ -850,9 +936,132 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
       {/* Yorumlar Bölümü */}
       <ProductReviews 
         productId={product.id} 
-        selectedColorId={product.colors[selectedColor]?.id}
+        selectedColorId={product.colors?.[selectedColor]?.id}
         reviews={product.reviews || []} 
       />
+
+      {/* Sticky Bottom Bar - Mobil için */}
+      <div 
+        className={`fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 transition-transform duration-300 ease-in-out md:hidden ${
+          isSticky ? 'translate-y-0 shadow-lg' : 'translate-y-full'
+        }`}
+      >
+        <div className="px-4 py-3 space-y-2">
+          {/* Adet ve Sepete Ekle - Yan Yana */}
+          <div className="flex items-center gap-2">
+            {/* Adet Seçici */}
+            <div className="flex items-center border border-gray-300 rounded-lg bg-white h-[48px]">
+              <button
+                onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
+                className="px-3 h-full text-black hover:bg-gray-100 transition-colors font-light flex items-center justify-center disabled:opacity-50"
+                disabled={quantity <= 1}
+              >
+                <Minus className="w-4 h-4" />
+              </button>
+              <span className="px-4 h-full text-sm font-light text-black border-x border-gray-300 min-w-[50px] text-center flex items-center justify-center">
+                {quantity}
+              </span>
+              <button
+                onClick={() => setQuantity((prev) => prev + 1)}
+                className="px-3 h-full text-black hover:bg-gray-100 transition-colors font-light flex items-center justify-center"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Sepete Ekle Butonu */}
+            <button
+              onClick={async () => {
+                if (!selectedSize) {
+                  toast.error("Lütfen bir beden seçin");
+                  return;
+                }
+                try {
+                  const selectedColorObj = product.colors?.[selectedColor];
+                  const selectedSizeObj = product.sizes?.find(
+                    (s: any) => typeof s === 'object' && s.name === selectedSize
+                  ) || product.sizeOptions?.find(
+                    (s: any) => typeof s === 'object' && s.name === selectedSize
+                  );
+                  const colorId = selectedColorObj?.id || null;
+                  const sizeId = (selectedSizeObj && typeof selectedSizeObj === 'object' && 'id' in selectedSizeObj) 
+                    ? selectedSizeObj.id 
+                    : null;
+                  const res = await fetch("/api/cart", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      productId: product.id,
+                      colorId,
+                      sizeId,
+                      quantity,
+                    }),
+                  });
+                  if (res.ok) {
+                    toast.success("Sepete eklendi");
+                    window.dispatchEvent(new Event("cartUpdated"));
+                  } else {
+                    const error = await res.json();
+                    toast.error(error.error || "Sepete eklenirken bir hata oluştu");
+                  }
+                } catch (error) {
+                  console.error("Error adding to cart:", error);
+                  toast.error("Sepete eklenirken bir hata oluştu");
+                }
+              }}
+              disabled={!selectedSize || getVariantStock(selectedSize) <= 0}
+              className="flex-1 px-4 py-3 border border-gray-300 text-black bg-white rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider text-sm font-light"
+            >
+              SEPETE EKLE
+            </button>
+          </div>
+
+          {/* Hızlı Satın Alın Butonu */}
+          <button
+            onClick={async () => {
+              if (!selectedSize) {
+                toast.error("Lütfen bir beden seçin");
+                return;
+              }
+              try {
+                const selectedColorObj = product.colors?.[selectedColor];
+                const selectedSizeObj = product.sizes?.find(
+                  (s: any) => typeof s === 'object' && s.name === selectedSize
+                ) || product.sizeOptions?.find(
+                  (s: any) => typeof s === 'object' && s.name === selectedSize
+                );
+                const colorId = selectedColorObj?.id || null;
+                const sizeId = (selectedSizeObj && typeof selectedSizeObj === 'object' && 'id' in selectedSizeObj) 
+                  ? selectedSizeObj.id 
+                  : null;
+                const res = await fetch("/api/cart", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    productId: product.id,
+                    colorId,
+                    sizeId,
+                    quantity,
+                  }),
+                });
+                if (res.ok) {
+                  window.location.href = "/payment";
+                } else {
+                  const error = await res.json();
+                  toast.error(error.error || "Bir hata oluştu");
+                }
+              } catch (error) {
+                console.error("Error:", error);
+                toast.error("Bir hata oluştu");
+              }
+            }}
+            disabled={!selectedSize || getVariantStock(selectedSize) <= 0}
+            className="w-full px-4 py-3 bg-[#111] text-white rounded-lg hover:bg-[#333] transition-all disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider text-sm font-semibold"
+          >
+            HIZLI SATIN ALIN
+          </button>
+        </div>
+      </div>
 
       {/* Takımı Tamamla Bölümü */}
       <CompleteTheSetSection />

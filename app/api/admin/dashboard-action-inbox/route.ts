@@ -86,10 +86,10 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    // İptal edilen randevular (bugün)
+    // İptal edilen randevular (bugün - confirmedAt'a göre)
     const cancelledAppointments = await prisma.appointment.count({
       where: {
-        updatedAt: {
+        confirmedAt: {
           gte: new Date(new Date().setHours(0, 0, 0, 0)),
         },
         status: "CANCELED",

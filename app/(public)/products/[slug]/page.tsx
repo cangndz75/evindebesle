@@ -75,7 +75,7 @@ export default async function ProductSlugPage({
   }
 
   // Variant'a göre renk seçimi
-  let selectedColor = product.colors[0];
+  let selectedColor = product.colors?.[0];
   if (variant) {
     const variantData = await prisma.productVariant.findUnique({
       where: { variantCode: variant },

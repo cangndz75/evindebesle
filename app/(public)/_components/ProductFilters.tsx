@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Plus, Minus } from "lucide-react";
+import { X, Plus, Minus, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -127,36 +127,46 @@ export default function ProductFilters({
       {/* Filter Button */}
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>
-          <Button variant="outline" className="flex items-center gap-2">
-            <span>FİLTRE</span>
-            {activeFilters.length > 0 && (
-              <span className="bg-black text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
-                {activeFilters.length}
-              </span>
-            )}
-            <Plus className="w-4 h-4" />
-          </Button>
+          <button className="flex items-center gap-2 px-4 py-2 text-sm font-light text-[#111] border border-[#111] bg-white hover:bg-[#111] hover:text-white transition-colors">
+            {/* Filter Icon - 3 lines with arrows on middle line */}
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              {/* Top line (long) */}
+              <path d="M2 4H14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              {/* Middle line (shorter with arrows) */}
+              <path d="M4 8H12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              {/* Left arrow */}
+              <path d="M3 7L4 8L3 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+              {/* Right arrow */}
+              <path d="M13 7L12 8L13 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+              {/* Bottom line (long) */}
+              <path d="M2 12H14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+            <span>Filtrele</span>
+          </button>
         </SheetTrigger>
         <SheetContent side="left" className="w-[400px] overflow-y-auto p-0">
-          <SheetHeader className="px-6 pt-6 pb-4 border-b">
-            <SheetTitle className="text-left">Filtreler</SheetTitle>
+          <SheetHeader className="px-6 pt-6 pb-4 border-b flex flex-row items-center justify-between">
+            <SheetTitle className="text-left font-bold text-[#111]">Filtreler</SheetTitle>
+            <button
+              onClick={() => setOpen(false)}
+              className="text-[#111] hover:opacity-70 transition-opacity"
+              aria-label="Kapat"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </SheetHeader>
 
           <div className="px-6 py-4">
             <Accordion type="multiple" className="w-full space-y-0">
               {/* Price Filter */}
               <AccordionItem value="price" className="border-b border-gray-200">
-                <AccordionTrigger className="py-4 hover:no-underline">
+                <AccordionTrigger className="py-4 hover:no-underline px-0">
                   <div className="flex items-center justify-between w-full pr-4">
-                    <span className="text-sm font-semibold uppercase">FİYAT</span>
-                    {(localFilters.minPrice || localFilters.maxPrice) && (
-                      <span className="text-xs text-gray-500">
-                        (1)
-                      </span>
-                    )}
+                    <span className="text-sm font-semibold uppercase text-[#111]">FİYAT</span>
+                    <ChevronDown className="w-4 h-4 text-[#111] transition-transform duration-200" />
                   </div>
                 </AccordionTrigger>
-                <AccordionContent className="pt-2 pb-4">
+                <AccordionContent className="pt-2 pb-4 px-0">
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-3">
                       <div>
@@ -168,7 +178,7 @@ export default function ProductFilters({
                           onChange={(e) =>
                             updateFilter("minPrice", e.target.value ? parseFloat(e.target.value) : undefined)
                           }
-                          className="w-full"
+                          className="w-full border-gray-300"
                         />
                       </div>
                       <div>
@@ -180,7 +190,7 @@ export default function ProductFilters({
                           onChange={(e) =>
                             updateFilter("maxPrice", e.target.value ? parseFloat(e.target.value) : undefined)
                           }
-                          className="w-full"
+                          className="w-full border-gray-300"
                         />
                       </div>
                     </div>
@@ -208,17 +218,13 @@ export default function ProductFilters({
               {/* Size Filter */}
               {availableSizes.length > 0 && (
                 <AccordionItem value="size" className="border-b border-gray-200">
-                  <AccordionTrigger className="py-4 hover:no-underline">
+                  <AccordionTrigger className="py-4 hover:no-underline px-0">
                     <div className="flex items-center justify-between w-full pr-4">
-                      <span className="text-sm font-semibold uppercase">BEDEN</span>
-                      {localFilters.sizes.length > 0 && (
-                        <span className="text-xs text-gray-500">
-                          ({localFilters.sizes.length})
-                        </span>
-                      )}
+                      <span className="text-sm font-semibold uppercase text-[#111]">BEDEN</span>
+                      <ChevronDown className="w-4 h-4 text-[#111] transition-transform duration-200" />
                     </div>
                   </AccordionTrigger>
-                  <AccordionContent className="pt-2 pb-4">
+                  <AccordionContent className="pt-2 pb-4 px-0">
                     <div className="grid grid-cols-3 gap-3">
                       {availableSizes.map((size) => (
                         <div key={size} className="flex items-center space-x-2">
@@ -243,17 +249,13 @@ export default function ProductFilters({
               {/* Color Filter */}
               {availableColors.length > 0 && (
                 <AccordionItem value="color" className="border-b border-gray-200">
-                  <AccordionTrigger className="py-4 hover:no-underline">
+                  <AccordionTrigger className="py-4 hover:no-underline px-0">
                     <div className="flex items-center justify-between w-full pr-4">
-                      <span className="text-sm font-semibold uppercase">RENK</span>
-                      {localFilters.colors.length > 0 && (
-                        <span className="text-xs text-gray-500">
-                          ({localFilters.colors.length})
-                        </span>
-                      )}
+                      <span className="text-sm font-semibold uppercase text-[#111]">RENK</span>
+                      <ChevronDown className="w-4 h-4 text-[#111] transition-transform duration-200" />
                     </div>
                   </AccordionTrigger>
-                  <AccordionContent className="pt-2 pb-4">
+                  <AccordionContent className="pt-2 pb-4 px-0">
                     <div className="space-y-2">
                       {availableColors.map((color) => (
                         <div key={color} className="flex items-center space-x-2">
@@ -278,17 +280,13 @@ export default function ProductFilters({
               {/* Fabric Type Filter */}
               {availableFabricTypes.length > 0 && (
                 <AccordionItem value="fabric" className="border-b border-gray-200">
-                  <AccordionTrigger className="py-4 hover:no-underline">
+                  <AccordionTrigger className="py-4 hover:no-underline px-0">
                     <div className="flex items-center justify-between w-full pr-4">
-                      <span className="text-sm font-semibold uppercase">KUMAŞ TİPİ</span>
-                      {localFilters.fabricTypes.length > 0 && (
-                        <span className="text-xs text-gray-500">
-                          ({localFilters.fabricTypes.length})
-                        </span>
-                      )}
+                      <span className="text-sm font-semibold uppercase text-[#111]">KUMAŞ TİPİ</span>
+                      <ChevronDown className="w-4 h-4 text-[#111] transition-transform duration-200" />
                     </div>
                   </AccordionTrigger>
-                  <AccordionContent className="pt-2 pb-4">
+                  <AccordionContent className="pt-2 pb-4 px-0">
                     <div className="space-y-2">
                       {availableFabricTypes.map((fabric) => (
                         <div key={fabric} className="flex items-center space-x-2">
@@ -313,7 +311,10 @@ export default function ProductFilters({
 
             {/* Apply Button */}
             <div className="pt-6 mt-4 border-t">
-              <Button onClick={applyFilters} className="w-full">
+              <Button 
+                onClick={applyFilters} 
+                className="w-full bg-[#111] text-white hover:bg-[#333] h-12 text-sm font-semibold uppercase tracking-wide"
+              >
                 Filtrele
               </Button>
             </div>

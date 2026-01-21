@@ -125,11 +125,21 @@ export default function WomenBestSellersPage() {
                 <div>
                   <h3 className="text-sm font-light uppercase mb-4">RENK</h3>
                   <div className="grid grid-cols-4 gap-3">
-                    {["Black", "White", "Nude", "Pink", "Red", "Navy", "Gray", "Beige"].map((color) => (
+                    {[
+                      { name: "Koyu Bordo", value: "#5C1A1A" },
+                      { name: "Bordo", value: "#800020" },
+                      { name: "Açık Bordo", value: "#A52A2A" },
+                      { name: "Koyu Kırmızı", value: "#8B0000" },
+                      { name: "Burgundy", value: "#722F37" },
+                      { name: "Maroon", value: "#6B1F1F" },
+                      { name: "Koyu Burgundy", value: "#4A0E0E" },
+                      { name: "Bordo Kırmızı", value: "#7B0000" },
+                    ].map((color) => (
                       <button
-                        key={color}
+                        key={color.name}
                         className="w-10 h-10 rounded-full border border-gray-300"
-                        style={{ backgroundColor: color.toLowerCase() === "white" ? "#fff" : color.toLowerCase() === "nude" ? "#E8D5C4" : color.toLowerCase() === "beige" ? "#F5F5DC" : color.toLowerCase() }}
+                        style={{ backgroundColor: color.value }}
+                        title={color.name}
                       />
                     ))}
                   </div>

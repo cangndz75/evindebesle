@@ -598,6 +598,20 @@ enum SizeType {
   NUMBER  // 30, 32, 34, 36, 38
 }
 
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  products    Product[]
+
+  @@index([slug])
+}
+
 model Product {
   id              String   @id @default(cuid())
   name            String
@@ -613,10 +627,14 @@ model Product {
   gender          Gender?  // Cinsiyet
   sizeType        SizeType? // Beden tipi (LETTER veya NUMBER)
   fabricType      String?  // Kumaş tipi (Pamuk, Polyester, vb.)
+  categoryId      String?  // Kategori ID
+  brand           String?  // Marka
+  weight          Float?   // Ağırlık (kg)
   isActive        Boolean  @default(true)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
+  category        Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   colors          ProductColor[]
   sizes           ProductSize[]
   tags            ProductTag[]
@@ -629,6 +647,8 @@ model Product {
   viewHistory     ProductViewHistory[]
   cartItems       CartItem[]
   orderItems      OrderItem[]
+
+  @@index([categoryId])
 }
 
 model ProductColor {
@@ -815,6 +835,19 @@ model CompanySettings {
   updatedAt             DateTime @updatedAt
 
   @@unique([id])
+}
+
+model DashboardWidget {
+  id        String   @id @default(cuid())
+  userId    String?  // Admin kullanıcı ID (null ise global)
+  widgetKey String   // Widget anahtarı (todayRevenue, todayOrders, aov, cancellationRate)
+  position  Int      // Pozisyon (0, 1, 2, 3)
+  isVisible Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, widgetKey])
+  @@index([userId])
 }
 
 enum OrderStatus {

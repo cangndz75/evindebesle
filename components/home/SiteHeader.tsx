@@ -48,6 +48,11 @@ export default function SiteHeader() {
   const [favoriteCount, setFavoriteCount] = useState(0);
   const closeTimer = useRef<number | null>(null);
 
+  // Admin sayfalarında header'ı gösterme
+  if (pathname?.startsWith("/dashboard") || pathname?.startsWith("/admin") || pathname?.startsWith("/users") || pathname?.startsWith("/coupons") || pathname?.startsWith("/company-settings")) {
+    return null;
+  }
+
   // Sepet sayısını yükle
   useEffect(() => {
     const loadCartCount = async () => {
@@ -376,11 +381,13 @@ export default function SiteHeader() {
                   <Menu className="w-5 h-5" />
                 </button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-[300px] p-6">
-                <SheetHeader>
-                  <SheetTitle className="sr-only">Menü</SheetTitle>
+              <SheetContent side="left" className="w-[300px] p-0 flex flex-col">
+                <SheetHeader className="px-6 pt-6 pb-4 border-b">
+                  <SheetTitle className="text-lg font-light uppercase tracking-wide text-[#111]">
+                    Menü
+                  </SheetTitle>
                 </SheetHeader>
-                <div className="mt-8 space-y-4">
+                <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
                   {navItems.map((item) => (
                     <Link
                       key={item.href}
@@ -391,6 +398,55 @@ export default function SiteHeader() {
                       {item.label}
                     </Link>
                   ))}
+                </div>
+                {/* Mobil İkonlar - Altta */}
+                <div className="border-t px-6 py-4 space-y-3">
+                  <button
+                    onClick={() => {
+                      setMenuOpen(false);
+                      // Arama modalını aç
+                    }}
+                    className="flex items-center gap-3 text-[#111] font-light hover:opacity-70 transition-opacity w-full"
+                  >
+                    <Search className="w-5 h-5" />
+                    <span>Ara</span>
+                  </button>
+                  <Link
+                    href={session?.user ? "/profile/personal-info" : "/auth-tabs"}
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-3 text-[#111] font-light hover:opacity-70 transition-opacity"
+                  >
+                    <User className="w-5 h-5" />
+                    <span>Hesabım</span>
+                  </Link>
+                  <Link
+                    href={session?.user ? "/favorites" : "/auth-tabs"}
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-3 text-[#111] font-light hover:opacity-70 transition-opacity relative"
+                  >
+                    <Heart className="w-5 h-5" />
+                    <span>Favoriler</span>
+                    {favoriteCount > 0 && (
+                      <span className="absolute left-5 top-0 w-4 h-4 text-white text-[10px] rounded-full flex items-center justify-center font-light bg-[#111]">
+                        {favoriteCount}
+                      </span>
+                    )}
+                  </Link>
+                  <button
+                    onClick={() => {
+                      setMenuOpen(false);
+                      setCartOpen(true);
+                    }}
+                    className="flex items-center gap-3 text-[#111] font-light hover:opacity-70 transition-opacity relative w-full"
+                  >
+                    <ShoppingBag className="w-5 h-5" />
+                    <span>Sepet</span>
+                    {cartCount > 0 && (
+                      <span className="absolute left-5 top-0 w-4 h-4 text-white text-[10px] rounded-full flex items-center justify-center font-light bg-[#111]">
+                        {cartCount}
+                      </span>
+                    )}
+                  </button>
                 </div>
               </SheetContent>
             </Sheet>

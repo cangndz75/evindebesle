@@ -265,7 +265,7 @@ export default function DarkVelvetHeroHeader() {
     <section className="relative w-full h-[70vh] md:h-[92vh] overflow-hidden bg-white">
       <div className="absolute inset-0">
         <Image
-          src="https://images.unsplash.com/photo-1520975732130-14b4a8b3b3ed?q=80&w=2200&auto=format&fit=crop"
+          src="https://images.unsplash.com/photo-1537274942065-eda9d00a6293?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
           alt="Hero"
           fill
           priority
@@ -442,6 +442,36 @@ export default function DarkVelvetHeroHeader() {
                         </Link>
                       )}
                     </div>
+
+                    {/* Mobil İkonlar - Altta */}
+                    <div className="mt-8 pt-6 border-t border-black/10 space-y-3">
+                      <button
+                        onClick={() => {
+                          setMobileMenuOpen(false);
+                          setSearchModalOpen(true);
+                        }}
+                        className="flex items-center gap-3 text-[#111] font-light hover:opacity-70 transition-opacity w-full text-left"
+                      >
+                        <Search className="h-5 w-5" />
+                        <span>Ara</span>
+                      </button>
+                      <Link
+                        href={user ? "/favorites" : "/login"}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-3 text-[#111] font-light hover:opacity-70 transition-opacity"
+                      >
+                        <Heart className="h-5 w-5" />
+                        <span>Favoriler</span>
+                      </Link>
+                      <Link
+                        href="/cart"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-3 text-[#111] font-light hover:opacity-70 transition-opacity"
+                      >
+                        <ShoppingBag className="h-5 w-5" />
+                        <span>Sepet</span>
+                      </Link>
+                    </div>
                   </div>
                 </SheetContent>
               </Sheet>
@@ -602,7 +632,7 @@ export default function DarkVelvetHeroHeader() {
       />
 
       <div className="relative z-10 h-full flex items-center justify-center text-center">
-        <div className="w-full max-w-5xl mx-auto pt-24 md:pt-32 px-4 md:px-10">
+        <div className="w-full max-w-5xl mx-auto pt-12 md:pt-16 px-4 md:px-10">
           <p className="text-white/90 text-xs md:text-sm tracking-[0.22em] uppercase mb-4 md:mb-6">
             Gardırobunu yenile, konforu yeniden tanımla
           </p>
@@ -612,7 +642,7 @@ export default function DarkVelvetHeroHeader() {
             <span className="block">Yenilenme</span>
           </h1>
 
-          <div className="flex flex-col items-center justify-center gap-3 md:gap-4">
+          <div className="flex flex-row items-center justify-center gap-3 md:gap-4">
             <Link
               href="/women"
               className="w-full max-w-[200px] md:w-auto px-8 md:px-12 py-3 md:py-4 border-2 border-white text-white text-xs md:text-sm tracking-[0.22em] uppercase hover:bg-white hover:text-black transition-colors text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"

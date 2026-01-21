@@ -3,15 +3,26 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { Heart, Filter, ChevronDown } from "lucide-react";
+import { Heart, ChevronDown, ArrowUpDown } from "lucide-react";
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import AnnouncementBanner from "@/components/home/AnnouncementBanner";
+import ProductFilters from "./ProductFilters";
+import { useMemo } from "react";
 
 type ColorOption = {
   name: string;
@@ -142,10 +153,115 @@ function FavoriteButton({ productId }: { productId: string }) {
   );
 }
 
+type FilterState = {
+  minPrice?: number;
+  maxPrice?: number;
+  sizes: string[];
+  colors: string[];
+  fabricTypes: string[];
+};
+
+type ActiveFilter = {
+  type: "price" | "size" | "color" | "fabric";
+  label: string;
+  value: string;
+};
+
 export default function WomenProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [hoveredColor, setHoveredColor] = useState<{ productId: string; colorImage: string } | null>(null);
   const [selectedColor, setSelectedColor] = useState<{ productId: string; colorImage: string } | null>(null);
+  const [sortOption, setSortOption] = useState("featured");
+  const [sortDialogOpen, setSortDialogOpen] = useState(false);
+  const [filters, setFilters] = useState<FilterState>({
+    sizes: [],
+    colors: [],
+    fabricTypes: [],
+  });
+
+  // Available options from products
+  const availableOptions = useMemo(() => {
+    const sizes = new Set<string>();
+    const colors = new Set<string>();
+    const prices = products.map((p) => p.price);
+
+    products.forEach((product) => {
+      product.colors.forEach((color) => {
+        colors.add(color.name);
+      });
+    });
+
+    return {
+      sizes: Array.from(sizes),
+      colors: Array.from(colors),
+      fabricTypes: [] as string[],
+      priceRange: {
+        min: Math.min(...prices, 0),
+        max: Math.max(...prices, 2000),
+      },
+    };
+  }, []);
+
+  // Active filters for display
+  const activeFilters = useMemo<ActiveFilter[]>(() => {
+    const result: ActiveFilter[] = [];
+    if (filters.minPrice || filters.maxPrice) {
+      result.push({
+        type: "price",
+        label:
+          filters.minPrice && filters.maxPrice
+            ? `₺${filters.minPrice} - ₺${filters.maxPrice}`
+            : filters.minPrice
+            ? `₺${filters.minPrice}+`
+            : `₺${filters.maxPrice}-`,
+        value: `${filters.minPrice || ""}-${filters.maxPrice || ""}`,
+      });
+    }
+    filters.sizes.forEach((size) => {
+      result.push({ type: "size", label: size, value: size });
+    });
+    filters.colors.forEach((color) => {
+      result.push({ type: "color", label: color, value: color });
+    });
+    filters.fabricTypes.forEach((fabric) => {
+      result.push({ type: "fabric", label: fabric, value: fabric });
+    });
+    return result;
+  }, [filters]);
+
+  const handleFiltersChange = (newFilters: FilterState) => {
+    setFilters(newFilters);
+  };
+
+  const handleRemoveFilter = (filter: ActiveFilter) => {
+    const newFilters = { ...filters };
+    switch (filter.type) {
+      case "price":
+        newFilters.minPrice = undefined;
+        newFilters.maxPrice = undefined;
+        break;
+      case "size":
+        newFilters.sizes = newFilters.sizes.filter((s) => s !== filter.value);
+        break;
+      case "color":
+        newFilters.colors = newFilters.colors.filter((c) => c !== filter.value);
+        break;
+      case "fabric":
+        newFilters.fabricTypes = newFilters.fabricTypes.filter(
+          (f) => f !== filter.value
+        );
+        break;
+    }
+    setFilters(newFilters);
+  };
+
+  const handleClearFilters = () => {
+    setFilters({
+      sizes: [],
+      colors: [],
+      fabricTypes: [],
+    });
+  };
 
   const handleColorInteraction = (productId: string, colorImage: string) => {
     setHoveredColor({ productId, colorImage });
@@ -175,12 +291,12 @@ export default function WomenProductsPage() {
         </h1>
 
         {/* Category Filters */}
-        <div className="flex flex-wrap gap-2 mb-6">
+        <div className="flex gap-2 mb-6 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4 md:mx-0 md:px-0">
           {categories.map((category) => (
             <button
               key={category}
               onClick={() => setSelectedCategory(category)}
-              className={`px-4 py-2 text-sm font-light uppercase tracking-wide transition-colors ${
+              className={`px-4 py-2 text-sm font-light uppercase tracking-wide transition-colors whitespace-nowrap flex-shrink-0 ${
                 selectedCategory === category
                   ? "bg-[#111] text-white"
                   : "bg-white text-[#111] border border-[#111] hover:bg-[#111] hover:text-white"
@@ -192,49 +308,132 @@ export default function WomenProductsPage() {
         </div>
 
         {/* Filter and Sort */}
-        <div className="flex items-center justify-between mb-8">
-          <Sheet>
-            <SheetTrigger asChild>
-              <button className="flex items-center gap-2 text-sm font-light text-[#111] hover:opacity-70 transition-opacity">
-                <Filter className="w-4 h-4" />
-                FILTER
-              </button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-[300px] sm:w-[400px]">
-              <SheetHeader>
-                <SheetTitle>Filtreler</SheetTitle>
-              </SheetHeader>
-              <div className="mt-8 space-y-6">
-                <div>
-                  <h3 className="text-sm font-light uppercase mb-4">RENK</h3>
-                  <div className="grid grid-cols-4 gap-3">
-                    {["Black", "White", "Nude", "Pink", "Red", "Navy", "Gray", "Beige"].map((color) => (
-                      <button
-                        key={color}
-                        className="w-10 h-10 rounded-full border border-gray-300"
-                        style={{ backgroundColor: color.toLowerCase() === "white" ? "#fff" : color.toLowerCase() === "nude" ? "#E8D5C4" : color.toLowerCase() === "beige" ? "#F5F5DC" : color.toLowerCase() }}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </SheetContent>
-          </Sheet>
+        <div className="flex items-center justify-between mb-8 gap-4">
+          {/* Filtre Butonu - Sol */}
+          <div className="flex items-center gap-2">
+            <ProductFilters
+              availableSizes={availableOptions.sizes}
+              availableColors={availableOptions.colors}
+              availableFabricTypes={availableOptions.fabricTypes}
+              priceRange={availableOptions.priceRange}
+              filters={filters}
+              onFiltersChange={handleFiltersChange}
+              activeFilters={activeFilters}
+              onRemoveFilter={handleRemoveFilter}
+              onClearFilters={handleClearFilters}
+            />
+          </div>
 
+          {/* Sırala - Sağ */}
           <div className="flex items-center gap-4">
-            <span className="text-sm text-[#111]/60 font-light">{products.length} ürün</span>
-            <div className="flex items-center gap-2">
+            <span className="text-sm text-[#111]/60 font-light hidden md:inline">{products.length} ürün</span>
+            
+            {/* Mobil: Sırala Butonu */}
+            <button
+              onClick={() => setSortDialogOpen(true)}
+              className="md:hidden flex items-center gap-2 px-4 py-2 text-sm font-light text-[#111] border border-[#111] hover:bg-[#111] hover:text-white transition-colors"
+            >
+              <ArrowUpDown className="w-4 h-4" />
+              <span>Sırala</span>
+            </button>
+
+            {/* Desktop: Sırala Dropdown */}
+            <div className="hidden md:flex items-center gap-2">
               <span className="text-sm text-[#111] font-light">Sırala:</span>
-              <select className="text-sm font-light text-[#111] bg-transparent border-none focus:outline-none cursor-pointer">
-                <option>Öne Çıkanlar</option>
-                <option>Fiyat: Düşükten Yükseğe</option>
-                <option>Fiyat: Yüksekten Düşüğe</option>
-                <option>En Yeni</option>
-              </select>
-              <ChevronDown className="w-4 h-4" />
+              <Select value={sortOption} onValueChange={setSortOption}>
+                <SelectTrigger className="w-[200px] border-none bg-transparent text-sm font-light text-[#111] focus:ring-0 focus:ring-offset-0">
+                  <SelectValue>
+                    {sortOption === "featured" && "Öne çıkan"}
+                    {sortOption === "bestseller" && "En çok satan"}
+                    {sortOption === "az" && "Alfabetik olarak, A-Z"}
+                    {sortOption === "za" && "Alfabetik olarak, Z-A"}
+                    {sortOption === "price-low" && "Fiyat, düşükten yükseğe"}
+                    {sortOption === "price-high" && "Fiyat, yüksekten düşüğe"}
+                    {sortOption === "date-old" && "Tarih, eskiden yeniye"}
+                    {sortOption === "date-new" && "Tarih, yeniden eskiye"}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="featured">Öne çıkan</SelectItem>
+                  <SelectItem value="bestseller">En çok satan</SelectItem>
+                  <SelectItem value="az">Alfabetik olarak, A-Z</SelectItem>
+                  <SelectItem value="za">Alfabetik olarak, Z-A</SelectItem>
+                  <SelectItem value="price-low">Fiyat, düşükten yükseğe</SelectItem>
+                  <SelectItem value="price-high">Fiyat, yüksekten düşüğe</SelectItem>
+                  <SelectItem value="date-old">Tarih, eskiden yeniye</SelectItem>
+                  <SelectItem value="date-new">Tarih, yeniden eskiye</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
+
+        {/* Mobil Sırala Modal */}
+        <Dialog open={sortDialogOpen} onOpenChange={setSortDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-left">Sırala</DialogTitle>
+            </DialogHeader>
+            <RadioGroup value={sortOption} onValueChange={setSortOption} className="mt-4">
+              <div className="flex items-center space-x-2 py-3 border-b">
+                <RadioGroupItem value="featured" id="w-featured" />
+                <Label htmlFor="w-featured" className="flex-1 cursor-pointer font-normal">
+                  Öne çıkan
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2 py-3 border-b">
+                <RadioGroupItem value="bestseller" id="w-bestseller" />
+                <Label htmlFor="w-bestseller" className="flex-1 cursor-pointer font-normal">
+                  En çok satan
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2 py-3 border-b">
+                <RadioGroupItem value="az" id="w-az" />
+                <Label htmlFor="w-az" className="flex-1 cursor-pointer font-normal">
+                  Alfabetik olarak, A-Z
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2 py-3 border-b">
+                <RadioGroupItem value="za" id="w-za" />
+                <Label htmlFor="w-za" className="flex-1 cursor-pointer font-normal">
+                  Alfabetik olarak, Z-A
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2 py-3 border-b">
+                <RadioGroupItem value="price-low" id="w-price-low" />
+                <Label htmlFor="w-price-low" className="flex-1 cursor-pointer font-normal">
+                  Fiyat, düşükten yükseğe
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2 py-3 border-b">
+                <RadioGroupItem value="price-high" id="w-price-high" />
+                <Label htmlFor="w-price-high" className="flex-1 cursor-pointer font-normal">
+                  Fiyat, yüksekten düşüğe
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2 py-3 border-b">
+                <RadioGroupItem value="date-old" id="w-date-old" />
+                <Label htmlFor="w-date-old" className="flex-1 cursor-pointer font-normal">
+                  Tarih, eskiden yeniye
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2 py-3">
+                <RadioGroupItem value="date-new" id="w-date-new" />
+                <Label htmlFor="w-date-new" className="flex-1 cursor-pointer font-normal">
+                  Tarih, yeniden eskiye
+                </Label>
+              </div>
+            </RadioGroup>
+            <div className="mt-6 flex justify-end">
+              <Button
+                onClick={() => setSortDialogOpen(false)}
+                className="bg-[#800020] hover:bg-[#5C1A1A] text-white px-8"
+              >
+                BİTTİ
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Product Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">

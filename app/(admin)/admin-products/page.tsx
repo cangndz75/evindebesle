@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   flexRender,
   getCoreRowModel,
@@ -43,7 +44,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { AddProductModal } from "./AddProduct";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -67,6 +67,7 @@ type Product = {
 };
 
 export default function ProductsPage() {
+  const router = useRouter();
   const [data, setData] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -111,13 +112,28 @@ export default function ProductsPage() {
     
     const url = `/api/admin-products?${params.toString()}`;
     fetch(url)
-      .then((res) => res.json())
+      .then(async (res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const text = await res.text();
+        if (!text) {
+          return [];
+        }
+        try {
+          return JSON.parse(text);
+        } catch (e) {
+          console.error("JSON parse hatası:", e, "Response text:", text);
+          throw new Error("Geçersiz JSON yanıtı");
+        }
+      })
       .then((res) => {
-        setData(res);
+        setData(Array.isArray(res) ? res : []);
         setLoading(false);
       })
       .catch((err) => {
         console.error("Ürünler yüklenirken hata:", err);
+        setData([]);
         setLoading(false);
       });
   };
@@ -618,7 +634,12 @@ export default function ProductsPage() {
         </div>
 
         <div className="flex-shrink-0">
-          <AddProductModal onSuccess={refresh} />
+          <Button
+            onClick={() => router.push("/admin-products/add")}
+            className="bg-black text-white hover:bg-gray-800"
+          >
+            Yeni Ürün Ekle
+          </Button>
         </div>
       </div>
 

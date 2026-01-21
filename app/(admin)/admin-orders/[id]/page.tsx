@@ -516,7 +516,7 @@ export default function OrderDetailPage() {
                 {[
                   { value: "PENDING", label: "Yeni", icon: Package },
                   { value: "PREPARING", label: "Hazırlanıyor", icon: Clock },
-                  { value: "SHIPPED", label: "Kargoya Hazır", icon: CheckCircle },
+                  { value: "PREPARING", label: "Kargoya Hazır", icon: CheckCircle },
                   { value: "SHIPPED", label: "Kargoya Verildi", icon: Truck },
                   { value: "DELIVERED", label: "Teslim Edildi", icon: CheckCircle },
                   { value: "CANCELLED", label: "İptal Edildi", icon: XCircle },

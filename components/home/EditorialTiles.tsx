@@ -7,6 +7,10 @@ import { motion } from "framer-motion";
 import { editorialTiles } from "@/lib/homeData";
 
 export default function EditorialTiles() {
+  if (editorialTiles.length === 0) {
+    return null;
+  }
+
   return (
     <section className="w-full bg-white py-16 md:py-24">
       <div className="max-w-7xl mx-auto px-4 md:px-8">

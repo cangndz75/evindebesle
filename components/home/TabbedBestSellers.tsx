@@ -3,9 +3,14 @@
 import Link from "next/link";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProductCarousel from "./ProductCarousel";
-import { bestSellersWomen, bestSellersMen } from "@/lib/homeData";
+import type { Product } from "@/lib/homeData";
 
-export default function TabbedBestSellers() {
+interface TabbedBestSellersProps {
+  bestSellersWomen: Product[];
+  bestSellersMen: Product[];
+}
+
+export default function TabbedBestSellers({ bestSellersWomen, bestSellersMen }: TabbedBestSellersProps) {
   return (
     <section className="w-full bg-white py-12 md:py-20">
       <div className="w-full px-4 md:px-6">

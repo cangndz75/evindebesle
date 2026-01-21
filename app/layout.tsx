@@ -19,7 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen bg-[#F7F5F2] overflow-x-hidden`}>
         <SessionWrapper>
           <SiteHeader />
-          <main className="flex-1 pt-[65px] md:pt-[81px]">{children}</main>
+          <main className="flex-1">{children}</main>
           <ToasterWrapper />
         </SessionWrapper>
       </body>

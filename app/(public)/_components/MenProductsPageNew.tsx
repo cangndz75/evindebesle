@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect, useMemo } from "react";
-import { Heart, ChevronDown, ShoppingBag } from "lucide-react";
+import { Heart, ChevronDown, ShoppingBag, Filter, ArrowUpDown } from "lucide-react";
 import { toast } from "sonner";
 import ProductFilters from "./ProductFilters";
 import {
@@ -12,6 +12,21 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type ProductColor = {
   name: string;
@@ -152,6 +167,8 @@ export default function MenProductsPage() {
     fabricTypes: [],
   });
   const [priceRange, setPriceRange] = useState({ min: 0, max: 2000 });
+  const [sortOption, setSortOption] = useState("featured");
+  const [sortDialogOpen, setSortDialogOpen] = useState(false);
   const [hoveredColor, setHoveredColor] = useState<{
     productId: string;
     colorImage: string;
@@ -364,12 +381,12 @@ export default function MenProductsPage() {
         </h1>
 
         {/* Category Filters */}
-        <div className="flex flex-wrap gap-2 mb-6">
+        <div className="flex gap-2 mb-6 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4 md:mx-0 md:px-0">
           {categories.map((category) => (
             <button
               key={category}
               onClick={() => setSelectedCategory(category)}
-              className={`px-4 py-2 text-sm font-light uppercase tracking-wide transition-colors ${
+              className={`px-4 py-2 text-sm font-light uppercase tracking-wide transition-colors whitespace-nowrap flex-shrink-0 ${
                 selectedCategory === category
                   ? "bg-[#111] text-white"
                   : "bg-white text-[#111] border border-[#111] hover:bg-[#111] hover:text-white"
@@ -381,35 +398,134 @@ export default function MenProductsPage() {
         </div>
 
         {/* Filter and Sort */}
-        <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
-          <ProductFilters
-            availableSizes={availableOptions.sizes}
-            availableColors={availableOptions.colors}
-            availableFabricTypes={availableOptions.fabricTypes}
-            priceRange={priceRange}
-            filters={filters}
-            onFiltersChange={handleFiltersChange}
-            activeFilters={activeFilters}
-            onRemoveFilter={handleRemoveFilter}
-            onClearFilters={handleClearFilters}
-          />
+        <div className="flex items-center justify-between mb-8 gap-4">
+          {/* Filtre Butonu - Sol */}
+          <div className="flex items-center gap-2">
+            <ProductFilters
+              availableSizes={availableOptions.sizes}
+              availableColors={availableOptions.colors}
+              availableFabricTypes={availableOptions.fabricTypes}
+              priceRange={priceRange}
+              filters={filters}
+              onFiltersChange={handleFiltersChange}
+              activeFilters={activeFilters}
+              onRemoveFilter={handleRemoveFilter}
+              onClearFilters={handleClearFilters}
+            />
+          </div>
 
+          {/* Sırala - Sağ */}
           <div className="flex items-center gap-4">
-            <span className="text-sm text-[#111]/60 font-light">
+            <span className="text-sm text-[#111]/60 font-light hidden md:inline">
               {products.length} ürün
             </span>
-            <div className="flex items-center gap-2">
+            
+            {/* Mobil: Sırala Butonu */}
+            <button
+              onClick={() => setSortDialogOpen(true)}
+              className="md:hidden flex items-center gap-2 px-4 py-2 text-sm font-light text-[#111] border border-[#111] hover:bg-[#111] hover:text-white transition-colors"
+            >
+              <ArrowUpDown className="w-4 h-4" />
+              <span>Sırala</span>
+            </button>
+
+            {/* Desktop: Sırala Dropdown */}
+            <div className="hidden md:flex items-center gap-2">
               <span className="text-sm text-[#111] font-light">Sırala:</span>
-              <select className="text-sm font-light text-[#111] bg-transparent border-none focus:outline-none cursor-pointer">
-                <option>Öne Çıkanlar</option>
-                <option>Fiyat: Düşükten Yükseğe</option>
-                <option>Fiyat: Yüksekten Düşüğe</option>
-                <option>En Yeni</option>
-              </select>
-              <ChevronDown className="w-4 h-4" />
+              <Select value={sortOption} onValueChange={setSortOption}>
+                <SelectTrigger className="w-[200px] border-none bg-transparent text-sm font-light text-[#111] focus:ring-0 focus:ring-offset-0">
+                  <SelectValue>
+                    {sortOption === "featured" && "Öne çıkan"}
+                    {sortOption === "bestseller" && "En çok satan"}
+                    {sortOption === "az" && "Alfabetik olarak, A-Z"}
+                    {sortOption === "za" && "Alfabetik olarak, Z-A"}
+                    {sortOption === "price-low" && "Fiyat, düşükten yükseğe"}
+                    {sortOption === "price-high" && "Fiyat, yüksekten düşüğe"}
+                    {sortOption === "date-old" && "Tarih, eskiden yeniye"}
+                    {sortOption === "date-new" && "Tarih, yeniden eskiye"}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="featured">Öne çıkan</SelectItem>
+                  <SelectItem value="bestseller">En çok satan</SelectItem>
+                  <SelectItem value="az">Alfabetik olarak, A-Z</SelectItem>
+                  <SelectItem value="za">Alfabetik olarak, Z-A</SelectItem>
+                  <SelectItem value="price-low">Fiyat, düşükten yükseğe</SelectItem>
+                  <SelectItem value="price-high">Fiyat, yüksekten düşüğe</SelectItem>
+                  <SelectItem value="date-old">Tarih, eskiden yeniye</SelectItem>
+                  <SelectItem value="date-new">Tarih, yeniden eskiye</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
+
+        {/* Mobil Sırala Modal */}
+        <Dialog open={sortDialogOpen} onOpenChange={setSortDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-left">Sırala</DialogTitle>
+            </DialogHeader>
+            <RadioGroup value={sortOption} onValueChange={setSortOption} className="mt-4">
+              <div className="flex items-center space-x-2 py-3 border-b">
+                <RadioGroupItem value="featured" id="featured" />
+                <Label htmlFor="featured" className="flex-1 cursor-pointer font-normal">
+                  Öne çıkan
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2 py-3 border-b">
+                <RadioGroupItem value="bestseller" id="bestseller" />
+                <Label htmlFor="bestseller" className="flex-1 cursor-pointer font-normal">
+                  En çok satan
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2 py-3 border-b">
+                <RadioGroupItem value="az" id="az" />
+                <Label htmlFor="az" className="flex-1 cursor-pointer font-normal">
+                  Alfabetik olarak, A-Z
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2 py-3 border-b">
+                <RadioGroupItem value="za" id="za" />
+                <Label htmlFor="za" className="flex-1 cursor-pointer font-normal">
+                  Alfabetik olarak, Z-A
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2 py-3 border-b">
+                <RadioGroupItem value="price-low" id="price-low" />
+                <Label htmlFor="price-low" className="flex-1 cursor-pointer font-normal">
+                  Fiyat, düşükten yükseğe
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2 py-3 border-b">
+                <RadioGroupItem value="price-high" id="price-high" />
+                <Label htmlFor="price-high" className="flex-1 cursor-pointer font-normal">
+                  Fiyat, yüksekten düşüğe
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2 py-3 border-b">
+                <RadioGroupItem value="date-old" id="date-old" />
+                <Label htmlFor="date-old" className="flex-1 cursor-pointer font-normal">
+                  Tarih, eskiden yeniye
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2 py-3">
+                <RadioGroupItem value="date-new" id="date-new" />
+                <Label htmlFor="date-new" className="flex-1 cursor-pointer font-normal">
+                  Tarih, yeniden eskiye
+                </Label>
+              </div>
+            </RadioGroup>
+            <div className="mt-6 flex justify-end">
+              <Button
+                onClick={() => setSortDialogOpen(false)}
+                className="bg-[#800020] hover:bg-[#5C1A1A] text-white px-8"
+              >
+                BİTTİ
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Product Grid */}
         {loading ? (
@@ -422,19 +538,19 @@ export default function MenProductsPage() {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             {products.map((product) => {
               // İlk açılışta ana renk (ilk renk) göster
-              const defaultColor = product.colors[0];
+              const defaultColor = product.colors?.[0];
               
               // Seçili renk varsa onu kullan, yoksa ana renk
-              const selectedColorForProduct = selectedColor?.productId === product.id
-                ? product.colors.find(c => c.images[0] === selectedColor.colorImage)
+              const selectedColorForProduct = selectedColor?.productId === product.id && product.colors
+                ? product.colors.find(c => c.images?.[0] === selectedColor.colorImage)
                 : null;
               
               // Aktif renk: seçili renk veya ana renk
               const activeColorObj = selectedColorForProduct || defaultColor;
               
               // Hover durumunda hover'daki renk, yoksa aktif renk
-              const hoveredColorObj = hoveredColor?.productId === product.id
-                ? product.colors.find(c => c.images[0] === hoveredColor.colorImage)
+              const hoveredColorObj = hoveredColor?.productId === product.id && product.colors
+                ? product.colors.find(c => c.images?.[0] === hoveredColor.colorImage)
                 : null;
               
               // Görüntülenecek renk: hover varsa hover, yoksa aktif renk
@@ -464,7 +580,7 @@ export default function MenProductsPage() {
               // Seçili renge göre variant ekle
               const variant = selectedColor?.productId === product.id 
                 ? selectedColor.variantCode 
-                : product.colors[0]?.variant?.variantCode;
+                : product.colors?.[0]?.variant?.variantCode;
               const finalUrl = variant ? `${productUrl}?variant=${variant}` : productUrl;
 
               return (
@@ -534,7 +650,7 @@ export default function MenProductsPage() {
                           }
 
                           // Seçili renge göre variant stok kontrolü
-                          const currentColorId = displayColorObj?.id || product.colors[0]?.id;
+                          const currentColorId = displayColorObj?.id || product.colors?.[0]?.id;
                           
                           return availableSizes.map((size, sizeIdx) => {
                             const sizeName = typeof size === 'string' ? size : size.name;

@@ -59,7 +59,7 @@ export default function SharedFavoritesClient({
             {favorites.map((favorite) => {
               const product = favorite.product;
               const productImage =
-                product.colors[0]?.images[0] ||
+                product.colors?.[0]?.images?.[0] ||
                 product.primaryImage ||
                 product.image ||
                 "/placeholder.jpg";

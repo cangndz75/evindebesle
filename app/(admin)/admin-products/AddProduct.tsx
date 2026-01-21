@@ -699,7 +699,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                 </div>
                 <Input
                   value={image}
-                  className="h-12 md:h-10 text-base md:text-sm"
+                  className="h-12 md:h-10 text-sm"
                   onChange={(e) => {
                     setImage(e.target.value);
                     // URL'den eklendiğinde uploadedImages'a da ekle
@@ -708,7 +708,6 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                     }
                   }}
                   placeholder="veya Görsel URL girin..."
-                  className="text-sm"
                 />
                 {uploadedImages.length > 0 && (
                   <div className="mt-4 space-y-4">

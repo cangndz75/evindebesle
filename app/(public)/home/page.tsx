@@ -38,10 +38,21 @@ async function getNewArrivals(gender?: "MALE" | "FEMALE"): Promise<Product[]> {
       include: {
         colors: {
           take: 1,
-          select: {
-            images: true,
+          include: {
+            variants: {
+              select: {
+                id: true,
+                variantCode: true,
+                colorId: true,
+                sizeId: true,
+                stock: true,
+                price: true,
+              },
+            },
           },
         },
+        sizes: true,
+        sizeOptions: true,
       },
       orderBy: {
         createdAt: "desc",
@@ -64,6 +75,14 @@ async function getNewArrivals(gender?: "MALE" | "FEMALE"): Promise<Product[]> {
         hoverImage: hoverImage !== mainImage ? hoverImage : undefined,
         badge: product.originalPrice ? "İndirim" : "Yeni",
         colors: product.colors.map((c) => c.images[0] || "").filter(Boolean),
+        sizes: product.sizes?.map((s) => ({ name: s.name, stock: s.stock, id: s.id })) || [],
+        sizeOptions: product.sizeOptions?.map((so) => ({ name: so.name, id: so.id })) || [],
+        colorId: product.colors[0]?.id,
+        variants: product.colors[0]?.variants?.map((v) => ({
+          colorId: v.colorId,
+          sizeId: v.sizeId,
+          stock: v.stock,
+        })) || [],
       };
     });
   } catch (error) {
@@ -98,10 +117,21 @@ async function getBestSellers(gender?: "MALE" | "FEMALE"): Promise<Product[]> {
       include: {
         colors: {
           take: 1,
-          select: {
-            images: true,
+          include: {
+            variants: {
+              select: {
+                id: true,
+                variantCode: true,
+                colorId: true,
+                sizeId: true,
+                stock: true,
+                price: true,
+              },
+            },
           },
         },
+        sizes: true,
+        sizeOptions: true,
         _count: {
           select: {
             orderItems: true,
@@ -139,6 +169,14 @@ async function getBestSellers(gender?: "MALE" | "FEMALE"): Promise<Product[]> {
         hoverImage: hoverImage !== mainImage ? hoverImage : undefined,
         badge: product.originalPrice ? "İndirim" : undefined,
         colors: product.colors.map((c) => c.images[0] || "").filter(Boolean),
+        sizes: product.sizes?.map((s) => ({ name: s.name, stock: s.stock, id: s.id })) || [],
+        sizeOptions: product.sizeOptions?.map((so) => ({ name: so.name, id: so.id })) || [],
+        colorId: product.colors[0]?.id,
+        variants: product.colors[0]?.variants?.map((v) => ({
+          colorId: v.colorId,
+          sizeId: v.sizeId,
+          stock: v.stock,
+        })) || [],
       };
     });
   } catch (error) {
@@ -172,12 +210,21 @@ async function getFeaturedProducts() {
       },
       include: {
         colors: {
-          select: {
-            name: true,
-            hexCode: true,
-            images: true,
+          include: {
+            variants: {
+              select: {
+                id: true,
+                variantCode: true,
+                colorId: true,
+                sizeId: true,
+                stock: true,
+                price: true,
+              },
+            },
           },
         },
+        sizes: true,
+        sizeOptions: true,
         _count: {
           select: {
             orderItems: true,
@@ -217,6 +264,14 @@ async function getFeaturedProducts() {
           value: c.hexCode || "#000000",
           image: c.images[0] || mainImage,
         })),
+        sizes: product.sizes?.map((s) => ({ name: s.name, stock: s.stock, id: s.id })) || [],
+        sizeOptions: product.sizeOptions?.map((so) => ({ name: so.name, id: so.id })) || [],
+        colorId: product.colors[0]?.id,
+        variants: product.colors[0]?.variants?.map((v) => ({
+          colorId: v.colorId,
+          sizeId: v.sizeId,
+          stock: v.stock,
+        })) || [],
       };
     });
   } catch (error) {

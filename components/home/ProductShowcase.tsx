@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { toast } from "sonner";
 
 type ColorOption = {
   name: string;
@@ -18,6 +19,10 @@ type Product = {
   image: string;
   hoverImage?: string;
   colors: ColorOption[];
+  sizes?: Array<{ name: string; stock: number; id?: string }>;
+  sizeOptions?: Array<{ name: string; id?: string }>;
+  colorId?: string;
+  variants?: Array<{ colorId: string | null; sizeId: string | null; stock: number }>;
 };
 
 interface ProductShowcaseProps {
@@ -121,16 +126,21 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                   </Link>
                   
                   {/* Product Info */}
-                  <div className="mt-4">
+                  <div className="mt-4 pl-2 md:pl-4">
                     <h3 className="text-sm font-light text-[#111] mb-1 uppercase">
                       {product.title}
                     </h3>
+                    {product.price && (
+                      <p className="text-sm md:text-base font-light text-[#111] mb-1">
+                        {product.price.toFixed(2)} ₺
+                      </p>
+                    )}
                     {product.colors && product.colors.length > 0 && (
                       <>
                         <p className="text-xs text-[#111]/60 font-light mb-2">
                           {product.colors.length} renk seçeneği
                         </p>
-                        <div className="flex items-center justify-center gap-2">
+                        <div className="flex items-center gap-1.5 mb-3">
                           {product.colors.map((color, idx) => {
                             const isActive = (hoveredColor?.productId === product.id && hoveredColor.colorImage === color.image) ||
                                              (selectedColor?.productId === product.id && selectedColor.colorImage === color.image);
@@ -140,8 +150,8 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                                 onMouseEnter={() => setHoveredColor({ productId: product.id, colorImage: color.image })}
                                 onMouseLeave={handleColorLeave}
                                 onClick={() => handleColorInteraction(product.id, color.image)}
-                                className={`w-4 h-4 rounded-full border border-gray-300 transition-all duration-200 hover:scale-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111] focus-visible:ring-offset-2 ${
-                                  isActive ? "border-[#111] scale-110" : ""
+                                className={`w-4 h-4 rounded-full border transition-all duration-200 hover:scale-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111] focus-visible:ring-offset-2 ${
+                                  isActive ? "border-[#111] scale-110" : "border-gray-300"
                                 }`}
                                 style={{ backgroundColor: color.value }}
                                 aria-label={`${color.name} renk seçeneği`}
@@ -151,6 +161,102 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                         </div>
                       </>
                     )}
+
+                    {/* Hızlı Ekle Bölümü - Her zaman görünür */}
+                    <div className="mb-2">
+                      <div className="border border-gray-200 rounded-sm p-4 bg-white">
+                        <p className="text-xs font-light text-[#111] mb-3 text-center">Hızlı ekle</p>
+                        <div className="flex flex-wrap gap-2 justify-center">
+                          {(() => {
+                            const availableSizes = product.sizes && product.sizes.length > 0
+                              ? product.sizes
+                              : product.sizeOptions && product.sizeOptions.length > 0
+                              ? product.sizeOptions.map(so => ({ name: so.name, stock: 0, id: so.id }))
+                              : [];
+                            
+                            if (availableSizes.length === 0) {
+                              return (
+                                <p className="text-xs text-gray-500">Beden seçeneği bulunmuyor</p>
+                              );
+                            }
+
+                            const currentColorId = product.colorId;
+                            
+                            return availableSizes.map((size, sizeIdx) => {
+                              const sizeName = typeof size === 'string' ? size : size.name;
+                              const sizeStock = typeof size === 'object' ? size.stock : 0;
+                              const sizeId = typeof size === 'object' && size.id ? size.id : null;
+                              
+                              let variantStock = 0;
+                              if (currentColorId && product.variants) {
+                                const variant = product.variants.find((v: any) => 
+                                  v.colorId === currentColorId && v.sizeId === sizeId
+                                );
+                                variantStock = variant?.stock || 0;
+                              }
+                              
+                              const finalStock = variantStock > 0 ? variantStock : sizeStock;
+                              const isOutOfStock = finalStock <= 0;
+                              
+                              return (
+                                <button
+                                  key={sizeIdx}
+                                  onClick={async (e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    
+                                    if (isOutOfStock) {
+                                      toast.error("Bu beden stokta yok", {
+                                        position: "bottom-left",
+                                      });
+                                      return;
+                                    }
+
+                                    try {
+                                      const res = await fetch("/api/cart", {
+                                        method: "POST",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({
+                                          productId: product.id,
+                                          colorId: currentColorId || null,
+                                          sizeId: sizeId || null,
+                                          quantity: 1,
+                                        }),
+                                      });
+
+                                      if (res.ok) {
+                                        window.dispatchEvent(new Event("cartUpdated"));
+                                        toast.success(`${product.title} (${sizeName}) sepete eklendi`, {
+                                          position: "bottom-left",
+                                        });
+                                      } else {
+                                        const error = await res.json();
+                                        toast.error(error.error || "Sepete eklenirken bir hata oluştu", {
+                                          position: "bottom-left",
+                                        });
+                                      }
+                                    } catch (error) {
+                                      console.error("Error adding to cart:", error);
+                                      toast.error("Sepete eklenirken bir hata oluştu", {
+                                        position: "bottom-left",
+                                      });
+                                    }
+                                  }}
+                                  disabled={isOutOfStock}
+                                  className={`px-3 py-1.5 text-xs font-light border transition-all ${
+                                    isOutOfStock
+                                      ? "border-gray-200 text-gray-400 line-through cursor-not-allowed bg-white"
+                                      : "border-gray-300 hover:border-[#111] hover:bg-[#111] hover:text-white bg-white text-[#111]"
+                                  }`}
+                                >
+                                  {sizeName}
+                                </button>
+                              );
+                            });
+                          })()}
+                        </div>
+                      </div>
+                    </div>
                   </div>
               </div>
             );
@@ -206,12 +312,12 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                   </Link>
                   
                   {/* Product Info */}
-                  <div className="mt-4">
+                  <div className="mt-4 pl-2">
                     <h3 className="text-sm font-light text-[#111] mb-1 uppercase">
                       {product.title}
                     </h3>
                     {product.price && (
-                      <p className="text-base font-light text-[#111] mb-1">
+                      <p className="text-sm md:text-base font-light text-[#111] mb-1">
                         {product.price.toFixed(2)} ₺
                       </p>
                     )}
@@ -220,7 +326,7 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                         <p className="text-xs text-[#111]/60 font-light mb-2">
                           {product.colors.length} renk seçeneği
                         </p>
-                        <div className="flex items-center justify-center gap-2">
+                        <div className="flex items-center gap-1.5 mb-3">
                           {product.colors.map((color, idx) => {
                             const isActive = (hoveredColor?.productId === product.id && hoveredColor.colorImage === color.image) ||
                                              (selectedColor?.productId === product.id && selectedColor.colorImage === color.image);
@@ -230,8 +336,8 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                                 onMouseEnter={() => setHoveredColor({ productId: product.id, colorImage: color.image })}
                                 onMouseLeave={handleColorLeave}
                                 onClick={() => handleColorInteraction(product.id, color.image)}
-                                className={`w-4 h-4 rounded-full border border-gray-300 transition-all duration-200 hover:scale-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111] focus-visible:ring-offset-2 ${
-                                  isActive ? "border-[#111] scale-110" : ""
+                                className={`w-4 h-4 rounded-full border transition-all duration-200 hover:scale-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111] focus-visible:ring-offset-2 ${
+                                  isActive ? "border-[#111] scale-110" : "border-gray-300"
                                 }`}
                                 style={{ backgroundColor: color.value }}
                                 aria-label={`${color.name} renk seçeneği`}
@@ -241,6 +347,102 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                         </div>
                       </>
                     )}
+
+                    {/* Hızlı Ekle Bölümü - Her zaman görünür */}
+                    <div className="mb-2">
+                      <div className="border border-gray-200 rounded-sm p-4 bg-white">
+                        <p className="text-xs font-light text-[#111] mb-3 text-center">Hızlı ekle</p>
+                        <div className="flex flex-wrap gap-2 justify-center">
+                          {(() => {
+                            const availableSizes = product.sizes && product.sizes.length > 0
+                              ? product.sizes
+                              : product.sizeOptions && product.sizeOptions.length > 0
+                              ? product.sizeOptions.map(so => ({ name: so.name, stock: 0, id: so.id }))
+                              : [];
+                            
+                            if (availableSizes.length === 0) {
+                              return (
+                                <p className="text-xs text-gray-500">Beden seçeneği bulunmuyor</p>
+                              );
+                            }
+
+                            const currentColorId = product.colorId;
+                            
+                            return availableSizes.map((size, sizeIdx) => {
+                              const sizeName = typeof size === 'string' ? size : size.name;
+                              const sizeStock = typeof size === 'object' ? size.stock : 0;
+                              const sizeId = typeof size === 'object' && size.id ? size.id : null;
+                              
+                              let variantStock = 0;
+                              if (currentColorId && product.variants) {
+                                const variant = product.variants.find((v: any) => 
+                                  v.colorId === currentColorId && v.sizeId === sizeId
+                                );
+                                variantStock = variant?.stock || 0;
+                              }
+                              
+                              const finalStock = variantStock > 0 ? variantStock : sizeStock;
+                              const isOutOfStock = finalStock <= 0;
+                              
+                              return (
+                                <button
+                                  key={sizeIdx}
+                                  onClick={async (e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    
+                                    if (isOutOfStock) {
+                                      toast.error("Bu beden stokta yok", {
+                                        position: "bottom-left",
+                                      });
+                                      return;
+                                    }
+
+                                    try {
+                                      const res = await fetch("/api/cart", {
+                                        method: "POST",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({
+                                          productId: product.id,
+                                          colorId: currentColorId || null,
+                                          sizeId: sizeId || null,
+                                          quantity: 1,
+                                        }),
+                                      });
+
+                                      if (res.ok) {
+                                        window.dispatchEvent(new Event("cartUpdated"));
+                                        toast.success(`${product.title} (${sizeName}) sepete eklendi`, {
+                                          position: "bottom-left",
+                                        });
+                                      } else {
+                                        const error = await res.json();
+                                        toast.error(error.error || "Sepete eklenirken bir hata oluştu", {
+                                          position: "bottom-left",
+                                        });
+                                      }
+                                    } catch (error) {
+                                      console.error("Error adding to cart:", error);
+                                      toast.error("Sepete eklenirken bir hata oluştu", {
+                                        position: "bottom-left",
+                                      });
+                                    }
+                                  }}
+                                  disabled={isOutOfStock}
+                                  className={`px-3 py-1.5 text-xs font-light border transition-all ${
+                                    isOutOfStock
+                                      ? "border-gray-200 text-gray-400 line-through cursor-not-allowed bg-white"
+                                      : "border-gray-300 hover:border-[#111] hover:bg-[#111] hover:text-white bg-white text-[#111]"
+                                  }`}
+                                >
+                                  {sizeName}
+                                </button>
+                              );
+                            });
+                          })()}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               );

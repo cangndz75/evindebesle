@@ -170,7 +170,7 @@ export default function FavoritesClient({
                 : `/product/${product.id}`;
 
               return (
-                <div key={favorite.id} className="group relative">
+                <div key={favorite.id} className="group relative overflow-hidden">
                   <Link href={productUrl} className="block">
                     <div className="relative aspect-[3/4] mb-4 overflow-hidden bg-gray-100">
                       <Image
@@ -314,7 +314,7 @@ export default function FavoritesClient({
 
                   {/* Renk seçenekleri */}
                   {product.colors && product.colors.length > 0 && (
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 mb-3">
                       {product.colors.map((color, idx) => (
                         <button
                           key={idx}

@@ -19,6 +19,10 @@ export type Product = {
   hoverImage?: string;
   badge?: "Yeni" | "İndirim";
   colors?: string[];
+  sizes?: Array<{ name: string; stock: number; id?: string }>;
+  sizeOptions?: Array<{ name: string; id?: string }>;
+  colorId?: string;
+  variants?: Array<{ colorId: string | null; sizeId: string | null; stock: number }>;
 };
 
 export type Tile = {

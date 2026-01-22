@@ -39,6 +39,7 @@ const FooterAccordion = dynamic(() => import("@/components/home/FooterAccordion"
 import { womensBrands, mensBrands } from "@/lib/homeData";
 import { prisma } from "@/lib/db";
 import type { Product } from "@/lib/homeData";
+import TabbedProductCarousel from "@/components/home/TabbedProductCarousel";
 
 // Performans için ISR - 5 dakikada bir yenilenir
 export const revalidate = 300;
@@ -320,7 +321,7 @@ async function getFeaturedProducts() {
       orderBy: {
         createdAt: "desc",
       },
-      take: 4,
+      take: 8,
     });
 
     // Sipariş sayısına göre sırala
@@ -390,17 +391,22 @@ export default async function HomePage() {
       <EditorialBanner />
       <BrandShowcase title="WOMENS BRANDS" items={womensBrands} />
       <BrandShowcase title="MEN'S BRANDS" items={mensBrands} />
-      <CollectionCarousel />
+      {/* <CollectionCarousel /> */}
+      <TabbedProductCarousel 
+        newArrivals={newArrivals}
+        bestSellers={[...bestSellersWomen, ...bestSellersMen]}
+        recommended={newArrivals}
+      />
       <SplitShowcase />
       {/* <TwoUpEditorialTiles /> */}
       {/* <CategoryRail /> */}
       <FeaturedCardsRow />
-      <ProductCarousel title="Yeni Gelenler" products={newArrivals} viewAllLink="/women/new" />
+      {/* <ProductCarousel title="Yeni Gelenler" products={newArrivals} viewAllLink="/women/new" /> */}
       <EditorialTiles />
-      <TabbedBestSellers 
+      {/* <TabbedBestSellers 
         bestSellersWomen={bestSellersWomen}
         bestSellersMen={bestSellersMen}
-      />
+      /> */}
       <NewsletterSignup />
       <FooterAccordion />
     </>

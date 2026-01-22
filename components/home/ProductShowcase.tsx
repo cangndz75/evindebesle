@@ -46,6 +46,10 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
+  useEffect(() => {
+    checkScroll();
+  }, [products]);
+
   const checkScroll = () => {
     if (!scrollContainerRef.current) return;
     const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
@@ -55,14 +59,14 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
 
   const scrollPrev = () => {
     if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: -280, behavior: "smooth" });
+      scrollContainerRef.current.scrollBy({ left: -320, behavior: "smooth" });
       setTimeout(checkScroll, 300);
     }
   };
 
   const scrollNext = () => {
     if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: 280, behavior: "smooth" });
+      scrollContainerRef.current.scrollBy({ left: 320, behavior: "smooth" });
       setTimeout(checkScroll, 300);
     }
   };
@@ -82,69 +86,87 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
 
   return (
     <section className="w-full bg-white py-12 md:py-20">
-      <div className="w-full">
-        {/* Desktop: Grid */}
-        <div className="hidden md:grid grid-cols-4 gap-6">
-          {products.map((product) => {
-            const isColorActive = (hoveredColor?.productId === product.id || selectedColor?.productId === product.id);
-            const activeColorImage = hoveredColor?.productId === product.id 
-              ? hoveredColor.colorImage 
-              : selectedColor?.productId === product.id
-              ? selectedColor.colorImage
-              : null;
-            
-            const currentImage = activeColorImage || product.image;
-            
-            return (
-              <div key={product.id} className="group">
-                <Link
-                  href={`/product/${product.id}`}
-                  className="relative overflow-hidden block"
-                >
-                  <div className="relative aspect-[3/4] bg-white">
-                    {/* Main Image */}
-                    <Image
-                      src={currentImage}
-                      alt={product.title}
-                      fill
-                      className="object-cover object-center transition-opacity duration-500"
-                      sizes="(max-width: 768px) 50vw, 25vw"
-                      loading="lazy"
-                      quality={85}
-                      placeholder="blur"
-                      blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
-                    />
-                    {/* Hover Image (when no color is active and product is hovered) */}
-                    {!isColorActive && product.hoverImage && (
-                      <Image
-                        src={product.hoverImage}
-                        alt={`${product.title} hover`}
-                        fill
-                        className="object-cover object-center opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-                        sizes="(max-width: 768px) 50vw, 25vw"
-                        loading="lazy"
-                        quality={85}
-                      />
-                    )}
-                    </div>
-                  </Link>
+      <div className="w-full px-4 md:px-6">
+        {/* Desktop: Carousel */}
+        <div className="hidden md:block relative">
+          <div className="overflow-hidden">
+            <div
+              ref={scrollContainerRef}
+              onScroll={checkScroll}
+              className="flex gap-4 md:gap-6 overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-4"
+              style={{ scrollBehavior: "smooth" }}
+            >
+              {products.map((product) => {
+                const isColorActive = (hoveredColor?.productId === product.id || selectedColor?.productId === product.id);
+                const activeColorImage = hoveredColor?.productId === product.id 
+                  ? hoveredColor.colorImage 
+                  : selectedColor?.productId === product.id
+                  ? selectedColor.colorImage
+                  : null;
+                
+                const currentImage = activeColorImage || product.image;
+                
+                return (
+                  <div key={product.id} className="flex-shrink-0 w-64 md:w-72 snap-start group">
+                    <Link
+                      href={`/product/${product.id}`}
+                      className="relative overflow-hidden block"
+                    >
+                      <div className="relative aspect-[3/4] mb-4 overflow-hidden bg-gray-200">
+                        {!isColorActive && product.hoverImage ? (
+                          <>
+                            <Image
+                              src={currentImage}
+                              alt={product.title}
+                              fill
+                              className="object-cover transition-opacity duration-500 group-hover:opacity-0"
+                              sizes="(max-width: 768px) 256px, 288px"
+                              loading="lazy"
+                              quality={85}
+                              placeholder="blur"
+                              blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
+                            />
+                            <Image
+                              src={product.hoverImage}
+                              alt={`${product.title} hover`}
+                              fill
+                              className="object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100 absolute inset-0"
+                              sizes="(max-width: 768px) 256px, 288px"
+                              loading="lazy"
+                              quality={85}
+                            />
+                          </>
+                        ) : (
+                          <Image
+                            src={currentImage}
+                            alt={product.title}
+                            fill
+                            className="object-cover transition-transform duration-500 group-hover:scale-105"
+                            sizes="(max-width: 768px) 256px, 288px"
+                            loading="lazy"
+                            quality={85}
+                            placeholder="blur"
+                            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
+                          />
+                        )}
+                      </div>
+                    </Link>
                   
-                  {/* Product Info */}
-                  <div className="mt-4 pl-2 md:pl-4">
-                    <h3 className="text-sm font-light text-[#111] mb-1 uppercase">
+                    {/* Product Info */}
+                    <h3 className="text-sm font-light text-[#111] mb-1 uppercase pl-2 md:pl-4">
                       {product.title}
                     </h3>
                     {product.price && (
-                      <p className="text-sm md:text-base font-light text-[#111] mb-1">
+                      <p className="text-base font-light text-[#111] mb-1 pl-2 md:pl-4">
                         {product.price.toFixed(2)} ₺
                       </p>
                     )}
                     {product.colors && product.colors.length > 0 && (
                       <>
-                        <p className="text-xs text-[#111]/60 font-light mb-2">
+                        <p className="text-xs text-[#111]/60 font-light mb-2 pl-2 md:pl-4">
                           {product.colors.length} renk seçeneği
                         </p>
-                        <div className="flex items-center gap-1.5 mb-3">
+                        <div className="flex items-center gap-1.5 mb-3 pl-2 md:pl-4">
                           {product.colors.map((color, idx) => {
                             const isActive = (hoveredColor?.productId === product.id && hoveredColor.colorImage === color.image) ||
                                              (selectedColor?.productId === product.id && selectedColor.colorImage === color.image);
@@ -167,7 +189,7 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                     )}
 
                     {/* Hızlı Ekle Bölümü - Her zaman görünür */}
-                    <div className="mb-2">
+                    <div className="mt-2 pl-2 md:pl-4">
                       <div className="border border-gray-200 rounded-sm p-4 bg-white">
                         <p className="text-xs font-light text-[#111] mb-3 text-center">Hızlı ekle</p>
                         <div className="flex flex-wrap gap-2 justify-center">
@@ -262,9 +284,28 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                       </div>
                     </div>
                   </div>
-              </div>
-            );
-          })}
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Navigation Arrows - Desktop */}
+          <button
+            onClick={scrollPrev}
+            disabled={!canScrollPrev}
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 md:-translate-x-4 bg-white border border-gray-300 p-2 md:p-3 hover:bg-gray-50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111] focus-visible:ring-offset-2 shadow-lg z-10"
+            aria-label="Önceki"
+          >
+            <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
+          </button>
+          <button
+            onClick={scrollNext}
+            disabled={!canScrollNext}
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 md:translate-x-4 bg-white border border-gray-300 p-2 md:p-3 hover:bg-gray-50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111] focus-visible:ring-offset-2 shadow-lg z-10"
+            aria-label="Sonraki"
+          >
+            <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
+          </button>
         </div>
 
         {/* Mobile: Carousel */}

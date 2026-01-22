@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { Heart, ChevronDown, ArrowUpDown } from "lucide-react";
+import { Heart, ChevronDown, ArrowUpDown, LayoutGrid, Square } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -181,6 +181,7 @@ export default function WomenProductsPage({
   const [selectedColor, setSelectedColor] = useState<{ productId: string; colorImage: string } | null>(null);
   const [sortOption, setSortOption] = useState("featured");
   const [sortDialogOpen, setSortDialogOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<"grid" | "large">("grid");
   const [filters, setFilters] = useState<FilterState>({
     sizes: [],
     colors: [],
@@ -332,9 +333,35 @@ export default function WomenProductsPage({
             />
           </div>
 
-          {/* Sırala - Sağ */}
+          {/* Sırala ve Görünüm - Sağ */}
           <div className="flex items-center gap-4">
             <span className="text-sm text-[#111]/60 font-light hidden md:inline">{products.length} ürün</span>
+            
+            {/* Görünüm Butonları */}
+            <div className="flex items-center gap-1 border border-[#111]">
+              <button
+                onClick={() => setViewMode("grid")}
+                className={`p-2 transition-colors ${
+                  viewMode === "grid"
+                    ? "bg-[#111] text-white"
+                    : "bg-white text-[#111] hover:bg-gray-50"
+                }`}
+                aria-label="Grid görünümü"
+              >
+                <LayoutGrid className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setViewMode("large")}
+                className={`p-2 transition-colors ${
+                  viewMode === "large"
+                    ? "bg-[#111] text-white"
+                    : "bg-white text-[#111] hover:bg-gray-50"
+                }`}
+                aria-label="Büyük görünüm"
+              >
+                <Square className="w-4 h-4" />
+              </button>
+            </div>
             
             {/* Mobil: Sırala Butonu */}
             <button
@@ -444,7 +471,11 @@ export default function WomenProductsPage({
         </Dialog>
 
         {/* Product Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+        <div className={`grid gap-4 md:gap-6 ${
+          viewMode === "grid"
+            ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+            : "grid-cols-1"
+        }`}>
           {products.map((product) => {
             const isColorActive = hoveredColor?.productId === product.id || selectedColor?.productId === product.id;
             const activeColorImage = hoveredColor?.productId === product.id
@@ -458,13 +489,19 @@ export default function WomenProductsPage({
             return (
               <div key={product.id} className="group">
                 <Link href={`/product/${product.id}`} className="block">
-                  <div className="relative aspect-[3/4] mb-4 overflow-hidden bg-gray-100">
+                  <div className={`relative mb-4 overflow-hidden bg-gray-100 ${
+                    viewMode === "large" ? "aspect-[3/4]" : "aspect-[3/4]"
+                  }`}>
                     <Image
                       src={currentImage}
                       alt={product.name}
                       fill
                       className="object-cover transition-opacity duration-500"
-                      sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                      sizes={
+                        viewMode === "large"
+                          ? "100vw"
+                          : "(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                      }
                       unoptimized
                     />
                     {!isColorActive && product.hoverImage && (
@@ -473,12 +510,18 @@ export default function WomenProductsPage({
                         alt={`${product.name} hover`}
                         fill
                         className="object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-                        sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                        sizes={
+                          viewMode === "large"
+                            ? "(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                            : "(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                        }
                         unoptimized
                       />
                     )}
                     {product.badge && (
-                      <div className="absolute top-3 left-3 bg-[#111] text-white text-[10px] px-2 py-1 uppercase font-light">
+                      <div className={`absolute top-3 left-3 bg-[#111] text-white uppercase font-light ${
+                        viewMode === "large" ? "text-xs px-3 py-1.5" : "text-[10px] px-2 py-1"
+                      }`}>
                         {product.badge}
                       </div>
                     )}
@@ -487,27 +530,37 @@ export default function WomenProductsPage({
                 </Link>
 
                 <div className="mb-2">
-                  <h3 className="text-sm md:text-base font-light text-[#111] mb-1">
+                  <h3 className={`font-light text-[#111] mb-1 ${
+                    viewMode === "large" ? "text-base md:text-lg" : "text-sm md:text-base"
+                  }`}>
                     {product.name}
                   </h3>
                   <div className="flex items-center gap-2">
                     {product.originalPrice ? (
                       <>
-                        <span className="text-sm md:text-base font-light text-[#111]">
+                        <span className={`font-light text-[#111] ${
+                          viewMode === "large" ? "text-base md:text-lg" : "text-sm md:text-base"
+                        }`}>
                           {product.price} ₺
                         </span>
-                        <span className="text-sm text-[#111]/60 line-through">
+                        <span className={`text-[#111]/60 line-through ${
+                          viewMode === "large" ? "text-sm md:text-base" : "text-sm"
+                        }`}>
                           {product.originalPrice} ₺
                         </span>
                       </>
                     ) : (
-                      <span className="text-sm md:text-base font-light text-[#111]">
+                      <span className={`font-light text-[#111] ${
+                        viewMode === "large" ? "text-base md:text-lg" : "text-sm md:text-base"
+                      }`}>
                         {product.price} ₺
                       </span>
                     )}
                   </div>
                   {product.inColors && (
-                    <p className="text-xs text-[#111]/60 font-light mt-1">
+                    <p className={`text-[#111]/60 font-light mt-1 ${
+                      viewMode === "large" ? "text-sm" : "text-xs"
+                    }`}>
                       {product.inColors} renk seçeneği
                     </p>
                   )}

@@ -312,11 +312,11 @@ export async function POST(req: Request) {
     }
 
     // Ürün kombinleri
-    if (combinations && combinations.length > 0) {
+    if (combinations && Array.isArray(combinations) && combinations.length > 0) {
       await prisma.productCombination.createMany({
-        data: combinations.map((relatedProductId: string) => ({
+        data: combinations.map((relatedProductId: any) => ({
           productId: product.id,
-          relatedProductId,
+          relatedProductId: typeof relatedProductId === 'string' ? relatedProductId : (relatedProductId.relatedProductId || relatedProductId),
         })),
         skipDuplicates: true,
       });

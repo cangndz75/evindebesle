@@ -150,6 +150,7 @@ export default function AddProductPage() {
       useMainPrice: true,
       price: "",
       originalPrice: "",
+      stock: {},
     };
     setColors([...colors, newColor]);
     setNewColorName("");
@@ -210,7 +211,6 @@ export default function AddProductPage() {
     );
     setColors(updatedColors);
   };
-
 
   const addTag = (tag?: string) => {
     const tagToAdd = tag || newTag;
@@ -335,7 +335,7 @@ export default function AddProductPage() {
         brand: brand || undefined,
         weight: weight ? parseFloat(weight) : undefined,
         detailText: detailText || undefined,
-        combinations: combinations.map((productId) => ({ relatedProductId: productId })),
+        combinations: combinations && combinations.length > 0 ? combinations : undefined,
         colors: [
           ...(primaryProductColor ? [{
             name: primaryProductColor.name,
@@ -385,8 +385,6 @@ export default function AddProductPage() {
       setLoading(false);
     }
   };
-
-  const previewImage = primaryImage || secondaryImage || "/placeholder.jpg";
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -507,7 +505,7 @@ export default function AddProductPage() {
 
                   {/* Ana ve Hover Görsel Seçimi - Yüklenen görsellerin altında */}
                   <div className="mt-6 space-y-4 pt-6 border-t border-gray-200">
-                  <div>
+                    <div>
                     <Label className="text-sm font-medium mb-3 block">Ana Görsel</Label>
                     <RadioGroup
                       value={primaryImage}
@@ -629,6 +627,7 @@ export default function AddProductPage() {
                         );
                       })}
                     </RadioGroup>
+                    </div>
                   </div>
                 </div>
               )}
@@ -1288,7 +1287,7 @@ export default function AddProductPage() {
                       }}
                       placeholder="Etiket ekle"
                     />
-                    <Button type="button" onClick={addTag} size="sm">
+                    <Button type="button" onClick={() => addTag()} size="sm">
                       <Plus className="w-4 h-4" />
                     </Button>
                   </div>

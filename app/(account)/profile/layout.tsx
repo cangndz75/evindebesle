@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useEffect } from "react";
+import { useEffect, useLayoutEffect } from "react";
 import { usePathname } from "next/navigation";
 import Navbar from "@/app/(public)/_components/Navbar";
 import Sidebar from "@/app/(account)/profile/_components/Sidebar";
@@ -10,9 +10,22 @@ import ProfileMobileHeader from "@/app/(account)/profile/_components/ProfileMobi
 export default function ProfileLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
-  // Sayfa değiştiğinde scroll'u en üste al
+  // Sayfa değiştiğinde scroll'u en üste al - useLayoutEffect render'dan önce çalışır
+  useLayoutEffect(() => {
+    // Tüm scroll pozisyonlarını sıfırla
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [pathname]);
+
+  // Ek güvence için useEffect de ekle (render sonrası)
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "instant" });
+    const timer = setTimeout(() => {
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }, 0);
+    return () => clearTimeout(timer);
   }, [pathname]);
 
   return (

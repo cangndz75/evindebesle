@@ -165,11 +165,12 @@ export async function POST(request: NextRequest) {
       subtotal += totalPrice;
 
       orderItems.push({
-        productId: cartItem.productId,
-        colorId: cartItem.colorId,
-        sizeId: cartItem.sizeId,
+        product: { connect: { id: cartItem.productId } },
+        color: cartItem.colorId ? { connect: { id: cartItem.colorId } } : undefined,
+        size: cartItem.sizeId ? { connect: { id: cartItem.sizeId } } : undefined,
         productName: cartItem.product.name,
         colorName: cartItem.color?.name || null,
+
         sizeName: cartItem.size?.name || null,
         image: cartItem.product.image || cartItem.color?.images?.[0] || null,
         quantity,

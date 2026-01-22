@@ -147,6 +147,84 @@ async function getBestSellers(gender?: "MALE" | "FEMALE"): Promise<Product[]> {
   }
 }
 
+async function getFeaturedProducts() {
+  try {
+    const products = await prisma.product.findMany({
+      where: {
+        isActive: true,
+        OR: [
+          {
+            tags: {
+              some: {
+                name: {
+                  in: ["öne çıkan", "featured", "trend", "popüler"],
+                },
+              },
+            },
+          },
+          {
+            // En çok sipariş edilenler
+            orderItems: {
+              some: {},
+            },
+          },
+        ],
+      },
+      include: {
+        colors: {
+          select: {
+            name: true,
+            hexCode: true,
+            images: true,
+          },
+        },
+        _count: {
+          select: {
+            orderItems: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 4,
+    });
+
+    // Sipariş sayısına göre sırala
+    products.sort((a, b) => {
+      const aCount = a._count.orderItems;
+      const bCount = b._count.orderItems;
+      if (bCount !== aCount) {
+        return bCount - aCount;
+      }
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+
+    return products.map((product) => {
+      const firstColor = product.colors[0];
+      const colorImages = firstColor?.images || [];
+      const mainImage = product.primaryImage || product.image || colorImages[0] || "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop";
+      const hoverImage = product.secondaryImage || colorImages[1] || mainImage;
+
+      return {
+        id: product.id,
+        title: product.name,
+        price: product.price,
+        image: mainImage,
+        hoverImage: hoverImage !== mainImage ? hoverImage : undefined,
+        colors: product.colors.map((c) => ({
+          name: c.name,
+          value: c.hexCode || "#000000",
+          image: c.images[0] || mainImage,
+        })),
+      };
+    });
+  } catch (error) {
+    console.error("Error fetching featured products:", error);
+    return [];
+  }
+}
+
 export const metadata = {
   title: "Dark Velvet - Premium İç Çamaşırı",
   description:
@@ -155,16 +233,19 @@ export const metadata = {
 
 export default async function HomePage() {
   // Paralel olarak tüm verileri çek (performans için)
-  const [newArrivals, bestSellersWomen, bestSellersMen] = await Promise.all([
-    getNewArrivals(),
+  const [newArrivals, newArrivalsWomen, newArrivalsMen, bestSellersWomen, bestSellersMen, featuredProducts] = await Promise.all([
+    getNewArrivals(), // Tüm yeni gelenler
+    getNewArrivals("FEMALE"), // Kadın yeni gelenler
+    getNewArrivals("MALE"), // Erkek yeni gelenler
     getBestSellers("FEMALE"),
     getBestSellers("MALE"),
+    getFeaturedProducts(), // Öne çıkan ürünler (ProductShowcase için)
   ]);
 
   return (
     <>
       <ByltStyleHero />
-      <ProductShowcase />
+      <ProductShowcase products={featuredProducts} />
       <EditorialBanner />
       <BrandShowcase title="WOMENS BRANDS" items={womensBrands} />
       <BrandShowcase title="MEN'S BRANDS" items={mensBrands} />

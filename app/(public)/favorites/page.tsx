@@ -50,6 +50,12 @@ export default async function FavoritesPage() {
     product: {
       ...favorite.product,
       slug: favorite.product.slug ?? undefined,
+      image: favorite.product.image ?? undefined,
+      primaryImage: favorite.product.primaryImage ?? undefined,
+      colors: favorite.product.colors.map((color) => ({
+        ...color,
+        hexCode: color.hexCode ?? undefined,
+      })),
     },
   }));
 

@@ -12,122 +12,22 @@ type ColorOption = {
 };
 
 type Product = {
-  id: number;
+  id: string;
   title: string;
-  href: string;
+  price?: number;
   image: string;
-  hoverImage: string;
-  color: string;
+  hoverImage?: string;
   colors: ColorOption[];
 };
 
-const products: Product[] = [
-  {
-    id: 1,
-    title: "Long Sleeve Crew",
-    href: "/product/1",
-    image: "https://cdn.shopify.com/s/files/1/1464/5034/files/ShortSleeves.jpg?v=1768323001&quality=75&width=600&height=750&crop=center",
-    hoverImage: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=600&auto=format&fit=crop",
-    color: "Navy",
-    colors: [
-      {
-        name: "Black",
-        value: "#000000",
-        image: "https://cdn.shopify.com/s/files/1/1464/5034/files/ShortSleeves.jpg?v=1768323001&quality=75&width=600&height=750&crop=center",
-      },
-      {
-        name: "Brown",
-        value: "#8B4513",
-        image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=600&auto=format&fit=crop",
-      },
-      {
-        name: "Purple",
-        value: "#4B0082",
-        image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600&auto=format&fit=crop",
-      },
-    ],
-  },
-  {
-    id: 2,
-    title: "Short Sleeve Tee",
-    href: "/product/2",
-    image: "https://cdn.shopify.com/s/files/1/1464/5034/files/ShortSleeves.jpg?v=1768323001&quality=75&width=600&height=750&crop=center",
-    hoverImage: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=600&auto=format&fit=crop",
-    color: "Light Grey",
-    colors: [
-      {
-        name: "Black",
-        value: "#000000",
-        image: "https://cdn.shopify.com/s/files/1/1464/5034/files/ShortSleeves.jpg?v=1768323001&quality=75&width=600&height=750&crop=center",
-      },
-      {
-        name: "Brown",
-        value: "#8B4513",
-        image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=600&auto=format&fit=crop",
-      },
-      {
-        name: "Purple",
-        value: "#4B0082",
-        image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600&auto=format&fit=crop",
-      },
-    ],
-  },
-  {
-    id: 3,
-    title: "Pants Set",
-    href: "/product/3",
-    image: "https://cdn.shopify.com/s/files/1/1464/5034/files/ShortSleeves.jpg?v=1768323001&quality=75&width=600&height=750&crop=center",
-    hoverImage: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=600&auto=format&fit=crop",
-    color: "Navy & Light",
-    colors: [
-      {
-        name: "Black",
-        value: "#000000",
-        image: "https://cdn.shopify.com/s/files/1/1464/5034/files/ShortSleeves.jpg?v=1768323001&quality=75&width=600&height=750&crop=center",
-      },
-      {
-        name: "Brown",
-        value: "#8B4513",
-        image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=600&auto=format&fit=crop",
-      },
-      {
-        name: "Purple",
-        value: "#4B0082",
-        image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600&auto=format&fit=crop",
-      },
-    ],
-  },
-  {
-    id: 4,
-    title: "Short Sleeve Crew",
-    href: "/product/4",
-    image: "https://cdn.shopify.com/s/files/1/1464/5034/files/ShortSleeves.jpg?v=1768323001&quality=75&width=600&height=750&crop=center",
-    hoverImage: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=600&auto=format&fit=crop",
-    color: "Navy",
-    colors: [
-      {
-        name: "Black",
-        value: "#000000",
-        image: "https://cdn.shopify.com/s/files/1/1464/5034/files/ShortSleeves.jpg?v=1768323001&quality=75&width=600&height=750&crop=center",
-      },
-      {
-        name: "Brown",
-        value: "#8B4513",
-        image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=600&auto=format&fit=crop",
-      },
-      {
-        name: "Purple",
-        value: "#4B0082",
-        image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600&auto=format&fit=crop",
-      },
-    ],
-  },
-];
+interface ProductShowcaseProps {
+  products: Product[];
+}
 
-export default function ProductShowcase() {
+export default function ProductShowcase({ products = [] }: ProductShowcaseProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [hoveredColor, setHoveredColor] = useState<{ productId: number; colorImage: string } | null>(null);
-  const [selectedColor, setSelectedColor] = useState<{ productId: number; colorImage: string } | null>(null);
+  const [hoveredColor, setHoveredColor] = useState<{ productId: string; colorImage: string } | null>(null);
+  const [selectedColor, setSelectedColor] = useState<{ productId: string; colorImage: string } | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(true);
@@ -162,7 +62,7 @@ export default function ProductShowcase() {
     }
   };
 
-  const handleColorInteraction = (productId: number, colorImage: string) => {
+  const handleColorInteraction = (productId: string, colorImage: string) => {
     setHoveredColor({ productId, colorImage });
     setSelectedColor({ productId, colorImage });
   };
@@ -193,7 +93,7 @@ export default function ProductShowcase() {
             return (
               <div key={product.id} className="group">
                 <Link
-                  href={product.href}
+                  href={`/product/${product.id}`}
                   className="relative overflow-hidden block"
                 >
                   <div className="relative aspect-[3/4] bg-white">
@@ -207,7 +107,7 @@ export default function ProductShowcase() {
                       unoptimized
                     />
                     {/* Hover Image (when no color is active and product is hovered) */}
-                    {!isColorActive && (
+                    {!isColorActive && product.hoverImage && (
                       <Image
                         src={product.hoverImage}
                         alt={`${product.title} hover`}
@@ -217,29 +117,41 @@ export default function ProductShowcase() {
                         unoptimized
                       />
                     )}
+                    </div>
+                  </Link>
+                  
+                  {/* Product Info */}
+                  <div className="mt-4">
+                    <h3 className="text-sm font-light text-[#111] mb-1 uppercase">
+                      {product.title}
+                    </h3>
+                    {product.colors && product.colors.length > 0 && (
+                      <>
+                        <p className="text-xs text-[#111]/60 font-light mb-2">
+                          {product.colors.length} renk seçeneği
+                        </p>
+                        <div className="flex items-center justify-center gap-2">
+                          {product.colors.map((color, idx) => {
+                            const isActive = (hoveredColor?.productId === product.id && hoveredColor.colorImage === color.image) ||
+                                             (selectedColor?.productId === product.id && selectedColor.colorImage === color.image);
+                            return (
+                              <button
+                                key={idx}
+                                onMouseEnter={() => setHoveredColor({ productId: product.id, colorImage: color.image })}
+                                onMouseLeave={handleColorLeave}
+                                onClick={() => handleColorInteraction(product.id, color.image)}
+                                className={`w-4 h-4 rounded-full border border-gray-300 transition-all duration-200 hover:scale-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111] focus-visible:ring-offset-2 ${
+                                  isActive ? "border-[#111] scale-110" : ""
+                                }`}
+                                style={{ backgroundColor: color.value }}
+                                aria-label={`${color.name} renk seçeneği`}
+                              />
+                            );
+                          })}
+                        </div>
+                      </>
+                    )}
                   </div>
-                </Link>
-                
-                {/* Color Options */}
-                <div className="mt-4 flex items-center justify-center gap-2">
-                  {product.colors.map((color, idx) => {
-                    const isActive = (hoveredColor?.productId === product.id && hoveredColor.colorImage === color.image) ||
-                                     (selectedColor?.productId === product.id && selectedColor.colorImage === color.image);
-                    return (
-                      <button
-                        key={idx}
-                        onMouseEnter={() => setHoveredColor({ productId: product.id, colorImage: color.image })}
-                        onMouseLeave={handleColorLeave}
-                        onClick={() => handleColorInteraction(product.id, color.image)}
-                        className={`w-6 h-6 rounded-full border-2 transition-all duration-200 hover:scale-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111] focus-visible:ring-offset-2 ${
-                          isActive ? "border-[#111] scale-110" : "border-white"
-                        }`}
-                        style={{ backgroundColor: color.value }}
-                        aria-label={`${color.name} renk seçeneği`}
-                      />
-                    );
-                  })}
-                </div>
               </div>
             );
           })}
@@ -266,7 +178,7 @@ export default function ProductShowcase() {
               return (
                 <div key={product.id} className="flex-shrink-0 w-[calc(50%-8px)] snap-start group">
                   <Link
-                    href={product.href}
+                    href={`/product/${product.id}`}
                     className="relative overflow-hidden block"
                   >
                     <div className="relative aspect-[3/4] bg-white">
@@ -280,7 +192,7 @@ export default function ProductShowcase() {
                         unoptimized
                       />
                       {/* Hover Image (when no color is active and product is hovered) */}
-                      {!isColorActive && (
+                      {!isColorActive && product.hoverImage && (
                         <Image
                           src={product.hoverImage}
                           alt={`${product.title} hover`}
@@ -293,25 +205,42 @@ export default function ProductShowcase() {
                     </div>
                   </Link>
                   
-                  {/* Color Options */}
-                  <div className="mt-4 flex items-center justify-center gap-2">
-                    {product.colors.map((color, idx) => {
-                      const isActive = (hoveredColor?.productId === product.id && hoveredColor.colorImage === color.image) ||
-                                       (selectedColor?.productId === product.id && selectedColor.colorImage === color.image);
-                      return (
-                        <button
-                          key={idx}
-                          onMouseEnter={() => setHoveredColor({ productId: product.id, colorImage: color.image })}
-                          onMouseLeave={handleColorLeave}
-                          onClick={() => handleColorInteraction(product.id, color.image)}
-                          className={`w-6 h-6 rounded-full border-2 transition-all duration-200 hover:scale-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111] focus-visible:ring-offset-2 ${
-                            isActive ? "border-[#111] scale-110" : "border-white"
-                          }`}
-                          style={{ backgroundColor: color.value }}
-                          aria-label={`${color.name} renk seçeneği`}
-                        />
-                      );
-                    })}
+                  {/* Product Info */}
+                  <div className="mt-4">
+                    <h3 className="text-sm font-light text-[#111] mb-1 uppercase">
+                      {product.title}
+                    </h3>
+                    {product.price && (
+                      <p className="text-base font-light text-[#111] mb-1">
+                        {product.price.toFixed(2)} ₺
+                      </p>
+                    )}
+                    {product.colors && product.colors.length > 0 && (
+                      <>
+                        <p className="text-xs text-[#111]/60 font-light mb-2">
+                          {product.colors.length} renk seçeneği
+                        </p>
+                        <div className="flex items-center justify-center gap-2">
+                          {product.colors.map((color, idx) => {
+                            const isActive = (hoveredColor?.productId === product.id && hoveredColor.colorImage === color.image) ||
+                                             (selectedColor?.productId === product.id && selectedColor.colorImage === color.image);
+                            return (
+                              <button
+                                key={idx}
+                                onMouseEnter={() => setHoveredColor({ productId: product.id, colorImage: color.image })}
+                                onMouseLeave={handleColorLeave}
+                                onClick={() => handleColorInteraction(product.id, color.image)}
+                                className={`w-4 h-4 rounded-full border border-gray-300 transition-all duration-200 hover:scale-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111] focus-visible:ring-offset-2 ${
+                                  isActive ? "border-[#111] scale-110" : ""
+                                }`}
+                                style={{ backgroundColor: color.value }}
+                                aria-label={`${color.name} renk seçeneği`}
+                              />
+                            );
+                          })}
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               );
@@ -337,15 +266,24 @@ export default function ProductShowcase() {
           </button>
         </div>
         
-        {/* Show More Button */}
-        <div className="mt-12 md:mt-16 flex justify-center">
-          <Link
-            href="/products"
-            className="px-8 py-3 border border-[#111] bg-white text-[#111] text-sm md:text-base font-light hover:bg-[#111] hover:text-white transition-all duration-300"
-          >
-            Daha Fazla Göster
-          </Link>
-        </div>
+        {/* Show More Button - Sadece ürün varsa göster */}
+        {products.length > 0 && (
+          <div className="mt-12 md:mt-16 flex justify-center">
+            <Link
+              href="/products"
+              className="px-8 py-3 border border-[#111] bg-white text-[#111] text-sm md:text-base font-light hover:bg-[#111] hover:text-white transition-all duration-300"
+            >
+              Daha Fazla Göster
+            </Link>
+          </div>
+        )}
+        
+        {/* Ürün yoksa boş durum */}
+        {products.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-[#111]/60 font-light">Henüz ürün bulunmuyor.</p>
+          </div>
+        )}
       </div>
     </section>
   );

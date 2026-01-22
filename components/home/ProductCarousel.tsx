@@ -127,28 +127,33 @@ export default function ProductCarousel({ title, products, viewAllLink }: Produc
                         <Plus className="w-5 h-5" />
                       </button>
                     </div>
-                    <h3 className="text-sm font-light text-[#111] mb-1">
+                    <h3 className="text-sm font-light text-[#111] mb-1 uppercase">
                       {product.title}
                     </h3>
-                    <p className="text-sm font-light text-[#111] mb-2">
-                      {product.price} ₺
+                    <p className="text-base font-light text-[#111] mb-1">
+                      {product.price.toFixed(2)} ₺
                     </p>
                     {product.colors && product.colors.length > 0 && (
-                      <div className="flex gap-1.5">
-                        {product.colors.slice(0, 4).map((color, idx) => (
-                          <div
-                            key={idx}
-                            className="w-4 h-4 rounded-full border border-gray-300"
-                            style={{ backgroundColor: color }}
-                            aria-label={`Renk seçeneği ${idx + 1}`}
-                          />
-                        ))}
-                        {product.colors.length > 4 && (
-                          <span className="text-xs text-[#111]/60 font-light">
-                            +{product.colors.length - 4}
-                          </span>
-                        )}
-                      </div>
+                      <>
+                        <p className="text-xs text-[#111]/60 font-light mb-2">
+                          {product.colors.length} renk seçeneği
+                        </p>
+                        <div className="flex gap-1.5">
+                          {product.colors.slice(0, 4).map((color, idx) => (
+                            <div
+                              key={idx}
+                              className="w-4 h-4 rounded-full border border-gray-300"
+                              style={{ backgroundColor: color }}
+                              aria-label={`Renk seçeneği ${idx + 1}`}
+                            />
+                          ))}
+                          {product.colors.length > 4 && (
+                            <span className="text-xs text-[#111]/60 font-light">
+                              +{product.colors.length - 4}
+                            </span>
+                          )}
+                        </div>
+                      </>
                     )}
                   </Link>
                 </div>

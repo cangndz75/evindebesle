@@ -355,9 +355,10 @@ export default function ProductsPage() {
               // İlk bedenin stokunu güncelle (veya tüm bedenleri eşit dağıt)
               if (product.sizes && product.sizes.length > 0) {
                 const stockPerSize = Math.floor(Number(value) / product.sizes.length);
-                const promises = product.sizes.map((size: any, idx: number) => {
+                const promises = (product.sizes ?? []).map((size: any, idx: number) => {
+                  const sizesLength = product.sizes ? product.sizes.length : 1;
                   const stock = idx === 0 
-                    ? Number(value) - (stockPerSize * (product.sizes.length - 1))
+                    ? Number(value) - (stockPerSize * (sizesLength - 1))
                     : stockPerSize;
                   return fetch(`/api/admin-products/${product.id}/sizes/${size.id}`, {
                     method: "PATCH",

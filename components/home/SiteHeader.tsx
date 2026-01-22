@@ -51,11 +51,6 @@ export default function SiteHeader() {
   const [freeShippingThreshold, setFreeShippingThreshold] = useState<number>(99);
   const closeTimer = useRef<number | null>(null);
 
-  // Admin sayfalarında header'ı gösterme
-  if (pathname?.startsWith("/dashboard") || pathname?.startsWith("/admin") || pathname?.startsWith("/users") || pathname?.startsWith("/coupons") || pathname?.startsWith("/company-settings")) {
-    return null;
-  }
-
   // Sepet sayısını yükle
   useEffect(() => {
     const loadCartCount = async () => {
@@ -351,8 +346,16 @@ export default function SiteHeader() {
     closeTimer.current = window.setTimeout(() => setOpenMenu(null), 120);
   };
 
-  // Homepage'de SiteHeader'ı gizle (ByltStyleHero kendi header'ını içeriyor)
-  if (pathname === "/home" || pathname === "/") {
+  // Admin sayfalarında ve homepage'de header'ı gösterme
+  if (
+    pathname?.startsWith("/dashboard") ||
+    pathname?.startsWith("/admin") ||
+    pathname?.startsWith("/users") ||
+    pathname?.startsWith("/coupons") ||
+    pathname?.startsWith("/company-settings") ||
+    pathname === "/home" ||
+    pathname === "/"
+  ) {
     return null;
   }
 

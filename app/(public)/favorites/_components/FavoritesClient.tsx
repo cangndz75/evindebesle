@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Heart, Share2, X } from "lucide-react";
@@ -107,8 +107,13 @@ export default function FavoritesClient({
     }
   };
 
+  // Sayfa yüklendiğinde scroll'u en üste al
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, []);
+
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white pt-[65px] md:pt-[81px]">
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">

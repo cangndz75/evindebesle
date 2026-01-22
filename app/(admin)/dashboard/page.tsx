@@ -224,14 +224,14 @@ export default function AdminDashboard() {
         setLowStockProducts(lowStock.map((p: any) => ({
           id: p.id,
           name: p.name,
-          image: p.image,
+          image: p.image ?? null,
           stock: p.stock,
           minStock: 5, // Varsayılan min stock
         })));
         setOutOfStockProducts(outOfStock.map((p: any) => ({
           id: p.id,
           name: p.name,
-          image: p.image,
+          image: p.image ?? null,
           stock: 0,
           minStock: 5,
         })));
@@ -290,7 +290,7 @@ export default function AdminDashboard() {
     lowStockProducts: lowStockProducts.map((p) => ({
       id: p.id,
       name: p.name,
-      image: p.image,
+      image: p.image ?? undefined,
       stock: p.stock || 0,
       minStock: p.minStock,
       isOutOfStock: false,
@@ -298,7 +298,7 @@ export default function AdminDashboard() {
     outOfStockProducts: outOfStockProducts.map((p) => ({
       id: p.id,
       name: p.name,
-      image: p.image,
+      image: p.image ?? undefined,
       stock: 0,
       minStock: p.minStock,
       isOutOfStock: true,

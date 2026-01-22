@@ -353,7 +353,7 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
   };
 
   return (
-    <div className="w-full min-h-screen bg-white">
+    <div className="w-full min-h-screen bg-white pt-[65px] md:pt-[81px]">
       {/* Breadcrumb */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 pt-6 pb-4">
         <nav className="flex items-center gap-2 text-sm font-light text-gray-500">

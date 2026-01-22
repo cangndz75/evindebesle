@@ -273,7 +273,7 @@ export default function WomenProductsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white pt-[65px] md:pt-[81px]">
       <AnnouncementBanner variant="pink" className="mb-0" />
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
         {/* Breadcrumb */}

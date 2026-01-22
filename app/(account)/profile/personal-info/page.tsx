@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
@@ -21,6 +21,11 @@ import PasswordChange from "@/app/(account)/profile/PasswordChange";
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState<"profile" | "password">("profile");
   const router = useRouter();
+
+  // Sayfa yüklendiğinde scroll'u en üste al
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, []);
 
   const handleDeleteAccount = async () => {
     try {

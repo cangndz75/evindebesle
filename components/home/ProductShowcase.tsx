@@ -40,7 +40,7 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
   const [modalSelectedColor, setModalSelectedColor] = useState<string | null>(null);
   const [modalSelectedSize, setModalSelectedSize] = useState<string | null>(null);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  // const [showSuccessModal, setShowSuccessModal] = useState(false); // Removed - using header popup instead
   const [cartItemCount, setCartItemCount] = useState(0);
 
   useEffect(() => {
@@ -111,7 +111,6 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
     setModalSelectedColor(null);
     setModalSelectedSize(null);
     setIsAddingToCart(false);
-    setShowSuccessModal(false);
   };
 
   const handleAddToCart = async () => {
@@ -145,12 +144,142 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
               ? cartItems.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0)
               : 0;
             setCartItemCount(total);
+          } else if (cartRes.status === 401) {
+            // Giriş yapılmamışsa localStorage'dan al
+            const localCart = localStorage.getItem("guestCart");
+            const items = localCart ? JSON.parse(localCart) : [];
+            const total = items.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0);
+            setCartItemCount(total);
           }
         } catch (error) {
           console.error("Error loading cart count:", error);
         }
+        
+        // Seçili renk ve beden isimlerini bul
+        const selectedColorName = modalSelectedColor 
+          ? (modalProduct.colors.find(c => c.image === modalSelectedColor)?.name || null)
+          : null;
+        
+        const selectedSizeName = modalSelectedSize 
+          ? (() => {
+              const availableSizes = modalProduct.sizes && modalProduct.sizes.length > 0
+                ? modalProduct.sizes
+                : modalProduct.sizeOptions && modalProduct.sizeOptions.length > 0
+                ? modalProduct.sizeOptions.map(so => ({ name: so.name, stock: 0, id: so.id }))
+                : [];
+              
+              const foundSize = availableSizes.find((s: any) => {
+                if (typeof s === 'string') {
+                  return s === modalSelectedSize;
+                }
+                return s.id === modalSelectedSize || s.name === modalSelectedSize;
+              });
+              return foundSize 
+                ? (typeof foundSize === 'string' ? foundSize : foundSize.name)
+                : modalSelectedSize;
+            })()
+          : null;
+
+        // Header'daki popup'ı tetikle
+        window.dispatchEvent(new CustomEvent('itemAddedToCart', {
+          detail: {
+            product: {
+              id: modalProduct.id,
+              name: modalProduct.title,
+              image: modalProduct.image,
+              price: modalProduct.price || 0,
+            },
+            size: selectedSizeName || '',
+            color: selectedColorName || '',
+          }
+        }));
+
         setIsAddingToCart(false);
-        setShowSuccessModal(true);
+        closeModal();
+      } else if (res.status === 401) {
+        // Giriş yapılmamışsa localStorage'a kaydet
+        const cartItem = {
+          id: `guest_${Date.now()}`,
+          productId: modalProduct.id,
+          colorId: modalSelectedColor || null,
+          sizeId: modalSelectedSize,
+          quantity: 1,
+          product: {
+            id: modalProduct.id,
+            name: modalProduct.title,
+            price: modalProduct.price || 0,
+            image: modalProduct.image,
+            primaryImage: modalProduct.image,
+            colors: modalProduct.colors || [],
+            sizes: modalProduct.sizes || [],
+          },
+          color: modalSelectedColor ? modalProduct.colors.find(c => c.image === modalSelectedColor) : null,
+          size: modalProduct.sizes?.find((s: any) => (typeof s === 'string' ? s : s.name) === modalSelectedSize || (typeof s === 'object' && s.id === modalSelectedSize)) || null,
+        };
+
+        const localCart = localStorage.getItem("guestCart");
+        const items = localCart ? JSON.parse(localCart) : [];
+        
+        // Aynı ürün varsa miktarı artır
+        const existingIndex = items.findIndex((item: any) => 
+          item.productId === cartItem.productId &&
+          item.colorId === cartItem.colorId &&
+          item.sizeId === cartItem.sizeId
+        );
+
+        if (existingIndex >= 0) {
+          items[existingIndex].quantity += 1;
+        } else {
+          items.push(cartItem);
+        }
+
+        localStorage.setItem("guestCart", JSON.stringify(items));
+        window.dispatchEvent(new Event("cartUpdated"));
+        
+        const total = items.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0);
+        setCartItemCount(total);
+        
+        // Seçili renk ve beden isimlerini bul
+        const selectedColorName = modalSelectedColor 
+          ? (modalProduct.colors.find(c => c.image === modalSelectedColor)?.name || null)
+          : null;
+        
+        const selectedSizeName = modalSelectedSize 
+          ? (() => {
+              const availableSizes = modalProduct.sizes && modalProduct.sizes.length > 0
+                ? modalProduct.sizes
+                : modalProduct.sizeOptions && modalProduct.sizeOptions.length > 0
+                ? modalProduct.sizeOptions.map(so => ({ name: so.name, stock: 0, id: so.id }))
+                : [];
+              
+              const foundSize = availableSizes.find((s: any) => {
+                if (typeof s === 'string') {
+                  return s === modalSelectedSize;
+                }
+                return s.id === modalSelectedSize || s.name === modalSelectedSize;
+              });
+              return foundSize 
+                ? (typeof foundSize === 'string' ? foundSize : foundSize.name)
+                : modalSelectedSize;
+            })()
+          : null;
+
+        // Header'daki popup'ı tetikle
+        window.dispatchEvent(new CustomEvent('itemAddedToCart', {
+          detail: {
+            product: {
+              id: modalProduct.id,
+              name: modalProduct.title,
+              image: modalProduct.image,
+              price: modalProduct.price || 0,
+            },
+            size: selectedSizeName || '',
+            color: selectedColorName || '',
+          }
+        }));
+
+        setIsAddingToCart(false);
+        closeModal();
       } else {
         const error = await res.json();
         setIsAddingToCart(false);
@@ -617,13 +746,13 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
       </div>
 
       {/* Quick View Modal */}
-      {modalProduct && !showSuccessModal && (
+      {modalProduct && (
         <div 
           className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-6 md:pt-8 bg-black/50 backdrop-blur-sm overflow-y-auto"
           onClick={closeModal}
         >
           <div 
-            className="bg-white rounded-lg shadow-2xl max-w-7xl w-full max-h-[70vh] overflow-hidden flex flex-row relative transform transition-all mt-4"
+            className="bg-white rounded-lg shadow-2xl max-w-[90vw] w-full max-h-[65vh] overflow-hidden flex flex-row relative transform transition-all mt-4"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close Button */}
@@ -636,8 +765,8 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
             </button>
 
             {/* Product Image */}
-            <div className="w-2/5 bg-gray-50 flex items-center justify-center p-6 min-h-[500px]">
-              <div className="relative w-full h-full max-w-lg">
+            <div className="w-[35%] bg-gray-50 flex items-center justify-center p-6">
+              <div className="relative w-full aspect-square max-w-md">
                 <Image
                   src={(() => {
                     if (modalSelectedColor) {
@@ -656,7 +785,7 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
             </div>
 
             {/* Product Info */}
-            <div className="w-3/5 p-6 overflow-y-auto max-h-[70vh]">
+            <div className="w-[65%] p-6 overflow-y-auto max-h-[65vh]">
               {/* Brand */}
               <p className="text-xs text-[#111]/60 font-light uppercase mb-1">DARK VELVET</p>
               
@@ -703,7 +832,11 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
               {modalProduct.colors && modalProduct.colors.length > 0 && (
                 <div className="mb-4">
                   <label className="block text-xs font-light text-[#111] mb-2">
-                    Renk: <span className="text-[#111]/60">{modalSelectedColor ? modalProduct.colors.find(c => c.image === modalSelectedColor)?.name || "Seçiniz" : "Seçiniz"}</span>
+                    Renk: <span className="text-[#111]/60">
+                      {modalSelectedColor 
+                        ? (modalProduct.colors.find(c => c.image === modalSelectedColor)?.name || "Seçiniz")
+                        : "Seçiniz"}
+                    </span>
                   </label>
                   <div className="flex flex-wrap gap-2">
                     {modalProduct.colors.map((color, idx) => {
@@ -736,10 +869,25 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
 
                 if (availableSizes.length === 0) return null;
 
+                // Seçili bedenin ismini bul
+                const selectedSizeName = modalSelectedSize 
+                  ? (() => {
+                      const foundSize = availableSizes.find((s: any) => {
+                        if (typeof s === 'string') {
+                          return s === modalSelectedSize;
+                        }
+                        return s.id === modalSelectedSize || s.name === modalSelectedSize;
+                      });
+                      return foundSize 
+                        ? (typeof foundSize === 'string' ? foundSize : foundSize.name)
+                        : modalSelectedSize;
+                    })()
+                  : null;
+
                 return (
                   <div className="mb-4">
                     <label className="block text-xs font-light text-[#111] mb-2">
-                      Beden: <span className="text-[#111]/60">{modalSelectedSize || "Seçiniz"}</span>
+                      Beden: <span className="text-[#111]/60">{selectedSizeName || "Seçiniz"}</span>
                     </label>
                     <div className="grid grid-cols-3 gap-2">
                       {availableSizes.map((size, sizeIdx) => {
@@ -757,7 +905,7 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                         
                         const finalStock = variantStock > 0 ? variantStock : sizeStock;
                         const isOutOfStock = finalStock <= 0;
-                        const isSelected = modalSelectedSize === (sizeId || sizeName);
+                        const isSelected = modalSelectedSize === sizeId || modalSelectedSize === sizeName;
 
                         return (
                           <button
@@ -822,102 +970,6 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
         </div>
       )}
 
-      {/* Success Modal - Added to Cart */}
-      {showSuccessModal && modalProduct && (
-        <div 
-          className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-6 md:pt-8 bg-black/50 backdrop-blur-sm"
-          onClick={() => {
-            setShowSuccessModal(false);
-            closeModal();
-          }}
-        >
-          <div 
-            className="bg-white rounded-lg shadow-2xl max-w-lg w-full overflow-hidden flex flex-col md:flex-row relative transform transition-all mt-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Close Button */}
-            <button
-              onClick={() => {
-                setShowSuccessModal(false);
-                closeModal();
-              }}
-              className="absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center bg-white hover:bg-gray-50 rounded-full transition-colors shadow-sm"
-              aria-label="Kapat"
-            >
-              <X className="w-4 h-4 text-[#111]" />
-            </button>
-
-            {/* Product Image */}
-            <div className="w-full md:w-2/5 bg-gray-50 flex items-center justify-center p-6">
-              <div className="relative w-full aspect-square">
-                <Image
-                  src={(() => {
-                    if (modalSelectedColor) {
-                      const selectedColorObj = modalProduct.colors.find(c => c.image === modalSelectedColor);
-                      return selectedColorObj?.image || modalProduct.image;
-                    }
-                    return modalProduct.image;
-                  })()}
-                  alt={modalProduct.title}
-                  fill
-                  className="object-contain"
-                  sizes="40vw"
-                  quality={90}
-                />
-              </div>
-            </div>
-
-            {/* Success Info */}
-            <div className="w-full md:w-3/5 p-6 flex flex-col justify-between">
-              <div>
-                <h3 className="text-lg font-light text-[#111] mb-4 uppercase">Sepete Eklendi</h3>
-                
-                <div className="mb-3">
-                  <p className="text-sm font-light text-[#111] mb-2 leading-relaxed">{modalProduct.title}</p>
-                  {modalSelectedSize && (
-                    <p className="text-xs text-[#111]/60 font-light">
-                      {modalSelectedSize}
-                      {modalSelectedColor && modalProduct.colors.find(c => c.image === modalSelectedColor) && (
-                        <span> / {modalProduct.colors.find(c => c.image === modalSelectedColor)?.name}</span>
-                      )}
-                    </p>
-                  )}
-                </div>
-
-                {modalProduct.price && (
-                  <p className="text-base font-light text-[#111] mb-4">
-                    ₺{modalProduct.price.toFixed(2)}
-                  </p>
-                )}
-              </div>
-
-              <div className="flex flex-col gap-2 mt-4">
-                <button
-                  onClick={() => {
-                    setShowSuccessModal(false);
-                    closeModal();
-                    // Cart'ı aç
-                    window.dispatchEvent(new CustomEvent('openCart'));
-                  }}
-                  className="w-full px-4 py-2.5 border border-[#111] bg-white text-[#111] font-light text-xs uppercase tracking-wider hover:bg-[#111] hover:text-white transition-colors text-center"
-                >
-                  Sepeti Görüntüle {cartItemCount > 0 && `(${cartItemCount})`}
-                </button>
-                <Link
-                  href="/payment"
-                  onClick={() => {
-                    setShowSuccessModal(false);
-                    closeModal();
-                  }}
-                  className="w-full px-4 py-2.5 bg-[#111] text-white font-light text-xs uppercase tracking-wider hover:bg-[#333] transition-colors text-center block"
-                >
-                  Ödeme
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </section>
   );
 }

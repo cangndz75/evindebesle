@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { Heart, ChevronDown, ArrowUpDown, LayoutGrid, Square } from "lucide-react";
+import { Heart, ChevronDown, ArrowUpDown } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -42,6 +42,14 @@ type Product = {
   inColors?: number;
 };
 
+type EditorialItem = {
+  id: string;
+  type: "editorial";
+  image: string;
+};
+
+type GridItem = Product | EditorialItem;
+
 const categories = [
   "All",
   "Bras",
@@ -52,79 +60,93 @@ const categories = [
   "Active",
 ];
 
+// Daha fazla ürün örneği ekleyelim
+const generateProduct = (id: string, name: string, price: number, originalPrice?: number, badge?: string): Product => ({
+  id,
+  name,
+  price,
+  originalPrice,
+  image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=600&auto=format&fit=crop",
+  hoverImage: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600&auto=format&fit=crop",
+  inColors: Math.floor(Math.random() * 5) + 2,
+  colors: [
+    {
+      name: "Black",
+      value: "#000000",
+      image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=600&auto=format&fit=crop",
+    },
+    {
+      name: "White",
+      value: "#FFFFFF",
+      image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600&auto=format&fit=crop",
+    },
+  ],
+  badge,
+});
+
 const products: Product[] = [
+  generateProduct("w1", "Premium Dantel Sütyen", 899, undefined, "Yeni"),
+  generateProduct("w2", "Seamless Günlük Külot", 349),
+  generateProduct("w3", "Saten İpek Takım", 1299, 1599),
+  generateProduct("w4", "Transparan Dantel Body", 1499),
+  generateProduct("w5", "Lüks Dantel Sütyen", 999),
+  generateProduct("w6", "Günlük Külot 3'lü Paket", 449),
+  generateProduct("w7", "Premium Body", 1299, 1499),
+  generateProduct("w8", "Seamless Sütyen", 799),
+  generateProduct("w9", "Dantel Külot", 299),
+  generateProduct("w10", "Lüks Takım Set", 1899),
+  generateProduct("w11", "Günlük Sütyen", 599),
+  generateProduct("w12", "Premium Külot", 399),
+  generateProduct("w13", "Dantel Sütyen Set", 1199),
+  generateProduct("w14", "Seamless Body", 1099),
+  generateProduct("w15", "Lüks Külot", 349),
+  generateProduct("w16", "Premium Sütyen", 899),
+];
+
+// Editorial görselleri
+const editorialItems: EditorialItem[] = [
   {
-    id: "w1",
-    name: "Premium Dantel Sütyen",
-    price: 899,
-    image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=600&auto=format&fit=crop",
-    hoverImage: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600&auto=format&fit=crop",
-    inColors: 5,
-    colors: [
-      {
-        name: "Black",
-        value: "#000000",
-        image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=600&auto=format&fit=crop",
-      },
-      {
-        name: "White",
-        value: "#FFFFFF",
-        image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600&auto=format&fit=crop",
-      },
-    ],
-    badge: "Yeni",
+    id: "editorial-1",
+    type: "editorial",
+    image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1200&auto=format&fit=crop",
   },
   {
-    id: "w2",
-    name: "Seamless Günlük Külot",
-    price: 349,
-    image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=600&auto=format&fit=crop",
-    hoverImage: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600&auto=format&fit=crop",
-    inColors: 4,
-    colors: [
-      {
-        name: "Black",
-        value: "#000000",
-        image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=600&auto=format&fit=crop",
-      },
-      {
-        name: "Nude",
-        value: "#E8D5C4",
-        image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600&auto=format&fit=crop",
-      },
-    ],
+    id: "editorial-2",
+    type: "editorial",
+    image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=1200&auto=format&fit=crop",
   },
-  {
-    id: "w3",
-    name: "Saten İpek Takım",
-    price: 1299,
-    originalPrice: 1599,
-    image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=600&auto=format&fit=crop",
-    hoverImage: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600&auto=format&fit=crop",
-    inColors: 3,
-    colors: [
-      {
-        name: "Black",
-        value: "#000000",
-        image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=600&auto=format&fit=crop",
-      },
-    ],
-  },
-  {
-    id: "w4",
-    name: "Transparan Dantel Body",
-    price: 1499,
-    image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=600&auto=format&fit=crop",
-    hoverImage: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600&auto=format&fit=crop",
-    inColors: 6,
-    colors: [
-      {
-        name: "Black",
-        value: "#000000",
-        image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=600&auto=format&fit=crop",
-      },
-    ],
-  },
+];
+
+// Grid düzeni: 3. resimdeki gibi
+// Sıralı dizi: Editorial'lar özel konumlarda (2x2 span)
+const gridItems: GridItem[] = [
+  // Satır 1-2: Sol üst editorial (2x2) + Sağ üst 4 ürün
+  { id: "editorial-1", type: "editorial", image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1200&auto=format&fit=crop" },
+  products[0],
+  products[1],
+  products[2],
+  products[3],
+  
+  // Satır 3-5: Orta 3 satır x 4 sütun = 12 ürün
+  products[4],
+  products[5],
+  products[6],
+  products[7],
+  products[8],
+  products[9],
+  products[10],
+  products[11],
+  products[12],
+  products[13],
+  products[14],
+  products[15],
+  
+  // Satır 6-7: Alt 4 ürün + Sağ alt editorial (2x2)
+  products[0], // Fallback
+  products[1], // Fallback
+  products[2], // Fallback
+  products[3], // Fallback
+  { id: "editorial-2", type: "editorial", image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=1200&auto=format&fit=crop" },
 ];
 
 // Favorite Button Component
@@ -181,7 +203,6 @@ export default function WomenProductsPage({
   const [selectedColor, setSelectedColor] = useState<{ productId: string; colorImage: string } | null>(null);
   const [sortOption, setSortOption] = useState("featured");
   const [sortDialogOpen, setSortDialogOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<"grid" | "large">("grid");
   const [filters, setFilters] = useState<FilterState>({
     sizes: [],
     colors: [],
@@ -333,35 +354,9 @@ export default function WomenProductsPage({
             />
           </div>
 
-          {/* Sırala ve Görünüm - Sağ */}
+          {/* Sırala - Sağ */}
           <div className="flex items-center gap-4">
             <span className="text-sm text-[#111]/60 font-light hidden md:inline">{products.length} ürün</span>
-            
-            {/* Görünüm Butonları */}
-            <div className="flex items-center gap-1 border border-[#111]">
-              <button
-                onClick={() => setViewMode("grid")}
-                className={`p-2 transition-colors ${
-                  viewMode === "grid"
-                    ? "bg-[#111] text-white"
-                    : "bg-white text-[#111] hover:bg-gray-50"
-                }`}
-                aria-label="Grid görünümü"
-              >
-                <LayoutGrid className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => setViewMode("large")}
-                className={`p-2 transition-colors ${
-                  viewMode === "large"
-                    ? "bg-[#111] text-white"
-                    : "bg-white text-[#111] hover:bg-gray-50"
-                }`}
-                aria-label="Büyük görünüm"
-              >
-                <Square className="w-4 h-4" />
-              </button>
-            </div>
             
             {/* Mobil: Sırala Butonu */}
             <button
@@ -470,13 +465,81 @@ export default function WomenProductsPage({
           </DialogContent>
         </Dialog>
 
-        {/* Product Grid */}
-        <div className={`grid gap-4 md:gap-6 ${
-          viewMode === "grid"
-            ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
-            : "grid-cols-1"
-        }`}>
-          {products.map((product) => {
+        {/* Editorial Grid - 3. resimdeki düzen */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 auto-rows-fr">
+          {gridItems.map((item, index) => {
+            // Editorial kart
+            if ("type" in item && item.type === "editorial") {
+              // İlk editorial: sol üst (2x2), index 0
+              if (item.id === "editorial-1") {
+                return (
+                  <div
+                    key={item.id}
+                    className="group relative overflow-hidden bg-gray-100 aspect-[3/4] col-span-2 row-span-2 md:aspect-square"
+                    style={{ gridColumn: "1 / 3", gridRow: "1 / 3" }}
+                  >
+                    <Image
+                      src={item.image || "/placeholder.png"}
+                      alt="Editorial"
+                      fill
+                      className="object-cover transition-transform duration-700 group-hover:scale-105"
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                      unoptimized
+                    />
+                  </div>
+                );
+              }
+              // İkinci editorial: sağ alt (2x2), index 20
+              return (
+                <div
+                  key={item.id}
+                  className="group relative overflow-hidden bg-gray-100 aspect-[3/4] col-span-2 row-span-2 md:aspect-square"
+                  style={{ gridColumn: "3 / 5", gridRow: "6 / 8" }}
+                >
+                  <Image
+                    src={item.image || "/placeholder.png"}
+                    alt="Editorial"
+                    fill
+                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    unoptimized
+                  />
+                </div>
+              );
+            }
+
+            // Ürün kartı
+            const product = item as Product;
+            
+            // Ürünlerin grid pozisyonlarını belirle
+            let gridStyle: React.CSSProperties = {};
+            
+            // Satır 1: Sağ üst 2 ürün (editorial'dan sonra, index 1-2)
+            if (index === 1) gridStyle = { gridColumn: "3", gridRow: "1" };
+            else if (index === 2) gridStyle = { gridColumn: "4", gridRow: "1" };
+            // Satır 2: Sağ üst devam 2 ürün (index 3-4)
+            else if (index === 3) gridStyle = { gridColumn: "3", gridRow: "2" };
+            else if (index === 4) gridStyle = { gridColumn: "4", gridRow: "2" };
+            // Satır 3-5: Orta 12 ürün (3 satır x 4 sütun, index 5-16)
+            else if (index >= 5 && index <= 16) {
+              const relativeIndex = index - 5;
+              const row = Math.floor(relativeIndex / 4) + 3;
+              const col = (relativeIndex % 4) + 1;
+              gridStyle = { gridColumn: col.toString(), gridRow: row.toString() };
+            }
+            // Satır 6-7: Alt 4 ürün (index 17-20)
+            else if (index >= 17 && index <= 20) {
+              const relativeIndex = index - 17;
+              if (relativeIndex < 2) {
+                gridStyle = { gridColumn: (relativeIndex + 1).toString(), gridRow: "6" };
+              } else {
+                gridStyle = { gridColumn: (relativeIndex - 1).toString(), gridRow: "7" };
+              }
+            }
+            // Varsayılan (olması gerekmeyen durumlar için)
+            else {
+              gridStyle = {};
+            }
             const isColorActive = hoveredColor?.productId === product.id || selectedColor?.productId === product.id;
             const activeColorImage = hoveredColor?.productId === product.id
               ? hoveredColor.colorImage
@@ -487,21 +550,15 @@ export default function WomenProductsPage({
             const currentImage = activeColorImage || product.image || "/placeholder.png";
 
             return (
-              <div key={product.id} className="group">
+              <div key={product.id} className="group" style={gridStyle}>
                 <Link href={`/product/${product.id}`} className="block">
-                  <div className={`relative mb-4 overflow-hidden bg-gray-100 ${
-                    viewMode === "large" ? "aspect-[3/4]" : "aspect-[3/4]"
-                  }`}>
+                  <div className="relative mb-3 overflow-hidden bg-gray-100 aspect-[3/4]">
                     <Image
                       src={currentImage}
                       alt={product.name}
                       fill
                       className="object-cover transition-opacity duration-500"
-                      sizes={
-                        viewMode === "large"
-                          ? "100vw"
-                          : "(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                      }
+                      sizes="(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 25vw"
                       unoptimized
                     />
                     {!isColorActive && product.hoverImage && (
@@ -510,18 +567,12 @@ export default function WomenProductsPage({
                         alt={`${product.name} hover`}
                         fill
                         className="object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-                        sizes={
-                          viewMode === "large"
-                            ? "(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                            : "(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                        }
+                        sizes="(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 25vw"
                         unoptimized
                       />
                     )}
                     {product.badge && (
-                      <div className={`absolute top-3 left-3 bg-[#111] text-white uppercase font-light ${
-                        viewMode === "large" ? "text-xs px-3 py-1.5" : "text-[10px] px-2 py-1"
-                      }`}>
+                      <div className="absolute top-3 left-3 bg-[#111] text-white uppercase font-light text-[10px] px-2 py-1">
                         {product.badge}
                       </div>
                     )}
@@ -529,44 +580,34 @@ export default function WomenProductsPage({
                   </div>
                 </Link>
 
-                <div className="mb-2">
-                  <h3 className={`font-light text-[#111] mb-1 ${
-                    viewMode === "large" ? "text-base md:text-lg" : "text-sm md:text-base"
-                  }`}>
+                <div className="space-y-1">
+                  <h3 className="font-light text-[#111] text-xs md:text-sm">
                     {product.name}
                   </h3>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col">
                     {product.originalPrice ? (
                       <>
-                        <span className={`font-light text-[#111] ${
-                          viewMode === "large" ? "text-base md:text-lg" : "text-sm md:text-base"
-                        }`}>
+                        <span className="font-light text-[#111] text-xs md:text-sm">
                           {product.price} ₺
                         </span>
-                        <span className={`text-[#111]/60 line-through ${
-                          viewMode === "large" ? "text-sm md:text-base" : "text-sm"
-                        }`}>
+                        <span className="text-[#111]/60 line-through text-xs">
                           {product.originalPrice} ₺
                         </span>
                       </>
                     ) : (
-                      <span className={`font-light text-[#111] ${
-                        viewMode === "large" ? "text-base md:text-lg" : "text-sm md:text-base"
-                      }`}>
+                      <span className="font-light text-[#111] text-xs md:text-sm">
                         {product.price} ₺
                       </span>
                     )}
                   </div>
                   {product.inColors && (
-                    <p className={`text-[#111]/60 font-light mt-1 ${
-                      viewMode === "large" ? "text-sm" : "text-xs"
-                    }`}>
-                      {product.inColors} renk seçeneği
+                    <p className="text-[#111]/60 font-light text-[10px] md:text-xs mt-0.5">
+                      {product.inColors} renk
                     </p>
                   )}
                 </div>
 
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1 mt-2">
                   {product.colors.map((color, idx) => {
                     const isActive = isColorActive && activeColorImage === color.image;
                     return (
@@ -575,8 +616,8 @@ export default function WomenProductsPage({
                         onMouseEnter={() => handleColorInteraction(product.id, color.image)}
                         onMouseLeave={handleColorLeave}
                         onClick={() => handleColorInteraction(product.id, color.image)}
-                        className={`w-4 h-4 rounded-full border transition-all duration-200 hover:scale-110 ${
-                          isActive ? "border-[#111] scale-110" : "border-gray-300"
+                        className={`w-3 h-3 rounded-full border transition-all duration-200 ${
+                          isActive ? "border-[#111]" : "border-gray-300"
                         }`}
                         style={{ backgroundColor: color.value }}
                         aria-label={`${color.name} renk seçeneği`}

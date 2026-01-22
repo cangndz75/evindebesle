@@ -34,7 +34,7 @@ export async function PATCH(
   }
 
   // params'ı await et (Next.js 15+ gereksinimi)
-  void await params;
+  await params;
 
   const body = await req.json();
   const parsed = schema.safeParse(body);
@@ -73,7 +73,7 @@ export async function DELETE(
   }
 
   // params'ı await et (Next.js 15+ gereksinimi)
-  void await params;
+  await params;
 
   try {
     await prisma.accessInfo.deleteMany({

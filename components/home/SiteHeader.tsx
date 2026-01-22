@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Menu, Search, User, Heart, ShoppingBag } from "lucide-react";
+import { Menu, Search, User, Heart, ShoppingBag, X } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -50,14 +50,47 @@ export default function SiteHeader() {
   const [favoriteCount, setFavoriteCount] = useState(0);
   const [freeShippingThreshold, setFreeShippingThreshold] = useState<number>(99);
   const closeTimer = useRef<number | null>(null);
+  const [cartPopup, setCartPopup] = useState<{
+    product: { id: string; name: string; image: string; price: number };
+    size: string;
+    color: string;
+  } | null>(null);
+  const popupTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Cart açma event'ini dinle
   useEffect(() => {
     const handleOpenCart = () => {
       setCartOpen(true);
+      setCartPopup(null); // Sepet açılınca popup'ı kapat
     };
     window.addEventListener('openCart', handleOpenCart);
     return () => window.removeEventListener('openCart', handleOpenCart);
+  }, []);
+
+  // Sepete eklenme event'ini dinle
+  useEffect(() => {
+    const handleItemAddedToCart = (e: CustomEvent) => {
+      const { product, size, color } = e.detail;
+      setCartPopup({ product, size, color });
+      
+      // Önceki timer'ı temizle
+      if (popupTimerRef.current) {
+        clearTimeout(popupTimerRef.current);
+      }
+      
+      // 3 saniye sonra otomatik kapat
+      popupTimerRef.current = setTimeout(() => {
+        setCartPopup(null);
+      }, 3000);
+    };
+
+    window.addEventListener('itemAddedToCart', handleItemAddedToCart as EventListener);
+    return () => {
+      window.removeEventListener('itemAddedToCart', handleItemAddedToCart as EventListener);
+      if (popupTimerRef.current) {
+        clearTimeout(popupTimerRef.current);
+      }
+    };
   }, []);
 
   // Sepet sayısını yükle
@@ -500,18 +533,100 @@ export default function SiteHeader() {
                 </span>
               )}
             </Link>
-            <button
-              onClick={() => setCartOpen(true)}
-              className="relative hover:opacity-70 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 rounded text-[#111] focus-visible:ring-[#111]"
-              aria-label="Sepet"
-            >
-              <ShoppingBag className="w-5 h-5" />
-              {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 text-white text-[10px] rounded-full flex items-center justify-center font-light bg-[#111]">
-                  {cartCount}
-                </span>
+            <div className="relative">
+              <button
+                onClick={() => {
+                  setCartOpen(true);
+                  setCartPopup(null);
+                }}
+                className="relative hover:opacity-70 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 rounded text-[#111] focus-visible:ring-[#111]"
+                aria-label="Sepet"
+              >
+                <ShoppingBag className="w-5 h-5" />
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 text-white text-[10px] rounded-full flex items-center justify-center font-light bg-[#111]">
+                    {cartCount}
+                  </span>
+                )}
+              </button>
+
+              {/* Cart Popup */}
+              {cartPopup && (
+                <div className="absolute top-full right-0 mt-2 w-[420px] bg-white rounded-lg shadow-2xl z-50 border border-gray-200 animate-in slide-in-from-top-2 duration-200">
+                  <div className="p-5">
+                    {/* Header with Close Button */}
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-base font-light text-[#111] uppercase">Sepete Eklendi</h3>
+                      <button
+                        onClick={() => {
+                          setCartPopup(null);
+                          if (popupTimerRef.current) {
+                            clearTimeout(popupTimerRef.current);
+                          }
+                        }}
+                        className="w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors"
+                        aria-label="Kapat"
+                      >
+                        <X className="w-4 h-4 text-[#111]" />
+                      </button>
+                    </div>
+
+                    {/* Product Info */}
+                    <div className="flex gap-4 mb-5">
+                      <div className="relative w-24 h-24 bg-gray-50 flex-shrink-0 rounded">
+                        <Image
+                          src={cartPopup.product.image}
+                          alt={cartPopup.product.name}
+                          fill
+                          className="object-contain rounded"
+                          sizes="96px"
+                          quality={85}
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-light text-[#111] mb-2 line-clamp-2 leading-relaxed">{cartPopup.product.name}</p>
+                        <p className="text-xs text-[#111]/60 font-light mb-2">
+                          {cartPopup.size && <span>{cartPopup.size}</span>}
+                          {cartPopup.size && cartPopup.color && <span> / </span>}
+                          {cartPopup.color && <span>{cartPopup.color}</span>}
+                        </p>
+                        <p className="text-sm font-light text-[#111]">
+                          ₺{cartPopup.product.price.toFixed(2)}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Buttons */}
+                    <div className="flex flex-col gap-2.5">
+                      <button
+                        onClick={() => {
+                          setCartOpen(true);
+                          setCartPopup(null);
+                          if (popupTimerRef.current) {
+                            clearTimeout(popupTimerRef.current);
+                          }
+                        }}
+                        className="w-full px-4 py-2.5 border border-[#111] bg-white text-[#111] font-light text-xs uppercase tracking-wider hover:bg-[#111] hover:text-white transition-colors text-center"
+                      >
+                        Sepeti Görüntüle {cartCount > 0 && `(${cartCount})`}
+                      </button>
+                      <Link
+                        href="/payment"
+                        onClick={() => {
+                          setCartPopup(null);
+                          if (popupTimerRef.current) {
+                            clearTimeout(popupTimerRef.current);
+                          }
+                        }}
+                        className="w-full px-4 py-2.5 bg-[#111] text-white font-light text-xs uppercase tracking-wider hover:bg-[#333] transition-colors text-center block"
+                      >
+                        Ödeme
+                      </Link>
+                    </div>
+                  </div>
+                </div>
               )}
-            </button>
+            </div>
           </div>
         </div>
       </nav>

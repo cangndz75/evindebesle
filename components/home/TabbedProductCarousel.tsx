@@ -176,7 +176,7 @@ export default function TabbedProductCarousel({
 
 interface ProductCarouselContentProps {
   products: Product[];
-  scrollContainerRef: React.RefObject<HTMLDivElement>;
+  scrollContainerRef: React.RefObject<HTMLDivElement | null>;
   checkScroll: () => void;
 }
 

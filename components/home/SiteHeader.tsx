@@ -51,6 +51,15 @@ export default function SiteHeader() {
   const [freeShippingThreshold, setFreeShippingThreshold] = useState<number>(99);
   const closeTimer = useRef<number | null>(null);
 
+  // Cart açma event'ini dinle
+  useEffect(() => {
+    const handleOpenCart = () => {
+      setCartOpen(true);
+    };
+    window.addEventListener('openCart', handleOpenCart);
+    return () => window.removeEventListener('openCart', handleOpenCart);
+  }, []);
+
   // Sepet sayısını yükle
   useEffect(() => {
     const loadCartCount = async () => {

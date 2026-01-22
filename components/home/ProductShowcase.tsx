@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, Star, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 
 type ColorOption = {
@@ -36,6 +36,12 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
   const [isMobile, setIsMobile] = useState(false);
   const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(true);
+  const [modalProduct, setModalProduct] = useState<Product | null>(null);
+  const [modalSelectedColor, setModalSelectedColor] = useState<string | null>(null);
+  const [modalSelectedSize, setModalSelectedSize] = useState<string | null>(null);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [cartItemCount, setCartItemCount] = useState(0);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -49,6 +55,16 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
   useEffect(() => {
     checkScroll();
   }, [products]);
+
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && modalProduct) {
+        closeModal();
+      }
+    };
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [modalProduct]);
 
   const checkScroll = () => {
     if (!scrollContainerRef.current) return;
@@ -84,6 +100,69 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
     }
   };
 
+  const openModal = (product: Product) => {
+    setModalProduct(product);
+    setModalSelectedColor(product.colorId || null);
+    setModalSelectedSize(null);
+  };
+
+  const closeModal = () => {
+    setModalProduct(null);
+    setModalSelectedColor(null);
+    setModalSelectedSize(null);
+    setIsAddingToCart(false);
+    setShowSuccessModal(false);
+  };
+
+  const handleAddToCart = async () => {
+    if (!modalProduct || !modalSelectedSize) {
+      toast.error("Lütfen beden seçiniz", { position: "bottom-left" });
+      return;
+    }
+
+    setIsAddingToCart(true);
+
+    try {
+      const res = await fetch("/api/cart", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          productId: modalProduct.id,
+          colorId: modalSelectedColor || null,
+          sizeId: modalSelectedSize,
+          quantity: 1,
+        }),
+      });
+
+      if (res.ok) {
+        window.dispatchEvent(new Event("cartUpdated"));
+        // Sepet sayısını al
+        try {
+          const cartRes = await fetch("/api/cart");
+          if (cartRes.ok) {
+            const cartItems = await cartRes.json();
+            const total = Array.isArray(cartItems) 
+              ? cartItems.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0)
+              : 0;
+            setCartItemCount(total);
+          }
+        } catch (error) {
+          console.error("Error loading cart count:", error);
+        }
+        setIsAddingToCart(false);
+        setShowSuccessModal(true);
+      } else {
+        const error = await res.json();
+        setIsAddingToCart(false);
+        toast.error(error.error || "Sepete eklenirken bir hata oluştu", { position: "bottom-left" });
+      }
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      setIsAddingToCart(false);
+      toast.error("Sepete eklenirken bir hata oluştu", { position: "bottom-left" });
+    }
+  };
+
   return (
     <section className="w-full bg-white py-12 md:py-20">
       <div className="w-full px-4 md:px-6">
@@ -108,9 +187,9 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                 
                 return (
                   <div key={product.id} className="flex-shrink-0 w-64 md:w-72 snap-start group">
-                    <Link
-                      href={`/product/${product.id}`}
-                      className="relative overflow-hidden block"
+                    <div
+                      onClick={() => openModal(product)}
+                      className="relative overflow-hidden block cursor-pointer"
                     >
                       <div className="relative aspect-[3/4] mb-4 overflow-hidden bg-gray-200">
                         {!isColorActive && product.hoverImage ? (
@@ -150,7 +229,7 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                           />
                         )}
                       </div>
-                    </Link>
+                    </div>
                   
                     {/* Product Info */}
                     <h3 className="text-sm font-light text-[#111] mb-1 uppercase pl-2 md:pl-4">
@@ -328,9 +407,9 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
               
               return (
                 <div key={product.id} className="flex-shrink-0 w-[calc(50%-8px)] snap-start group">
-                  <Link
-                    href={`/product/${product.id}`}
-                    className="relative overflow-hidden block"
+                  <div
+                    onClick={() => openModal(product)}
+                    className="relative overflow-hidden block cursor-pointer"
                   >
                     <div className="relative aspect-[3/4] bg-white">
                       {/* Main Image */}
@@ -358,7 +437,7 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                         />
                       )}
                     </div>
-                  </Link>
+                  </div>
                   
                   {/* Product Info */}
                   <div className="mt-4 pl-2">
@@ -536,6 +615,309 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
           </div>
         )}
       </div>
+
+      {/* Quick View Modal */}
+      {modalProduct && !showSuccessModal && (
+        <div 
+          className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-6 md:pt-8 bg-black/50 backdrop-blur-sm overflow-y-auto"
+          onClick={closeModal}
+        >
+          <div 
+            className="bg-white rounded-lg shadow-2xl max-w-7xl w-full max-h-[70vh] overflow-hidden flex flex-row relative transform transition-all mt-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close Button */}
+            <button
+              onClick={closeModal}
+              className="absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center bg-white hover:bg-gray-50 rounded-full transition-colors shadow-sm"
+              aria-label="Kapat"
+            >
+              <X className="w-4 h-4 text-[#111]" />
+            </button>
+
+            {/* Product Image */}
+            <div className="w-2/5 bg-gray-50 flex items-center justify-center p-6 min-h-[500px]">
+              <div className="relative w-full h-full max-w-lg">
+                <Image
+                  src={(() => {
+                    if (modalSelectedColor) {
+                      const selectedColorObj = modalProduct.colors.find(c => c.image === modalSelectedColor);
+                      return selectedColorObj?.image || modalProduct.image;
+                    }
+                    return modalProduct.image;
+                  })()}
+                  alt={modalProduct.title}
+                  fill
+                  className="object-contain"
+                  sizes="40vw"
+                  quality={90}
+                />
+              </div>
+            </div>
+
+            {/* Product Info */}
+            <div className="w-3/5 p-6 overflow-y-auto max-h-[70vh]">
+              {/* Brand */}
+              <p className="text-xs text-[#111]/60 font-light uppercase mb-1">DARK VELVET</p>
+              
+              <div className="mb-3">
+                <h2 className="text-lg md:text-xl font-light text-[#111] mb-1 uppercase">
+                  {modalProduct.title}
+                </h2>
+              </div>
+
+              {/* Price */}
+              {modalProduct.price && (
+                <div className="mb-3">
+                  <p className="text-lg font-light text-[#111]">
+                    ₺{modalProduct.price.toFixed(2)}
+                  </p>
+                </div>
+              )}
+
+              {/* Rating */}
+              <div className="flex items-center gap-2 mb-3">
+                <div className="flex items-center gap-0.5">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star
+                      key={star}
+                      className={`w-3.5 h-3.5 ${
+                        star <= 4 ? "fill-[#111] text-[#111]" : "fill-none text-gray-300"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <span className="text-xs text-[#111]/60 font-light">4.8 (4)</span>
+              </div>
+
+              {/* View Details Link */}
+              <Link
+                href={`/product/${modalProduct.id}`}
+                className="text-xs text-[#111] hover:underline mb-4 inline-block"
+                onClick={closeModal}
+              >
+                Ürün detaylarını görüntüle →
+              </Link>
+
+              {/* Color Selection */}
+              {modalProduct.colors && modalProduct.colors.length > 0 && (
+                <div className="mb-4">
+                  <label className="block text-xs font-light text-[#111] mb-2">
+                    Renk: <span className="text-[#111]/60">{modalSelectedColor ? modalProduct.colors.find(c => c.image === modalSelectedColor)?.name || "Seçiniz" : "Seçiniz"}</span>
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {modalProduct.colors.map((color, idx) => {
+                      const isSelected = modalSelectedColor === color.image;
+                      return (
+                        <button
+                          key={idx}
+                          onClick={() => setModalSelectedColor(color.image)}
+                          className={`w-8 h-8 rounded-full border-2 transition-all ${
+                            isSelected
+                              ? "border-[#111] scale-110"
+                              : "border-gray-300 hover:border-[#111]"
+                          }`}
+                          style={{ backgroundColor: color.value }}
+                          aria-label={color.name}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Size Selection */}
+              {(() => {
+                const availableSizes = modalProduct.sizes && modalProduct.sizes.length > 0
+                  ? modalProduct.sizes
+                  : modalProduct.sizeOptions && modalProduct.sizeOptions.length > 0
+                  ? modalProduct.sizeOptions.map(so => ({ name: so.name, stock: 0, id: so.id }))
+                  : [];
+
+                if (availableSizes.length === 0) return null;
+
+                return (
+                  <div className="mb-4">
+                    <label className="block text-xs font-light text-[#111] mb-2">
+                      Beden: <span className="text-[#111]/60">{modalSelectedSize || "Seçiniz"}</span>
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {availableSizes.map((size, sizeIdx) => {
+                        const sizeName = typeof size === 'string' ? size : size.name;
+                        const sizeId = typeof size === 'object' && size.id ? size.id : null;
+                        const sizeStock = typeof size === 'object' ? size.stock : 0;
+                        
+                        let variantStock = 0;
+                        if (modalSelectedColor && modalProduct.variants && modalProduct.colorId) {
+                          const variant = modalProduct.variants.find((v: any) => 
+                            v.colorId === modalProduct.colorId && v.sizeId === sizeId
+                          );
+                          variantStock = variant?.stock || 0;
+                        }
+                        
+                        const finalStock = variantStock > 0 ? variantStock : sizeStock;
+                        const isOutOfStock = finalStock <= 0;
+                        const isSelected = modalSelectedSize === (sizeId || sizeName);
+
+                        return (
+                          <button
+                            key={sizeIdx}
+                            onClick={() => !isOutOfStock && setModalSelectedSize(sizeId || sizeName)}
+                            disabled={isOutOfStock}
+                            className={`px-3 py-2 text-xs font-light border transition-all ${
+                              isOutOfStock
+                                ? "border-gray-200 text-gray-400 line-through cursor-not-allowed bg-gray-50"
+                                : isSelected
+                                ? "border-[#111] bg-[#111] text-white"
+                                : "border-gray-300 hover:border-[#111] bg-white text-[#111]"
+                            }`}
+                          >
+                            {sizeName}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Add to Cart Button */}
+              <button
+                onClick={handleAddToCart}
+                disabled={!modalSelectedSize || isAddingToCart}
+                className={`w-full px-4 py-3 bg-[#111] text-white font-light text-xs uppercase tracking-wider transition-all mb-4 relative overflow-hidden group ${
+                  !modalSelectedSize 
+                    ? "opacity-50 cursor-not-allowed bg-gray-200 text-[#111]" 
+                    : "hover:bg-[#333]"
+                } ${isAddingToCart ? "cursor-wait" : ""}`}
+              >
+                {isAddingToCart ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <ShoppingBag className="w-4 h-4 animate-[slideRight_0.6s_ease-out_forwards]" />
+                    <span>Ekleniyor...</span>
+                  </span>
+                ) : modalSelectedSize ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <ShoppingBag className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
+                    <span>Sepete Ekle</span>
+                  </span>
+                ) : (
+                  <span>Seçenekleri görün</span>
+                )}
+              </button>
+
+              {/* Product Description */}
+              <div className="pt-3 border-t border-gray-200">
+                <p className="text-xs text-[#111]/80 font-light mb-2">
+                  Premium kalite ve zarif tasarım ile üretilmiştir.
+                </p>
+                <ul className="space-y-1 text-xs text-[#111]/60 font-light">
+                  <li>• Premium kumaş</li>
+                  <li>• Yüksek kalite</li>
+                  <li>• Zarif tasarım</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Modal - Added to Cart */}
+      {showSuccessModal && modalProduct && (
+        <div 
+          className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-6 md:pt-8 bg-black/50 backdrop-blur-sm"
+          onClick={() => {
+            setShowSuccessModal(false);
+            closeModal();
+          }}
+        >
+          <div 
+            className="bg-white rounded-lg shadow-2xl max-w-lg w-full overflow-hidden flex flex-col md:flex-row relative transform transition-all mt-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close Button */}
+            <button
+              onClick={() => {
+                setShowSuccessModal(false);
+                closeModal();
+              }}
+              className="absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center bg-white hover:bg-gray-50 rounded-full transition-colors shadow-sm"
+              aria-label="Kapat"
+            >
+              <X className="w-4 h-4 text-[#111]" />
+            </button>
+
+            {/* Product Image */}
+            <div className="w-full md:w-2/5 bg-gray-50 flex items-center justify-center p-6">
+              <div className="relative w-full aspect-square">
+                <Image
+                  src={(() => {
+                    if (modalSelectedColor) {
+                      const selectedColorObj = modalProduct.colors.find(c => c.image === modalSelectedColor);
+                      return selectedColorObj?.image || modalProduct.image;
+                    }
+                    return modalProduct.image;
+                  })()}
+                  alt={modalProduct.title}
+                  fill
+                  className="object-contain"
+                  sizes="40vw"
+                  quality={90}
+                />
+              </div>
+            </div>
+
+            {/* Success Info */}
+            <div className="w-full md:w-3/5 p-6 flex flex-col justify-between">
+              <div>
+                <h3 className="text-lg font-light text-[#111] mb-4 uppercase">Sepete Eklendi</h3>
+                
+                <div className="mb-3">
+                  <p className="text-sm font-light text-[#111] mb-2 leading-relaxed">{modalProduct.title}</p>
+                  {modalSelectedSize && (
+                    <p className="text-xs text-[#111]/60 font-light">
+                      {modalSelectedSize}
+                      {modalSelectedColor && modalProduct.colors.find(c => c.image === modalSelectedColor) && (
+                        <span> / {modalProduct.colors.find(c => c.image === modalSelectedColor)?.name}</span>
+                      )}
+                    </p>
+                  )}
+                </div>
+
+                {modalProduct.price && (
+                  <p className="text-base font-light text-[#111] mb-4">
+                    ₺{modalProduct.price.toFixed(2)}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex flex-col gap-2 mt-4">
+                <button
+                  onClick={() => {
+                    setShowSuccessModal(false);
+                    closeModal();
+                    // Cart'ı aç
+                    window.dispatchEvent(new CustomEvent('openCart'));
+                  }}
+                  className="w-full px-4 py-2.5 border border-[#111] bg-white text-[#111] font-light text-xs uppercase tracking-wider hover:bg-[#111] hover:text-white transition-colors text-center"
+                >
+                  Sepeti Görüntüle {cartItemCount > 0 && `(${cartItemCount})`}
+                </button>
+                <Link
+                  href="/payment"
+                  onClick={() => {
+                    setShowSuccessModal(false);
+                    closeModal();
+                  }}
+                  className="w-full px-4 py-2.5 bg-[#111] text-white font-light text-xs uppercase tracking-wider hover:bg-[#333] transition-colors text-center block"
+                >
+                  Ödeme
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

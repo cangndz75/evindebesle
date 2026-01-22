@@ -160,12 +160,11 @@ export default function SiteHeader() {
       men: {
         left: [
           {
-            title: "MODERN BİR YENİLENME",
+            title: "KATEGORİLER",
             items: [
-              { label: "Aktif Koleksiyon", href: "/men/active" },
-              { label: "En Çok Satanlar", href: "/men/best-sellers" },
               { label: "Yeni Çıkanlar", href: "/men/new" },
-              { label: "Ayakkabı", href: "/men/footwear" },
+              { label: "En Çok Satanlar", href: "/men/best-sellers" },
+              { label: "Aktif Koleksiyon", href: "/men/active" },
               { label: "Son Fırsat", href: "/men/last-call" },
               { label: "Tümünü Gör", href: "/men" },
             ],
@@ -174,37 +173,20 @@ export default function SiteHeader() {
             title: "ÜST GİYİM",
             items: [
               { label: "Kısa Kollu", href: "/men/tops/short-sleeves" },
-              { label: "Polo & Gömlek", href: "/men/tops/polos" },
               { label: "Uzun Kollu", href: "/men/tops/long-sleeves" },
               { label: "Kazak & Sweatshirt", href: "/men/tops/pullovers" },
-              { label: "Ceket & Dış Giyim", href: "/men/tops/outerwear" },
-              { label: "Aktif Üst Giyim", href: "/men/tops/active" },
               { label: "Atlet", href: "/men/tops/tanks" },
               { label: "Tüm Üst Giyim", href: "/men/tops" },
             ],
           },
           {
-            title: "ALT GİYİM",
+            title: "ALT GİYİM & AKSESUAR",
             items: [
               { label: "Pantolon", href: "/men/bottoms/pants" },
-              { label: "Jogger", href: "/men/bottoms/joggers" },
               { label: "Şort", href: "/men/bottoms/shorts" },
-              { label: "Aktif Alt Giyim", href: "/men/bottoms/active" },
-              { label: "Yüzme Şortu", href: "/men/bottoms/swim" },
               { label: "İç Çamaşırı", href: "/men/bottoms/underwear" },
-              { label: "Tüm Alt Giyim", href: "/men/bottoms" },
-            ],
-          },
-          {
-            title: "AYAKKABI & AKSESUAR",
-            items: [
               { label: "Ayakkabı", href: "/men/accessories/footwear" },
-              { label: "Şapka", href: "/men/accessories/headwear" },
-              { label: "Çorap", href: "/men/accessories/socks" },
-              { label: "Güneş Gözlüğü", href: "/men/accessories/sunglasses" },
-              { label: "Çanta", href: "/men/accessories/bags" },
-              { label: "Hediye Kartı", href: "/gift-cards" },
-              { label: "Tümünü Gör", href: "/men/accessories" },
+              { label: "Aksesuarlar", href: "/men/accessories" },
             ],
           },
         ],
@@ -219,45 +201,31 @@ export default function SiteHeader() {
       women: {
         left: [
           {
-            title: "MODERN TEMEL PARÇALAR",
+            title: "KATEGORİLER",
             items: [
               { label: "Yeni Gelenler", href: "/women/new" },
               { label: "En Çok Satanlar", href: "/women/best-sellers" },
               { label: "Takım Koleksiyon", href: "/women/sets" },
+              { label: "Son Fırsat", href: "/women/last-call" },
+              { label: "Tümünü Gör", href: "/women" },
+            ],
+          },
+          {
+            title: "ÜRÜNLER",
+            items: [
               { label: "Sütyen", href: "/women/bras" },
               { label: "İç Çamaşırı", href: "/women/underwear" },
               { label: "Şekillendirici", href: "/women/shapewear" },
-              { label: "Tümünü Gör", href: "/women" },
+              { label: "Body", href: "/women/bodies" },
+              { label: "Lounge Giyim", href: "/women/collections/loungewear" },
             ],
           },
           {
             title: "KOLEKSİYONLAR",
             items: [
               { label: "Seamless", href: "/women/collections/seamless" },
-              { label: "Dantel Stüdyo", href: "/women/collections/lace" },
-              { label: "İkinci Cilt", href: "/women/collections/second-skin" },
+              { label: "Dantel", href: "/women/collections/lace" },
               { label: "Aktif", href: "/women/collections/active" },
-              { label: "Lounge Giyim", href: "/women/collections/loungewear" },
-              { label: "Son Fırsat", href: "/women/last-call" },
-            ],
-          },
-          {
-            title: "ÜST GİYİM",
-            items: [
-              { label: "Body", href: "/women/bodies" },
-              { label: "Üst Giyim", href: "/women/tops/all" },
-              { label: "Sabahlık", href: "/women/robes" },
-              { label: "Tüm Üst Giyim", href: "/women/tops" },
-            ],
-          },
-          {
-            title: "ALT GİYİM",
-            items: [
-              { label: "Külot", href: "/women/underwear/briefs" },
-              { label: "Tanga", href: "/women/underwear/thongs" },
-              { label: "Bikini", href: "/women/underwear/bikinis" },
-              { label: "Uyku", href: "/women/sleep" },
-              { label: "Tüm Alt Giyim", href: "/women/underwear" },
             ],
           },
         ],
@@ -343,7 +311,7 @@ export default function SiteHeader() {
 
   const scheduleClose = () => {
     if (closeTimer.current) window.clearTimeout(closeTimer.current);
-    closeTimer.current = window.setTimeout(() => setOpenMenu(null), 120);
+    closeTimer.current = window.setTimeout(() => setOpenMenu(null), 200);
   };
 
   // Admin sayfalarında ve homepage'de header'ı gösterme
@@ -546,18 +514,18 @@ export default function SiteHeader() {
           onMouseEnter={keepOpen}
           onMouseLeave={scheduleClose}
         >
-          <div className="max-w-7xl mx-auto px-4 md:px-8 py-12">
-            <div className="grid grid-cols-12 gap-12">
-              <div className="col-span-9">
-                <div className="grid grid-cols-4 gap-12">
+          <div className="max-w-7xl mx-auto px-4 md:px-8 py-6">
+            <div className="grid grid-cols-12 gap-6">
+              <div className="col-span-10">
+                <div className="grid grid-cols-3 gap-6">
                   {mega[openMenu].left.map((group, idx) => (
                     <div key={`${openMenu}-${idx}`}>
                       {group.title && (
-                        <div className="text-[11px] tracking-[0.22em] uppercase mb-5 text-black/70">
+                        <div className="text-[11px] tracking-[0.22em] uppercase mb-3 text-black/70">
                           {group.title}
                         </div>
                       )}
-                      <ul className="space-y-3">
+                      <ul className="space-y-2">
                         {group.items.map((it, itemIdx) => (
                           <li key={`${it.href}-${itemIdx}`}>
                             <Link
@@ -573,22 +541,22 @@ export default function SiteHeader() {
                   ))}
                 </div>
               </div>
-              <div className="col-span-3">
+              <div className="col-span-2">
                 <Link href={mega[openMenu].rightPromo.href} className="group block">
-                  <div className="relative aspect-[3/4] overflow-hidden bg-gray-100 mb-4">
+                  <div className="relative aspect-[3/4] overflow-hidden bg-gray-100 mb-2">
                     <Image
                       src={mega[openMenu].rightPromo.image}
                       alt={mega[openMenu].rightPromo.title}
                       fill
                       className="object-cover transition-transform duration-500 group-hover:scale-105"
-                      sizes="300px"
+                      sizes="200px"
                       unoptimized
                     />
                   </div>
-                  <h3 className="text-sm font-light text-[#111] mb-1">
+                  <h3 className="text-xs font-light text-[#111] mb-0.5">
                     {mega[openMenu].rightPromo.title}
                   </h3>
-                  <p className="text-xs text-[#111]/60 font-light">
+                  <p className="text-[10px] text-[#111]/60 font-light">
                     {mega[openMenu].rightPromo.subtitle}
                   </p>
                 </Link>

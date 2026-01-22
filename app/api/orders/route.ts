@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
+import { Prisma } from "@prisma/client";
 
 // Sipariş numarası oluştur (ORD-YYYYMMDD-XXX formatında)
 function generateOrderNumber(): string {
@@ -155,7 +156,7 @@ export async function POST(request: NextRequest) {
 
     // Fiyat hesaplamaları
     let subtotal = 0;
-    const orderItems = [];
+    const orderItems: Prisma.OrderItemCreateWithoutOrderInput[] = [];
 
     for (const cartItem of cartItems) {
       const unitPrice = cartItem.product.price;

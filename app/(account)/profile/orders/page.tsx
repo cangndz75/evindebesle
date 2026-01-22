@@ -166,7 +166,7 @@ export default function OrdersPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
+    <div className="max-w-6xl mx-auto w-full">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Siparişlerim</h1>
         <p className="text-gray-600">Tüm siparişlerinizi ve randevularınızı buradan görüntüleyebilirsiniz</p>

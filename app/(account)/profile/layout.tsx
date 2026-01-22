@@ -1,9 +1,20 @@
+"use client";
+
 import type { ReactNode } from "react";
+import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 import Navbar from "@/app/(public)/_components/Navbar";
 import Sidebar from "@/app/(account)/profile/_components/Sidebar";
 import ProfileMobileHeader from "@/app/(account)/profile/_components/ProfileMobileHeader";
 
 export default function ProfileLayout({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+
+  // Sayfa değiştiğinde scroll'u en üste al
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, [pathname]);
+
   return (
     <>
       <div className="flex flex-col md:flex-row min-h-screen bg-white overflow-x-hidden">

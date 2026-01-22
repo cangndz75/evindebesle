@@ -139,6 +139,7 @@ type StockProduct = {
   id: string;
   name: string;
   image: string | null;
+  minStock?: number;
   stock: number;
 };
 

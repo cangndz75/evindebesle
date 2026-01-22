@@ -24,11 +24,17 @@ const schema = z.object({
 });
 
 // ✅ PATCH: accessInfo'yu userId ile güncelle
-export async function PATCH(req: NextRequest) {
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   const session = await getServerSession(authConfig);
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  // params'ı await et (Next.js 15+ gereksinimi)
+  await params;
 
   const body = await req.json();
   const parsed = schema.safeParse(body);
@@ -57,11 +63,17 @@ export async function PATCH(req: NextRequest) {
 }
 
 // ✅ DELETE: accessInfo'yu userId ile sil
-export async function DELETE(req: NextRequest) {
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   const session = await getServerSession(authConfig);
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  // params'ı await et (Next.js 15+ gereksinimi)
+  await params;
 
   try {
     await prisma.accessInfo.deleteMany({

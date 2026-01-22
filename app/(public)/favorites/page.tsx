@@ -18,11 +18,19 @@ export default async function FavoritesPage() {
           colors: {
             include: {
               variants: {
-                take: 1,
+                select: {
+                  id: true,
+                  variantCode: true,
+                  colorId: true,
+                  sizeId: true,
+                  stock: true,
+                  price: true,
+                },
               },
             },
           },
           sizes: true,
+          sizeOptions: true,
           tags: true,
         },
       },
@@ -53,9 +61,13 @@ export default async function FavoritesPage() {
       image: favorite.product.image ?? undefined,
       primaryImage: favorite.product.primaryImage ?? undefined,
       colors: favorite.product.colors.map((color) => ({
-        ...color,
+        id: color.id,
+        name: color.name,
         hexCode: color.hexCode ?? undefined,
+        images: color.images || [],
+        variants: color.variants || [],
       })),
+      sizeOptions: favorite.product.sizeOptions || [],
     },
   }));
 

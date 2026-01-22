@@ -44,5 +44,14 @@ export default async function FavoritesPage() {
     },
   });
 
-  return <FavoritesClient favorites={favorites} bestSellers={bestSellers} />;
+  // Type dönüşümü: null -> undefined
+  const formattedFavorites = favorites.map((favorite) => ({
+    ...favorite,
+    product: {
+      ...favorite.product,
+      slug: favorite.product.slug ?? undefined,
+    },
+  }));
+
+  return <FavoritesClient favorites={formattedFavorites} bestSellers={bestSellers} />;
 }

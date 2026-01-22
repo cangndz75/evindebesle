@@ -14,6 +14,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import ShoppingCart from "@/app/(public)/_components/ShoppingCart";
+import SearchModal from "@/components/home/SearchModal";
 
 type MenuKey = "men" | "women" | "kids" | "bundles" | "lastcall";
 
@@ -44,8 +45,10 @@ export default function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [openMenu, setOpenMenu] = useState<MenuKey | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
+  const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const [favoriteCount, setFavoriteCount] = useState(0);
+  const [freeShippingThreshold, setFreeShippingThreshold] = useState<number>(99);
   const closeTimer = useRef<number | null>(null);
 
   // Admin sayfalarında header'ı gösterme
@@ -73,9 +76,8 @@ export default function SiteHeader() {
     };
 
     loadCartCount();
-    // Her 5 saniyede bir güncelle
-    const interval = setInterval(loadCartCount, 5000);
-    return () => clearInterval(interval);
+    // Event listener'lar zaten var, interval'a gerek yok
+    // Sadece sayfa yüklendiğinde bir kez yükle
   }, [session]);
 
   // Favori sayısını yükle
@@ -97,9 +99,8 @@ export default function SiteHeader() {
     };
 
     loadFavoriteCount();
-    // Her 5 saniyede bir güncelle
-    const interval = setInterval(loadFavoriteCount, 5000);
-    return () => clearInterval(interval);
+    // Event listener'lar zaten var, interval'a gerek yok
+    // Sadece sayfa yüklendiğinde bir kez yükle
   }, [session]);
 
   // Favori güncellemelerini dinle
@@ -142,6 +143,22 @@ export default function SiteHeader() {
       window.removeEventListener("openCart", handleOpenCart);
     };
   }, [session]);
+
+  // Ücretsiz kargo eşiğini yükle
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await fetch("/api/company-settings");
+        if (res.ok) {
+          const data = await res.json();
+          setFreeShippingThreshold(data.freeShippingThreshold || 99);
+        }
+      } catch (error) {
+        console.error("Error fetching company settings:", error);
+      }
+    };
+    fetchSettings();
+  }, []);
 
   const mega = useMemo<Record<MenuKey, { left: MegaGroup[]; rightPromo: Promo }>>(
     () => ({
@@ -363,6 +380,7 @@ export default function SiteHeader() {
                   >
                     <Link
                       href={item.href}
+                      prefetch={true}
                       className="text-xs md:text-sm font-light hover:opacity-70 transition-all uppercase text-[#111]"
                     >
                       {item.label}
@@ -404,7 +422,7 @@ export default function SiteHeader() {
                   <button
                     onClick={() => {
                       setMenuOpen(false);
-                      // Arama modalını aç
+                      setSearchModalOpen(true);
                     }}
                     className="flex items-center gap-3 text-[#111] font-light hover:opacity-70 transition-opacity w-full"
                   >
@@ -477,6 +495,7 @@ export default function SiteHeader() {
           {/* Sağ: İkonlar */}
           <div className="flex items-center gap-4 md:gap-6">
             <button
+              onClick={() => setSearchModalOpen(true)}
               className="hidden md:flex hover:opacity-70 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 rounded text-[#111] focus-visible:ring-[#111]"
               aria-label="Ara"
             >
@@ -578,6 +597,12 @@ export default function SiteHeader() {
 
       {/* Shopping Cart Sidebar */}
       <ShoppingCart isOpen={cartOpen} onClose={() => setCartOpen(false)} />
+      
+      {/* Search Modal */}
+      <SearchModal
+        isOpen={searchModalOpen}
+        onClose={() => setSearchModalOpen(false)}
+      />
       </header>
     </>
   );

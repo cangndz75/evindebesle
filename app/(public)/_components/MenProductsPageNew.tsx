@@ -157,16 +157,24 @@ function FavoriteButton({ productId, productName }: { productId: string; product
   );
 }
 
-export default function MenProductsPage() {
+type MenProductsPageProps = {
+  initialProducts?: Product[];
+  initialPriceRange?: { min: number; max: number };
+};
+
+export default function MenProductsPage({
+  initialProducts = [],
+  initialPriceRange = { min: 0, max: 2000 },
+}: MenProductsPageProps = {}) {
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
     sizes: [],
     colors: [],
     fabricTypes: [],
   });
-  const [priceRange, setPriceRange] = useState({ min: 0, max: 2000 });
+  const [priceRange, setPriceRange] = useState(initialPriceRange);
   const [sortOption, setSortOption] = useState("featured");
   const [sortDialogOpen, setSortDialogOpen] = useState(false);
   const [hoveredColor, setHoveredColor] = useState<{
@@ -179,24 +187,30 @@ export default function MenProductsPage() {
     variantCode?: string;
   } | null>(null);
 
-  // Fiyat aralığını veritabanından çek
+  // Fiyat aralığı zaten server-side'da çekildi, sadece güncelleme gerekirse
   useEffect(() => {
-    const fetchPriceRange = async () => {
-      try {
-        const res = await fetch("/api/products/price-range");
-        const data = await res.json();
-        if (data.min !== undefined && data.max !== undefined) {
-          setPriceRange({ min: data.min, max: data.max });
-        }
-      } catch (error) {
-        console.error("Fiyat aralığı yüklenirken hata:", error);
-      }
-    };
-    fetchPriceRange();
-  }, []);
+    if (initialPriceRange.min !== 0 || initialPriceRange.max !== 2000) {
+      setPriceRange(initialPriceRange);
+    }
+  }, [initialPriceRange]);
 
-  // Fetch products
+  // Fetch products - sadece filtre değiştiğinde
   useEffect(() => {
+    // İlk yüklemede initialProducts kullan, filtre değiştiğinde fetch et
+    const hasFilters = 
+      selectedCategory !== "All" ||
+      filters.minPrice ||
+      filters.maxPrice ||
+      filters.sizes.length > 0 ||
+      filters.colors.length > 0 ||
+      filters.fabricTypes.length > 0;
+
+    if (!hasFilters && initialProducts.length > 0) {
+      // Filtre yoksa initial products'ı kullan
+      setProducts(initialProducts);
+      return;
+    }
+
     const fetchProducts = async () => {
       setLoading(true);
       try {
@@ -242,7 +256,7 @@ export default function MenProductsPage() {
     };
 
     fetchProducts();
-  }, [selectedCategory, filters]);
+  }, [selectedCategory, filters, initialProducts]);
 
   // Extract available options from products
   const availableOptions = useMemo(() => {
@@ -585,7 +599,7 @@ export default function MenProductsPage() {
 
               return (
                 <div key={product.id} className="group relative overflow-hidden">
-                  <Link href={finalUrl} className="block">
+                  <Link href={finalUrl} prefetch={true} className="block">
                     <div className="relative aspect-[3/4] mb-4 overflow-hidden bg-gray-100">
                       <Image
                         src={currentImage}

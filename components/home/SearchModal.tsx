@@ -108,11 +108,29 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
 
   useEffect(() => {
     if (isOpen) {
+      // Body scroll'unu engelle
       document.body.style.overflow = "hidden";
+      // Scroll pozisyonunu kaydet
+      const scrollY = window.scrollY;
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = "100%";
     } else {
+      // Scroll pozisyonunu geri yükle
+      const scrollY = document.body.style.top;
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.width = "";
       document.body.style.overflow = "";
+      if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY || "0") * -1);
+      }
     }
     return () => {
+      // Cleanup
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.width = "";
       document.body.style.overflow = "";
     };
   }, [isOpen]);
@@ -193,9 +211,9 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] bg-white">
+    <div className="fixed inset-0 z-[100] bg-white flex flex-col">
       {/* Top Search Bar */}
-      <div className="bg-black text-white px-4 md:px-8 py-6">
+      <div className="bg-black text-white px-4 md:px-8 py-6 flex-shrink-0">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center gap-4">
             <div className="flex-1 relative">
@@ -237,7 +255,7 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
       </div>
 
       {/* Main Content */}
-      <div className="h-[calc(100vh-120px)] overflow-y-auto bg-gray-50">
+      <div className="flex-1 overflow-y-auto bg-gray-50 overscroll-contain">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
           {/* Category Badge */}
           {detectedCategory && (

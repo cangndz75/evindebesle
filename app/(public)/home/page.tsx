@@ -1,19 +1,41 @@
+import dynamic from "next/dynamic";
+import { Suspense } from "react";
 import AnnouncementBar from "@/components/home/AnnouncementBar";
 import CampaignStrip from "@/components/home/CampaignStrip";
 import ByltStyleHero from "@/components/home/ByltStyleHero";
 import ProductShowcase from "@/components/home/ProductShowcase";
-import EditorialBanner from "@/components/home/EditorialBanner";
-import CollectionCarousel from "@/components/home/CollectionCarousel";
-import BrandShowcase from "@/components/home/BrandShowcase";
-import SplitShowcase from "@/components/home/SplitShowcase";
-import TwoUpEditorialTiles from "@/components/home/TwoUpEditorialTiles";
-import CategoryRail from "@/components/home/CategoryRail";
-import FeaturedCardsRow from "@/components/home/FeaturedCardsRow";
-import ProductCarousel from "@/components/home/ProductCarousel";
-import EditorialTiles from "@/components/home/EditorialTiles";
-import TabbedBestSellers from "@/components/home/TabbedBestSellers";
-import NewsletterSignup from "@/components/home/NewsletterSignup";
-import FooterAccordion from "@/components/home/FooterAccordion";
+
+// Lazy load büyük componentler
+const EditorialBanner = dynamic(() => import("@/components/home/EditorialBanner"), {
+  loading: () => <div className="h-64 bg-gray-100 animate-pulse" />,
+});
+const CollectionCarousel = dynamic(() => import("@/components/home/CollectionCarousel"), {
+  loading: () => <div className="h-96 bg-gray-100 animate-pulse" />,
+});
+const BrandShowcase = dynamic(() => import("@/components/home/BrandShowcase"), {
+  loading: () => <div className="h-64 bg-gray-100 animate-pulse" />,
+});
+const SplitShowcase = dynamic(() => import("@/components/home/SplitShowcase"), {
+  loading: () => <div className="h-96 bg-gray-100 animate-pulse" />,
+});
+const FeaturedCardsRow = dynamic(() => import("@/components/home/FeaturedCardsRow"), {
+  loading: () => <div className="h-64 bg-gray-100 animate-pulse" />,
+});
+const ProductCarousel = dynamic(() => import("@/components/home/ProductCarousel"), {
+  loading: () => <div className="h-96 bg-gray-100 animate-pulse" />,
+});
+const EditorialTiles = dynamic(() => import("@/components/home/EditorialTiles"), {
+  loading: () => <div className="h-64 bg-gray-100 animate-pulse" />,
+});
+const TabbedBestSellers = dynamic(() => import("@/components/home/TabbedBestSellers"), {
+  loading: () => <div className="h-96 bg-gray-100 animate-pulse" />,
+});
+const NewsletterSignup = dynamic(() => import("@/components/home/NewsletterSignup"), {
+  loading: () => <div className="h-32 bg-gray-100 animate-pulse" />,
+});
+const FooterAccordion = dynamic(() => import("@/components/home/FooterAccordion"), {
+  loading: () => <div className="h-64 bg-gray-100 animate-pulse" />,
+});
 import { womensBrands, mensBrands } from "@/lib/homeData";
 import { prisma } from "@/lib/db";
 import type { Product } from "@/lib/homeData";
@@ -35,10 +57,19 @@ async function getNewArrivals(gender?: "MALE" | "FEMALE"): Promise<Product[]> {
           },
         },
       },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        price: true,
+        originalPrice: true,
+        image: true,
+        primaryImage: true,
+        secondaryImage: true,
         colors: {
           take: 1,
-          include: {
+          select: {
+            id: true,
+            images: true,
             variants: {
               select: {
                 id: true,
@@ -51,8 +82,19 @@ async function getNewArrivals(gender?: "MALE" | "FEMALE"): Promise<Product[]> {
             },
           },
         },
-        sizes: true,
-        sizeOptions: true,
+        sizes: {
+          select: {
+            id: true,
+            name: true,
+            stock: true,
+          },
+        },
+        sizeOptions: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
       },
       orderBy: {
         createdAt: "desc",
@@ -114,10 +156,20 @@ async function getBestSellers(gender?: "MALE" | "FEMALE"): Promise<Product[]> {
           },
         ],
       },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        price: true,
+        originalPrice: true,
+        image: true,
+        primaryImage: true,
+        secondaryImage: true,
+        createdAt: true,
         colors: {
           take: 1,
-          include: {
+          select: {
+            id: true,
+            images: true,
             variants: {
               select: {
                 id: true,
@@ -130,8 +182,19 @@ async function getBestSellers(gender?: "MALE" | "FEMALE"): Promise<Product[]> {
             },
           },
         },
-        sizes: true,
-        sizeOptions: true,
+        sizes: {
+          select: {
+            id: true,
+            name: true,
+            stock: true,
+          },
+        },
+        sizeOptions: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
         _count: {
           select: {
             orderItems: true,
@@ -208,9 +271,20 @@ async function getFeaturedProducts() {
           },
         ],
       },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        price: true,
+        originalPrice: true,
+        image: true,
+        primaryImage: true,
+        secondaryImage: true,
         colors: {
-          include: {
+          select: {
+            id: true,
+            name: true,
+            hexCode: true,
+            images: true,
             variants: {
               select: {
                 id: true,
@@ -223,13 +297,25 @@ async function getFeaturedProducts() {
             },
           },
         },
-        sizes: true,
-        sizeOptions: true,
+        sizes: {
+          select: {
+            id: true,
+            name: true,
+            stock: true,
+          },
+        },
+        sizeOptions: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
         _count: {
           select: {
             orderItems: true,
           },
         },
+        createdAt: true,
       },
       orderBy: {
         createdAt: "desc",
@@ -259,15 +345,15 @@ async function getFeaturedProducts() {
         price: product.price,
         image: mainImage,
         hoverImage: hoverImage !== mainImage ? hoverImage : undefined,
-        colors: product.colors.map((c) => ({
+        colors: product.colors.map((c: { name: string; hexCode: string | null; images: string[] }) => ({
           name: c.name,
           value: c.hexCode || "#000000",
           image: c.images[0] || mainImage,
         })),
-        sizes: product.sizes?.map((s) => ({ name: s.name, stock: s.stock, id: s.id })) || [],
-        sizeOptions: product.sizeOptions?.map((so) => ({ name: so.name, id: so.id })) || [],
+        sizes: product.sizes?.map((s: { name: string; stock: number; id: string }) => ({ name: s.name, stock: s.stock, id: s.id })) || [],
+        sizeOptions: product.sizeOptions?.map((so: { name: string; id: string }) => ({ name: so.name, id: so.id })) || [],
         colorId: product.colors[0]?.id,
-        variants: product.colors[0]?.variants?.map((v) => ({
+        variants: product.colors[0]?.variants?.map((v: { colorId: string | null; sizeId: string | null; stock: number }) => ({
           colorId: v.colorId,
           sizeId: v.sizeId,
           stock: v.stock,

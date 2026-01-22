@@ -296,7 +296,7 @@ export default function FavoritesClient({
                     </div>
                   </div>
 
-                  <div className="mb-2">
+                  <div className="mb-2 group-hover:opacity-0 transition-opacity duration-300">
                     <h3 className="text-sm md:text-base font-light text-[#111] mb-1">
                       {product.name}
                     </h3>
@@ -314,7 +314,7 @@ export default function FavoritesClient({
 
                   {/* Renk seçenekleri */}
                   {product.colors && product.colors.length > 0 && (
-                    <div className="flex items-center gap-1.5 mb-3">
+                    <div className="flex items-center gap-1.5 mb-3 group-hover:opacity-0 transition-opacity duration-300">
                       {product.colors.map((color, idx) => (
                         <button
                           key={idx}

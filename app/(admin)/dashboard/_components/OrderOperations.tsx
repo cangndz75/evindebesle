@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { MoreVertical, ExternalLink } from "lucide-react";
+import { MoreVertical, ExternalLink, ShoppingCart, Package, Ticket, Settings } from "lucide-react";
 import { motion } from "framer-motion";
 import {
   Card,
@@ -115,8 +115,73 @@ export default function OrderOperations({ orders, onStatusChange }: OrderOperati
 
       <CardContent className="p-0">
         {filteredOrders.length === 0 ? (
-          <div className="p-12 text-center">
-            <p className="text-sm text-gray-500">Bu kategoride sipariş bulunmuyor</p>
+          <div className="p-8 md:p-12">
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 mb-4">
+                <ShoppingCart className="w-8 h-8 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">İlk Satışa Hazırlık</h3>
+              <p className="text-sm text-gray-500 mb-6">
+                {activeTab === "PENDING" 
+                  ? "Henüz bekleyen sipariş yok. İlk siparişinizi almak için aşağıdaki adımları tamamlayın."
+                  : "Bu kategoride sipariş bulunmuyor."}
+              </p>
+            </div>
+            
+            {activeTab === "PENDING" && (
+              <div className="space-y-3 max-w-md mx-auto">
+                <motion.button
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  onClick={() => router.push("/admin-products")}
+                  className="w-full flex items-center gap-3 p-4 rounded-lg border-2 border-dashed border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all group"
+                >
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+                    <Package className="w-4 h-4 text-blue-600" />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className="text-sm font-medium text-gray-900">Ürün Ekle</p>
+                    <p className="text-xs text-gray-500">Kataloğunuza ürün ekleyin</p>
+                  </div>
+                  <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-gray-600" />
+                </motion.button>
+
+                <motion.button
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  onClick={() => router.push("/coupons")}
+                  className="w-full flex items-center gap-3 p-4 rounded-lg border-2 border-dashed border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all group"
+                >
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center group-hover:bg-purple-200 transition-colors">
+                    <Ticket className="w-4 h-4 text-purple-600" />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className="text-sm font-medium text-gray-900">İlk Kuponunu Oluştur</p>
+                    <p className="text-xs text-gray-500">Müşterilerinize özel indirimler sunun</p>
+                  </div>
+                  <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-gray-600" />
+                </motion.button>
+
+                <motion.button
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  onClick={() => router.push("/company-settings")}
+                  className="w-full flex items-center gap-3 p-4 rounded-lg border-2 border-dashed border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all group"
+                >
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-green-100 flex items-center justify-center group-hover:bg-green-200 transition-colors">
+                    <Settings className="w-4 h-4 text-green-600" />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className="text-sm font-medium text-gray-900">Kargo/Ödeme Ayarlarını Tamamla</p>
+                    <p className="text-xs text-gray-500">Siparişlerin sorunsuz işlemesi için</p>
+                  </div>
+                  <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-gray-600" />
+                </motion.button>
+              </div>
+            )}
           </div>
         ) : (
           <div className="divide-y divide-gray-100">

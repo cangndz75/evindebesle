@@ -23,6 +23,14 @@ export async function GET(req: NextRequest) {
 
     const oneHourAgo = subHours(new Date(), 1);
 
+    // Bekleyen siparişler (yeni + hazırlanıyor)
+    const pendingOrders = await prisma.order.count({
+      where: {
+        status: { in: ["PENDING", "PREPARING"] },
+        paymentStatus: "PAID",
+      },
+    });
+
     // Kargoya hazır siparişler
     const readyToShip = await prisma.order.count({
       where: {
@@ -56,10 +64,36 @@ export async function GET(req: NextRequest) {
 
     const lowStockCount = lowStockProducts.length;
 
-    // İade talepleri (şimdilik iptal edilen siparişler)
+    // Tükenen stoklu ürünler
+    const outOfStockProducts = await prisma.product.findMany({
+      where: {
+        isActive: true,
+        OR: [
+          {
+            sizes: {
+              none: {
+                stock: { gt: 0 },
+              },
+            },
+          },
+          {
+            sizes: {
+              every: {
+                stock: { lte: 0 },
+              },
+            },
+          },
+        ],
+      },
+    });
+
+    const outOfStockCount = outOfStockProducts.length;
+
+    // İade talepleri
     const refundRequests = await prisma.order.count({
       where: {
-        paymentStatus: "REFUNDED",
+        status: "CANCELLED",
+        paymentStatus: "PAID",
         createdAt: { gte: oneHourAgo },
       },
     });
@@ -105,6 +139,13 @@ export async function GET(req: NextRequest) {
       upcomingAppointments,
       cancelledAppointments,
       items: [
+        ...(pendingOrders > 0 ? [{
+          type: "pending_orders",
+          count: pendingOrders,
+          label: `${pendingOrders} bekleyen sipariş`,
+          action: "/admin-orders?status=PENDING",
+          priority: "high",
+        }] : []),
         ...(readyToShip > 0 ? [{
           type: "ready_to_ship",
           count: readyToShip,
@@ -115,22 +156,29 @@ export async function GET(req: NextRequest) {
         ...(paymentFailed > 0 ? [{
           type: "payment_failed",
           count: paymentFailed,
-          label: `${paymentFailed} sipariş ödeme hatası`,
+          label: `${paymentFailed} ödeme hatası / fraud şüphesi`,
           action: "/admin-orders?paymentStatus=FAILED",
           priority: "high",
-        }] : []),
-        ...(lowStockCount > 0 ? [{
-          type: "low_stock",
-          count: lowStockCount,
-          label: `${lowStockCount} üründe stok < 3`,
-          action: "/admin-products?stockStatus=lowStock",
-          priority: "medium",
         }] : []),
         ...(refundRequests > 0 ? [{
           type: "refund_request",
           count: refundRequests,
           label: `${refundRequests} iade talebi bekliyor`,
-          action: "/admin-orders?paymentStatus=REFUNDED",
+          action: "/admin-orders?status=CANCELLED",
+          priority: "medium",
+        }] : []),
+        ...(outOfStockCount > 0 ? [{
+          type: "out_of_stock",
+          count: outOfStockCount,
+          label: `${outOfStockCount} ürün tükendi`,
+          action: "/admin-products?stockStatus=outOfStock",
+          priority: "high",
+        }] : []),
+        ...(lowStockCount > 0 ? [{
+          type: "low_stock",
+          count: lowStockCount,
+          label: `${lowStockCount} kritik stok`,
+          action: "/admin-products?stockStatus=lowStock",
           priority: "medium",
         }] : []),
         ...(todayAppointments > 0 ? [{

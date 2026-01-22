@@ -2,9 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Heart, ChevronDown, ShoppingBag, Filter, ArrowUpDown } from "lucide-react";
 import { toast } from "sonner";
+import useSWR from "swr";
 import ProductFilters from "./ProductFilters";
 import {
   Tooltip,
@@ -46,7 +47,7 @@ type ProductTag = {
 type ProductVariant = {
   id: string;
   variantCode: string;
-  colorId: string;
+  colorId: string | null;
 };
 
 type Product = {
@@ -174,6 +175,7 @@ export default function MenProductsPage({
     colors: [],
     fabricTypes: [],
   });
+  const [debouncedFilters, setDebouncedFilters] = useState<FilterState>(filters);
   const [priceRange, setPriceRange] = useState(initialPriceRange);
   const [sortOption, setSortOption] = useState("featured");
   const [sortDialogOpen, setSortDialogOpen] = useState(false);
@@ -186,6 +188,7 @@ export default function MenProductsPage({
     colorImage: string;
     variantCode?: string;
   } | null>(null);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Fiyat aralığı zaten server-side'da çekildi, sadece güncelleme gerekirse
   useEffect(() => {
@@ -194,69 +197,100 @@ export default function MenProductsPage({
     }
   }, [initialPriceRange]);
 
-  // Fetch products - sadece filtre değiştiğinde
+  // Debounce filters - 300ms gecikme ile
   useEffect(() => {
-    // İlk yüklemede initialProducts kullan, filtre değiştiğinde fetch et
-    const hasFilters = 
-      selectedCategory !== "All" ||
-      filters.minPrice ||
-      filters.maxPrice ||
-      filters.sizes.length > 0 ||
-      filters.colors.length > 0 ||
-      filters.fabricTypes.length > 0;
-
-    if (!hasFilters && initialProducts.length > 0) {
-      // Filtre yoksa initial products'ı kullan
-      setProducts(initialProducts);
-      return;
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
     }
+    
+    debounceTimerRef.current = setTimeout(() => {
+      setDebouncedFilters(filters);
+    }, 300);
 
-    const fetchProducts = async () => {
-      setLoading(true);
-      try {
-        const params = new URLSearchParams();
-        params.append("gender", "MALE");
-        
-        // Tag filter - erkek tag'i varsa
-        if (selectedCategory !== "All") {
-          params.append("tag", selectedCategory.toLowerCase());
-        }
-
-        // Price filters
-        if (filters.minPrice) {
-          params.append("minPrice", filters.minPrice.toString());
-        }
-        if (filters.maxPrice) {
-          params.append("maxPrice", filters.maxPrice.toString());
-        }
-
-        // Size filters
-        filters.sizes.forEach((size) => {
-          params.append("size", size);
-        });
-
-        // Color filters
-        filters.colors.forEach((color) => {
-          params.append("color", color);
-        });
-
-        // Fabric type filters
-        if (filters.fabricTypes.length > 0) {
-          params.append("fabricType", filters.fabricTypes[0]);
-        }
-
-        const response = await fetch(`/api/products?${params.toString()}`);
-        const data = await response.json();
-        setProducts(data);
-      } catch (error) {
-        console.error("Ürünler yüklenirken hata:", error);
-      } finally {
-        setLoading(false);
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
       }
     };
+  }, [filters]);
 
-    fetchProducts();
-  }, [selectedCategory, filters, initialProducts]);
+  // SWR için fetcher function
+  const fetcher = useCallback(async (url: string) => {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Failed to fetch');
+    return res.json();
+  }, []);
+
+  // Build API URL with filters (debounced filters kullan)
+  const buildApiUrl = useCallback(() => {
+    const hasFilters = 
+      selectedCategory !== "All" ||
+      debouncedFilters.minPrice ||
+      debouncedFilters.maxPrice ||
+      debouncedFilters.sizes.length > 0 ||
+      debouncedFilters.colors.length > 0 ||
+      debouncedFilters.fabricTypes.length > 0;
+
+    if (!hasFilters && initialProducts.length > 0) {
+      return null; // Use initial products
+    }
+
+    const params = new URLSearchParams();
+    params.append("gender", "MALE");
+    
+    if (selectedCategory !== "All") {
+      params.append("tag", selectedCategory.toLowerCase());
+    }
+
+    if (debouncedFilters.minPrice) {
+      params.append("minPrice", debouncedFilters.minPrice.toString());
+    }
+    if (debouncedFilters.maxPrice) {
+      params.append("maxPrice", debouncedFilters.maxPrice.toString());
+    }
+
+    debouncedFilters.sizes.forEach((size) => {
+      params.append("size", size);
+    });
+
+    debouncedFilters.colors.forEach((color) => {
+      params.append("color", color);
+    });
+
+    if (debouncedFilters.fabricTypes.length > 0) {
+      params.append("fabricType", debouncedFilters.fabricTypes[0]);
+    }
+
+    return `/api/products?${params.toString()}`;
+  }, [selectedCategory, debouncedFilters, initialProducts]);
+
+  const apiUrl = buildApiUrl();
+  
+  // SWR ile data fetching
+  const { data: fetchedProducts, error, isLoading: swrLoading } = useSWR<Product[]>(
+    apiUrl,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
+      dedupingInterval: 2000, // 2 saniye içinde aynı request'i tekrar etme
+      fallbackData: initialProducts.length > 0 && !apiUrl ? initialProducts : undefined,
+    }
+  );
+
+  // Products state'i güncelle
+  useEffect(() => {
+    if (fetchedProducts) {
+      setProducts(fetchedProducts);
+    } else if (!apiUrl && initialProducts.length > 0) {
+      setProducts(initialProducts);
+    }
+  }, [fetchedProducts, apiUrl, initialProducts]);
+
+  // Loading state
+  useEffect(() => {
+    setLoading(swrLoading);
+  }, [swrLoading]);
 
   // Extract available options from products
   const availableOptions = useMemo(() => {
@@ -611,7 +645,10 @@ export default function MenProductsPage({
                             : ""
                         }`}
                         sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                        unoptimized
+                        loading="lazy"
+                        quality={85}
+                        placeholder="blur"
+                        blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
                       />
                       {hasMultipleImages && hoverImage && hoverImage !== currentImage && (
                         <Image
@@ -620,7 +657,8 @@ export default function MenProductsPage({
                           fill
                           className="object-cover transition-opacity duration-500 opacity-0 group-hover:opacity-100"
                           sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                          unoptimized
+                          loading="lazy"
+                          quality={85}
                         />
                       )}
                       <FavoriteButton productId={product.id} productName={product.name} />

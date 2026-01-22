@@ -79,7 +79,13 @@ export default async function ProductSlugPage({
   if (variant) {
     const variantData = await prisma.productVariant.findUnique({
       where: { variantCode: variant },
-      include: { color: true },
+      include: { 
+        color: {
+          include: {
+            variants: true,
+          },
+        },
+      },
     });
     if (variantData?.color) {
       selectedColor = variantData.color;
@@ -179,18 +185,20 @@ export default async function ProductSlugPage({
       console.log('[ProductSlugPage] No sizes found');
       return [];
     })(),
-    variants: product.variants.map((v) => ({
-      colorId: v.colorId,
-      stock: v.stock,
-      variantCode: v.variantCode,
-    })),
+    variants: product.variants
+      .filter((v) => v.colorId !== null) // null colorId'li variant'ları filtrele
+      .map((v) => ({
+        colorId: v.colorId!, // Non-null assertion çünkü yukarıda filtreledik
+        stock: v.stock,
+        variantCode: v.variantCode,
+      })),
     reviews: product.reviews.map((r) => ({
       id: r.id,
       userName: r.userName || "Misafir",
       rating: r.rating,
       comment: r.comment || "",
       createdAt: r.createdAt,
-      colorId: r.colorId,
+      colorId: r.colorId || undefined,
       colorName: r.color?.name,
     })),
     details: product.detailText ? [product.detailText] : [],

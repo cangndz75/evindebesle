@@ -29,6 +29,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ChevronLeftIcon, ChevronRightIcon, Edit, Trash2, ChevronDown, ChevronUp, Filter, X } from "lucide-react";
 import { EditProductModal } from "./EditProductModal";
+import { InlineEditableCell } from "./_components/InlineEditableCell";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
@@ -223,7 +224,12 @@ export default function ProductsPage() {
       header: "Ürün Adı",
       accessorKey: "name",
       cell: ({ row }) => (
-        <div className="font-medium min-w-[150px]">{row.getValue("name")}</div>
+        <button
+          onClick={() => router.push(`/admin-products/${row.original.id}`)}
+          className="font-medium min-w-[150px] text-left hover:text-blue-600 hover:underline"
+        >
+          {row.getValue("name")}
+        </button>
       ),
     },
     {
@@ -316,8 +322,90 @@ export default function ProductsPage() {
       header: "Fiyat",
       accessorKey: "price",
       cell: ({ row }) => {
-        const price = row.getValue("price") as number;
-        return <div className="font-medium min-w-[100px]">{price.toFixed(2)} ₺</div>;
+        const product = row.original;
+        return (
+          <InlineEditableCell
+            value={product.price}
+            onSave={async (value) => {
+              const res = await fetch(`/api/admin-products/${product.id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ price: value }),
+              });
+              if (!res.ok) throw new Error("Güncelleme başarısız");
+              refresh();
+            }}
+            type="number"
+            format={(val) => `${Number(val).toFixed(2)} ₺`}
+            className="font-medium min-w-[100px]"
+          />
+        );
+      },
+    },
+    {
+      header: "Stok",
+      accessorKey: "stock",
+      cell: ({ row }) => {
+        const product = row.original;
+        const totalStock = (product.sizes || []).reduce((sum, s) => sum + (s.stock || 0), 0);
+        return (
+          <InlineEditableCell
+            value={totalStock}
+            onSave={async (value) => {
+              // İlk bedenin stokunu güncelle (veya tüm bedenleri eşit dağıt)
+              if (product.sizes && product.sizes.length > 0) {
+                const stockPerSize = Math.floor(Number(value) / product.sizes.length);
+                const promises = product.sizes.map((size: any, idx: number) => {
+                  const stock = idx === 0 
+                    ? Number(value) - (stockPerSize * (product.sizes.length - 1))
+                    : stockPerSize;
+                  return fetch(`/api/admin-products/${product.id}/sizes/${size.id}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ stock }),
+                  });
+                });
+                await Promise.all(promises);
+              }
+              refresh();
+            }}
+            type="number"
+            className="font-medium min-w-[100px]"
+          />
+        );
+      },
+    },
+    {
+      header: "Kalite",
+      id: "quality",
+      cell: ({ row }) => {
+        const product = row.original;
+        const warnings: string[] = [];
+        
+        if (!product.image) warnings.push("Görsel eksik");
+        if (!product.colors || product.colors.length === 0) warnings.push("Varyant eksik");
+        if (!product.sizes || product.sizes.length === 0) warnings.push("Beden eksik");
+        if (!product.description) warnings.push("Açıklama eksik");
+        if (!product.stockCode) warnings.push("SKU eksik");
+
+        if (warnings.length === 0) {
+          return <Badge className="bg-green-100 text-green-800">Tamam</Badge>;
+        }
+
+        return (
+          <div className="flex flex-col gap-1 min-w-[120px]">
+            {warnings.slice(0, 2).map((warning, idx) => (
+              <Badge key={idx} variant="outline" className="text-xs bg-amber-50 text-amber-700">
+                {warning}
+              </Badge>
+            ))}
+            {warnings.length > 2 && (
+              <Badge variant="outline" className="text-xs">
+                +{warnings.length - 2} daha
+              </Badge>
+            )}
+          </div>
+        );
       },
     },
     {

@@ -46,30 +46,15 @@ async function getInitialProducts() {
     return products.map((p) => ({
       id: p.id,
       name: p.name,
-      slug: p.slug,
       price: p.price,
-      image: p.image,
-      primaryImage: p.primaryImage,
-      secondaryImage: p.secondaryImage,
-      gender: p.gender,
-      fabricType: p.fabricType,
+      image: p.primaryImage ?? p.image ?? undefined,
+      hoverImage: p.secondaryImage ?? undefined,
       colors: p.colors.map((c) => ({
-        id: c.id,
         name: c.name,
-        hexCode: c.hexCode,
-        images: c.images,
-        variant: c.variants?.[0],
-        variants: c.variants,
+        value: c.hexCode ?? `#${c.name.toLowerCase().replace(/\s+/g, '')}`,
+        image: c.images?.[0] ?? p.primaryImage ?? p.image ?? "",
       })),
-      sizes: p.sizes.map((s) => ({
-        name: s.name,
-        stock: s.stock,
-      })),
-      sizeOptions: p.sizeOptions?.map((so) => ({
-        name: so.name,
-        isActive: so.isActive,
-      })),
-      tags: p.tags.map((t) => ({ name: t.name })),
+      inColors: p.colors.length,
     }));
   } catch (error) {
     console.error("Error fetching products:", error);

@@ -85,10 +85,14 @@ export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [activeTab, setActiveTab] = useState<"PENDING" | "PREPARING" | "SHIPPED" | "CANCELLED">("PENDING");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
+  const [paymentFilter, setPaymentFilter] = useState<string>("all");
+  const [dateFilter, setDateFilter] = useState<string>("all");
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -112,7 +116,7 @@ export default function AdminOrdersPage() {
 
   useEffect(() => {
     fetchOrders();
-  }, [statusFilter]);
+  }, [statusFilter, activeTab]);
 
   const handleStatusChange = async (orderId: string, newStatus: string, trackingNumber?: string) => {
     try {
@@ -175,14 +179,78 @@ export default function AdminOrdersPage() {
   };
 
   const filteredOrders = orders.filter((order) => {
-    if (!searchQuery) return true;
-    const query = searchQuery.toLowerCase();
-    return (
-      order.orderNumber.toLowerCase().includes(query) ||
-      order.user.name.toLowerCase().includes(query) ||
-      order.user.email.toLowerCase().includes(query)
-    );
+    // Tab filtresi
+    if (activeTab === "PENDING" && order.status !== "PENDING") return false;
+    if (activeTab === "PREPARING" && order.status !== "PREPARING") return false;
+    if (activeTab === "SHIPPED" && order.status !== "SHIPPED") return false;
+    if (activeTab === "CANCELLED" && order.status !== "CANCELLED") return false;
+
+    // Ödeme durumu filtresi
+    if (paymentFilter !== "all" && order.paymentStatus !== paymentFilter) return false;
+
+    // Arama filtresi
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      return (
+        order.orderNumber.toLowerCase().includes(query) ||
+        order.user.name.toLowerCase().includes(query) ||
+        order.user.email.toLowerCase().includes(query)
+      );
+    }
+
+    return true;
   });
+
+  const handleBulkAction = async (action: string) => {
+    if (selectedOrders.size === 0) {
+      toast.error("Lütfen en az bir sipariş seçin");
+      return;
+    }
+
+    try {
+      setUpdatingStatus(true);
+      const promises = Array.from(selectedOrders).map((orderId) => {
+        if (action === "PREPARING") {
+          return fetch(`/api/admin/orders/${orderId}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: "PREPARING" }),
+          });
+        } else if (action === "SHIPPED") {
+          const tracking = prompt("Kargo takip numarası girin:");
+          if (!tracking) return Promise.resolve(null);
+          return fetch(`/api/admin/orders/${orderId}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: "SHIPPED", trackingNumber: tracking }),
+          });
+        } else if (action === "CANCELLED") {
+          return fetch(`/api/admin/orders/${orderId}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: "CANCELLED" }),
+          });
+        }
+        return Promise.resolve(null);
+      });
+
+      await Promise.all(promises);
+      toast.success(`${selectedOrders.size} sipariş güncellendi`);
+      setSelectedOrders(new Set());
+      fetchOrders();
+    } catch (error) {
+      toast.error("Toplu işlem sırasında bir hata oluştu");
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
+
+  const tabs = [
+    { key: "PENDING" as const, label: "Bekleyen", count: orders.filter((o) => o.status === "PENDING").length },
+    { key: "PREPARING" as const, label: "Hazırlanıyor", count: orders.filter((o) => o.status === "PREPARING").length },
+    { key: "SHIPPED" as const, label: "Kargoda", count: orders.filter((o) => o.status === "SHIPPED").length },
+    { key: "CANCELLED" as const, label: "İade", count: orders.filter((o) => o.status === "CANCELLED").length },
+  ];
 
   return (
     <div className="space-y-6 p-4 md:p-6">
@@ -190,27 +258,77 @@ export default function AdminOrdersPage() {
         <h1 className="text-2xl md:text-3xl font-bold">Tüm Siparişler</h1>
       </div>
 
-      {/* Filtreler */}
-      <div className="flex flex-col md:flex-row gap-4">
-        <Input
-          placeholder="Sipariş no, müşteri adı veya e-posta ile ara..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="flex-1"
-        />
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full md:w-[200px]">
-            <SelectValue placeholder="Durum Filtrele" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tümü</SelectItem>
-            <SelectItem value="PENDING">Beklemede</SelectItem>
-            <SelectItem value="PREPARING">Hazırlanıyor</SelectItem>
-            <SelectItem value="SHIPPED">Kargoya Verildi</SelectItem>
-            <SelectItem value="DELIVERED">Teslim Edildi</SelectItem>
-            <SelectItem value="CANCELLED">İptal Edildi</SelectItem>
-          </SelectContent>
-        </Select>
+      {/* Tab View */}
+      <div className="flex gap-2 p-1 bg-gray-100 rounded-lg">
+        {tabs.map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+              activeTab === tab.key
+                ? "bg-white text-gray-900 shadow-sm"
+                : "text-gray-600 hover:text-gray-900"
+            }`}
+          >
+            {tab.label}
+            {tab.count > 0 && (
+              <span className={`ml-2 px-1.5 py-0.5 rounded-full text-xs ${
+                activeTab === tab.key ? "bg-gray-100" : "bg-gray-200"
+              }`}>
+                {tab.count}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* Filtreler ve Toplu İşlemler */}
+      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+        <div className="flex flex-col md:flex-row gap-4 flex-1">
+          <Input
+            placeholder="Sipariş no, müşteri adı veya e-posta ile ara..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="flex-1"
+          />
+          <Select value={paymentFilter} onValueChange={setPaymentFilter}>
+            <SelectTrigger className="w-full md:w-[180px]">
+              <SelectValue placeholder="Ödeme Durumu" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tümü</SelectItem>
+              <SelectItem value="PENDING">Ödeme Bekleniyor</SelectItem>
+              <SelectItem value="PAID">Ödendi</SelectItem>
+              <SelectItem value="FAILED">Başarısız</SelectItem>
+              <SelectItem value="REFUNDED">İade Edildi</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        {selectedOrders.size > 0 && (
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleBulkAction("PREPARING")}
+            >
+              Hazırlanıyor Yap
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleBulkAction("SHIPPED")}
+            >
+              Kargoya Ver
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSelectedOrders(new Set())}
+            >
+              Seçimi Temizle
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Tablo */}
@@ -229,6 +347,18 @@ export default function AdminOrdersPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-12">
+                  <Checkbox
+                    checked={selectedOrders.size === filteredOrders.length && filteredOrders.length > 0}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setSelectedOrders(new Set(filteredOrders.map((o) => o.id)));
+                      } else {
+                        setSelectedOrders(new Set());
+                      }
+                    }}
+                  />
+                </TableHead>
                 <TableHead>Sipariş No</TableHead>
                 <TableHead>Müşteri</TableHead>
                 <TableHead>Tarih</TableHead>
@@ -242,6 +372,20 @@ export default function AdminOrdersPage() {
             <TableBody>
               {filteredOrders.map((order) => (
                 <TableRow key={order.id}>
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedOrders.has(order.id)}
+                      onCheckedChange={(checked) => {
+                        const newSelected = new Set(selectedOrders);
+                        if (checked) {
+                          newSelected.add(order.id);
+                        } else {
+                          newSelected.delete(order.id);
+                        }
+                        setSelectedOrders(newSelected);
+                      }}
+                    />
+                  </TableCell>
                   <TableCell className="font-medium">{order.orderNumber}</TableCell>
                   <TableCell>
                     <div>

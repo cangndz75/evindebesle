@@ -1,6 +1,10 @@
 import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 
+// Cache için revalidate - 5 dakika
+export const revalidate = 300;
+export const dynamic = 'force-dynamic'; // Filtreler için dynamic
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   
@@ -78,9 +82,23 @@ export async function GET(request: NextRequest) {
 
   const products = await prisma.product.findMany({
     where,
-    include: {
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      price: true,
+      image: true,
+      primaryImage: true,
+      secondaryImage: true,
+      gender: true,
+      fabricType: true,
+      createdAt: true,
       colors: {
-        include: {
+        select: {
+          id: true,
+          name: true,
+          hexCode: true,
+          images: true,
           variants: {
             select: {
               id: true,
@@ -93,17 +111,41 @@ export async function GET(request: NextRequest) {
           },
         },
       },
-      sizes: true,
-      sizeOptions: true,
-      tags: true,
+      sizes: {
+        select: {
+          id: true,
+          name: true,
+          stock: true,
+        },
+      },
+      sizeOptions: {
+        select: {
+          id: true,
+          name: true,
+          isActive: true,
+        },
+      },
+      tags: {
+        select: {
+          name: true,
+        },
+      },
       reviews: {
         where: { isApproved: true },
         take: 5,
         orderBy: { createdAt: "desc" },
+        select: {
+          rating: true,
+        },
       },
     },
     orderBy: { createdAt: "desc" },
   });
 
-  return NextResponse.json(products);
+  const response = NextResponse.json(products);
+  
+  // Cache headers
+  response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
+  
+  return response;
 }

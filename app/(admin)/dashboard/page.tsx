@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
+  CardHeader,
 } from "@/components/ui/card";
 import {
   Select,
@@ -34,6 +35,7 @@ import SmartActionBar from "./_components/SmartActionBar";
 import OrderOperations from "./_components/OrderOperations";
 import StockHealth from "./_components/StockHealth";
 import BusinessSnapshot from "./_components/BusinessSnapshot";
+import ActionInbox from "./_components/ActionInbox";
 
 type DashboardStats = {
   revenue: {
@@ -184,6 +186,10 @@ export default function AdminDashboard() {
   const [dateRange, setDateRange] = useState("7days");
   const [kpiData, setKpiData] = useState<KPIData | null>(null);
   const [actionInbox, setActionInbox] = useState<ActionInboxItem[]>([]);
+  const [recentOrders, setRecentOrders] = useState<Order[]>([]);
+  const [recentProducts, setRecentProducts] = useState<Product[]>([]);
+  const [topProducts, setTopProducts] = useState<Product[]>([]);
+  const [activeTab, setActiveTab] = useState<"ops" | "growth">("ops");
 
   useEffect(() => {
     loadDashboardData();
@@ -245,6 +251,28 @@ export default function AdminDashboard() {
       if (actionInboxRes.ok) {
         const actionInboxData = await actionInboxRes.json();
         setActionInbox(actionInboxData.items || []);
+      }
+
+      // Son siparişler, ürünler ve top ürünler
+      const [recentOrdersRes, recentProductsRes, topProductsRes] = await Promise.all([
+        fetch("/api/admin/dashboard-orders?limit=5"),
+        fetch("/api/admin/dashboard-products?type=recent"),
+        fetch("/api/admin/dashboard-products?type=top-selling"),
+      ]);
+
+      if (recentOrdersRes.ok) {
+        const recentOrdersData = await recentOrdersRes.json();
+        setRecentOrders(recentOrdersData);
+      }
+
+      if (recentProductsRes.ok) {
+        const recentProductsData = await recentProductsRes.json();
+        setRecentProducts(recentProductsData);
+      }
+
+      if (topProductsRes.ok) {
+        const topProductsData = await topProductsRes.json();
+        setTopProducts(topProductsData);
       }
     } catch (error) {
       console.error("Error loading dashboard:", error);
@@ -338,36 +366,34 @@ export default function AdminDashboard() {
 
       {/* 🟩 B) OPERASYON + İÇGÖRÜ (ANA GÖVDE) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* 1️⃣ Sipariş Operasyon Alanı (EN BÜYÜK BÖLÜM) */}
-        <div className="lg:col-span-2">
-            {loading ? (
+        {/* 1️⃣ Sipariş Operasyon Alanı (SOL PANEL - Kompakt) */}
+        <div className="lg:col-span-2 space-y-6">
+          {loading ? (
             <Card className="border-0 shadow-sm bg-white/50 backdrop-blur-sm">
               <CardContent className="p-12">
                 <div className="space-y-3">
-                {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-16 w-full" />
-                ))}
-              </div>
-          </CardContent>
-        </Card>
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="h-16 w-full" />
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           ) : (
             <OrderOperations
               orders={orderOperationsData}
               onStatusChange={handleOrderStatusChange}
             />
           )}
-      </div>
 
-        {/* 2️⃣ Stok & Ürün Sağlığı (YAN PANEL) */}
-        <div>
-            {loading ? (
+          {/* Stok & Ürün Sağlığı (Alt kısım) */}
+          {loading ? (
             <Card className="border-0 shadow-sm bg-white/50 backdrop-blur-sm">
               <CardContent className="p-12">
-              <div className="space-y-3">
+                <div className="space-y-3">
                   {[1, 2, 3].map((i) => (
                     <Skeleton key={i} className="h-20 w-full" />
-                ))}
-              </div>
+                  ))}
+                </div>
               </CardContent>
             </Card>
           ) : (
@@ -375,29 +401,104 @@ export default function AdminDashboard() {
               lowStockProducts={stockHealthData.lowStockProducts}
               outOfStockProducts={stockHealthData.outOfStockProducts}
             />
-                          )}
-                        </div>
-                          </div>
+          )}
+        </div>
 
-      {/* 🟨 C) BUSINESS SNAPSHOT (ALT KISIM) */}
-      {kpiData && (
-        <BusinessSnapshot
-          revenue={{
-            total: kpiData.todayRevenue.total,
-            change: kpiData.todayRevenue.change,
-            previousTotal: kpiData.todayRevenue.previousTotal,
-          }}
-          orders={{
-            count: kpiData.todayOrders.count,
-            change: kpiData.todayOrders.change,
-          }}
-          aov={{
-            today: kpiData.aov.today,
-            change: kpiData.aov.change,
-          }}
-          chartData={revenueChartData}
-        />
-      )}
+        {/* 2️⃣ Action Inbox (SAĞ PANEL) */}
+        <div>
+          {loading ? (
+            <Card className="border-0 shadow-sm bg-white/50 backdrop-blur-sm">
+              <CardContent className="p-12">
+                <div className="space-y-3">
+                  {[1, 2, 3, 4].map((i) => (
+                    <Skeleton key={i} className="h-16 w-full" />
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <ActionInbox items={actionInbox} />
+          )}
+        </div>
+      </div>
+
+      {/* 🟨 C) BUSINESS SNAPSHOT (ALT KISIM - SEKMELİ) */}
+      <Card className="border-0 shadow-sm bg-white/50 backdrop-blur-sm">
+        <CardHeader className="pb-4 border-b border-gray-100">
+          <div className="flex gap-2 p-1 bg-gray-100 rounded-lg">
+            <button
+              onClick={() => setActiveTab("ops")}
+              className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                activeTab === "ops"
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              Ops
+            </button>
+            <button
+              onClick={() => setActiveTab("growth")}
+              className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                activeTab === "growth"
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              Growth
+            </button>
+          </div>
+        </CardHeader>
+        <CardContent className="p-6">
+          {activeTab === "ops" ? (
+            <div className="space-y-6">
+              {/* Ops içeriği - şu an boş, ileride eklenebilir */}
+              <div className="text-center py-12">
+                <p className="text-sm text-gray-500">Operasyon detayları burada gösterilecek</p>
+              </div>
+            </div>
+          ) : (
+            kpiData && (
+              <BusinessSnapshot
+                revenue={{
+                  total: kpiData.todayRevenue.total,
+                  change: kpiData.todayRevenue.change,
+                  previousTotal: kpiData.todayRevenue.previousTotal,
+                }}
+                orders={{
+                  count: kpiData.todayOrders.count,
+                  change: kpiData.todayOrders.change,
+                }}
+                aov={{
+                  today: kpiData.aov.today,
+                  change: kpiData.aov.change,
+                }}
+                chartData={revenueChartData}
+                recentOrders={recentOrders.map((order) => ({
+                  id: order.id,
+                  orderNumber: order.orderNumber || `#${order.id.slice(0, 8)}`,
+                  total: order.total || 0,
+                  createdAt: order.createdAt?.toString() || new Date().toISOString(),
+                  user: { name: order.user?.name || "Bilinmeyen" },
+                }))}
+                recentProducts={recentProducts.map((product) => ({
+                  id: product.id,
+                  name: product.name,
+                  image: product.image,
+                  price: product.price,
+                  createdAt: product.createdAt?.toString() || new Date().toISOString(),
+                }))}
+                topProducts={topProducts.map((product) => ({
+                  id: product.id,
+                  name: product.name,
+                  image: product.image,
+                  price: product.price,
+                  totalSold: product.totalSold,
+                }))}
+              />
+            )
+          )}
+        </CardContent>
+      </Card>
 
       {/* Bildirim Gönder Modal */}
       <Dialog open={notificationModalOpen} onOpenChange={setNotificationModalOpen}>

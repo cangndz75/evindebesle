@@ -124,7 +124,10 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    return NextResponse.json(formattedProducts);
+    const response = NextResponse.json(formattedProducts);
+    // Cache headers
+    response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
+    return response;
   } catch (error) {
     console.error("Error fetching home products:", error);
     return NextResponse.json(

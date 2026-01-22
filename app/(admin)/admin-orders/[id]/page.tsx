@@ -49,11 +49,17 @@ type Order = {
   status: "PENDING" | "PREPARING" | "SHIPPED" | "DELIVERED" | "CANCELLED";
   paymentStatus: "PENDING" | "PAID" | "FAILED" | "REFUNDED";
   paymentMethod: string | null;
+  paymentId: string | null;
+  paidAt: string | null;
+  shippedAt: string | null;
+  deliveredAt: string | null;
   subtotal: number;
   shippingCost: number;
   discount: number;
   total: number;
   trackingNumber: string | null;
+  customerNote: string | null;
+  adminNote: string | null;
   createdAt: string;
   user: {
     id: string;
@@ -337,13 +343,14 @@ export default function OrderDetailPage() {
             </CardContent>
           </Card>
 
-          {/* Sipariş Geçmişi */}
+          {/* Durum Timeline */}
           <Card>
             <CardHeader>
-              <CardTitle>Sipariş Geçmişi</CardTitle>
+              <CardTitle>Durum Timeline</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
+                {/* Created */}
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
                     <CheckCircle className="w-4 h-4 text-green-600" />
@@ -355,6 +362,8 @@ export default function OrderDetailPage() {
                     </p>
                   </div>
                 </div>
+                
+                {/* Paid */}
                 {order.paymentStatus === "PAID" && (
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
@@ -363,22 +372,106 @@ export default function OrderDetailPage() {
                     <div className="flex-1">
                       <p className="font-medium">Ödeme Alındı</p>
                       <p className="text-sm text-gray-600">
-                        {format(new Date(order.createdAt), "dd MMMM yyyy HH:mm", { locale: tr })}
+                        {order.paidAt 
+                          ? format(new Date(order.paidAt), "dd MMMM yyyy HH:mm", { locale: tr })
+                          : format(new Date(order.createdAt), "dd MMMM yyyy HH:mm", { locale: tr })}
                       </p>
                     </div>
                   </div>
                 )}
-                {order.status === "PREPARING" && (
+
+                {/* Preparing */}
+                {(order.status === "PREPARING" || order.status === "SHIPPED" || order.status === "DELIVERED") && (
                   <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
-                      <Clock className="w-4 h-4 text-gray-600" />
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                      order.status === "PREPARING" ? "bg-blue-100" : "bg-green-100"
+                    }`}>
+                      <Package className={`w-4 h-4 ${
+                        order.status === "PREPARING" ? "text-blue-600" : "text-green-600"
+                      }`} />
                     </div>
                     <div className="flex-1">
                       <p className="font-medium">Hazırlanıyor</p>
+                      {order.status !== "PREPARING" && (
+                        <p className="text-sm text-gray-600">Tamamlandı</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Shipped */}
+                {(order.status === "SHIPPED" || order.status === "DELIVERED") && (
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
+                      <Truck className="w-4 h-4 text-purple-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium">Kargoya Verildi</p>
+                      {order.shippedAt && (
+                        <p className="text-sm text-gray-600">
+                          {format(new Date(order.shippedAt), "dd MMMM yyyy HH:mm", { locale: tr })}
+                        </p>
+                      )}
+                      {order.trackingNumber && (
+                        <p className="text-sm font-mono text-gray-700 mt-1">{order.trackingNumber}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Delivered */}
+                {order.status === "DELIVERED" && (
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium">Teslim Edildi</p>
+                      {order.deliveredAt && (
+                        <p className="text-sm text-gray-600">
+                          {format(new Date(order.deliveredAt), "dd MMMM yyyy HH:mm", { locale: tr })}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Cancelled */}
+                {order.status === "CANCELLED" && (
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                      <XCircle className="w-4 h-4 text-red-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium">İptal Edildi</p>
                     </div>
                   </div>
                 )}
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Notlar */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Notlar</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {order.customerNote && (
+                <div>
+                  <Label className="text-sm text-gray-600">Müşteri Notu</Label>
+                  <p className="mt-2 p-3 bg-gray-50 rounded-lg text-sm">{order.customerNote}</p>
+                </div>
+              )}
+              {order.adminNote && (
+                <div>
+                  <Label className="text-sm text-gray-600">İç Not (Admin)</Label>
+                  <p className="mt-2 p-3 bg-blue-50 rounded-lg text-sm">{order.adminNote}</p>
+                </div>
+              )}
+              {!order.customerNote && !order.adminNote && (
+                <p className="text-sm text-gray-500">Henüz not eklenmemiş</p>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -419,7 +512,16 @@ export default function OrderDetailPage() {
           {/* Müşteri */}
           <Card>
             <CardHeader>
-              <CardTitle>Müşteri</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>Müşteri</CardTitle>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => router.push(`/users?userId=${order.user.id}`)}
+                >
+                  Geçmiş Siparişler
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center gap-3">
@@ -436,7 +538,7 @@ export default function OrderDetailPage() {
                 </Avatar>
                 <div>
                   <p className="font-semibold">{order.user.name}</p>
-                  <p className="text-sm text-gray-600">8 sipariş</p>
+                  <p className="text-sm text-gray-600">Müşteri Detayları</p>
                 </div>
               </div>
               <div className="space-y-2">
@@ -460,8 +562,17 @@ export default function OrderDetailPage() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle>Teslimat Adresi</CardTitle>
-                  <Button variant="ghost" size="sm">
-                    Haritada Aç
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      navigator.clipboard.writeText(
+                        `${order.shippingAddress?.district.name} - ${order.shippingAddress?.fullAddress}`
+                      );
+                      toast.success("Adres kopyalandı");
+                    }}
+                  >
+                    Kopyala
                   </Button>
                 </div>
               </CardHeader>
@@ -478,7 +589,7 @@ export default function OrderDetailPage() {
           )}
 
           {/* Kargo Bilgileri */}
-          {order.status === "SHIPPED" && order.trackingNumber && (
+          {(order.status === "SHIPPED" || order.status === "DELIVERED") && order.trackingNumber && (
             <Card>
               <CardHeader>
                 <CardTitle>Kargo Bilgileri</CardTitle>
@@ -490,12 +601,48 @@ export default function OrderDetailPage() {
                 </div>
                 <div>
                   <Label className="text-sm text-gray-600">Takip Numarası</Label>
-                  <p className="mt-2 font-medium">{order.trackingNumber}</p>
+                  <p className="mt-2 font-mono font-medium">{order.trackingNumber}</p>
                 </div>
-                <Button variant="outline" className="w-full">
-                  <Download className="w-4 h-4 mr-2" />
-                  Kargo Etiketi İndir
-                </Button>
+                <div className="flex gap-2">
+                  <Button variant="outline" className="flex-1">
+                    <Download className="w-4 h-4 mr-2" />
+                    Kargo Etiketi
+                  </Button>
+                  <Button variant="outline" className="flex-1">
+                    Takip Et
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Ödeme Detayları */}
+          {order.paymentStatus === "PAID" && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Ödeme Detayları</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {order.paymentMethod && (
+                  <div>
+                    <Label className="text-sm text-gray-600">Ödeme Yöntemi</Label>
+                    <p className="mt-1 font-medium">{order.paymentMethod}</p>
+                  </div>
+                )}
+                {order.paymentId && (
+                  <div>
+                    <Label className="text-sm text-gray-600">Transaction ID</Label>
+                    <p className="mt-1 font-mono text-sm">{order.paymentId}</p>
+                  </div>
+                )}
+                {order.paidAt && (
+                  <div>
+                    <Label className="text-sm text-gray-600">Ödeme Tarihi</Label>
+                    <p className="mt-1 text-sm">
+                      {format(new Date(order.paidAt), "dd MMMM yyyy HH:mm", { locale: tr })}
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}

@@ -33,29 +33,24 @@ const navSections = [
     title: "ANA MENÜ",
     links: [
       {
-        label: "Anasayfa",
+        label: "Dashboard",
         href: "/dashboard",
         icon: <Home className="w-5 h-5" />,
-      },
-      {
-        label: "Operasyonlar",
-        href: "/dashboard",
-        icon: <Briefcase className="w-5 h-5" />,
       },
     ],
   },
   {
-    title: "YÖNETİM",
+    title: "OPERASYONLAR",
     links: [
       {
-        label: "Kullanıcılar",
-        href: "/users",
-        icon: <User className="w-5 h-5" />,
+        label: "Siparişler",
+        href: "/admin-orders",
+        icon: <ShoppingBag className="w-5 h-5" />,
       },
       {
-        label: "Evcil Hayvanlar",
-        href: "/admin-pets",
-        icon: <PawPrint className="w-5 h-5" />,
+        label: "Stok Yönetimi",
+        href: "/admin-stock",
+        icon: <Package className="w-5 h-5" />,
       },
       {
         label: "Randevular",
@@ -68,19 +63,49 @@ const navSections = [
     title: "KATALOG",
     links: [
       {
-        label: "Hizmetler",
-        href: "/admin-services",
-        icon: <Scissors className="w-5 h-5" />,
-      },
-      {
         label: "Ürünler",
         href: "/admin-products",
         icon: <Package className="w-5 h-5" />,
       },
       {
-        label: "İndirim Kuponları",
+        label: "Hizmetler",
+        href: "/admin-services",
+        icon: <Scissors className="w-5 h-5" />,
+      },
+    ],
+  },
+  {
+    title: "PAZARLAMA",
+    links: [
+      {
+        label: "Kuponlar",
         href: "/coupons",
         icon: <Ticket className="w-5 h-5" />,
+      },
+    ],
+  },
+  {
+    title: "MÜŞTERİ & DESTEK",
+    links: [
+      {
+        label: "Müşteriler",
+        href: "/admin-customers",
+        icon: <User className="w-5 h-5" />,
+      },
+      {
+        label: "Evcil Hayvanlar",
+        href: "/admin-pets",
+        icon: <PawPrint className="w-5 h-5" />,
+      },
+    ],
+  },
+  {
+    title: "RAPORLAMA",
+    links: [
+      {
+        label: "Raporlar",
+        href: "/admin-reports",
+        icon: <FileText className="w-5 h-5" />,
       },
     ],
   },

@@ -16,9 +16,22 @@ async function getInitialProducts() {
         isActive: true,
         gender: "MALE",
       },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        price: true,
+        image: true,
+        primaryImage: true,
+        secondaryImage: true,
+        gender: true,
+        fabricType: true,
         colors: {
-          include: {
+          select: {
+            id: true,
+            name: true,
+            hexCode: true,
+            images: true,
             variants: {
               select: {
                 id: true,
@@ -31,12 +44,29 @@ async function getInitialProducts() {
             },
           },
         },
-        sizes: true,
-        sizeOptions: true,
-        tags: true,
+        sizes: {
+          select: {
+            id: true,
+            name: true,
+            stock: true,
+          },
+        },
+        sizeOptions: {
+          select: {
+            id: true,
+            name: true,
+            isActive: true,
+          },
+        },
+        tags: {
+          select: {
+            name: true,
+          },
+        },
         reviews: {
           where: { isApproved: true },
           select: { rating: true },
+          take: 5,
         },
       },
       orderBy: { createdAt: "desc" },
@@ -56,9 +86,13 @@ async function getInitialProducts() {
       colors: p.colors.map((c) => ({
         id: c.id,
         name: c.name,
-        hexCode: c.hexCode,
+        hexCode: c.hexCode ?? undefined,
         images: c.images,
-        variant: c.variants?.[0],
+        variant: c.variants?.[0] ? {
+          id: c.variants[0].id,
+          variantCode: c.variants[0].variantCode,
+          colorId: c.variants[0].colorId,
+        } : undefined,
         variants: c.variants,
       })),
       sizes: p.sizes.map((s) => ({

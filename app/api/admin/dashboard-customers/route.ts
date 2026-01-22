@@ -56,21 +56,19 @@ export async function GET(req: NextRequest) {
     // En çok sipariş veren müşteriler
     let topCustomers: any[] = [];
     try {
-      topCustomers = await prisma.order.groupBy({
-      by: ["userId"],
-      _count: {
-        id: true,
-      },
-      _sum: {
-        total: true,
-      },
-      orderBy: {
+      const allCustomers = await prisma.order.groupBy({
+        by: ["userId"],
         _count: {
-          id: "desc",
+          id: true,
         },
-      },
-      take: 5,
+        _sum: {
+          total: true,
+        },
       });
+      // Sipariş sayısına göre sırala ve ilk 5'ini al
+      topCustomers = allCustomers
+        .sort((a, b) => (b._count.id || 0) - (a._count.id || 0))
+        .slice(0, 5);
     } catch (groupByError) {
       console.error("groupBy hatası:", groupByError);
       // Hata durumunda boş array döndür

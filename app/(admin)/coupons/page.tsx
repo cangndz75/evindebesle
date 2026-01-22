@@ -53,6 +53,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { CreateCouponModal } from "./_components/CreateCouponModal";
 import { EditCouponModal } from "./_components/EditCouponModal";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 
 export type Coupon = {
@@ -73,6 +74,8 @@ export default function CouponsPage() {
   const [loading, setLoading] = useState(true);
   const [openCreate, setOpenCreate] = useState(false);
   const [editCoupon, setEditCoupon] = useState<Coupon | null>(null);
+  const [showPerformance, setShowPerformance] = useState(false);
+  const [performanceData, setPerformanceData] = useState<any[]>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [pagination, setPagination] = useState<PaginationState>({
@@ -80,6 +83,24 @@ export default function CouponsPage() {
     pageSize: 10,
   });
   const [sorting, setSorting] = useState<SortingState>([]);
+
+  const fetchPerformance = async () => {
+    try {
+      const res = await fetch("/api/admin/coupons/performance");
+      if (res.ok) {
+        const data = await res.json();
+        setPerformanceData(data);
+      }
+    } catch (error) {
+      console.error("Error fetching performance:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (showPerformance) {
+      fetchPerformance();
+    }
+  }, [showPerformance]);
 
   const fetchData = () => {
     setLoading(true);
@@ -250,6 +271,13 @@ export default function CouponsPage() {
             }
             className="min-w-[240px]"
           />
+          <Button
+            variant={showPerformance ? "default" : "outline"}
+            size="sm"
+            onClick={() => setShowPerformance(!showPerformance)}
+          >
+            Performans
+          </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm">
@@ -278,6 +306,47 @@ export default function CouponsPage() {
           Yeni Kupon
         </Button>
       </div>
+
+      {/* Performans Tablosu */}
+      {showPerformance && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Kupon Performansı</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="rounded-md border overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Kupon Kodu</TableHead>
+                    <TableHead>Kullanım</TableHead>
+                    <TableHead>Toplam İndirim</TableHead>
+                    <TableHead>Toplam Gelir</TableHead>
+                    <TableHead>Ortalama Sepet</TableHead>
+                    <TableHead>Gelir Etkisi</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {performanceData.map((perf) => (
+                    <TableRow key={perf.id}>
+                      <TableCell className="font-medium">{perf.code}</TableCell>
+                      <TableCell>{perf.usageCount}</TableCell>
+                      <TableCell className="text-red-600">
+                        -{perf.discountCost.toFixed(2)} ₺
+                      </TableCell>
+                      <TableCell>{perf.totalRevenue.toFixed(2)} ₺</TableCell>
+                      <TableCell>{perf.averageOrderValue.toFixed(2)} ₺</TableCell>
+                      <TableCell className="text-green-600">
+                        {perf.revenueImpact.toFixed(2)} ₺
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="rounded-md border overflow-x-auto">
         {loading ? (

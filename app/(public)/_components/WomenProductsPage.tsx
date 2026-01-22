@@ -35,7 +35,7 @@ type Product = {
   name: string;
   price: number;
   originalPrice?: number;
-  image: string;
+  image?: string;
   hoverImage?: string;
   colors: ColorOption[];
   badge?: string;
@@ -167,7 +167,15 @@ type ActiveFilter = {
   value: string;
 };
 
-export default function WomenProductsPage() {
+type WomenProductsPageProps = {
+  initialProducts?: Product[];
+  initialPriceRange?: { min: number; max: number };
+};
+
+export default function WomenProductsPage({
+  initialProducts,
+  initialPriceRange = { min: 0, max: 2000 },
+}: WomenProductsPageProps = {}) {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [hoveredColor, setHoveredColor] = useState<{ productId: string; colorImage: string } | null>(null);
   const [selectedColor, setSelectedColor] = useState<{ productId: string; colorImage: string } | null>(null);
@@ -445,7 +453,7 @@ export default function WomenProductsPage() {
               ? selectedColor.colorImage
               : null;
 
-            const currentImage = activeColorImage || product.image;
+            const currentImage = activeColorImage || product.image || "/placeholder.png";
 
             return (
               <div key={product.id} className="group">

@@ -54,13 +54,26 @@ export default async function SharedFavoritesPage({
   });
 
   const favorites = favoritesRaw.map((favorite) => ({
-    ...favorite,
+    id: favorite.id,
+    productId: favorite.productId,
+    createdAt: favorite.createdAt,
     product: {
-      ...favorite.product,
+      id: favorite.product.id,
+      name: favorite.product.name,
+      slug: favorite.product.slug ?? undefined,
+      price: favorite.product.price,
+      image: favorite.product.image ?? undefined,
+      primaryImage: favorite.product.primaryImage ?? undefined,
       colors: favorite.product.colors.map((color) => ({
-        ...color,
+        name: color.name,
         hexCode: color.hexCode ?? undefined,
+        images: color.images 
+          ? (typeof color.images === 'string' ? JSON.parse(color.images) : color.images)
+          : [],
+        variants: color.variants || [],
       })),
+      sizes: favorite.product.sizes || [],
+      tags: favorite.product.tags || [],
     },
   }));
 

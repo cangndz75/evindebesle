@@ -8,6 +8,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { getGuestCart, saveGuestCart, removeFromGuestCart } from "@/lib/cart-utils";
 
 type CartItem = {
   id: string;
@@ -161,13 +162,21 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
       } else if (res.status === 401) {
         // Guest kullanıcı için localStorage'dan yükle
         try {
-          const guestCart = localStorage.getItem("guestCart");
-          if (guestCart) {
-            const items = JSON.parse(guestCart);
-            setCartItems(items as CartItem[]);
-          } else {
-            setCartItems([]);
-          }
+          const items = getGuestCart();
+          // GuestCartItem'ı CartItem formatına dönüştür
+          const formattedItems: CartItem[] = items.map((item) => ({
+            ...item,
+            product: {
+              ...item.product,
+              slug: null,
+              primaryImage: item.product.image,
+              colors: [],
+              sizes: [],
+            },
+            color: item.color ? { ...item.color, images: [] } : null,
+            size: item.size || null,
+          }));
+          setCartItems(formattedItems);
         } catch (e) {
           setCartItems([]);
         }
@@ -177,13 +186,21 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
       if (error instanceof Error && !error.message.includes('401')) {
         // Guest cart'ı dene
         try {
-          const guestCart = localStorage.getItem("guestCart");
-          if (guestCart) {
-            const items = JSON.parse(guestCart);
-            setCartItems(items as CartItem[]);
-          } else {
-            setCartItems([]);
-          }
+          const items = getGuestCart();
+          // GuestCartItem'ı CartItem formatına dönüştür
+          const formattedItems: CartItem[] = items.map((item) => ({
+            ...item,
+            product: {
+              ...item.product,
+              slug: null,
+              primaryImage: item.product.image,
+              colors: [],
+              sizes: [],
+            },
+            color: item.color ? { ...item.color, images: [] } : null,
+            size: item.size || null,
+          }));
+          setCartItems(formattedItems);
         } catch (e) {
           setCartItems([]);
         }
@@ -302,8 +319,18 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
     }
   };
 
+  // Önceki ürün ID'lerini takip et (sadece ürün eklendi/silindiğinde öneri yükle)
+  const prevProductIdsRef = useRef<string>("");
+  const isInitialLoadRef = useRef<boolean>(true);
+
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {
+      // Sepet kapandığında ref'leri sıfırla
+      prevProductIdsRef.current = "";
+      isInitialLoadRef.current = true;
+      return;
+    }
+    
     // Açılınca temel dataları çek
     loadCart();
     loadCompanySettings();
@@ -319,8 +346,16 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
 
   useEffect(() => {
     if (!isOpen) return;
-    // cartItems değiştikçe öneriyi güncelle (infinite loop yok, sadece state set)
-    loadRecommendedProducts(cartItems);
+    
+    // Sadece ürün ID'leri değiştiğinde öneri yükle (miktar değişikliklerinde değil)
+    const currentProductIds = cartItems.map(item => item.productId).sort().join(",");
+    
+    // İlk yüklemede veya ürün ID'leri değiştiğinde yükle
+    if (isInitialLoadRef.current || prevProductIdsRef.current !== currentProductIds) {
+      isInitialLoadRef.current = false;
+      prevProductIdsRef.current = currentProductIds;
+      loadRecommendedProducts(cartItems);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, cartItems]);
 
@@ -351,6 +386,26 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
       const finalQuantity = pendingUpdates.current.get(itemId);
       if (finalQuantity === undefined) return;
 
+      // Guest cart item'ı kontrolü - "guest-" ile başlıyorsa direkt localStorage'a yaz
+      if (itemId.startsWith("guest-")) {
+        try {
+          const guestCart = getGuestCart();
+          const itemIndex = guestCart.findIndex((item) => item.id === itemId);
+          if (itemIndex >= 0) {
+            guestCart[itemIndex].quantity = finalQuantity;
+            saveGuestCart(guestCart);
+            pendingUpdates.current.delete(itemId);
+            window.dispatchEvent(new Event("cartUpdated"));
+            return; // Başarılı, API isteği yapma
+          }
+        } catch (e) {
+          console.error("Error updating guest cart:", e);
+          pendingUpdates.current.delete(itemId);
+        }
+        return;
+      }
+
+      // Giriş yapmış kullanıcı için API isteği
       try {
         const res = await fetch(`/api/cart/${itemId}`, {
           method: "PATCH",
@@ -359,10 +414,30 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
         });
 
         if (!res.ok) {
-          // Hata olursa sepeti yeniden yükle
+          // 401 hatası = giriş yapmamış kullanıcı, localStorage'ı güncelle
+          if (res.status === 401) {
+            try {
+              const guestCart = getGuestCart();
+              const itemIndex = guestCart.findIndex((item) => item.id === itemId);
+              if (itemIndex >= 0) {
+                guestCart[itemIndex].quantity = finalQuantity;
+                saveGuestCart(guestCart);
+                pendingUpdates.current.delete(itemId);
+                window.dispatchEvent(new Event("cartUpdated"));
+                return; // Başarılı, devam etme
+              }
+            } catch (e) {
+              console.error("Error updating guest cart:", e);
+            }
+          }
+          
+          // Diğer hatalar için
           pendingUpdates.current.delete(itemId);
+          const errorData = await res.json().catch(() => ({}));
+          const errorMessage = errorData.error || "Miktar güncellenirken bir hata oluştu";
+          toast.error(errorMessage);
+          console.error("Error updating quantity:", errorMessage);
           loadCart(true);
-          console.error("Error updating quantity");
         } else {
           // Başarılı - pending'i temizle
           pendingUpdates.current.delete(itemId);
@@ -370,10 +445,29 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
           loadCart(true);
         }
       } catch (error) {
-        // Hata olursa sepeti yeniden yükle
+        // 401 hatası = giriş yapmamış kullanıcı, localStorage'ı güncelle
+        if (error instanceof Error && error.message.includes('401')) {
+          try {
+            const guestCart = getGuestCart();
+            const itemIndex = guestCart.findIndex((item) => item.id === itemId);
+            if (itemIndex >= 0) {
+              guestCart[itemIndex].quantity = finalQuantity;
+              saveGuestCart(guestCart);
+              pendingUpdates.current.delete(itemId);
+              window.dispatchEvent(new Event("cartUpdated"));
+              return; // Başarılı, devam etme
+            }
+          } catch (e) {
+            console.error("Error updating guest cart:", e);
+          }
+        }
+        
+        // Diğer hatalar için
         pendingUpdates.current.delete(itemId);
-        loadCart();
+        const errorMessage = error instanceof Error ? error.message : "Miktar güncellenirken bir hata oluştu";
+        toast.error(errorMessage);
         console.error("Error updating quantity:", error);
+        loadCart();
       } finally {
         updateTimers.current.delete(itemId);
       }
@@ -383,6 +477,33 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
   };
 
   const removeItem = async (itemId: string) => {
+    // Guest cart item'ı kontrolü - "guest-" ile başlıyorsa direkt localStorage'dan sil
+    if (itemId.startsWith("guest-")) {
+      try {
+        removeFromGuestCart(itemId);
+        const items = getGuestCart();
+        // GuestCartItem'ı CartItem formatına dönüştür
+        const formattedItems: CartItem[] = items.map((item) => ({
+          ...item,
+          product: {
+            ...item.product,
+            slug: null,
+            primaryImage: item.product.image,
+            colors: [],
+            sizes: [],
+          },
+          color: item.color ? { ...item.color, images: [] } : null,
+          size: item.size || null,
+        }));
+        setCartItems(formattedItems);
+        window.dispatchEvent(new Event("cartUpdated"));
+      } catch (e) {
+        console.error("Error removing from guest cart:", e);
+      }
+      return;
+    }
+
+    // Giriş yapmış kullanıcı için API isteği
     try {
       const res = await fetch(`/api/cart?itemId=${itemId}`, { method: "DELETE" });
       if (res.ok) {
@@ -391,14 +512,23 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
       } else if (res.status === 401) {
         // Guest kullanıcı için localStorage'dan sil
         try {
-          const guestCart = localStorage.getItem("guestCart");
-          if (guestCart) {
-            const items = JSON.parse(guestCart);
-            const filteredItems = items.filter((item: any) => item.id !== itemId);
-            localStorage.setItem("guestCart", JSON.stringify(filteredItems));
-            setCartItems(filteredItems);
-            window.dispatchEvent(new Event("cartUpdated"));
-          }
+          removeFromGuestCart(itemId);
+          const items = getGuestCart();
+          // GuestCartItem'ı CartItem formatına dönüştür
+          const formattedItems: CartItem[] = items.map((item) => ({
+            ...item,
+            product: {
+              ...item.product,
+              slug: null,
+              primaryImage: item.product.image,
+              colors: [],
+              sizes: [],
+            },
+            color: item.color ? { ...item.color, images: [] } : null,
+            size: item.size || null,
+          }));
+          setCartItems(formattedItems);
+          window.dispatchEvent(new Event("cartUpdated"));
         } catch (e) {
           // Sessizce devam et
         }
@@ -408,14 +538,23 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
       if (error instanceof Error && !error.message.includes('401')) {
         // Guest cart'tan silmeyi dene
         try {
-          const guestCart = localStorage.getItem("guestCart");
-          if (guestCart) {
-            const items = JSON.parse(guestCart);
-            const filteredItems = items.filter((item: any) => item.id !== itemId);
-            localStorage.setItem("guestCart", JSON.stringify(filteredItems));
-            setCartItems(filteredItems);
-            window.dispatchEvent(new Event("cartUpdated"));
-          }
+          removeFromGuestCart(itemId);
+          const items = getGuestCart();
+          // GuestCartItem'ı CartItem formatına dönüştür
+          const formattedItems: CartItem[] = items.map((item) => ({
+            ...item,
+            product: {
+              ...item.product,
+              slug: null,
+              primaryImage: item.product.image,
+              colors: [],
+              sizes: [],
+            },
+            color: item.color ? { ...item.color, images: [] } : null,
+            size: item.size || null,
+          }));
+          setCartItems(formattedItems);
+          window.dispatchEvent(new Event("cartUpdated"));
         } catch (e) {
           // Sessizce devam et
         }

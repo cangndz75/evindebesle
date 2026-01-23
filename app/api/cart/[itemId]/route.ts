@@ -24,29 +24,41 @@ export async function PATCH(
       );
     }
 
-    const updated = await prisma.cartItem.update({
-      where: {
-        id: itemId,
-        userId: user.id,
-      },
-      data: { quantity },
-      include: {
-        product: {
-          include: {
-            colors: { take: 1 },
-            sizes: true,
-          },
+    try {
+      const updated = await prisma.cartItem.update({
+        where: {
+          id: itemId,
+          userId: user.id,
         },
-        color: true,
-        size: true,
-      },
-    });
+        data: { quantity },
+        include: {
+          product: {
+            include: {
+              colors: { take: 1 },
+              sizes: true,
+            },
+          },
+          color: true,
+          size: true,
+        },
+      });
 
-    return NextResponse.json(updated);
+      return NextResponse.json(updated);
+    } catch (prismaError: any) {
+      // Prisma hatası - öğe bulunamadı veya başka bir sorun
+      if (prismaError.code === 'P2025') {
+        return NextResponse.json(
+          { error: "Sepet öğesi bulunamadı" },
+          { status: 404 }
+        );
+      }
+      throw prismaError; // Diğer hatalar için üst seviyeye fırlat
+    }
   } catch (error) {
     console.error("Error updating cart item:", error);
+    const errorMessage = error instanceof Error ? error.message : "Sepet öğesi güncellenirken bir hata oluştu";
     return NextResponse.json(
-      { error: "Failed to update cart item" },
+      { error: errorMessage },
       { status: 500 }
     );
   }

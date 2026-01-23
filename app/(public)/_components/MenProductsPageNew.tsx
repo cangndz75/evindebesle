@@ -395,7 +395,7 @@ export default function MenProductsPage({
   const handleColorClick = (productId: string, color: Product['colors'][number], e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const colorImage = color.images[0] || "";
+    const colorImage = (Array.isArray(color.images) && color.images.length > 0) ? color.images[0] : "";
     const variantCode = color.variant?.variantCode;
     setSelectedColor({ productId, colorImage, variantCode });
   };
@@ -606,17 +606,17 @@ export default function MenProductsPage({
               
               // Ana görsel: aktif renge göre
               const currentImage =
-                displayColorObj?.images[0] ||
+                (displayColorObj?.images && Array.isArray(displayColorObj.images) && displayColorObj.images.length > 0 ? displayColorObj.images[0] : null) ||
                 product.primaryImage ||
                 product.image ||
                 "/placeholder.jpg";
               
               // Hover görseli: aktif renge göre (sadece 2+ resim varsa)
-              const hasMultipleImages = displayColorObj?.images.length && displayColorObj.images.length > 1;
+              const hasMultipleImages = displayColorObj?.images && Array.isArray(displayColorObj.images) && displayColorObj.images.length > 1;
               const hoverImage = hasMultipleImages
-                ? displayColorObj.images[1]
+                ? (Array.isArray(displayColorObj.images) && displayColorObj.images.length > 1 ? displayColorObj.images[1] : null)
                 : product.secondaryImage ||
-                  (defaultColor?.images.length > 1 ? defaultColor.images[1] : null) ||
+                  (defaultColor?.images && Array.isArray(defaultColor.images) && defaultColor.images.length > 1 ? defaultColor.images[1] : null) ||
                   product.primaryImage ||
                   currentImage;
 
@@ -846,15 +846,15 @@ export default function MenProductsPage({
                     <div className="flex items-center gap-1.5">
                       {product.colors.map((color, idx) => {
                         const isSelected = selectedColor?.productId === product.id &&
-                          product.colors.find(c => c.images[0] === selectedColor.colorImage)?.name === color.name;
+                          product.colors.find(c => Array.isArray(c.images) && c.images.length > 0 && c.images[0] === selectedColor.colorImage)?.name === color.name;
                         const isHovered = hoveredColor?.productId === product.id &&
-                          product.colors.find(c => c.images[0] === hoveredColor.colorImage)?.name === color.name;
+                          product.colors.find(c => Array.isArray(c.images) && c.images.length > 0 && c.images[0] === hoveredColor.colorImage)?.name === color.name;
                         return (
                           <Tooltip key={idx}>
                             <TooltipTrigger asChild>
                               <button
                                 onMouseEnter={() =>
-                                  handleColorHover(product.id, color.images[0] || currentImage)
+                                  handleColorHover(product.id, (Array.isArray(color.images) && color.images.length > 0 ? color.images[0] : null) || currentImage)
                                 }
                                 onMouseLeave={handleColorLeave}
                                 onClick={(e) => handleColorClick(product.id, color, e)}

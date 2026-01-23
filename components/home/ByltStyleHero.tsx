@@ -58,17 +58,13 @@ export default function DarkVelvetHeroHeader() {
     };
   }, []);
 
-  const nav = useMemo(
-    () =>
-      [
-        { key: "men" as const, label: "ERKEK", href: "/men" },
-        { key: "women" as const, label: "KADIN", href: "/women" },
-        { key: "kids" as const, label: "ÇOCUK", href: "/kids" },
-        { key: "bundles" as const, label: "PAKETLER", href: "/bundles" },
-        { key: "lastcall" as const, label: "SON FIRSAT", href: "/last-call" },
-      ] as const,
-    []
-  );
+  const nav = [
+    { key: "men" as const, label: "ERKEK", href: "/men" },
+    { key: "women" as const, label: "KADIN", href: "/women" },
+    { key: "kids" as const, label: "ÇOCUK", href: "/kids" },
+    { key: "bundles" as const, label: "PAKETLER", href: "/bundles" },
+    { key: "lastcall" as const, label: "SON FIRSAT", href: "/last-call" },
+  ] as const;
 
   const mega = useMemo<Record<MenuKey, { left: MegaGroup[]; rightPromo: Promo }>>(
     () => ({

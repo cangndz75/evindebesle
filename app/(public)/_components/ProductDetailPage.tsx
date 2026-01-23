@@ -591,7 +591,7 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
                               return color.images;
                             }
                           })()
-                        : color.images[0])
+                        : (Array.isArray(color.images) && color.images.length > 0 ? color.images[0] : null))
                     : null;
                   
                   return (
@@ -1002,7 +1002,9 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
                         {
                           id: result.product.id,
                           name: result.product.name || product.name,
-                          image: result.product.image || (Array.isArray(product.images) ? product.images[0] : product.images[0]?.url || ""),
+                          image: result.product.image || (Array.isArray(product.images) && product.images.length > 0 
+                            ? (typeof product.images[0] === 'string' ? product.images[0] : (product.images[0] as { url: string; badge?: string })?.url || "")
+                            : ""),
                           price: result.product.price || product.price || 0,
                         },
                         result.color || null,
@@ -1015,13 +1017,25 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
                     // Pop-up için event gönder
                     const selectedColorName = selectedColorObj?.name || "";
                     const selectedSizeName = typeof selectedSizeObj === 'object' && selectedSizeObj ? selectedSizeObj.name : selectedSize;
+                    
+                    // İlk görseli al - string veya obje olabilir
+                    let firstImage = "";
+                    if (product.images && product.images.length > 0) {
+                      const firstImg = product.images[0];
+                      if (typeof firstImg === 'string') {
+                        firstImage = firstImg;
+                      } else if (firstImg && typeof firstImg === 'object' && 'url' in firstImg) {
+                        firstImage = firstImg.url || "";
+                      }
+                    }
+                    
                     window.dispatchEvent(
                       new CustomEvent("itemAddedToCart", {
                         detail: {
                           product: {
                             id: product.id,
                             name: product.name,
-                            image: Array.isArray(product.images) ? product.images[0] : product.images[0]?.url || "",
+                            image: firstImage,
                             price: product.price || 0,
                           },
                           size: selectedSizeName || "",

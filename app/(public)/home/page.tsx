@@ -55,7 +55,7 @@ async function getNewArrivals(gender?: "MALE" | "FEMALE"): Promise<Product[]> {
       url.searchParams.set("gender", gender);
     }
     const response = await fetch(url.toString(), { 
-      cache: "no-store",
+      next: { revalidate: 300 },
       headers: {
         "Content-Type": "application/json",
       },
@@ -82,7 +82,7 @@ async function getBestSellers(gender?: "MALE" | "FEMALE"): Promise<Product[]> {
       url.searchParams.set("gender", gender);
     }
     const response = await fetch(url.toString(), { 
-      cache: "no-store",
+      next: { revalidate: 300 },
       headers: {
         "Content-Type": "application/json",
       },
@@ -106,7 +106,7 @@ async function getFeaturedProducts(): Promise<Product[]> {
     url.searchParams.set("type", "featured");
     url.searchParams.set("limit", "8");
     const response = await fetch(url.toString(), { 
-      cache: "no-store",
+      next: { revalidate: 300 },
       headers: {
         "Content-Type": "application/json",
       },

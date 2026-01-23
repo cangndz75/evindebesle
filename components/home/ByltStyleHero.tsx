@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/sheet";
 import SearchModal from "./SearchModal";
 import AnnouncementBanner from "./AnnouncementBanner";
+import ShoppingCart from "@/app/(public)/_components/ShoppingCart";
 
 type MenuKey = "men" | "women" | "kids" | "bundles" | "lastcall";
 
@@ -37,6 +38,7 @@ export default function DarkVelvetHeroHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileSubMenu, setMobileSubMenu] = useState<MenuKey | null>(null);
   const [searchModalOpen, setSearchModalOpen] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const closeTimer = useRef<number | null>(null);
   const { user } = useCurrentUser();
@@ -431,14 +433,16 @@ export default function DarkVelvetHeroHeader() {
                         <Heart className="h-5 w-5" />
                         <span>Favoriler</span>
                       </Link>
-                      <Link
-                        href="/cart"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-3 text-[#111] font-light hover:opacity-70 transition-opacity"
+                      <button
+                        onClick={() => {
+                          setMobileMenuOpen(false);
+                          setCartOpen(true);
+                        }}
+                        className="flex items-center gap-3 text-[#111] font-light hover:opacity-70 transition-opacity w-full text-left"
                       >
                         <ShoppingBag className="h-5 w-5" />
                         <span>Sepet</span>
-                      </Link>
+                      </button>
                     </div>
                   </div>
                 </SheetContent>
@@ -518,8 +522,8 @@ export default function DarkVelvetHeroHeader() {
               </div>
               
               {/* Cart - Always visible */}
-              <Link
-                href="/cart"
+              <button
+                onClick={() => setCartOpen(true)}
                 className="relative p-1 hover:opacity-70 transition-opacity"
                 aria-label="Sepet"
               >
@@ -527,7 +531,7 @@ export default function DarkVelvetHeroHeader() {
                 <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full text-[10px] leading-4 text-center bg-black text-white">
                   0
                 </span>
-              </Link>
+              </button>
             </div>
           </div>
 
@@ -598,6 +602,9 @@ export default function DarkVelvetHeroHeader() {
         isOpen={searchModalOpen}
         onClose={() => setSearchModalOpen(false)}
       />
+
+      {/* Shopping Cart Sidebar */}
+      <ShoppingCart isOpen={cartOpen} onClose={() => setCartOpen(false)} />
 
       <div className="relative z-10 h-full flex items-center justify-center text-center">
         <div className="w-full max-w-5xl mx-auto pt-12 md:pt-16 px-4 md:px-10">

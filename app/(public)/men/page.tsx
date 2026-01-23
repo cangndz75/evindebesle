@@ -9,6 +9,17 @@ export const metadata = {
 // ISR - 5 dakikada bir yenilenir
 export const revalidate = 300;
 
+// Helper: JSON string'i array'e çevir
+function parseImages(images: string | null): string[] {
+  if (!images) return [];
+  try {
+    const parsed = JSON.parse(images);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
 async function getInitialProducts() {
   try {
     const products = await prisma.product.findMany({
@@ -87,7 +98,7 @@ async function getInitialProducts() {
         id: c.id,
         name: c.name,
         hexCode: c.hexCode ?? undefined,
-        images: c.images,
+        images: parseImages(c.images),
         variant: c.variants?.[0] ? {
           id: c.variants[0].id,
           variantCode: c.variants[0].variantCode,

@@ -210,10 +210,28 @@ export default function ProductCarousel({ title, products, viewAllLink }: Produc
                                       });
 
                                       if (res.ok) {
+                                        const result = await res.json();
+                                        
+                                        // Giriş yapmamış kullanıcı için localStorage'a kaydet
+                                        if (!result.userId && result.product) {
+                                          const { addToGuestCart } = await import("@/lib/cart-utils");
+                                          addToGuestCart(
+                                            product.id,
+                                            currentColorId || null,
+                                            sizeId || null,
+                                            1,
+                                            {
+                                              id: result.product.id,
+                                              name: result.product.name || product.title,
+                                              image: result.product.image || product.image,
+                                              price: result.product.price || product.price || 0,
+                                            },
+                                            result.color || null,
+                                            result.size || null
+                                          );
+                                        }
+                                        
                                         window.dispatchEvent(new Event("cartUpdated"));
-                                        toast.success(`${product.title} (${sizeName}) sepete eklendi`, {
-                                          position: "bottom-left",
-                                        });
                                       } else {
                                         const error = await res.json();
                                         toast.error(error.error || "Sepete eklenirken bir hata oluştu", {

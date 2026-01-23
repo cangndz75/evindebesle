@@ -1,10 +1,16 @@
 "use client";
 import useSWR from "swr";
 
-const fetcher = (url: string) => fetch(url, { credentials: "include" }).then(r => {
-  if (!r.ok) throw new Error("Auth or fetch error");
-  return r.json();
-});
+const fetcher = async (url: string) => {
+  const res = await fetch(url, { credentials: "include" });
+  
+  // API artık session yoksa 200 döndürüyor, bu yüzden sadece ok kontrolü yapıyoruz
+  if (!res.ok) {
+    throw new Error(`HTTP error! status: ${res.status}`);
+  }
+  
+  return res.json();
+};
 
 export function useCurrentUser() {
   const { data, error, isLoading, mutate } = useSWR("/api/user/me", fetcher, {
@@ -13,7 +19,7 @@ export function useCurrentUser() {
 
   return {
     loading: isLoading,
-    error,
+    error: error || null,
     user: data?.user as {
       id: string; name: string; email: string; phone?: string | null;
       emailVerified?: boolean | null; marketingEmailConsent?: boolean | null;

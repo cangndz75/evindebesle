@@ -182,13 +182,21 @@ export default function AuthTabs() {
                 Kayıtlı Müşteriler
               </h2>
 
-              <div className="space-y-3">
+              <form 
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleLogin();
+                }}
+                className="space-y-3"
+              >
                 <Input
                   type="email"
                   placeholder="Email Address*"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="bg-gray-50 border-gray-200 h-12"
+                  autoComplete="email"
+                  required
                 />
 
                 <div className="relative">
@@ -198,6 +206,8 @@ export default function AuthTabs() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="bg-gray-50 border-gray-200 h-12"
+                    autoComplete="current-password"
+                    required
                   />
                   <button
                     type="button"
@@ -209,13 +219,13 @@ export default function AuthTabs() {
                 </div>
 
                 <Button
+                  type="submit"
                   disabled={pending}
-                  onClick={handleLogin}
                   className="w-full h-12 bg-[#111] text-white hover:bg-[#333] uppercase tracking-wider text-sm font-semibold"
                 >
                   {pending ? "Giriş yapılıyor..." : "Giriş Yap"}
                 </Button>
-              </div>
+              </form>
 
               <div className="flex items-center justify-between text-sm pt-3">
                 <Link
@@ -242,13 +252,21 @@ export default function AuthTabs() {
                 Yeni Müşteriler
               </h2>
 
-              <div className="space-y-3">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleRegister();
+                }}
+                className="space-y-3"
+              >
                 <Input
                   type="text"
                   placeholder="Adınız*"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="bg-gray-50 border-gray-200 h-12"
+                  autoComplete="name"
+                  required
                 />
 
                 <Input
@@ -257,6 +275,8 @@ export default function AuthTabs() {
                   value={registerEmail}
                   onChange={(e) => setRegisterEmail(e.target.value)}
                   className="bg-gray-50 border-gray-200 h-12"
+                  autoComplete="email"
+                  required
                 />
 
                 <div className="relative">
@@ -266,6 +286,8 @@ export default function AuthTabs() {
                     value={registerPassword}
                     onChange={(e) => setRegisterPassword(e.target.value)}
                     className="bg-gray-50 border-gray-200 h-12"
+                    autoComplete="new-password"
+                    required
                   />
                   <button
                     type="button"
@@ -277,13 +299,13 @@ export default function AuthTabs() {
                 </div>
 
                 <Button
+                  type="submit"
                   disabled={registerPending}
-                  onClick={handleRegister}
                   className="w-full h-12 bg-[#111] text-white hover:bg-[#333] uppercase tracking-wider text-sm font-semibold"
                 >
                   {registerPending ? "Kayıt olunuyor..." : "Hesap Oluştur"}
                 </Button>
-              </div>
+              </form>
 
               <div className="text-sm pt-3">
                 <Link

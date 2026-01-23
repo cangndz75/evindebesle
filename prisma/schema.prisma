@@ -4,9 +4,9 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
+// The enum definition remains here.
 enum SubscriptionPlan {
   FREE
   PREMIUM
@@ -158,7 +158,7 @@ model OwnedPet {
   gender      String?
   image       String?
   relation    String?
-  allergy     String[]
+  allergy     String?  // JSON array olarak saklanacak
   sensitivity String?
   specialNote String?
   allowAdUse  Boolean @default(false)
@@ -355,12 +355,12 @@ model PetReport {
   id            String   @id @default(cuid())
   ownedPetId    String
   appointmentId String?
-  mood          String[] @default([]) @db.Text         
-  behavior      String[] @default([]) @db.Text         
-  mealTime      String[] @default([]) @db.Text         
-  waterIntake   String[] @default([]) @db.Text         
-  walkTime      String[] @default([]) @db.Text         
-  sleepStatus   String[] @default([]) @db.Text         
+  mood          String?  // JSON array olarak saklanacak
+  behavior      String?  // JSON array olarak saklanacak
+  mealTime      String?  // JSON array olarak saklanacak
+  waterIntake   String?  // JSON array olarak saklanacak
+  walkTime      String?  // JSON array olarak saklanacak
+  sleepStatus   String?  // JSON array olarak saklanacak         
   toiletInfo    String?                                
   comments      String?                                
   createdAt     DateTime @default(now())
@@ -514,13 +514,13 @@ model DraftAppointment {
   recurringCount Int?
   timeSlot       String?
 
-  dates          String[]    
+  dates          String?  // JSON array olarak saklanacak
 
-  ownedPetIds    String[]       
-  petIds         String[] @default([])
-  serviceIds     String[]
+  ownedPetIds    String?  // JSON array olarak saklanacak
+  petIds         String?  // JSON array olarak saklanacak
+  serviceIds     String?  // JSON array olarak saklanacak
 
-  finalPrice     Decimal? @db.Decimal(10, 2)
+  finalPrice     Float?
   isTest         Boolean  @default(false)
 
   couponId       String?
@@ -618,7 +618,7 @@ model Product {
   slug            String?  @unique // URL-friendly slug (drop-cut-long-sleeve-lux)
   stockCode       String?  @unique // Stok kodu
   description     String?  // Kısa açıklama
-  detailText      String?  @db.Text // Detaylı metin (HTML olabilir)
+  detailText      String?  // Detaylı metin (HTML olabilir)
   price           Float
   originalPrice   Float?  // Orijinal fiyat (indirimli ürünler için)
   image           String?  // Ana görsel
@@ -656,7 +656,7 @@ model ProductColor {
   productId String
   name      String   // Renk adı (Kırmızı, Mavi, vb.)
   hexCode   String?  // Hex renk kodu (#FF0000)
-  images    String[] // Bu renge ait fotoğraflar (URL array)
+  images    String?  // JSON array olarak saklanacak (Bu renge ait fotoğraflar)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -741,7 +741,7 @@ model ProductReview {
   userId    String?  // Kullanıcı ID (opsiyonel, misafir yorumları için)
   userName  String?  // Kullanıcı adı (misafir yorumları için)
   rating    Int      // 1-5 arası puan
-  comment   String?  @db.Text
+  comment   String?
   isApproved Boolean @default(false) // Admin onayı
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -897,8 +897,8 @@ model Order {
   coupon         Coupon?       @relation(fields: [couponId], references: [id])
   
   // Notlar
-  customerNote   String?       @db.Text // Müşteri notu
-  adminNote      String?       @db.Text // Admin notu
+  customerNote   String?       // Müşteri notu
+  adminNote      String?       // Admin notu
   
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt

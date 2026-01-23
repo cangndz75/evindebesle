@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import type { Product } from "@/lib/homeData";
+import { addToGuestCart } from "@/lib/cart-utils";
 
 interface TabbedProductCarouselProps {
   newArrivals: Product[];
@@ -210,19 +211,77 @@ function ProductCarouselContent({
       return;
     }
 
+    // Renk ID'sini bul - SADECE ID kullan, image URL'i kullanma!
+    let colorIdToSend = null;
+    if (selectedColor) {
+      const colors = (selectedProduct.colors || []) as any[];
+      const colorObj = colors.find((c: any) => {
+        if (typeof c === 'string') {
+          return c === selectedColor;
+        }
+        return c.id === selectedColor || c.image === selectedColor || c.value === selectedColor || c.name === selectedColor;
+      });
+      // SADECE id kullan, image URL'i değil!
+      // Eğer selectedColor zaten bir ID formatındaysa (UUID gibi) onu kullan
+      if (colorObj?.id) {
+        colorIdToSend = colorObj.id;
+      } else if (selectedColor && /^[a-f0-9-]{36}$/i.test(selectedColor)) {
+        // UUID formatındaysa direkt kullan
+        colorIdToSend = selectedColor;
+      } else {
+        // Son çare olarak product'ın colorId'sini kullan
+        colorIdToSend = selectedProduct.colorId || null;
+      }
+    } else {
+      colorIdToSend = selectedProduct.colorId || null;
+    }
+
+    // Beden ID'sini bul
+    let sizeIdToSend = null;
+    const availableSizes = getAvailableSizes(selectedProduct);
+    const sizeObj = availableSizes.find((s: any) => {
+      if (typeof s === 'string') {
+        return s === selectedSize;
+      }
+      return s.id === selectedSize || s.name === selectedSize;
+    });
+    sizeIdToSend = sizeObj?.id || selectedSize;
+
+
     try {
       const res = await fetch("/api/cart", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           productId: selectedProduct.id,
-          colorId: selectedColor || selectedProduct.colorId || null,
-          sizeId: selectedSize,
+          colorId: colorIdToSend,
+          sizeId: sizeIdToSend,
           quantity: 1,
         }),
       });
 
       if (res.ok) {
+        const result = await res.json();
+        
+        // Giriş yapmamış kullanıcı için localStorage'a kaydet
+        if (!result.userId && result.product) {
+          addToGuestCart(
+            selectedProduct.id,
+            colorIdToSend,
+            sizeIdToSend,
+            1,
+            {
+              id: result.product.id,
+              name: result.product.name || selectedProduct.title,
+              image: result.product.image || selectedProduct.image,
+              price: result.product.price || selectedProduct.price || 0,
+            },
+            result.color || null,
+            result.size || null
+          );
+        }
+        
         window.dispatchEvent(new Event("cartUpdated"));
         
         // Seçili renk ve beden isimlerini bul
@@ -233,7 +292,7 @@ function ProductCarouselContent({
                 if (typeof c === 'string') {
                   return c === selectedColor;
                 }
-                return c.value === selectedColor || c.image === selectedColor || c.name === selectedColor;
+                return c.id === selectedColor || c.image === selectedColor || c.value === selectedColor || c.name === selectedColor;
               });
               return colorObj ? (typeof colorObj === 'string' ? colorObj : colorObj.name) : null;
             })()
@@ -254,109 +313,18 @@ function ProductCarouselContent({
           : null;
 
         // Header'daki popup'ı tetikle
-        window.dispatchEvent(new CustomEvent('itemAddedToCart', {
-          detail: {
-            product: {
-              id: selectedProduct.id,
-              name: selectedProduct.title,
-              image: selectedProduct.image,
-              price: selectedProduct.price || 0,
-            },
-            size: selectedSizeName || '',
-            color: selectedColorName || '',
-          }
-        }));
-
-        setModalOpen(false);
-      } else if (res.status === 401) {
-        // Giriş yapılmamışsa localStorage'a kaydet
-        const selectedColorObj = selectedProduct.colors?.find((c: any) => 
-          c.image === selectedColor || c.id === selectedColor
-        );
-        
-        const sizeObj = getAvailableSizes(selectedProduct).find((s: any) => {
-          if (typeof s === 'string') return s === selectedSize;
-          return s.id === selectedSize || s.name === selectedSize;
-        });
-        
-        const cartItem = {
-          id: `guest_${Date.now()}`,
-          productId: selectedProduct.id,
-          colorId: selectedColor || selectedProduct.colorId || null,
-          sizeId: selectedSize,
-          quantity: 1,
+        const popupData = {
           product: {
             id: selectedProduct.id,
             name: selectedProduct.title,
-            price: selectedProduct.price || 0,
             image: selectedProduct.image,
-            primaryImage: selectedProduct.image,
-            colors: selectedProduct.colors || [],
-            sizes: getAvailableSizes(selectedProduct),
+            price: selectedProduct.price || 0,
           },
-          color: selectedColorObj || null,
-          size: sizeObj || null,
+          size: selectedSizeName || '',
+          color: selectedColorName || '',
         };
-
-        const localCart = localStorage.getItem("guestCart");
-        const items = localCart ? JSON.parse(localCart) : [];
-        
-        // Aynı ürün varsa miktarı artır
-        const existingIndex = items.findIndex((item: any) => 
-          item.productId === cartItem.productId &&
-          item.colorId === cartItem.colorId &&
-          item.sizeId === cartItem.sizeId
-        );
-
-        if (existingIndex >= 0) {
-          items[existingIndex].quantity += 1;
-        } else {
-          items.push(cartItem);
-        }
-
-        localStorage.setItem("guestCart", JSON.stringify(items));
-        window.dispatchEvent(new Event("cartUpdated"));
-        
-        // Seçili renk ve beden isimlerini bul
-        const selectedColorName = selectedColor 
-          ? (() => {
-              const colors = (selectedProduct.colors || []) as any[];
-              const colorObj = colors.find((c: any) => {
-                if (typeof c === 'string') {
-                  return c === selectedColor;
-                }
-                return c.value === selectedColor || c.image === selectedColor || c.name === selectedColor;
-              });
-              return colorObj ? (typeof colorObj === 'string' ? colorObj : colorObj.name) : null;
-            })()
-          : null;
-        
-        const selectedSizeName = selectedSize 
-          ? (() => {
-              const foundSize = getAvailableSizes(selectedProduct).find((s: any) => {
-                if (typeof s === 'string') {
-                  return s === selectedSize;
-                }
-                return s.id === selectedSize || s.name === selectedSize;
-              });
-              return foundSize 
-                ? (typeof foundSize === 'string' ? foundSize : foundSize.name)
-                : selectedSize;
-            })()
-          : null;
-
-        // Header'daki popup'ı tetikle
         window.dispatchEvent(new CustomEvent('itemAddedToCart', {
-          detail: {
-            product: {
-              id: selectedProduct.id,
-              name: selectedProduct.title,
-              image: selectedProduct.image,
-              price: selectedProduct.price || 0,
-            },
-            size: selectedSizeName || '',
-            color: selectedColorName || '',
-          }
+          detail: popupData
         }));
 
         setModalOpen(false);
@@ -367,10 +335,12 @@ function ProductCarouselContent({
         });
       }
     } catch (error) {
-      console.error("Error adding to cart:", error);
-      toast.error("Sepete eklenirken bir hata oluştu", {
-        position: "bottom-left",
-      });
+      // 401 hatası zaten handle edildi, diğer hatalar için toast göster
+      if (error instanceof Error && !error.message.includes('401')) {
+        toast.error("Sepete eklenirken bir hata oluştu", {
+          position: "bottom-left",
+        });
+      }
     }
   };
 
@@ -500,18 +470,38 @@ function ProductCarouselContent({
 
       {/* Product Detail Modal */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
+        <DialogContent className="max-w-7xl w-full max-h-[85vh] overflow-hidden p-0 flex flex-col md:flex-row mt-20">
           <DialogTitle className="sr-only">Ürün Detayları</DialogTitle>
           {selectedProduct && (
-            <div className="grid md:grid-cols-2 gap-6 p-6">
-              {/* Sol taraf - Ürün resmi */}
-              <div className="relative aspect-square bg-gray-100">
+            <>
+              {/* Sol taraf - Sticky kare görsel (Desktop) */}
+              <div className="hidden md:flex md:w-[45%] md:sticky md:top-6 md:self-start md:h-[85vh] md:items-center md:justify-center md:p-8 md:bg-gray-50">
+                <div className="relative w-full aspect-square bg-gray-100">
+                  <Image
+                    src={selectedProduct.hoverImage || selectedProduct.image}
+                    alt={selectedProduct.title}
+                    fill
+                    className="object-cover"
+                    sizes="50vw"
+                  />
+                  {selectedProduct.badge && (
+                    <div className="absolute top-3 left-3 bg-[#111] text-white text-xs px-3 py-1.5 uppercase font-light">
+                      {selectedProduct.badge === "İndirim" && selectedProduct.originalPrice
+                        ? `${Math.round(((selectedProduct.originalPrice - selectedProduct.price) / selectedProduct.originalPrice) * 100)}% OFF`
+                        : selectedProduct.badge}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Mobile görsel - Üstte */}
+              <div className="md:hidden relative aspect-square bg-gray-100 w-full">
                 <Image
                   src={selectedProduct.hoverImage || selectedProduct.image}
                   alt={selectedProduct.title}
                   fill
                   className="object-cover"
-                  sizes="(max-width: 768px) 100vw, 50vw"
+                  sizes="100vw"
                 />
                 {selectedProduct.badge && (
                   <div className="absolute top-3 left-3 bg-[#111] text-white text-xs px-3 py-1.5 uppercase font-light">
@@ -522,8 +512,8 @@ function ProductCarouselContent({
                 )}
               </div>
 
-              {/* Sağ taraf - Ürün detayları */}
-              <div className="space-y-4">
+              {/* Sağ taraf - Ürün detayları (Scrollable) */}
+              <div className="flex-1 overflow-y-auto space-y-4 p-6 md:p-8">
                 <div>
                   <h2 className="text-2xl font-light text-[#111] mb-2">
                     {selectedProduct.title}
@@ -600,13 +590,15 @@ function ProductCarouselContent({
                       <div className="flex gap-2 flex-wrap">
                         {((selectedProduct.colors || []) as any[]).map((color: any, idx: number) => {
                           // color string veya object olabilir
-                          const colorObj = typeof color === "object" ? color : { value: color, name: color, image: "" };
+                          const colorObj = typeof color === "object" ? color : { value: color, name: color, image: "", id: null };
                           const colorValue = colorObj.value || colorObj.name || "#000000";
-                          const isSelected = selectedColor === colorValue || selectedColor === colorObj.image || selectedColor === colorObj.name;
+                          // ID varsa ID'yi, yoksa value/image/name'i kullan
+                          const colorIdentifier = colorObj.id || colorObj.image || colorValue;
+                          const isSelected = selectedColor === colorIdentifier || selectedColor === colorValue || selectedColor === colorObj.image || selectedColor === colorObj.name;
                           return (
                             <button
                               key={idx}
-                              onClick={() => setSelectedColor(colorValue)}
+                              onClick={() => setSelectedColor(colorIdentifier)}
                               className={`w-8 h-8 rounded-full border-2 transition-all ${
                                 isSelected
                                   ? "border-[#111] scale-110"
@@ -702,7 +694,7 @@ function ProductCarouselContent({
                   </Button>
                 </div>
               </div>
-            </div>
+            </>
           )}
         </DialogContent>
       </Dialog>

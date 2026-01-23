@@ -208,7 +208,7 @@ export async function POST(req: Request) {
               create: colors.map((c: any) => ({
                 name: c.name,
                 hexCode: c.hexCode || undefined,
-                images: c.images || [],
+                images: Array.isArray(c.images) ? JSON.stringify(c.images) : (c.images || null),
               })),
             }
           : undefined,

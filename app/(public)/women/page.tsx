@@ -43,13 +43,13 @@ async function getInitialProducts() {
       take: 100, // İlk yükleme için yeterli
     });
 
-    return products.map((p) => ({
+    return products.map((p: any) => ({
       id: p.id,
       name: p.name,
       price: p.price,
       image: p.primaryImage ?? p.image ?? undefined,
       hoverImage: p.secondaryImage ?? undefined,
-      colors: p.colors.map((c) => ({
+      colors: p.colors.map((c: any) => ({
         name: c.name,
         value: c.hexCode ?? `#${c.name.toLowerCase().replace(/\s+/g, '')}`,
         image: c.images?.[0] ?? p.primaryImage ?? p.image ?? "",

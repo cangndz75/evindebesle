@@ -41,10 +41,6 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const body = await request.json();
     const { productId, colorId, sizeId, quantity = 1 } = body;
 
@@ -55,57 +51,111 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Aynı ürün, renk ve beden kombinasyonunu kontrol et
-    const existingItem = await prisma.cartItem.findUnique({
-      where: {
-        userId_productId_colorId_sizeId: {
-          userId: user.id,
-          productId,
-          colorId: colorId || null,
-          sizeId: sizeId || null,
-        },
+    // Ürün bilgilerini getir (giriş yapmadan da gerekli)
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+      include: {
+        colors: { take: 1 },
+        sizes: true,
       },
     });
 
-    if (existingItem) {
-      // Varsa miktarı artır
-      const updated = await prisma.cartItem.update({
-        where: { id: existingItem.id },
-        data: { quantity: existingItem.quantity + quantity },
-        include: {
-          product: {
-            include: {
-              colors: { take: 1 },
-              sizes: true,
-            },
+    if (!product) {
+      return NextResponse.json(
+        { error: "Product not found" },
+        { status: 404 }
+      );
+    }
+
+    // Renk ve beden bilgilerini getir
+    const color = colorId
+      ? await prisma.productColor.findUnique({
+          where: { id: colorId },
+        })
+      : null;
+    const size = sizeId
+      ? await prisma.productSize.findUnique({
+          where: { id: sizeId },
+        })
+      : null;
+
+    // Giriş yapmış kullanıcı için veritabanına kaydet
+    if (user) {
+      // Aynı ürün, renk ve beden kombinasyonunu kontrol et
+      const existingItem = await prisma.cartItem.findUnique({
+        where: {
+          userId_productId_colorId_sizeId: {
+            userId: user.id,
+            productId,
+            colorId: colorId || null,
+            sizeId: sizeId || null,
           },
-          color: true,
-          size: true,
         },
       });
-      return NextResponse.json(updated);
+
+      if (existingItem) {
+        // Varsa miktarı artır
+        const updated = await prisma.cartItem.update({
+          where: { id: existingItem.id },
+          data: { quantity: existingItem.quantity + quantity },
+          include: {
+            product: {
+              include: {
+                colors: { take: 1 },
+                sizes: true,
+              },
+            },
+            color: true,
+            size: true,
+          },
+        });
+        return NextResponse.json({ ...updated, userId: user.id });
+      } else {
+        // Yoksa yeni ekle
+        const newItem = await prisma.cartItem.create({
+          data: {
+            userId: user.id,
+            productId,
+            colorId: colorId || null,
+            sizeId: sizeId || null,
+            quantity,
+          },
+          include: {
+            product: {
+              include: {
+                colors: { take: 1 },
+                sizes: true,
+              },
+            },
+            color: true,
+            size: true,
+          },
+        });
+        return NextResponse.json({ ...newItem, userId: user.id });
+      }
     } else {
-      // Yoksa yeni ekle
-      const newItem = await prisma.cartItem.create({
-        data: {
-          userId: user.id,
-          productId,
-          colorId: colorId || null,
-          sizeId: sizeId || null,
-          quantity,
+      // Giriş yapmamış kullanıcı için sadece ürün bilgilerini döndür
+      // Frontend localStorage'a kaydedecek
+      return NextResponse.json({
+        id: `guest-${Date.now()}`,
+        userId: null,
+        productId,
+        colorId: colorId || null,
+        sizeId: sizeId || null,
+        quantity,
+        product: {
+          id: product.id,
+          name: product.name,
+          image: product.image,
+          price: product.price,
+          colors: product.colors,
+          sizes: product.sizes,
         },
-        include: {
-          product: {
-            include: {
-              colors: { take: 1 },
-              sizes: true,
-            },
-          },
-          color: true,
-          size: true,
-        },
+        color: color,
+        size: size,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       });
-      return NextResponse.json(newItem);
     }
   } catch (error) {
     console.error("Error adding to cart:", error);

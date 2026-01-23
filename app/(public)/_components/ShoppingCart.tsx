@@ -158,9 +158,36 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
         } else {
           setCartItems(items);
         }
+      } else if (res.status === 401) {
+        // Guest kullanıcı için localStorage'dan yükle
+        try {
+          const guestCart = localStorage.getItem("guestCart");
+          if (guestCart) {
+            const items = JSON.parse(guestCart);
+            setCartItems(items as CartItem[]);
+          } else {
+            setCartItems([]);
+          }
+        } catch (e) {
+          setCartItems([]);
+        }
       }
     } catch (error) {
-      console.error("Error loading cart:", error);
+      // 401 hatası zaten handle edildi, diğer hatalar için sessizce devam et
+      if (error instanceof Error && !error.message.includes('401')) {
+        // Guest cart'ı dene
+        try {
+          const guestCart = localStorage.getItem("guestCart");
+          if (guestCart) {
+            const items = JSON.parse(guestCart);
+            setCartItems(items as CartItem[]);
+          } else {
+            setCartItems([]);
+          }
+        } catch (e) {
+          setCartItems([]);
+        }
+      }
     } finally {
       setIsLoading(false);
     }
@@ -360,9 +387,39 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
       const res = await fetch(`/api/cart?itemId=${itemId}`, { method: "DELETE" });
       if (res.ok) {
         loadCart();
+        window.dispatchEvent(new Event("cartUpdated"));
+      } else if (res.status === 401) {
+        // Guest kullanıcı için localStorage'dan sil
+        try {
+          const guestCart = localStorage.getItem("guestCart");
+          if (guestCart) {
+            const items = JSON.parse(guestCart);
+            const filteredItems = items.filter((item: any) => item.id !== itemId);
+            localStorage.setItem("guestCart", JSON.stringify(filteredItems));
+            setCartItems(filteredItems);
+            window.dispatchEvent(new Event("cartUpdated"));
+          }
+        } catch (e) {
+          // Sessizce devam et
+        }
       }
     } catch (error) {
-      console.error("Error removing item:", error);
+      // 401 hatası zaten handle edildi, diğer hatalar için sessizce devam et
+      if (error instanceof Error && !error.message.includes('401')) {
+        // Guest cart'tan silmeyi dene
+        try {
+          const guestCart = localStorage.getItem("guestCart");
+          if (guestCart) {
+            const items = JSON.parse(guestCart);
+            const filteredItems = items.filter((item: any) => item.id !== itemId);
+            localStorage.setItem("guestCart", JSON.stringify(filteredItems));
+            setCartItems(filteredItems);
+            window.dispatchEvent(new Event("cartUpdated"));
+          }
+        } catch (e) {
+          // Sessizce devam et
+        }
+      }
     }
   };
 
@@ -382,8 +439,42 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
   const qualifiesForFreeShipping = totalPrice >= freeShippingThreshold;
 
   const getProductImage = (item: CartItem) => {
-    if (item.color?.images?.[0]) return item.color.images[0];
-    if (item.product.colors?.[0]?.images?.[0]) return item.product.colors[0].images[0];
+    // Önce seçili renk resimlerini kontrol et
+    if (item.color?.images) {
+      let colorImages: string[] = [];
+      // images string olabilir (JSON string)
+      if (typeof item.color.images === 'string') {
+        try {
+          colorImages = JSON.parse(item.color.images);
+        } catch {
+          colorImages = [item.color.images];
+        }
+      } else if (Array.isArray(item.color.images)) {
+        colorImages = item.color.images;
+      }
+      if (colorImages.length > 0) {
+        return colorImages[0];
+      }
+    }
+    
+    // Ürünün renklerinden ilk resmi al
+    if (item.product.colors?.[0]?.images) {
+      let productColorImages: string[] = [];
+      if (typeof item.product.colors[0].images === 'string') {
+        try {
+          productColorImages = JSON.parse(item.product.colors[0].images);
+        } catch {
+          productColorImages = [item.product.colors[0].images];
+        }
+      } else if (Array.isArray(item.product.colors[0].images)) {
+        productColorImages = item.product.colors[0].images;
+      }
+      if (productColorImages.length > 0) {
+        return productColorImages[0];
+      }
+    }
+    
+    // Fallback: product.image (guest cart için önemli)
     return item.product.primaryImage || item.product.image || "/placeholder.jpg";
   };
 

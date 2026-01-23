@@ -7,6 +7,7 @@ import { ChevronRight, Heart, ShoppingBag, Info, Plus, Minus, ChevronLeft } from
 import { toast } from "sonner";
 import ProductReviews from "./ProductReviews";
 import SizeGuideModal from "./SizeGuideModal";
+import { addToGuestCart } from "@/lib/cart-utils";
 
 interface ProductDetailPageProps {
   product?: {
@@ -794,15 +795,6 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
                     if (res.ok) {
                       // Sepet sayısını güncellemek için event dispatch et
                       window.dispatchEvent(new Event("cartUpdated"));
-                      // Toast notification göster ve sepeti aç
-                      toast.success(`${quantity} adet ${product.name} (${selectedSize}) sepete eklendi`, {
-                        action: {
-                          label: "Sepeti Görüntüle",
-                          onClick: () => {
-                            window.dispatchEvent(new Event("openCart"));
-                          },
-                        },
-                      });
                     } else {
                       const error = await res.json();
                       toast.error(error.error || "Sepete eklenirken bir hata oluştu");
@@ -998,8 +990,45 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
                     }),
                   });
                   if (res.ok) {
-                    toast.success("Sepete eklendi");
+                    const result = await res.json();
+                    
+                    // Giriş yapmamış kullanıcı için localStorage'a kaydet
+                    if (!result.userId && result.product) {
+                      addToGuestCart(
+                        product.id,
+                        colorId,
+                        sizeId,
+                        quantity,
+                        {
+                          id: result.product.id,
+                          name: result.product.name || product.name,
+                          image: result.product.image || (Array.isArray(product.images) ? product.images[0] : product.images[0]?.url || ""),
+                          price: result.product.price || product.price || 0,
+                        },
+                        result.color || null,
+                        result.size || null
+                      );
+                    }
+                    
                     window.dispatchEvent(new Event("cartUpdated"));
+                    
+                    // Pop-up için event gönder
+                    const selectedColorName = selectedColorObj?.name || "";
+                    const selectedSizeName = typeof selectedSizeObj === 'object' && selectedSizeObj ? selectedSizeObj.name : selectedSize;
+                    window.dispatchEvent(
+                      new CustomEvent("itemAddedToCart", {
+                        detail: {
+                          product: {
+                            id: product.id,
+                            name: product.name,
+                            image: Array.isArray(product.images) ? product.images[0] : product.images[0]?.url || "",
+                            price: product.price || 0,
+                          },
+                          size: selectedSizeName || "",
+                          color: selectedColorName || "",
+                        },
+                      })
+                    );
                   } else {
                     const error = await res.json();
                     toast.error(error.error || "Sepete eklenirken bir hata oluştu");

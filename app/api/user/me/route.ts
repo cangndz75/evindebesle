@@ -5,8 +5,14 @@ import { prisma } from "@/lib/db";
 
 export async function GET() {
   const session = await getServerSession(authConfig);
+  
+  // Session yoksa 200 döndür, böylece console'da 401 hatası görünmez
+  // Bu normal bir durum (kullanıcı giriş yapmamış olabilir)
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
+    return NextResponse.json({ 
+      user: null, 
+      primaryAddress: null 
+    }, { status: 200 });
   }
 
   // Temel kullanıcı + birincil adresi birlikte döndür

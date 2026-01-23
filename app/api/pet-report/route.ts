@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
     });
 
     const reports = await Promise.all(
-      petReports.map(async (pr) => {
+      petReports.map(async (pr: typeof petReports[number]) => {
         try {
           const appointmentId = pr.appointmentId;
 

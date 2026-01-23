@@ -86,6 +86,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       );
     }
 
+    // allergy alanını işle: virgülle ayrılmış string'i JSON array string'e çevir
+    const allergyValue = parsedBody.data.allergy
+      ? JSON.stringify(parsedBody.data.allergy.split(",").map((s: string) => s.trim()))
+      : null;
+
     const updated = await prisma.ownedPet.update({
       where: { id, userId: session.user.id },
       data: {
@@ -93,9 +98,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         age: parsedBody.data.age,
         gender: parsedBody.data.gender,
         image: parsedBody.data.image || null,
-        allergy: parsedBody.data.allergy
-          ? parsedBody.data.allergy.split(",").map((s: string) => s.trim())
-          : [],
+        allergy: allergyValue,
         sensitivity: parsedBody.data.sensitivity || null,
         specialNote: parsedBody.data.specialNote || null,
         relation: parsedBody.data.relation || null,

@@ -778,7 +778,7 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
 
                     const colorId = selectedColorObj?.id || null;
                     const sizeId = (selectedSizeObj && typeof selectedSizeObj === 'object' && 'id' in selectedSizeObj) 
-                      ? selectedSizeObj.id 
+                      ? (selectedSizeObj.id ?? null)
                       : null;
 
                     const res = await fetch("/api/cart", {
@@ -977,7 +977,7 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
                   );
                   const colorId = selectedColorObj?.id || null;
                   const sizeId = (selectedSizeObj && typeof selectedSizeObj === 'object' && 'id' in selectedSizeObj) 
-                    ? selectedSizeObj.id 
+                    ? (selectedSizeObj.id ?? null)
                     : null;
                   const res = await fetch("/api/cart", {
                     method: "POST",
@@ -1061,7 +1061,7 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
                 );
                 const colorId = selectedColorObj?.id || null;
                 const sizeId = (selectedSizeObj && typeof selectedSizeObj === 'object' && 'id' in selectedSizeObj) 
-                  ? selectedSizeObj.id 
+                  ? (selectedSizeObj.id ?? null)
                   : null;
                 const res = await fetch("/api/cart", {
                   method: "POST",

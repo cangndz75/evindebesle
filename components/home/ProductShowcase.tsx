@@ -354,16 +354,16 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                 return (
                   <div
                     key={product.id}
-                    className="flex-shrink-0 w-[320px] snap-start group bg-white cursor-pointer"
+                    className="flex-shrink-0 w-[280px] snap-start group bg-white cursor-pointer"
                     onClick={() => openModal(product)}
                   >
-                    <div className="relative w-full h-[600px] overflow-hidden bg-white">
+                    <div className="relative w-full h-[400px] overflow-hidden bg-white">
                       <Image
                         src={currentImage}
                         alt={product.title}
                         fill
                         className="object-cover object-center transition-opacity duration-700"
-                        sizes="320px"
+                        sizes="280px"
                         loading="lazy"
                         quality={90}
                       />
@@ -374,7 +374,7 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                           alt={`${product.title} hover`}
                           fill
                           className="object-cover object-center opacity-0 transition-opacity duration-700 group-hover:opacity-100 absolute inset-0"
-                          sizes="320px"
+                          sizes="280px"
                           loading="lazy"
                           quality={90}
                         />
@@ -467,7 +467,7 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                   className="flex-shrink-0 w-[calc(50%-8px)] snap-start group bg-white cursor-pointer"
                   onClick={() => openModal(product)}
                 >
-                  <div className="relative w-full h-[500px] overflow-hidden bg-white">
+                  <div className="relative w-full h-[450px] overflow-hidden bg-white">
                     <Image
                       src={currentImage}
                       alt={product.title}

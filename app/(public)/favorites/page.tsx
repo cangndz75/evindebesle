@@ -71,5 +71,21 @@ export default async function FavoritesPage() {
     },
   }));
 
-  return <FavoritesClient favorites={formattedFavorites} bestSellers={bestSellers} />;
+  // bestSellers için type dönüşümü
+  const formattedBestSellers = bestSellers.map((product) => ({
+    id: product.id,
+    name: product.name,
+    slug: product.slug ?? undefined,
+    price: product.price,
+    image: product.image ?? undefined,
+    primaryImage: product.primaryImage ?? undefined,
+    colors: product.colors?.map((color) => ({
+      id: color.id,
+      name: color.name,
+      hexCode: color.hexCode ?? undefined,
+      images: color.images ? (typeof color.images === 'string' ? JSON.parse(color.images) : color.images) : [],
+    })) || [],
+  }));
+
+  return <FavoritesClient favorites={formattedFavorites} bestSellers={formattedBestSellers} />;
 }

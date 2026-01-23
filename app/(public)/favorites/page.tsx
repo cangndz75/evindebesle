@@ -64,7 +64,9 @@ export default async function FavoritesPage() {
         id: color.id,
         name: color.name,
         hexCode: color.hexCode ?? undefined,
-        images: color.images || [],
+        images: color.images 
+          ? (typeof color.images === 'string' ? JSON.parse(color.images) : color.images)
+          : [],
         variants: color.variants || [],
       })),
       sizeOptions: favorite.product.sizeOptions || [],

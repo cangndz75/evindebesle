@@ -9,6 +9,17 @@ export const metadata = {
 // ISR - 5 dakikada bir yenilenir
 export const revalidate = 300;
 
+// Helper: JSON string'i array'e çevir
+function parseImages(images: string | null): string[] {
+  if (!images) return [];
+  try {
+    const parsed = JSON.parse(images);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
 async function getInitialProducts() {
   try {
     const products = await prisma.product.findMany({
@@ -16,9 +27,22 @@ async function getInitialProducts() {
         isActive: true,
         gender: "FEMALE",
       },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        price: true,
+        image: true,
+        primaryImage: true,
+        secondaryImage: true,
+        gender: true,
+        fabricType: true,
         colors: {
-          include: {
+          select: {
+            id: true,
+            name: true,
+            hexCode: true,
+            images: true,
             variants: {
               select: {
                 id: true,
@@ -31,31 +55,57 @@ async function getInitialProducts() {
             },
           },
         },
-        sizes: true,
-        sizeOptions: true,
-        tags: true,
+        sizes: {
+          select: {
+            id: true,
+            name: true,
+            stock: true,
+          },
+        },
+        sizeOptions: {
+          select: {
+            id: true,
+            name: true,
+            isActive: true,
+          },
+        },
+        tags: {
+          select: {
+            name: true,
+          },
+        },
         reviews: {
           where: { isApproved: true },
           select: { rating: true },
+          take: 5,
         },
       },
       orderBy: { createdAt: "desc" },
       take: 100, // İlk yükleme için yeterli
     });
 
-    return products.map((p: any) => ({
-      id: p.id,
-      name: p.name,
-      price: p.price,
-      image: p.primaryImage ?? p.image ?? undefined,
-      hoverImage: p.secondaryImage ?? undefined,
-      colors: p.colors.map((c: any) => ({
-        name: c.name,
-        value: c.hexCode ?? `#${c.name.toLowerCase().replace(/\s+/g, '')}`,
-        image: c.images?.[0] ?? p.primaryImage ?? p.image ?? "",
-      })),
-      inColors: p.colors.length,
-    }));
+    return products.map((p) => {
+      const colorImages = parseImages(p.colors[0]?.images);
+      const primaryImg = p.primaryImage || p.image;
+      const secondaryImg = p.secondaryImage || p.image;
+      
+      return {
+        id: p.id,
+        name: p.name,
+        price: p.price,
+        image: primaryImg ?? undefined,
+        hoverImage: secondaryImg ?? undefined,
+        colors: p.colors.map((c) => {
+          const cImages = parseImages(c.images);
+          return {
+            name: c.name,
+            value: c.hexCode || "#000000",
+            image: cImages[0] || primaryImg || "/placeholder.png",
+          };
+        }),
+        inColors: p.colors.length,
+      };
+    });
   } catch (error) {
     console.error("Error fetching products:", error);
     return [];

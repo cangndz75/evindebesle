@@ -39,31 +39,138 @@ const FooterAccordion = dynamic(() => import("@/components/home/FooterAccordion"
 import { womensBrands, mensBrands } from "@/lib/homeData";
 import type { Product } from "@/lib/homeData";
 import TabbedProductCarousel from "@/components/home/TabbedProductCarousel";
+import { prisma } from "@/lib/db";
 
 // Performans için ISR - 5 dakikada bir yenilenir
 export const revalidate = 300;
 
+// Helper: JSON string'i array'e çevir
+function parseImages(images: string | null): string[] {
+  if (!images) return [];
+  try {
+    const parsed = JSON.parse(images);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+// Helper: Product'ı formatla
+function formatProduct(product: any, type: "new-arrivals" | "best-sellers" | "featured"): Product {
+  const firstColor = product.colors[0];
+  const colorImages = firstColor?.images ? parseImages(firstColor.images) : [];
+  const mainImage = product.primaryImage || product.image || colorImages[0] || "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop";
+  const hoverImage = product.secondaryImage || colorImages[1] || mainImage;
+
+  if (type === "featured") {
+    return {
+      id: product.id,
+      title: product.name,
+      price: product.price,
+      image: mainImage,
+      hoverImage: hoverImage !== mainImage ? hoverImage : undefined,
+      colors: product.colors.map((c: any) => {
+        const images = parseImages(c.images);
+        return {
+          name: c.name || "",
+          value: c.hexCode || "#000000",
+          image: images[0] || mainImage,
+        };
+      }),
+      sizes: product.sizes?.map((s: { name: string; stock: number; id: string }) => ({ name: s.name, stock: s.stock, id: s.id })) || [],
+      sizeOptions: product.sizeOptions?.map((so: { name: string; id: string }) => ({ name: so.name, id: so.id })) || [],
+      colorId: product.colors[0]?.id,
+      variants: product.colors[0]?.variants?.map((v: { colorId: string | null; sizeId: string | null; stock: number }) => ({
+        colorId: v.colorId,
+        sizeId: v.sizeId,
+        stock: v.stock,
+      })) || [],
+    };
+  }
+
+  return {
+    id: product.id,
+    title: product.name,
+    price: product.price,
+    originalPrice: product.originalPrice || undefined,
+    image: mainImage,
+    hoverImage: hoverImage !== mainImage ? hoverImage : undefined,
+    badge: product.originalPrice ? "İndirim" : "Yeni",
+    colors: product.colors.map((c: any) => {
+      const images = parseImages(c.images);
+      return images[0] || "";
+    }).filter(Boolean),
+    sizes: product.sizes?.map((s: any) => ({ name: s.name, stock: s.stock, id: s.id })) || [],
+    sizeOptions: product.sizeOptions?.map((so: any) => ({ name: so.name, id: so.id })) || [],
+    colorId: product.colors[0]?.id,
+    variants: product.colors[0]?.variants?.map((v: any) => ({
+      colorId: v.colorId,
+      sizeId: v.sizeId,
+      stock: v.stock,
+    })) || [],
+  };
+}
+
 async function getNewArrivals(gender?: "MALE" | "FEMALE"): Promise<Product[]> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL 
-      ? `https://${process.env.VERCEL_URL}` 
-      : "http://localhost:3000";
-    const url = new URL("/api/home/products", baseUrl);
-    url.searchParams.set("type", "new-arrivals");
-    url.searchParams.set("limit", "8");
-    if (gender) {
-      url.searchParams.set("gender", gender);
-    }
-    const response = await fetch(url.toString(), { 
-      next: { revalidate: 300 },
-      headers: {
-        "Content-Type": "application/json",
+    const products = await prisma.product.findMany({
+      where: {
+        isActive: true,
+        ...(gender && { gender: gender as "MALE" | "FEMALE" }),
+        tags: {
+          some: {
+            name: {
+              in: ["yeni ürün", "yeni", "yeni gelenler", "new", "new arrival"],
+            },
+          },
+        },
       },
+      select: {
+        id: true,
+        name: true,
+        price: true,
+        originalPrice: true,
+        image: true,
+        primaryImage: true,
+        secondaryImage: true,
+        colors: {
+          take: 1,
+          select: {
+            id: true,
+            images: true,
+            variants: {
+              select: {
+                id: true,
+                variantCode: true,
+                colorId: true,
+                sizeId: true,
+                stock: true,
+                price: true,
+              },
+            },
+          },
+        },
+        sizes: {
+          select: {
+            id: true,
+            name: true,
+            stock: true,
+          },
+        },
+        sizeOptions: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 8,
     });
-    if (!response.ok) {
-      throw new Error("Failed to fetch new arrivals");
-    }
-    return await response.json();
+
+    return products.map((p) => formatProduct(p, "new-arrivals"));
   } catch (error) {
     console.error("Error fetching new arrivals:", error);
     return [];
@@ -72,25 +179,89 @@ async function getNewArrivals(gender?: "MALE" | "FEMALE"): Promise<Product[]> {
 
 async function getBestSellers(gender?: "MALE" | "FEMALE"): Promise<Product[]> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL 
-      ? `https://${process.env.VERCEL_URL}` 
-      : "http://localhost:3000";
-    const url = new URL("/api/home/products", baseUrl);
-    url.searchParams.set("type", "best-sellers");
-    url.searchParams.set("limit", "8");
-    if (gender) {
-      url.searchParams.set("gender", gender);
-    }
-    const response = await fetch(url.toString(), { 
-      next: { revalidate: 300 },
-      headers: {
-        "Content-Type": "application/json",
+    const products = await prisma.product.findMany({
+      where: {
+        isActive: true,
+        ...(gender && { gender: gender as "MALE" | "FEMALE" }),
+        OR: [
+          {
+            tags: {
+              some: {
+                name: {
+                  in: ["çok satan", "best seller", "bestseller", "en çok satan"],
+                },
+              },
+            },
+          },
+          {
+            orderItems: {
+              some: {},
+            },
+          },
+        ],
       },
+      select: {
+        id: true,
+        name: true,
+        price: true,
+        originalPrice: true,
+        image: true,
+        primaryImage: true,
+        secondaryImage: true,
+        createdAt: true,
+        colors: {
+          take: 1,
+          select: {
+            id: true,
+            images: true,
+            variants: {
+              select: {
+                id: true,
+                variantCode: true,
+                colorId: true,
+                sizeId: true,
+                stock: true,
+                price: true,
+              },
+            },
+          },
+        },
+        sizes: {
+          select: {
+            id: true,
+            name: true,
+            stock: true,
+          },
+        },
+        sizeOptions: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        _count: {
+          select: {
+            orderItems: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 8,
     });
-    if (!response.ok) {
-      throw new Error("Failed to fetch best sellers");
-    }
-    return await response.json();
+
+    // Sipariş sayısına göre sırala
+    products.sort((a, b) => {
+      const aCount = a._count.orderItems;
+      const bCount = b._count.orderItems;
+      if (bCount !== aCount) {
+        return bCount - aCount;
+      }
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+
+    return products.map((p) => formatProduct(p, "best-sellers"));
   } catch (error) {
     console.error("Error fetching best sellers:", error);
     return [];
@@ -99,22 +270,89 @@ async function getBestSellers(gender?: "MALE" | "FEMALE"): Promise<Product[]> {
 
 async function getFeaturedProducts(): Promise<Product[]> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL 
-      ? `https://${process.env.VERCEL_URL}` 
-      : "http://localhost:3000";
-    const url = new URL("/api/home/products", baseUrl);
-    url.searchParams.set("type", "featured");
-    url.searchParams.set("limit", "8");
-    const response = await fetch(url.toString(), { 
-      next: { revalidate: 300 },
-      headers: {
-        "Content-Type": "application/json",
+    const products = await prisma.product.findMany({
+      where: {
+        isActive: true,
+        OR: [
+          {
+            tags: {
+              some: {
+                name: {
+                  in: ["öne çıkan", "featured", "trend", "popüler"],
+                },
+              },
+            },
+          },
+          {
+            orderItems: {
+              some: {},
+            },
+          },
+        ],
       },
+      select: {
+        id: true,
+        name: true,
+        price: true,
+        originalPrice: true,
+        image: true,
+        primaryImage: true,
+        secondaryImage: true,
+        createdAt: true,
+        colors: {
+          select: {
+            id: true,
+            name: true,
+            hexCode: true,
+            images: true,
+            variants: {
+              select: {
+                id: true,
+                variantCode: true,
+                colorId: true,
+                sizeId: true,
+                stock: true,
+                price: true,
+              },
+            },
+          },
+        },
+        sizes: {
+          select: {
+            id: true,
+            name: true,
+            stock: true,
+          },
+        },
+        sizeOptions: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        _count: {
+          select: {
+            orderItems: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 8,
     });
-    if (!response.ok) {
-      throw new Error("Failed to fetch featured products");
-    }
-    return await response.json();
+
+    // Sipariş sayısına göre sırala
+    products.sort((a, b) => {
+      const aCount = a._count.orderItems;
+      const bCount = b._count.orderItems;
+      if (bCount !== aCount) {
+        return bCount - aCount;
+      }
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+
+    return products.map((p) => formatProduct(p, "featured"));
   } catch (error) {
     console.error("Error fetching featured products:", error);
     return [];

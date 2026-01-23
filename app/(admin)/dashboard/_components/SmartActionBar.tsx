@@ -28,7 +28,7 @@ export default function SmartActionBar({ actions }: SmartActionBarProps) {
       >
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(120,119,198,0.1),transparent_50%)]" />
         <div className="relative px-6 py-4">
-          <p className="text-sm font-light text-gray-600">Her şey yolunda görünüyor ✨</p>
+          <p className="text-sm font-light text-gray-600">Hoş geldin Cihan 👋</p>
         </div>
       </motion.div>
     );

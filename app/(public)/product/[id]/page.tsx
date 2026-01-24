@@ -16,8 +16,8 @@ function getProductById(id: string) {
         { url: p.hoverImage?.startsWith("http") ? p.hoverImage : "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1000&auto=format&fit=crop", badge: undefined },
       ],
       colors: p.colors?.map((c, idx) => ({
-        name: typeof c === "string" ? `Renk ${idx + 1}` : c,
-        value: typeof c === "string" ? c : "#000000",
+        name: typeof c === "string" ? `Renk ${idx + 1}` : c.name,
+        value: typeof c === "string" ? c : c.value,
       })) || [],
       sizes: ["XS", "S", "M", "L", "XL", "XXL"],
       details: [
@@ -42,8 +42,8 @@ function getProductById(id: string) {
         { url: p.hoverImage?.startsWith("http") ? p.hoverImage : "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1000&auto=format&fit=crop", badge: undefined },
       ],
       colors: p.colors?.map((c, idx) => ({
-        name: typeof c === "string" ? `Renk ${idx + 1}` : c,
-        value: typeof c === "string" ? c : "#000000",
+        name: typeof c === "string" ? `Renk ${idx + 1}` : c.name,
+        value: typeof c === "string" ? c : c.value,
       })) || [],
       sizes: ["XS", "S", "M", "L", "XL", "XXL"],
       details: [
@@ -68,8 +68,8 @@ function getProductById(id: string) {
         { url: p.hoverImage?.startsWith("http") ? p.hoverImage : "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1000&auto=format&fit=crop", badge: undefined },
       ],
       colors: p.colors?.map((c, idx) => ({
-        name: typeof c === "string" ? `Renk ${idx + 1}` : c,
-        value: typeof c === "string" ? c : "#000000",
+        name: typeof c === "string" ? `Renk ${idx + 1}` : c.name,
+        value: typeof c === "string" ? c : c.value,
       })) || [],
       sizes: ["XS", "S", "M", "L", "XL", "XXL"],
       details: [

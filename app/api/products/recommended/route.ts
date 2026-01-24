@@ -33,13 +33,37 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Benzersiz ürünleri döndür
+    // Benzersiz ürünleri döndür ve color images'ı parse et
     const uniqueProducts = combinations
       .map((c) => c.relatedProduct)
-      .filter((p, index, self) => 
+      .filter((p, index, self) =>
         index === self.findIndex((t) => t.id === p.id)
       )
-      .slice(0, 4);
+      .slice(0, 4)
+      .map((product) => {
+        // Parse color images
+        const colors = product.colors.map((color) => {
+          let images: string[] = [];
+          if (color.images) {
+            try {
+              images = typeof color.images === 'string' ? JSON.parse(color.images) : color.images;
+            } catch {
+              images = [color.images as string];
+            }
+          }
+          return { ...color, images };
+        });
+
+        return {
+          id: product.id,
+          name: product.name,
+          slug: product.slug,
+          price: product.price,
+          image: product.image,
+          primaryImage: product.primaryImage,
+          colors,
+        };
+      });
 
     return NextResponse.json(uniqueProducts);
   } catch (error) {

@@ -6,7 +6,7 @@ import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 export async function GET(req: NextRequest) {
   try {
     const user = await getCurrentUser();
-    
+
     if (!user) {
       return NextResponse.json({ products: [] });
     }
@@ -19,6 +19,11 @@ export async function GET(req: NextRequest) {
           include: {
             colors: {
               take: 1,
+              select: {
+                id: true,
+                name: true,
+                images: true,
+              },
             },
           },
         },
@@ -31,7 +36,29 @@ export async function GET(req: NextRequest) {
     const uniqueProducts = new Map();
     views.forEach((view) => {
       if (!uniqueProducts.has(view.productId)) {
-        uniqueProducts.set(view.productId, view.product);
+        // Parse color images if they exist
+        const product = view.product;
+        const colors = product.colors.map((color) => {
+          let images: string[] = [];
+          if (color.images) {
+            try {
+              images = typeof color.images === 'string' ? JSON.parse(color.images) : color.images;
+            } catch {
+              images = [color.images as string];
+            }
+          }
+          return { ...color, images };
+        });
+
+        uniqueProducts.set(view.productId, {
+          id: product.id,
+          name: product.name,
+          slug: product.slug,
+          price: product.price,
+          image: product.image,
+          primaryImage: product.primaryImage,
+          colors,
+        });
       }
     });
 

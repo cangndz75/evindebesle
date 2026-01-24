@@ -138,15 +138,15 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
 
   const getSizeStock = (product: Product, sizeObj: { name: string; stock: number; id?: string }, colorKey: string | null) => {
     const sizeId = sizeObj.id || null;
-    
+
     // Eğer colorKey bir image URL ise, renk ID'sini bul
     let actualColorId: string | null = colorKey;
     if (colorKey && product.colors) {
       const normalizedColors = normalizeColors(product.colors);
-      const colorObj = normalizedColors.find((c) => 
-        c.image === colorKey || 
-        (c.id && c.id === colorKey) || 
-        c.value === colorKey || 
+      const colorObj = normalizedColors.find((c) =>
+        c.image === colorKey ||
+        (c.id && c.id === colorKey) ||
+        c.value === colorKey ||
         c.name === colorKey
       );
       if (colorObj?.id) {
@@ -166,11 +166,11 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
         actualColorId = normalizedColors[0]?.id || null;
       }
     }
-    
+
     // Önce variant stokuna bak
     const variantStock = getVariantStock(product, sizeId, actualColorId);
     if (variantStock > 0) return variantStock;
-    
+
     // Variant stoku yoksa size'ın kendi stokuna bak
     // Eğer size'ın stoku varsa, onu kullan (variant stoku yoksa bile)
     return sizeObj.stock || 0;
@@ -219,10 +219,10 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
     let colorIdToSend = null;
     if (modalSelectedColor) {
       const normalizedColors = normalizeColors(modalProduct.colors);
-      const colorObj = normalizedColors.find((c) => 
-        c.image === modalSelectedColor || 
-        (c.id && c.id === modalSelectedColor) || 
-        c.value === modalSelectedColor || 
+      const colorObj = normalizedColors.find((c) =>
+        c.image === modalSelectedColor ||
+        (c.id && c.id === modalSelectedColor) ||
+        c.value === modalSelectedColor ||
         c.name === modalSelectedColor
       );
       if (colorObj?.id) {
@@ -264,7 +264,7 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
 
       if (res.ok) {
         const result = await res.json();
-        
+
         // Giriş yapmamış kullanıcı için localStorage'a kaydet
         if (!result.userId && result.product) {
           addToGuestCart(
@@ -308,7 +308,7 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
         } else if (result.product?.image) {
           productImage = result.product.image;
         }
-        
+
         window.dispatchEvent(
           new CustomEvent("itemAddedToCart", {
             detail: {
@@ -343,7 +343,7 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
 
   return (
     <section className="w-full bg-white py-12 md:py-20">
-      <div className="w-full px-4 md:px-6">
+      <div className="w-full">
         <div className="hidden md:block relative">
           <div className="overflow-hidden">
             <div
@@ -359,8 +359,8 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                   hoveredColor?.productId === product.id
                     ? hoveredColor.colorImage
                     : selectedColor?.productId === product.id
-                    ? selectedColor.colorImage
-                    : null;
+                      ? selectedColor.colorImage
+                      : null;
 
                 const currentImage = activeColorImage || product.image;
                 const normalizedColors = normalizeColors(product.colors);
@@ -426,9 +426,8 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                                   e.stopPropagation();
                                   handleColorInteraction(product.id, color.image);
                                 }}
-                                className={`w-3 h-3 rounded-full border transition-all duration-200 ${
-                                  isActive ? "border-[#111] scale-125" : "border-gray-300"
-                                }`}
+                                className={`w-3 h-3 rounded-full border transition-all duration-200 ${isActive ? "border-[#111] scale-125" : "border-gray-300"
+                                  }`}
                                 style={{ backgroundColor: color.value }}
                                 aria-label={`${color.name} renk seçeneği`}
                               />
@@ -478,8 +477,8 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                 hoveredColor?.productId === product.id
                   ? hoveredColor.colorImage
                   : selectedColor?.productId === product.id
-                  ? selectedColor.colorImage
-                  : null;
+                    ? selectedColor.colorImage
+                    : null;
 
               const currentImage = activeColorImage || product.image;
               const normalizedColors = normalizeColors(product.colors);
@@ -545,9 +544,8 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                                 e.stopPropagation();
                                 handleColorInteraction(product.id, color.image);
                               }}
-                              className={`w-3 h-3 rounded-full border transition-all duration-200 ${
-                                isActive ? "border-[#111] scale-125" : "border-gray-300"
-                              }`}
+                              className={`w-3 h-3 rounded-full border transition-all duration-200 ${isActive ? "border-[#111] scale-125" : "border-gray-300"
+                                }`}
                               style={{ backgroundColor: color.value }}
                               aria-label={`${color.name} renk seçeneği`}
                             />
@@ -686,7 +684,7 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                   {(() => {
                     const normalizedModalColors = normalizeColors(modalProduct.colors);
                     if (normalizedModalColors.length === 0) return null;
-                    
+
                     return (
                       <div className="mb-6">
                         <p className="text-sm font-light text-[#111] mb-3">
@@ -694,18 +692,17 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                         </p>
                         <div className="flex gap-2 flex-wrap">
                           {normalizedModalColors.map((color, idx) => {
-                          const isSelected = modalSelectedColor === color.image;
-                          return (
-                            <button
-                              key={idx}
-                              onClick={() => setModalSelectedColor(color.image)}
-                              className={`w-9 h-9 rounded-full border-2 transition-all ${
-                                isSelected ? "border-[#111] scale-110" : "border-gray-300 hover:scale-105"
-                              }`}
-                              style={{ backgroundColor: color.value }}
-                              aria-label={color.name}
-                            />
-                          );
+                            const isSelected = modalSelectedColor === color.image;
+                            return (
+                              <button
+                                key={idx}
+                                onClick={() => setModalSelectedColor(color.image)}
+                                className={`w-9 h-9 rounded-full border-2 transition-all ${isSelected ? "border-[#111] scale-110" : "border-gray-300 hover:scale-105"
+                                  }`}
+                                style={{ backgroundColor: color.value }}
+                                aria-label={color.name}
+                              />
+                            );
                           })}
                         </div>
                       </div>
@@ -742,13 +739,12 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                                   if (!isOutOfStock) setModalSelectedSize(sizeId || sizeName);
                                 }}
                                 disabled={isOutOfStock}
-                                className={`px-4 py-3 text-sm font-light border transition-all ${
-                                  isSelected
+                                className={`px-4 py-3 text-sm font-light border transition-all ${isSelected
                                     ? "border-[#111] bg-[#111] text-white"
                                     : isOutOfStock
-                                    ? "border-gray-200 text-gray-400 line-through cursor-not-allowed bg-white"
-                                    : "border-gray-300 hover:border-[#111] bg-white text-[#111]"
-                                }`}
+                                      ? "border-gray-200 text-gray-400 line-through cursor-not-allowed bg-white"
+                                      : "border-gray-300 hover:border-[#111] bg-white text-[#111]"
+                                  }`}
                               >
                                 {sizeName}
                               </button>
@@ -778,11 +774,10 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                   <button
                     onClick={handleAddToCart}
                     disabled={!modalSelectedSize || isAddingToCart}
-                    className={`w-full py-4 md:py-5 text-base font-light uppercase tracking-wide transition-all ${
-                      modalSelectedSize && !isAddingToCart
+                    className={`w-full py-4 md:py-5 text-base font-light uppercase tracking-wide transition-all ${modalSelectedSize && !isAddingToCart
                         ? "bg-[#111] text-white hover:bg-[#333]"
                         : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    }`}
+                      }`}
                   >
                     {isAddingToCart ? (
                       <span className="inline-flex items-center justify-center gap-2">

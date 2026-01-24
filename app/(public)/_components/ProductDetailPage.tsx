@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import ProductReviews from "./ProductReviews";
 import SizeGuideModal from "./SizeGuideModal";
 import { addToGuestCart } from "@/lib/cart-utils";
+import { addToRecentlyViewed, getRecentlyViewed } from "@/lib/recently-viewed";
 
 interface ProductDetailPageProps {
   product?: {
@@ -240,8 +241,23 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
     checkFavorite();
   }, [product.id]);
 
-  // Ürün görüntüleme kaydı ekle
+  // Ürün görüntüleme kaydı ekle (localStorage + API)
   useEffect(() => {
+    // localStorage'a ekle (hem giriş yapmış hem yapmamış kullanıcılar için)
+    addToRecentlyViewed({
+      id: product.id,
+      name: product.name,
+      slug: (product as any).slug,
+      price: product.price,
+      image: Array.isArray(product.images) && product.images.length > 0
+        ? (typeof product.images[0] === 'string' 
+            ? product.images[0] 
+            : (product.images[0] as { url: string; badge?: string })?.url || null)
+        : null,
+      primaryImage: (product as any).primaryImage || null,
+    });
+
+    // API'ye de kaydet (giriş yapmış kullanıcılar için)
     const recordView = async () => {
       try {
         await fetch(`/api/products/${product.id}/view`, {
@@ -837,7 +853,6 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
                         })
                       );
                       
-                      toast.success("Ürün sepete eklendi", { position: "bottom-left" });
                     } else {
                       const error = await res.json();
                       toast.error(error.error || "Sepete eklenirken bir hata oluştu");
@@ -1345,19 +1360,112 @@ function FooterSection() {
 
 // Son Görüntülenenler Bölümü
 function RecentlyViewedSection() {
-  const viewedProducts = [
-    { id: "1", name: "Seamless Külot", price: 349, image: null },
-    { id: "2", name: "Saten Takım", price: 1299, image: null },
-    { id: "3", name: "Wireless Sütyen", price: 749, image: null },
-    { id: "4", name: "Dantel Body", price: 1099, image: null },
-    { id: "5", name: "High-Waist Külot", price: 449, image: null },
-    {
-      id: "6",
-      name: "Bridal Takım",
-      price: 1899,
-      image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=500&auto=format&fit=crop",
-    },
-  ];
+  const [viewedProducts, setViewedProducts] = useState<Array<{
+    id: string;
+    productId: string;
+    name: string;
+    slug?: string;
+    price: number;
+    image: string | null;
+  }>>([]);
+
+  useEffect(() => {
+    // localStorage'dan ve API'den son görüntülenen ürünleri getir
+    const loadRecentlyViewed = async () => {
+      if (typeof window === "undefined") return;
+      
+      try {
+        const localProducts = getRecentlyViewed();
+        
+        // localStorage'dan gelen ürünleri formatla
+        const localFormatted = localProducts.map((p: {
+          id: string;
+          productId: string;
+          name: string;
+          slug?: string;
+          price: number;
+          image: string | null;
+          primaryImage: string | null;
+        }) => ({
+          id: p.id,
+          productId: p.productId,
+          name: p.name,
+          slug: p.slug,
+          price: p.price,
+          image: p.image || p.primaryImage || null,
+        }));
+
+        // API'den de veri çekmeyi dene (giriş yapmış kullanıcılar için)
+        try {
+          const res = await fetch("/api/products/recent-views");
+          if (res.ok) {
+            const data = await res.json();
+            const apiProducts = Array.isArray(data?.products) ? data.products : [];
+            
+            // API'den gelen ürünleri formatla
+            const apiFormatted = apiProducts.map((p: any) => ({
+              id: `api-${p.id}`,
+              productId: p.id,
+              name: p.name,
+              slug: p.slug,
+              price: p.price,
+              image: p.primaryImage || p.image || null,
+            }));
+
+            // API ve localStorage ürünlerini birleştir
+            // Aynı ürün varsa API'den geleni önceliklendir (daha güncel)
+            type ProductItem = {
+              id: string;
+              productId: string;
+              name: string;
+              slug?: string;
+              price: number;
+              image: string | null;
+            };
+            const productMap = new Map<string, ProductItem>();
+            
+            // Önce localStorage ürünlerini ekle
+            localFormatted.forEach((p: ProductItem) => {
+              productMap.set(p.productId, p);
+            });
+            
+            // Sonra API ürünlerini ekle (aynı ürün varsa üzerine yaz)
+            apiFormatted.forEach((p: ProductItem) => {
+              productMap.set(p.productId, p);
+            });
+            
+            // Map'ten array'e çevir ve en son görüntülenenlere göre sırala
+            const combined = Array.from(productMap.values());
+            setViewedProducts(combined);
+          } else {
+            // API başarısız olursa sadece localStorage kullan
+            setViewedProducts(localFormatted);
+          }
+        } catch (apiError) {
+          // API hatası olursa sadece localStorage kullan
+          console.error("Error fetching API recent views:", apiError);
+          setViewedProducts(localFormatted);
+        }
+      } catch (error) {
+        console.error("Error loading recently viewed:", error);
+      }
+    };
+
+    // İlk yükleme
+    loadRecentlyViewed();
+
+    // Event listener ekle (diğer sayfalardan güncelleme için)
+    window.addEventListener("recentlyViewedUpdated", loadRecentlyViewed);
+    
+    return () => {
+      window.removeEventListener("recentlyViewedUpdated", loadRecentlyViewed);
+    };
+  }, []);
+
+  // Ürün yoksa bölümü gösterme
+  if (viewedProducts.length === 0) {
+    return null;
+  }
 
   return (
     <section className="max-w-7xl mx-auto px-4 md:px-8 py-16 border-t border-gray-200">
@@ -1366,7 +1474,11 @@ function RecentlyViewedSection() {
       </h2>
       <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
         {viewedProducts.map((product) => (
-          <div key={product.id} className="flex-shrink-0 w-48 group cursor-pointer">
+          <Link
+            key={product.id}
+            href={product.slug ? `/products/${product.slug}` : `/product/${product.productId}`}
+            className="flex-shrink-0 w-48 group"
+          >
             <div className="relative aspect-[3/4] mb-4 overflow-hidden bg-gray-100">
               {product.image ? (
                 <Image
@@ -1377,12 +1489,14 @@ function RecentlyViewedSection() {
                   sizes="192px"
                 />
               ) : (
-                <div className="w-full h-full bg-black" />
+                <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                  <span className="text-xs text-gray-400">Fotoğraf Yok</span>
+                </div>
               )}
             </div>
             <h3 className="text-sm font-light text-black mb-1">{product.name}</h3>
             <p className="text-sm font-light text-black">{product.price} ₺</p>
-          </div>
+          </Link>
         ))}
       </div>
     </section>

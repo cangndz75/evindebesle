@@ -1,9 +1,9 @@
 import dynamic from "next/dynamic";
 import { Suspense } from "react";
-import AnnouncementBar from "@/components/home/AnnouncementBar";
 import CampaignStrip from "@/components/home/CampaignStrip";
 import ByltStyleHero from "@/components/home/ByltStyleHero";
 import ProductShowcase from "@/components/home/ProductShowcase";
+import HomeHeader from "@/components/home/HomeHeader";
 
 // Lazy load büyük componentler
 const EditorialBanner = dynamic(() => import("@/components/home/EditorialBanner"), {
@@ -385,13 +385,14 @@ export default async function HomePage() {
 
   return (
     <>
+      <HomeHeader />
       <ByltStyleHero />
       <ProductShowcase products={featuredProducts} />
       <EditorialBanner />
       <BrandShowcase title="WOMENS BRANDS" items={womensBrands} />
       <BrandShowcase title="MEN'S BRANDS" items={mensBrands} />
       {/* <CollectionCarousel /> */}
-      <TabbedProductCarousel 
+      <TabbedProductCarousel
         newArrivals={newArrivals}
         bestSellers={[...bestSellersWomen, ...bestSellersMen]}
         recommended={newArrivals}

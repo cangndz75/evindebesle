@@ -634,11 +634,11 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      {/* Daha “elit” görünüm: hafif geniş, padding ve tipografi */}
-      <SheetContent className="w-full sm:max-w-lg p-0">
+      {/* Daha "elit" görünüm: hafif geniş, padding ve tipografi */}
+      <SheetContent side="right" className="w-full sm:max-w-lg p-0 gap-0 z-[100]">
         <div className="flex h-full flex-col">
           {/* Header */}
-          <SheetHeader className="px-6 py-5 border-b border-black/5">
+          <SheetHeader className="px-6 py-5 border-b border-black/5 flex-shrink-0">
             <div className="flex items-end justify-between gap-3">
               <div className="space-y-1">
                 <SheetTitle className="text-xl font-normal tracking-tight text-black">

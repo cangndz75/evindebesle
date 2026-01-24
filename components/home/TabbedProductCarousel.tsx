@@ -91,7 +91,7 @@ export default function TabbedProductCarousel({
 
   return (
     <section className="w-full bg-white py-12 md:py-20">
-      <div className="w-full px-4 md:px-6">
+      <div className="w-full">
         <Tabs
           defaultValue="new-arrivals"
           className="w-full"
@@ -223,7 +223,7 @@ function ProductCarouselContent({
           }
         })
         .catch(() => setReviews([]));
-      
+
       // Ürün detaylarını çek (description, detailText, sizes, colors dahil)
       fetch(`/api/products/${product.id}`)
         .then((res) => res.json())
@@ -233,7 +233,7 @@ function ProductCarouselContent({
               description: data.description || "",
               detailText: data.detailText || "",
             });
-            
+
             // Colors bilgisini parse et ve sakla
             const parseImages = (images: string | null): string[] => {
               if (!images) return [];
@@ -243,7 +243,7 @@ function ProductCarouselContent({
                 return [];
               }
             };
-            
+
             const colors = (data.colors || []).map((c: any) => {
               const colorImages = parseImages(c.images);
               return {
@@ -255,15 +255,15 @@ function ProductCarouselContent({
                 variants: c.variants || [],
               };
             });
-            
+
             setProductColors(colors);
-            
+
             // Tüm resimleri topla (primaryImage, secondaryImage, color images)
             const allImages: string[] = [];
             if (data.primaryImage) allImages.push(data.primaryImage);
             if (data.secondaryImage && data.secondaryImage !== data.primaryImage) allImages.push(data.secondaryImage);
             if (data.image && !allImages.includes(data.image)) allImages.push(data.image);
-            
+
             // Her renk için ilk resmi ekle
             colors.forEach((color: any) => {
               if (color.images && color.images.length > 0) {
@@ -274,15 +274,15 @@ function ProductCarouselContent({
                 allImages.push(color.image);
               }
             });
-            
+
             setProductImages(allImages.length > 0 ? allImages : [data.primaryImage || data.image || ""].filter(Boolean));
             setSelectedImageIndex(0);
-            
+
             // İlk rengi seç
             if (colors.length > 0 && !selectedColor) {
               setSelectedColor(colors[0].id);
             }
-            
+
             // Sizes, slug, image, name ve price bilgisini güncelle
             const updatedProduct: Partial<Product> = {
               ...selectedProduct!,
@@ -292,7 +292,7 @@ function ProductCarouselContent({
               price: data.price ?? selectedProduct?.price ?? 0,
               originalPrice: data.originalPrice ?? selectedProduct?.originalPrice,
             };
-            
+
             // Seçili renge göre image güncelle
             const selectedColorData = colors.find((c: any) => c.id === (selectedColor || colors[0]?.id));
             if (selectedColorData) {
@@ -312,7 +312,7 @@ function ProductCarouselContent({
                 updatedProduct.hoverImage = data.secondaryImage;
               }
             }
-            
+
             // Sizes bilgisini güncelle - MUTLAKA güncelle
             if (data.sizes && Array.isArray(data.sizes) && data.sizes.length > 0) {
               updatedProduct.sizes = data.sizes.map((s: any) => ({
@@ -327,7 +327,7 @@ function ProductCarouselContent({
                 id: so.id,
               }));
             }
-            
+
             setSelectedProduct(updatedProduct as Product);
           }
         })
@@ -337,14 +337,14 @@ function ProductCarouselContent({
 
   const handleAddToCart = async () => {
     if (!selectedProduct) return;
-    
+
     if (!selectedProduct.id) {
       toast.error("Ürün bilgisi bulunamadı", {
         position: "bottom-left",
       });
       return;
     }
-    
+
     if (!selectedSize) {
       toast.error("Lütfen bir beden seçin", {
         position: "bottom-left",
@@ -404,7 +404,7 @@ function ProductCarouselContent({
 
       if (res.ok) {
         const result = await res.json();
-        
+
         // Giriş yapmamış kullanıcı için localStorage'a kaydet
         if (!result.userId && result.product) {
           addToGuestCart(
@@ -422,13 +422,13 @@ function ProductCarouselContent({
             result.size || null
           );
         }
-        
+
         window.dispatchEvent(new Event("cartUpdated"));
-        
+
         // Pop-up için event gönder (modal kapanmadan önce)
         // API response'undan resim bilgisini al
         let productImage = selectedProduct.image;
-        
+
         // Önce seçili renge göre görseli kontrol et
         if (selectedColor && productColors.length > 0) {
           const selectedColorData = productColors.find((c) => c.id === selectedColor);
@@ -438,7 +438,7 @@ function ProductCarouselContent({
             productImage = selectedColorData.images[0];
           }
         }
-        
+
         // API response'undan renk görsellerini kontrol et
         if (result.color?.images) {
           // color.images JSON string olabilir
@@ -458,33 +458,33 @@ function ProductCarouselContent({
         } else if (result.product?.image) {
           productImage = result.product.image;
         }
-        
+
         // Renk ve beden isimlerini API response'undan al, yoksa local'den bul
-        const colorName = result.color?.name || (selectedColor 
+        const colorName = result.color?.name || (selectedColor
           ? (() => {
-              const colors = (selectedProduct.colors || []) as any[];
-              const colorObj = colors.find((c: any) => {
-                if (typeof c === 'string') {
-                  return c === selectedColor;
-                }
-                return c.id === selectedColor || c.image === selectedColor || c.value === selectedColor || c.name === selectedColor;
-              });
-              return colorObj ? (typeof colorObj === 'string' ? colorObj : colorObj.name) : null;
-            })()
+            const colors = (selectedProduct.colors || []) as any[];
+            const colorObj = colors.find((c: any) => {
+              if (typeof c === 'string') {
+                return c === selectedColor;
+              }
+              return c.id === selectedColor || c.image === selectedColor || c.value === selectedColor || c.name === selectedColor;
+            });
+            return colorObj ? (typeof colorObj === 'string' ? colorObj : colorObj.name) : null;
+          })()
           : null);
-        
-        const sizeName = result.size?.name || (selectedSize 
+
+        const sizeName = result.size?.name || (selectedSize
           ? (() => {
-              const foundSize = getAvailableSizes(selectedProduct).find((s: any) => {
-                if (typeof s === 'string') {
-                  return s === selectedSize;
-                }
-                return s.id === selectedSize || s.name === selectedSize;
-              });
-              return foundSize 
-                ? (typeof foundSize === 'string' ? foundSize : foundSize.name)
-                : selectedSize;
-            })()
+            const foundSize = getAvailableSizes(selectedProduct).find((s: any) => {
+              if (typeof s === 'string') {
+                return s === selectedSize;
+              }
+              return s.id === selectedSize || s.name === selectedSize;
+            });
+            return foundSize
+              ? (typeof foundSize === 'string' ? foundSize : foundSize.name)
+              : selectedSize;
+          })()
           : null);
 
         // Header'daki popup'ı tetikle
@@ -534,7 +534,7 @@ function ProductCarouselContent({
     if (!sizeId) {
       return 0;
     }
-    
+
     // Önce variant stokuna bak
     if (product.variants && product.variants.length > 0) {
       // Seçili renk ID'sini bul
@@ -552,40 +552,40 @@ function ProductCarouselContent({
       } else {
         actualColorId = product.colorId || null;
       }
-      
+
       // Variant'ı bul - önce seçili renk ile, sonra product'ın colorId'si ile, sonra null ile
       let variant = product.variants.find(
         (v) => v.sizeId === sizeId && v.colorId === actualColorId
       );
-      
+
       // Eğer bulunamazsa, product'ın colorId'si ile dene
       if (!variant && product.colorId) {
         variant = product.variants.find(
           (v) => v.sizeId === sizeId && v.colorId === product.colorId
         );
       }
-      
+
       // Eğer hala bulunamazsa, colorId null olan variant'ı dene
       if (!variant) {
         variant = product.variants.find(
           (v) => v.sizeId === sizeId && (v.colorId == null || v.colorId === "")
         );
       }
-      
+
       // Eğer hala bulunamazsa, bu sizeId'ye ait herhangi bir variant'ı dene
       if (!variant) {
         variant = product.variants.find((v) => v.sizeId === sizeId);
       }
-      
+
       // Eğer variant bulundu ve stoku varsa, onu kullan
       if (variant && variant.stock > 0) {
         return variant.stock;
       }
-      
+
       // Eğer variant bulundu ama stoku 0 ise, size'ın stokuna bak
       // (variant stoku 0 olsa bile, size'ın kendi stoku olabilir)
     }
-    
+
     // Variant stoku yoksa veya 0 ise, size'ın kendi stokuna bak
     const size = product.sizes?.find((s) => s.id === sizeId);
     return size?.stock || 0;
@@ -647,7 +647,7 @@ function ProductCarouselContent({
                         }}
                       />
                     )}
-                    
+
                     {/* Hover'da "Seçenekleri Gör" butonu */}
                     {hoveredProduct === product.id && (
                       <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -763,9 +763,8 @@ function ProductCarouselContent({
                       <button
                         key={idx}
                         onClick={() => setSelectedImageIndex(idx)}
-                        className={`relative flex-shrink-0 w-16 h-20 bg-gray-100 rounded overflow-hidden border-2 transition-all ${
-                          selectedImageIndex === idx ? 'border-[#111]' : 'border-transparent hover:border-gray-300'
-                        }`}
+                        className={`relative flex-shrink-0 w-16 h-20 bg-gray-100 rounded overflow-hidden border-2 transition-all ${selectedImageIndex === idx ? 'border-[#111]' : 'border-transparent hover:border-gray-300'
+                          }`}
                       >
                         <Image
                           src={img}
@@ -844,27 +843,27 @@ function ProductCarouselContent({
                   <h2 className="text-2xl font-bold text-[#111] mb-2">
                     {selectedProduct.title || "Ürün"}
                   </h2>
-                  
+
                   {/* Fiyat */}
                   <div className="flex items-center gap-3 mb-4">
                     {(() => {
                       // Seçili bedenin stock'unu kontrol et
-                      const selectedSizeStock = selectedSize 
+                      const selectedSizeStock = selectedSize
                         ? getSizeStock(selectedProduct, typeof selectedSize === 'string' && selectedSize.includes('-') ? null : selectedSize)
                         : null;
                       // Stock 0 değilse üstünü çizme
                       const shouldStrikeThrough = selectedSizeStock !== null && selectedSizeStock === 0;
-                      
+
                       const price = selectedProduct.price ?? 0;
                       const originalPrice = selectedProduct.originalPrice;
-                      
+
                       // İndirimli fiyat mantığı: originalPrice varsa ve farklıysa indirim var
                       if (originalPrice && originalPrice !== price) {
                         // Hangi fiyat daha yüksekse o orijinal, küçük olan indirimli
                         const higherPrice = Math.max(price, originalPrice);
                         const lowerPrice = Math.min(price, originalPrice);
                         const discountPercent = Math.round(((higherPrice - lowerPrice) / higherPrice) * 100);
-                        
+
                         return (
                           <>
                             <span className={`text-2xl font-light ${shouldStrikeThrough ? 'text-[#111]/60 line-through' : 'text-[#111]'}`}>
@@ -897,9 +896,8 @@ function ProductCarouselContent({
                           return (
                             <Star
                               key={star}
-                              className={`w-4 h-4 ${
-                                star <= Math.round(avgRating) ? "fill-[#111] text-[#111]" : "fill-gray-300 text-gray-300"
-                              }`}
+                              className={`w-4 h-4 ${star <= Math.round(avgRating) ? "fill-[#111] text-[#111]" : "fill-gray-300 text-gray-300"
+                                }`}
                             />
                           );
                         })}
@@ -929,7 +927,7 @@ function ProductCarouselContent({
                     <div className="mb-6">
                       <p className="text-sm font-light text-[#111] mb-3">
                         Renk: <span className="text-[#111]/60">
-                          {selectedColor 
+                          {selectedColor
                             ? productColors.find(c => c.id === selectedColor)?.name || "Seçiniz"
                             : "Seçiniz"}
                         </span>
@@ -938,14 +936,14 @@ function ProductCarouselContent({
                         {productColors.map((color) => {
                           const isSelected = selectedColor === color.id;
                           const colorImage = color.image || color.images?.[0];
-                          
+
                           return (
                             <button
                               key={color.id}
                               onClick={() => {
                                 setSelectedColor(color.id);
                                 setSelectedSize(null); // Renk değişince beden seçimini sıfırla
-                                
+
                                 // Renk değiştiğinde dinamik güncelleme
                                 if (color.images && color.images.length > 0) {
                                   // Bu renge ait resimleri göster
@@ -959,7 +957,7 @@ function ProductCarouselContent({
                                   setProductImages(allImages.length > 0 ? allImages : [colorImage || ""].filter(Boolean));
                                   setSelectedImageIndex(0);
                                 }
-                                
+
                                 // Variant'ları güncelle
                                 setSelectedProduct({
                                   ...selectedProduct!,
@@ -973,11 +971,10 @@ function ProductCarouselContent({
                                   colorId: color.id,
                                 });
                               }}
-                              className={`relative w-16 h-20 rounded overflow-hidden border-2 transition-all ${
-                                isSelected
-                                  ? "border-[#111] scale-105"
-                                  : "border-gray-300 hover:border-[#111] hover:scale-105"
-                              }`}
+                              className={`relative w-16 h-20 rounded overflow-hidden border-2 transition-all ${isSelected
+                                ? "border-[#111] scale-105"
+                                : "border-gray-300 hover:border-[#111] hover:scale-105"
+                                }`}
                               aria-label={color.name || `Renk: ${color.id}`}
                             >
                               {colorImage ? (
@@ -989,7 +986,7 @@ function ProductCarouselContent({
                                   sizes="64px"
                                 />
                               ) : (
-                                <div 
+                                <div
                                   className="w-full h-full"
                                   style={{ backgroundColor: color.hexCode || "#000000" }}
                                 />
@@ -1008,18 +1005,18 @@ function ProductCarouselContent({
                   <div className="mb-6">
                     <p className="text-sm font-light text-[#111] mb-3">
                       Beden: <span className="text-[#111]/60">
-                        {selectedSize 
+                        {selectedSize
                           ? (() => {
-                              const foundSize = getAvailableSizes(selectedProduct).find((s: any) => {
-                                if (typeof s === 'string') {
-                                  return s === selectedSize;
-                                }
-                                return s.id === selectedSize || s.name === selectedSize;
-                              });
-                              return foundSize 
-                                ? (typeof foundSize === 'string' ? foundSize : foundSize.name)
-                                : selectedSize;
-                            })()
+                            const foundSize = getAvailableSizes(selectedProduct).find((s: any) => {
+                              if (typeof s === 'string') {
+                                return s === selectedSize;
+                              }
+                              return s.id === selectedSize || s.name === selectedSize;
+                            });
+                            return foundSize
+                              ? (typeof foundSize === 'string' ? foundSize : foundSize.name)
+                              : selectedSize;
+                          })()
                           : "Seçiniz"}
                       </span>
                     </p>
@@ -1043,13 +1040,12 @@ function ProductCarouselContent({
                                   }
                                 }}
                                 disabled={isOutOfStock}
-                                className={`px-4 py-3 text-sm font-light border transition-all ${
-                                  isSelected
-                                    ? "border-[#111] bg-[#111] text-white"
-                                    : isOutOfStock
+                                className={`px-4 py-3 text-sm font-light border transition-all ${isSelected
+                                  ? "border-[#111] bg-[#111] text-white"
+                                  : isOutOfStock
                                     ? "border-gray-200 text-gray-400 line-through cursor-not-allowed bg-white"
                                     : "border-gray-300 hover:border-[#111] bg-white text-[#111]"
-                                }`}
+                                  }`}
                               >
                                 {sizeName}
                               </button>
@@ -1084,11 +1080,10 @@ function ProductCarouselContent({
                   <Button
                     onClick={handleAddToCart}
                     disabled={!selectedSize}
-                    className={`w-full py-6 text-base font-light uppercase tracking-wide ${
-                      selectedSize
-                        ? "bg-[#111] text-white hover:bg-[#333]"
-                        : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    }`}
+                    className={`w-full py-6 text-base font-light uppercase tracking-wide ${selectedSize
+                      ? "bg-[#111] text-white hover:bg-[#333]"
+                      : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      }`}
                   >
                     {selectedSize ? "Sepete Ekle" : "Select a Size"}
                   </Button>

@@ -13,7 +13,7 @@ export default function EditorialTiles() {
 
   return (
     <section className="w-full bg-white py-16 md:py-24">
-      <div className="max-w-7xl mx-auto px-4 md:px-8">
+      <div className="w-full">
         <div className="grid md:grid-cols-2 gap-6 md:gap-8">
           {editorialTiles.map((tile, index) => (
             <motion.div

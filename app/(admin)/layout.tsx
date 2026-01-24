@@ -24,6 +24,7 @@ import {
   HelpCircle,
   FileText,
   Ticket,
+  Mail,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePathname } from "next/navigation";
@@ -81,6 +82,11 @@ const navSections = [
         label: "Kuponlar",
         href: "/coupons",
         icon: <Ticket className="w-5 h-5" />,
+      },
+      {
+        label: "Mail Gönder",
+        href: "/campaigns",
+        icon: <Mail className="w-5 h-5" />,
       },
     ],
   },

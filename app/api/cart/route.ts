@@ -27,7 +27,42 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json(cartItems);
+    // Parse color images JSON strings
+    const parsedItems = cartItems.map((item) => {
+      // Parse product colors images
+      const productColors = item.product.colors.map((color) => {
+        let images: string[] = [];
+        if (color.images) {
+          try {
+            images = typeof color.images === 'string' ? JSON.parse(color.images) : color.images;
+          } catch {
+            images = [color.images as string];
+          }
+        }
+        return { ...color, images };
+      });
+
+      // Parse selected color images
+      let colorImages: string[] = [];
+      if (item.color?.images) {
+        try {
+          colorImages = typeof item.color.images === 'string' ? JSON.parse(item.color.images) : item.color.images;
+        } catch {
+          colorImages = [item.color.images as string];
+        }
+      }
+
+      return {
+        ...item,
+        product: {
+          ...item.product,
+          colors: productColors,
+        },
+        color: item.color ? { ...item.color, images: colorImages } : null,
+      };
+    });
+
+    return NextResponse.json(parsedItems);
   } catch (error) {
     console.error("Error fetching cart:", error);
     return NextResponse.json(
@@ -70,13 +105,13 @@ export async function POST(request: NextRequest) {
     // Renk ve beden bilgilerini getir
     const color = colorId
       ? await prisma.productColor.findUnique({
-          where: { id: colorId },
-        })
+        where: { id: colorId },
+      })
       : null;
     const size = sizeId
       ? await prisma.productSize.findUnique({
-          where: { id: sizeId },
-        })
+        where: { id: sizeId },
+      })
       : null;
 
     // Giriş yapmış kullanıcı için veritabanına kaydet

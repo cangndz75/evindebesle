@@ -9,7 +9,7 @@ import { featuredCards } from "@/lib/homeData";
 export default function FeaturedCardsRow() {
   return (
     <section className="w-full bg-white py-16 md:py-24">
-      <div className="w-full px-4 md:px-6">
+      <div className="w-full">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
           {featuredCards.map((card, index) => (
             <motion.div

@@ -4,7 +4,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 // The enum definition remains here.
@@ -90,6 +89,7 @@ model User {
   productViews       ProductViewHistory[]
   cartItems          CartItem[]
   orders             Order[]
+  campaigns          Campaign[]
 }
 
 model PasswordResetToken {
@@ -968,4 +968,37 @@ model OrderItem {
   
   @@index([orderId])
   @@index([productId])
+}
+
+enum CampaignStatus {
+  draft
+  ready
+  scheduled
+  sent
+}
+
+model Campaign {
+  id                String          @id @default(cuid())
+  name              String
+  status            CampaignStatus  @default(draft)
+  subject           String
+  preheader         String?
+  fromName          String
+  fromEmail         String
+  replyTo           String?
+  contentJson       String          // JSON string of blocks
+  renderedHtml      String?         // Generated HTML (optional, can be generated on send)
+  audienceSegmentId String?
+  scheduleAt        DateTime?
+  sentAt            DateTime?
+  sentCount         Int             @default(0)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  createdBy         User            @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  createdById       String
+
+  @@index([status])
+  @@index([createdById])
+  @@index([scheduleAt])
 }

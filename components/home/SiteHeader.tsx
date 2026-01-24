@@ -16,6 +16,7 @@ import {
 import ShoppingCart from "@/app/(public)/_components/ShoppingCart";
 import SearchModal from "@/components/home/SearchModal";
 import CartPreview from "@/components/home/CartPreview";
+import AnnouncementBanner from "@/components/home/AnnouncementBanner";
 import { getGuestCartCount } from "@/lib/cart-utils";
 
 type MenuKey = "men" | "women" | "kids" | "bundles" | "lastcall";
@@ -333,7 +334,7 @@ export default function SiteHeader() {
     closeTimer.current = window.setTimeout(() => setOpenMenu(null), 200);
   };
 
-  // Admin sayfalarında ve homepage'de header'ı gösterme
+  // Admin sayfalarında ve homepage'de header'ı gösterme (home için HomeHeader kullanılıyor)
   if (
     pathname?.startsWith("/dashboard") ||
     pathname?.startsWith("/admin") ||
@@ -347,16 +348,17 @@ export default function SiteHeader() {
   }
 
   return (
-    <>
-      {/* Üstte ince siyah çizgi */}
-      <div className="fixed top-0 left-0 right-0 z-[60] h-[1px] bg-black" />
-      
-      <header 
-        className="fixed top-[1px] left-0 right-0 z-50 bg-white border-b border-black/10"
+    <div className="relative flex flex-col z-[50]">
+      {/* Scrollable Announcement Banner */}
+      <AnnouncementBanner position="static" />
+
+      {/* Sticky Navbar */}
+      <header
+        className="sticky top-0 z-50 bg-white border-b border-black/10 w-full"
         onMouseLeave={scheduleClose}
       >
-        <nav className="max-w-7xl mx-auto px-4 md:px-8">
-          <div className="relative flex items-center justify-between h-16 md:h-20">
+        <nav className="w-full px-4 md:px-8">
+          <div className="relative flex items-center justify-between h-16 md:h-20 max-w-none">
             {/* Sol: Menü */}
             <div className="flex items-center gap-3 md:gap-4 lg:gap-6">
               {/* Desktop Navigation */}
@@ -379,138 +381,137 @@ export default function SiteHeader() {
                 ))}
               </div>
 
-            {/* Mobile Menu */}
-            <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
-              <SheetTrigger asChild>
-                <button
-                  className="md:hidden hover:opacity-70 transition-opacity text-[#111]"
-                  aria-label="Menü"
-                >
-                  <Menu className="w-5 h-5" />
-                </button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-[300px] p-0 flex flex-col">
-                <SheetHeader className="px-6 pt-6 pb-4 border-b">
-                  <SheetTitle className="text-lg font-light uppercase tracking-wide text-[#111]">
-                    Menü
-                  </SheetTitle>
-                </SheetHeader>
-                <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
-                  {navItems.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setMenuOpen(false)}
-                      className="block text-[#111] font-light hover:opacity-70 transition-opacity uppercase"
+              {/* Mobile Menu */}
+              <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+                <SheetTrigger asChild>
+                  <button
+                    className="md:hidden hover:opacity-70 transition-opacity text-[#111]"
+                    aria-label="Menü"
+                  >
+                    <Menu className="w-5 h-5" />
+                  </button>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-[300px] p-0 flex flex-col">
+                  <SheetHeader className="px-6 pt-6 pb-4 border-b">
+                    <SheetTitle className="text-lg font-light uppercase tracking-wide text-[#111]">
+                      Menü
+                    </SheetTitle>
+                  </SheetHeader>
+                  <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+                    {navItems.map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setMenuOpen(false)}
+                        className="block text-[#111] font-light hover:opacity-70 transition-opacity uppercase"
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
+                  {/* Mobil İkonlar - Altta */}
+                  <div className="border-t px-6 py-4 space-y-3">
+                    <button
+                      onClick={() => {
+                        setMenuOpen(false);
+                        setSearchModalOpen(true);
+                      }}
+                      className="flex items-center gap-3 text-[#111] font-light hover:opacity-70 transition-opacity w-full"
                     >
-                      {item.label}
+                      <Search className="w-5 h-5" />
+                      <span>Ara</span>
+                    </button>
+                    <Link
+                      href={session?.user ? "/profile/personal-info" : "/auth-tabs"}
+                      onClick={() => setMenuOpen(false)}
+                      className="flex items-center gap-3 text-[#111] font-light hover:opacity-70 transition-opacity"
+                    >
+                      <User className="w-5 h-5" />
+                      <span>Hesabım</span>
                     </Link>
-                  ))}
-                </div>
-                {/* Mobil İkonlar - Altta */}
-                <div className="border-t px-6 py-4 space-y-3">
-                  <button
-                    onClick={() => {
-                      setMenuOpen(false);
-                      setSearchModalOpen(true);
-                    }}
-                    className="flex items-center gap-3 text-[#111] font-light hover:opacity-70 transition-opacity w-full"
-                  >
-                    <Search className="w-5 h-5" />
-                    <span>Ara</span>
-                  </button>
-                  <Link
-                    href={session?.user ? "/profile/personal-info" : "/auth-tabs"}
-                    onClick={() => setMenuOpen(false)}
-                    className="flex items-center gap-3 text-[#111] font-light hover:opacity-70 transition-opacity"
-                  >
-                    <User className="w-5 h-5" />
-                    <span>Hesabım</span>
-                  </Link>
-                  <Link
-                    href={session?.user ? "/favorites" : "/auth-tabs"}
-                    onClick={() => setMenuOpen(false)}
-                    className="flex items-center gap-3 text-[#111] font-light hover:opacity-70 transition-opacity relative"
-                  >
-                    <Heart className="w-5 h-5" />
-                    <span>Favoriler</span>
-                    {favoriteCount > 0 && (
-                      <span className="absolute left-5 top-0 w-4 h-4 text-white text-[10px] rounded-full flex items-center justify-center font-light bg-[#111]">
-                        {favoriteCount}
-                      </span>
-                    )}
-                  </Link>
-                  <button
-                    onClick={() => {
-                      setMenuOpen(false);
-                      setCartOpen(true);
-                    }}
-                    className="flex items-center gap-3 text-[#111] font-light hover:opacity-70 transition-opacity relative w-full"
-                  >
-                    <ShoppingBag className="w-5 h-5" />
-                    <span>Sepet</span>
-                    {cartCount > 0 && (
-                      <span className="absolute left-5 top-0 w-4 h-4 text-white text-[10px] rounded-full flex items-center justify-center font-light bg-[#111]">
-                        {cartCount}
-                      </span>
-                    )}
-                  </button>
-                </div>
-              </SheetContent>
-            </Sheet>
-            
-            {/* Mobile Logo - Hamburger yanında */}
+                    <Link
+                      href={session?.user ? "/favorites" : "/auth-tabs"}
+                      onClick={() => setMenuOpen(false)}
+                      className="flex items-center gap-3 text-[#111] font-light hover:opacity-70 transition-opacity relative"
+                    >
+                      <Heart className="w-5 h-5" />
+                      <span>Favoriler</span>
+                      {favoriteCount > 0 && (
+                        <span className="absolute left-5 top-0 w-4 h-4 text-white text-[10px] rounded-full flex items-center justify-center font-light bg-[#111]">
+                          {favoriteCount}
+                        </span>
+                      )}
+                    </Link>
+                    <button
+                      onClick={() => {
+                        setMenuOpen(false);
+                        setCartOpen(true);
+                      }}
+                      className="flex items-center gap-3 text-[#111] font-light hover:opacity-70 transition-opacity relative w-full"
+                    >
+                      <ShoppingBag className="w-5 h-5" />
+                      <span>Sepet</span>
+                      {cartCount > 0 && (
+                        <span className="absolute left-5 top-0 w-4 h-4 text-white text-[10px] rounded-full flex items-center justify-center font-light bg-[#111]">
+                          {cartCount}
+                        </span>
+                      )}
+                    </button>
+                  </div>
+                </SheetContent>
+              </Sheet>
+
+              {/* Mobile Logo - Hamburger yanında */}
+              <Link
+                href="/home"
+                className="md:hidden ml-3"
+                aria-label="Ana Sayfa"
+              >
+                <span className="text-xl font-serif font-light tracking-wider text-[#111] whitespace-nowrap">
+                  DARK VELVET
+                </span>
+              </Link>
+            </div>
+
+            {/* Orta: Logo - Absolute positioned for perfect centering (Desktop only) */}
             <Link
               href="/home"
-              className="md:hidden ml-3"
+              className="hidden md:block absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2"
               aria-label="Ana Sayfa"
             >
-              <span className="text-xl font-serif font-light tracking-wider text-[#111] whitespace-nowrap">
+              <span className="text-2xl md:text-3xl font-serif font-light tracking-wider text-[#111]">
                 DARK VELVET
               </span>
             </Link>
-          </div>
 
-          {/* Orta: Logo - Absolute positioned for perfect centering (Desktop only) */}
-          <Link
-            href="/home"
-            className="hidden md:block absolute left-1/2 -translate-x-1/2"
-            aria-label="Ana Sayfa"
-          >
-            <span className="text-2xl md:text-3xl font-serif font-light tracking-wider text-[#111]">
-              DARK VELVET
-            </span>
-          </Link>
-
-          {/* Sağ: İkonlar */}
-          <div className="flex items-center gap-4 md:gap-6">
-            <button
-              onClick={() => setSearchModalOpen(true)}
-              className="hidden md:flex hover:opacity-70 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 rounded text-[#111] focus-visible:ring-[#111]"
-              aria-label="Ara"
-            >
-              <Search className="w-5 h-5" />
-            </button>
-            <Link
-              href={session?.user ? "/profile/personal-info" : "/auth-tabs"}
-              className="hover:opacity-70 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 rounded text-[#111] focus-visible:ring-[#111]"
-              aria-label="Hesabım"
-            >
-              <User className="w-5 h-5" />
-            </Link>
-            <Link
-              href={session?.user ? "/favorites" : "/auth-tabs"}
-              className="relative hover:opacity-70 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 rounded text-[#111] focus-visible:ring-[#111]"
-              aria-label="Favoriler"
-            >
-              <Heart className="w-5 h-5" />
-              {favoriteCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 text-white text-[10px] rounded-full flex items-center justify-center font-light bg-[#111]">
-                  {favoriteCount}
-                </span>
-              )}
-            </Link>
-            <div className="relative">
+            {/* Sağ: İkonlar */}
+            <div className="flex items-center gap-4 md:gap-6">
+              <button
+                onClick={() => setSearchModalOpen(true)}
+                className="hidden md:flex hover:opacity-70 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 rounded text-[#111] focus-visible:ring-[#111]"
+                aria-label="Ara"
+              >
+                <Search className="w-5 h-5" />
+              </button>
+              <Link
+                href={session?.user ? "/profile/personal-info" : "/auth-tabs"}
+                className="hover:opacity-70 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 rounded text-[#111] focus-visible:ring-[#111]"
+                aria-label="Hesabım"
+              >
+                <User className="w-5 h-5" />
+              </Link>
+              <Link
+                href={session?.user ? "/favorites" : "/auth-tabs"}
+                className="relative hover:opacity-70 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 rounded text-[#111] focus-visible:ring-[#111]"
+                aria-label="Favoriler"
+              >
+                <Heart className="w-5 h-5" />
+                {favoriteCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 text-white text-[10px] rounded-full flex items-center justify-center font-light bg-[#111]">
+                    {favoriteCount}
+                  </span>
+                )}
+              </Link>
               <button
                 ref={cartIconRef}
                 onClick={() => {
@@ -526,86 +527,84 @@ export default function SiteHeader() {
                   </span>
                 )}
               </button>
-
             </div>
           </div>
-        </div>
-      </nav>
+        </nav>
 
-      {/* Desktop Mega Menu */}
-      {openMenu && (
-        <div
-          className="hidden md:block fixed left-0 right-0 top-[81px] z-50 bg-white border-t border-black/10 shadow-lg"
-          onMouseEnter={keepOpen}
-          onMouseLeave={scheduleClose}
-        >
-          <div className="max-w-7xl mx-auto px-4 md:px-8 py-6">
-            <div className="grid grid-cols-12 gap-6">
-              <div className="col-span-10">
-                <div className="grid grid-cols-3 gap-6">
-                  {mega[openMenu].left.map((group, idx) => (
-                    <div key={`${openMenu}-${idx}`}>
-                      {group.title && (
-                        <div className="text-[11px] tracking-[0.22em] uppercase mb-3 text-black/70">
-                          {group.title}
-                        </div>
-                      )}
-                      <ul className="space-y-2">
-                        {group.items.map((it, itemIdx) => (
-                          <li key={`${it.href}-${itemIdx}`}>
-                            <Link
-                              href={it.href}
-                              className="block text-[#111] text-sm font-light hover:opacity-70 transition-opacity"
-                            >
-                              {it.label}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
+        {/* Desktop Mega Menu */}
+        {openMenu && (
+          <div
+            className="hidden md:block absolute left-0 right-0 top-full z-50 bg-white border-t border-black/10 shadow-lg"
+            onMouseEnter={keepOpen}
+            onMouseLeave={scheduleClose}
+          >
+            <div className="max-w-7xl mx-auto px-4 md:px-8 py-6">
+              <div className="grid grid-cols-12 gap-6">
+                <div className="col-span-10">
+                  <div className="grid grid-cols-3 gap-6">
+                    {mega[openMenu].left.map((group, idx) => (
+                      <div key={`${openMenu}-${idx}`}>
+                        {group.title && (
+                          <div className="text-[11px] tracking-[0.22em] uppercase mb-3 text-black/70">
+                            {group.title}
+                          </div>
+                        )}
+                        <ul className="space-y-2">
+                          {group.items.map((it, itemIdx) => (
+                            <li key={`${it.href}-${itemIdx}`}>
+                              <Link
+                                href={it.href}
+                                className="block text-[#111] text-sm font-light hover:opacity-70 transition-opacity"
+                              >
+                                {it.label}
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="col-span-2">
+                  <Link href={mega[openMenu].rightPromo.href} className="group block">
+                    <div className="relative aspect-[3/4] overflow-hidden bg-gray-100 mb-2">
+                      <Image
+                        src={mega[openMenu].rightPromo.image}
+                        alt={mega[openMenu].rightPromo.title}
+                        fill
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                        sizes="200px"
+                        unoptimized
+                      />
                     </div>
-                  ))}
+                    <h3 className="text-xs font-light text-[#111] mb-0.5">
+                      {mega[openMenu].rightPromo.title}
+                    </h3>
+                    <p className="text-[10px] text-[#111]/60 font-light">
+                      {mega[openMenu].rightPromo.subtitle}
+                    </p>
+                  </Link>
                 </div>
               </div>
-              <div className="col-span-2">
-                <Link href={mega[openMenu].rightPromo.href} className="group block">
-                  <div className="relative aspect-[3/4] overflow-hidden bg-gray-100 mb-2">
-                    <Image
-                      src={mega[openMenu].rightPromo.image}
-                      alt={mega[openMenu].rightPromo.title}
-                      fill
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
-                      sizes="200px"
-                      unoptimized
-                    />
-                  </div>
-                  <h3 className="text-xs font-light text-[#111] mb-0.5">
-                    {mega[openMenu].rightPromo.title}
-                  </h3>
-                  <p className="text-[10px] text-[#111]/60 font-light">
-                    {mega[openMenu].rightPromo.subtitle}
-                  </p>
-                </Link>
-              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Shopping Cart Sidebar */}
-      <ShoppingCart isOpen={cartOpen} onClose={() => setCartOpen(false)} />
-      
-      {/* Search Modal */}
-      <SearchModal
-        isOpen={searchModalOpen}
-        onClose={() => setSearchModalOpen(false)}
-      />
+        {/* Search Modal */}
+        <SearchModal
+          isOpen={searchModalOpen}
+          onClose={() => setSearchModalOpen(false)}
+        />
 
-      {/* Cart Preview Popup */}
-      <CartPreview 
-        cartIconRef={cartIconRef} 
-        headerBottom={81} 
-      />
+        {/* Cart Preview Popup */}
+        <CartPreview
+          cartIconRef={cartIconRef}
+          headerBottom={81}
+        />
       </header>
-    </>
+
+      {/* Shopping Cart Sidebar - Outside header to avoid stacking issues */}
+      <ShoppingCart isOpen={cartOpen} onClose={() => setCartOpen(false)} />
+    </div>
   );
 }

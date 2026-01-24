@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic'; // Filtreler için dynamic
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  
+
   const gender = searchParams.get("gender"); // MALE, FEMALE, UNISEX
   const tag = searchParams.get("tag"); // ProductTag name
   const minPrice = searchParams.get("minPrice");
@@ -16,6 +16,7 @@ export async function GET(request: NextRequest) {
   const colors = searchParams.getAll("color"); // Array of color names
   const fabricType = searchParams.get("fabricType");
   const isActive = searchParams.get("isActive") !== "false"; // Default true
+  const take = searchParams.get("take"); // Limit results
 
   const where: any = {
     isActive,
@@ -82,6 +83,7 @@ export async function GET(request: NextRequest) {
 
   const products = await prisma.product.findMany({
     where,
+    take: take ? parseInt(take) : undefined,
     select: {
       id: true,
       name: true,
@@ -142,10 +144,27 @@ export async function GET(request: NextRequest) {
     orderBy: { createdAt: "desc" },
   });
 
-  const response = NextResponse.json(products);
-  
+  // Parse color images JSON strings
+  const parsedProducts = products.map((product) => {
+    const colors = product.colors.map((color) => {
+      let images: string[] = [];
+      if (color.images) {
+        try {
+          images = typeof color.images === 'string' ? JSON.parse(color.images) : color.images;
+        } catch {
+          images = [color.images as string];
+        }
+      }
+      return { ...color, images };
+    });
+
+    return { ...product, colors };
+  });
+
+  const response = NextResponse.json(parsedProducts);
+
   // Cache headers
   response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
-  
+
   return response;
 }

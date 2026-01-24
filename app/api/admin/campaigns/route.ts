@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ id: campaign.id, ...campaign });
+    return NextResponse.json(campaign);
   } catch (error) {
     console.error("Error creating campaign:", error);
     return NextResponse.json(
@@ -98,7 +98,7 @@ export async function PUT(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ id: campaign.id, ...campaign });
+    return NextResponse.json(campaign);
   } catch (error) {
     console.error("Error updating campaign:", error);
     return NextResponse.json(

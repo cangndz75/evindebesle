@@ -62,21 +62,37 @@ export default function MenNewArrivalsPage() {
   const [selectedColor, setSelectedColor] = useState<{ productId: string; colorImage: string } | null>(null);
 
   // Filter new arrivals for men (you can adjust this logic)
-  const products: Product[] = newArrivals.map((p) => ({
-    id: p.id,
-    name: p.title,
-    price: p.price,
-    originalPrice: p.originalPrice,
-    image: p.image,
-    hoverImage: p.hoverImage,
-    colors: (p.colors || []).map((colorValue, idx) => ({
-      name: `Renk ${idx + 1}`,
-      value: colorValue,
-      image: p.image, // Use main image as fallback for color image
-    })),
-    badge: p.badge,
-    inColors: p.colors?.length,
-  }));
+  const products: Product[] = newArrivals.map((p) => {
+    // Handle both string[] and ColorOption[] cases
+    const colorOptions: ColorOption[] = (p.colors || []).map((color, idx) => {
+      // If color is a string, create a ColorOption from it
+      if (typeof color === 'string') {
+        return {
+          name: `Renk ${idx + 1}`,
+          value: color,
+          image: p.image, // Use main image as fallback for color image
+        };
+      }
+      // If color is already a ColorOption, use it directly
+      return {
+        name: color.name || `Renk ${idx + 1}`,
+        value: color.value,
+        image: color.image || p.image,
+      };
+    });
+
+    return {
+      id: p.id,
+      name: p.title,
+      price: p.price,
+      originalPrice: p.originalPrice,
+      image: p.image,
+      hoverImage: p.hoverImage,
+      colors: colorOptions,
+      badge: p.badge,
+      inColors: p.colors?.length,
+    };
+  });
 
   const handleColorInteraction = (productId: string, colorImage: string) => {
     setHoveredColor({ productId, colorImage });

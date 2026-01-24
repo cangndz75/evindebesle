@@ -165,24 +165,31 @@ export default function AdminLayout({
       <aside className={`hidden md:flex bg-gray-900 text-white flex-col shrink-0 transition-all duration-300 ${
         sidebarCollapsed ? "w-16" : "w-64"
       }`}>
-        <div className="p-6 border-b border-gray-800">
-          <div className="flex items-center gap-2 mb-2">
-            <Home className="w-5 h-5 flex-shrink-0" />
-            {!sidebarCollapsed && (
-              <h2 className="text-xl font-bold whitespace-nowrap">Evinde Besle</h2>
-            )}
-            <button
-              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              className="ml-auto flex-shrink-0 p-1 hover:bg-gray-800 rounded transition-colors"
-              title={sidebarCollapsed ? "Genişlet" : "Daralt"}
-            >
-              {sidebarCollapsed ? (
-                <ChevronRight className="w-4 h-4" />
-              ) : (
+        <div className={`border-b border-gray-800 ${sidebarCollapsed ? "p-3" : "p-6"}`}>
+          {!sidebarCollapsed ? (
+            <div className="flex items-center gap-2">
+              <Home className="w-5 h-5 flex-shrink-0" />
+              <h2 className="text-xl font-bold whitespace-nowrap flex-1">Evinde Besle</h2>
+              <button
+                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                className="flex-shrink-0 p-1 hover:bg-gray-800 rounded transition-colors"
+                title="Daralt"
+              >
                 <ChevronLeft className="w-4 h-4" />
-              )}
-            </button>
-          </div>
+              </button>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-2">
+              <Home className="w-5 h-5 flex-shrink-0" />
+              <button
+                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                className="w-full flex items-center justify-center p-1.5 hover:bg-gray-800 rounded transition-colors"
+                title="Genişlet"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
         </div>
         <div className="flex-1 overflow-y-auto p-4 space-y-6">
           {navSections.map((section) => (

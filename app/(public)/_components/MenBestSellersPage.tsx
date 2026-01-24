@@ -69,11 +69,23 @@ export default function MenBestSellersPage() {
     originalPrice: p.originalPrice,
     image: p.image,
     hoverImage: p.hoverImage,
-    colors: (p.colors || []).map((colorValue, idx) => ({
-      name: `Renk ${idx + 1}`,
-      value: colorValue,
-      image: p.image, // Use main image as fallback for color image
-    })),
+    colors: (p.colors || []).map((colorValue, idx) => {
+      // Handle both string and ColorOption types
+      const colorString = typeof colorValue === 'string' 
+        ? colorValue 
+        : colorValue.value;
+      const colorImage = typeof colorValue === 'string'
+        ? p.image
+        : colorValue.image || p.image;
+      
+      return {
+        name: typeof colorValue === 'string' 
+          ? `Renk ${idx + 1}` 
+          : colorValue.name || `Renk ${idx + 1}`,
+        value: colorString,
+        image: colorImage,
+      };
+    }),
     badge: p.badge,
     inColors: p.colors?.length,
   }));

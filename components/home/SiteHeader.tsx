@@ -341,6 +341,7 @@ export default function SiteHeader() {
     pathname?.startsWith("/users") ||
     pathname?.startsWith("/coupons") ||
     pathname?.startsWith("/company-settings") ||
+    pathname?.startsWith("/campaigns") ||
     pathname === "/home" ||
     pathname === "/"
   ) {

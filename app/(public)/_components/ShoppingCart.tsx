@@ -10,40 +10,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { getGuestCart, saveGuestCart, removeFromGuestCart } from "@/lib/cart-utils";
 import { getRecentlyViewed } from "@/lib/recently-viewed";
-
-type CartItem = {
-  id: string;
-  productId: string;
-  colorId: string | null;
-  sizeId: string | null;
-  quantity: number;
-  product: {
-    id: string;
-    name: string;
-    slug: string | null;
-    price: number;
-    image: string | null;
-    primaryImage: string | null;
-    colors: Array<{
-      id: string;
-      name: string;
-      images: string[];
-    }>;
-    sizes: Array<{
-      id: string;
-      name: string;
-    }>;
-  };
-  color: {
-    id: string;
-    name: string;
-    images: string[];
-  } | null;
-  size: {
-    id: string;
-    name: string;
-  } | null;
-};
+import { useCartStore, type CartItem } from "@/lib/stores/cartStore";
 
 type RecommendedProduct = {
   id: string;
@@ -123,8 +90,11 @@ function ProductTile({
 }
 
 export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  // Store'dan cart items ve hydrated state'i al
+  const cartItems = useCartStore((state) => state.items);
+  const hydrated = useCartStore((state) => state.hydrated);
+  const setItems = useCartStore((state) => state.setItems);
+  
   const [freeShippingThreshold, setFreeShippingThreshold] = useState(99);
   const [recommendedProducts, setRecommendedProducts] = useState<RecommendedProduct[]>([]);
   const [recentlyViewedProducts, setRecentlyViewedProducts] = useState<RecommendedProduct[]>([]);
@@ -138,194 +108,8 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
   const updateTimers = useRef<Map<string, NodeJS.Timeout>>(new Map());
   const pendingUpdates = useRef<Map<string, number>>(new Map());
 
-  // Senkronizasyon durumunu takip et (sonsuz döngüyü önlemek için)
-  const isSyncingRef = useRef(false);
-  const hasSyncedRef = useRef(false); // Sadece bir kez senkronize et
-
-  // localStorage'daki guest cart'ı API'ye senkronize et (giriş yapıldığında)
-  const syncGuestCartToAPI = async () => {
-    // Eğer zaten senkronizasyon yapılıyorsa veya daha önce yapıldıysa, tekrar başlatma
-    if (isSyncingRef.current || hasSyncedRef.current) {
-      return;
-    }
-    
-    isSyncingRef.current = true;
-    try {
-      const guestCart = getGuestCart();
-      if (guestCart.length === 0) {
-        hasSyncedRef.current = true; // Boş sepet için de flag'i set et
-        return; // Sepet boşsa işlem yapma
-      }
-
-      // Her bir item'ı API'ye ekle
-      const syncPromises = guestCart.map(async (item) => {
-        try {
-          const res = await fetch("/api/cart", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              productId: item.productId,
-              colorId: item.colorId,
-              sizeId: item.sizeId,
-              quantity: item.quantity,
-            }),
-          });
-
-          if (res.ok) {
-            return { success: true, itemId: item.id };
-          } else {
-            console.error(`Failed to sync item ${item.id}:`, await res.json());
-            return { success: false, itemId: item.id };
-          }
-        } catch (error) {
-          console.error(`Error syncing item ${item.id}:`, error);
-          return { success: false, itemId: item.id };
-        }
-      });
-
-      const results = await Promise.all(syncPromises);
-      const successCount = results.filter((r) => r.success).length;
-
-      // Eğer tüm item'lar başarıyla senkronize edildiyse localStorage'ı temizle
-      if (successCount === guestCart.length) {
-        // localStorage'ı temizle
-        if (typeof window !== "undefined") {
-          localStorage.removeItem("guestCart");
-        }
-        // Sepet güncelleme event'ini tetikle
-        window.dispatchEvent(new Event("cartUpdated"));
-        // loadCart'ı çağıran yerde zaten yüklenecek, burada tekrar çağırmaya gerek yok
-      } else {
-        // Bazı item'lar başarısız oldu, sadece başarılı olanları localStorage'dan kaldır
-        const failedItemIds = results
-          .filter((r) => !r.success)
-          .map((r) => r.itemId);
-        
-        if (failedItemIds.length < guestCart.length) {
-          // Başarılı olanları localStorage'dan kaldır
-          const remainingItems = guestCart.filter(
-            (item) => !failedItemIds.includes(item.id)
-          );
-          if (typeof window !== "undefined") {
-            localStorage.setItem("guestCart", JSON.stringify(remainingItems));
-          }
-          // Sepet güncelleme event'ini tetikle
-          window.dispatchEvent(new Event("cartUpdated"));
-        }
-      }
-      
-      // Senkronizasyon tamamlandı, flag'i set et
-      hasSyncedRef.current = true;
-    } catch (error) {
-      console.error("Error syncing guest cart to API:", error);
-    } finally {
-      isSyncingRef.current = false;
-    }
-  };
-
-  const loadCart = async (skipPendingCheck = false) => {
-    try {
-      setIsLoading(true);
-      const res = await fetch("/api/cart");
-      if (res.ok) {
-        const data = await res.json();
-        const items = Array.isArray(data) ? data : [];
-        
-        // Eğer giriş yapılmışsa ve localStorage'da guest cart varsa senkronize et
-        // (Sadece bir kez, senkronizasyon yapılmıyorsa ve daha önce yapılmadıysa)
-        if (!isSyncingRef.current && !hasSyncedRef.current) {
-          const guestCart = getGuestCart();
-          if (guestCart.length > 0) {
-            // Arka planda senkronize et (await yok - beklemeden devam et)
-            syncGuestCartToAPI().catch((error) => {
-              console.error("Error syncing guest cart:", error);
-            });
-          } else {
-            // Guest cart boşsa da flag'i set et (tekrar kontrol etmeye gerek yok)
-            hasSyncedRef.current = true;
-          }
-        }
-        
-        // Eğer pending update varsa, onu koru
-        if (!skipPendingCheck && pendingUpdates.current.size > 0) {
-          setCartItems((prevItems) => {
-            return items.map((item: CartItem) => {
-              const pendingQty = pendingUpdates.current.get(item.id);
-              if (pendingQty !== undefined) {
-                return { ...item, quantity: pendingQty };
-              }
-              return item;
-            });
-          });
-        } else {
-          setCartItems(items);
-        }
-      } else if (res.status === 401) {
-        // Guest kullanıcı için localStorage'dan yükle (sessizce, hata gösterme)
-        try {
-          const items = getGuestCart();
-          // GuestCartItem'ı CartItem formatına dönüştür
-          const formattedItems: CartItem[] = items.map((item) => ({
-            ...item,
-            product: {
-              ...item.product,
-              slug: null,
-              primaryImage: item.product.image,
-              colors: [],
-              sizes: [],
-            },
-            color: item.color ? { ...item.color, images: [] } : null,
-            size: item.size || null,
-          }));
-          setCartItems(formattedItems);
-        } catch (e) {
-          setCartItems([]);
-        }
-      } else {
-        // Diğer hatalar için guest cart'ı dene
-        try {
-          const items = getGuestCart();
-          const formattedItems: CartItem[] = items.map((item) => ({
-            ...item,
-            product: {
-              ...item.product,
-              slug: null,
-              primaryImage: item.product.image,
-              colors: [],
-              sizes: [],
-            },
-            color: item.color ? { ...item.color, images: [] } : null,
-            size: item.size || null,
-          }));
-          setCartItems(formattedItems);
-        } catch (e) {
-          setCartItems([]);
-        }
-      }
-    } catch (error) {
-      // Network hatası veya diğer hatalar için guest cart'ı dene (sessizce)
-      try {
-        const items = getGuestCart();
-        const formattedItems: CartItem[] = items.map((item) => ({
-          ...item,
-          product: {
-            ...item.product,
-            slug: null,
-            primaryImage: item.product.image,
-            colors: [],
-            sizes: [],
-          },
-          color: item.color ? { ...item.color, images: [] } : null,
-          size: item.size || null,
-        }));
-        setCartItems(formattedItems);
-      } catch (e) {
-        setCartItems([]);
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Store'dan sync fonksiyonunu al
+  const syncGuestCartToAPI = useCartStore((state) => state.syncGuestCartToAPI);
 
   const handleCreateOrder = async () => {
     if (cartItems.length === 0) {
@@ -384,7 +168,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
       toast.success(`Siparişiniz oluşturuldu! Sipariş No: ${result.order.orderNumber}`);
       
       // Sepeti temizle ve kapat
-      setCartItems([]);
+      setItems([]);
       onClose();
       
       // Siparişlerim sayfasına yönlendir
@@ -518,21 +302,13 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
 
   // Önceki ürün ID'lerini takip et (sadece ürün eklendi/silindiğinde öneri yükle)
   const prevProductIdsRef = useRef<string>("");
-  const isInitialLoadRef = useRef<boolean>(true);
+  const hasLoadedRecommendedRef = useRef(false);
 
+  // Sepet açıldığında sadece company settings yükle (cart zaten store'da)
   useEffect(() => {
-    if (!isOpen) {
-      // Sepet kapandığında ref'leri sıfırla
-      prevProductIdsRef.current = "";
-      isInitialLoadRef.current = true;
-      hasSyncedRef.current = false; // Bir sonraki açılışta tekrar kontrol et
-      return;
+    if (isOpen) {
+      loadCompanySettings();
     }
-    
-    // Açılınca temel dataları çek
-    loadCart();
-    loadCompanySettings();
-    // Son görüntülenenler sadece tab'a basınca yüklenecek (performans için)
     
     // Cleanup: Timer'ları temizle
     return () => {
@@ -542,61 +318,49 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
     };
   }, [isOpen]);
 
-  // Tab değiştiğinde "Son Görüntülenenler" tab'ına basıldıysa dinamik yükle
+  // Tab değiştiğinde lazy load yap
   useEffect(() => {
-    if (isOpen && activeTab === "recent") {
+    if (!isOpen) return;
+    
+    if (activeTab === "recent") {
       loadRecentlyViewed();
+    } else if (activeTab === "recommended" && !hasLoadedRecommendedRef.current) {
+      // Recommended tab'ına ilk kez basıldığında yükle
+      const currentProductIds = cartItems.map(item => item.productId).sort().join(",");
+      if (currentProductIds !== prevProductIdsRef.current) {
+        prevProductIdsRef.current = currentProductIds;
+        loadRecommendedProducts(cartItems);
+        hasLoadedRecommendedRef.current = true;
+      }
     }
-  }, [isOpen, activeTab]);
+  }, [isOpen, activeTab, cartItems]);
 
   // Event listener: recentlyViewedUpdated event'i için
   useEffect(() => {
     if (!isOpen) return;
     
     const handleRecentlyViewedUpdated = () => {
-      // Eğer "Son Görüntülenenler" tab'ı aktifse, listeyi yeniden yükle
       if (activeTab === "recent") {
         loadRecentlyViewed();
       }
     };
 
     window.addEventListener("recentlyViewedUpdated", handleRecentlyViewedUpdated);
-    
-    return () => {
-      window.removeEventListener("recentlyViewedUpdated", handleRecentlyViewedUpdated);
-    };
+    return () => window.removeEventListener("recentlyViewedUpdated", handleRecentlyViewedUpdated);
   }, [isOpen, activeTab]);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    
-    // Sadece ürün ID'leri değiştiğinde öneri yükle (miktar değişikliklerinde değil)
-    const currentProductIds = cartItems.map(item => item.productId).sort().join(",");
-    
-    // İlk yüklemede veya ürün ID'leri değiştiğinde yükle
-    if (isInitialLoadRef.current || prevProductIdsRef.current !== currentProductIds) {
-      isInitialLoadRef.current = false;
-      prevProductIdsRef.current = currentProductIds;
-      loadRecommendedProducts(cartItems);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, cartItems]);
 
   const updateQuantity = (itemId: string, newQuantity: number) => {
     if (newQuantity < 1) return;
 
-    // UI'ı anında güncelle (optimistik güncelleme - functional update)
-    setCartItems((prevItems) => {
-      const item = prevItems.find((i) => i.id === itemId);
-      if (!item) return prevItems;
-      
-      // Yeni quantity'yi kaydet
-      pendingUpdates.current.set(itemId, newQuantity);
-      
-      return prevItems.map((item) =>
-        item.id === itemId ? { ...item, quantity: newQuantity } : item
-      );
-    });
+    // Store'u anında güncelle (optimistik güncelleme)
+    const currentItems = useCartStore.getState().items;
+    const updatedItems = currentItems.map((item) =>
+      item.id === itemId ? { ...item, quantity: newQuantity } : item
+    );
+    setItems(updatedItems);
+    
+    // Yeni quantity'yi kaydet
+    pendingUpdates.current.set(itemId, newQuantity);
 
     // Önceki timer'ı iptal et
     const existingTimer = updateTimers.current.get(itemId);
@@ -660,12 +424,19 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
           const errorMessage = errorData.error || "Miktar güncellenirken bir hata oluştu";
           toast.error(errorMessage);
           console.error("Error updating quantity:", errorMessage);
-          loadCart(true);
+          // Store'u yeniden yükle
+          useCartStore.getState().hydrate();
         } else {
-          // Başarılı - pending'i temizle
+          // Başarılı - pending'i temizle ve store'u güncelle
           pendingUpdates.current.delete(itemId);
-          // Arka planda sepeti güncelle (senkronizasyon için, pending check'i atla)
-          loadCart(true);
+          const result = await res.json();
+          // Store'u API'den gelen veriyle güncelle
+          const currentItems = useCartStore.getState().items;
+          const updatedItems = currentItems.map((item) =>
+            item.id === itemId ? { ...item, quantity: result.quantity } : item
+          );
+          setItems(updatedItems);
+          window.dispatchEvent(new Event("cartUpdated"));
         }
       } catch (error) {
         // 401 hatası = giriş yapmamış kullanıcı, localStorage'ı güncelle
@@ -677,6 +448,12 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
               guestCart[itemIndex].quantity = finalQuantity;
               saveGuestCart(guestCart);
               pendingUpdates.current.delete(itemId);
+              // Store'u güncelle
+              const currentItems = useCartStore.getState().items;
+              const updatedItems = currentItems.map((item) =>
+                item.id === itemId ? { ...item, quantity: finalQuantity } : item
+              );
+              setItems(updatedItems);
               window.dispatchEvent(new Event("cartUpdated"));
               return; // Başarılı, devam etme
             }
@@ -690,7 +467,8 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
         const errorMessage = error instanceof Error ? error.message : "Miktar güncellenirken bir hata oluştu";
         toast.error(errorMessage);
         console.error("Error updating quantity:", error);
-        loadCart();
+        // Store'u yeniden yükle
+        useCartStore.getState().hydrate();
       } finally {
         updateTimers.current.delete(itemId);
       }
@@ -700,88 +478,47 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
   };
 
   const removeItem = async (itemId: string) => {
+    // OPTİMİSTİK: Store'u anında güncelle
+    const currentItems = useCartStore.getState().items;
+    const updatedItems = currentItems.filter((item) => item.id !== itemId);
+    setItems(updatedItems);
+
     // Guest cart item'ı kontrolü - "guest-" ile başlıyorsa direkt localStorage'dan sil
     if (itemId.startsWith("guest-")) {
       try {
         removeFromGuestCart(itemId);
-        const items = getGuestCart();
-        // GuestCartItem'ı CartItem formatına dönüştür
-        const formattedItems: CartItem[] = items.map((item) => ({
-          ...item,
-          product: {
-            ...item.product,
-            slug: null,
-            primaryImage: item.product.image,
-            colors: [],
-            sizes: [],
-          },
-          color: item.color ? { ...item.color, images: [] } : null,
-          size: item.size || null,
-        }));
-        setCartItems(formattedItems);
         window.dispatchEvent(new Event("cartUpdated"));
       } catch (e) {
         console.error("Error removing from guest cart:", e);
+        // Hata durumunda store'u yeniden yükle
+        useCartStore.getState().hydrate();
       }
       return;
     }
 
-    // Giriş yapmış kullanıcı için API isteği
+    // Giriş yapmış kullanıcı için API isteği (arka planda)
     try {
       const res = await fetch(`/api/cart?itemId=${itemId}`, { method: "DELETE" });
       if (res.ok) {
-        loadCart();
+        // Store'u API'den güncelle
+        useCartStore.getState().hydrate();
         window.dispatchEvent(new Event("cartUpdated"));
       } else if (res.status === 401) {
-        // Guest kullanıcı için localStorage'dan sil
+        // Guest kullanıcı - localStorage zaten güncellendi
         try {
           removeFromGuestCart(itemId);
-          const items = getGuestCart();
-          // GuestCartItem'ı CartItem formatına dönüştür
-          const formattedItems: CartItem[] = items.map((item) => ({
-            ...item,
-            product: {
-              ...item.product,
-              slug: null,
-              primaryImage: item.product.image,
-              colors: [],
-              sizes: [],
-            },
-            color: item.color ? { ...item.color, images: [] } : null,
-            size: item.size || null,
-          }));
-          setCartItems(formattedItems);
           window.dispatchEvent(new Event("cartUpdated"));
         } catch (e) {
           // Sessizce devam et
         }
+      } else {
+        // Hata durumunda store'u yeniden yükle
+        useCartStore.getState().hydrate();
       }
     } catch (error) {
-      // 401 hatası zaten handle edildi, diğer hatalar için sessizce devam et
-      if (error instanceof Error && !error.message.includes('401')) {
-        // Guest cart'tan silmeyi dene
-        try {
-          removeFromGuestCart(itemId);
-          const items = getGuestCart();
-          // GuestCartItem'ı CartItem formatına dönüştür
-          const formattedItems: CartItem[] = items.map((item) => ({
-            ...item,
-            product: {
-              ...item.product,
-              slug: null,
-              primaryImage: item.product.image,
-              colors: [],
-              sizes: [],
-            },
-            color: item.color ? { ...item.color, images: [] } : null,
-            size: item.size || null,
-          }));
-          setCartItems(formattedItems);
-          window.dispatchEvent(new Event("cartUpdated"));
-        } catch (e) {
-          // Sessizce devam et
-        }
-      }
+      // Network hatası - store zaten güncellendi, sessizce devam et
+      console.error("Error removing item:", error);
+      useCartStore.getState().hydrate();
     }
   };
 
@@ -877,13 +614,20 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
 
           {/* Body */}
           <div className="flex-1 overflow-y-auto px-6 py-6">
-            {/* Loading */}
-            {isLoading ? (
-              <div className="space-y-4">
-                <div className="h-5 w-40 rounded bg-gray-100" />
-                <div className="h-28 rounded-2xl bg-gray-100" />
-                <div className="h-28 rounded-2xl bg-gray-100" />
-                <div className="h-28 rounded-2xl bg-gray-100" />
+            {/* Empty Cart Skeleton - Sadece hydrated değilse göster */}
+            {!hydrated && cartItems.length === 0 ? (
+              <div className="space-y-4 py-4">
+                {/* Skeleton items */}
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="flex gap-4">
+                    <div className="h-24 w-24 shrink-0 rounded-xl bg-gray-100" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 w-3/4 rounded bg-gray-100" />
+                      <div className="h-3 w-1/2 rounded bg-gray-100" />
+                      <div className="h-3 w-1/3 rounded bg-gray-100" />
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : (
               <>

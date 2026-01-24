@@ -3,7 +3,7 @@
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { Menu, Search, User, Heart, ShoppingBag } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Sheet,
   SheetContent,
@@ -12,83 +12,37 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import ShoppingCart from "./ShoppingCart";
-import { getGuestCartCount } from "@/lib/cart-utils";
+import { useCartStore } from "@/lib/stores/cartStore";
 
 export default function ModernNavbar() {
   const { data: session } = useSession();
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
-  const [cartCount, setCartCount] = useState(0);
+  
+  // Store'dan cart items ve hydrate fonksiyonunu al
+  const cartItems = useCartStore((state) => state.items);
+  const hydrate = useCartStore((state) => state.hydrate);
+  
+  // Cart count'u store'dan hesapla
+  const cartCount = useMemo(() => {
+    return cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  }, [cartItems]);
 
-  // Sepet sayısını yükle
+  // Mount'ta cart'ı hydrate et (sessizce, arka planda)
   useEffect(() => {
-    const loadCartCount = async () => {
-      if (!session?.user) {
-        // Giriş yapmamış kullanıcı için localStorage'dan yükle
-        const guestCount = getGuestCartCount();
-        setCartCount(guestCount);
-        return;
-      }
-      try {
-        const res = await fetch("/api/cart");
-        if (res.ok) {
-          const items = await res.json();
-          const total = items.reduce((sum: number, item: any) => sum + item.quantity, 0);
-          setCartCount(total);
-        }
-      } catch (error) {
-        console.error("Error loading cart count:", error);
-      }
-    };
+    hydrate();
+  }, [hydrate]);
 
-    loadCartCount();
-  }, [session]);
-
-  // Sepet güncellemelerini dinle
+  // Sepet güncellemelerini dinle - store zaten güncelleniyor, sadece re-render için
   useEffect(() => {
     const handleCartUpdate = () => {
-      if (session?.user) {
-        fetch("/api/cart")
-          .then((res) => res.json())
-          .then((items) => {
-            const total = items.reduce((sum: number, item: any) => sum + item.quantity, 0);
-            setCartCount(total);
-          })
-          .catch((error) => console.error("Error loading cart count:", error));
-      } else {
-        // Giriş yapmamış kullanıcı için localStorage'dan yükle
-        const guestCount = getGuestCartCount();
-        setCartCount(guestCount);
-      }
+      // Store zaten güncelleniyor, sadece re-render için hydrate çağır
+      hydrate();
     };
 
     window.addEventListener("cartUpdated", handleCartUpdate);
     return () => window.removeEventListener("cartUpdated", handleCartUpdate);
-  }, [session]);
-
-  // Sepet açıldığında sayıyı güncelle
-  useEffect(() => {
-    if (cartOpen) {
-      const loadCartCount = async () => {
-        if (!session?.user) {
-          const guestCount = getGuestCartCount();
-          setCartCount(guestCount);
-          return;
-        }
-        try {
-          const res = await fetch("/api/cart");
-          if (res.ok) {
-            const items = await res.json();
-            const total = items.reduce((sum: number, item: any) => sum + item.quantity, 0);
-            setCartCount(total);
-          }
-        } catch (error) {
-          console.error("Error loading cart count:", error);
-        }
-      };
-      loadCartCount();
-    }
-  }, [cartOpen, session]);
+  }, [hydrate]);
 
   return (
     <nav className="w-full bg-white/95 backdrop-blur-sm border-b border-gray-100">

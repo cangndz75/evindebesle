@@ -9,6 +9,7 @@ import ProductReviews from "./ProductReviews";
 import SizeGuideModal from "./SizeGuideModal";
 import { addToGuestCart } from "@/lib/cart-utils";
 import { addToRecentlyViewed, getRecentlyViewed } from "@/lib/recently-viewed";
+import { useCartStore } from "@/lib/stores/cartStore";
 
 interface ProductDetailPageProps {
   product?: {
@@ -194,7 +195,8 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
               result.size || (selectedSizeName ? { id: sizeId || "", name: selectedSizeName } : null)
             );
           }
-          // Sepet sayısını tekrar güncelle (API'den gelen gerçek veriyle)
+          // Store'u güncelle (API'den gelen gerçek veriyle)
+          useCartStore.getState().hydrate();
           window.dispatchEvent(new Event("cartUpdated"));
         } else {
           // Hata durumunda kullanıcıya bildir (ama UI zaten güncellendi)

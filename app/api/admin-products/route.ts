@@ -202,39 +202,6 @@ export async function POST(req: Request) {
         sizeType: sizeType || undefined,
         fabricType: fabricType || undefined,
         isActive: isActive !== undefined ? isActive : true,
-      },
-    });
-
-    // Renkleri ekle (product.id artık mevcut)
-    if (colors && colors.length > 0) {
-      for (const c of colors) {
-        // Unique colorCode oluştur (productId + colorName + random)
-        let colorCode = `${product.id.substring(0, 8)}-${c.name.toLowerCase().replace(/\s+/g, '-')}-${generateVariantCode().substring(0, 6)}`;
-        
-        // Unique kontrolü
-        let existing = await prisma.productColor.findFirst({
-          where: { colorCode },
-        });
-        let counter = 1;
-        while (existing) {
-          colorCode = `${product.id.substring(0, 8)}-${c.name.toLowerCase().replace(/\s+/g, '-')}-${generateVariantCode().substring(0, 6)}-${counter}`;
-          existing = await prisma.productColor.findFirst({
-            where: { colorCode },
-          });
-          counter++;
-        }
-
-        await prisma.productColor.create({
-          data: {
-            productId: product.id,
-            colorCode,
-            name: c.name,
-            hexCode: c.hexCode || undefined,
-            images: Array.isArray(c.images) ? JSON.stringify(c.images) : (c.images || null),
-          },
-        });
-      }
-    }
         // Bedenler - eğer sizes yoksa ama sizeOptions varsa, sizeOptions'tan ProductSize oluştur
         sizes: sizes && sizes.length > 0
           ? {
@@ -269,6 +236,37 @@ export async function POST(req: Request) {
           : undefined,
       },
     });
+
+    // Renkleri ekle (product.id artık mevcut)
+    if (colors && colors.length > 0) {
+      for (const c of colors) {
+        // Unique colorCode oluştur (productId + colorName + random)
+        let colorCode = `${product.id.substring(0, 8)}-${c.name.toLowerCase().replace(/\s+/g, '-')}-${generateVariantCode().substring(0, 6)}`;
+        
+        // Unique kontrolü
+        let existing = await prisma.productColor.findFirst({
+          where: { colorCode },
+        });
+        let counter = 1;
+        while (existing) {
+          colorCode = `${product.id.substring(0, 8)}-${c.name.toLowerCase().replace(/\s+/g, '-')}-${generateVariantCode().substring(0, 6)}-${counter}`;
+          existing = await prisma.productColor.findFirst({
+            where: { colorCode },
+          });
+          counter++;
+        }
+
+        await prisma.productColor.create({
+          data: {
+            productId: product.id,
+            colorCode,
+            name: c.name,
+            hexCode: c.hexCode || undefined,
+            images: Array.isArray(c.images) ? JSON.stringify(c.images) : (c.images || null),
+          },
+        });
+      }
+    }
 
     // Her renk için her beden için variant oluştur
     if (colors && colors.length > 0) {

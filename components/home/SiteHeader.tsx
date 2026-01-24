@@ -17,7 +17,7 @@ import ShoppingCart from "@/app/(public)/_components/ShoppingCart";
 import SearchModal from "@/components/home/SearchModal";
 import CartPreview from "@/components/home/CartPreview";
 import AnnouncementBanner from "@/components/home/AnnouncementBanner";
-import { getGuestCartCount } from "@/lib/cart-utils";
+import { useHeaderStore } from "@/lib/stores/headerStore";
 
 type MenuKey = "men" | "women" | "kids" | "bundles" | "lastcall";
 
@@ -49,11 +49,23 @@ export default function SiteHeader() {
   const [openMenu, setOpenMenu] = useState<MenuKey | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [searchModalOpen, setSearchModalOpen] = useState(false);
-  const [cartCount, setCartCount] = useState(0);
-  const [favoriteCount, setFavoriteCount] = useState(0);
-  const [freeShippingThreshold, setFreeShippingThreshold] = useState<number>(99);
   const closeTimer = useRef<number | null>(null);
   const cartIconRef = useRef<HTMLButtonElement | null>(null);
+
+  // Header store'dan state'leri al
+  const {
+    cartCount,
+    favoriteCount,
+    freeShippingThreshold,
+    hydrate,
+    refreshCartCount,
+    refreshFavoriteCount,
+  } = useHeaderStore();
+
+  // Store'u hydrate et (sadece bir kez)
+  useEffect(() => {
+    hydrate(session);
+  }, [session, hydrate]);
 
   // Cart açma event'ini dinle
   useEffect(() => {
@@ -64,87 +76,19 @@ export default function SiteHeader() {
     return () => window.removeEventListener('openCart', handleOpenCart);
   }, []);
 
-
-  // Sepet sayısını yükle
-  useEffect(() => {
-    const loadCartCount = async () => {
-      if (!session?.user) {
-        // Giriş yapmamış kullanıcı için localStorage'dan yükle
-        const guestCount = getGuestCartCount();
-        setCartCount(guestCount);
-        return;
-      }
-      try {
-        const res = await fetch("/api/cart");
-        if (res.ok) {
-          const items = await res.json();
-          const total = items.reduce((sum: number, item: any) => sum + item.quantity, 0);
-          setCartCount(total);
-        }
-      } catch (error) {
-        console.error("Error loading cart count:", error);
-      }
-    };
-
-    loadCartCount();
-    // Event listener'lar zaten var, interval'a gerek yok
-    // Sadece sayfa yüklendiğinde bir kez yükle
-  }, [session]);
-
-  // Favori sayısını yükle
-  useEffect(() => {
-    const loadFavoriteCount = async () => {
-      if (!session?.user) {
-        setFavoriteCount(0);
-        return;
-      }
-      try {
-        const res = await fetch("/api/favorites");
-        if (res.ok) {
-          const favorites = await res.json();
-          setFavoriteCount(favorites.length || 0);
-        }
-      } catch (error) {
-        console.error("Error loading favorite count:", error);
-      }
-    };
-
-    loadFavoriteCount();
-    // Event listener'lar zaten var, interval'a gerek yok
-    // Sadece sayfa yüklendiğinde bir kez yükle
-  }, [session]);
-
   // Favori güncellemelerini dinle
   useEffect(() => {
     const handleFavoriteUpdate = () => {
-      if (session?.user) {
-        fetch("/api/favorites")
-          .then((res) => res.json())
-          .then((favorites) => setFavoriteCount(favorites.length || 0))
-          .catch((error) => console.error("Error loading favorite count:", error));
-      }
+      refreshFavoriteCount(session);
     };
-
     window.addEventListener("favoriteUpdated", handleFavoriteUpdate);
     return () => window.removeEventListener("favoriteUpdated", handleFavoriteUpdate);
-  }, [session]);
+  }, [session, refreshFavoriteCount]);
 
   // Sepet güncellemelerini dinle
   useEffect(() => {
     const handleCartUpdate = () => {
-      if (session?.user) {
-        fetch("/api/cart")
-          .then((res) => res.json())
-          .then((items) => {
-            const total = items.reduce((sum: number, item: any) => sum + item.quantity, 0);
-            setCartCount(total);
-          })
-          .catch((error) => console.error("Error loading cart count:", error));
-      } else {
-        // Giriş yapmamış kullanıcı için localStorage'dan yükle
-        const guestCount = getGuestCartCount();
-        setCartCount(guestCount);
-      }
+      refreshCartCount(session);
     };
 
     const handleOpenCart = () => {
@@ -157,23 +101,7 @@ export default function SiteHeader() {
       window.removeEventListener("cartUpdated", handleCartUpdate);
       window.removeEventListener("openCart", handleOpenCart);
     };
-  }, [session]);
-
-  // Ücretsiz kargo eşiğini yükle
-  useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const res = await fetch("/api/company-settings");
-        if (res.ok) {
-          const data = await res.json();
-          setFreeShippingThreshold(data.freeShippingThreshold || 99);
-        }
-      } catch (error) {
-        console.error("Error fetching company settings:", error);
-      }
-    };
-    fetchSettings();
-  }, []);
+  }, [session, refreshCartCount]);
 
   const mega = useMemo<Record<MenuKey, { left: MegaGroup[]; rightPromo: Promo }>>(
     () => ({

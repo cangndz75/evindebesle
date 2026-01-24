@@ -8,6 +8,22 @@ import { toast } from "sonner";
 import { addToGuestCart } from "@/lib/cart-utils";
 import type { Product, ColorOption } from "@/lib/homeData";
 
+// Base64 görselleri tespit et ve filtrele (performans için)
+const isBase64Image = (url: string | undefined | null): boolean => {
+  if (!url) return false;
+  return url.startsWith("data:image/") || url.length > 10000; // Base64 görseller genellikle çok uzun
+};
+
+// Base64 görselleri filtrele - sadece normal URL'leri kullan
+const filterBase64Images = (image: string | undefined | null): string | undefined => {
+  if (!image) return undefined;
+  if (isBase64Image(image)) {
+    console.warn("Base64 görsel tespit edildi ve filtrelendi:", image.substring(0, 50) + "...");
+    return undefined; // Base64 görselleri kullanma
+  }
+  return image;
+};
+
 interface ProductShowcaseProps {
   products: Product[];
 }
@@ -362,7 +378,9 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                       ? selectedColor.colorImage
                       : null;
 
-                const currentImage = activeColorImage || product.image;
+                // Base64 görselleri filtrele
+                const baseImage = activeColorImage || product.image;
+                const currentImage = filterBase64Images(baseImage) || baseImage || "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop";
                 const normalizedColors = normalizeColors(product.colors);
 
                 return (
@@ -382,9 +400,9 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                         quality={90}
                       />
 
-                      {!isColorActive && product.hoverImage && (
+                      {!isColorActive && filterBase64Images(product.hoverImage) && (
                         <Image
-                          src={product.hoverImage}
+                          src={filterBase64Images(product.hoverImage)!}
                           alt={`${product.title} hover`}
                           fill
                           className="object-cover object-center opacity-0 transition-opacity duration-700 group-hover:opacity-100 absolute inset-0"
@@ -482,7 +500,9 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                     ? selectedColor.colorImage
                     : null;
 
-              const currentImage = activeColorImage || product.image;
+              // Base64 görselleri filtrele
+              const baseImage = activeColorImage || product.image;
+              const currentImage = filterBase64Images(baseImage) || baseImage || "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop";
               const normalizedColors = normalizeColors(product.colors);
 
               return (
@@ -502,9 +522,9 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                       quality={90}
                     />
 
-                    {!isColorActive && product.hoverImage && (
-                      <Image
-                        src={product.hoverImage}
+                    {!isColorActive && filterBase64Images(product.hoverImage) && (
+                        <Image
+                        src={filterBase64Images(product.hoverImage)!}
                         alt={`${product.title} hover`}
                         fill
                         className="object-cover object-center opacity-0 transition-opacity duration-700 group-hover:opacity-100 absolute inset-0"

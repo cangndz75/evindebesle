@@ -8,7 +8,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { getGuestCart, saveGuestCart, removeFromGuestCart } from "@/lib/cart-utils";
+import { useSession } from "next-auth/react";
 import { getRecentlyViewed } from "@/lib/recently-viewed";
 import { useCartStore, type CartItem } from "@/lib/stores/cartStore";
 
@@ -30,8 +30,10 @@ type ShoppingCartProps = {
 };
 
 function formatPriceTRY(value: number) {
-  // Basit, güvenli format. İstersen Intl ile de yaparsın.
-  return `${value.toFixed(2)} ₺`;
+  return new Intl.NumberFormat("tr-TR", {
+    style: "currency",
+    currency: "TRY",
+  }).format(value);
 }
 
 function SectionTitle({
@@ -90,10 +92,15 @@ function ProductTile({
 }
 
 export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
-  // Store'dan cart items ve hydrated state'i al
+  const { data: session } = useSession();
+  
+  // Store'dan cart items, state ve actions al
   const cartItems = useCartStore((state) => state.items);
   const hydrated = useCartStore((state) => state.hydrated);
-  const setItems = useCartStore((state) => state.setItems);
+  const isReady = useCartStore((state) => state.isReady);
+  const hydrate = useCartStore((state) => state.hydrate);
+  const updateQuantity = useCartStore((state) => state.updateQuantity);
+  const removeItem = useCartStore((state) => state.removeItem);
   
   const [freeShippingThreshold, setFreeShippingThreshold] = useState(99);
   const [recommendedProducts, setRecommendedProducts] = useState<RecommendedProduct[]>([]);
@@ -102,14 +109,15 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
   const router = useRouter();
 
-  const sliderRef = useRef<HTMLDivElement | null>(null);
-  
-  // Debounce timer'ları ve pending işlemleri takip et
-  const updateTimers = useRef<Map<string, NodeJS.Timeout>>(new Map());
-  const pendingUpdates = useRef<Map<string, number>>(new Map());
+  const emptySliderRef = useRef<HTMLDivElement | null>(null);
+  const filledRecommendedRef = useRef<HTMLDivElement | null>(null);
 
-  // Store'dan sync fonksiyonunu al
-  const syncGuestCartToAPI = useCartStore((state) => state.syncGuestCartToAPI);
+  const scrollSlider = (ref: React.RefObject<HTMLDivElement | null>, dir: "left" | "right") => {
+    const el = ref.current;
+    if (!el) return;
+    const amount = 320;
+    el.scrollBy({ left: dir === "left" ? -amount : amount, behavior: "smooth" });
+  };
 
   const handleCreateOrder = async () => {
     if (cartItems.length === 0) {
@@ -168,7 +176,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
       toast.success(`Siparişiniz oluşturuldu! Sipariş No: ${result.order.orderNumber}`);
       
       // Sepeti temizle ve kapat
-      setItems([]);
+      useCartStore.getState().setItems([]);
       onClose();
       
       // Siparişlerim sayfasına yönlendir
@@ -304,19 +312,20 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
   const prevProductIdsRef = useRef<string>("");
   const hasLoadedRecommendedRef = useRef(false);
 
-  // Sepet açıldığında sadece company settings yükle (cart zaten store'da)
+  // Sepet açıldığında cart'ı hydrate et ve company settings yükle
   useEffect(() => {
     if (isOpen) {
+      // Cart henüz hydrate edilmemişse hydrate et
+      if (!hydrated) {
+        hydrate();
+      }
       loadCompanySettings();
+    } else {
+      // Drawer kapandığında resetle
+      hasLoadedRecommendedRef.current = false;
+      prevProductIdsRef.current = "";
     }
-    
-    // Cleanup: Timer'ları temizle
-    return () => {
-      updateTimers.current.forEach((timer) => clearTimeout(timer));
-      updateTimers.current.clear();
-      pendingUpdates.current.clear();
-    };
-  }, [isOpen]);
+  }, [isOpen, hydrated, hydrate]);
 
   // Tab değiştiğinde lazy load yap
   useEffect(() => {
@@ -349,178 +358,6 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
     return () => window.removeEventListener("recentlyViewedUpdated", handleRecentlyViewedUpdated);
   }, [isOpen, activeTab]);
 
-  const updateQuantity = (itemId: string, newQuantity: number) => {
-    if (newQuantity < 1) return;
-
-    // Store'u anında güncelle (optimistik güncelleme)
-    const currentItems = useCartStore.getState().items;
-    const updatedItems = currentItems.map((item) =>
-      item.id === itemId ? { ...item, quantity: newQuantity } : item
-    );
-    setItems(updatedItems);
-    
-    // Yeni quantity'yi kaydet
-    pendingUpdates.current.set(itemId, newQuantity);
-
-    // Önceki timer'ı iptal et
-    const existingTimer = updateTimers.current.get(itemId);
-    if (existingTimer) {
-      clearTimeout(existingTimer);
-    }
-
-    // Yeni timer başlat (300ms debounce)
-    const timer = setTimeout(async () => {
-      const finalQuantity = pendingUpdates.current.get(itemId);
-      if (finalQuantity === undefined) return;
-
-      // Guest cart item'ı kontrolü - "guest-" ile başlıyorsa direkt localStorage'a yaz
-      if (itemId.startsWith("guest-")) {
-        try {
-          const guestCart = getGuestCart();
-          const itemIndex = guestCart.findIndex((item) => item.id === itemId);
-          if (itemIndex >= 0) {
-            guestCart[itemIndex].quantity = finalQuantity;
-            saveGuestCart(guestCart);
-            pendingUpdates.current.delete(itemId);
-            window.dispatchEvent(new Event("cartUpdated"));
-            return; // Başarılı, API isteği yapma
-          }
-        } catch (e) {
-          console.error("Error updating guest cart:", e);
-          pendingUpdates.current.delete(itemId);
-        }
-        return;
-      }
-
-      // Giriş yapmış kullanıcı için API isteği
-      try {
-        const res = await fetch(`/api/cart/${itemId}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ quantity: finalQuantity }),
-        });
-
-        if (!res.ok) {
-          // 401 hatası = giriş yapmamış kullanıcı, localStorage'ı güncelle
-          if (res.status === 401) {
-            try {
-              const guestCart = getGuestCart();
-              const itemIndex = guestCart.findIndex((item) => item.id === itemId);
-              if (itemIndex >= 0) {
-                guestCart[itemIndex].quantity = finalQuantity;
-                saveGuestCart(guestCart);
-                pendingUpdates.current.delete(itemId);
-                window.dispatchEvent(new Event("cartUpdated"));
-                return; // Başarılı, devam etme
-              }
-            } catch (e) {
-              console.error("Error updating guest cart:", e);
-            }
-          }
-          
-          // Diğer hatalar için
-          pendingUpdates.current.delete(itemId);
-          const errorData = await res.json().catch(() => ({}));
-          const errorMessage = errorData.error || "Miktar güncellenirken bir hata oluştu";
-          toast.error(errorMessage);
-          console.error("Error updating quantity:", errorMessage);
-          // Store'u yeniden yükle
-          useCartStore.getState().hydrate();
-        } else {
-          // Başarılı - pending'i temizle ve store'u güncelle
-          pendingUpdates.current.delete(itemId);
-          const result = await res.json();
-          // Store'u API'den gelen veriyle güncelle
-          const currentItems = useCartStore.getState().items;
-          const updatedItems = currentItems.map((item) =>
-            item.id === itemId ? { ...item, quantity: result.quantity } : item
-          );
-          setItems(updatedItems);
-          window.dispatchEvent(new Event("cartUpdated"));
-        }
-      } catch (error) {
-        // 401 hatası = giriş yapmamış kullanıcı, localStorage'ı güncelle
-        if (error instanceof Error && error.message.includes('401')) {
-          try {
-            const guestCart = getGuestCart();
-            const itemIndex = guestCart.findIndex((item) => item.id === itemId);
-            if (itemIndex >= 0) {
-              guestCart[itemIndex].quantity = finalQuantity;
-              saveGuestCart(guestCart);
-              pendingUpdates.current.delete(itemId);
-              // Store'u güncelle
-              const currentItems = useCartStore.getState().items;
-              const updatedItems = currentItems.map((item) =>
-                item.id === itemId ? { ...item, quantity: finalQuantity } : item
-              );
-              setItems(updatedItems);
-              window.dispatchEvent(new Event("cartUpdated"));
-              return; // Başarılı, devam etme
-            }
-          } catch (e) {
-            console.error("Error updating guest cart:", e);
-          }
-        }
-        
-        // Diğer hatalar için
-        pendingUpdates.current.delete(itemId);
-        const errorMessage = error instanceof Error ? error.message : "Miktar güncellenirken bir hata oluştu";
-        toast.error(errorMessage);
-        console.error("Error updating quantity:", error);
-        // Store'u yeniden yükle
-        useCartStore.getState().hydrate();
-      } finally {
-        updateTimers.current.delete(itemId);
-      }
-    }, 300);
-
-    updateTimers.current.set(itemId, timer);
-  };
-
-  const removeItem = async (itemId: string) => {
-    // OPTİMİSTİK: Store'u anında güncelle
-    const currentItems = useCartStore.getState().items;
-    const updatedItems = currentItems.filter((item) => item.id !== itemId);
-    setItems(updatedItems);
-
-    // Guest cart item'ı kontrolü - "guest-" ile başlıyorsa direkt localStorage'dan sil
-    if (itemId.startsWith("guest-")) {
-      try {
-        removeFromGuestCart(itemId);
-        window.dispatchEvent(new Event("cartUpdated"));
-      } catch (e) {
-        console.error("Error removing from guest cart:", e);
-        // Hata durumunda store'u yeniden yükle
-        useCartStore.getState().hydrate();
-      }
-      return;
-    }
-
-    // Giriş yapmış kullanıcı için API isteği (arka planda)
-    try {
-      const res = await fetch(`/api/cart?itemId=${itemId}`, { method: "DELETE" });
-      if (res.ok) {
-        // Store'u API'den güncelle
-        useCartStore.getState().hydrate();
-        window.dispatchEvent(new Event("cartUpdated"));
-      } else if (res.status === 401) {
-        // Guest kullanıcı - localStorage zaten güncellendi
-        try {
-          removeFromGuestCart(itemId);
-          window.dispatchEvent(new Event("cartUpdated"));
-        } catch (e) {
-          // Sessizce devam et
-        }
-      } else {
-        // Hata durumunda store'u yeniden yükle
-        useCartStore.getState().hydrate();
-      }
-    } catch (error) {
-      // Network hatası - store zaten güncellendi, sessizce devam et
-      console.error("Error removing item:", error);
-      useCartStore.getState().hydrate();
-    }
-  };
 
   const totalPrice = useMemo(() => {
     return cartItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
@@ -582,18 +419,17 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
     return `/product/${item.product.id}`;
   };
 
-  const scrollSlider = (dir: "left" | "right") => {
-    const el = sliderRef.current;
-    if (!el) return;
-    const amount = 320;
-    el.scrollBy({ left: dir === "left" ? -amount : amount, behavior: "smooth" });
-  };
 
   const activeList = activeTab === "recommended" ? recommendedProducts : recentlyViewedProducts;
   const itemCount = cartItems.reduce((acc, it) => acc + (it.quantity || 0), 0);
 
   return (
-    <Sheet open={isOpen} onOpenChange={onClose}>
+    <Sheet 
+      open={isOpen} 
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+    >
       {/* Daha "elit" görünüm: hafif geniş, padding ve tipografi */}
       <SheetContent side="right" className="w-full sm:max-w-lg p-0 gap-0 z-[100]">
         <div className="flex h-full flex-col">
@@ -614,8 +450,8 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
 
           {/* Body */}
           <div className="flex-1 overflow-y-auto px-6 py-6">
-            {/* Empty Cart Skeleton - Sadece hydrated değilse göster */}
-            {!hydrated && cartItems.length === 0 ? (
+            {/* Empty Cart Skeleton - Sadece isReady değilse göster */}
+            {!isReady && cartItems.length === 0 ? (
               <div className="space-y-4 py-4">
                 {/* Skeleton items */}
                 {[1, 2, 3].map((i) => (
@@ -721,7 +557,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                         <div className="hidden sm:flex items-center gap-2">
                           <button
                             type="button"
-                            onClick={() => scrollSlider("left")}
+                            onClick={() => scrollSlider(emptySliderRef, "left")}
                             className="h-9 w-9 rounded-full border border-black/10 hover:border-black/20 hover:bg-black/5 grid place-items-center"
                             aria-label="Sola kaydır"
                           >
@@ -729,7 +565,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                           </button>
                           <button
                             type="button"
-                            onClick={() => scrollSlider("right")}
+                            onClick={() => scrollSlider(emptySliderRef, "right")}
                             className="h-9 w-9 rounded-full border border-black/10 hover:border-black/20 hover:bg-black/5 grid place-items-center"
                             aria-label="Sağa kaydır"
                           >
@@ -740,7 +576,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
 
                       <div className="relative mt-6">
                         <div
-                          ref={sliderRef}
+                          ref={emptySliderRef}
                           className="flex gap-4 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                         >
                           {activeList.slice(0, 10).map((p) => (
@@ -856,7 +692,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                           <div className="hidden sm:flex items-center gap-2">
                             <button
                               type="button"
-                              onClick={() => scrollSlider("left")}
+                              onClick={() => scrollSlider(filledRecommendedRef, "left")}
                               className="h-9 w-9 rounded-full border border-black/10 hover:border-black/20 hover:bg-black/5 grid place-items-center"
                               aria-label="Sola kaydır"
                             >
@@ -864,7 +700,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                             </button>
                             <button
                               type="button"
-                              onClick={() => scrollSlider("right")}
+                              onClick={() => scrollSlider(filledRecommendedRef, "right")}
                               className="h-9 w-9 rounded-full border border-black/10 hover:border-black/20 hover:bg-black/5 grid place-items-center"
                               aria-label="Sağa kaydır"
                             >
@@ -875,7 +711,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
 
                         <div className="relative mt-5">
                           <div
-                            ref={sliderRef}
+                            ref={filledRecommendedRef}
                             className="flex gap-4 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                           >
                             {recommendedProducts.slice(0, 12).map((p) => (

@@ -5,8 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { getGuestCartCount } from "@/lib/cart-utils";
 import { useSession } from "next-auth/react";
+import { useHeaderStore } from "@/lib/stores/headerStore";
 
 type CartPreviewProps = {
   cartIconRef: React.RefObject<HTMLButtonElement | null>;
@@ -20,41 +20,23 @@ export default function CartPreview({ cartIconRef, headerBottom }: CartPreviewPr
     color: string;
   } | null>(null);
   const [position, setPosition] = useState<{ top: number; right: number }>({ top: 80, right: 20 });
-  const [cartCount, setCartCount] = useState(0);
   const popupRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const router = useRouter();
   const { data: session } = useSession();
+  
+  // Header store'dan cart count'u al
+  const { cartCount, refreshCartCount } = useHeaderStore();
 
-  // Sepet sayısını yükle
+  // Sepet güncellemelerini dinle
   useEffect(() => {
-    const loadCartCount = async () => {
-      if (!session?.user) {
-        const guestCount = getGuestCartCount();
-        setCartCount(guestCount);
-        return;
-      }
-      try {
-        const res = await fetch("/api/cart");
-        if (res.ok) {
-          const items = await res.json();
-          const total = items.reduce((sum: number, item: any) => sum + item.quantity, 0);
-          setCartCount(total);
-        }
-      } catch (error) {
-        console.error("Error loading cart count:", error);
-      }
-    };
-
-    loadCartCount();
-    
     const handleCartUpdate = () => {
-      loadCartCount();
+      refreshCartCount(session);
     };
 
     window.addEventListener("cartUpdated", handleCartUpdate);
     return () => window.removeEventListener("cartUpdated", handleCartUpdate);
-  }, [session]);
+  }, [session, refreshCartCount]);
 
   useEffect(() => {
     const handleItemAdded = (e: CustomEvent) => {
@@ -68,17 +50,7 @@ export default function CartPreview({ cartIconRef, headerBottom }: CartPreviewPr
       });
 
       // Sepet sayısını güncelle
-      if (!session?.user) {
-        setCartCount(getGuestCartCount());
-      } else {
-        fetch("/api/cart")
-          .then((res) => res.json())
-          .then((items) => {
-            const total = items.reduce((sum: number, item: any) => sum + item.quantity, 0);
-            setCartCount(total);
-          })
-          .catch(() => {});
-      }
+      refreshCartCount(session);
 
       // Önceki timer'ı temizle
       if (timerRef.current) {

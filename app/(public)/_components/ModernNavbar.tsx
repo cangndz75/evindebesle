@@ -3,7 +3,7 @@
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { Menu, Search, User, Heart, ShoppingBag } from "lucide-react";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import {
   Sheet,
   SheetContent,
@@ -19,30 +19,37 @@ export default function ModernNavbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   
-  // Store'dan cart items ve hydrate fonksiyonunu al
+  // Store'dan cart items, hydrate ve sync fonksiyonlarını al
   const cartItems = useCartStore((state) => state.items);
+  const hydrated = useCartStore((state) => state.hydrated);
   const hydrate = useCartStore((state) => state.hydrate);
+  const syncGuestCartToAPI = useCartStore((state) => state.syncGuestCartToAPI);
   
   // Cart count'u store'dan hesapla
   const cartCount = useMemo(() => {
     return cartItems.reduce((sum, item) => sum + item.quantity, 0);
   }, [cartItems]);
 
-  // Mount'ta cart'ı hydrate et (sessizce, arka planda)
+  // App-level hydrate: Mount'ta bir kez çalış (React Strict Mode guard)
+  const didHydrate = useRef(false);
   useEffect(() => {
-    hydrate();
-  }, [hydrate]);
-
-  // Sepet güncellemelerini dinle - store zaten güncelleniyor, sadece re-render için
-  useEffect(() => {
-    const handleCartUpdate = () => {
-      // Store zaten güncelleniyor, sadece re-render için hydrate çağır
+    if (!hydrated && !didHydrate.current) {
+      didHydrate.current = true;
       hydrate();
-    };
+    }
+  }, [hydrated, hydrate]);
 
-    window.addEventListener("cartUpdated", handleCartUpdate);
-    return () => window.removeEventListener("cartUpdated", handleCartUpdate);
-  }, [hydrate]);
+  // Login olduğunda guest cart'ı senkronize et
+  useEffect(() => {
+    if (session?.user && hydrated) {
+      // Kullanıcı giriş yaptı ve cart hydrate edildi, guest cart'ı senkronize et
+      syncGuestCartToAPI().catch(() => {
+        // Sessizce devam et
+      });
+    }
+  }, [session?.user, hydrated, syncGuestCartToAPI]);
+
+  // Zustand zaten reactive - event listener'a gerek yok
 
   return (
     <nav className="w-full bg-white/95 backdrop-blur-sm border-b border-gray-100">

@@ -7,7 +7,6 @@ import { ChevronRight, Heart, ShoppingBag, Info, Plus, Minus, ChevronLeft } from
 import { toast } from "sonner";
 import ProductReviews from "./ProductReviews";
 import SizeGuideModal from "./SizeGuideModal";
-import { addToGuestCart } from "@/lib/cart-utils";
 import { addToRecentlyViewed, getRecentlyViewed } from "@/lib/recently-viewed";
 import { useCartStore } from "@/lib/stores/cartStore";
 
@@ -79,7 +78,6 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
   const [isSticky, setIsSticky] = useState(false);
   
   // Kadın ürünü kontrolü - Tüm ürünler aynı görünümde
-  const isWomenProduct = false;
   
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     details: true,
@@ -94,8 +92,8 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
   const imageContainerRef = useRef<HTMLDivElement>(null);
   const [thumbnailScrollIndex, setThumbnailScrollIndex] = useState(0);
 
-  // Optimistik sepete ekleme - UI'ı hemen güncelle, API arka planda çalışsın
-  const addToCartOptimistic = async () => {
+  // Sepete ekleme - tek fonksiyon, tüm kullanım yerleri için
+  const addToCart = async (options?: { redirectToPayment?: boolean }) => {
     if (!selectedSize) {
       toast.error("Lütfen bir beden seçin");
       return;
@@ -128,87 +126,31 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
     const selectedColorName = selectedColorObj?.name || "";
     const selectedSizeName = typeof selectedSizeObj === 'object' && selectedSizeObj ? selectedSizeObj.name : selectedSize;
 
-    // OPTİMİSTİK: UI'ı hemen güncelle (API beklemeden)
-    // 1. Sepet sayısını güncelle
-    window.dispatchEvent(new Event("cartUpdated"));
-    
-    // 2. Pop-up göster
-    window.dispatchEvent(
-      new CustomEvent("itemAddedToCart", {
-        detail: {
-          product: {
-            id: product.id,
-            name: product.name,
-            image: firstImage,
-            price: product.price || 0,
-          },
-          size: selectedSizeName || "",
-          color: selectedColorName || "",
-        },
-      })
-    );
-
-    // 3. Guest kullanıcı için localStorage'a hemen ekle
-    addToGuestCart(
-      product.id,
-      colorId,
-      sizeId,
-      quantity,
-      {
-        id: product.id,
-        name: product.name,
-        image: firstImage,
-        price: product.price || 0,
-      },
-      selectedColorName ? { id: colorId || "", name: selectedColorName } : null,
-      selectedSizeName ? { id: sizeId || "", name: selectedSizeName } : null
-    );
-
-    // API isteğini arka planda başlat (await yok - beklemeden devam et)
-    fetch("/api/cart", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    // Store action çağır - tüm business logic orada
+    try {
+      await useCartStore.getState().addItemOptimistic({
         productId: product.id,
         colorId,
         sizeId,
         quantity,
-      }),
-    })
-      .then(async (res) => {
-        if (res.ok) {
-          const result = await res.json();
-          // Giriş yapmış kullanıcı için API'den gelen verilerle localStorage'ı güncelle
-          if (!result.userId && result.product) {
-            addToGuestCart(
-              product.id,
-              colorId,
-              sizeId,
-              quantity,
-              {
-                id: result.product.id,
-                name: result.product.name || product.name,
-                image: result.product.image || firstImage,
-                price: result.product.price || product.price || 0,
-              },
-              result.color || (selectedColorName ? { id: colorId || "", name: selectedColorName } : null),
-              result.size || (selectedSizeName ? { id: sizeId || "", name: selectedSizeName } : null)
-            );
-          }
-          // Store'u güncelle (API'den gelen gerçek veriyle)
-          useCartStore.getState().hydrate();
-          window.dispatchEvent(new Event("cartUpdated"));
-        } else {
-          // Hata durumunda kullanıcıya bildir (ama UI zaten güncellendi)
-          const error = await res.json();
-          console.error("Sepete ekleme hatası:", error);
-          // İsteğe bağlı: Hata durumunda geri al (rollback) yapılabilir
-        }
-      })
-      .catch((error) => {
-        console.error("Error adding to cart:", error);
-        // Hata durumunda kullanıcıya bildir
+        product: {
+          id: product.id,
+          name: product.name,
+          image: firstImage,
+          price: product.price || 0,
+        },
+        color: selectedColorName ? { id: colorId || "", name: selectedColorName } : null,
+        size: selectedSizeName ? { id: sizeId || "", name: selectedSizeName } : null,
       });
+
+      // Ödeme sayfasına yönlendir (eğer istenirse)
+      if (options?.redirectToPayment) {
+        window.location.href = "/payment";
+      }
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      toast.error("Bir hata oluştu");
+    }
   };
 
   const toggleSection = (section: string) => {
@@ -310,17 +252,23 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
   };
   
   // Seçili renge göre tüm bedenleri getir (stok kontrolü ayrı yapılacak)
-  const getAvailableSizesForColor = () => {
-    if (!product.sizes || product.sizes.length === 0) {
-      // Eğer sizes yoksa sizeOptions'ı kullan
-      if (product.sizes && typeof product.sizes[0] === 'string') {
-        return product.sizes;
-      }
-      return [];
+  const getAvailableSizesForColor = (): string[] | Array<{ id?: string; name: string; stock?: number }> => {
+    // 1) sizes string[]
+    if (Array.isArray(product.sizes) && product.sizes.length > 0 && typeof product.sizes[0] === "string") {
+      return product.sizes as string[];
     }
-    
-    // Tüm bedenleri göster (stok kontrolü getVariantStock'ta yapılacak)
-    return product.sizes;
+
+    // 2) sizes object[]
+    if (Array.isArray(product.sizes) && product.sizes.length > 0 && typeof product.sizes[0] === "object") {
+      return product.sizes as Array<{ id?: string; name: string; stock: number }>;
+    }
+
+    // 3) sizeOptions (fallback)
+    if (Array.isArray(product.sizeOptions) && product.sizeOptions.length > 0) {
+      return product.sizeOptions as Array<{ id?: string; name: string; stock?: number }>;
+    }
+
+    return [];
   };
 
   // Stok yoksa mail bildirimi
@@ -420,27 +368,30 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
 
   // Canlı stok kontrolü - Mobil için
   useEffect(() => {
-    if (!selectedSize || !selectedColor) return;
+    if (!selectedSize) return;
     
     const checkStock = async () => {
       try {
-        const currentColor = product.colors?.[selectedColor];
+        const currentColor = product.colors?.[selectedColor]; // 0 dahil çalışır
         const sizeObj = product.sizes?.find(
-          (s: any) => typeof s === 'object' && s.name === selectedSize
+          (s: any) => typeof s === "object" && s.name === selectedSize
+        ) || product.sizeOptions?.find(
+          (s: any) => typeof s === "object" && s.name === selectedSize
         );
-        
-        if (currentColor?.id && sizeObj && typeof sizeObj === 'object' && 'id' in sizeObj) {
-          const res = await fetch(`/api/products/${product.id}/stock?colorId=${currentColor.id}&sizeId=${sizeObj.id}`);
+
+        if (currentColor?.id && sizeObj && typeof sizeObj === "object" && "id" in sizeObj) {
+          const res = await fetch(
+            `/api/products/${product.id}/stock?colorId=${currentColor.id}&sizeId=${(sizeObj as any).id}`
+          );
           if (res.ok) {
             const data = await res.json();
             setLiveStock(data.stock || 0);
+            return;
           }
-        } else {
-          // Fallback: getVariantStock kullan
-          setLiveStock(getVariantStock(selectedSize));
         }
-      } catch (error) {
-        console.error("Error checking stock:", error);
+
+        setLiveStock(getVariantStock(selectedSize));
+      } catch {
         setLiveStock(getVariantStock(selectedSize));
       }
     };
@@ -907,7 +858,7 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
 
               {/* Sepete Ekle Butonu */}
               <button
-                onClick={addToCartOptimistic}
+                onClick={() => addToCart()}
                 disabled={!selectedSize || getVariantStock(selectedSize) <= 0}
                 className="flex-1 bg-[#111] text-white hover:bg-[#333] uppercase tracking-wider text-sm font-semibold h-[56px] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
@@ -1067,7 +1018,7 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
 
             {/* Sepete Ekle Butonu */}
             <button
-              onClick={addToCartOptimistic}
+                onClick={() => addToCart()}
               disabled={!selectedSize || getVariantStock(selectedSize) <= 0}
               className="flex-1 px-4 py-3 border border-gray-300 text-black bg-white rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider text-sm font-light"
             >
@@ -1077,98 +1028,7 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
 
           {/* Hızlı Satın Alın Butonu */}
           <button
-            onClick={async () => {
-              if (!selectedSize) {
-                toast.error("Lütfen bir beden seçin");
-                return;
-              }
-
-              // Seçili renk ve beden bilgilerini hazırla
-              const selectedColorObj = product.colors?.[selectedColor];
-              const selectedSizeObj = product.sizes?.find(
-                (s: any) => typeof s === 'object' && s.name === selectedSize
-              ) || product.sizeOptions?.find(
-                (s: any) => typeof s === 'object' && s.name === selectedSize
-              );
-
-              const colorId = selectedColorObj?.id || null;
-              const sizeId = (selectedSizeObj && typeof selectedSizeObj === 'object' && 'id' in selectedSizeObj) 
-                ? (selectedSizeObj.id ?? null)
-                : null;
-
-              // İlk görseli al
-              let firstImage = "";
-              if (product.images && product.images.length > 0) {
-                const firstImg = product.images[0];
-                if (typeof firstImg === 'string') {
-                  firstImage = firstImg;
-                } else if (firstImg && typeof firstImg === 'object' && 'url' in firstImg) {
-                  firstImage = firstImg.url || "";
-                }
-              }
-
-              const selectedColorName = selectedColorObj?.name || "";
-              const selectedSizeName = typeof selectedSizeObj === 'object' && selectedSizeObj ? selectedSizeObj.name : selectedSize;
-
-              // OPTİMİSTİK: localStorage'a hemen ekle (guest kullanıcılar için)
-              addToGuestCart(
-                product.id,
-                colorId,
-                sizeId,
-                quantity,
-                {
-                  id: product.id,
-                  name: product.name,
-                  image: firstImage,
-                  price: product.price || 0,
-                },
-                selectedColorName ? { id: colorId || "", name: selectedColorName } : null,
-                selectedSizeName ? { id: sizeId || "", name: selectedSizeName } : null
-              );
-
-              // API isteğini başlat ve başarılı olursa ödeme sayfasına yönlendir
-              try {
-                const res = await fetch("/api/cart", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    productId: product.id,
-                    colorId,
-                    sizeId,
-                    quantity,
-                  }),
-                });
-
-                if (res.ok) {
-                  const result = await res.json();
-                  // Giriş yapmış kullanıcı için API'den gelen verilerle localStorage'ı güncelle
-                if (!result.userId && result.product) {
-                    addToGuestCart(
-                      product.id,
-                      colorId,
-                      sizeId,
-                      quantity,
-                      {
-                        id: result.product.id,
-                        name: result.product.name || product.name,
-                        image: result.product.image || firstImage,
-                        price: result.product.price || product.price || 0,
-                      },
-                      result.color || (selectedColorName ? { id: colorId || "", name: selectedColorName } : null),
-                      result.size || (selectedSizeName ? { id: sizeId || "", name: selectedSizeName } : null)
-                    );
-                  }
-                  // Ödeme sayfasına yönlendir
-                  window.location.href = "/payment";
-                } else {
-                  const error = await res.json();
-                  toast.error(error.error || "Bir hata oluştu");
-                }
-              } catch (error) {
-                console.error("Error:", error);
-                toast.error("Bir hata oluştu");
-              }
-            }}
+            onClick={() => addToCart({ redirectToPayment: true })}
             disabled={!selectedSize || getVariantStock(selectedSize) <= 0}
             className="w-full px-4 py-3 bg-[#111] text-white rounded-lg hover:bg-[#333] transition-all disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider text-sm font-semibold"
           >

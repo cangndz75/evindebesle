@@ -656,6 +656,7 @@ model Product {
 model ProductColor {
   id        String   @id @default(cuid())
   productId String
+  colorCode String   @unique // Unique renk kodu (her ürün ve her renk için unique)
   name      String   // Renk adı (Kırmızı, Mavi, vb.)
   hexCode   String?  // Hex renk kodu (#FF0000)
   images    String?  // JSON array olarak saklanacak (Bu renge ait fotoğraflar) - DEPRECATED: ProductImage kullanılacak
@@ -670,6 +671,7 @@ model ProductColor {
   orderItems OrderItem[]
 
   @@index([productId])
+  @@index([colorCode])
 }
 
 model ProductImage {

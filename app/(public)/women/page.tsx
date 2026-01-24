@@ -100,6 +100,7 @@ async function getInitialProducts() {
       return {
         id: p.id,
         name: p.name,
+        slug: p.slug ?? undefined,
         price: p.price,
         originalPrice: p.originalPrice ?? undefined,
         image: primaryImg ?? undefined,

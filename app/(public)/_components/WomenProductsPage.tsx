@@ -33,6 +33,7 @@ type ColorOption = {
 type Product = {
   id: string;
   name: string;
+  slug?: string;
   price: number;
   originalPrice?: number;
   image?: string;
@@ -293,18 +294,18 @@ export default function WomenProductsPage({
   return (
     <div className="min-h-screen bg-white pt-[65px] md:pt-[81px]">
       <AnnouncementBanner variant="pink" className="mb-0" />
-      <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 md:py-12">
         {/* Breadcrumb */}
-        <nav className="mb-4">
-          <Link href="/" className="text-sm text-[#111]/60 font-light hover:text-[#111]">
+        <nav className="mb-3 md:mb-4">
+          <Link href="/" className="text-xs md:text-sm text-[#111]/60 font-light hover:text-[#111]">
             Ana Sayfa
           </Link>
-          <span className="text-sm text-[#111]/60 font-light mx-2">/</span>
-          <span className="text-sm text-[#111] font-light">Kadın</span>
+          <span className="text-xs md:text-sm text-[#111]/60 font-light mx-2">/</span>
+          <span className="text-xs md:text-sm text-[#111] font-light">Kadın</span>
         </nav>
 
         {/* Title */}
-        <h1 className="text-3xl md:text-4xl lg:text-5xl font-light text-[#111] mb-6">
+        <h1 className="text-2xl md:text-4xl lg:text-5xl font-light text-[#111] mb-4 md:mb-6">
           Kadın
         </h1>
 
@@ -314,7 +315,7 @@ export default function WomenProductsPage({
             <button
               key={category}
               onClick={() => setSelectedCategory(category)}
-              className={`px-4 py-2 text-sm font-light uppercase tracking-wide transition-colors whitespace-nowrap flex-shrink-0 ${
+              className={`px-3 md:px-4 py-2 text-xs md:text-sm font-light uppercase tracking-wide transition-colors whitespace-nowrap flex-shrink-0 ${
                 selectedCategory === category
                   ? "bg-[#111] text-white"
                   : "bg-white text-[#111] border border-[#111] hover:bg-[#111] hover:text-white"
@@ -326,7 +327,7 @@ export default function WomenProductsPage({
         </div>
 
         {/* Filter and Sort */}
-        <div className="flex items-center justify-between mb-8 gap-4">
+        <div className="flex items-center justify-between mb-6 md:mb-8 gap-2 md:gap-4">
           {/* Filtre Butonu - Sol */}
           <div className="flex items-center gap-2">
             <ProductFilters
@@ -343,15 +344,15 @@ export default function WomenProductsPage({
           </div>
 
           {/* Sırala - Sağ */}
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-[#111]/60 font-light hidden md:inline">{products.length} ürün</span>
+          <div className="flex items-center gap-2 md:gap-4">
+            <span className="text-xs md:text-sm text-[#111]/60 font-light hidden md:inline">{products.length} ürün</span>
             
             {/* Mobil: Sırala Butonu */}
             <button
               onClick={() => setSortDialogOpen(true)}
-              className="md:hidden flex items-center gap-2 px-4 py-2 text-sm font-light text-[#111] border border-[#111] hover:bg-[#111] hover:text-white transition-colors"
+              className="md:hidden flex items-center gap-1.5 px-3 py-2 text-xs font-light text-[#111] border border-[#111] hover:bg-[#111] hover:text-white transition-colors"
             >
-              <ArrowUpDown className="w-4 h-4" />
+              <ArrowUpDown className="w-3.5 h-3.5" />
               <span>Sırala</span>
             </button>
 
@@ -453,8 +454,107 @@ export default function WomenProductsPage({
           </DialogContent>
         </Dialog>
 
-        {/* Editorial Grid - 3. resimdeki düzen */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 auto-rows-fr">
+        {/* Mobil: Basit 2 sütunlu grid, Desktop: Karmaşık editorial düzeni */}
+        {/* Mobil Grid */}
+        <div className="grid grid-cols-2 gap-4 md:hidden">
+          {products.map((product) => {
+            const isColorActive = hoveredColor?.productId === product.id || selectedColor?.productId === product.id;
+            const activeColorImage = hoveredColor?.productId === product.id
+              ? hoveredColor.colorImage
+              : selectedColor?.productId === product.id
+              ? selectedColor.colorImage
+              : null;
+
+            const currentImage = activeColorImage || product.image || "/placeholder.png";
+
+            return (
+              <div key={product.id} className="group">
+                <Link href={product.slug ? `/products/${product.slug}` : `/product/${product.id}`} className="block">
+                  <div className="relative mb-3 overflow-hidden bg-gray-100 aspect-[3/4]">
+                    <Image
+                      src={currentImage}
+                      alt={product.name}
+                      fill
+                      className="object-cover transition-opacity duration-500"
+                      sizes="50vw"
+                      unoptimized
+                    />
+                    {!isColorActive && product.hoverImage && (
+                      <Image
+                        src={product.hoverImage}
+                        alt={`${product.name} hover`}
+                        fill
+                        className="object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                        sizes="50vw"
+                        unoptimized
+                      />
+                    )}
+                    {product.badge && (
+                      <div className="absolute top-3 left-3 bg-[#111] text-white uppercase font-light text-[10px] px-2 py-1">
+                        {product.badge}
+                      </div>
+                    )}
+                    <FavoriteButton productId={product.id} />
+                  </div>
+                </Link>
+
+                <div className="space-y-1">
+                  <h3 className="font-light text-[#111] text-xs line-clamp-2 min-h-[2.5rem]">
+                    {product.name}
+                  </h3>
+                  <div className="flex flex-col gap-0.5">
+                    {product.originalPrice ? (
+                      <>
+                        <span className="font-light text-[#111] text-xs">
+                          {product.originalPrice} ₺
+                        </span>
+                        <span className="text-[#111]/60 line-through text-[10px]">
+                          {product.price} ₺
+                        </span>
+                      </>
+                    ) : (
+                      <span className="font-light text-[#111] text-xs">
+                        {product.price} ₺
+                      </span>
+                    )}
+                  </div>
+                  {product.inColors && (
+                    <p className="text-[#111]/60 font-light text-[10px] mt-0.5">
+                      {product.inColors} renk
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-1 mt-2 flex-wrap">
+                  {product.colors.slice(0, 4).map((color, idx) => {
+                    const isActive = isColorActive && activeColorImage === color.image;
+                    return (
+                      <button
+                        key={idx}
+                        onMouseEnter={() => handleColorInteraction(product.id, color.image)}
+                        onMouseLeave={handleColorLeave}
+                        onClick={() => handleColorInteraction(product.id, color.image)}
+                        className={`w-3 h-3 rounded-full border transition-all duration-200 flex-shrink-0 ${
+                          isActive ? "border-[#111] scale-110" : "border-gray-300"
+                        }`}
+                        style={{ backgroundColor: color.value }}
+                        aria-label={`${color.name} renk seçeneği`}
+                      />
+                    );
+                  })}
+                  {product.colors.length > 4 && (
+                    <span className="text-[10px] text-[#111]/60 font-light">
+                      +{product.colors.length - 4}
+                    </span>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Desktop Grid - Editorial düzeni */}
+        <div className="hidden md:grid md:grid-cols-4 gap-6 auto-rows-fr">
           {gridItems.map((item, index) => {
             // Editorial kart
             if ("type" in item && item.type === "editorial") {
@@ -463,7 +563,7 @@ export default function WomenProductsPage({
                 return (
                   <div
                     key={item.id}
-                    className="group relative overflow-hidden bg-gray-100 aspect-[3/4] col-span-2 row-span-2 md:aspect-square"
+                    className="group relative overflow-hidden bg-gray-100 aspect-square col-span-2 row-span-2"
                     style={{ gridColumn: "1 / 3", gridRow: "1 / 3" }}
                   >
                     <Image
@@ -471,7 +571,7 @@ export default function WomenProductsPage({
                       alt="Editorial"
                       fill
                       className="object-cover transition-transform duration-700 group-hover:scale-105"
-                      sizes="(max-width: 768px) 100vw, 50vw"
+                      sizes="50vw"
                       unoptimized
                     />
                   </div>
@@ -481,7 +581,7 @@ export default function WomenProductsPage({
               return (
                 <div
                   key={item.id}
-                  className="group relative overflow-hidden bg-gray-100 aspect-[3/4] col-span-2 row-span-2 md:aspect-square"
+                  className="group relative overflow-hidden bg-gray-100 aspect-square col-span-2 row-span-2"
                   style={{ gridColumn: "3 / 5", gridRow: "6 / 8" }}
                 >
                   <Image
@@ -489,7 +589,7 @@ export default function WomenProductsPage({
                     alt="Editorial"
                     fill
                     className="object-cover transition-transform duration-700 group-hover:scale-105"
-                    sizes="(max-width: 768px) 100vw, 50vw"
+                    sizes="50vw"
                     unoptimized
                   />
                 </div>
@@ -499,7 +599,7 @@ export default function WomenProductsPage({
             // Ürün kartı
             const product = item as Product;
             
-            // Ürünlerin grid pozisyonlarını belirle
+            // Ürünlerin grid pozisyonlarını belirle (sadece desktop)
             let gridStyle: React.CSSProperties = {};
             
             // Satır 1: Sağ üst 2 ürün (editorial'dan sonra, index 1-2)
@@ -539,7 +639,7 @@ export default function WomenProductsPage({
 
             return (
               <div key={product.id} className="group" style={gridStyle}>
-                <Link href={`/product/${product.id}`} className="block">
+                <Link href={product.slug ? `/products/${product.slug}` : `/product/${product.id}`} className="block">
                   <div className="relative mb-3 overflow-hidden bg-gray-100 aspect-[3/4]">
                     <Image
                       src={currentImage}
@@ -576,10 +676,10 @@ export default function WomenProductsPage({
                     {product.originalPrice ? (
                       <>
                         <span className="font-light text-[#111] text-xs md:text-sm">
-                          {product.price} ₺
+                          {product.originalPrice} ₺
                         </span>
                         <span className="text-[#111]/60 line-through text-xs">
-                          {product.originalPrice} ₺
+                          {product.price} ₺
                         </span>
                       </>
                     ) : (

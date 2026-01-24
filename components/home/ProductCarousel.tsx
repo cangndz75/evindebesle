@@ -130,14 +130,17 @@ export default function ProductCarousel({ title, products, viewAllLink }: Produc
                           {product.colors.length} renk seçeneği
                         </p>
                         <div className="flex gap-1.5 pl-2 md:pl-4">
-                          {product.colors.slice(0, 4).map((color, idx) => (
-                            <div
-                              key={idx}
-                              className="w-4 h-4 rounded-full border border-gray-300"
-                              style={{ backgroundColor: color }}
-                              aria-label={`Renk seçeneği ${idx + 1}`}
-                            />
-                          ))}
+                          {product.colors.slice(0, 4).map((color, idx) => {
+                            const colorValue = typeof color === 'string' ? color : color.value;
+                            return (
+                              <div
+                                key={idx}
+                                className="w-4 h-4 rounded-full border border-gray-300"
+                                style={{ backgroundColor: colorValue }}
+                                aria-label={`Renk seçeneği ${idx + 1}`}
+                              />
+                            );
+                          })}
                           {product.colors.length > 4 && (
                             <span className="text-xs text-[#111]/60 font-light">
                               +{product.colors.length - 4}

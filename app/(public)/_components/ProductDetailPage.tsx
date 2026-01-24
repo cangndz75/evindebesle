@@ -580,46 +580,62 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
               </p>
               <div className="flex gap-3">
                 {product.colors?.map((color, idx) => {
-                  // Renk için ilk fotoğrafı al
-                  const colorImage = color.images && color.images.length > 0 
-                    ? (typeof color.images === 'string' 
-                        ? (() => {
-                            try {
-                              const parsed = JSON.parse(color.images);
-                              return Array.isArray(parsed) && parsed.length > 0 ? parsed[0] : null;
-                            } catch {
-                              return color.images;
-                            }
-                          })()
-                        : (Array.isArray(color.images) && color.images.length > 0 ? color.images[0] : null))
-                    : null;
+                  // Renk için ilk fotoğrafı al - TabbedProductCarousel'deki gibi
+                  let colorImage: string | null = null;
+                  
+                  // Önce color.image property'sine bak (eğer varsa - TabbedProductCarousel'den gelebilir)
+                  if ((color as any).image) {
+                    colorImage = (color as any).image;
+                  } 
+                  // Sonra images array'ine bak
+                  else if (color.images) {
+                    // Eğer images string ise parse et
+                    if (typeof color.images === 'string') {
+                      try {
+                        const parsed = JSON.parse(color.images);
+                        colorImage = Array.isArray(parsed) && parsed.length > 0 ? parsed[0] : null;
+                      } catch {
+                        colorImage = color.images;
+                      }
+                    } 
+                    // Eğer images array ise ilk elemanı al
+                    else if (Array.isArray(color.images) && color.images.length > 0) {
+                      colorImage = color.images[0];
+                    }
+                  }
                   
                   return (
-                    <button
-                      key={idx}
-                      onClick={() => handleColorChange(idx)}
-                      className={`relative w-16 h-20 overflow-hidden border-2 transition-all ${
-                        selectedColor === idx
-                          ? "border-black scale-105"
-                          : "border-gray-300 hover:border-gray-500"
-                      }`}
-                      aria-label={color.name}
-                    >
-                      {colorImage ? (
-                        <Image
-                          src={colorImage}
-                          alt={color.name}
-                          fill
-                          className="object-cover"
-                          sizes="64px"
-                        />
-                      ) : (
-                        <div 
-                          className="w-full h-full"
-                          style={{ backgroundColor: color.value }}
-                        />
-                      )}
-                    </button>
+                    <div key={idx} className="relative group">
+                      <button
+                        onClick={() => handleColorChange(idx)}
+                        className={`relative w-16 h-20 overflow-hidden border-2 transition-all ${
+                          selectedColor === idx
+                            ? "border-black scale-105"
+                            : "border-gray-300 hover:border-gray-500"
+                        }`}
+                        aria-label={color.name}
+                      >
+                        {colorImage ? (
+                          <Image
+                            src={colorImage}
+                            alt={color.name}
+                            fill
+                            className="object-cover"
+                            sizes="64px"
+                          />
+                        ) : (
+                          <div 
+                            className="w-full h-full"
+                            style={{ backgroundColor: color.value }}
+                          />
+                        )}
+                      </button>
+                      {/* Tooltip - Renk adı */}
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black text-white text-xs font-light whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                        {color.name}
+                        <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-black"></div>
+                      </div>
+                    </div>
                   );
                 })}
               </div>
@@ -631,33 +647,6 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
                 <p className="text-sm font-light text-black mb-3">
                   Beden: <span className="text-gray-500">{selectedSize || "Seçiniz"}</span>
                 </p>
-                
-                {/* Stok Gösterimi - Hem Mobil Hem Desktop */}
-                {selectedSize && (
-                  <div className="mb-3 p-3 rounded-md bg-gray-50 border border-gray-200">
-                    <p className="text-sm font-medium text-gray-700">
-                      Stok Durumu
-                    </p>
-                    {liveStock !== null ? (
-                      <p className={`text-xs mt-1 ${liveStock > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {liveStock > 0 
-                          ? `Bu üründen sadece ${liveStock} adet kaldı. Acele et!`
-                          : "Bu ürün şu anda stokta yok."
-                        }
-                      </p>
-                    ) : (
-                      <p className="text-xs mt-1 text-gray-500">Stok kontrol ediliyor...</p>
-                    )}
-                    {liveStock !== null && liveStock > 0 && liveStock <= 6 && (
-                      <div className="mt-2 h-2 rounded-full overflow-hidden bg-gray-200">
-                        <div 
-                          className="h-full transition-all bg-amber-500"
-                          style={{ width: `${(liveStock / 10) * 100}%` }}
-                        />
-                      </div>
-                    )}
-                  </div>
-                )}
                 
                 <div className="flex gap-2 flex-wrap">
                   {(() => {
@@ -793,8 +782,62 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
                     });
 
                     if (res.ok) {
+                      const result = await res.json();
+                      
+                      // Giriş yapmamış kullanıcı için localStorage'a kaydet
+                      if (!result.userId && result.product) {
+                        addToGuestCart(
+                          product.id,
+                          colorId,
+                          sizeId,
+                          quantity,
+                          {
+                            id: result.product.id,
+                            name: result.product.name || product.name,
+                            image: result.product.image || (Array.isArray(product.images) && product.images.length > 0 
+                              ? (typeof product.images[0] === 'string' ? product.images[0] : (product.images[0] as { url: string; badge?: string })?.url || "")
+                              : ""),
+                            price: result.product.price || product.price || 0,
+                          },
+                          result.color || null,
+                          result.size || null
+                        );
+                      }
+                      
                       // Sepet sayısını güncellemek için event dispatch et
                       window.dispatchEvent(new Event("cartUpdated"));
+                      
+                      // Pop-up için event gönder
+                      const selectedColorName = selectedColorObj?.name || "";
+                      const selectedSizeName = typeof selectedSizeObj === 'object' && selectedSizeObj ? selectedSizeObj.name : selectedSize;
+                      
+                      // İlk görseli al - string veya obje olabilir
+                      let firstImage = "";
+                      if (product.images && product.images.length > 0) {
+                        const firstImg = product.images[0];
+                        if (typeof firstImg === 'string') {
+                          firstImage = firstImg;
+                        } else if (firstImg && typeof firstImg === 'object' && 'url' in firstImg) {
+                          firstImage = firstImg.url || "";
+                        }
+                      }
+                      
+                      window.dispatchEvent(
+                        new CustomEvent("itemAddedToCart", {
+                          detail: {
+                            product: {
+                              id: product.id,
+                              name: product.name,
+                              image: firstImage,
+                              price: product.price || 0,
+                            },
+                            size: selectedSizeName || "",
+                            color: selectedColorName || "",
+                          },
+                        })
+                      );
+                      
+                      toast.success("Ürün sepete eklendi", { position: "bottom-left" });
                     } else {
                       const error = await res.json();
                       toast.error(error.error || "Sepete eklenirken bir hata oluştu");

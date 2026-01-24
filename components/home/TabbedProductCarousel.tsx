@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, X, Star } from "lucide-react";
@@ -191,6 +191,12 @@ function ProductCarouselContent({
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const [reviews, setReviews] = useState<{ rating: number; userName: string; comment: string; createdAt: Date }[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [productDetails, setProductDetails] = useState<{ description?: string; detailText?: string } | null>(null);
+  const [productColors, setProductColors] = useState<Array<{ id: string; name: string; hexCode?: string; image?: string; images?: string[]; variants?: any[] }>>([]);
+  const [productImages, setProductImages] = useState<string[]>([]);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   const handleOpenModal = (product: Product, e: React.MouseEvent) => {
     e.preventDefault();
@@ -198,11 +204,146 @@ function ProductCarouselContent({
     setSelectedProduct(product);
     setSelectedSize(null);
     setSelectedColor(null);
+    setProductColors([]);
+    setProductImages([]);
+    setSelectedImageIndex(0);
     setModalOpen(true);
+    setReviews([]);
+    setProductDetails(null);
+    // Yorumları ve ürün detaylarını çek (paralel)
+    if (product.id) {
+      // Yorumları çek (loading state olmadan)
+      fetch(`/api/admin-products/${product.id}/reviews?approved=true`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (Array.isArray(data)) {
+            setReviews(data);
+          } else {
+            setReviews([]);
+          }
+        })
+        .catch(() => setReviews([]));
+      
+      // Ürün detaylarını çek (description, detailText, sizes, colors dahil)
+      fetch(`/api/products/${product.id}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data) {
+            setProductDetails({
+              description: data.description || "",
+              detailText: data.detailText || "",
+            });
+            
+            // Colors bilgisini parse et ve sakla
+            const parseImages = (images: string | null): string[] => {
+              if (!images) return [];
+              try {
+                return JSON.parse(images);
+              } catch {
+                return [];
+              }
+            };
+            
+            const colors = (data.colors || []).map((c: any) => {
+              const colorImages = parseImages(c.images);
+              return {
+                id: c.id,
+                name: c.name,
+                hexCode: c.hexCode,
+                image: colorImages[0] || data.primaryImage || data.image,
+                images: colorImages,
+                variants: c.variants || [],
+              };
+            });
+            
+            setProductColors(colors);
+            
+            // Tüm resimleri topla (primaryImage, secondaryImage, color images)
+            const allImages: string[] = [];
+            if (data.primaryImage) allImages.push(data.primaryImage);
+            if (data.secondaryImage && data.secondaryImage !== data.primaryImage) allImages.push(data.secondaryImage);
+            if (data.image && !allImages.includes(data.image)) allImages.push(data.image);
+            
+            // Her renk için ilk resmi ekle
+            colors.forEach((color: any) => {
+              if (color.images && color.images.length > 0) {
+                color.images.forEach((img: string) => {
+                  if (!allImages.includes(img)) allImages.push(img);
+                });
+              } else if (color.image && !allImages.includes(color.image)) {
+                allImages.push(color.image);
+              }
+            });
+            
+            setProductImages(allImages.length > 0 ? allImages : [data.primaryImage || data.image || ""].filter(Boolean));
+            setSelectedImageIndex(0);
+            
+            // İlk rengi seç
+            if (colors.length > 0 && !selectedColor) {
+              setSelectedColor(colors[0].id);
+            }
+            
+            // Sizes, slug, image, name ve price bilgisini güncelle
+            const updatedProduct: Partial<Product> = {
+              ...selectedProduct!,
+              id: data.id || selectedProduct?.id || product.id, // ID'yi mutlaka koru
+              slug: data.slug || selectedProduct?.slug,
+              title: data.name || selectedProduct?.title,
+              price: data.price ?? selectedProduct?.price ?? 0,
+              originalPrice: data.originalPrice ?? selectedProduct?.originalPrice,
+            };
+            
+            // Seçili renge göre image güncelle
+            const selectedColorData = colors.find((c: any) => c.id === (selectedColor || colors[0]?.id));
+            if (selectedColorData) {
+              updatedProduct.image = selectedColorData.image || data.primaryImage || data.image;
+              updatedProduct.hoverImage = selectedColorData.images?.[1] || data.secondaryImage;
+              updatedProduct.variants = selectedColorData.variants?.map((v: any) => ({
+                colorId: v.colorId,
+                sizeId: v.sizeId,
+                stock: v.stock,
+              })) || [];
+            } else {
+              // Image bilgisini güncelle
+              if (data.primaryImage || data.image) {
+                updatedProduct.image = data.primaryImage || data.image;
+              }
+              if (data.secondaryImage) {
+                updatedProduct.hoverImage = data.secondaryImage;
+              }
+            }
+            
+            // Sizes bilgisini güncelle - MUTLAKA güncelle
+            if (data.sizes && Array.isArray(data.sizes) && data.sizes.length > 0) {
+              updatedProduct.sizes = data.sizes.map((s: any) => ({
+                name: s.name,
+                stock: s.stock || 0,
+                id: s.id,
+              }));
+            } else if (data.sizeOptions && Array.isArray(data.sizeOptions) && data.sizeOptions.length > 0) {
+              // Eğer sizes yoksa sizeOptions'tan oluştur
+              updatedProduct.sizeOptions = data.sizeOptions.map((so: any) => ({
+                name: so.name,
+                id: so.id,
+              }));
+            }
+            
+            setSelectedProduct(updatedProduct as Product);
+          }
+        })
+        .catch(() => setProductDetails(null));
+    }
   };
 
   const handleAddToCart = async () => {
     if (!selectedProduct) return;
+    
+    if (!selectedProduct.id) {
+      toast.error("Ürün bilgisi bulunamadı", {
+        position: "bottom-left",
+      });
+      return;
+    }
     
     if (!selectedSize) {
       toast.error("Lütfen bir beden seçin", {
@@ -284,8 +425,42 @@ function ProductCarouselContent({
         
         window.dispatchEvent(new Event("cartUpdated"));
         
-        // Seçili renk ve beden isimlerini bul
-        const selectedColorName = selectedColor 
+        // Pop-up için event gönder (modal kapanmadan önce)
+        // API response'undan resim bilgisini al
+        let productImage = selectedProduct.image;
+        
+        // Önce seçili renge göre görseli kontrol et
+        if (selectedColor && productColors.length > 0) {
+          const selectedColorData = productColors.find((c) => c.id === selectedColor);
+          if (selectedColorData?.image) {
+            productImage = selectedColorData.image;
+          } else if (selectedColorData?.images && selectedColorData.images.length > 0) {
+            productImage = selectedColorData.images[0];
+          }
+        }
+        
+        // API response'undan renk görsellerini kontrol et
+        if (result.color?.images) {
+          // color.images JSON string olabilir
+          let colorImages: string[] = [];
+          if (typeof result.color.images === 'string') {
+            try {
+              colorImages = JSON.parse(result.color.images);
+            } catch {
+              colorImages = [result.color.images];
+            }
+          } else if (Array.isArray(result.color.images)) {
+            colorImages = result.color.images;
+          }
+          if (colorImages.length > 0) {
+            productImage = colorImages[0];
+          }
+        } else if (result.product?.image) {
+          productImage = result.product.image;
+        }
+        
+        // Renk ve beden isimlerini API response'undan al, yoksa local'den bul
+        const colorName = result.color?.name || (selectedColor 
           ? (() => {
               const colors = (selectedProduct.colors || []) as any[];
               const colorObj = colors.find((c: any) => {
@@ -296,9 +471,9 @@ function ProductCarouselContent({
               });
               return colorObj ? (typeof colorObj === 'string' ? colorObj : colorObj.name) : null;
             })()
-          : null;
+          : null);
         
-        const selectedSizeName = selectedSize 
+        const sizeName = result.size?.name || (selectedSize 
           ? (() => {
               const foundSize = getAvailableSizes(selectedProduct).find((s: any) => {
                 if (typeof s === 'string') {
@@ -310,22 +485,23 @@ function ProductCarouselContent({
                 ? (typeof foundSize === 'string' ? foundSize : foundSize.name)
                 : selectedSize;
             })()
-          : null;
+          : null);
 
         // Header'daki popup'ı tetikle
-        const popupData = {
-          product: {
-            id: selectedProduct.id,
-            name: selectedProduct.title,
-            image: selectedProduct.image,
-            price: selectedProduct.price || 0,
-          },
-          size: selectedSizeName || '',
-          color: selectedColorName || '',
-        };
-        window.dispatchEvent(new CustomEvent('itemAddedToCart', {
-          detail: popupData
-        }));
+        window.dispatchEvent(
+          new CustomEvent("itemAddedToCart", {
+            detail: {
+              product: {
+                id: selectedProduct.id,
+                name: result.product?.name || selectedProduct.title,
+                image: productImage,
+                price: result.product?.price || selectedProduct.price || 0,
+              },
+              size: sizeName || '',
+              color: colorName || '',
+            },
+          })
+        );
 
         setModalOpen(false);
       } else {
@@ -355,15 +531,62 @@ function ProductCarouselContent({
   };
 
   const getSizeStock = (product: Product, sizeId: string | null) => {
-    if (!sizeId) return 0;
-    
-    if (product.variants && product.variants.length > 0) {
-      const variant = product.variants.find(
-        (v) => v.sizeId === sizeId && (v.colorId === selectedColor || v.colorId === product.colorId)
-      );
-      return variant?.stock || 0;
+    if (!sizeId) {
+      return 0;
     }
     
+    // Önce variant stokuna bak
+    if (product.variants && product.variants.length > 0) {
+      // Seçili renk ID'sini bul
+      let actualColorId: string | null = selectedColor;
+      if (selectedColor && productColors.length > 0) {
+        const colorObj = productColors.find((c) => c.id === selectedColor);
+        if (colorObj?.id) {
+          actualColorId = colorObj.id;
+        } else if (selectedColor && /^[a-f0-9-]{36}$/i.test(selectedColor)) {
+          // UUID formatındaysa direkt kullan
+          actualColorId = selectedColor;
+        } else {
+          actualColorId = product.colorId || null;
+        }
+      } else {
+        actualColorId = product.colorId || null;
+      }
+      
+      // Variant'ı bul - önce seçili renk ile, sonra product'ın colorId'si ile, sonra null ile
+      let variant = product.variants.find(
+        (v) => v.sizeId === sizeId && v.colorId === actualColorId
+      );
+      
+      // Eğer bulunamazsa, product'ın colorId'si ile dene
+      if (!variant && product.colorId) {
+        variant = product.variants.find(
+          (v) => v.sizeId === sizeId && v.colorId === product.colorId
+        );
+      }
+      
+      // Eğer hala bulunamazsa, colorId null olan variant'ı dene
+      if (!variant) {
+        variant = product.variants.find(
+          (v) => v.sizeId === sizeId && (v.colorId == null || v.colorId === "")
+        );
+      }
+      
+      // Eğer hala bulunamazsa, bu sizeId'ye ait herhangi bir variant'ı dene
+      if (!variant) {
+        variant = product.variants.find((v) => v.sizeId === sizeId);
+      }
+      
+      // Eğer variant bulundu ve stoku varsa, onu kullan
+      if (variant && variant.stock > 0) {
+        return variant.stock;
+      }
+      
+      // Eğer variant bulundu ama stoku 0 ise, size'ın stokuna bak
+      // (variant stoku 0 olsa bile, size'ın kendi stoku olabilir)
+    }
+    
+    // Variant stoku yoksa veya 0 ise, size'ın kendi stokuna bak
     const size = product.sizes?.find((s) => s.id === sizeId);
     return size?.stock || 0;
   };
@@ -385,7 +608,7 @@ function ProductCarouselContent({
                 onMouseEnter={() => setHoveredProduct(product.id)}
                 onMouseLeave={() => setHoveredProduct(null)}
               >
-                <Link href={`/product/${product.id}`} className="block">
+                <Link href={product.slug ? `/products/${product.slug}` : `/product/${product.id}`} className="block">
                   <div className="relative aspect-square mb-4 overflow-hidden bg-gray-100">
                     {product.hoverImage ? (
                       <>
@@ -448,10 +671,10 @@ function ProductCarouselContent({
                       {product.originalPrice ? (
                         <>
                           <p className="text-base font-light text-[#111]">
-                            ₺{product.price.toFixed(2)}
+                            ₺{product.originalPrice.toFixed(2)}
                           </p>
                           <p className="text-sm font-light text-[#111]/60 line-through">
-                            ₺{product.originalPrice.toFixed(2)}
+                            ₺{product.price.toFixed(2)}
                           </p>
                         </>
                       ) : (
@@ -470,153 +693,321 @@ function ProductCarouselContent({
 
       {/* Product Detail Modal */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="max-w-7xl w-full max-h-[85vh] overflow-hidden p-0 flex flex-col md:flex-row mt-20">
+        <DialogContent className="max-w-[95vw] w-full max-h-[85vh] overflow-hidden p-0 flex flex-col md:flex-row my-8 md:my-12">
           <DialogTitle className="sr-only">Ürün Detayları</DialogTitle>
           {selectedProduct && (
             <>
-              {/* Sol taraf - Sticky kare görsel (Desktop) */}
-              <div className="hidden md:flex md:w-[45%] md:sticky md:top-6 md:self-start md:h-[85vh] md:items-center md:justify-center md:p-8 md:bg-gray-50">
-                <div className="relative w-full aspect-square bg-gray-100">
-                  <Image
-                    src={selectedProduct.hoverImage || selectedProduct.image}
-                    alt={selectedProduct.title}
-                    fill
-                    className="object-cover"
-                    sizes="50vw"
-                  />
-                  {selectedProduct.badge && (
-                    <div className="absolute top-3 left-3 bg-[#111] text-white text-xs px-3 py-1.5 uppercase font-light">
-                      {selectedProduct.badge === "İndirim" && selectedProduct.originalPrice
-                        ? `${Math.round(((selectedProduct.originalPrice - selectedProduct.price) / selectedProduct.originalPrice) * 100)}% OFF`
-                        : selectedProduct.badge}
+              {/* Sol taraf - Sticky dikey görsel (Desktop) */}
+              <div className="hidden md:flex md:w-[45%] md:sticky md:top-0 md:self-start md:flex-col md:items-center md:justify-start md:p-8 md:py-12 md:bg-gray-50 md:gap-4">
+                {/* Ana görsel */}
+                <div className="relative w-full aspect-[3/4] bg-gray-100">
+                  {productImages.length > 0 && productImages[selectedImageIndex] ? (
+                    <>
+                      <Image
+                        src={productImages[selectedImageIndex]}
+                        alt={selectedProduct.title || "Ürün görseli"}
+                        fill
+                        className="object-cover"
+                        sizes="50vw"
+                        priority={selectedImageIndex === 0}
+                      />
+                      {selectedProduct.badge && (
+                        <div className="absolute top-3 left-3 bg-[#111] text-white text-xs px-3 py-1.5 uppercase font-light">
+                          {selectedProduct.badge === "İndirim" && selectedProduct.originalPrice
+                            ? `${Math.round(((selectedProduct.originalPrice - (selectedProduct.price || 0)) / selectedProduct.originalPrice) * 100)}% OFF`
+                            : selectedProduct.badge}
+                        </div>
+                      )}
+                      {/* Image navigation */}
+                      {productImages.length > 1 && (
+                        <>
+                          {selectedImageIndex > 0 && (
+                            <button
+                              onClick={() => setSelectedImageIndex(selectedImageIndex - 1)}
+                              className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-md transition-all"
+                              aria-label="Önceki resim"
+                            >
+                              <ChevronLeft className="w-5 h-5 text-[#111]" />
+                            </button>
+                          )}
+                          {selectedImageIndex < productImages.length - 1 && (
+                            <button
+                              onClick={() => setSelectedImageIndex(selectedImageIndex + 1)}
+                              className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-md transition-all"
+                              aria-label="Sonraki resim"
+                            >
+                              <ChevronRight className="w-5 h-5 text-[#111]" />
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </>
+                  ) : (selectedProduct.hoverImage || selectedProduct.image) ? (
+                    <Image
+                      src={selectedProduct.hoverImage || selectedProduct.image || ""}
+                      alt={selectedProduct.title || "Ürün görseli"}
+                      fill
+                      className="object-cover"
+                      sizes="50vw"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                      <span>Görsel yükleniyor...</span>
                     </div>
                   )}
                 </div>
+                {/* Thumbnail gallery */}
+                {productImages.length > 1 && (
+                  <div className="flex gap-2 overflow-x-auto w-full pb-2">
+                    {productImages.map((img, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setSelectedImageIndex(idx)}
+                        className={`relative flex-shrink-0 w-16 h-20 bg-gray-100 rounded overflow-hidden border-2 transition-all ${
+                          selectedImageIndex === idx ? 'border-[#111]' : 'border-transparent hover:border-gray-300'
+                        }`}
+                      >
+                        <Image
+                          src={img}
+                          alt={`${selectedProduct.title} görsel ${idx + 1}`}
+                          fill
+                          className="object-cover"
+                          sizes="64px"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Mobile görsel - Üstte */}
-              <div className="md:hidden relative aspect-square bg-gray-100 w-full">
-                <Image
-                  src={selectedProduct.hoverImage || selectedProduct.image}
-                  alt={selectedProduct.title}
-                  fill
-                  className="object-cover"
-                  sizes="100vw"
-                />
-                {selectedProduct.badge && (
-                  <div className="absolute top-3 left-3 bg-[#111] text-white text-xs px-3 py-1.5 uppercase font-light">
-                    {selectedProduct.badge === "İndirim" && selectedProduct.originalPrice
-                      ? `${Math.round(((selectedProduct.originalPrice - selectedProduct.price) / selectedProduct.originalPrice) * 100)}% OFF`
-                      : selectedProduct.badge}
+              <div className="md:hidden relative aspect-[3/4] bg-gray-100 w-full">
+                {productImages.length > 0 && productImages[selectedImageIndex] ? (
+                  <>
+                    <Image
+                      src={productImages[selectedImageIndex]}
+                      alt={selectedProduct.title || "Ürün görseli"}
+                      fill
+                      className="object-cover"
+                      sizes="100vw"
+                      priority={selectedImageIndex === 0}
+                    />
+                    {selectedProduct.badge && (
+                      <div className="absolute top-3 left-3 bg-[#111] text-white text-xs px-3 py-1.5 uppercase font-light">
+                        {selectedProduct.badge === "İndirim" && selectedProduct.originalPrice
+                          ? `${Math.round(((selectedProduct.originalPrice - (selectedProduct.price || 0)) / selectedProduct.originalPrice) * 100)}% OFF`
+                          : selectedProduct.badge}
+                      </div>
+                    )}
+                    {/* Image navigation */}
+                    {productImages.length > 1 && (
+                      <>
+                        {selectedImageIndex > 0 && (
+                          <button
+                            onClick={() => setSelectedImageIndex(selectedImageIndex - 1)}
+                            className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-md"
+                            aria-label="Önceki resim"
+                          >
+                            <ChevronLeft className="w-5 h-5 text-[#111]" />
+                          </button>
+                        )}
+                        {selectedImageIndex < productImages.length - 1 && (
+                          <button
+                            onClick={() => setSelectedImageIndex(selectedImageIndex + 1)}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-md"
+                            aria-label="Sonraki resim"
+                          >
+                            <ChevronRight className="w-5 h-5 text-[#111]" />
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </>
+                ) : (selectedProduct.hoverImage || selectedProduct.image) ? (
+                  <Image
+                    src={selectedProduct.hoverImage || selectedProduct.image || ""}
+                    alt={selectedProduct.title || "Ürün görseli"}
+                    fill
+                    className="object-cover"
+                    sizes="100vw"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-400">
+                    <span>Görsel yükleniyor...</span>
                   </div>
                 )}
               </div>
 
               {/* Sağ taraf - Ürün detayları (Scrollable) */}
-              <div className="flex-1 overflow-y-auto space-y-4 p-6 md:p-8">
+              <div className="flex-1 overflow-y-auto space-y-4 p-6 md:p-8 md:py-12 min-w-0">
                 <div>
-                  <h2 className="text-2xl font-light text-[#111] mb-2">
-                    {selectedProduct.title}
+                  <h2 className="text-2xl font-bold text-[#111] mb-2">
+                    {selectedProduct.title || "Ürün"}
                   </h2>
-                  <p className="text-sm text-[#111]/60 font-light mb-4">Dark Velvet</p>
                   
                   {/* Fiyat */}
                   <div className="flex items-center gap-3 mb-4">
-                    {selectedProduct.originalPrice ? (
-                      <>
-                        <span className="text-2xl font-light text-[#111]">
-                          ₺{selectedProduct.price.toFixed(2)}
-                        </span>
-                        <span className="text-lg font-light text-[#111]/60 line-through">
-                          ₺{selectedProduct.originalPrice.toFixed(2)}
-                        </span>
-                        <span className="text-sm font-light text-[#111]/60">
-                          {Math.round(((selectedProduct.originalPrice - selectedProduct.price) / selectedProduct.originalPrice) * 100)}% off
-                        </span>
-                      </>
-                    ) : (
-                      <span className="text-2xl font-light text-[#111]">
-                        ₺{selectedProduct.price.toFixed(2)}
-                      </span>
-                    )}
+                    {(() => {
+                      // Seçili bedenin stock'unu kontrol et
+                      const selectedSizeStock = selectedSize 
+                        ? getSizeStock(selectedProduct, typeof selectedSize === 'string' && selectedSize.includes('-') ? null : selectedSize)
+                        : null;
+                      // Stock 0 değilse üstünü çizme
+                      const shouldStrikeThrough = selectedSizeStock !== null && selectedSizeStock === 0;
+                      
+                      const price = selectedProduct.price ?? 0;
+                      const originalPrice = selectedProduct.originalPrice;
+                      
+                      // İndirimli fiyat mantığı: originalPrice varsa ve farklıysa indirim var
+                      if (originalPrice && originalPrice !== price) {
+                        // Hangi fiyat daha yüksekse o orijinal, küçük olan indirimli
+                        const higherPrice = Math.max(price, originalPrice);
+                        const lowerPrice = Math.min(price, originalPrice);
+                        const discountPercent = Math.round(((higherPrice - lowerPrice) / higherPrice) * 100);
+                        
+                        return (
+                          <>
+                            <span className={`text-2xl font-light ${shouldStrikeThrough ? 'text-[#111]/60 line-through' : 'text-[#111]'}`}>
+                              ₺{lowerPrice.toFixed(2)}
+                            </span>
+                            <span className="text-lg font-light text-[#111]/60 line-through">
+                              ₺{higherPrice.toFixed(2)}
+                            </span>
+                            <span className="text-sm font-light text-[#111]/60 whitespace-nowrap">
+                              -{discountPercent}%
+                            </span>
+                          </>
+                        );
+                      } else {
+                        return (
+                          <span className={`text-2xl font-light ${shouldStrikeThrough ? 'text-[#111]/60 line-through' : 'text-[#111]'}`}>
+                            ₺{price.toFixed(2)}
+                          </span>
+                        );
+                      }
+                    })()}
                   </div>
 
                   {/* Yıldız puanı */}
-                  <div className="flex items-center gap-2 mb-6">
-                    <div className="flex items-center gap-1">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star
-                          key={star}
-                          className={`w-4 h-4 ${
-                            star <= 4 ? "fill-[#111] text-[#111]" : "fill-gray-300 text-gray-300"
-                          }`}
-                        />
-                      ))}
+                  {reviews.length > 0 ? (
+                    <div className="flex items-center gap-2 mb-6">
+                      <div className="flex items-center gap-1">
+                        {[1, 2, 3, 4, 5].map((star) => {
+                          const avgRating = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
+                          return (
+                            <Star
+                              key={star}
+                              className={`w-4 h-4 ${
+                                star <= Math.round(avgRating) ? "fill-[#111] text-[#111]" : "fill-gray-300 text-gray-300"
+                              }`}
+                            />
+                          );
+                        })}
+                      </div>
+                      <span className="text-sm text-[#111]/60 font-light">
+                        {(reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)} ({reviews.length})
+                      </span>
                     </div>
-                    <span className="text-sm text-[#111]/60 font-light">4.8 (4)</span>
-                  </div>
+                  ) : (
+                    <div className="mb-6">
+                      <span className="text-sm text-[#111]/60 font-light">Henüz yorum yok</span>
+                    </div>
+                  )}
 
-                  {/* View product details link */}
-                  <Link
-                    href={`/product/${selectedProduct.id}`}
-                    className="text-sm text-[#111] hover:underline font-light mb-6 inline-block"
-                  >
-                    View product details →
-                  </Link>
+                  {/* Ürün detayına git link */}
+                  {selectedProduct.slug ? (
+                    <Link
+                      href={`/products/${selectedProduct.slug}`}
+                      className="text-sm text-[#111] hover:underline font-light mb-6 inline-block"
+                    >
+                      Ürün detayına git →
+                    </Link>
+                  ) : null}
 
-                  {/* Renk seçimi */}
-                  {selectedProduct.colors && selectedProduct.colors.length > 0 && (
+                  {/* Renk seçimi - Resimli */}
+                  {productColors.length > 0 && (
                     <div className="mb-6">
                       <p className="text-sm font-light text-[#111] mb-3">
-                        Color: <span className="text-[#111]/60">
+                        Renk: <span className="text-[#111]/60">
                           {selectedColor 
-                            ? (() => {
-                                // colors array'i string[] veya ColorOption[] olabilir
-                                const colors = (selectedProduct.colors || []) as any[];
-                                const colorObj = colors.find((c: any) => {
-                                  if (typeof c === 'string') {
-                                    return c === selectedColor;
-                                  }
-                                  return c.value === selectedColor || c.image === selectedColor || c.name === selectedColor;
-                                });
-                                if (colorObj) {
-                                  return typeof colorObj === 'string' ? colorObj : colorObj.name;
-                                }
-                                return selectedColor;
-                              })()
+                            ? productColors.find(c => c.id === selectedColor)?.name || "Seçiniz"
                             : "Seçiniz"}
                         </span>
                       </p>
-                      <div className="flex gap-2 flex-wrap">
-                        {((selectedProduct.colors || []) as any[]).map((color: any, idx: number) => {
-                          // color string veya object olabilir
-                          const colorObj = typeof color === "object" ? color : { value: color, name: color, image: "", id: null };
-                          const colorValue = colorObj.value || colorObj.name || "#000000";
-                          // ID varsa ID'yi, yoksa value/image/name'i kullan
-                          const colorIdentifier = colorObj.id || colorObj.image || colorValue;
-                          const isSelected = selectedColor === colorIdentifier || selectedColor === colorValue || selectedColor === colorObj.image || selectedColor === colorObj.name;
+                      <div className="flex gap-3 flex-wrap">
+                        {productColors.map((color) => {
+                          const isSelected = selectedColor === color.id;
+                          const colorImage = color.image || color.images?.[0];
+                          
                           return (
                             <button
-                              key={idx}
-                              onClick={() => setSelectedColor(colorIdentifier)}
-                              className={`w-8 h-8 rounded-full border-2 transition-all ${
+                              key={color.id}
+                              onClick={() => {
+                                setSelectedColor(color.id);
+                                setSelectedSize(null); // Renk değişince beden seçimini sıfırla
+                                
+                                // Renk değiştiğinde dinamik güncelleme
+                                if (color.images && color.images.length > 0) {
+                                  // Bu renge ait resimleri göster
+                                  const colorImages = color.images;
+                                  const allImages: string[] = [];
+                                  if (colorImages[0]) allImages.push(colorImages[0]);
+                                  if (colorImages[1] && colorImages[1] !== colorImages[0]) allImages.push(colorImages[1]);
+                                  colorImages.slice(2).forEach((img: string) => {
+                                    if (!allImages.includes(img)) allImages.push(img);
+                                  });
+                                  setProductImages(allImages.length > 0 ? allImages : [colorImage || ""].filter(Boolean));
+                                  setSelectedImageIndex(0);
+                                }
+                                
+                                // Variant'ları güncelle
+                                setSelectedProduct({
+                                  ...selectedProduct!,
+                                  image: colorImage || selectedProduct?.image,
+                                  hoverImage: color.images?.[1] || color.images?.[0] || selectedProduct?.hoverImage,
+                                  variants: color.variants?.map((v: any) => ({
+                                    colorId: v.colorId,
+                                    sizeId: v.sizeId,
+                                    stock: v.stock,
+                                  })) || [],
+                                  colorId: color.id,
+                                });
+                              }}
+                              className={`relative w-16 h-20 rounded overflow-hidden border-2 transition-all ${
                                 isSelected
-                                  ? "border-[#111] scale-110"
-                                  : "border-gray-300 hover:scale-105"
+                                  ? "border-[#111] scale-105"
+                                  : "border-gray-300 hover:border-[#111] hover:scale-105"
                               }`}
-                              style={{ backgroundColor: colorValue }}
-                              aria-label={typeof colorObj === 'string' ? colorObj : (colorObj.name || `Renk seçeneği ${idx + 1}`)}
-                            />
+                              aria-label={color.name || `Renk: ${color.id}`}
+                            >
+                              {colorImage ? (
+                                <Image
+                                  src={colorImage}
+                                  alt={color.name || "Renk seçeneği"}
+                                  fill
+                                  className="object-cover"
+                                  sizes="64px"
+                                />
+                              ) : (
+                                <div 
+                                  className="w-full h-full"
+                                  style={{ backgroundColor: color.hexCode || "#000000" }}
+                                />
+                              )}
+                              {isSelected && (
+                                <div className="absolute inset-0 border-2 border-[#111] pointer-events-none" />
+                              )}
+                            </button>
                           );
                         })}
                       </div>
                     </div>
                   )}
 
-                  {/* Beden seçimi */}
+                  {/* Beden seçimi - Her zaman göster */}
                   <div className="mb-6">
                     <p className="text-sm font-light text-[#111] mb-3">
-                      Size: <span className="text-[#111]/60">
+                      Beden: <span className="text-[#111]/60">
                         {selectedSize 
                           ? (() => {
                               const foundSize = getAvailableSizes(selectedProduct).find((s: any) => {
@@ -633,52 +1024,61 @@ function ProductCarouselContent({
                       </span>
                     </p>
                     <div className="grid grid-cols-4 gap-2">
-                      {getAvailableSizes(selectedProduct).map((size) => {
-                        const sizeName = typeof size === "string" ? size : size.name;
-                        const sizeId = typeof size === "object" && size.id ? size.id : null;
-                        const stock = getSizeStock(selectedProduct, sizeId);
-                        const isOutOfStock = stock <= 0;
-                        const isSelected = selectedSize === sizeId || selectedSize === sizeName;
+                      {(() => {
+                        const availableSizes = getAvailableSizes(selectedProduct);
+                        if (availableSizes.length > 0) {
+                          return availableSizes.map((size) => {
+                            const sizeName = typeof size === "string" ? size : size.name;
+                            const sizeId = typeof size === "object" && size.id ? size.id : null;
+                            const stock = getSizeStock(selectedProduct, sizeId);
+                            const isOutOfStock = stock <= 0;
+                            const isSelected = selectedSize === sizeId || selectedSize === sizeName;
 
-                        return (
-                          <button
-                            key={sizeId || sizeName}
-                            onClick={() => {
-                              if (!isOutOfStock) {
-                                setSelectedSize(sizeId || sizeName);
-                              }
-                            }}
-                            disabled={isOutOfStock}
-                            className={`px-4 py-3 text-sm font-light border transition-all ${
-                              isSelected
-                                ? "border-[#111] bg-[#111] text-white"
-                                : isOutOfStock
-                                ? "border-gray-200 text-gray-400 line-through cursor-not-allowed bg-white"
-                                : "border-gray-300 hover:border-[#111] bg-white text-[#111]"
-                            }`}
-                          >
-                            {sizeName}
-                          </button>
-                        );
-                      })}
+                            return (
+                              <button
+                                key={sizeId || sizeName}
+                                onClick={() => {
+                                  if (!isOutOfStock) {
+                                    setSelectedSize(sizeId || sizeName);
+                                  }
+                                }}
+                                disabled={isOutOfStock}
+                                className={`px-4 py-3 text-sm font-light border transition-all ${
+                                  isSelected
+                                    ? "border-[#111] bg-[#111] text-white"
+                                    : isOutOfStock
+                                    ? "border-gray-200 text-gray-400 line-through cursor-not-allowed bg-white"
+                                    : "border-gray-300 hover:border-[#111] bg-white text-[#111]"
+                                }`}
+                              >
+                                {sizeName}
+                              </button>
+                            );
+                          });
+                        } else {
+                          return (
+                            <p className="text-sm text-[#111]/60 font-light col-span-4">Beden bilgisi bulunamadı</p>
+                          );
+                        }
+                      })()}
                     </div>
                   </div>
 
                   {/* Ürün açıklaması */}
-                  <div className="mb-6">
-                    <p className="text-sm font-light text-[#111] leading-relaxed">
-                      {selectedProduct.title} - Premium kalite ve zarif tasarım ile üretilmiştir.
-                    </p>
-                  </div>
-
-                  {/* Özellikler */}
-                  <div className="mb-6">
-                    <ul className="space-y-2 text-sm font-light text-[#111]">
-                      <li>• Premium kumaş</li>
-                      <li>• Yüksek kalite</li>
-                      <li>• Zarif tasarım</li>
-                    </ul>
-                  </div>
+                  {(productDetails?.description || productDetails?.detailText) && (
+                    <div className="mb-6">
+                      {productDetails.description && (
+                        <p className="text-sm font-light text-[#111] leading-relaxed mb-2">
+                          {productDetails.description}
+                        </p>
+                      )}
+                      {productDetails.detailText && (
+                        <div className="text-sm font-light text-[#111]/60 whitespace-pre-line">
+                          {productDetails.detailText}
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Sepete ekle butonu */}
                   <Button

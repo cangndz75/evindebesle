@@ -25,13 +25,16 @@ async function getInitialProducts() {
     const products = await prisma.product.findMany({
       where: {
         isActive: true,
-        gender: "FEMALE",
+        gender: {
+          in: ["FEMALE", "UNISEX"],
+        },
       },
       select: {
         id: true,
         name: true,
         slug: true,
         price: true,
+        originalPrice: true,
         image: true,
         primaryImage: true,
         secondaryImage: true,
@@ -89,12 +92,19 @@ async function getInitialProducts() {
       const primaryImg = p.primaryImage || p.image;
       const secondaryImg = p.secondaryImage || p.image;
       
+      // Yeni ürün mü kontrol et (tag'lere göre)
+      const isNew = p.tags.some(tag => 
+        ["yeni ürün", "yeni", "yeni gelenler", "new", "new arrival"].includes(tag.name.toLowerCase())
+      );
+      
       return {
         id: p.id,
         name: p.name,
         price: p.price,
+        originalPrice: p.originalPrice ?? undefined,
         image: primaryImg ?? undefined,
         hoverImage: secondaryImg ?? undefined,
+        badge: isNew ? "Yeni" : (p.originalPrice ? "İndirim" : undefined),
         colors: p.colors.map((c) => {
           const cImages = parseImages(c.images);
           return {
@@ -117,7 +127,9 @@ async function getPriceRange() {
     const result = await prisma.product.aggregate({
       where: {
         isActive: true,
-        gender: "FEMALE",
+        gender: {
+          in: ["FEMALE", "UNISEX"],
+        },
       },
       _min: { price: true },
       _max: { price: true },

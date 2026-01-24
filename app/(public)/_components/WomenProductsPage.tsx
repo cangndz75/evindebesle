@@ -84,7 +84,8 @@ const generateProduct = (id: string, name: string, price: number, originalPrice?
   badge,
 });
 
-const products: Product[] = [
+// Statik ürünler sadece fallback olarak kullanılacak
+const fallbackProducts: Product[] = [
   generateProduct("w1", "Premium Dantel Sütyen", 899, undefined, "Yeni"),
   generateProduct("w2", "Seamless Günlük Külot", 349),
   generateProduct("w3", "Saten İpek Takım", 1299, 1599),
@@ -101,52 +102,6 @@ const products: Product[] = [
   generateProduct("w14", "Seamless Body", 1099),
   generateProduct("w15", "Lüks Külot", 349),
   generateProduct("w16", "Premium Sütyen", 899),
-];
-
-// Editorial görselleri
-const editorialItems: EditorialItem[] = [
-  {
-    id: "editorial-1",
-    type: "editorial",
-    image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1200&auto=format&fit=crop",
-  },
-  {
-    id: "editorial-2",
-    type: "editorial",
-    image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=1200&auto=format&fit=crop",
-  },
-];
-
-// Grid düzeni: 3. resimdeki gibi
-// Sıralı dizi: Editorial'lar özel konumlarda (2x2 span)
-const gridItems: GridItem[] = [
-  // Satır 1-2: Sol üst editorial (2x2) + Sağ üst 4 ürün
-  { id: "editorial-1", type: "editorial", image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1200&auto=format&fit=crop" },
-  products[0],
-  products[1],
-  products[2],
-  products[3],
-  
-  // Satır 3-5: Orta 3 satır x 4 sütun = 12 ürün
-  products[4],
-  products[5],
-  products[6],
-  products[7],
-  products[8],
-  products[9],
-  products[10],
-  products[11],
-  products[12],
-  products[13],
-  products[14],
-  products[15],
-  
-  // Satır 6-7: Alt 4 ürün + Sağ alt editorial (2x2)
-  products[0], // Fallback
-  products[1], // Fallback
-  products[2], // Fallback
-  products[3], // Fallback
-  { id: "editorial-2", type: "editorial", image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=1200&auto=format&fit=crop" },
 ];
 
 // Favorite Button Component
@@ -195,9 +150,9 @@ type WomenProductsPageProps = {
 };
 
 export default function WomenProductsPage({
-  initialProducts,
+  initialProducts = [],
   initialPriceRange = { min: 0, max: 2000 },
-}: WomenProductsPageProps = {}) {
+}: WomenProductsPageProps) {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [hoveredColor, setHoveredColor] = useState<{ productId: string; colorImage: string } | null>(null);
   const [selectedColor, setSelectedColor] = useState<{ productId: string; colorImage: string } | null>(null);
@@ -208,6 +163,9 @@ export default function WomenProductsPage({
     colors: [],
     fabricTypes: [],
   });
+
+  // Veritabanından gelen ürünleri kullan, yoksa fallback kullan
+  const products = initialProducts.length > 0 ? initialProducts : fallbackProducts;
 
   // Available options from products
   const availableOptions = useMemo(() => {
@@ -225,12 +183,42 @@ export default function WomenProductsPage({
       sizes: Array.from(sizes),
       colors: Array.from(colors),
       fabricTypes: [] as string[],
-      priceRange: {
-        min: Math.min(...prices, 0),
-        max: Math.max(...prices, 2000),
-      },
+      priceRange: initialPriceRange,
     };
-  }, []);
+  }, [products, initialPriceRange]);
+
+  // Grid düzeni: 3. resimdeki gibi
+  // Sıralı dizi: Editorial'lar özel konumlarda (2x2 span)
+  const gridItems: GridItem[] = useMemo(() => {
+    // Sadece mevcut ürünleri kullan, tekrar etme
+    const productItems = [...products];
+
+    const items: GridItem[] = [
+      // Satır 1-2: Sol üst editorial (2x2) + Sağ üst 4 ürün
+      { id: "editorial-1", type: "editorial", image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1200&auto=format&fit=crop" },
+    ];
+
+    // İlk 4 ürünü ekle
+    if (productItems[0]) items.push(productItems[0]);
+    if (productItems[1]) items.push(productItems[1]);
+    if (productItems[2]) items.push(productItems[2]);
+    if (productItems[3]) items.push(productItems[3]);
+    
+    // Satır 3-5: Orta 3 satır x 4 sütun = 12 ürün
+    for (let i = 4; i < 16 && i < productItems.length; i++) {
+      items.push(productItems[i]);
+    }
+    
+    // Satır 6-7: Alt 4 ürün (eğer varsa)
+    for (let i = 16; i < 20 && i < productItems.length; i++) {
+      items.push(productItems[i]);
+    }
+    
+    // Sağ alt editorial (2x2)
+    items.push({ id: "editorial-2", type: "editorial", image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=1200&auto=format&fit=crop" });
+
+    return items;
+  }, [products]);
 
   // Active filters for display
   const activeFilters = useMemo<ActiveFilter[]>(() => {

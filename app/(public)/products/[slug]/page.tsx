@@ -157,6 +157,7 @@ export default async function ProductSlugPage({
         value: c.hexCode || "#000000",
         variant: c.variants?.[0]?.variantCode, // İlk variant'ın kodunu al
         images: parsedImages,
+        image: parsedImages.length > 0 ? parsedImages[0] : undefined, // İlk resmi image olarak da ekle (TabbedProductCarousel uyumluluğu için)
       };
     }),
     sizes: (() => {

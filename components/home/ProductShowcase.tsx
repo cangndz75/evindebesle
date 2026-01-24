@@ -6,26 +6,7 @@ import { useState, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight, X, Star, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 import { addToGuestCart } from "@/lib/cart-utils";
-
-type ColorOption = {
-  name: string;
-  value: string;
-  image: string;
-  id?: string; // Renk ID'si (opsiyonel)
-};
-
-type Product = {
-  id: string;
-  title: string;
-  price?: number;
-  image: string;
-  hoverImage?: string;
-  colors?: ColorOption[] | string[];
-  sizes?: Array<{ name: string; stock: number; id?: string }>;
-  sizeOptions?: Array<{ name: string; id?: string }>;
-  colorId?: string;
-  variants?: Array<{ colorId: string | null; sizeId: string | null; stock: number }>;
-};
+import type { Product, ColorOption } from "@/lib/homeData";
 
 interface ProductShowcaseProps {
   products: Product[];
@@ -157,8 +138,41 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
 
   const getSizeStock = (product: Product, sizeObj: { name: string; stock: number; id?: string }, colorKey: string | null) => {
     const sizeId = sizeObj.id || null;
-    const variantStock = getVariantStock(product, sizeId, colorKey);
+    
+    // Eğer colorKey bir image URL ise, renk ID'sini bul
+    let actualColorId: string | null = colorKey;
+    if (colorKey && product.colors) {
+      const normalizedColors = normalizeColors(product.colors);
+      const colorObj = normalizedColors.find((c) => 
+        c.image === colorKey || 
+        (c.id && c.id === colorKey) || 
+        c.value === colorKey || 
+        c.name === colorKey
+      );
+      if (colorObj?.id) {
+        actualColorId = colorObj.id;
+      } else if (colorKey && /^[a-f0-9-]{36}$/i.test(colorKey)) {
+        // UUID formatındaysa direkt kullan
+        actualColorId = colorKey;
+      } else {
+        // Image URL ise, product'ın colorId'sini kullan
+        actualColorId = product.colorId || null;
+      }
+    } else if (!colorKey) {
+      // Renk seçilmemişse, product'ın colorId'sini veya ilk rengin ID'sini kullan
+      actualColorId = product.colorId || null;
+      if (!actualColorId && product.colors) {
+        const normalizedColors = normalizeColors(product.colors);
+        actualColorId = normalizedColors[0]?.id || null;
+      }
+    }
+    
+    // Önce variant stokuna bak
+    const variantStock = getVariantStock(product, sizeId, actualColorId);
     if (variantStock > 0) return variantStock;
+    
+    // Variant stoku yoksa size'ın kendi stokuna bak
+    // Eğer size'ın stoku varsa, onu kullan (variant stoku yoksa bile)
     return sizeObj.stock || 0;
   };
 
@@ -384,7 +398,16 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                     <div className="mt-4 px-2">
                       <h3 className="text-sm font-light text-[#111] mb-1 uppercase tracking-wide">{product.title}</h3>
                       {product.price != null && (
-                        <p className="text-sm font-light text-[#111] mb-3">₺{product.price.toFixed(2)}</p>
+                        <div className="flex items-center gap-2 mb-3">
+                          {product.originalPrice && product.originalPrice > product.price ? (
+                            <>
+                              <p className="text-sm font-light text-[#111]">₺{product.price.toFixed(2)}</p>
+                              <p className="text-sm font-light text-gray-400 line-through">₺{product.originalPrice.toFixed(2)}</p>
+                            </>
+                          ) : (
+                            <p className="text-sm font-light text-[#111]">₺{product.price.toFixed(2)}</p>
+                          )}
+                        </div>
                       )}
 
                       {normalizedColors.length > 0 && (
@@ -494,7 +517,16 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                   <div className="mt-4 px-2">
                     <h3 className="text-xs font-light text-[#111] mb-1 uppercase tracking-wide">{product.title}</h3>
                     {product.price != null && (
-                      <p className="text-sm font-light text-[#111] mb-3">₺{product.price.toFixed(2)}</p>
+                      <div className="flex items-center gap-2 mb-3">
+                        {product.originalPrice && product.originalPrice > product.price ? (
+                          <>
+                            <p className="text-sm font-light text-[#111]">₺{product.price.toFixed(2)}</p>
+                            <p className="text-sm font-light text-gray-400 line-through">₺{product.originalPrice.toFixed(2)}</p>
+                          </>
+                        ) : (
+                          <p className="text-sm font-light text-[#111]">₺{product.price.toFixed(2)}</p>
+                        )}
+                      </div>
                     )}
 
                     {normalizedColors.length > 0 && (
@@ -620,7 +652,14 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
 
                   {modalProduct.price != null && (
                     <div className="mb-4">
-                      <p className="text-xl font-light text-[#111]">₺{modalProduct.price.toFixed(2)}</p>
+                      {modalProduct.originalPrice && modalProduct.originalPrice > modalProduct.price ? (
+                        <div className="flex items-center gap-3">
+                          <p className="text-xl font-light text-[#111]">₺{modalProduct.price.toFixed(2)}</p>
+                          <p className="text-lg font-light text-gray-400 line-through">₺{modalProduct.originalPrice.toFixed(2)}</p>
+                        </div>
+                      ) : (
+                        <p className="text-xl font-light text-[#111]">₺{modalProduct.price.toFixed(2)}</p>
+                      )}
                     </div>
                   )}
 

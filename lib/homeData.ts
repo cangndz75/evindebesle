@@ -10,19 +10,28 @@ export type Category = {
   href: string;
 };
 
+export type ColorOption = {
+  id?: string;
+  name: string;
+  value: string;
+  image: string;
+};
+
 export type Product = {
   id: string;
   title: string;
+  slug?: string;
   price: number;
   originalPrice?: number;
   image: string;
   hoverImage?: string;
   badge?: "Yeni" | "İndirim";
-  colors?: string[];
+  colors?: string[] | ColorOption[];
   sizes?: Array<{ name: string; stock: number; id?: string }>;
   sizeOptions?: Array<{ name: string; id?: string }>;
   colorId?: string;
   variants?: Array<{ colorId: string | null; sizeId: string | null; stock: number }>;
+  allImages?: string[]; // Tüm ürün resimleri (primaryImage, secondaryImage, color images)
 };
 
 export type Tile = {

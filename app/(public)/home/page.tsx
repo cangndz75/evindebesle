@@ -66,12 +66,14 @@ function formatProduct(product: any, type: "new-arrivals" | "best-sellers" | "fe
     return {
       id: product.id,
       title: product.name,
+      slug: product.slug || undefined,
       price: product.price,
       image: mainImage,
       hoverImage: hoverImage !== mainImage ? hoverImage : undefined,
       colors: product.colors.map((c: any) => {
         const images = parseImages(c.images);
         return {
+          id: c.id,
           name: c.name || "",
           value: c.hexCode || "#000000",
           image: images[0] || mainImage,
@@ -91,6 +93,7 @@ function formatProduct(product: any, type: "new-arrivals" | "best-sellers" | "fe
   return {
     id: product.id,
     title: product.name,
+    slug: product.slug || undefined,
     price: product.price,
     originalPrice: product.originalPrice || undefined,
     image: mainImage,
@@ -128,6 +131,7 @@ async function getNewArrivals(gender?: "MALE" | "FEMALE"): Promise<Product[]> {
       select: {
         id: true,
         name: true,
+        slug: true,
         price: true,
         originalPrice: true,
         image: true,
@@ -203,6 +207,7 @@ async function getBestSellers(gender?: "MALE" | "FEMALE"): Promise<Product[]> {
       select: {
         id: true,
         name: true,
+        slug: true,
         price: true,
         originalPrice: true,
         image: true,
@@ -293,6 +298,7 @@ async function getFeaturedProducts(): Promise<Product[]> {
       select: {
         id: true,
         name: true,
+        slug: true,
         price: true,
         originalPrice: true,
         image: true,

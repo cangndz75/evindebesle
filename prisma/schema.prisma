@@ -4,6 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 // The enum definition remains here.
@@ -643,6 +644,7 @@ model Product {
   reviews         ProductReview[]
   sizeOptions     ProductSizeOption[]
   variants        ProductVariant[]
+  productImages   ProductImage[] // Ürün resimleri (genel ve renk bazlı)
   favorites       ProductFavorite[]
   viewHistory     ProductViewHistory[]
   cartItems       CartItem[]
@@ -656,17 +658,43 @@ model ProductColor {
   productId String
   name      String   // Renk adı (Kırmızı, Mavi, vb.)
   hexCode   String?  // Hex renk kodu (#FF0000)
-  images    String?  // JSON array olarak saklanacak (Bu renge ait fotoğraflar)
+  images    String?  // JSON array olarak saklanacak (Bu renge ait fotoğraflar) - DEPRECATED: ProductImage kullanılacak
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   variants ProductVariant[] // Bir renk için birden fazla variant (her beden için)
   reviews ProductReview[] // Bu renge ait yorumlar
+  productImages ProductImage[] // Bu renge ait resimler
   cartItems CartItem[]
   orderItems OrderItem[]
 
   @@index([productId])
+}
+
+model ProductImage {
+  id        String   @id @default(cuid())
+  productId String
+  colorId   String?  // Hangi renge ait (null ise genel ürün resmi - primaryImage, secondaryImage)
+  variantId String?  // Hangi varyanta ait (opsiyonel - variant'a özel resimler için)
+  url       String   // Resim URL'i
+  order     Int      @default(0) // Sıralama (0, 1, 2, 3...)
+  isPrimary Boolean  @default(false) // Ana resim mi? (primaryImage)
+  isSecondary Boolean @default(false) // İkincil resim mi? (secondaryImage)
+  alt       String?  // Alt text (SEO ve erişilebilirlik için)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  color   ProductColor? @relation(fields: [colorId], references: [id], onDelete: Cascade)
+  variant ProductVariant? @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@index([colorId])
+  @@index([variantId])
+  @@index([order])
+  @@index([isPrimary])
+  @@index([isSecondary])
 }
 
 model ProductVariant {
@@ -684,6 +712,7 @@ model ProductVariant {
   product Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
   color   ProductColor? @relation(fields: [colorId], references: [id], onDelete: SetNull)
   size    ProductSize?  @relation(fields: [sizeId], references: [id], onDelete: SetNull)
+  productImages ProductImage[] // Bu varyanta özel resimler
 
   @@unique([productId, colorId, sizeId])
   @@index([productId])

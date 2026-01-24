@@ -218,18 +218,18 @@ export default function WomenNewArrivalsPage() {
                     {product.name}
                   </h3>
                   <div className="flex items-center gap-2">
-                    {product.originalPrice ? (
+                    {product.originalPrice && product.originalPrice < product.price ? (
                       <>
                         <span className="text-sm md:text-base font-light text-[#111]">
-                          {product.price} ₺
+                          {product.originalPrice} ₺
                         </span>
                         <span className="text-sm text-[#111]/60 line-through">
-                          {product.originalPrice} ₺
+                          {product.price} ₺
                         </span>
                       </>
                     ) : (
                       <span className="text-sm md:text-base font-light text-[#111]">
-                        {product.price} ₺
+                        {product.originalPrice ? product.originalPrice : product.price} ₺
                       </span>
                     )}
                   </div>

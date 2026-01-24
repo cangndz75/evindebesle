@@ -117,14 +117,13 @@ export async function POST(request: NextRequest) {
     // Giriş yapmış kullanıcı için veritabanına kaydet
     if (user) {
       // Aynı ürün, renk ve beden kombinasyonunu kontrol et
-      const existingItem = await prisma.cartItem.findUnique({
+      // findFirst kullan çünkü colorId veya sizeId null olabilir (composite key null kabul etmez)
+      const existingItem = await prisma.cartItem.findFirst({
         where: {
-          userId_productId_colorId_sizeId: {
-            userId: user.id,
-            productId,
-            colorId: colorId || null,
-            sizeId: sizeId || null,
-          },
+          userId: user.id,
+          productId,
+          colorId: colorId || null,
+          sizeId: sizeId || null,
         },
       });
 

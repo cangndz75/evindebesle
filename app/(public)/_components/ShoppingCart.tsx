@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { getGuestCart, saveGuestCart, removeFromGuestCart } from "@/lib/cart-utils";
+import { getRecentlyViewed } from "@/lib/recently-viewed";
 
 type CartItem = {
   id: string;
@@ -137,6 +138,91 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
   const updateTimers = useRef<Map<string, NodeJS.Timeout>>(new Map());
   const pendingUpdates = useRef<Map<string, number>>(new Map());
 
+  // Senkronizasyon durumunu takip et (sonsuz döngüyü önlemek için)
+  const isSyncingRef = useRef(false);
+  const hasSyncedRef = useRef(false); // Sadece bir kez senkronize et
+
+  // localStorage'daki guest cart'ı API'ye senkronize et (giriş yapıldığında)
+  const syncGuestCartToAPI = async () => {
+    // Eğer zaten senkronizasyon yapılıyorsa veya daha önce yapıldıysa, tekrar başlatma
+    if (isSyncingRef.current || hasSyncedRef.current) {
+      return;
+    }
+    
+    isSyncingRef.current = true;
+    try {
+      const guestCart = getGuestCart();
+      if (guestCart.length === 0) {
+        hasSyncedRef.current = true; // Boş sepet için de flag'i set et
+        return; // Sepet boşsa işlem yapma
+      }
+
+      // Her bir item'ı API'ye ekle
+      const syncPromises = guestCart.map(async (item) => {
+        try {
+          const res = await fetch("/api/cart", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              productId: item.productId,
+              colorId: item.colorId,
+              sizeId: item.sizeId,
+              quantity: item.quantity,
+            }),
+          });
+
+          if (res.ok) {
+            return { success: true, itemId: item.id };
+          } else {
+            console.error(`Failed to sync item ${item.id}:`, await res.json());
+            return { success: false, itemId: item.id };
+          }
+        } catch (error) {
+          console.error(`Error syncing item ${item.id}:`, error);
+          return { success: false, itemId: item.id };
+        }
+      });
+
+      const results = await Promise.all(syncPromises);
+      const successCount = results.filter((r) => r.success).length;
+
+      // Eğer tüm item'lar başarıyla senkronize edildiyse localStorage'ı temizle
+      if (successCount === guestCart.length) {
+        // localStorage'ı temizle
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("guestCart");
+        }
+        // Sepet güncelleme event'ini tetikle
+        window.dispatchEvent(new Event("cartUpdated"));
+        // loadCart'ı çağıran yerde zaten yüklenecek, burada tekrar çağırmaya gerek yok
+      } else {
+        // Bazı item'lar başarısız oldu, sadece başarılı olanları localStorage'dan kaldır
+        const failedItemIds = results
+          .filter((r) => !r.success)
+          .map((r) => r.itemId);
+        
+        if (failedItemIds.length < guestCart.length) {
+          // Başarılı olanları localStorage'dan kaldır
+          const remainingItems = guestCart.filter(
+            (item) => !failedItemIds.includes(item.id)
+          );
+          if (typeof window !== "undefined") {
+            localStorage.setItem("guestCart", JSON.stringify(remainingItems));
+          }
+          // Sepet güncelleme event'ini tetikle
+          window.dispatchEvent(new Event("cartUpdated"));
+        }
+      }
+      
+      // Senkronizasyon tamamlandı, flag'i set et
+      hasSyncedRef.current = true;
+    } catch (error) {
+      console.error("Error syncing guest cart to API:", error);
+    } finally {
+      isSyncingRef.current = false;
+    }
+  };
+
   const loadCart = async (skipPendingCheck = false) => {
     try {
       setIsLoading(true);
@@ -144,6 +230,21 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
       if (res.ok) {
         const data = await res.json();
         const items = Array.isArray(data) ? data : [];
+        
+        // Eğer giriş yapılmışsa ve localStorage'da guest cart varsa senkronize et
+        // (Sadece bir kez, senkronizasyon yapılmıyorsa ve daha önce yapılmadıysa)
+        if (!isSyncingRef.current && !hasSyncedRef.current) {
+          const guestCart = getGuestCart();
+          if (guestCart.length > 0) {
+            // Arka planda senkronize et (await yok - beklemeden devam et)
+            syncGuestCartToAPI().catch((error) => {
+              console.error("Error syncing guest cart:", error);
+            });
+          } else {
+            // Guest cart boşsa da flag'i set et (tekrar kontrol etmeye gerek yok)
+            hasSyncedRef.current = true;
+          }
+        }
         
         // Eğer pending update varsa, onu koru
         if (!skipPendingCheck && pendingUpdates.current.size > 0) {
@@ -160,10 +261,30 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
           setCartItems(items);
         }
       } else if (res.status === 401) {
-        // Guest kullanıcı için localStorage'dan yükle
+        // Guest kullanıcı için localStorage'dan yükle (sessizce, hata gösterme)
         try {
           const items = getGuestCart();
           // GuestCartItem'ı CartItem formatına dönüştür
+          const formattedItems: CartItem[] = items.map((item) => ({
+            ...item,
+            product: {
+              ...item.product,
+              slug: null,
+              primaryImage: item.product.image,
+              colors: [],
+              sizes: [],
+            },
+            color: item.color ? { ...item.color, images: [] } : null,
+            size: item.size || null,
+          }));
+          setCartItems(formattedItems);
+        } catch (e) {
+          setCartItems([]);
+        }
+      } else {
+        // Diğer hatalar için guest cart'ı dene
+        try {
+          const items = getGuestCart();
           const formattedItems: CartItem[] = items.map((item) => ({
             ...item,
             product: {
@@ -182,28 +303,24 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
         }
       }
     } catch (error) {
-      // 401 hatası zaten handle edildi, diğer hatalar için sessizce devam et
-      if (error instanceof Error && !error.message.includes('401')) {
-        // Guest cart'ı dene
-        try {
-          const items = getGuestCart();
-          // GuestCartItem'ı CartItem formatına dönüştür
-          const formattedItems: CartItem[] = items.map((item) => ({
-            ...item,
-            product: {
-              ...item.product,
-              slug: null,
-              primaryImage: item.product.image,
-              colors: [],
-              sizes: [],
-            },
-            color: item.color ? { ...item.color, images: [] } : null,
-            size: item.size || null,
-          }));
-          setCartItems(formattedItems);
-        } catch (e) {
-          setCartItems([]);
-        }
+      // Network hatası veya diğer hatalar için guest cart'ı dene (sessizce)
+      try {
+        const items = getGuestCart();
+        const formattedItems: CartItem[] = items.map((item) => ({
+          ...item,
+          product: {
+            ...item.product,
+            slug: null,
+            primaryImage: item.product.image,
+            colors: [],
+            sizes: [],
+          },
+          color: item.color ? { ...item.color, images: [] } : null,
+          size: item.size || null,
+        }));
+        setCartItems(formattedItems);
+      } catch (e) {
+        setCartItems([]);
       }
     } finally {
       setIsLoading(false);
@@ -216,11 +333,21 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
       return;
     }
 
+    // Önce kullanıcının giriş yapıp yapmadığını kontrol et (setIsCreatingOrder'dan önce)
+    const addressesRes = await fetch("/api/user-addresses");
+    
+    // 401 hatası = giriş yapmamış kullanıcı - direkt yönlendir, loading gösterme
+    if (addressesRes.status === 401) {
+      // Sepeti localStorage'da tut (zaten tutuluyor ama emin olmak için)
+      // Sepeti kapat ve auth-tabs'e yönlendir
+      onClose();
+      router.push("/auth-tabs");
+      return;
+    }
+
     try {
       setIsCreatingOrder(true);
 
-      // Önce kullanıcının adreslerini kontrol et
-      const addressesRes = await fetch("/api/user-addresses");
       if (!addressesRes.ok) {
         throw new Error("Adresler yüklenemedi");
       }
@@ -264,7 +391,10 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
       router.push("/profile/orders");
     } catch (error: any) {
       console.error("Order creation error:", error);
-      toast.error(error.message || "Sipariş oluşturulurken bir hata oluştu");
+      // 401 hatası zaten handle edildi, diğer hatalar için mesaj göster
+      if (!error.message?.includes('401')) {
+        toast.error(error.message || "Sipariş oluşturulurken bir hata oluştu");
+      }
     } finally {
       setIsCreatingOrder(false);
     }
@@ -309,13 +439,80 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
 
   const loadRecentlyViewed = async () => {
     try {
-      const res = await fetch("/api/products/recent-views");
-      if (res.ok) {
-        const data = await res.json();
-        setRecentlyViewedProducts(Array.isArray(data?.products) ? data.products : []);
+      // Önce localStorage'dan veri çek
+      const localProducts = getRecentlyViewed();
+      
+      // localStorage'dan gelen ürünleri formatla
+      const localFormatted = localProducts.map((p) => ({
+        id: p.id,
+        productId: p.productId,
+        name: p.name,
+        slug: p.slug || null,
+        price: p.price,
+        image: p.image || p.primaryImage || null,
+        primaryImage: p.primaryImage || p.image || null,
+        colors: [],
+      }));
+
+      // API'den de veri çekmeyi dene (giriş yapmış kullanıcılar için)
+      try {
+        const res = await fetch("/api/products/recent-views");
+        if (res.ok) {
+          const data = await res.json();
+          const apiProducts = Array.isArray(data?.products) ? data.products : [];
+          
+          // API'den gelen ürünleri formatla
+          const apiFormatted = apiProducts.map((p: any) => ({
+            id: p.id,
+            productId: p.id,
+            name: p.name,
+            slug: p.slug || null,
+            price: p.price,
+            image: p.primaryImage || p.image || null,
+            primaryImage: p.primaryImage || p.image || null,
+            colors: p.colors || [],
+          }));
+
+          // API ve localStorage ürünlerini birleştir
+          // Aynı ürün varsa API'den geleni önceliklendir (daha güncel)
+          type ProductItem = {
+            id: string;
+            productId: string;
+            name: string;
+            slug: string | null;
+            price: number;
+            image: string | null;
+            primaryImage: string | null;
+            colors: any[];
+          };
+          const productMap = new Map<string, ProductItem>();
+          
+          // Önce localStorage ürünlerini ekle
+          localFormatted.forEach((p: ProductItem) => {
+            productMap.set(p.productId, p);
+          });
+          
+          // Sonra API ürünlerini ekle (aynı ürün varsa üzerine yaz)
+          apiFormatted.forEach((p: ProductItem) => {
+            productMap.set(p.productId, p);
+          });
+          
+          // Map'ten array'e çevir (zaten sıralı - en yeni önce)
+          const combined = Array.from(productMap.values());
+          // En fazla 12 ürün göster
+          setRecentlyViewedProducts(combined.slice(0, 12));
+        } else {
+          // API başarısız olursa sadece localStorage kullan
+          setRecentlyViewedProducts(localFormatted.slice(0, 12));
+        }
+      } catch (apiError) {
+        // API hatası olursa sadece localStorage kullan
+        console.error("Error fetching API recent views:", apiError);
+        setRecentlyViewedProducts(localFormatted.slice(0, 12));
       }
     } catch (error) {
       console.error("Error loading recently viewed products:", error);
+      setRecentlyViewedProducts([]);
     }
   };
 
@@ -328,13 +525,14 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
       // Sepet kapandığında ref'leri sıfırla
       prevProductIdsRef.current = "";
       isInitialLoadRef.current = true;
+      hasSyncedRef.current = false; // Bir sonraki açılışta tekrar kontrol et
       return;
     }
     
     // Açılınca temel dataları çek
     loadCart();
     loadCompanySettings();
-    loadRecentlyViewed();
+    // Son görüntülenenler sadece tab'a basınca yüklenecek (performans için)
     
     // Cleanup: Timer'ları temizle
     return () => {
@@ -343,6 +541,31 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
       pendingUpdates.current.clear();
     };
   }, [isOpen]);
+
+  // Tab değiştiğinde "Son Görüntülenenler" tab'ına basıldıysa dinamik yükle
+  useEffect(() => {
+    if (isOpen && activeTab === "recent") {
+      loadRecentlyViewed();
+    }
+  }, [isOpen, activeTab]);
+
+  // Event listener: recentlyViewedUpdated event'i için
+  useEffect(() => {
+    if (!isOpen) return;
+    
+    const handleRecentlyViewedUpdated = () => {
+      // Eğer "Son Görüntülenenler" tab'ı aktifse, listeyi yeniden yükle
+      if (activeTab === "recent") {
+        loadRecentlyViewed();
+      }
+    };
+
+    window.addEventListener("recentlyViewedUpdated", handleRecentlyViewedUpdated);
+    
+    return () => {
+      window.removeEventListener("recentlyViewedUpdated", handleRecentlyViewedUpdated);
+    };
+  }, [isOpen, activeTab]);
 
   useEffect(() => {
     if (!isOpen) return;

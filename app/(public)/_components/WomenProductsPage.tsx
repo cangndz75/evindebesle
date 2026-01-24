@@ -20,7 +20,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import AnnouncementBanner from "@/components/home/AnnouncementBanner";
 import ProductFilters from "./ProductFilters";
 import { useMemo } from "react";
 
@@ -50,6 +49,17 @@ type EditorialItem = {
 };
 
 type GridItem = Product | EditorialItem;
+
+type GridPosition = {
+  type: 'large-left' | 'large-right' | 'small';
+  row: number;
+  col: number;
+  span: { row: number; col: number };
+};
+
+type ProductWithGridPosition = Product & {
+  _gridPosition?: GridPosition;
+};
 
 const categories = [
   "All",
@@ -188,35 +198,139 @@ export default function WomenProductsPage({
     };
   }, [products, initialPriceRange]);
 
-  // Grid düzeni: 3. resimdeki gibi
-  // Sıralı dizi: Editorial'lar özel konumlarda (2x2 span)
-  const gridItems: GridItem[] = useMemo(() => {
-    // Sadece mevcut ürünleri kullan, tekrar etme
+  // Grid düzeni: Döngüsel pattern
+  // Pattern 1: Büyük sol (2x2) + Sağda 2 ürün dikey
+  // Pattern 2: 4 ürün yatay
+  // Pattern 3: Solda 2 ürün dikey + Büyük sağ (2x2)
+  // Pattern 4: 4 ürün yatay
+  // Bu döngü devam eder
+  const gridItems: ProductWithGridPosition[] = useMemo(() => {
     const productItems = [...products];
+    const items: ProductWithGridPosition[] = [];
+    let productIndex = 0;
+    let currentRow = 1;
 
-    const items: GridItem[] = [
-      // Satır 1-2: Sol üst editorial (2x2) + Sağ üst 4 ürün
-      { id: "editorial-1", type: "editorial", image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1200&auto=format&fit=crop" },
-    ];
-
-    // İlk 4 ürünü ekle
-    if (productItems[0]) items.push(productItems[0]);
-    if (productItems[1]) items.push(productItems[1]);
-    if (productItems[2]) items.push(productItems[2]);
-    if (productItems[3]) items.push(productItems[3]);
-    
-    // Satır 3-5: Orta 3 satır x 4 sütun = 12 ürün
-    for (let i = 4; i < 16 && i < productItems.length; i++) {
-      items.push(productItems[i]);
+    // Döngüsel pattern oluştur
+    while (productIndex < productItems.length) {
+      // Pattern 1: Büyük sol (2x2) + Sağda 2 ürün dikey
+      if (productIndex < productItems.length) {
+        items.push({
+          ...productItems[productIndex],
+          _gridPosition: { 
+            type: 'large-left',
+            row: currentRow,
+            col: 1,
+            span: { row: 2, col: 2 }
+          }
+        });
+        productIndex++;
+      }
+      
+      // Sağ üst ürün
+      if (productIndex < productItems.length) {
+        items.push({
+          ...productItems[productIndex],
+          _gridPosition: { 
+            type: 'small',
+            row: currentRow,
+            col: 3,
+            span: { row: 1, col: 1 }
+          }
+        });
+        productIndex++;
+      }
+      
+      // Sağ alt ürün
+      if (productIndex < productItems.length) {
+        items.push({
+          ...productItems[productIndex],
+          _gridPosition: { 
+            type: 'small',
+            row: currentRow + 1,
+            col: 3,
+            span: { row: 1, col: 1 }
+          }
+        });
+        productIndex++;
+      }
+      
+      currentRow += 2; // 2 satır kullandık
+      
+      // Pattern 2: 4 ürün yatay
+      for (let i = 0; i < 4 && productIndex < productItems.length; i++) {
+        items.push({
+          ...productItems[productIndex],
+          _gridPosition: { 
+            type: 'small',
+            row: currentRow,
+            col: i + 1,
+            span: { row: 1, col: 1 }
+          }
+        });
+        productIndex++;
+      }
+      currentRow += 1; // 1 satır kullandık
+      
+      // Pattern 3: Solda 2 ürün dikey + Büyük sağ (2x2)
+      // Sol üst
+      if (productIndex < productItems.length) {
+        items.push({
+          ...productItems[productIndex],
+          _gridPosition: { 
+            type: 'small',
+            row: currentRow,
+            col: 1,
+            span: { row: 1, col: 1 }
+          }
+        });
+        productIndex++;
+      }
+      
+      // Sol alt
+      if (productIndex < productItems.length) {
+        items.push({
+          ...productItems[productIndex],
+          _gridPosition: { 
+            type: 'small',
+            row: currentRow + 1,
+            col: 1,
+            span: { row: 1, col: 1 }
+          }
+        });
+        productIndex++;
+      }
+      
+      // Büyük sağ (2x2)
+      if (productIndex < productItems.length) {
+        items.push({
+          ...productItems[productIndex],
+          _gridPosition: { 
+            type: 'large-right',
+            row: currentRow,
+            col: 3,
+            span: { row: 2, col: 2 }
+          }
+        });
+        productIndex++;
+      }
+      
+      currentRow += 2; // 2 satır kullandık
+      
+      // Pattern 4: 4 ürün yatay
+      for (let i = 0; i < 4 && productIndex < productItems.length; i++) {
+        items.push({
+          ...productItems[productIndex],
+          _gridPosition: { 
+            type: 'small',
+            row: currentRow,
+            col: i + 1,
+            span: { row: 1, col: 1 }
+          }
+        });
+        productIndex++;
+      }
+      currentRow += 1; // 1 satır kullandık
     }
-    
-    // Satır 6-7: Alt 4 ürün (eğer varsa)
-    for (let i = 16; i < 20 && i < productItems.length; i++) {
-      items.push(productItems[i]);
-    }
-    
-    // Sağ alt editorial (2x2)
-    items.push({ id: "editorial-2", type: "editorial", image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=1200&auto=format&fit=crop" });
 
     return items;
   }, [products]);
@@ -293,7 +407,6 @@ export default function WomenProductsPage({
 
   return (
     <div className="min-h-screen bg-white pt-[65px] md:pt-[81px]">
-      <AnnouncementBanner variant="pink" className="mb-0" />
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 md:py-12">
         {/* Breadcrumb */}
         <nav className="mb-3 md:mb-4">
@@ -503,7 +616,7 @@ export default function WomenProductsPage({
                     {product.name}
                   </h3>
                   <div className="flex flex-col gap-0.5">
-                    {product.originalPrice ? (
+                    {product.originalPrice && product.originalPrice < product.price ? (
                       <>
                         <span className="font-light text-[#111] text-xs">
                           {product.originalPrice} ₺
@@ -514,7 +627,7 @@ export default function WomenProductsPage({
                       </>
                     ) : (
                       <span className="font-light text-[#111] text-xs">
-                        {product.price} ₺
+                        {product.originalPrice ? product.originalPrice : product.price} ₺
                       </span>
                     )}
                   </div>
@@ -553,80 +666,31 @@ export default function WomenProductsPage({
           })}
         </div>
 
-        {/* Desktop Grid - Editorial düzeni */}
+        {/* Desktop Grid - Döngüsel pattern düzeni */}
         <div className="hidden md:grid md:grid-cols-4 gap-6 auto-rows-fr">
           {gridItems.map((item, index) => {
-            // Editorial kart
-            if ("type" in item && item.type === "editorial") {
-              // İlk editorial: sol üst (2x2), index 0
-              if (item.id === "editorial-1") {
-                return (
-                  <div
-                    key={item.id}
-                    className="group relative overflow-hidden bg-gray-100 aspect-square col-span-2 row-span-2"
-                    style={{ gridColumn: "1 / 3", gridRow: "1 / 3" }}
-                  >
-                    <Image
-                      src={item.image || "/placeholder.png"}
-                      alt="Editorial"
-                      fill
-                      className="object-cover transition-transform duration-700 group-hover:scale-105"
-                      sizes="50vw"
-                      unoptimized
-                    />
-                  </div>
-                );
-              }
-              // İkinci editorial: sağ alt (2x2), index 20
-              return (
-                <div
-                  key={item.id}
-                  className="group relative overflow-hidden bg-gray-100 aspect-square col-span-2 row-span-2"
-                  style={{ gridColumn: "3 / 5", gridRow: "6 / 8" }}
-                >
-                  <Image
-                    src={item.image || "/placeholder.png"}
-                    alt="Editorial"
-                    fill
-                    className="object-cover transition-transform duration-700 group-hover:scale-105"
-                    sizes="50vw"
-                    unoptimized
-                  />
-                </div>
-              );
-            }
-
             // Ürün kartı
-            const product = item as Product;
+            const product = item as ProductWithGridPosition;
             
-            // Ürünlerin grid pozisyonlarını belirle (sadece desktop)
+            // Grid pozisyonunu _gridPosition'dan al
+            const gridPos = (product as ProductWithGridPosition)._gridPosition;
             let gridStyle: React.CSSProperties = {};
             
-            // Satır 1: Sağ üst 2 ürün (editorial'dan sonra, index 1-2)
-            if (index === 1) gridStyle = { gridColumn: "3", gridRow: "1" };
-            else if (index === 2) gridStyle = { gridColumn: "4", gridRow: "1" };
-            // Satır 2: Sağ üst devam 2 ürün (index 3-4)
-            else if (index === 3) gridStyle = { gridColumn: "3", gridRow: "2" };
-            else if (index === 4) gridStyle = { gridColumn: "4", gridRow: "2" };
-            // Satır 3-5: Orta 12 ürün (3 satır x 4 sütun, index 5-16)
-            else if (index >= 5 && index <= 16) {
-              const relativeIndex = index - 5;
-              const row = Math.floor(relativeIndex / 4) + 3;
-              const col = (relativeIndex % 4) + 1;
-              gridStyle = { gridColumn: col.toString(), gridRow: row.toString() };
-            }
-            // Satır 6-7: Alt 4 ürün (index 17-20)
-            else if (index >= 17 && index <= 20) {
-              const relativeIndex = index - 17;
-              if (relativeIndex < 2) {
-                gridStyle = { gridColumn: (relativeIndex + 1).toString(), gridRow: "6" };
+            if (gridPos) {
+              const { row, col, span } = gridPos;
+              if (span.row > 1 || span.col > 1) {
+                // Büyük ürün (2x2)
+                gridStyle = {
+                  gridColumn: `${col} / ${col + span.col}`,
+                  gridRow: `${row} / ${row + span.row}`
+                };
               } else {
-                gridStyle = { gridColumn: (relativeIndex - 1).toString(), gridRow: "7" };
+                // Küçük ürün (1x1)
+                gridStyle = {
+                  gridColumn: col.toString(),
+                  gridRow: row.toString()
+                };
               }
-            }
-            // Varsayılan (olması gerekmeyen durumlar için)
-            else {
-              gridStyle = {};
             }
             const isColorActive = hoveredColor?.productId === product.id || selectedColor?.productId === product.id;
             const activeColorImage = hoveredColor?.productId === product.id
@@ -636,11 +700,15 @@ export default function WomenProductsPage({
               : null;
 
             const currentImage = activeColorImage || product.image || "/placeholder.png";
+            
+            // Büyük ürünler için square, küçükler için 3/4 aspect ratio
+            const isLarge = gridPos && (gridPos.span.row > 1 || gridPos.span.col > 1);
+            const aspectClass = isLarge ? "aspect-square" : "aspect-[3/4]";
 
             return (
               <div key={product.id} className="group" style={gridStyle}>
                 <Link href={product.slug ? `/products/${product.slug}` : `/product/${product.id}`} className="block">
-                  <div className="relative mb-3 overflow-hidden bg-gray-100 aspect-[3/4]">
+                  <div className={`relative mb-3 overflow-hidden bg-gray-100 ${aspectClass}`}>
                     <Image
                       src={currentImage}
                       alt={product.name}
@@ -673,7 +741,7 @@ export default function WomenProductsPage({
                     {product.name}
                   </h3>
                   <div className="flex flex-col">
-                    {product.originalPrice ? (
+                    {product.originalPrice && product.originalPrice < product.price ? (
                       <>
                         <span className="font-light text-[#111] text-xs md:text-sm">
                           {product.originalPrice} ₺
@@ -684,7 +752,7 @@ export default function WomenProductsPage({
                       </>
                     ) : (
                       <span className="font-light text-[#111] text-xs md:text-sm">
-                        {product.price} ₺
+                        {product.originalPrice ? product.originalPrice : product.price} ₺
                       </span>
                     )}
                   </div>

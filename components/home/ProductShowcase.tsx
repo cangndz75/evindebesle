@@ -405,7 +405,9 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                               <p className="text-sm font-light text-gray-400 line-through">₺{product.originalPrice.toFixed(2)}</p>
                             </>
                           ) : (
-                            <p className="text-sm font-light text-[#111]">₺{product.price.toFixed(2)}</p>
+                            <p className="text-sm font-light text-[#111]">
+                              ₺{product.originalPrice ? product.originalPrice.toFixed(2) : product.price.toFixed(2)}
+                            </p>
                           )}
                         </div>
                       )}
@@ -656,7 +658,9 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                           <p className="text-lg font-light text-gray-400 line-through">₺{modalProduct.originalPrice.toFixed(2)}</p>
                         </div>
                       ) : (
-                        <p className="text-xl font-light text-[#111]">₺{modalProduct.price.toFixed(2)}</p>
+                        <p className="text-xl font-light text-[#111]">
+                          ₺{modalProduct.originalPrice ? modalProduct.originalPrice.toFixed(2) : modalProduct.price.toFixed(2)}
+                        </p>
                       )}
                     </div>
                   )}

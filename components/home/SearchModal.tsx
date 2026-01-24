@@ -1,20 +1,21 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { X, Search, Filter, ChevronDown, Heart, ChevronRight, Plus, Minus } from "lucide-react";
-import { bestSellersWomen, bestSellersMen, newArrivals } from "@/lib/homeData";
+import { X, Search, Filter, ChevronDown, Heart, ChevronRight, Plus, Minus, Loader2 } from "lucide-react";
 
 type Product = {
   id: string;
   title: string;
   price: number;
+  originalPrice?: number;
   image: string;
   hoverImage?: string;
   badge?: string;
   category?: string;
   tags?: string[];
+  slug?: string;
 };
 
 type Collection = {
@@ -30,7 +31,7 @@ interface SearchModalProps {
   initialQuery?: string;
 }
 
-// Sample collections
+// Sample collections - TODO: Veritabanından çekilecek
 const collections: Collection[] = [
   {
     id: "1",
@@ -52,40 +53,6 @@ const collections: Collection[] = [
   },
 ];
 
-  // Combine all products with fallback images
-  const allProducts: Product[] = [
-    ...bestSellersWomen.map((p) => ({
-      id: p.id,
-      title: p.title,
-      price: p.price,
-      image: p.image.startsWith("http") ? p.image : "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=600&auto=format&fit=crop",
-      hoverImage: p.hoverImage?.startsWith("http") ? p.hoverImage : undefined,
-      badge: p.badge,
-      category: "women",
-      tags: ["kadın", "women", p.title.toLowerCase()],
-    })),
-    ...bestSellersMen.map((p) => ({
-      id: p.id,
-      title: p.title,
-      price: p.price,
-      image: p.image.startsWith("http") ? p.image : "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=600&auto=format&fit=crop",
-      hoverImage: p.hoverImage?.startsWith("http") ? p.hoverImage : undefined,
-      badge: p.badge,
-      category: "men",
-      tags: ["erkek", "men", p.title.toLowerCase()],
-    })),
-    ...newArrivals.map((p) => ({
-      id: p.id,
-      title: p.title,
-      price: p.price,
-      image: p.image.startsWith("http") ? p.image : "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=600&auto=format&fit=crop",
-      hoverImage: p.hoverImage?.startsWith("http") ? p.hoverImage : undefined,
-      badge: p.badge || "Yeni",
-      category: "new",
-      tags: ["yeni", "new", p.title.toLowerCase()],
-    })),
-  ];
-
 export default function SearchModal({ isOpen, onClose, initialQuery = "" }: SearchModalProps) {
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -99,12 +66,86 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 5000]);
+  
+  // API state
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
 
   useEffect(() => {
     if (isOpen && initialQuery) {
       setSearchQuery(initialQuery);
     }
   }, [isOpen, initialQuery]);
+
+  // Debounced search function
+  const searchProducts = useCallback(async (query: string) => {
+    if (!query || query.length < 1) {
+      setProducts([]);
+      setSuggestions([]);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({
+        q: query,
+        sortBy,
+        limit: "50",
+      });
+
+      if (selectedCategory) {
+        params.append("category", selectedCategory);
+      }
+      if (priceRange[0] > 0) {
+        params.append("minPrice", priceRange[0].toString());
+      }
+      if (priceRange[1] < 5000) {
+        params.append("maxPrice", priceRange[1].toString());
+      }
+      selectedSizes.forEach(size => params.append("size", size));
+      selectedColors.forEach(color => params.append("color", color));
+
+      const response = await fetch(`/api/search?${params.toString()}`);
+      const data = await response.json();
+
+      if (data.products) {
+        setProducts(data.products);
+        
+        // Suggestions oluştur - ürün adlarından ve etiketlerden
+        const uniqueSuggestions = new Set<string>();
+        data.products.forEach((product: Product) => {
+          if (product.title.toLowerCase().includes(query.toLowerCase())) {
+            uniqueSuggestions.add(product.title);
+          }
+          product.tags?.forEach((tag) => {
+            if (tag.toLowerCase().includes(query.toLowerCase())) {
+              uniqueSuggestions.add(tag);
+            }
+          });
+        });
+        setSuggestions(Array.from(uniqueSuggestions).slice(0, 5));
+      } else {
+        setProducts([]);
+        setSuggestions([]);
+      }
+    } catch (error) {
+      console.error("Search error:", error);
+      setProducts([]);
+      setSuggestions([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [sortBy, selectedCategory, priceRange, selectedSizes, selectedColors]);
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      searchProducts(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery, searchProducts]);
 
   useEffect(() => {
     if (isOpen) {
@@ -135,58 +176,10 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
     };
   }, [isOpen]);
 
-  // Search suggestions
-  const suggestions = useMemo(() => {
-    if (!searchQuery || searchQuery.length < 2) return [];
-    const query = searchQuery.toLowerCase();
-    const uniqueSuggestions = new Set<string>();
-    
-    allProducts.forEach((product) => {
-      if (product.title.toLowerCase().includes(query)) {
-        uniqueSuggestions.add(product.title);
-      }
-      product.tags?.forEach((tag) => {
-        if (tag.includes(query)) {
-          uniqueSuggestions.add(tag);
-        }
-      });
-    });
-
-    return Array.from(uniqueSuggestions).slice(0, 5);
-  }, [searchQuery]);
-
-  // Filter products based on search
+  // Filter products based on local filters (category, price, size, color already applied in API)
   const filteredProducts = useMemo(() => {
-    if (!searchQuery || searchQuery.length < 1) return [];
-    
-    const query = searchQuery.toLowerCase();
-    let filtered = allProducts.filter((product) => {
-      const matchesTitle = product.title.toLowerCase().includes(query);
-      const matchesTags = product.tags?.some((tag) => tag.includes(query));
-      const matchesCategory = product.category?.toLowerCase().includes(query);
-      
-      return matchesTitle || matchesTags || matchesCategory;
-    });
-
-    // Filter by selected category
-    if (selectedCategory) {
-      filtered = filtered.filter((p) => p.category === selectedCategory);
-    }
-
-    // Filter by price range
-    filtered = filtered.filter((p) => p.price >= priceRange[0] && p.price <= priceRange[1]);
-
-    // Sort
-    if (sortBy === "price-low") {
-      filtered.sort((a, b) => a.price - b.price);
-    } else if (sortBy === "price-high") {
-      filtered.sort((a, b) => b.price - a.price);
-    } else if (sortBy === "newest") {
-      filtered.sort((a, b) => (b.badge === "Yeni" ? 1 : 0) - (a.badge === "Yeni" ? 1 : 0));
-    }
-
-    return filtered;
-  }, [searchQuery, selectedCategory, sortBy]);
+    return products;
+  }, [products]);
 
   // Filter collections
   const filteredCollections = useMemo(() => {
@@ -309,7 +302,14 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
           {/* Products Section */}
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-light uppercase tracking-wide">
-              Ürünler: {filteredProducts.length > 0 ? `${filteredProducts.length} sonuç gösteriliyor` : "Sonuç bulunamadı"}
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Aranıyor...
+                </span>
+              ) : (
+                `Ürünler: ${filteredProducts.length > 0 ? `${filteredProducts.length} sonuç gösteriliyor` : "Sonuç bulunamadı"}`
+              )}
             </h2>
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-600 hidden sm:inline">Sırala:</span>
@@ -509,7 +509,7 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
                   {filteredProducts.map((product) => (
                     <Link
                       key={product.id}
-                      href={`/product/${product.id}`}
+                      href={product.slug ? `/products/${product.slug}` : `/product/${product.id}`}
                       onClick={onClose}
                       className="group"
                     >
@@ -553,7 +553,18 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
                         </div>
                       </div>
                       <h3 className="text-sm font-light text-black mb-1">{product.title}</h3>
-                      <p className="text-sm font-light text-black">{product.price} ₺</p>
+                      <div className="flex items-center gap-2">
+                        {product.originalPrice && product.originalPrice > product.price ? (
+                          <>
+                            <p className="text-sm font-light text-black">{product.price} ₺</p>
+                            <p className="text-xs font-light text-gray-500 line-through">{product.originalPrice} ₺</p>
+                          </>
+                        ) : (
+                          <p className="text-sm font-light text-black">
+                            {product.originalPrice ? product.originalPrice : product.price} ₺
+                          </p>
+                        )}
+                      </div>
                     </Link>
                   ))}
                 </div>

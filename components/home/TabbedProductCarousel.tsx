@@ -668,18 +668,18 @@ function ProductCarouselContent({
                       {product.title}
                     </h3>
                     <div className="flex items-center gap-2">
-                      {product.originalPrice ? (
+                      {product.originalPrice && product.originalPrice > product.price ? (
                         <>
                           <p className="text-base font-light text-[#111]">
-                            ₺{product.originalPrice.toFixed(2)}
+                            ₺{product.price.toFixed(2)}
                           </p>
                           <p className="text-sm font-light text-[#111]/60 line-through">
-                            ₺{product.price.toFixed(2)}
+                            ₺{product.originalPrice.toFixed(2)}
                           </p>
                         </>
                       ) : (
                         <p className="text-base font-light text-[#111]">
-                          ₺{product.price.toFixed(2)}
+                          ₺{product.originalPrice ? product.originalPrice.toFixed(2) : product.price.toFixed(2)}
                         </p>
                       )}
                     </div>

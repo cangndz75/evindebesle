@@ -334,7 +334,6 @@ export default function SiteHeader() {
     closeTimer.current = window.setTimeout(() => setOpenMenu(null), 200);
   };
 
-  // Admin sayfalarında ve homepage'de header'ı gösterme (home için HomeHeader kullanılıyor)
   if (
     pathname?.startsWith("/dashboard") ||
     pathname?.startsWith("/admin") ||
@@ -348,21 +347,19 @@ export default function SiteHeader() {
     return null;
   }
 
+  const bannerVariant = pathname?.startsWith("/women") ? "pink" : "default";
+
   return (
     <div className="relative flex flex-col z-[50]">
-      {/* Scrollable Announcement Banner */}
-      <AnnouncementBanner position="static" />
+      <AnnouncementBanner variant={bannerVariant} position="static" />
 
-      {/* Sticky Navbar */}
       <header
         className="sticky top-0 z-50 bg-white border-b border-black/10 w-full"
         onMouseLeave={scheduleClose}
       >
         <nav className="w-full px-4 md:px-8">
           <div className="relative flex items-center justify-between h-16 md:h-20 max-w-none">
-            {/* Sol: Menü */}
             <div className="flex items-center gap-3 md:gap-4 lg:gap-6">
-              {/* Desktop Navigation */}
               <div className="hidden md:flex items-center gap-3 md:gap-4 lg:gap-6">
                 {navItems.map((item) => (
                   <div

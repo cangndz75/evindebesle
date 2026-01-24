@@ -32,9 +32,9 @@ export default function BlockEditor({
   const [showPalette, setShowPalette] = useState(false);
 
   return (
-    <div className="flex h-full">
+    <div className="flex h-full" style={{ minHeight: 0 }}>
       {/* Sol: Blok Listesi ve Palette */}
-      <div className="w-80 border-r border-gray-200 bg-gray-50 flex flex-col flex-shrink-0">
+      <div className="w-64 border-r border-gray-200 bg-gray-50 flex flex-col flex-shrink-0">
         <div className="p-4 border-b border-gray-200">
           <Button
             onClick={() => setShowPalette(!showPalette)}
@@ -139,7 +139,7 @@ export default function BlockEditor({
 
       {/* Sağ: Block Inspector */}
       {selectedBlock && (
-        <div className="w-96 border-l border-gray-200 bg-gray-50 overflow-y-auto flex-shrink-0">
+        <div className="w-72 border-l border-gray-200 bg-gray-50 overflow-y-auto flex-shrink-0">
           <BlockInspector
             block={selectedBlock}
             onUpdate={(updates) => onUpdateBlock(selectedBlock.id, updates)}

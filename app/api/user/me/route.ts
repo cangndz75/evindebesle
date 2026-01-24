@@ -27,6 +27,7 @@ export async function GET() {
         emailVerified: true,
         marketingEmailConsent: true,
         isTestUser: true,
+        isAdmin: true,
       },
     }),
     prisma.userAddress.findFirst({

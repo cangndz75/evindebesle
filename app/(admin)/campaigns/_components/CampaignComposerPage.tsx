@@ -130,7 +130,7 @@ export default function CampaignComposerPage() {
   const selectedBlock = draft.blocks.find((b) => b.id === selectedBlockId) || null;
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <div className="flex flex-col bg-gray-50 h-full w-full">
       {/* A) ÜST BAR: Kampanya Meta */}
       <div className="flex-shrink-0">
         <CampaignMetaBar
@@ -144,9 +144,9 @@ export default function CampaignComposerPage() {
       </div>
 
       {/* B) ORTA ALAN: Editör + Preview */}
-      <div className="flex-1 flex overflow-hidden min-h-0">
+      <div className="flex-1 flex overflow-hidden" style={{ minHeight: 0 }}>
         {/* Sol: Editör */}
-        <div className="flex-1 flex flex-col border-r border-gray-200 bg-white min-w-0">
+        <div className="flex-1 flex flex-col border-r border-gray-200 bg-white" style={{ minWidth: 0 }}>
           <EditorTabs
             draft={draft}
             selectedBlockId={selectedBlockId}
@@ -160,7 +160,7 @@ export default function CampaignComposerPage() {
         </div>
 
         {/* Sağ: Preview */}
-        <div className="w-[480px] border-l border-gray-200 bg-gray-50 overflow-y-auto flex-shrink-0">
+        <div className="w-[360px] border-l border-gray-200 bg-gray-50 overflow-y-auto flex-shrink-0">
           <PreviewPane
             draft={draft}
             previewUser={previewUser}

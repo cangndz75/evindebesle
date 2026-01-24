@@ -15,8 +15,8 @@ export default function Canvas({
   onSelectBlock,
 }: CanvasProps) {
   return (
-    <div className="p-12 bg-gray-100 min-h-full">
-      <div className="max-w-4xl mx-auto bg-white shadow-lg">
+    <div className="p-6 bg-gray-100" style={{ minHeight: '100%' }}>
+      <div className="max-w-6xl mx-auto bg-white shadow-lg">
         {/* Email Container */}
         <div className="border border-gray-300">
           {blocks.length === 0 ? (

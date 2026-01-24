@@ -22,7 +22,7 @@ interface PreviewPaneProps {
   onDeviceViewChange: (view: "desktop" | "mobile") => void;
 }
 
-const previewUsers = [
+const previewUsers: Array<{ id: string; name: string; variables: Record<string, string> }> = [
   { id: "default", name: "Varsayılan", variables: {} },
   {
     id: "can",
@@ -63,7 +63,8 @@ export default function PreviewPane({
   onPreviewUserChange,
   onDeviceViewChange,
 }: PreviewPaneProps) {
-  const selectedUser = previewUsers.find((u) => u.id === previewUser) || previewUsers[0];
+  const selectedUser: { id: string; name: string; variables: Record<string, string> } = 
+    previewUsers.find((u) => u.id === previewUser) || previewUsers[0];
 
   return (
     <div className="h-full flex flex-col">

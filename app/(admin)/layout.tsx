@@ -18,6 +18,7 @@ import {
   Settings,
   ShoppingBag,
   ChevronLeft,
+  ChevronRight,
   Scissors,
   MapPin,
   Building,
@@ -150,6 +151,8 @@ export default function AdminLayout({
   const router = useRouter();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const isCampaignsPage = pathname === "/campaigns";
 
   const handleLogout = async () => {
     await signOut({ redirect: false });
@@ -159,20 +162,36 @@ export default function AdminLayout({
 
   return (
     <div className="flex min-h-screen bg-gray-50 overflow-hidden">
-      <aside className="hidden md:flex w-64 bg-gray-900 text-white flex-col shrink-0">
+      <aside className={`hidden md:flex bg-gray-900 text-white flex-col shrink-0 transition-all duration-300 ${
+        sidebarCollapsed ? "w-16" : "w-64"
+      }`}>
         <div className="p-6 border-b border-gray-800">
           <div className="flex items-center gap-2 mb-2">
-            <Home className="w-5 h-5" />
-            <h2 className="text-xl font-bold">Evinde Besle</h2>
-            <ChevronLeft className="w-4 h-4 ml-auto" />
+            <Home className="w-5 h-5 flex-shrink-0" />
+            {!sidebarCollapsed && (
+              <h2 className="text-xl font-bold whitespace-nowrap">Evinde Besle</h2>
+            )}
+            <button
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              className="ml-auto flex-shrink-0 p-1 hover:bg-gray-800 rounded transition-colors"
+              title={sidebarCollapsed ? "Genişlet" : "Daralt"}
+            >
+              {sidebarCollapsed ? (
+                <ChevronRight className="w-4 h-4" />
+              ) : (
+                <ChevronLeft className="w-4 h-4" />
+              )}
+            </button>
           </div>
         </div>
         <div className="flex-1 overflow-y-auto p-4 space-y-6">
           {navSections.map((section) => (
             <div key={section.title}>
-              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-3">
-                {section.title}
-              </h3>
+              {!sidebarCollapsed && (
+                <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-3">
+                  {section.title}
+                </h3>
+              )}
               <nav className="space-y-1">
                 {section.links.map(({ label, href, icon }) => {
                   const isActive = pathname === href;
@@ -181,13 +200,16 @@ export default function AdminLayout({
                       key={`${section.title}-${label}-${href}`}
                       href={href}
                       className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
+                        sidebarCollapsed ? "justify-center" : ""
+                      } ${
                         isActive
                           ? "bg-gray-800 text-white"
                           : "text-gray-300 hover:bg-gray-800 hover:text-white"
                       }`}
+                      title={sidebarCollapsed ? label : undefined}
                     >
-                      {icon}
-                      {label}
+                      <span className="flex-shrink-0">{icon}</span>
+                      {!sidebarCollapsed && <span className="whitespace-nowrap">{label}</span>}
                     </Link>
                   );
                 })}
@@ -196,26 +218,33 @@ export default function AdminLayout({
           ))}
         </div>
         <div className="p-4 border-t border-gray-800">
-          <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-white font-semibold mb-3">
-            AD
-          </div>
+          {!sidebarCollapsed && (
+            <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-white font-semibold mb-3">
+              AD
+            </div>
+          )}
           <Button
             variant="ghost"
-            className="w-full text-sm text-gray-300 hover:text-white hover:bg-gray-800"
+            className={`w-full text-sm text-gray-300 hover:text-white hover:bg-gray-800 ${
+              sidebarCollapsed ? "justify-center px-0" : ""
+            }`}
             onClick={handleLogout}
+            title={sidebarCollapsed ? "Çıkış Yap" : undefined}
           >
-            <LogOut className="w-4 h-4 mr-2" />
-            Çıkış Yap
+            <LogOut className="w-4 h-4 flex-shrink-0" />
+            {!sidebarCollapsed && <span className="ml-2">Çıkış Yap</span>}
           </Button>
         </div>
       </aside>
 
-      <div className="md:hidden fixed top-0 left-0 w-full z-50 bg-white border-b border-border flex items-center justify-between px-4 py-3">
-        <h2 className="text-xl font-bold">Evinde Besle</h2>
-        <Button variant="ghost" size="icon" onClick={() => setOpen(!open)}>
-          {open ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </Button>
-      </div>
+      {!isCampaignsPage && (
+        <div className="md:hidden fixed top-0 left-0 w-full z-50 bg-white border-b border-border flex items-center justify-between px-4 py-3">
+          <h2 className="text-xl font-bold">Evinde Besle</h2>
+          <Button variant="ghost" size="icon" onClick={() => setOpen(!open)}>
+            {open ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </Button>
+        </div>
+      )}
 
       {open && (
         <div className="fixed inset-0 z-40 bg-gray-900 text-white p-6 space-y-6 pt-20 overflow-y-auto">
@@ -254,7 +283,9 @@ export default function AdminLayout({
         </div>
       )}
 
-      <main className="flex-1 bg-gray-50 overflow-y-auto">{children}</main>
+      <main className={`flex-1 bg-gray-50 relative ${
+        isCampaignsPage ? "overflow-hidden" : "overflow-y-auto"
+      }`}>{children}</main>
     </div>
   );
 }

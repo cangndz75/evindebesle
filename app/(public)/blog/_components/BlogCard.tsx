@@ -42,7 +42,7 @@ export default function BlogCard({ post }: { post: BlogPost }) {
           className="mt-2 md:mt-4 text-sm md:text-base text-muted-foreground
                      line-clamp-2 md:line-clamp-none md:leading-relaxed"
         >
-          {post.excerpt}
+          {post.excerpt.replace(/<[^>]*>/g, "")}
         </p>
 
         <div className="mt-3 md:mt-6">

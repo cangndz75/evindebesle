@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { toast } from "sonner";
 import {
   Menu,
@@ -26,6 +26,8 @@ import {
   FileText,
   Ticket,
   Mail,
+  Users,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePathname } from "next/navigation";
@@ -83,6 +85,11 @@ const navSections = [
         label: "Mail Gönder",
         href: "/campaigns",
         icon: <Mail className="w-5 h-5" />,
+      },
+      {
+        label: "Bülten Aboneleri",
+        href: "/admin-subscribers",
+        icon: <Users className="w-5 h-5" />,
       },
     ],
   },
@@ -155,15 +162,49 @@ export default function AdminLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const { data: session, status } = useSession();
   const [open, setOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const isCampaignsPage = pathname === "/campaigns";
+
+  // Auth check - redirect if not authenticated or not admin
+  useEffect(() => {
+    if (status === "loading") return;
+
+    if (!session) {
+      router.replace("/auth-tabs");
+      return;
+    }
+
+    if (!session.user?.isAdmin) {
+      router.replace("/home");
+      return;
+    }
+  }, [session, status, router]);
 
   const handleLogout = async () => {
     await signOut({ redirect: false });
     toast.success("Çıkış yapıldı");
     router.push("/home");
   };
+
+  // Show loading state while checking auth
+  if (status === "loading") {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+      </div>
+    );
+  }
+
+  // Don't render anything if not admin (will redirect)
+  if (!session?.user?.isAdmin) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-gray-50 overflow-hidden">

@@ -177,6 +177,7 @@ export default function SendBar({ draft, onUpdate }: SendBarProps) {
                     <SelectValue placeholder="Segment seç" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="newsletter">Bülten Aboneleri</SelectItem>
                     <SelectItem value="all">Tüm Kullanıcılar</SelectItem>
                     <SelectItem value="active">Aktif Kullanıcılar</SelectItem>
                     <SelectItem value="inactive">Pasif Kullanıcılar</SelectItem>

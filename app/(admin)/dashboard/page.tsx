@@ -101,6 +101,22 @@ type KPIData = {
     repeatCustomers: number;
     totalCustomers: number;
   };
+  abandonedCart: {
+    count: number;
+    actionUrl: string;
+  };
+  returnRate: {
+    rate: number;
+    isHigh: boolean;
+  };
+  cargoDelay: {
+    count: number;
+    actionUrl: string;
+  };
+  criticalStock: {
+    count: number;
+    actionUrl: string;
+  };
   profitMargin: {
     rate: number;
   };
@@ -385,20 +401,20 @@ export default function AdminDashboard() {
               tooltip: "Ziyaret -> Sipariş Dönüşümü",
             },
             abandonedCart: {
-              value: 846, // Mock: Backend entegrasyonu yapılacak
-              actionUrl: "/admin-marketing/automations",
+              value: kpiData.abandonedCart.count,
+              actionUrl: kpiData.abandonedCart.actionUrl,
             },
             returnRate: {
-              value: "%1.2", // Mock
-              isHigh: false,
+              value: `%${kpiData.returnRate.rate.toFixed(1)}`,
+              isHigh: kpiData.returnRate.isHigh,
             },
             cargoDelay: {
-              value: 18, // Mock
-              actionUrl: "/admin-cargo/delays",
+              value: kpiData.cargoDelay.count,
+              actionUrl: kpiData.cargoDelay.actionUrl,
             },
             criticalStock: {
-              value: stats.stockAlarm.critical,
-              actionUrl: "/admin-stock",
+              value: kpiData.criticalStock.count,
+              actionUrl: kpiData.criticalStock.actionUrl,
             },
           }}
         />

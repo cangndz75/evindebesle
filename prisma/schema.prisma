@@ -535,6 +535,7 @@ model ProductColor {
   productId     String
   name          String
   hexCode       String?
+  description   String?
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
   images        String?

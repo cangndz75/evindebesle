@@ -175,9 +175,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
   ];
 
   // Renkleri hazırla
-  const colors = product.colors.map((c: { name: string; hexCode: string | null; productImages: { url: string }[] }) => ({
+  const colors = product.colors.map((c: { name: string; hexCode: string | null; description?: string; productImages: { url: string }[] }) => ({
     name: c.name,
     value: c.hexCode || "#000000",
+    description: c.description || "",
     images: c.productImages.map((img: { url: string }) => img.url),
   }));
 

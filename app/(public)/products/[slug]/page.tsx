@@ -156,6 +156,7 @@ export default async function ProductSlugPage({
         id: c.id,
         name: c.name,
         value: c.hexCode || "#000000",
+        description: c.description || "",
         variant: c.variants?.[0]?.variantCode, // İlk variant'ın kodunu al
         images: parsedImages,
         image: parsedImages.length > 0 ? parsedImages[0] : undefined, // İlk resmi image olarak da ekle (TabbedProductCarousel uyumluluğu için)

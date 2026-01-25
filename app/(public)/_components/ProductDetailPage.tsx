@@ -19,7 +19,7 @@ interface ProductDetailPageProps {
     originalPrice?: number;
     description: string;
     images: string[] | { url: string; badge?: string }[];
-    colors: { id?: string; name: string; value: string; variant?: string; images?: string[] }[];
+    colors: { id?: string; name: string; value: string; description?: string; variant?: string; images?: string[] }[];
     sizes: string[] | { id?: string; name: string; stock: number }[];
     sizeOptions?: { id?: string; name: string; stock?: number }[];
     variants?: { colorId: string | null; sizeId: string | null; stock: number; variantCode: string }[];
@@ -573,8 +573,8 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
                           key={actualIdx}
                           onClick={() => setSelectedImage(actualIdx)}
                           className={`relative w-16 h-20 lg:w-20 lg:h-24 flex-shrink-0 overflow-hidden border-2 transition-all ${selectedImage === actualIdx
-                              ? "border-black"
-                              : "border-transparent hover:border-gray-300"
+                            ? "border-black"
+                            : "border-transparent hover:border-gray-300"
                             }`}
                         >
                           <Image
@@ -748,7 +748,7 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
 
             {/* Açıklama */}
             <p className="text-base text-gray-700 font-light leading-relaxed mb-8 max-w-lg">
-              {product.description}
+              {product.colors?.[selectedColor]?.description || product.description}
             </p>
 
             {/* Renk Seçimi - Hidden on mobile, shown on desktop */}
@@ -793,8 +793,8 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
                       <button
                         onClick={() => handleColorChange(idx)}
                         className={`relative w-16 h-20 overflow-hidden border transition-all rounded ${selectedColor === idx
-                            ? "border-[#111]"
-                            : "border-gray-200 hover:border-gray-300"
+                          ? "border-[#111]"
+                          : "border-gray-200 hover:border-gray-300"
                           }`}
                         aria-label={color.name}
                       >
@@ -852,10 +852,10 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
                           onClick={() => !isOutOfStock && setSelectedSize(sizeName)}
                           disabled={isOutOfStock}
                           className={`px-4 py-2 text-sm font-light border transition-all ${isSelected
-                              ? "bg-[#111] text-white border-[#111]"
-                              : isOutOfStock
-                                ? "border-gray-200 text-gray-400 line-through cursor-not-allowed bg-white"
-                                : "bg-white border-gray-300 hover:border-gray-500 text-black"
+                            ? "bg-[#111] text-white border-[#111]"
+                            : isOutOfStock
+                              ? "border-gray-200 text-gray-400 line-through cursor-not-allowed bg-white"
+                              : "bg-white border-gray-300 hover:border-gray-500 text-black"
                             }`}
                         >
                           {sizeName}

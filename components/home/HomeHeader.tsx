@@ -32,8 +32,8 @@ type Promo = {
 };
 
 const navItems = [
-    { key: "men" as const, label: "ERKEK", href: "/category/men" },
-    { key: "women" as const, label: "KADIN", href: "/category/women" },
+    { key: "men" as const, label: "ERKEK", href: "/men" },
+    { key: "women" as const, label: "KADIN", href: "/women" },
     { key: "new" as const, label: "YENİ", href: "/category/new" },
     { key: "collections" as const, label: "KOLEKSİYON", href: "/category/collections" },
 ] as const;
@@ -120,7 +120,7 @@ export default function HomeHeader() {
                             { label: "T-Shirt", href: "/category/men-tshirt" },
                             { label: "Sweatshirt", href: "/category/men-sweatshirt" },
                             { label: "Pantolon", href: "/category/men-pants" },
-                            { label: "Tümünü Gör", href: "/category/men" },
+                            { label: "Tümünü Gör", href: "/men" },
                         ],
                     },
                 ],
@@ -128,7 +128,7 @@ export default function HomeHeader() {
                     title: "Erkek Koleksiyonu",
                     subtitle: "Stil ve konfor",
                     image: "https://images.unsplash.com/photo-1488161628813-04466f872be2?q=80&w=1200&auto=format&fit=crop",
-                    href: "/category/men",
+                    href: "/men",
                 },
             },
             women: {
@@ -139,7 +139,7 @@ export default function HomeHeader() {
                             { label: "Elbise", href: "/category/women-dresses" },
                             { label: "Bluz", href: "/category/women-tops" },
                             { label: "Dış Giyim", href: "/category/women-outerwear" },
-                            { label: "Tümünü Gör", href: "/category/women" },
+                            { label: "Tümünü Gör", href: "/women" },
                         ],
                     },
                 ],
@@ -147,7 +147,7 @@ export default function HomeHeader() {
                     title: "Kadın Koleksiyonu",
                     subtitle: "Zarif tasarımlar",
                     image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1200&auto=format&fit=crop",
-                    href: "/category/women",
+                    href: "/women",
                 },
             },
             new: {

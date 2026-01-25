@@ -8,6 +8,13 @@ cloudinary.config({
 });
 
 export async function POST(req: NextRequest) {
+  // Config'i her istekte kontrol et/ayarla (env'lerin yüklendiğinden emin olmak için)
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  });
+
   try {
     const contentType = req.headers.get("content-type");
     let buffer: Buffer;
@@ -16,17 +23,16 @@ export async function POST(req: NextRequest) {
     if (contentType?.includes("application/json")) {
       const body = await req.json();
       const base64String = body.base64 || body.data;
-      
+
       if (!base64String || typeof base64String !== "string") {
         return NextResponse.json({ error: "No base64 data provided" }, { status: 400 });
       }
 
       // Base64 string'i buffer'a çevir
-      // Format: data:image/jpeg;base64,/9j/4AAQSkZJRg...
-      const base64Data = base64String.includes(",") 
-        ? base64String.split(",")[1] 
+      const base64Data = base64String.includes(",")
+        ? base64String.split(",")[1]
         : base64String;
-      
+
       buffer = Buffer.from(base64Data, "base64");
     } else {
       // FormData (dosya yükleme)
@@ -39,26 +45,41 @@ export async function POST(req: NextRequest) {
     }
 
     const res = await new Promise<{ secure_url: string }>((resolve, reject) => {
-      cloudinary.uploader.upload_stream(
-        { 
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
           folder: "evindebesle",
-          // Optimizasyon ayarları
-          quality: "auto:good", // Otomatik kalite optimizasyonu
-          fetch_format: "auto", // Modern format (WebP) kullan
+          resource_type: "auto",
+          quality: "auto:good",
+          fetch_format: "auto",
           width: 2000,
           height: 2000,
-          crop: "limit", // Maksimum boyut sınırı
+          crop: "limit",
+          use_filename: true,
+          unique_filename: true,
         },
         (err, result) => {
-          if (err || !result) return reject(err);
+          if (err) {
+            console.error("Cloudinary upload_stream error callback:", err);
+            return reject(err);
+          }
+          if (!result) {
+            console.error("Cloudinary upload_stream result is empty");
+            return reject(new Error("Upload result is empty"));
+          }
           resolve(result as any);
         }
-      ).end(buffer);
+      );
+
+      uploadStream.end(buffer);
     });
 
+    console.log("Cloudinary upload successful:", res.secure_url);
     return NextResponse.json({ url: res.secure_url });
-  } catch (e) {
-    console.error("Upload error:", e);
-    return NextResponse.json({ error: "Cloudinary upload failed" }, { status: 500 });
+  } catch (e: any) {
+    console.error("Global upload error:", e);
+    return NextResponse.json({
+      error: "Cloudinary upload failed",
+      details: e.message || String(e)
+    }, { status: 500 });
   }
 }

@@ -253,6 +253,8 @@ export async function PATCH(
             data: {
               productId: id,
               name: c.name,
+              hexCode: c.hexCode || undefined,
+              description: c.description || undefined,
               images: Array.isArray(c.images) ? JSON.stringify(c.images) : (c.images || null),
             },
           });

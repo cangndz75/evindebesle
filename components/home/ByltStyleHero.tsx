@@ -33,13 +33,13 @@ export default function DarkVelvetHero() {
 
           <div className="flex flex-row items-center justify-center gap-3 md:gap-4">
             <Link
-              href="/category/men"
+              href="/men"
               className="w-full max-w-[200px] md:w-auto px-8 md:px-12 py-3 md:py-4 border-2 border-white text-white text-xs md:text-sm tracking-[0.22em] uppercase hover:bg-white hover:text-black transition-colors text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
             >
               ERKEK
             </Link>
             <Link
-              href="/category/women"
+              href="/women"
               className="w-full max-w-[200px] md:w-auto px-8 md:px-12 py-3 md:py-4 border-2 border-white text-white text-xs md:text-sm tracking-[0.22em] uppercase hover:bg-white hover:text-black transition-colors text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
             >
               KADIN

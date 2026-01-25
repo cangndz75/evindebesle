@@ -15,6 +15,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { useState, useEffect } from "react";
 import { X, Plus, Trash2 } from "lucide-react";
 import { generateSlug } from "@/lib/slug";
@@ -23,6 +29,7 @@ import { toast } from "sonner";
 type Color = {
   name: string;
   hexCode: string;
+  description?: string;
   images: string[];
   price?: number; // Renk bazlı fiyat (opsiyonel)
   sizeStocks?: { [sizeName: string]: number }; // Her beden için stok
@@ -63,7 +70,7 @@ export function EditProductModal({
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(false);
-  
+
   // Temel bilgiler
   const [name, setName] = useState(product.name);
   const [stockCode, setStockCode] = useState(product.stockCode || "");
@@ -131,7 +138,7 @@ export function EditProductModal({
       const res = await fetch(`/api/admin-products`);
       const products = await res.json();
       const fullProduct = products.find((p: Product) => p.id === product.id);
-      
+
       if (fullProduct) {
         setName(fullProduct.name);
         setStockCode(fullProduct.stockCode || "");
@@ -143,7 +150,7 @@ export function EditProductModal({
         setGender(fullProduct.gender || "");
         setSizeType(fullProduct.sizeType || "");
         setIsActive(fullProduct.isActive);
-        
+
         // Variant'ları renk bazlı grupla
         const variantsByColor: { [colorId: string]: any[] } = {};
         (fullProduct.variants || []).forEach((v: any) => {
@@ -189,32 +196,33 @@ export function EditProductModal({
             return {
               name: c.name,
               hexCode: c.hexCode || "",
+              description: c.description || "",
               images: imagesArray,
               price: colorPrice,
               sizeStocks: sizeStocks,
             };
           })
         );
-        
+
         setSizes(
           (fullProduct.sizes || []).map((s: any) => ({
             name: s.name,
             stock: s.stock || 0,
           }))
         );
-        
+
         setTags((fullProduct.tags || []).map((t: any) => t.name));
-        
+
         // Beden seçeneklerini yükle
         if (fullProduct.sizeType === "LETTER") {
           setSizeOptions(letterSizes.map(s => ({ name: s })));
         } else if (fullProduct.sizeType === "NUMBER") {
           setSizeOptions(numberSizes.map(s => ({ name: s })));
         }
-        
+
         // Seçili bedenleri yükle
         setSelectedSizeOptions((fullProduct.sizeOptions || []).map((so: any) => so.name));
-        
+
         setCombinations(
           (fullProduct.combinations || []).map((c: any) => c.relatedProductId)
         );
@@ -243,23 +251,24 @@ export function EditProductModal({
       try {
         const formData = new FormData();
         formData.append("file", file);
-        
+
         const uploadRes = await fetch("/api/upload", {
           method: "POST",
           body: formData,
         });
-        
+
         const uploadData = await uploadRes.json();
         return uploadData.url || null;
-      } catch (error) {
+      } catch (error: any) {
         console.error("Upload error:", error);
+        toast.error(`Yükleme hatası: ${error.message || "Bilinmeyen hata"}`);
         return null;
       }
     });
-    
+
     // Tüm yüklemeleri paralel olarak bekle
     const results = await Promise.all(uploadPromises);
-    
+
     // Null değerleri filtrele
     return results.filter((url): url is string => url !== null);
   };
@@ -274,9 +283,13 @@ export function EditProductModal({
         body: JSON.stringify({ base64: base64String }),
       });
       const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.details || data.error || "Upload failed");
+      }
       return data.url || null;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Base64 upload error:", error);
+      toast.error(`Base64 yükleme hatası: ${error.message || "Bilinmeyen hata"}`);
       return null;
     }
   };
@@ -291,8 +304,8 @@ export function EditProductModal({
           setColors((prev) => {
             const updated = [...prev];
             if (updated[colorIndex]) {
-              const currentImages = Array.isArray(updated[colorIndex].images) 
-                ? updated[colorIndex].images 
+              const currentImages = Array.isArray(updated[colorIndex].images)
+                ? updated[colorIndex].images
                 : [];
               updated[colorIndex] = {
                 ...updated[colorIndex],
@@ -318,8 +331,8 @@ export function EditProductModal({
       setColors((prev) => {
         const updated = [...prev];
         if (updated[colorIndex]) {
-          const currentImages = Array.isArray(updated[colorIndex].images) 
-            ? updated[colorIndex].images 
+          const currentImages = Array.isArray(updated[colorIndex].images)
+            ? updated[colorIndex].images
             : [];
           updated[colorIndex] = {
             ...updated[colorIndex],
@@ -330,7 +343,7 @@ export function EditProductModal({
       });
       return;
     }
-    
+
     // Dosya yükleme (çoklu)
     if (files && files.length > 0) {
       setLoading(true);
@@ -340,8 +353,8 @@ export function EditProductModal({
           setColors((prev) => {
             const updated = [...prev];
             if (updated[colorIndex]) {
-              const currentImages = Array.isArray(updated[colorIndex].images) 
-                ? updated[colorIndex].images 
+              const currentImages = Array.isArray(updated[colorIndex].images)
+                ? updated[colorIndex].images
                 : [];
               updated[colorIndex] = {
                 ...updated[colorIndex],
@@ -439,7 +452,7 @@ export function EditProductModal({
       const processedColors = await Promise.all(
         colors.map(async (c) => {
           if (!Array.isArray(c.images)) return c;
-          
+
           const processedImages = await Promise.all(
             c.images.map(async (img: string) => {
               if (img.startsWith("data:image")) {
@@ -449,7 +462,7 @@ export function EditProductModal({
               return img;
             })
           );
-          
+
           return {
             ...c,
             images: processedImages.filter((img): img is string => !!img),
@@ -764,7 +777,7 @@ export function EditProductModal({
                   value={image}
                   onChange={async (e) => {
                     const value = e.target.value;
-                    
+
                     // Base64 görsel kontrolü
                     if (value.startsWith("data:image")) {
                       setLoading(true);
@@ -841,7 +854,7 @@ export function EditProductModal({
                                     setPrimaryImage(imgUrl);
                                   }
                                 }}
-                                onChange={() => {}} // onChange boş, onClick kullanıyoruz
+                                onChange={() => { }} // onChange boş, onClick kullanıyoruz
                                 className="w-4 h-4 cursor-pointer accent-green-600"
                                 style={{
                                   width: '16px',
@@ -879,7 +892,7 @@ export function EditProductModal({
                                     setSecondaryImage(imgUrl);
                                   }
                                 }}
-                                onChange={() => {}} // onChange boş, onClick kullanıyoruz
+                                onChange={() => { }} // onChange boş, onClick kullanıyoruz
                                 className="w-4 h-4 cursor-pointer accent-blue-600"
                                 style={{
                                   width: '16px',
@@ -964,121 +977,178 @@ export function EditProductModal({
               </div>
             </div>
             <div className="space-y-4">
-              {colors.map((color, index) => (
-                <div key={index} className="border p-4 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-6 h-6 rounded border"
-                        style={{ backgroundColor: color.hexCode || "#ccc" }}
-                      />
-                      <span className="font-medium">{color.name}</span>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeColor(index)}
-                      disabled={loading}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Fotoğraflar</Label>
-                    <div className="space-y-2">
-                      <div className="relative">
-                        <Input
-                          type="file"
-                          accept="image/*"
-                          multiple
-                          className="hidden"
-                          id={`color-image-${index}`}
-                          disabled={loading}
-                          onChange={async (e) => {
-                            const files = e.target.files;
-                            if (files && files.length > 0) {
-                              const fileArray = Array.from(files);
-                              console.log(`Renk ${index} için ${fileArray.length} dosya seçildi`);
-                              await addColorImage(index, undefined, fileArray);
-                            }
-                            // Reset input
-                            e.target.value = "";
-                          }}
+              <Accordion type="single" collapsible className="w-full">
+                {colors.map((color, index) => (
+                  <AccordionItem key={index} value={`item-${index}`} className="border rounded-lg mb-4 px-4">
+                    <AccordionTrigger className="hover:no-underline py-4">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-6 h-6 rounded border"
+                          style={{ backgroundColor: color.hexCode || "#ccc" }}
                         />
+                        <span className="font-medium">{color.name}</span>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="pt-2 pb-6 space-y-6">
+                      <div className="flex justify-end">
                         <Button
                           type="button"
-                          variant="default"
-                          className="w-full"
-                          onClick={() => {
-                            document.getElementById(`color-image-${index}`)?.click();
-                          }}
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeColor(index)}
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
                           disabled={loading}
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="w-4 h-4 mr-2"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                            />
-                          </svg>
-                          {loading ? "Yükleniyor..." : "Fotoğraf Yükle (Çoklu Seçim)"}
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Rengi Kaldır
                         </Button>
                       </div>
-                      <Input
-                        placeholder="veya Fotoğraf URL girin..."
-                        className="text-sm"
-                        disabled={loading}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            const input = e.target as HTMLInputElement;
-                            if (input.value) {
-                              addColorImage(index, input.value);
-                              input.value = "";
-                            }
-                          }
-                        }}
-                      />
-                    </div>
-                    <div className="mt-2">
-                      {Array.isArray(color.images) && color.images.length > 0 && (
-                        <div className="text-xs text-muted-foreground mb-2">
-                          {color.images.length} fotoğraf eklendi
+
+                      <div className="space-y-2">
+                        <Label>Renk Açıklaması ({color.name})</Label>
+                        <Textarea
+                          value={color.description || ""}
+                          onChange={(e) => {
+                            const newColors = [...colors];
+                            newColors[index] = { ...color, description: e.target.value };
+                            setColors(newColors);
+                          }}
+                          placeholder={`${color.name} için özel açıklama...`}
+                          rows={3}
+                          disabled={loading}
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Fiyat ({color.name})</Label>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={color.price || ""}
+                            onChange={(e) => {
+                              const newColors = [...colors];
+                              newColors[index] = {
+                                ...color,
+                                price: e.target.value ? parseFloat(e.target.value) : undefined
+                              };
+                              setColors(newColors);
+                            }}
+                            placeholder="Ana fiyatı kullanmak için boş bırakın"
+                            disabled={loading}
+                          />
+                        </div>
+                      </div>
+
+                      {sizeType && selectedSizeOptions.length > 0 && (
+                        <div className="space-y-3">
+                          <Label className="text-sm font-semibold">Beden Stokları ({color.name})</Label>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            {selectedSizeOptions.map((size) => {
+                              const sizeStock = color.sizeStocks?.[size] || 0;
+                              return (
+                                <div key={size} className="space-y-1">
+                                  <Label className="text-xs">{size}</Label>
+                                  <Input
+                                    type="number"
+                                    value={sizeStock}
+                                    onChange={(e) => {
+                                      const newStock = parseInt(e.target.value) || 0;
+                                      const newColors = [...colors];
+                                      newColors[index] = {
+                                        ...color,
+                                        sizeStocks: {
+                                          ...(color.sizeStocks || {}),
+                                          [size]: newStock
+                                        }
+                                      };
+                                      setColors(newColors);
+                                    }}
+                                    placeholder="0"
+                                    className="h-9"
+                                    disabled={loading}
+                                  />
+                                </div>
+                              );
+                            })}
+                          </div>
                         </div>
                       )}
-                      <div className="flex flex-wrap gap-2">
-                        {Array.isArray(color.images) && color.images.map((img, imgIndex) => (
-                          <div key={imgIndex} className="relative">
-                            <img
-                              src={img}
-                              alt={`${color.name} ${imgIndex + 1}`}
-                              className="w-20 h-20 object-cover rounded border"
+
+                      <div className="space-y-3">
+                        <Label>Fotoğraflar</Label>
+                        <div className="space-y-2">
+                          <div className="relative">
+                            <Input
+                              type="file"
+                              accept="image/*"
+                              multiple
+                              className="hidden"
+                              id={`color-image-${index}`}
+                              disabled={loading}
+                              onChange={async (e) => {
+                                const files = e.target.files;
+                                if (files && files.length > 0) {
+                                  await addColorImage(index, undefined, Array.from(files));
+                                }
+                                e.target.value = "";
+                              }}
                             />
                             <Button
                               type="button"
-                              variant="destructive"
-                              size="sm"
-                              className="absolute -top-2 -right-2 w-6 h-6 p-0"
-                              onClick={() => removeColorImage(index, imgIndex)}
+                              variant="outline"
+                              className="w-full"
+                              onClick={() => document.getElementById(`color-image-${index}`)?.click()}
                               disabled={loading}
                             >
-                              <X className="w-3 h-3" />
+                              <Plus className="w-4 h-4 mr-2" />
+                              Fotoğraf Yükle
                             </Button>
                           </div>
-                        ))}
+                          <Input
+                            placeholder="veya Fotoğraf URL girin..."
+                            className="text-sm"
+                            disabled={loading}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                const input = e.target as HTMLInputElement;
+                                if (input.value) {
+                                  addColorImage(index, input.value);
+                                  input.value = "";
+                                }
+                              }
+                            }}
+                          />
+                        </div>
+                        {Array.isArray(color.images) && color.images.length > 0 && (
+                          <div className="grid grid-cols-4 md:grid-cols-6 gap-2 mt-2">
+                            {color.images.map((img, imgIndex) => (
+                              <div key={imgIndex} className="relative aspect-square">
+                                <img
+                                  src={img}
+                                  alt={`${color.name} ${imgIndex + 1}`}
+                                  className="w-full h-full object-cover rounded border"
+                                />
+                                <Button
+                                  type="button"
+                                  variant="destructive"
+                                  size="sm"
+                                  className="absolute -top-1 -right-1 w-5 h-5 p-0 rounded-full"
+                                  onClick={() => removeColorImage(index, imgIndex)}
+                                  disabled={loading}
+                                >
+                                  <X className="w-3 h-3" />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
             </div>
           </TabsContent>
 
@@ -1089,7 +1159,7 @@ export function EditProductModal({
                 <Label className="text-lg font-semibold">Ana Ürün</Label>
                 <p className="text-sm text-muted-foreground mb-4">Ana ürün için genel stok ve fiyat ayarları</p>
               </div>
-              
+
               {/* Ana Ürün Fiyat */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -1152,7 +1222,7 @@ export function EditProductModal({
                 <div>
                   <Label className="text-lg font-semibold">Renk: {color.name}</Label>
                 </div>
-                
+
                 {/* Renk Fiyat */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>

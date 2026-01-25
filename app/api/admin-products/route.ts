@@ -274,6 +274,8 @@ export async function POST(req: Request) {
           data: {
             productId: product.id,
             name: c.name,
+            hexCode: c.hexCode || undefined,
+            description: c.description || undefined,
             images: Array.isArray(c.images) ? JSON.stringify(c.images) : (c.images || null),
           },
         });

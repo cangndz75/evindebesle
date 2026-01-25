@@ -15,6 +15,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { useState } from "react";
 import { generateSlug, generateVariantCode } from "@/lib/slug";
 import { X, Plus, Trash2 } from "lucide-react";
@@ -23,6 +29,7 @@ import { toast } from "sonner";
 type Color = {
   name: string;
   hexCode: string;
+  description?: string;
   images: string[];
   price?: number; // Renk bazlı fiyat (opsiyonel)
   sizeStocks?: { [sizeName: string]: number }; // Her beden için stok
@@ -40,7 +47,7 @@ type SizeOption = {
 export function AddProductModal({ onSuccess, children }: { onSuccess: () => void | Promise<void>; children?: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  
+
   // Temel bilgiler
   const [name, setName] = useState("");
   const [stockCode, setStockCode] = useState("");
@@ -61,7 +68,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
   const [primaryColor, setPrimaryColor] = useState<Color | null>(null);
   const [primaryColorName, setPrimaryColorName] = useState("");
   const [primaryColorHex, setPrimaryColorHex] = useState("");
-  
+
   // Diğer renkler (Renkler tab'ında)
   const [colors, setColors] = useState<Color[]>([]);
   const [newColorName, setNewColorName] = useState("");
@@ -87,9 +94,9 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
 
   const addPrimaryColor = () => {
     if (!primaryColorName) return;
-    setPrimaryColor({ 
-      name: primaryColorName, 
-      hexCode: primaryColorHex, 
+    setPrimaryColor({
+      name: primaryColorName,
+      hexCode: primaryColorHex,
       images: [],
       price: undefined,
       sizeStocks: {}
@@ -100,9 +107,9 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
 
   const addColor = () => {
     if (!newColorName) return;
-    setColors([...colors, { 
-      name: newColorName, 
-      hexCode: newColorHex, 
+    setColors([...colors, {
+      name: newColorName,
+      hexCode: newColorHex,
       images: [],
       price: undefined,
       sizeStocks: {}
@@ -121,23 +128,24 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
       try {
         const formData = new FormData();
         formData.append("file", file);
-        
+
         const uploadRes = await fetch("/api/upload", {
           method: "POST",
           body: formData,
         });
-        
+
         const uploadData = await uploadRes.json();
         return uploadData.url || null;
-      } catch (error) {
+      } catch (error: any) {
         console.error("Upload error:", error);
+        toast.error(`Yükleme hatası: ${error.message || "Bilinmeyen hata"}`);
         return null;
       }
     });
-    
+
     // Tüm yüklemeleri paralel olarak bekle
     const results = await Promise.all(uploadPromises);
-    
+
     // Null değerleri filtrele
     return results.filter((url): url is string => url !== null);
   };
@@ -152,9 +160,13 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
         body: JSON.stringify({ base64: base64String }),
       });
       const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.details || data.error || "Upload failed");
+      }
       return data.url || null;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Base64 upload error:", error);
+      toast.error(`Base64 yükleme hatası: ${error.message || "Bilinmeyen hata"}`);
       return null;
     }
   };
@@ -202,7 +214,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
       });
       return;
     }
-    
+
     // Dosya yükleme (çoklu)
     if (files && files.length > 0) {
       setLoading(true);
@@ -317,9 +329,9 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
 
       const processedPrimaryColor = primaryColor
         ? {
-            ...primaryColor,
-            images: await processColorImages(primaryColor.images),
-          }
+          ...primaryColor,
+          images: await processColorImages(primaryColor.images),
+        }
         : null;
 
       const processedColors = await Promise.all(
@@ -585,7 +597,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                 {generateSlug(name) || "Ürün adı girildiğinde otomatik oluşturulacak"}
               </p>
             </div>
-            
+
             {/* Ana Renk */}
             <div className="border-t border-gray-200 pt-5 md:pt-4 mt-5 md:mt-4">
               <Label className="text-base md:text-base font-semibold mb-4 md:mb-3 block">Ana Renk</Label>
@@ -613,9 +625,9 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                         className="w-28 md:w-24 h-12 md:h-10 text-base md:text-sm"
                       />
                     </div>
-                    <Button 
-                      type="button" 
-                      onClick={addPrimaryColor} 
+                    <Button
+                      type="button"
+                      onClick={addPrimaryColor}
                       disabled={!primaryColorName}
                       className="h-12 md:h-10 px-6 md:px-4"
                     >
@@ -643,114 +655,125 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Renk Fotoğrafları</Label>
-                    <div className="flex gap-2">
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Renk Açıklaması ({primaryColor.name})</Label>
+                      <Textarea
+                        value={primaryColor.description || ""}
+                        onChange={(e) => setPrimaryColor({ ...primaryColor, description: e.target.value })}
+                        placeholder={`${primaryColor.name} renk seçeneği için özel açıklama...`}
+                        rows={3}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Renk Fotoğrafları</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          className="hidden"
+                          id={`primary-color-image-upload`}
+                          onChange={async (e) => {
+                            const files = e.target.files;
+                            if (files && files.length > 0) {
+                              setLoading(true);
+                              try {
+                                const uploadedUrls = await uploadFiles(Array.from(files));
+                                if (uploadedUrls.length > 0) {
+                                  setPrimaryColor({
+                                    ...primaryColor,
+                                    images: [...primaryColor.images, ...uploadedUrls],
+                                  });
+                                }
+                              } catch (error) {
+                                console.error("Upload error:", error);
+                                alert("Fotoğraflar yüklenirken hata oluştu");
+                              } finally {
+                                setLoading(false);
+                                e.target.value = "";
+                              }
+                            }
+                          }}
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => document.getElementById(`primary-color-image-upload`)?.click()}
+                          disabled={loading}
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Fotoğraf Ekle
+                        </Button>
+                      </div>
                       <Input
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        className="hidden"
-                        id={`primary-color-image-upload`}
-                        onChange={async (e) => {
-                          const files = e.target.files;
-                          if (files && files.length > 0) {
-                            setLoading(true);
-                            try {
-                              const uploadedUrls = await uploadFiles(Array.from(files));
-                              if (uploadedUrls.length > 0) {
+                        type="text"
+                        placeholder="veya Görsel URL girin (base64 desteklenir)..."
+                        className="text-sm"
+                        onKeyDown={async (e) => {
+                          if (e.key === "Enter") {
+                            const input = e.target as HTMLInputElement;
+                            const value = input.value;
+
+                            if (value) {
+                              // Base64 görsel kontrolü
+                              if (value.startsWith("data:image")) {
+                                setLoading(true);
+                                try {
+                                  const cloudinaryUrl = await uploadBase64ToCloudinary(value);
+                                  if (cloudinaryUrl) {
+                                    setPrimaryColor({
+                                      ...primaryColor,
+                                      images: [...primaryColor.images, cloudinaryUrl],
+                                    });
+                                    toast.success("Görsel Cloudinary'e yüklendi");
+                                  } else {
+                                    toast.error("Görsel yüklenemedi");
+                                  }
+                                } catch (error) {
+                                  console.error("Upload error:", error);
+                                  toast.error("Görsel yüklenirken hata oluştu");
+                                } finally {
+                                  setLoading(false);
+                                }
+                              } else {
+                                // Normal URL
                                 setPrimaryColor({
                                   ...primaryColor,
-                                  images: [...primaryColor.images, ...uploadedUrls],
+                                  images: [...primaryColor.images, value],
                                 });
                               }
-                            } catch (error) {
-                              console.error("Upload error:", error);
-                              alert("Fotoğraflar yüklenirken hata oluştu");
-                            } finally {
-                              setLoading(false);
-                              e.target.value = "";
+                              input.value = "";
                             }
                           }
                         }}
                       />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => document.getElementById(`primary-color-image-upload`)?.click()}
-                        disabled={loading}
-                      >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Fotoğraf Ekle
-                      </Button>
-                    </div>
-                    <Input
-                      type="text"
-                      placeholder="veya Görsel URL girin (base64 desteklenir)..."
-                      className="text-sm"
-                      onKeyDown={async (e) => {
-                        if (e.key === "Enter") {
-                          const input = e.target as HTMLInputElement;
-                          const value = input.value;
-                          
-                          if (value) {
-                            // Base64 görsel kontrolü
-                            if (value.startsWith("data:image")) {
-                              setLoading(true);
-                              try {
-                                const cloudinaryUrl = await uploadBase64ToCloudinary(value);
-                                if (cloudinaryUrl) {
+                      {primaryColor.images.length > 0 && (
+                        <div className="grid grid-cols-4 gap-2 mt-2">
+                          {primaryColor.images.map((img, imgIdx) => (
+                            <div key={imgIdx} className="relative">
+                              <img
+                                src={img}
+                                alt={`${primaryColor.name} ${imgIdx + 1}`}
+                                className="w-full h-20 object-cover rounded border"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
                                   setPrimaryColor({
                                     ...primaryColor,
-                                    images: [...primaryColor.images, cloudinaryUrl],
+                                    images: primaryColor.images.filter((_, i) => i !== imgIdx),
                                   });
-                                  toast.success("Görsel Cloudinary'e yüklendi");
-                                } else {
-                                  toast.error("Görsel yüklenemedi");
-                                }
-                              } catch (error) {
-                                console.error("Upload error:", error);
-                                toast.error("Görsel yüklenirken hata oluştu");
-                              } finally {
-                                setLoading(false);
-                              }
-                            } else {
-                              // Normal URL
-                              setPrimaryColor({
-                                ...primaryColor,
-                                images: [...primaryColor.images, value],
-                              });
-                            }
-                            input.value = "";
-                          }
-                        }
-                      }}
-                    />
-                    {primaryColor.images.length > 0 && (
-                      <div className="grid grid-cols-4 gap-2 mt-2">
-                        {primaryColor.images.map((img, imgIdx) => (
-                          <div key={imgIdx} className="relative">
-                            <img
-                              src={img}
-                              alt={`${primaryColor.name} ${imgIdx + 1}`}
-                              className="w-full h-20 object-cover rounded border"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setPrimaryColor({
-                                  ...primaryColor,
-                                  images: primaryColor.images.filter((_, i) => i !== imgIdx),
-                                });
-                              }}
-                              className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-                            >
-                              <X className="w-3 h-3" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                                }}
+                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
@@ -817,7 +840,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                   className="h-12 md:h-10 text-sm"
                   onChange={async (e) => {
                     const value = e.target.value;
-                    
+
                     // Base64 görsel kontrolü
                     if (value.startsWith("data:image")) {
                       setLoading(true);
@@ -891,7 +914,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                                     setPrimaryImage(imgUrl);
                                   }
                                 }}
-                                onChange={() => {}} // onChange boş, onClick kullanıyoruz
+                                onChange={() => { }} // onChange boş, onClick kullanıyoruz
                                 className="w-4 h-4 cursor-pointer accent-green-600"
                                 style={{
                                   width: '16px',
@@ -927,7 +950,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                                     setSecondaryImage(imgUrl);
                                   }
                                 }}
-                                onChange={() => {}} // onChange boş, onClick kullanıyoruz
+                                onChange={() => { }} // onChange boş, onClick kullanıyoruz
                                 className="w-4 h-4 cursor-pointer accent-blue-600"
                                 style={{
                                   width: '16px',
@@ -1006,117 +1029,171 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
               </div>
             </div>
             <div className="space-y-4">
-              {colors.map((color, index) => (
-                <div key={index} className="border p-4 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-6 h-6 rounded border"
-                        style={{ backgroundColor: color.hexCode || "#ccc" }}
-                      />
-                      <span className="font-medium">{color.name}</span>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeColor(index)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Fotoğraflar</Label>
-                    <div className="space-y-2">
-                      <div className="relative">
-                        <Input
-                          type="file"
-                          accept="image/*"
-                          multiple
-                          className="hidden"
-                          id={`color-image-${index}`}
-                          onChange={async (e) => {
-                            const files = e.target.files;
-                            if (files && files.length > 0) {
-                              const fileArray = Array.from(files);
-                              console.log(`Renk ${index} için ${fileArray.length} dosya seçildi`);
-                              await addColorImage(index, undefined, fileArray);
-                            }
-                            // Reset input
-                            e.target.value = "";
-                          }}
+              <Accordion type="single" collapsible className="w-full">
+                {colors.map((color, index) => (
+                  <AccordionItem key={index} value={`item-${index}`} className="border rounded-lg mb-4 px-4">
+                    <AccordionTrigger className="hover:no-underline py-4">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-6 h-6 rounded border"
+                          style={{ backgroundColor: color.hexCode || "#ccc" }}
                         />
+                        <span className="font-medium">{color.name}</span>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="pt-2 pb-6 space-y-6">
+                      <div className="flex justify-end">
                         <Button
                           type="button"
-                          variant="default"
-                          className="w-full"
-                          onClick={() => {
-                            document.getElementById(`color-image-${index}`)?.click();
-                          }}
-                          disabled={loading}
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeColor(index)}
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="w-4 h-4 mr-2"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                            />
-                          </svg>
-                          {loading ? "Yükleniyor..." : "Fotoğraf Yükle (Çoklu Seçim)"}
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Rengi Kaldır
                         </Button>
                       </div>
-                      <Input
-                        placeholder="veya Fotoğraf URL girin (base64 desteklenir)..."
-                        className="text-sm"
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            const input = e.target as HTMLInputElement;
-                            if (input.value) {
-                              addColorImage(index, input.value);
-                              input.value = "";
-                            }
-                          }
-                        }}
-                      />
-                    </div>
-                    <div className="mt-2">
-                      {color.images.length > 0 && (
-                        <div className="text-xs text-muted-foreground mb-2">
-                          {color.images.length} fotoğraf eklendi
+
+                      <div className="space-y-2">
+                        <Label>Renk Açıklaması ({color.name})</Label>
+                        <Textarea
+                          value={color.description || ""}
+                          onChange={(e) => {
+                            const newColors = [...colors];
+                            newColors[index] = { ...color, description: e.target.value };
+                            setColors(newColors);
+                          }}
+                          placeholder={`${color.name} için özel açıklama...`}
+                          rows={3}
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Fiyat ({color.name})</Label>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={color.price || ""}
+                            onChange={(e) => {
+                              const newColors = [...colors];
+                              newColors[index] = {
+                                ...color,
+                                price: e.target.value ? parseFloat(e.target.value) : undefined
+                              };
+                              setColors(newColors);
+                            }}
+                            placeholder="Ana fiyatı kullanmak için boş bırakın"
+                          />
+                        </div>
+                      </div>
+
+                      {sizeType && selectedSizeOptions.length > 0 && (
+                        <div className="space-y-3">
+                          <Label className="text-sm font-semibold">Beden Stokları ({color.name})</Label>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            {selectedSizeOptions.map((size) => {
+                              const sizeStock = color.sizeStocks?.[size] || 0;
+                              return (
+                                <div key={size} className="space-y-1">
+                                  <Label className="text-xs">{size}</Label>
+                                  <Input
+                                    type="number"
+                                    value={sizeStock}
+                                    onChange={(e) => {
+                                      const newStock = parseInt(e.target.value) || 0;
+                                      const newColors = [...colors];
+                                      newColors[index] = {
+                                        ...color,
+                                        sizeStocks: {
+                                          ...(color.sizeStocks || {}),
+                                          [size]: newStock
+                                        }
+                                      };
+                                      setColors(newColors);
+                                    }}
+                                    placeholder="0"
+                                    className="h-9"
+                                  />
+                                </div>
+                              );
+                            })}
+                          </div>
                         </div>
                       )}
-                      <div className="flex flex-wrap gap-2">
-                        {color.images.map((img, imgIndex) => (
-                          <div key={imgIndex} className="relative">
-                            <img
-                              src={img}
-                              alt={`${color.name} ${imgIndex + 1}`}
-                              className="w-20 h-20 object-cover rounded border"
+
+                      <div className="space-y-3">
+                        <Label>Fotoğraflar</Label>
+                        <div className="space-y-2">
+                          <div className="relative">
+                            <Input
+                              type="file"
+                              accept="image/*"
+                              multiple
+                              className="hidden"
+                              id={`color-image-${index}`}
+                              onChange={async (e) => {
+                                const files = e.target.files;
+                                if (files && files.length > 0) {
+                                  await addColorImage(index, undefined, Array.from(files));
+                                }
+                                e.target.value = "";
+                              }}
                             />
                             <Button
                               type="button"
-                              variant="destructive"
-                              size="sm"
-                              className="absolute -top-2 -right-2 w-6 h-6 p-0"
-                              onClick={() => removeColorImage(index, imgIndex)}
+                              variant="outline"
+                              className="w-full"
+                              onClick={() => document.getElementById(`color-image-${index}`)?.click()}
+                              disabled={loading}
                             >
-                              <X className="w-3 h-3" />
+                              <Plus className="w-4 h-4 mr-2" />
+                              Fotoğraf Yükle
                             </Button>
                           </div>
-                        ))}
+                          <Input
+                            placeholder="veya Fotoğraf URL girin..."
+                            className="text-sm"
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                const input = e.target as HTMLInputElement;
+                                if (input.value) {
+                                  addColorImage(index, input.value);
+                                  input.value = "";
+                                }
+                              }
+                            }}
+                          />
+                        </div>
+                        {color.images.length > 0 && (
+                          <div className="grid grid-cols-4 md:grid-cols-6 gap-2 mt-2">
+                            {color.images.map((img, imgIndex) => (
+                              <div key={imgIndex} className="relative aspect-square">
+                                <img
+                                  src={img}
+                                  alt={`${color.name} ${imgIndex + 1}`}
+                                  className="w-full h-full object-cover rounded border"
+                                />
+                                <Button
+                                  type="button"
+                                  variant="destructive"
+                                  size="sm"
+                                  className="absolute -top-1 -right-1 w-5 h-5 p-0 rounded-full"
+                                  onClick={() => removeColorImage(index, imgIndex)}
+                                >
+                                  <X className="w-3 h-3" />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
             </div>
           </TabsContent>
 
@@ -1127,7 +1204,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                 <Label className="text-lg font-semibold">Ana Ürün</Label>
                 <p className="text-sm text-muted-foreground mb-4">Ana ürün için genel stok ve fiyat ayarları</p>
               </div>
-              
+
               {/* Ana Ürün Fiyat */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -1188,7 +1265,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                 <div>
                   <Label className="text-lg font-semibold">Ana Renk: {primaryColor.name}</Label>
                 </div>
-                
+
                 {/* Ana Renk Fiyat */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -1249,7 +1326,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                 <div>
                   <Label className="text-lg font-semibold">Renk: {color.name}</Label>
                 </div>
-                
+
                 {/* Renk Fiyat */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -1420,9 +1497,9 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
         </Tabs>
 
         <DialogFooter className="px-4 md:px-0 pb-4 md:pb-0 pt-4 md:pt-0 border-t border-gray-200 md:border-0 flex-col sm:flex-row gap-2 md:gap-0">
-          <Button 
-            variant="outline" 
-            onClick={() => setOpen(false)} 
+          <Button
+            variant="outline"
+            onClick={() => setOpen(false)}
             disabled={loading}
             className="w-full sm:w-auto h-12 md:h-10 text-base md:text-sm order-2 sm:order-1"
           >

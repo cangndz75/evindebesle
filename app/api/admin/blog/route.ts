@@ -32,26 +32,14 @@ export async function POST(req: NextRequest) {
         }
 
         const body = await req.json();
-        const { title, content, excerpt, coverImage, tags, isPublished, metaTitle, metaDescription } = body;
+        const { title, content, excerpt, coverImage, tags, isPublished, metaTitle, metaDescription, category } = body;
 
-        // Slugify title
-        let slug = title.toLowerCase()
-            .replace(/ğ/g, "g").replace(/ü/g, "u").replace(/ş/g, "s")
-            .replace(/ı/g, "i").replace(/ö/g, "o").replace(/ç/g, "c")
-            .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-
-        // Ensure unique slug
-        let counter = 1;
-        let originalSlug = slug;
-        while (await prisma.blogPost.findUnique({ where: { slug } })) {
-            slug = `${originalSlug}-${counter}`;
-            counter++;
-        }
-
+        // Generate a temporary ID or use a placeholder to create
+        // Actually we can create first then update slug to be safe with CUID
         const post = await prisma.blogPost.create({
             data: {
                 title,
-                slug,
+                slug: `temp-${Date.now()}`, // Temporary unique slug
                 content,
                 excerpt,
                 coverImage,
@@ -61,10 +49,22 @@ export async function POST(req: NextRequest) {
                 tags: tags || [],
                 metaTitle,
                 metaDescription,
+                category,
             }
         });
 
-        return NextResponse.json(post);
+        // Generate the real slug using the actual ID
+        const { generateBlogSlug } = await import("@/lib/slug");
+        const finalSlug = generateBlogSlug(title, post.id);
+
+        // Update the post with the real slug
+        const updatedPost = await prisma.blogPost.update({
+            where: { id: post.id },
+            data: { slug: finalSlug }
+        });
+
+        return NextResponse.json(updatedPost);
+
     } catch (error) {
         console.error("Blog Create Error:", error);
         return NextResponse.json({ error: "Failed to create post" }, { status: 500 });

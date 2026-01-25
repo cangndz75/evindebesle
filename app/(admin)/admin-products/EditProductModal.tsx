@@ -25,6 +25,7 @@ import { useState, useEffect } from "react";
 import { X, Plus, Trash2 } from "lucide-react";
 import { generateSlug } from "@/lib/slug";
 import { toast } from "sonner";
+import { CLOUDINARY_UPLOAD_URL, CLOUDINARY_UPLOAD_PRESET } from "@/lib/cloudinary";
 
 type Color = {
   name: string;
@@ -251,14 +252,20 @@ export function EditProductModal({
       try {
         const formData = new FormData();
         formData.append("file", file);
+        formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
 
-        const uploadRes = await fetch("/api/upload", {
+        const uploadRes = await fetch(CLOUDINARY_UPLOAD_URL, {
           method: "POST",
           body: formData,
         });
 
+        if (!uploadRes.ok) {
+          const errorData = await uploadRes.json();
+          throw new Error(errorData.error?.message || "Cloudinary upload failed");
+        }
+
         const uploadData = await uploadRes.json();
-        return uploadData.url || null;
+        return uploadData.secure_url || null;
       } catch (error: any) {
         console.error("Upload error:", error);
         toast.error(`Yükleme hatası: ${error.message || "Bilinmeyen hata"}`);
@@ -275,21 +282,23 @@ export function EditProductModal({
 
   const uploadBase64ToCloudinary = async (base64String: string): Promise<string | null> => {
     try {
-      const res = await fetch("/api/upload", {
+      const formData = new FormData();
+      formData.append("file", base64String);
+      formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+
+      const res = await fetch(CLOUDINARY_UPLOAD_URL, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ base64: base64String }),
+        body: formData,
       });
+
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.details || data.error || "Upload failed");
+        throw new Error(data.error?.message || "Upload failed");
       }
-      return data.url || null;
+      return data.secure_url || null;
     } catch (error: any) {
       console.error("Base64 upload error:", error);
-      toast.error(`Base64 yükleme hatası: ${error.message || "Bilinmeyen hata"}`);
+      toast.error(`Görsel yükleme hatası: ${error.message || "Bilinmeyen hata"}`);
       return null;
     }
   };

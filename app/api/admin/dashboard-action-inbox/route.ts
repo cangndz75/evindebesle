@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
     // Bekleyen siparişler (yeni + hazırlanıyor)
     const pendingOrders = await prisma.order.count({
       where: {
-        status: { in: ["PENDING", "PREPARING"] },
+        status: { in: ["PAID", "PREPARING"] },
         paymentStatus: "PAID",
       },
     });
@@ -143,7 +143,7 @@ export async function GET(req: NextRequest) {
           type: "pending_orders",
           count: pendingOrders,
           label: `${pendingOrders} bekleyen sipariş`,
-          action: "/admin-orders?status=PENDING",
+          action: "/admin-orders?status=PAID",
           priority: "high",
         }] : []),
         ...(readyToShip > 0 ? [{

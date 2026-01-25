@@ -41,13 +41,13 @@ function AuthFooter() {
 export default function AuthTabs() {
   const router = useRouter();
   const [tab, setTab] = useState<"login" | "register">("login");
-  
+
   // Login states
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [pending, startTransition] = useTransition();
-  
+
   // Register states
   const [name, setName] = useState("");
   const [registerEmail, setRegisterEmail] = useState("");
@@ -123,23 +123,30 @@ export default function AuthTabs() {
   };
 
   return (
-    <div className="h-full flex flex-col lg:flex-row overflow-hidden">
+    <div className="h-screen w-full flex flex-col lg:flex-row overflow-hidden bg-white">
       {/* Mobil: Üstte Banner */}
-      <div className="lg:hidden relative bg-gray-100 w-full flex-shrink-0" style={{ minHeight: '40vh' }}>
+      <div
+        className="lg:hidden relative w-full flex-shrink-0 bg-cover bg-center"
+        style={{
+          minHeight: '40vh',
+          backgroundImage: `url('https://images.unsplash.com/photo-1604066867775-43f48e3957d8?q=80&w=1170&auto=format&fit=crop')`
+        }}
+      >
+        <div className="absolute inset-0 bg-black/40" />
         <div className="absolute inset-0 flex items-center justify-center px-6">
           <div className="flex flex-col items-center justify-center text-center">
-            <div className="text-xs uppercase tracking-widest mb-3 text-gray-600 font-light">
+            <div className="text-xs uppercase tracking-widest mb-3 text-white/90 font-medium">
               TANITIM
             </div>
-            <h2 className="text-4xl font-bold mb-4 text-black leading-tight">
+            <h2 className="text-4xl font-bold mb-4 text-white leading-tight">
               BYLT+<br />Rewards
             </h2>
-            <p className="text-sm text-gray-700 mb-6 font-light leading-relaxed max-w-xs">
+            <p className="text-sm text-white/80 mb-6 font-light leading-relaxed max-w-xs">
               Her alışverişte mağaza kredisi kazanın ve özel ödüllerin kilidini açın.
             </p>
             <Button
               variant="outline"
-              className="bg-white text-[#111] hover:bg-gray-50 border-black uppercase tracking-wider text-sm font-light px-8 py-2.5 h-auto rounded-none"
+              className="bg-white text-[#111] hover:bg-gray-100 border-none uppercase tracking-wider text-sm font-semibold px-8 py-2.5 h-auto rounded-none"
             >
               Daha Fazla Bilgi
             </Button>
@@ -151,24 +158,22 @@ export default function AuthTabs() {
       <div className="w-full lg:w-1/2 flex items-center justify-center bg-white px-6 sm:px-8 md:px-12 py-8 overflow-y-auto">
         <div className="w-full max-w-md py-4">
           {/* Tablar */}
-          <div className="flex mb-6 gap-2">
+          <div className="flex mb-8 gap-2">
             <button
-              className={`flex-1 py-3 text-sm font-semibold uppercase tracking-wider transition ${
-                tab === "login"
-                  ? "text-[#111] border-b-2 border-[#111]"
-                  : "text-gray-400 hover:text-gray-600"
-              }`}
+              className={`flex-1 py-3 text-sm font-semibold uppercase tracking-wider transition border-b-2 ${tab === "login"
+                ? "text-[#111] border-[#111]"
+                : "text-gray-400 border-transparent hover:text-gray-600"
+                }`}
               onClick={() => setTab("login")}
               type="button"
             >
               Giriş Yap
             </button>
             <button
-              className={`flex-1 py-3 text-sm font-semibold uppercase tracking-wider transition ${
-                tab === "register"
-                  ? "text-[#111] border-b-2 border-[#111]"
-                  : "text-gray-400 hover:text-gray-600"
-              }`}
+              className={`flex-1 py-3 text-sm font-semibold uppercase tracking-wider transition border-b-2 ${tab === "register"
+                ? "text-[#111] border-[#111]"
+                : "text-gray-400 border-transparent hover:text-gray-600"
+                }`}
               onClick={() => setTab("register")}
               type="button"
             >
@@ -177,78 +182,80 @@ export default function AuthTabs() {
           </div>
 
           {tab === "login" ? (
-            <div className="space-y-5">
-              <h2 className="text-2xl font-semibold text-[#111] uppercase tracking-wide mb-5">
-                Kayıtlı Müşteriler
-              </h2>
-
-              <form 
+            <div className="space-y-6">
+              <form
                 onSubmit={(e) => {
                   e.preventDefault();
                   handleLogin();
                 }}
-                className="space-y-3"
+                className="space-y-4"
               >
-                <Input
-                  type="email"
-                  placeholder="Email Address*"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="bg-gray-50 border-gray-200 h-12"
-                  autoComplete="email"
-                  required
-                />
-
-                <div className="relative">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 ml-1">Email</label>
                   <Input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Password*"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="bg-gray-50 border-gray-200 h-12"
-                    autoComplete="current-password"
+                    type="email"
+                    placeholder="Email Adresiniz"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="bg-gray-50 border-gray-200 h-12 rounded-none focus-visible:ring-1 focus-visible:ring-gray-400"
+                    autoComplete="email"
                     required
                   />
-                  <button
-                    type="button"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 hover:text-gray-700"
-                    onClick={() => setShowPassword((prev) => !prev)}
-                  >
-                    {showPassword ? "Gizle" : "Göster"}
-                  </button>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 ml-1">Şifre</label>
+                  <div className="relative">
+                    <Input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Şifreniz"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="bg-gray-50 border-gray-200 h-12 rounded-none focus-visible:ring-1 focus-visible:ring-gray-400"
+                      autoComplete="current-password"
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-gray-400 hover:text-gray-600 uppercase tracking-tighter"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                    >
+                      {showPassword ? "Gizle" : "Göster"}
+                    </button>
+                  </div>
                 </div>
 
                 <Button
                   type="submit"
                   disabled={pending}
-                  className="w-full h-12 bg-[#111] text-white hover:bg-[#333] uppercase tracking-wider text-sm font-semibold"
+                  className="w-full h-12 bg-[#111] text-white hover:bg-[#333] uppercase tracking-wider text-sm font-semibold rounded-none mt-2"
                 >
                   {pending ? "Giriş yapılıyor..." : "Giriş Yap"}
                 </Button>
               </form>
 
-              <div className="flex items-center justify-between text-sm pt-3">
+              <div className="flex items-center justify-between text-xs pt-4 border-t border-gray-100 uppercase tracking-wide">
                 <Link
                   href="/register"
                   onClick={(e) => {
                     e.preventDefault();
                     setTab("register");
                   }}
-                  className="text-[#111] underline hover:opacity-70"
+                  className="text-[#111] font-semibold hover:opacity-70 transition-opacity"
                 >
                   Hesap Oluştur
                 </Link>
                 <Link
                   href="/forgot-password"
-                  className="text-[#111] underline hover:opacity-70"
+                  className="text-gray-500 hover:text-black transition-colors"
                 >
                   Şifrenizi mi Unuttunuz?
                 </Link>
               </div>
             </div>
           ) : (
-            <div className="space-y-5">
-              <h2 className="text-2xl font-semibold text-[#111] uppercase tracking-wide mb-5">
+            <div className="space-y-6">
+              <h2 className="text-xl font-bold text-[#111] uppercase tracking-wide mb-6">
                 Yeni Müşteriler
               </h2>
 
@@ -257,66 +264,75 @@ export default function AuthTabs() {
                   e.preventDefault();
                   handleRegister();
                 }}
-                className="space-y-3"
+                className="space-y-4"
               >
-                <Input
-                  type="text"
-                  placeholder="Adınız*"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="bg-gray-50 border-gray-200 h-12"
-                  autoComplete="name"
-                  required
-                />
-
-                <Input
-                  type="email"
-                  placeholder="Email Address*"
-                  value={registerEmail}
-                  onChange={(e) => setRegisterEmail(e.target.value)}
-                  className="bg-gray-50 border-gray-200 h-12"
-                  autoComplete="email"
-                  required
-                />
-
-                <div className="relative">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 ml-1">Adınız</label>
                   <Input
-                    type={showRegisterPassword ? "text" : "password"}
-                    placeholder="Password*"
-                    value={registerPassword}
-                    onChange={(e) => setRegisterPassword(e.target.value)}
-                    className="bg-gray-50 border-gray-200 h-12"
-                    autoComplete="new-password"
+                    type="text"
+                    placeholder="Adınız ve Soyadınız"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="bg-gray-50 border-gray-200 h-12 rounded-none focus-visible:ring-1 focus-visible:ring-gray-400"
+                    autoComplete="name"
                     required
                   />
-                  <button
-                    type="button"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 hover:text-gray-700"
-                    onClick={() => setShowRegisterPassword((prev) => !prev)}
-                  >
-                    {showRegisterPassword ? "Gizle" : "Göster"}
-                  </button>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 ml-1">Email</label>
+                  <Input
+                    type="email"
+                    placeholder="Email Adresiniz"
+                    value={registerEmail}
+                    onChange={(e) => setRegisterEmail(e.target.value)}
+                    className="bg-gray-50 border-gray-200 h-12 rounded-none focus-visible:ring-1 focus-visible:ring-gray-400"
+                    autoComplete="email"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 ml-1">Şifre</label>
+                  <div className="relative">
+                    <Input
+                      type={showRegisterPassword ? "text" : "password"}
+                      placeholder="Güçlü Bir Şifre"
+                      value={registerPassword}
+                      onChange={(e) => setRegisterPassword(e.target.value)}
+                      className="bg-gray-50 border-gray-200 h-12 rounded-none focus-visible:ring-1 focus-visible:ring-gray-400"
+                      autoComplete="new-password"
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-gray-400 hover:text-gray-600 uppercase tracking-tighter"
+                      onClick={() => setShowRegisterPassword((prev) => !prev)}
+                    >
+                      {showRegisterPassword ? "Gizle" : "Göster"}
+                    </button>
+                  </div>
                 </div>
 
                 <Button
                   type="submit"
                   disabled={registerPending}
-                  className="w-full h-12 bg-[#111] text-white hover:bg-[#333] uppercase tracking-wider text-sm font-semibold"
+                  className="w-full h-12 bg-[#111] text-white hover:bg-[#333] uppercase tracking-wider text-sm font-semibold rounded-none mt-2"
                 >
                   {registerPending ? "Kayıt olunuyor..." : "Hesap Oluştur"}
                 </Button>
               </form>
 
-              <div className="text-sm pt-3">
+              <div className="text-xs pt-4 border-t border-gray-100 uppercase tracking-wide text-center">
                 <Link
                   href="/login"
                   onClick={(e) => {
                     e.preventDefault();
                     setTab("login");
                   }}
-                  className="text-[#111] underline hover:opacity-70"
+                  className="text-gray-500 hover:text-black transition-colors"
                 >
-                  Zaten hesabınız var mı? Giriş Yap
+                  Zaten hesabınız var mı? <span className="text-[#111] font-semibold underline">Giriş Yap</span>
                 </Link>
               </div>
             </div>
@@ -325,27 +341,33 @@ export default function AuthTabs() {
       </div>
 
       {/* Sağ Taraf - Promosyon Banner */}
-      <div className="hidden lg:flex lg:w-1/2 relative bg-gray-100 items-center justify-center px-12 overflow-hidden">
-        <div className="flex flex-col items-center justify-center max-w-md text-center">
-          <div className="text-xs uppercase tracking-widest mb-3 text-gray-600 font-light">
-            TANITIM
+      <div
+        className="hidden lg:flex lg:w-1/2 relative items-center justify-center px-12 overflow-hidden bg-cover bg-center"
+        style={{
+          backgroundImage: `url('https://images.unsplash.com/photo-1604066867775-43f48e3957d8?q=80&w=1170&auto=format&fit=crop')`
+        }}
+      >
+        <div className="absolute inset-0 bg-black/40" />
+        <div className="relative z-10 flex flex-col items-center justify-center max-w-md text-center">
+          <div className="text-xs uppercase tracking-[0.3em] mb-4 text-white/80 font-medium">
+            HOŞGELDİNİZ
           </div>
-          <h2 className="text-5xl md:text-6xl font-bold mb-4 text-black leading-tight">
-            BYLT+<br />Rewards
+          <h2 className="text-6xl md:text-7xl font-bold mb-6 text-white leading-[1.1] tracking-tight">
+            DARK<br />VELVET
           </h2>
-          <p className="text-sm md:text-base text-gray-700 mb-6 font-light leading-relaxed">
+          <p className="text-base md:text-lg text-white/90 mb-10 font-light leading-relaxed">
             Her alışverişte mağaza kredisi kazanın ve özel ödüllerin kilidini açın.
           </p>
           <Button
             variant="outline"
-            className="bg-white text-[#111] hover:bg-gray-50 border-black uppercase tracking-wider text-sm font-light px-8 py-2.5 h-auto rounded-none"
+            className="bg-white text-[#111] hover:bg-gray-100 border-none uppercase tracking-widest text-sm font-bold px-10 py-3 h-auto rounded-none transition-all hover:scale-105"
           >
             Daha Fazla Bilgi
           </Button>
         </div>
       </div>
 
-      {/* Mobil Footer */}
+      {/* Mobil Footer (Sadece küçük ekranda) */}
       <AuthFooter />
     </div>
   );

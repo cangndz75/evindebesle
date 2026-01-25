@@ -23,6 +23,7 @@ export default function EditBlogPostPage({ params }: { params: Promise<{ id: str
         excerpt: "",
         content: "",
         coverImage: "",
+        category: "",
         tags: "",
         isPublished: false,
         metaTitle: "",
@@ -45,6 +46,7 @@ export default function EditBlogPostPage({ params }: { params: Promise<{ id: str
                 excerpt: data.excerpt || "",
                 content: data.content || "",
                 coverImage: data.coverImage || "",
+                category: data.category || "",
                 metaTitle: data.metaTitle || "",
                 metaDescription: data.metaDescription || "",
             });
@@ -218,6 +220,15 @@ export default function EditBlogPostPage({ params }: { params: Promise<{ id: str
                                     placeholder="https://..."
                                     value={formData.coverImage}
                                     onChange={(e) => setFormData({ ...formData, coverImage: e.target.value })}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="category">Kategori</Label>
+                                <Input
+                                    id="category"
+                                    placeholder="Örn: Evcil Hayvan Bakımı"
+                                    value={formData.category}
+                                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                                 />
                             </div>
                             <div className="space-y-2">

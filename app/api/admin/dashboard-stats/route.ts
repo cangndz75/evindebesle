@@ -48,11 +48,11 @@ export async function GET(req: NextRequest) {
     // Bekleyen Siparişler
     const [pendingOrders, pendingOrdersLastHour] = await Promise.all([
       prisma.order.count({
-        where: { status: "PENDING" },
+        where: { status: "PAID" },
       }),
       prisma.order.count({
         where: {
-          status: "PENDING",
+          status: "PAID",
           createdAt: { gte: lastHour },
         },
       }),

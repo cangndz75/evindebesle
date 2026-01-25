@@ -15,7 +15,7 @@ export function generateSlug(text: string): string {
   };
 
   let slug = text;
-  
+
   // Türkçe karakterleri değiştir
   for (const [turkish, english] of Object.entries(turkishToEnglish)) {
     slug = slug.replace(new RegExp(turkish, 'g'), english);
@@ -53,19 +53,30 @@ export function generateProductSlug(
   firstColorName?: string | null
 ): string {
   const parts: string[] = [];
-  
+
   // Kategori ekle
   if (categoryName) {
     parts.push(generateSlug(categoryName));
   }
-  
+
   // İlk renk ekle (varsa)
   if (firstColorName) {
     parts.push(generateSlug(firstColorName));
   }
-  
+
   // Ürün adı ekle
   parts.push(generateSlug(productName));
-  
+
   return parts.join('-');
+}
+
+/**
+ * Generates a blog slug with a partial ID for uniqueness
+ * Format: "evcil-hayvan-bakimi-cmku4mf"
+ */
+export function generateBlogSlug(title: string, id: string): string {
+  const baseSlug = generateSlug(title);
+  // Take first 8 chars of id (cuid usually starts with c...)
+  const partialId = id.slice(0, 8);
+  return `${baseSlug}-${partialId}`;
 }

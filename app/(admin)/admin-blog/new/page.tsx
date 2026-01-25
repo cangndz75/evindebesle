@@ -21,11 +21,13 @@ export default function NewBlogPostPage() {
         excerpt: "",
         content: "",
         coverImage: "",
+        category: "",
         tags: "",
         isPublished: false,
         metaTitle: "",
         metaDescription: "",
     });
+
 
     const handleSubmit = async (publish: boolean) => {
         if (!formData.title || !formData.content) {
@@ -178,6 +180,15 @@ export default function NewBlogPostPage() {
                                     placeholder="https://..."
                                     value={formData.coverImage}
                                     onChange={(e) => setFormData({ ...formData, coverImage: e.target.value })}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="category">Kategori</Label>
+                                <Input
+                                    id="category"
+                                    placeholder="Örn: Evcil Hayvan Bakımı"
+                                    value={formData.category}
+                                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                                 />
                             </div>
                             <div className="space-y-2">

@@ -54,11 +54,6 @@ const navSections = [
         href: "/admin-stock",
         icon: <Package className="w-5 h-5" />,
       },
-      {
-        label: "Randevular",
-        href: "/admin-appointments",
-        icon: <List className="w-5 h-5" />,
-      },
     ],
   },
   {

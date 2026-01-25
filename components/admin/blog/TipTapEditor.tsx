@@ -10,26 +10,21 @@ import {
     Image as ImageIcon, Type, Strikethrough, Code
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useRef } from "react";
+import { toast } from "sonner";
 
 interface TipTapEditorProps {
     content: string;
     onChange: (content: string) => void;
 }
 
-const Toolbar = ({ editor }: { editor: any }) => {
+const Toolbar = ({ editor, onImageClick }: { editor: any; onImageClick: () => void }) => {
     if (!editor) return null;
 
     const addLink = () => {
         const url = window.prompt("URL giriniz:");
         if (url) {
             editor.chain().focus().setLink({ href: url }).run();
-        }
-    };
-
-    const addImage = () => {
-        const url = window.prompt("Resim URL'si giriniz:");
-        if (url) {
-            editor.chain().focus().setImage({ src: url }).run();
         }
     };
 
@@ -128,7 +123,7 @@ const Toolbar = ({ editor }: { editor: any }) => {
             <Button variant="ghost" size="sm" onClick={addLink} type="button">
                 <LinkIcon className="w-4 h-4" />
             </Button>
-            <Button variant="ghost" size="sm" onClick={addImage} type="button">
+            <Button variant="ghost" size="sm" onClick={onImageClick} type="button">
                 <ImageIcon className="w-4 h-4" />
             </Button>
 
@@ -145,6 +140,8 @@ const Toolbar = ({ editor }: { editor: any }) => {
 };
 
 export default function TipTapEditor({ content, onChange }: TipTapEditorProps) {
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
     const editor = useEditor({
         extensions: [
             StarterKit,
@@ -171,9 +168,48 @@ export default function TipTapEditor({ content, onChange }: TipTapEditorProps) {
         },
     });
 
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !editor) return;
+
+        const loadingToast = toast.loading("Resim yükleniyor...");
+
+        try {
+            const formData = new FormData();
+            formData.append("file", file);
+
+            const res = await fetch("/api/upload", {
+                method: "POST",
+                body: formData,
+            });
+
+            if (!res.ok) throw new Error("Yükleme başarısız");
+
+            const data = await res.json();
+            if (data.url) {
+                editor.chain().focus().setImage({ src: data.url }).run();
+                toast.success("Resim başarıyla yüklendi", { id: loadingToast });
+            }
+        } catch (error) {
+            console.error("Upload error:", error);
+            toast.error("Resim yüklenirken bir hata oluştu", { id: loadingToast });
+        } finally {
+            if (fileInputRef.current) {
+                fileInputRef.current.value = "";
+            }
+        }
+    };
+
     return (
         <div className="w-full">
-            <Toolbar editor={editor} />
+            <Toolbar editor={editor} onImageClick={() => fileInputRef.current?.click()} />
+            <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/*"
+                onChange={handleImageUpload}
+            />
             <EditorContent editor={editor} />
         </div>
     );

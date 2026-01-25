@@ -1185,7 +1185,10 @@ model BlogPost {
   updatedAt       DateTime @updatedAt
   
   tags            String[]
+  category        String?
   
   @@index([slug])
   @@index([isPublished])
+  @@index([category])
 }
+

@@ -15,7 +15,7 @@ export default function GizlilikPage() {
           </div>
 
           <p className="mb-6">
-            <strong>Evindebesle.com</strong> olarak kişisel verilerinizin
+            <strong>evindebesle.com</strong> olarak kişisel verilerinizin
             gizliliğine ve güvenliğine önem veriyoruz. Bu Gizlilik Sözleşmesi,
             tarafımıza ilettiğiniz kişisel verilerin nasıl toplandığını,
             kullanıldığını, saklandığını ve korunduğunu açıklamaktadır.
@@ -24,7 +24,7 @@ export default function GizlilikPage() {
           <h2 className="text-lg font-semibold mb-4">Toplanan Veriler</h2>
           <ul className="list-disc list-inside mb-6 space-y-1">
             <li>Ad, soyad, e-posta, telefon gibi iletişim bilgileri</li>
-            <li>Evcil hayvan bilgileri, hizmet geçmişi ve kullanıcı notları</li>
+            <li>Sipariş geçmişi ve kullanıcı tercihleri</li>
             <li>Oturum geçmişi gibi teknik veriler</li>
           </ul>
 
@@ -52,7 +52,7 @@ export default function GizlilikPage() {
           </h2>
           <ul className="list-disc list-inside mb-6 space-y-1">
             <li>
-              Hizmetlerin sunulması, randevu planlaması ve kullanıcı desteği
+              Siparişlerin yönetilmesi, teslimat süreçleri ve kullanıcı desteği
             </li>
             <li>İyileştirme ve geliştirme amaçlı analiz çalışmaları</li>
             <li>Yasal yükümlülüklerin yerine getirilmesi</li>

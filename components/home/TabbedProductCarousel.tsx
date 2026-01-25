@@ -677,7 +677,7 @@ function ProductCarouselContent({
                   </div>
                   <div className="space-y-1">
                     <p className="text-xs font-light text-[#111]/60 uppercase tracking-wide">
-                      Make Up
+                      Premium
                     </p>
                     <h3 className="text-sm font-light text-[#111]">
                       {product.title}

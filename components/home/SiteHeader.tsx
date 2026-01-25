@@ -19,7 +19,7 @@ import CartPreview from "@/components/home/CartPreview";
 import AnnouncementBanner from "@/components/home/AnnouncementBanner";
 import { useHeaderStore } from "@/lib/stores/headerStore";
 
-type MenuKey = "dogs" | "cats" | "services" | "blog" | "about";
+type MenuKey = "men" | "women" | "new" | "collections" | "about";
 
 type MegaGroup = {
   title?: string;
@@ -35,10 +35,10 @@ type Promo = {
 
 // Navigation items - 2. resimdeki gibi
 const navItems = [
-  { key: "dogs" as const, label: "KÖPEK", href: "/category/dogs" },
-  { key: "cats" as const, label: "KEDİ", href: "/category/cats" },
-  { key: "services" as const, label: "HİZMETLER", href: "/services" },
-  { key: "blog" as const, label: "BLOG", href: "/blog" },
+  { key: "men" as const, label: "ERKEK", href: "/category/men" },
+  { key: "women" as const, label: "KADIN", href: "/category/women" },
+  { key: "new" as const, label: "YENİ", href: "/category/new" },
+  { key: "collections" as const, label: "KOLEKSİYON", href: "/category/collections" },
   { key: "about" as const, label: "HAKKIMIZDA", href: "/about" },
 ] as const;
 
@@ -105,82 +105,96 @@ export default function SiteHeader() {
 
   const mega = useMemo<Record<MenuKey, { left: MegaGroup[]; rightPromo: Promo }>>(
     () => ({
-      dogs: {
+      men: {
         left: [
           {
-            title: "KÖPEK HİZMETLERİ",
+            title: "ERKEK GİYİM",
             items: [
-              { label: "Köpek Gezdirme", href: "/services/dog-walking" },
-              { label: "Evde Köpek Bakımı", href: "/services/dog-sitting" },
-              { label: "Köpek Eğitimi", href: "/services/dog-training" },
-              { label: "Pati Bakımı", href: "/services/paw-care" },
-              { label: "Tüm Hizmetler", href: "/services" },
+              { label: "T-Shirt", href: "/category/men-tshirt" },
+              { label: "Sweatshirt", href: "/category/men-sweatshirt" },
+              { label: "Pantolon", href: "/category/men-pants" },
+              { label: "Ceket", href: "/category/men-jackets" },
+              { label: "Tümünü Gör", href: "/category/men" },
             ],
           },
           {
-            title: "KÖPEK ÜRÜNLERİ",
+            title: "AKSESUAR",
             items: [
-              { label: "Mamalar", href: "/category/dog-food" },
-              { label: "Tasmalar", href: "/category/dog-collars" },
-              { label: "Oyuncaklar", href: "/category/dog-toys" },
-              { label: "Yataklar", href: "/category/dog-beds" },
-              { label: "Tüm Ürünler", href: "/category/dogs" },
+              { label: "Çanta", href: "/category/men-bags" },
+              { label: "Cüzdan", href: "/category/men-wallets" },
+              { label: "Şapka", href: "/category/men-hats" },
             ],
           },
         ],
         rightPromo: {
-          title: "Mutlu Patiler",
-          subtitle: "Dostunuz için en iyisi",
-          image: "https://images.unsplash.com/photo-1541599540903-216a46ca1df0?q=80&w=1200&auto=format&fit=crop",
-          href: "/services/dog-walking",
+          title: "Erkek Koleksiyonu",
+          subtitle: "Modern ve zamansız parçalar",
+          image: "https://images.unsplash.com/photo-1488161628813-04466f872be2?q=80&w=1200&auto=format&fit=crop",
+          href: "/category/men",
         },
       },
-      cats: {
+      women: {
         left: [
           {
-            title: "KEDİ HİZMETLERİ",
+            title: "KADIN GİYİM",
             items: [
-              { label: "Evde Kedi Bakımı", href: "/services/cat-sitting" },
-              { label: "Kedi Oyun Arkadaşlığı", href: "/services/cat-play" },
-              { label: "Kedi Kuaförü", href: "/services/cat-grooming" },
-              { label: "Tüm Hizmetler", href: "/services" },
+              { label: "Elbise", href: "/category/women-dresses" },
+              { label: "Bluz & Gömlek", href: "/category/women-tops" },
+              { label: "Etek", href: "/category/women-skirts" },
+              { label: "Dış Giyim", href: "/category/women-outerwear" },
+              { label: "Tümünü Gör", href: "/category/women" },
             ],
           },
           {
-            title: "KEDİ ÜRÜNLERİ",
+            title: "AKSESUAR",
             items: [
-              { label: "Mamalar", href: "/category/cat-food" },
-              { label: "Kumlar", href: "/category/cat-litter" },
-              { label: "Tırmalama Tahtaları", href: "/category/cat-scratchers" },
-              { label: "Oyuncaklar", href: "/category/cat-toys" },
-              { label: "Tüm Ürünler", href: "/category/cats" },
+              { label: "Takı", href: "/category/women-jewelry" },
+              { label: "Çanta Colors", href: "/category/women-bags" },
+              { label: "Şal & Atkı", href: "/category/women-scarves" },
             ],
           },
         ],
         rightPromo: {
-          title: "Zarif Dostlarımız",
-          subtitle: "Konforlu kedi bakımı",
-          image: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?q=80&w=1200&auto=format&fit=crop",
-          href: "/services/cat-sitting",
+          title: "Kadın Koleksiyonu",
+          subtitle: "Zarafet ve konfor bir arada",
+          image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1200&auto=format&fit=crop",
+          href: "/category/women",
         },
       },
-      services: {
+      new: {
         left: [
           {
-            title: "POPÜLER HİZMETLER",
+            title: "YENİ GELENLER",
             items: [
-              { label: "Köpek Gezdirme", href: "/services/dog-walking" },
-              { label: "Evde Bakım", href: "/services/pet-sitting" },
-              { label: "Veteriner Randevusu", href: "/services/vet-visit" },
-              { label: "Tümünü Gör", href: "/services" },
+              { label: "Bu Haftalık", href: "/category/new-this-week" },
+              { label: "En Yeniler", href: "/category/new" },
+              { label: "Trending", href: "/category/trends" },
             ],
           },
         ],
         rightPromo: {
-          title: "Profesyonel Bakım",
-          subtitle: "Uzman gezdirici ekibimiz",
-          image: "https://images.unsplash.com/photo-1551730459-92db2a308d6a?q=80&w=1200&auto=format&fit=crop",
-          href: "/services",
+          title: "Yeni Sezon",
+          subtitle: "En güncel trendler",
+          image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=1200&auto=format&fit=crop",
+          href: "/category/new",
+        },
+      },
+      collections: {
+        left: [
+          {
+            title: "KOLEKSİYONLAR",
+            items: [
+              { label: "Minimalist", href: "/category/collection-minimalist" },
+              { label: "Dark Edition", href: "/category/collection-dark" },
+              { label: "Velvet Soft", href: "/category/collection-velvet" },
+            ],
+          },
+        ],
+        rightPromo: {
+          title: "Dark Collection",
+          subtitle: "Özel seri tasarımlar",
+          image: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?q=80&w=1200&auto=format&fit=crop",
+          href: "/category/collections",
         },
       },
       about: {
@@ -191,26 +205,16 @@ export default function SiteHeader() {
               { label: "Hakkımızda", href: "/about" },
               { label: "İletişim", href: "/contact" },
               { label: "Sıkça Sorulan Sorular", href: "/faq" },
-              { label: "Güvenlik Politikamız", href: "/safety" },
             ],
           },
         ],
         rightPromo: {
-          title: "Biz Kimiz?",
-          subtitle: "Sevgi dolu bakım hikayemiz",
+          title: "Evinde Besle",
+          subtitle: "Biz kimiz?",
           image: "https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?q=80&w=1200&auto=format&fit=crop",
           href: "/about",
         },
       },
-      blog: {
-        left: [],
-        rightPromo: {
-          title: "Pet Blog",
-          subtitle: "Bilgilendirici yazılar",
-          image: "https://images.unsplash.com/photo-1512486130939-2c4f79935e4f?q=80&w=1200&auto=format&fit=crop",
-          href: "/blog",
-        }
-      }
     }),
     []
   );

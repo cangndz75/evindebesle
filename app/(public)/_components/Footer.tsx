@@ -7,16 +7,16 @@ export default function Footer() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-20">
         <div className="flex flex-col justify-between">
           <div>
-            <h1 className="text-2xl font-bold mb-6">evindebesle</h1>
+            <h1 className="text-2xl font-bold mb-6">Evinde Besle</h1>
             <p className="text-sm">İstanbul Ticaret Odası’na kayıtlıdır.</p>
           </div>
           <p className="text-xs text-[#6b6059]">
-            © EvindeBesle 2025. Tüm hakları saklıdır.
+            © Evinde Besle 2026. Tüm hakları saklıdır.
           </p>
         </div>
 
         <div className="leading-7 text-[15px]">
-          <p className="font-medium">evindebesle bir DogoPet hizmetidir.</p>
+          <p className="font-medium">Evinde Besle bir Premium Evcil Hayvan Hizmetleri markasıdır.</p>
           <p>
             Uptwins Blok, Orta, Yalnız Selvi Cd. No : 5AB, 34880 Kartal/İstanbul
           </p>

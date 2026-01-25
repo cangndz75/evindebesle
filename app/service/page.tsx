@@ -17,11 +17,11 @@ export default function TeslimatVeIadePage() {
 
           <h2 className="text-lg font-semibold mb-4">Teslimat Koşulları</h2>
           <p className="mb-6">
-            <strong>Evindebesle.com</strong> üzerinden alınan hizmetler,
-            rezervasyon sırasında seçilen tarih ve saat aralığında, belirtilen
-            adrese uygun şekilde ulaştırılır ve gerçekleştirilir. Tüm
-            hizmetlerde kullanıcının seçtiği evcil hayvan türüne ve talep edilen
-            hizmet detaylarına göre planlama yapılır.
+            <strong>evindebesle.com</strong> üzerinden alınan ürünler,
+            sipariş sırasında belirtilen teslimat süreleri içerisinde
+            adrese uygun şekilde ulaştırılır. Tüm
+            ürünlerde kullanıcıların seçtiği beden ve renk
+            detaylarına göre gönderim yapılır.
           </p>
 
           <ul className="list-disc list-inside mb-6 space-y-1">
@@ -43,18 +43,18 @@ export default function TeslimatVeIadePage() {
             İade ve İptal Koşulları
           </h2>
           <p className="mb-4">
-            Hizmet rezervasyonlarınızda iptal ve iade işlemleri aşağıdaki
+            Siparişlerinizde iptal ve iade işlemleri aşağıdaki
             kurallara göre gerçekleştirilir:
           </p>
           <ul className="list-disc list-inside mb-6 space-y-1">
             <li>
-              Hizmet saatinden <strong>en az 12 saat önce</strong> yapılan
-              iptallerde ücret iadesi yapılır.
+              Ürün teslimatından sonra <strong>14 gün içinde</strong> sebep göstermeksizin iade hakkınız bulunmaktadır.
             </li>
             <li>
-              Hizmet saatine <strong>12 saatten az</strong> kala yapılan
-              iptallerde yalnızca hizmet kullanılmamışsa kupon tanımlanır, para
-              iadesi yapılmaz.
+              İade edilecek ürünün <strong>etiketinin sökülmemiş ve kullanılmamış</strong> olması gerekmektedir.
+            </li>
+            <li>
+              Hijyen kuralları gereği küpe, iç giyim ve alt grup mayo ürünlerinde iade kabul edilmemektedir.
             </li>
             <li>
               Hizmet sağlayıcı kaynaklı iptallerde, kullanıcıya{" "}

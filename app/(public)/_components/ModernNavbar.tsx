@@ -18,13 +18,13 @@ export default function ModernNavbar() {
   const { data: session } = useSession();
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
-  
+
   // Store'dan cart items, hydrate ve sync fonksiyonlarını al
   const cartItems = useCartStore((state) => state.items);
   const hydrated = useCartStore((state) => state.hydrated);
   const hydrate = useCartStore((state) => state.hydrate);
   const syncGuestCartToAPI = useCartStore((state) => state.syncGuestCartToAPI);
-  
+
   // Cart count'u store'dan hesapla
   const cartCount = useMemo(() => {
     return cartItems.reduce((sum, item) => sum + item.quantity, 0);
@@ -104,13 +104,6 @@ export default function ModernNavbar() {
                     className="block text-black font-light hover:opacity-70 transition-opacity"
                   >
                     Hakkımızda
-                  </Link>
-                  <Link
-                    href="/services"
-                    onClick={() => setMenuOpen(false)}
-                    className="block text-black font-light hover:opacity-70 transition-opacity"
-                  >
-                    Hizmetler
                   </Link>
                   <Link
                     href="/contact"
@@ -200,7 +193,7 @@ export default function ModernNavbar() {
           </div>
         </div>
       </div>
-      
+
       {/* Shopping Cart Sidebar */}
       <ShoppingCart isOpen={cartOpen} onClose={() => setCartOpen(false)} />
     </nav>

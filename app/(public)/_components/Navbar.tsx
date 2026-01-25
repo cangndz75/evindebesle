@@ -80,8 +80,7 @@ export default function Navbar() {
           href={session?.user?.isAdmin ? "/dashboard" : "/home"}
           className="flex items-center gap-2 text-xl font-bold text-primary"
         >
-          <PawPrint className="w-6 h-6 text-violet-700" />
-          EvindeBesle
+          <span className="text-xl font-serif font-light tracking-wider text-black">DARK VELVET</span>
         </Link>
 
         {/* Masaüstü Menü */}
@@ -170,12 +169,6 @@ export default function Navbar() {
                       Profilim
                     </MenuLink>
                     <MenuLink
-                      href="/profile/pets"
-                      icon={<PawPrint className="w-4 h-4" />}
-                    >
-                      Evcil Hayvanlarım
-                    </MenuLink>
-                    <MenuLink
                       href="/profile/addresses"
                       icon={<MapPin className="w-4 h-4" />}
                     >
@@ -191,7 +184,7 @@ export default function Navbar() {
                       href="/profile/orders"
                       icon={<CalendarCheck className="w-4 h-4" />}
                     >
-                      Randevularım
+                      Siparişlerim
                     </MenuLink>
                     <MenuLink
                       href="/profile/coupons"
@@ -283,13 +276,6 @@ export default function Navbar() {
                       Kişisel Bilgilerim
                     </Link>
                     <Link
-                      href="/profile/pets"
-                      className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100"
-                    >
-                      <PawPrint className="w-4 h-4 text-muted-foreground" />
-                      Evcil Hayvanlarım
-                    </Link>
-                    <Link
                       href="/profile/addresses"
                       className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100"
                     >
@@ -308,7 +294,7 @@ export default function Navbar() {
                       className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100"
                     >
                       <CalendarCheck className="w-4 h-4 text-muted-foreground" />
-                      Tüm Randevularım
+                      Tüm Siparişlerim
                     </Link>
                     <Link
                       href="/profile/coupons"

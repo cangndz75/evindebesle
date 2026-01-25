@@ -17,7 +17,7 @@ import SearchModal from "@/components/home/SearchModal";
 import CartPreview from "@/components/home/CartPreview";
 import { useHeaderStore } from "@/lib/stores/headerStore";
 
-type MenuKey = "dogs" | "cats" | "services" | "blog";
+type MenuKey = "men" | "women" | "new" | "collections" | "blog";
 
 type MegaGroup = {
     title?: string;
@@ -32,10 +32,10 @@ type Promo = {
 };
 
 const navItems = [
-    { key: "dogs" as const, label: "KÖPEK", href: "/category/dogs" },
-    { key: "cats" as const, label: "KEDİ", href: "/category/cats" },
-    { key: "services" as const, label: "HİZMETLER", href: "/services" },
-    { key: "blog" as const, label: "BLOG", href: "/blog" },
+    { key: "men" as const, label: "ERKEK", href: "/category/men" },
+    { key: "women" as const, label: "KADIN", href: "/category/women" },
+    { key: "new" as const, label: "YENİ", href: "/category/new" },
+    { key: "collections" as const, label: "KOLEKSİYON", href: "/category/collections" },
 ] as const;
 
 export default function HomeHeader() {
@@ -112,79 +112,83 @@ export default function HomeHeader() {
 
     const mega = useMemo<Record<MenuKey, { left: MegaGroup[]; rightPromo: Promo }>>(
         () => ({
-            dogs: {
+            men: {
                 left: [
                     {
-                        title: "KÖPEK HİZMETLERİ",
+                        title: "ERKEK GİYİM",
                         items: [
-                            { label: "Köpek Gezdirme", href: "/services/dog-walking" },
-                            { label: "Evde Köpek Bakımı", href: "/services/dog-sitting" },
-                            { label: "Tüm Hizmetler", href: "/services" },
-                        ],
-                    },
-                    {
-                        title: "KÖPEK ÜRÜNLERİ",
-                        items: [
-                            { label: "Mamalar", href: "/category/dog-food" },
-                            { label: "Oyuncaklar", href: "/category/dog-toys" },
+                            { label: "T-Shirt", href: "/category/men-tshirt" },
+                            { label: "Sweatshirt", href: "/category/men-sweatshirt" },
+                            { label: "Pantolon", href: "/category/men-pants" },
+                            { label: "Tümünü Gör", href: "/category/men" },
                         ],
                     },
                 ],
                 rightPromo: {
-                    title: "Mutlu Patiler",
-                    subtitle: "Profesyonel köpek gezdirme",
-                    image: "https://images.unsplash.com/photo-1541599540903-216a46ca1df0?q=80&w=1200&auto=format&fit=crop",
-                    href: "/services/dog-walking",
+                    title: "Erkek Koleksiyonu",
+                    subtitle: "Stil ve konfor",
+                    image: "https://images.unsplash.com/photo-1488161628813-04466f872be2?q=80&w=1200&auto=format&fit=crop",
+                    href: "/category/men",
                 },
             },
-            cats: {
+            women: {
                 left: [
                     {
-                        title: "KEDİ HİZMETLERİ",
+                        title: "KADIN GİYİM",
                         items: [
-                            { label: "Evde Kedi Bakımı", href: "/services/cat-sitting" },
-                            { label: "Kedi Kuaförü", href: "/services/cat-grooming" },
-                        ],
-                    },
-                    {
-                        title: "KEDİ ÜRÜNLERİ",
-                        items: [
-                            { label: "Mamalar", href: "/category/cat-food" },
-                            { label: "Oyuncaklar", href: "/category/cat-toys" },
+                            { label: "Elbise", href: "/category/women-dresses" },
+                            { label: "Bluz", href: "/category/women-tops" },
+                            { label: "Dış Giyim", href: "/category/women-outerwear" },
+                            { label: "Tümünü Gör", href: "/category/women" },
                         ],
                     },
                 ],
                 rightPromo: {
-                    title: "Zarif Dostlarımız",
-                    subtitle: "Huzurlu kedi bakımı",
-                    image: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?q=80&w=1200&auto=format&fit=crop",
-                    href: "/services/cat-sitting",
+                    title: "Kadın Koleksiyonu",
+                    subtitle: "Zarif tasarımlar",
+                    image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1200&auto=format&fit=crop",
+                    href: "/category/women",
                 },
             },
-            services: {
+            new: {
                 left: [
                     {
-                        title: "TÜM HİZMETLERİMİZ",
+                        title: "YENİ GELENLER",
                         items: [
-                            { label: "Köpek Gezdirme", href: "/services/dog-walking" },
-                            { label: "Kedi Bakımı", href: "/services/cat-sitting" },
-                            { label: "Veteriner Randevusu", href: "/services/vet-visit" },
-                            { label: "Tümünü Gör", href: "/services" },
+                            { label: "En Yeniler", href: "/category/new" },
+                            { label: "Trendler", href: "/category/trends" },
                         ],
                     },
                 ],
                 rightPromo: {
-                    title: "Uzman Ekip",
-                    subtitle: "Sevgi dolu bakım",
-                    image: "https://images.unsplash.com/photo-1551730459-92db2a308d6a?q=80&w=1200&auto=format&fit=crop",
-                    href: "/services",
+                    title: "Yeni Sezon",
+                    subtitle: "Keşfedin",
+                    image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=1200&auto=format&fit=crop",
+                    href: "/category/new",
+                },
+            },
+            collections: {
+                left: [
+                    {
+                        title: "ÖZEL KOLEKSİYONLAR",
+                        items: [
+                            { label: "Minimalist", href: "/category/collection-minimalist" },
+                            { label: "Dark Edition", href: "/category/collection-dark" },
+                        ],
+                    },
+                ],
+                rightPromo: {
+                    title: "Dark Collection",
+                    subtitle: "Sınırlı sayıda",
+                    image: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?q=80&w=1200&auto=format&fit=crop",
+                    href: "/category/collections",
                 },
             },
             blog: {
                 left: [],
                 rightPromo: {
-                    title: "Pet Blog",
-                    subtitle: "Bilgilendirici yazılar",
+                    title: "Fashion Blog",
+                    subtitle: "Stil önerileri",
                     image: "https://images.unsplash.com/photo-1512486130939-2c4f79935e4f?q=80&w=1200&auto=format&fit=crop",
                     href: "/blog",
                 },
@@ -326,7 +330,7 @@ export default function HomeHeader() {
                             {/* Mobile Logo */}
                             <Link href="/home" className="md:hidden ml-3" aria-label="Ana Sayfa">
                                 <span className="text-xl font-serif font-light tracking-wider text-[#111] whitespace-nowrap">
-                                    EVİNDE BESLE
+                                    DARK VELVET
                                 </span>
                             </Link>
                         </div>
@@ -338,7 +342,7 @@ export default function HomeHeader() {
                             aria-label="Ana Sayfa"
                         >
                             <span className="text-2xl md:text-3xl font-serif font-light tracking-wider text-[#111]">
-                                EVİNDE BESLE
+                                DARK VELVET
                             </span>
                         </Link>
 

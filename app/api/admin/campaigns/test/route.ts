@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     // Default fallbacks
     campaignSubject = campaignSubject || "Test Email";
     senderName = senderName || "Test";
-    senderEmail = senderEmail || "onboarding@resend.dev";
+    senderEmail = senderEmail || "info@evindebesle.com";
 
     if (!campaignBlocks || campaignBlocks.length === 0) {
       return NextResponse.json({ error: "No blocks to render" }, { status: 400 });

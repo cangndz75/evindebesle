@@ -6,7 +6,7 @@ export default function ContactInfo() {
           İletişim Bilgileri
         </h2>
         <p className="text-gray-500 leading-relaxed max-w-md">
-          Evindebesle olarak, evcil dostlarınıza en iyi hizmeti sunmak için
+          Evinde Besle olarak, evcil hayvanlarınıza en iyi dokunuşu sunmak için
           buradayız. Herhangi bir sorunuz, öneriniz veya hizmetlerimiz hakkında
           bilgi almak için bizimle iletişime geçebilirsiniz.
         </p>
@@ -15,7 +15,7 @@ export default function ContactInfo() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
         <div className="space-y-2">
           <h4 className="font-semibold text-black">Ticaret Unvanı</h4>
-          <p className="text-sm">Dogo Petshop LTD. ŞTİ.</p>
+          <p className="text-sm">Evinde Besle LTD. ŞTİ.</p>
         </div>
 
         <div className="space-y-2">

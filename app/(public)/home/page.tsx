@@ -389,9 +389,9 @@ async function getFeaturedProducts(): Promise<Product[]> {
 
 
 export const metadata = {
-  title: "Evinde Besle | Profesyonel Pet Bakım Hizmetleri",
+  title: "Dark Velvet | Premium Giyim Koleksiyonu",
   description:
-    "Evinde Besle ile evcil hayvanlarınız emin ellerde. Köpek gezdirme, kedi bakımı ve daha fazlası için profesyonel çözümler.",
+    "Dark Velvet ile stilinizi keşfedin. Güncel moda trendleri, kaliteli kumaşlar ve özgün tasarımlar burada.",
 };
 
 export default async function HomePage() {

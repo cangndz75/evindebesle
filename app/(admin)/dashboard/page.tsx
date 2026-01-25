@@ -31,6 +31,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import KPIStrip from "./_components/KPIStrip";
 import SmartActionBar from "./_components/SmartActionBar";
 import OrderOperations from "./_components/OrderOperations";
 import StockHealth from "./_components/StockHealth";
@@ -296,8 +297,8 @@ export default function AdminDashboard() {
     type: item.type.includes("order") || item.type.includes("ship") || item.type.includes("payment") || item.type.includes("refund")
       ? ("order" as const)
       : item.type.includes("stock") || item.type.includes("product")
-      ? ("stock" as const)
-      : ("appointment" as const),
+        ? ("stock" as const)
+        : ("appointment" as const),
     message: item.label,
     count: item.count,
     href: item.action,
@@ -359,6 +360,55 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-8 p-6 bg-gradient-to-br from-gray-50 via-white to-gray-50 min-h-screen">
+
+      {/* 🟥 1.1 KPI ŞERİDİ (YENİ) */}
+      {kpiData && stats ? (
+        <KPIStrip
+          data={{
+            revenue: {
+              value: formatPrice(kpiData.todayRevenue.total),
+              change: `${kpiData.todayRevenue.change > 0 ? "+" : ""}%${Math.abs(kpiData.todayRevenue.change)}`,
+              isPositive: kpiData.todayRevenue.change >= 0,
+            },
+            orders: {
+              value: kpiData.todayOrders.count.toString(),
+              change: `${kpiData.todayOrders.change > 0 ? "+" : ""}%${Math.abs(kpiData.todayOrders.change)}`,
+              isPositive: kpiData.todayOrders.change >= 0,
+            },
+            aov: {
+              value: formatPrice(kpiData.aov.today),
+              change: `${kpiData.aov.change > 0 ? "+" : ""}%${Math.abs(kpiData.aov.change)}`,
+              isPositive: kpiData.aov.change >= 0,
+            },
+            conversion: {
+              value: `%${kpiData.conversionRate.rate}`,
+              tooltip: "Ziyaret -> Sipariş Dönüşümü",
+            },
+            abandonedCart: {
+              value: 846, // Mock: Backend entegrasyonu yapılacak
+              actionUrl: "/admin-marketing/automations",
+            },
+            returnRate: {
+              value: "%1.2", // Mock
+              isHigh: false,
+            },
+            cargoDelay: {
+              value: 18, // Mock
+              actionUrl: "/admin-cargo/delays",
+            },
+            criticalStock: {
+              value: stats.stockAlarm.critical,
+              actionUrl: "/admin-stock",
+            },
+          }}
+        />
+      ) : (
+        <div className="flex gap-4 overflow-hidden pb-4 -mx-6 px-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <Skeleton key={i} className="h-32 w-48 shrink-0 rounded-xl bg-white" />
+          ))}
+        </div>
+      )}
 
       {/* 🟦 A) SMART ACTION BAR (ÜST KISIM) */}
       <SmartActionBar actions={smartActions} />
@@ -428,21 +478,19 @@ export default function AdminDashboard() {
           <div className="flex gap-2 p-1 bg-gray-100 rounded-lg">
             <button
               onClick={() => setActiveTab("ops")}
-              className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                activeTab === "ops"
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
+              className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === "ops"
+                ? "bg-white text-gray-900 shadow-sm"
+                : "text-gray-600 hover:text-gray-900"
+                }`}
             >
               Ops
             </button>
             <button
               onClick={() => setActiveTab("growth")}
-              className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                activeTab === "growth"
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
+              className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === "growth"
+                ? "bg-white text-gray-900 shadow-sm"
+                : "text-gray-600 hover:text-gray-900"
+                }`}
             >
               Growth
             </button>

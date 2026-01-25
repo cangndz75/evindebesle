@@ -19,7 +19,7 @@ interface AuditLogData {
     adminEmail: string;
     targetType?: string;
     targetId?: string;
-    details?: Record<string, unknown>;
+    details?: Record<string, any>;
     ipAddress?: string;
     userAgent?: string;
 }
@@ -32,11 +32,11 @@ export async function logAuditAction(data: AuditLogData): Promise<void> {
         await prisma.auditLog.create({
             data: {
                 action: data.action,
-                adminId: data.adminId,
-                adminEmail: data.adminEmail,
-                targetType: data.targetType,
-                targetId: data.targetId,
-                details: data.details ? JSON.stringify(data.details) : null,
+                performedById: data.adminId, // mapped from adminId
+                // adminEmail not stored in schema currently, maybe in details if needed
+                entityType: data.targetType, // mapped from targetType
+                entityId: data.targetId,     // mapped from targetId
+                details: data.details,       // passed naturally as Json
                 ipAddress: data.ipAddress,
                 userAgent: data.userAgent,
             },
@@ -57,9 +57,11 @@ export async function getRecentAuditLogs(limit = 50) {
         select: {
             id: true,
             action: true,
-            adminEmail: true,
-            targetType: true,
-            targetId: true,
+            performedBy: {
+                select: { email: true }
+            },
+            entityType: true,
+            entityId: true,
             createdAt: true,
             ipAddress: true,
         },
@@ -72,8 +74,8 @@ export async function getRecentAuditLogs(limit = 50) {
 export async function getAuditLogsForTarget(targetType: string, targetId: string) {
     return prisma.auditLog.findMany({
         where: {
-            targetType,
-            targetId,
+            entityType: targetType,
+            entityId: targetId,
         },
         orderBy: { createdAt: "desc" },
     });

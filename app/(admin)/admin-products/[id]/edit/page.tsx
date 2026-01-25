@@ -17,6 +17,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 type Color = {
   name: string;
   images: string[];
+  hexCode?: string;
   useMainPrice?: boolean;
   price?: string;
   originalPrice?: string;
@@ -34,7 +35,7 @@ export default function EditProductPage() {
   const productId = params.id as string;
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
-  
+
   // Temel bilgiler
   const [name, setName] = useState("");
   const [stockCode, setStockCode] = useState("");
@@ -45,42 +46,42 @@ export default function EditProductPage() {
   const [fabricType, setFabricType] = useState("");
   const [weight, setWeight] = useState("");
   const [brand, setBrand] = useState("");
-  
+
   // Görseller
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [primaryImage, setPrimaryImage] = useState("");
   const [secondaryImage, setSecondaryImage] = useState("");
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   // Ana ürün rengi
   const [primaryProductColor, setPrimaryProductColor] = useState<Color | null>(null);
   const [primaryProductColorName, setPrimaryProductColorName] = useState("");
-  
+
   // Renkler
   const [colors, setColors] = useState<Color[]>([]);
   const [selectedColor, setSelectedColor] = useState<number | null>(null);
   const [newColorName, setNewColorName] = useState("");
-  
+
   // Bedenler
   const [sizeType, setSizeType] = useState<"LETTER" | "NUMBER" | "CUP">("LETTER");
   const [customSizes, setCustomSizes] = useState<string[]>([]);
   const [newSizeInput, setNewSizeInput] = useState("");
   const [sizeStocks, setSizeStocks] = useState<{ [key: string]: number }>({});
-  
+
   // Etiketler
   const [tags, setTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState("");
-  
+
   // Kategori
   const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState("");
-  
+
   // Ürün kombinleri
   const [combinations, setCombinations] = useState<string[]>([]);
   const [searchProduct, setSearchProduct] = useState("");
   const [searchResults, setSearchResults] = useState<Array<{ id: string; name: string; image: string | null }>>([]);
-  
+
   // Detay metni
   const [detailText, setDetailText] = useState("");
 
@@ -98,7 +99,7 @@ export default function EditProductPage() {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    
+
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFiles(e.dataTransfer.files);
     }
@@ -188,12 +189,12 @@ export default function EditProductPage() {
       try {
         const formData = new FormData();
         formData.append("file", file);
-        
+
         const uploadRes = await fetch("/api/upload", {
           method: "POST",
           body: formData,
         });
-        
+
         const uploadData = await uploadRes.json();
         return uploadData.url || null;
       } catch (error) {
@@ -201,7 +202,7 @@ export default function EditProductPage() {
         return null;
       }
     });
-    
+
     const results = await Promise.all(uploadPromises);
     return results.filter((url): url is string => url !== null);
   };
@@ -370,7 +371,7 @@ export default function EditProductPage() {
       const res = await fetch(`/api/admin-products/${productId}`);
       if (res.ok) {
         const product = await res.json();
-        
+
         // Temel bilgiler
         setName(product.name || "");
         setStockCode(product.stockCode || "");
@@ -384,7 +385,7 @@ export default function EditProductPage() {
         setDetailText(product.detailText || "");
         setSizeType(product.sizeType || "LETTER");
         setSelectedCategoryId(product.categoryId || "");
-        
+
         // Görseller
         const images: string[] = [];
         if (product.image) images.push(product.image);
@@ -393,7 +394,7 @@ export default function EditProductPage() {
         setUploadedImages(images);
         setPrimaryImage(product.primaryImage || product.image || "");
         setSecondaryImage(product.secondaryImage || "");
-        
+
         // Renkler
         if (product.colors && product.colors.length > 0) {
           const loadedColors: Color[] = product.colors.map((c: any) => {
@@ -409,9 +410,10 @@ export default function EditProductPage() {
                 colorImages = c.images;
               }
             }
-            
+
             return {
               name: c.name,
+              hexCode: c.hexCode,
               images: colorImages,
               useMainPrice: true,
               price: "",
@@ -420,14 +422,14 @@ export default function EditProductPage() {
               sizes: [], // Renge özel bedenler (varsa yüklenecek)
             };
           });
-          
+
           // İlk renk primaryProductColor olarak ayarla
           if (loadedColors.length > 0) {
             setPrimaryProductColor(loadedColors[0]);
             setColors(loadedColors.slice(1));
           }
         }
-        
+
         // Bedenler
         if (product.sizes && product.sizes.length > 0) {
           const sizeNames = product.sizes.map((s: any) => s.name);
@@ -438,12 +440,12 @@ export default function EditProductPage() {
           });
           setSizeStocks(stocks);
         }
-        
+
         // Etiketler
         if (product.tags && product.tags.length > 0) {
           setTags(product.tags.map((t: any) => t.name));
         }
-        
+
         // Kombinler
         if (product.combinations && product.combinations.length > 0) {
           setCombinations(product.combinations.map((c: any) => c.relatedProductId));
@@ -477,7 +479,7 @@ export default function EditProductPage() {
       const categoryName = categories.find(c => c.id === selectedCategoryId)?.name;
       const firstColorName = primaryProductColor?.name || colors[0]?.name;
       const autoSlug = generateProductSlug(name, categoryName, firstColorName);
-      
+
       const productData = {
         name,
         slug: autoSlug,
@@ -513,8 +515,8 @@ export default function EditProductPage() {
             const finalPrice = c.useMainPrice
               ? parseFloat(price)
               : c.price && parseFloat(c.price) > 0
-              ? parseFloat(c.price)
-              : parseFloat(price);
+                ? parseFloat(c.price)
+                : parseFloat(price);
 
             const finalOriginalPrice = c.originalPrice && parseFloat(c.originalPrice) > 0 && c.price && parseFloat(c.price) > 0 && parseFloat(c.originalPrice) > parseFloat(c.price)
               ? parseFloat(c.price)
@@ -535,7 +537,7 @@ export default function EditProductPage() {
       // Base64 görselleri Cloudinary'e yükle
       let finalPrimaryImage = primaryImage;
       let finalSecondaryImage = secondaryImage;
-      
+
       if (primaryImage?.startsWith("data:image")) {
         const url = await uploadBase64ToCloudinary(primaryImage);
         if (url) finalPrimaryImage = url;
@@ -560,9 +562,9 @@ export default function EditProductPage() {
 
       const processedPrimaryColor = primaryProductColor
         ? {
-            ...primaryProductColor,
-            images: await processColorImages(primaryProductColor.images),
-          }
+          ...primaryProductColor,
+          images: await processColorImages(primaryProductColor.images),
+        }
         : null;
 
       const processedColors = await Promise.all(
@@ -579,14 +581,15 @@ export default function EditProductPage() {
       productData.colors = [
         ...(processedPrimaryColor ? [{
           name: processedPrimaryColor.name,
+          hexCode: processedPrimaryColor.hexCode,
           images: processedPrimaryColor.images.filter((img): img is string => !!img),
         }] : []),
         ...processedColors.map((c) => {
           const finalPrice = c.useMainPrice
             ? parseFloat(price)
             : c.price && parseFloat(c.price) > 0
-            ? parseFloat(c.price)
-            : parseFloat(price);
+              ? parseFloat(c.price)
+              : parseFloat(price);
 
           const finalOriginalPrice = c.originalPrice && parseFloat(c.originalPrice) > 0 && c.price && parseFloat(c.price) > 0 && parseFloat(c.originalPrice) > parseFloat(c.price)
             ? parseFloat(c.price)
@@ -597,6 +600,7 @@ export default function EditProductPage() {
 
           return {
             name: c.name,
+            hexCode: c.hexCode,
             images: c.images.filter((img): img is string => !!img),
             price: finalPrice !== parseFloat(price) ? finalPrice : undefined,
             originalPrice: finalOriginalPrice,
@@ -629,9 +633,9 @@ export default function EditProductPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
+      {/* Header - Sticky */}
+      <div className="sticky top-0 z-50 bg-white border-b border-gray-200 px-6 py-4 shadow-sm">
+        <div className="flex items-center justify-between max-w-7xl mx-auto">
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
@@ -657,7 +661,7 @@ export default function EditProductPage() {
               disabled={loading}
               className="bg-black text-white hover:bg-gray-800"
             >
-              {loading ? "Oluşturuluyor..." : "Ürün Oluştur"}
+              {loading ? "Güncelleniyor..." : "Güncelle"}
             </Button>
           </div>
         </div>
@@ -669,14 +673,13 @@ export default function EditProductPage() {
           <div className="space-y-6">
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <h2 className="text-lg font-semibold mb-4">Ürün Önizlemesi</h2>
-              
+
               {/* Fotoğraf Yükleme Alanı */}
               <div
-                className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors ${
-                  dragActive
-                    ? "border-black bg-gray-50"
-                    : "border-gray-300 hover:border-gray-400"
-                }`}
+                className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors ${dragActive
+                  ? "border-black bg-gray-50"
+                  : "border-gray-300 hover:border-gray-400"
+                  }`}
                 onDragEnter={handleDrag}
                 onDragLeave={handleDrag}
                 onDragOver={handleDrag}
@@ -747,127 +750,123 @@ export default function EditProductPage() {
                   {/* Ana ve Hover Görsel Seçimi - Yüklenen görsellerin altında */}
                   <div className="mt-6 space-y-4 pt-6 border-t border-gray-200">
                     <div>
-                    <Label className="text-sm font-medium mb-3 block">Ana Görsel</Label>
-                    <RadioGroup
-                      value={primaryImage}
-                      onValueChange={(value) => {
-                        setPrimaryImage(value);
-                        // Eğer seçilen görsel hover görseli ise, hover'ı temizle
-                        if (secondaryImage === value) {
-                          setSecondaryImage("");
-                        }
-                      }}
-                      className="grid grid-cols-4 gap-3"
-                    >
-                      {uploadedImages.map((img, index) => {
-                        const isHover = secondaryImage === img;
-                        return (
-                          <div key={index} className="flex flex-col items-center gap-2">
-                            <div className={`relative aspect-square w-full rounded-lg overflow-hidden border-2 ${
-                              isHover ? "border-gray-300 opacity-50" : "border-gray-200"
-                            }`}>
-                              <Image
-                                src={img}
-                                alt={`Ana görsel ${index + 1}`}
-                                fill
-                                className="object-cover"
-                              />
-                              {primaryImage === img && (
-                                <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-                                  <div className="bg-black text-white text-xs px-2 py-1 rounded">
-                                    Ana
+                      <Label className="text-sm font-medium mb-3 block">Ana Görsel</Label>
+                      <RadioGroup
+                        value={primaryImage}
+                        onValueChange={(value) => {
+                          setPrimaryImage(value);
+                          // Eğer seçilen görsel hover görseli ise, hover'ı temizle
+                          if (secondaryImage === value) {
+                            setSecondaryImage("");
+                          }
+                        }}
+                        className="grid grid-cols-4 gap-3"
+                      >
+                        {uploadedImages.map((img, index) => {
+                          const isHover = secondaryImage === img;
+                          return (
+                            <div key={index} className="flex flex-col items-center gap-2">
+                              <div className={`relative aspect-square w-full rounded-lg overflow-hidden border-2 ${isHover ? "border-gray-300 opacity-50" : "border-gray-200"
+                                }`}>
+                                <Image
+                                  src={img}
+                                  alt={`Ana görsel ${index + 1}`}
+                                  fill
+                                  className="object-cover"
+                                />
+                                {primaryImage === img && (
+                                  <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                                    <div className="bg-black text-white text-xs px-2 py-1 rounded">
+                                      Ana
+                                    </div>
                                   </div>
-                                </div>
-                              )}
-                              {isHover && (
-                                <div className="absolute inset-0 bg-gray-400/30 flex items-center justify-center">
-                                  <div className="bg-gray-600 text-white text-xs px-2 py-1 rounded">
-                                    Hover
+                                )}
+                                {isHover && (
+                                  <div className="absolute inset-0 bg-gray-400/30 flex items-center justify-center">
+                                    <div className="bg-gray-600 text-white text-xs px-2 py-1 rounded">
+                                      Hover
+                                    </div>
                                   </div>
-                                </div>
-                              )}
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <RadioGroupItem
+                                  value={img}
+                                  id={`primary-${index}`}
+                                  disabled={isHover}
+                                />
+                                <Label
+                                  htmlFor={`primary-${index}`}
+                                  className={`text-xs cursor-pointer ${isHover ? "text-gray-400" : "text-gray-600"
+                                    }`}
+                                >
+                                  Ana Görsel
+                                </Label>
+                              </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <RadioGroupItem
-                                value={img}
-                                id={`primary-${index}`}
-                                disabled={isHover}
-                              />
-                              <Label
-                                htmlFor={`primary-${index}`}
-                                className={`text-xs cursor-pointer ${
-                                  isHover ? "text-gray-400" : "text-gray-600"
-                                }`}
-                              >
-                                Ana Görsel
-                              </Label>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </RadioGroup>
-                  </div>
+                          );
+                        })}
+                      </RadioGroup>
+                    </div>
 
-                  <div>
-                    <Label className="text-sm font-medium mb-3 block">Hover Görseli</Label>
-                    <RadioGroup
-                      value={secondaryImage}
-                      onValueChange={(value) => {
-                        setSecondaryImage(value);
-                        // Eğer seçilen görsel ana görsel ise, ana'yı temizle
-                        if (primaryImage === value) {
-                          setPrimaryImage("");
-                        }
-                      }}
-                      className="grid grid-cols-4 gap-3"
-                    >
-                      {uploadedImages.map((img, index) => {
-                        const isPrimary = primaryImage === img;
-                        return (
-                          <div key={index} className="flex flex-col items-center gap-2">
-                            <div className={`relative aspect-square w-full rounded-lg overflow-hidden border-2 ${
-                              isPrimary ? "border-gray-300 opacity-50" : "border-gray-200"
-                            }`}>
-                              <Image
-                                src={img}
-                                alt={`Hover görseli ${index + 1}`}
-                                fill
-                                className="object-cover"
-                              />
-                              {secondaryImage === img && (
-                                <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-                                  <div className="bg-black text-white text-xs px-2 py-1 rounded">
-                                    Hover
+                    <div>
+                      <Label className="text-sm font-medium mb-3 block">Hover Görseli</Label>
+                      <RadioGroup
+                        value={secondaryImage}
+                        onValueChange={(value) => {
+                          setSecondaryImage(value);
+                          // Eğer seçilen görsel ana görsel ise, ana'yı temizle
+                          if (primaryImage === value) {
+                            setPrimaryImage("");
+                          }
+                        }}
+                        className="grid grid-cols-4 gap-3"
+                      >
+                        {uploadedImages.map((img, index) => {
+                          const isPrimary = primaryImage === img;
+                          return (
+                            <div key={index} className="flex flex-col items-center gap-2">
+                              <div className={`relative aspect-square w-full rounded-lg overflow-hidden border-2 ${isPrimary ? "border-gray-300 opacity-50" : "border-gray-200"
+                                }`}>
+                                <Image
+                                  src={img}
+                                  alt={`Hover görseli ${index + 1}`}
+                                  fill
+                                  className="object-cover"
+                                />
+                                {secondaryImage === img && (
+                                  <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                                    <div className="bg-black text-white text-xs px-2 py-1 rounded">
+                                      Hover
+                                    </div>
                                   </div>
-                                </div>
-                              )}
-                              {isPrimary && (
-                                <div className="absolute inset-0 bg-gray-400/30 flex items-center justify-center">
-                                  <div className="bg-gray-600 text-white text-xs px-2 py-1 rounded">
-                                    Ana
+                                )}
+                                {isPrimary && (
+                                  <div className="absolute inset-0 bg-gray-400/30 flex items-center justify-center">
+                                    <div className="bg-gray-600 text-white text-xs px-2 py-1 rounded">
+                                      Ana
+                                    </div>
                                   </div>
-                                </div>
-                              )}
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <RadioGroupItem
+                                  value={img}
+                                  id={`secondary-${index}`}
+                                  disabled={isPrimary}
+                                />
+                                <Label
+                                  htmlFor={`secondary-${index}`}
+                                  className={`text-xs cursor-pointer ${isPrimary ? "text-gray-400" : "text-gray-600"
+                                    }`}
+                                >
+                                  Hover Görseli
+                                </Label>
+                              </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <RadioGroupItem
-                                value={img}
-                                id={`secondary-${index}`}
-                                disabled={isPrimary}
-                              />
-                              <Label
-                                htmlFor={`secondary-${index}`}
-                                className={`text-xs cursor-pointer ${
-                                  isPrimary ? "text-gray-400" : "text-gray-600"
-                                }`}
-                              >
-                                Hover Görseli
-                              </Label>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </RadioGroup>
+                          );
+                        })}
+                      </RadioGroup>
                     </div>
                   </div>
                 </div>
@@ -908,7 +907,7 @@ export default function EditProductPage() {
                     className="mt-1"
                   />
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="category">Kategori</Label>
@@ -1003,7 +1002,7 @@ export default function EditProductPage() {
             {/* Ana Ürün Rengi */}
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <h2 className="text-lg font-semibold mb-4">Ana Ürün Rengi</h2>
-              
+
               {!primaryProductColor ? (
                 <div className="space-y-3">
                   <div className="flex gap-2">
@@ -1031,10 +1030,10 @@ export default function EditProductPage() {
                 </div>
               ) : (
                 <div className="border rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <span className="font-medium">{primaryProductColor.name}</span>
-                      </div>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <span className="font-medium">{primaryProductColor.name}</span>
+                    </div>
                     <Button
                       type="button"
                       variant="ghost"
@@ -1052,7 +1051,7 @@ export default function EditProductPage() {
             {/* Beden Seçimi */}
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <h2 className="text-lg font-semibold mb-4">Beden</h2>
-              
+
               {/* Beden Tipi Seçimi */}
               <div className="mb-4">
                 <Label className="text-sm font-medium mb-3 block">Beden Tipi</Label>
@@ -1224,7 +1223,7 @@ export default function EditProductPage() {
             {/* Renk Seçimi */}
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <h2 className="text-lg font-semibold mb-4">Renk</h2>
-              
+
               {/* Yeni Renk Ekleme */}
               <div className="flex gap-2 mb-4">
                 <Input
@@ -1254,11 +1253,10 @@ export default function EditProductPage() {
                 {colors.map((color, index) => (
                   <div
                     key={index}
-                    className={`border rounded-lg p-4 ${
-                      selectedColor === index
-                        ? "border-black bg-gray-50"
-                        : "border-gray-200"
-                    }`}
+                    className={`border rounded-lg p-4 ${selectedColor === index
+                      ? "border-black bg-gray-50"
+                      : "border-gray-200"
+                      }`}
                   >
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-3">
@@ -1420,8 +1418,8 @@ export default function EditProductPage() {
                                   {color.originalPrice && color.price && parseFloat(color.originalPrice) > 0 && parseFloat(color.price) > 0
                                     ? `Görünen fiyat: ${parseFloat(color.price).toFixed(2)} ₺ (İndirimli: ${parseFloat(color.originalPrice).toFixed(2)} ₺)`
                                     : color.price && parseFloat(color.price) > 0
-                                    ? `Görünen fiyat: ${parseFloat(color.price).toFixed(2)} ₺`
-                                    : "Fiyat giriniz"}
+                                      ? `Görünen fiyat: ${parseFloat(color.price).toFixed(2)} ₺`
+                                      : "Fiyat giriniz"}
                                 </div>
                               </div>
                             )}
@@ -1436,12 +1434,12 @@ export default function EditProductPage() {
                           <div className="text-xs text-gray-500 mb-3">
                             Üstte seçilen bedenler otomatik gelir. İsterseniz bu renk için farklı bedenler seçebilirsiniz.
                           </div>
-                          
+
                           {/* Beden Tipi Seçimi */}
                           <div className="mb-3">
                             <Label className="text-xs font-medium mb-2 block">Beden Tipi</Label>
-                            <RadioGroup 
-                              value={sizeType} 
+                            <RadioGroup
+                              value={sizeType}
                               onValueChange={(v: any) => {
                                 // Beden tipi değiştiğinde renge özel bedenleri temizle
                                 const updatedColors = [...colors];
@@ -1737,11 +1735,10 @@ export default function EditProductPage() {
                         type="button"
                         onClick={() => addTag(suggestion)}
                         disabled={tags.includes(suggestion)}
-                        className={`px-3 py-1 rounded-full text-sm border transition-colors ${
-                          tags.includes(suggestion)
-                            ? "bg-gray-200 text-gray-500 cursor-not-allowed border-gray-300"
-                            : "bg-white text-gray-700 hover:bg-gray-100 border-gray-300"
-                        }`}
+                        className={`px-3 py-1 rounded-full text-sm border transition-colors ${tags.includes(suggestion)
+                          ? "bg-gray-200 text-gray-500 cursor-not-allowed border-gray-300"
+                          : "bg-white text-gray-700 hover:bg-gray-100 border-gray-300"
+                          }`}
                       >
                         {suggestion}
                       </button>

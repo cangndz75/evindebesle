@@ -20,6 +20,8 @@ import {
   Mail,
   Phone,
   Download,
+  AlertTriangle,
+  RotateCcw,
 } from "lucide-react";
 import {
   Dialog,
@@ -29,6 +31,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -95,6 +103,19 @@ type Order = {
     discountType: string;
     value: number;
   } | null;
+  riskScore?: number;
+};
+
+type AuditLog = {
+  id: string;
+  action: string;
+  oldValue: any;
+  newValue: any;
+  performedBy: {
+    name: string;
+    email: string;
+  } | null;
+  createdAt: string;
 };
 
 type OrderHistory = {
@@ -107,6 +128,7 @@ export default function OrderDetailPage() {
   const params = useParams();
   const router = useRouter();
   const [order, setOrder] = useState<Order | null>(null);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusModalOpen, setStatusModalOpen] = useState(false);
   const [newStatus, setNewStatus] = useState<string>("");
@@ -128,6 +150,7 @@ export default function OrderDetailPage() {
         const data = await res.json();
         if (data.order) {
           setOrder(data.order);
+          setAuditLogs(data.auditLogs || []);
           setNewStatus(data.order.status);
         } else {
           // Eğer API direkt order döndürüyorsa (eski format)
@@ -265,19 +288,50 @@ export default function OrderDetailPage() {
           >
             Durum Güncelle
           </Button>
-          <Button variant="outline">
-            <Printer className="w-4 h-4 mr-2" />
-            Yazdır
+          <Button variant="outline" onClick={() => router.push(`/admin-support/new?orderId=${order.id}`)}>
+            <Mail className="w-4 h-4 mr-2" />
+            Mesaj
           </Button>
-          <Button variant="ghost" size="icon">
-            <MoreVertical className="w-4 h-4" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">İşlemler <MoreVertical className="w-4 h-4 ml-2" /></Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => window.print()}>
+                <Printer className="w-4 h-4 mr-2" /> Yazdır
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push(`/admin-orders/${order.id}/refund`)}>
+                <RotateCcw className="w-4 h-4 mr-2" /> İade Oluştur
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Sol Kolon */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Risk Analizi */}
+          {order.riskScore !== undefined && order.riskScore > 50 && (
+            <Card className="border-red-200 bg-red-50">
+              <CardHeader className="pb-2">
+                <div className="flex items-center gap-2 text-red-700">
+                  <AlertTriangle className="w-5 h-5" />
+                  <CardTitle className="text-red-700">Risk Analizi</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-semibold text-lg text-red-900">Skor: {order.riskScore} / 100</p>
+                    <p className="text-sm text-red-600">Yüksek riskli sipariş. Lütfen kontrol ediniz.</p>
+                  </div>
+                  <Button variant="destructive" size="sm">Detaylı İncele</Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Sipariş ve Ödeme Durumu */}
           <Card>
             <CardHeader>
@@ -362,7 +416,7 @@ export default function OrderDetailPage() {
                     </p>
                   </div>
                 </div>
-                
+
                 {/* Paid */}
                 {order.paymentStatus === "PAID" && (
                   <div className="flex items-start gap-3">
@@ -372,7 +426,7 @@ export default function OrderDetailPage() {
                     <div className="flex-1">
                       <p className="font-medium">Ödeme Alındı</p>
                       <p className="text-sm text-gray-600">
-                        {order.paidAt 
+                        {order.paidAt
                           ? format(new Date(order.paidAt), "dd MMMM yyyy HH:mm", { locale: tr })
                           : format(new Date(order.createdAt), "dd MMMM yyyy HH:mm", { locale: tr })}
                       </p>
@@ -383,12 +437,10 @@ export default function OrderDetailPage() {
                 {/* Preparing */}
                 {(order.status === "PREPARING" || order.status === "SHIPPED" || order.status === "DELIVERED") && (
                   <div className="flex items-start gap-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                      order.status === "PREPARING" ? "bg-blue-100" : "bg-green-100"
-                    }`}>
-                      <Package className={`w-4 h-4 ${
-                        order.status === "PREPARING" ? "text-blue-600" : "text-green-600"
-                      }`} />
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${order.status === "PREPARING" ? "bg-blue-100" : "bg-green-100"
+                      }`}>
+                      <Package className={`w-4 h-4 ${order.status === "PREPARING" ? "text-blue-600" : "text-green-600"
+                        }`} />
                     </div>
                     <div className="flex-1">
                       <p className="font-medium">Hazırlanıyor</p>
@@ -472,6 +524,53 @@ export default function OrderDetailPage() {
               {!order.customerNote && !order.adminNote && (
                 <p className="text-sm text-gray-500">Henüz not eklenmemiş</p>
               )}
+            </CardContent>
+          </Card>
+
+          {/* İşlem Geçmişi (Audit Logs) */}
+          <Card>
+            <CardHeader>
+              <CardTitle>İşlem Geçmişi</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {auditLogs.length === 0 ? (
+                  <p className="text-sm text-gray-500">Henüz kaydedilmiş işlem yok.</p>
+                ) : (
+                  auditLogs.map((log) => (
+                    <div key={log.id} className="flex gap-3 text-sm">
+                      <div className="w-2 h-2 mt-1.5 rounded-full bg-gray-300 flex-shrink-0" />
+                      <div className="flex-1">
+                        <div className="flex justify-between items-start">
+                          <p className="font-medium text-gray-900">
+                            {log.action === "UPDATE" ? "Güncelleme" : log.action}
+                            {log.performedBy && <span className="text-gray-500 font-normal"> • {log.performedBy.name}</span>}
+                          </p>
+                          <span className="text-xs text-gray-400">
+                            {format(new Date(log.createdAt), "dd MMM HH:mm", { locale: tr })}
+                          </span>
+                        </div>
+                        <div className="mt-1">
+                          {/* Basic diff display */}
+                          {log.action === "UPDATE" && log.newValue && typeof log.newValue === 'object' && (
+                            <div className="text-xs text-gray-600 space-y-1">
+                              {(log.newValue as any).status && (
+                                <p>Durum: <span className="font-medium">{(log.newValue as any).status}</span></p>
+                              )}
+                              {(log.newValue as any).paymentStatus && (
+                                <p>Ödeme: <span className="font-medium">{(log.newValue as any).paymentStatus}</span></p>
+                              )}
+                              {(log.newValue as any).trackingNumber && (
+                                <p>Kargo Takip: <span className="font-medium">{(log.newValue as any).trackingNumber}</span></p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -673,9 +772,8 @@ export default function OrderDetailPage() {
                     <Button
                       key={status.value}
                       variant={newStatus === status.value ? "default" : "outline"}
-                      className={`w-full justify-start h-auto p-3 ${
-                        newStatus === status.value ? "bg-gray-900 text-white" : ""
-                      }`}
+                      className={`w-full justify-start h-auto p-3 ${newStatus === status.value ? "bg-gray-900 text-white" : ""
+                        }`}
                       onClick={() => setNewStatus(status.value)}
                     >
                       <Icon className="w-4 h-4 mr-2" />

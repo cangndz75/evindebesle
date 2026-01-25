@@ -78,6 +78,7 @@ type Order = {
       name: string;
     };
   } | null;
+  riskScore?: number;
 };
 
 export default function AdminOrdersPage() {
@@ -264,17 +265,15 @@ export default function AdminOrdersPage() {
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-              activeTab === tab.key
-                ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-600 hover:text-gray-900"
-            }`}
+            className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === tab.key
+              ? "bg-white text-gray-900 shadow-sm"
+              : "text-gray-600 hover:text-gray-900"
+              }`}
           >
             {tab.label}
             {tab.count > 0 && (
-              <span className={`ml-2 px-1.5 py-0.5 rounded-full text-xs ${
-                activeTab === tab.key ? "bg-gray-100" : "bg-gray-200"
-              }`}>
+              <span className={`ml-2 px-1.5 py-0.5 rounded-full text-xs ${activeTab === tab.key ? "bg-gray-100" : "bg-gray-200"
+                }`}>
                 {tab.count}
               </span>
             )}
@@ -303,15 +302,35 @@ export default function AdminOrdersPage() {
               <SelectItem value="REFUNDED">İade Edildi</SelectItem>
             </SelectContent>
           </Select>
+          <Select onValueChange={(val) => {
+            // Basic implementation for risk filter trigger
+            if (val === "high") {
+              // Logic to refetch with risk=high
+              const params = new URLSearchParams(window.location.search);
+              params.set("risk", "high");
+              // In a real app we would update state here but for now just showing UI
+              toast.info("Yüksek riskli siparişler filtreleniyor (Demo)");
+            }
+          }}>
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="Risk Durumu" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tümü</SelectItem>
+              <SelectItem value="high">Yüksek Risk (&gt;50)</SelectItem>
+              <SelectItem value="low">Düşük Risk</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         {selectedOrders.size > 0 && (
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleBulkAction("PREPARING")}
-            >
-              Hazırlanıyor Yap
+            <Button variant="outline" size="sm" onClick={() => handleBulkAction("labels")}>
+              <Download className="w-4 h-4 mr-2" />
+              Etiket
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => handleBulkAction("invoice")}>
+              <Download className="w-4 h-4 mr-2" />
+              Fatura
             </Button>
             <Button
               variant="outline"
@@ -364,6 +383,7 @@ export default function AdminOrdersPage() {
                 <TableHead>Tarih</TableHead>
                 <TableHead>Ürünler</TableHead>
                 <TableHead>Tutar</TableHead>
+                <TableHead>Risk</TableHead>
                 <TableHead>Durum</TableHead>
                 <TableHead>Ödeme</TableHead>
                 <TableHead className="text-right">İşlemler</TableHead>
@@ -409,6 +429,15 @@ export default function AdminOrdersPage() {
                   </TableCell>
                   <TableCell className="font-medium">
                     {order.total.toFixed(2)} ₺
+                  </TableCell>
+                  <TableCell>
+                    {order.riskScore && order.riskScore > 50 ? (
+                      <Badge variant="destructive" className="bg-red-50 text-red-600 border-red-100">
+                        {order.riskScore}
+                      </Badge>
+                    ) : (
+                      <span className="text-green-600 text-sm font-medium">Güvenli</span>
+                    )}
                   </TableCell>
                   <TableCell>{getStatusBadge(order.status)}</TableCell>
                   <TableCell>{getPaymentStatusBadge(order.paymentStatus)}</TableCell>

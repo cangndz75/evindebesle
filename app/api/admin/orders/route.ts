@@ -37,6 +37,11 @@ export async function GET(request: NextRequest) {
       ];
     }
 
+    const risk = searchParams.get("risk");
+    if (risk === "high") {
+      where.riskScore = { gte: 50 };
+    }
+
     const orders = await prisma.order.findMany({
       where,
       include: {

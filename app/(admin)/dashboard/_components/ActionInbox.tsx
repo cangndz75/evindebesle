@@ -101,7 +101,7 @@ export default function ActionInbox({ items }: ActionInboxProps) {
             <div className="p-2 rounded-lg bg-blue-100">
               <AlertTriangle className="w-4 h-4 text-blue-600" />
             </div>
-            <CardTitle className="text-xl font-semibold text-gray-900">Action Inbox</CardTitle>
+            <CardTitle className="text-xl font-semibold text-gray-900">Operasyon Akışı (Bugün)</CardTitle>
           </div>
           {displayItems.length > 0 && (
             <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-2 py-1 rounded-full">

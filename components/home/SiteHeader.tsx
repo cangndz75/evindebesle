@@ -19,7 +19,7 @@ import CartPreview from "@/components/home/CartPreview";
 import AnnouncementBanner from "@/components/home/AnnouncementBanner";
 import { useHeaderStore } from "@/lib/stores/headerStore";
 
-type MenuKey = "men" | "women" | "kids" | "bundles" | "lastcall";
+type MenuKey = "men" | "women" | "kids" | "bundles" | "lastcall" | "blog";
 
 type MegaGroup = {
   title?: string;
@@ -39,6 +39,7 @@ const navItems = [
   { key: "women" as const, label: "KADIN", href: "/women" },
   { key: "kids" as const, label: "ÇOCUK", href: "/kids" },
   { key: "bundles" as const, label: "PAKETLER", href: "/bundles" },
+  { key: "blog" as const, label: "BLOG", href: "/blog" },
   { key: "lastcall" as const, label: "SON FIRSAT", href: "/last-call" },
 ] as const;
 
@@ -244,6 +245,15 @@ export default function SiteHeader() {
           href: "/last-call",
         },
       },
+      blog: {
+        left: [],
+        rightPromo: {
+          title: "Blog",
+          subtitle: "En güncel yazılar",
+          image: "https://images.unsplash.com/photo-1512486130939-2c4f79935e4f?q=80&w=1200&auto=format&fit=crop",
+          href: "/blog",
+        }
+      }
     }),
     []
   );

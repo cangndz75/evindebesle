@@ -75,7 +75,7 @@ export async function setStockAlert(
         where: {
             productId_variantId: {
                 productId,
-                variantId: variantId || null,
+                variantId: (variantId || null) as any,
             },
         },
         update: {

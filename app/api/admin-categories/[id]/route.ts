@@ -119,7 +119,7 @@ export async function DELETE(
     const { id } = await params;
 
     // Kategoriyi kullanan ürün var mı kontrol et
-    const productCount = await prisma.productCategory.count({
+    const productCount = await prisma.product.count({
       where: { categoryId: id },
     });
 

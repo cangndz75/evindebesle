@@ -61,7 +61,7 @@ function formatProduct(product: any, type: "new-arrivals" | "best-sellers" | "fe
   const firstColor = product.colors[0];
   const colorImages = firstColor?.images ? parseImages(firstColor.images) : [];
   const mainImage = product.primaryImage || product.image || colorImages[0] || "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop";
-  
+
   // Hover image için: önce secondaryImage, sonra ilk rengin 2. görseli, sonra diğer renklerin görselleri
   let hoverImage = product.secondaryImage;
   if (!hoverImage && colorImages.length > 1) {
@@ -196,7 +196,7 @@ async function getNewArrivals(gender?: "MALE" | "FEMALE"): Promise<Product[]> {
       take: 8,
     });
 
-    return products.map((p) => formatProduct(p, "new-arrivals"));
+    return products.map((p: any) => formatProduct(p, "new-arrivals"));
   } catch (error) {
     console.error("Error fetching new arrivals:", error);
     return [];
@@ -279,7 +279,7 @@ async function getBestSellers(gender?: "MALE" | "FEMALE"): Promise<Product[]> {
     });
 
     // Sipariş sayısına göre sırala
-    products.sort((a, b) => {
+    products.sort((a: any, b: any) => {
       const aCount = a._count.orderItems;
       const bCount = b._count.orderItems;
       if (bCount !== aCount) {
@@ -288,7 +288,7 @@ async function getBestSellers(gender?: "MALE" | "FEMALE"): Promise<Product[]> {
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
 
-    return products.map((p) => formatProduct(p, "best-sellers"));
+    return products.map((p: any) => formatProduct(p, "best-sellers"));
   } catch (error) {
     console.error("Error fetching best sellers:", error);
     return [];
@@ -371,7 +371,7 @@ async function getFeaturedProducts(): Promise<Product[]> {
     });
 
     // Sipariş sayısına göre sırala
-    products.sort((a, b) => {
+    products.sort((a: any, b: any) => {
       const aCount = a._count.orderItems;
       const bCount = b._count.orderItems;
       if (bCount !== aCount) {
@@ -380,7 +380,7 @@ async function getFeaturedProducts(): Promise<Product[]> {
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
 
-    return products.map((p) => formatProduct(p, "featured"));
+    return products.map((p: any) => formatProduct(p, "featured"));
   } catch (error) {
     console.error("Error fetching featured products:", error);
     return [];

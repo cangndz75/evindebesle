@@ -1,9 +1,9 @@
 import { Block } from "@/app/(admin)/campaigns/types";
 
 interface RenderOptions {
-    baseUrl: string;
-    trackingId?: string;
-    campaignId?: string;
+  baseUrl: string;
+  trackingId?: string;
+  campaignId?: string;
 }
 
 /**
@@ -11,18 +11,18 @@ interface RenderOptions {
  * Uses table-based layout for maximum compatibility
  */
 export function renderEmailHtml(blocks: Block[], options: RenderOptions): string {
-    const { baseUrl, trackingId, campaignId } = options;
+  const { baseUrl, trackingId, campaignId } = options;
 
-    const bodyContent = blocks
-        .map((block) => renderBlock(block, options))
-        .join("\n");
+  const bodyContent = blocks
+    .map((block) => renderBlock(block, options))
+    .join("\n");
 
-    // Tracking pixel for open tracking
-    const trackingPixel = trackingId
-        ? `<img src="${baseUrl}/api/track/open/${trackingId}" width="1" height="1" style="display:block;width:1px;height:1px;border:0;" alt="" />`
-        : "";
+  // Tracking pixel for open tracking
+  const trackingPixel = trackingId
+    ? `<img src="${baseUrl}/api/track/open/${trackingId}" width="1" height="1" style="display:block;width:1px;height:1px;border:0;" alt="" />`
+    : "";
 
-    return `
+  return `
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -86,36 +86,36 @@ export function renderEmailHtml(blocks: Block[], options: RenderOptions): string
 }
 
 function renderBlock(block: Block, options: RenderOptions): string {
-    switch (block.type) {
-        case "header":
-            return renderHeaderBlock(block);
-        case "hero":
-            return renderHeroBlock(block, options);
-        case "text":
-            return renderTextBlock(block);
-        case "coupon":
-            return renderCouponBlock(block);
-        case "cta":
-            return renderCtaBlock(block, options);
-        case "product":
-            return renderProductBlock(block, options);
-        case "image":
-            return renderImageBlock(block, options);
-        case "divider":
-            return renderDividerBlock(block);
-        case "footer":
-            return renderFooterBlock(block, options);
-        default:
-            return "";
-    }
+  switch (block.type) {
+    case "header":
+      return renderHeaderBlock(block);
+    case "hero":
+      return renderHeroBlock(block, options);
+    case "text":
+      return renderTextBlock(block);
+    case "coupon":
+      return renderCouponBlock(block);
+    case "cta":
+      return renderCtaBlock(block, options);
+    case "product":
+      return renderProductBlock(block, options);
+    case "image":
+      return renderImageBlock(block, options);
+    case "divider":
+      return renderDividerBlock(block);
+    case "footer":
+      return renderFooterBlock(block, options);
+    default:
+      return "";
+  }
 }
 
 function renderHeaderBlock(block: Block): string {
-    const bgColor = block.style.backgroundColor || "#ffffff";
-    const logoUrl = block.content.logoUrl || "";
-    const siteName = block.content.siteName || "";
+  const bgColor = block.style.backgroundColor || "#ffffff";
+  const logoUrl = block.content.logoUrl || "";
+  const siteName = block.content.siteName || "";
 
-    return `
+  return `
     <tr>
       <td style="background-color: ${bgColor}; padding: 20px; text-align: center;">
         ${logoUrl ? `<img src="${logoUrl}" alt="${siteName}" style="max-height: 60px; width: auto;" />` : ""}
@@ -126,13 +126,13 @@ function renderHeaderBlock(block: Block): string {
 }
 
 function renderHeroBlock(block: Block, options: RenderOptions): string {
-    const bgColor = block.style.backgroundColor || "#f9fafb";
-    const imageUrl = block.content.imageUrl || "";
-    const greeting = block.content.greeting || "";
-    const message = block.content.message || "";
-    const description = block.content.description || "";
+  const bgColor = block.style.backgroundColor || "#f9fafb";
+  const imageUrl = block.content.imageUrl || "";
+  const greeting = block.content.greeting || "";
+  const message = block.content.message || "";
+  const description = block.content.description || "";
 
-    return `
+  return `
     <tr>
       <td style="background-color: ${bgColor};">
         ${imageUrl ? `<img src="${imageUrl}" alt="Hero" style="width: 100%; height: auto; display: block;" />` : ""}
@@ -147,12 +147,12 @@ function renderHeroBlock(block: Block, options: RenderOptions): string {
 }
 
 function renderTextBlock(block: Block): string {
-    const bgColor = block.style.backgroundColor || "#ffffff";
-    const textColor = block.style.textColor || "#374151";
-    const text = block.content.text || "";
-    const fontSize = block.style.fontSize || 16;
+  const bgColor = block.style.backgroundColor || "#ffffff";
+  const textColor = block.style.textColor || "#374151";
+  const text = block.content.text || "";
+  const fontSize = block.style.fontSize || 16;
 
-    return `
+  return `
     <tr>
       <td style="background-color: ${bgColor}; padding: 24px 32px;">
         <p style="margin: 0; font-size: ${fontSize}px; color: ${textColor}; line-height: 1.6;">
@@ -164,13 +164,13 @@ function renderTextBlock(block: Block): string {
 }
 
 function renderCouponBlock(block: Block): string {
-    const bgColor = block.style.backgroundColor || "#ffffff";
-    const borderColor = block.style.borderColor || "#000000";
-    const couponCode = block.content.couponCode || "";
-    const discountText = block.content.discountText || "";
-    const validityText = block.content.validityText || "";
+  const bgColor = block.style.backgroundColor || "#ffffff";
+  const borderColor = block.style.borderColor || "#000000";
+  const couponCode = block.content.couponCode || "";
+  const discountText = block.content.discountText || "";
+  const validityText = block.content.validityText || "";
 
-    return `
+  return `
     <tr>
       <td style="background-color: ${bgColor}; padding: 32px; text-align: center;">
         <div style="display: inline-block; border: 2px dashed ${borderColor}; padding: 24px 48px; border-radius: 8px;">
@@ -187,18 +187,18 @@ function renderCouponBlock(block: Block): string {
 }
 
 function renderCtaBlock(block: Block, options: RenderOptions): string {
-    const bgColor = block.style.backgroundColor || "#ffffff";
-    const buttonColor = block.style.buttonColor || "#000000";
-    const buttonTextColor = block.style.buttonTextColor || "#ffffff";
-    const text = block.content.text || "Tıkla";
-    let url = block.content.url || "#";
+  const bgColor = block.style.backgroundColor || "#ffffff";
+  const buttonColor = block.style.buttonColor || "#000000";
+  const buttonTextColor = block.style.buttonTextColor || "#ffffff";
+  const text = block.content.text || "Tıkla";
+  let url = block.content.url || "#";
 
-    // Wrap URL for tracking if campaign exists
-    if (options.campaignId && url !== "#") {
-        url = `${options.baseUrl}/api/track/click?campaignId=${options.campaignId}&url=${encodeURIComponent(url)}`;
-    }
+  // Wrap URL for tracking if campaign exists
+  if (options.campaignId && url !== "#") {
+    url = `${options.baseUrl}/api/track/click?campaignId=${options.campaignId}&url=${encodeURIComponent(url)}`;
+  }
 
-    return `
+  return `
     <tr>
       <td style="background-color: ${bgColor}; padding: 24px 32px; text-align: center;">
         <a href="${url}" class="button" style="display: inline-block; background-color: ${buttonColor}; color: ${buttonTextColor}; padding: 14px 32px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 16px;">
@@ -210,25 +210,25 @@ function renderCtaBlock(block: Block, options: RenderOptions): string {
 }
 
 function renderProductBlock(block: Block, options: RenderOptions): string {
-    const bgColor = block.style.backgroundColor || "#ffffff";
-    const buttonColor = block.style.buttonColor || "#000000";
-    const products = block.content.products || [];
-    const columns = block.content.columns || 3;
-    const showPrices = block.content.showPrices !== false;
-    const showButton = block.content.showButton !== false;
-    const buttonText = block.content.buttonText || "Sepete Ekle";
+  const bgColor = block.style.backgroundColor || "#ffffff";
+  const buttonColor = block.style.buttonColor || "#000000";
+  const products = block.content.products || [];
+  const columns = block.content.columns || 3;
+  const showPrices = block.content.showPrices !== false;
+  const showButton = block.content.showButton !== false;
+  const buttonText = block.content.buttonText || "Sepete Ekle";
 
-    if (products.length === 0) return "";
+  if (products.length === 0) return "";
 
-    const productWidth = Math.floor(100 / columns);
+  const productWidth = Math.floor(100 / columns);
 
-    const productCells = products
-        .map((product: { id: string; name: string; price: number; originalPrice?: number; image?: string; slug?: string }) => {
-            const productUrl = product.slug
-                ? `${options.baseUrl}/product/${product.slug}`
-                : "#";
+  const productCells = products
+    .map((product: { id: string; name: string; price: number; originalPrice?: number; image?: string; slug?: string }) => {
+      const productUrl = product.slug
+        ? `${options.baseUrl}/product/${product.slug}`
+        : "#";
 
-            return `
+      return `
         <td style="width: ${productWidth}%; padding: 8px; vertical-align: top;">
           <div style="background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
             ${product.image ? `<a href="${productUrl}"><img src="${product.image}" alt="${product.name}" style="width: 100%; height: auto; display: block;" /></a>` : ""}
@@ -249,20 +249,20 @@ function renderProductBlock(block: Block, options: RenderOptions): string {
           </div>
         </td>
       `;
-        })
-        .join("");
+    })
+    .join("");
 
-    // Split products into rows
-    const rows: string[] = [];
-    for (let i = 0; i < products.length; i += columns) {
-        const rowProducts = productCells
-            .split("</td>")
-            .slice(i, i + columns)
-            .join("</td>") + "</td>";
-        rows.push(`<tr>${rowProducts}</tr>`);
-    }
+  // Split products into rows
+  const rows: string[] = [];
+  for (let i = 0; i < products.length; i += columns) {
+    const rowProducts = productCells
+      .split("</td>")
+      .slice(i, i + columns)
+      .join("</td>") + "</td>";
+    rows.push(`<tr>${rowProducts}</tr>`);
+  }
 
-    return `
+  return `
     <tr>
       <td style="background-color: ${bgColor}; padding: 16px;">
         <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
@@ -274,30 +274,32 @@ function renderProductBlock(block: Block, options: RenderOptions): string {
 }
 
 function renderImageBlock(block: Block, options: RenderOptions): string {
-    const bgColor = block.style.backgroundColor || "#ffffff";
-    const imageUrl = block.content.imageUrl || "";
-    const altText = block.content.altText || "";
-    let linkUrl = block.content.linkUrl || "";
-    const maxWidth = block.style.maxWidth || 100;
-    const alignment = block.style.alignment || "center";
-    const paddingY = block.style.paddingY || 16;
+  const bgColor = block.style.backgroundColor || "#ffffff";
+  const imageUrl = block.content.imageUrl || "";
+  const altText = block.content.altText || "";
+  let linkUrl = block.content.linkUrl || "";
+  const maxWidth = block.style.maxWidth || 100;
+  const alignment = block.style.alignment || "center";
+  const paddingY = block.style.paddingY || 16;
 
-    if (!imageUrl) return "";
+  if (!imageUrl) return "";
 
-    // Wrap URL for tracking
-    if (options.campaignId && linkUrl) {
-        linkUrl = `${options.baseUrl}/api/track/click?campaignId=${options.campaignId}&url=${encodeURIComponent(linkUrl)}`;
-    }
+  // Wrap URL for tracking
+  if (options.campaignId && linkUrl) {
+    linkUrl = `${options.baseUrl}/api/track/click?campaignId=${options.campaignId}&url=${encodeURIComponent(linkUrl)}`;
+  }
 
-    const alignStyle = {
-        left: "left",
-        center: "center",
-        right: "right",
-    }[alignment] || "center";
+  const alignMap: Record<string, string> = {
+    left: "left",
+    center: "center",
+    right: "right",
+  };
 
-    const imageHtml = `<img src="${imageUrl}" alt="${altText}" style="max-width: ${maxWidth}%; width: auto; height: auto; display: block; margin: 0 auto;" />`;
+  const alignStyle = alignMap[alignment] || "center";
 
-    return `
+  const imageHtml = `<img src="${imageUrl}" alt="${altText}" style="max-width: ${maxWidth}%; width: auto; height: auto; display: block; margin: 0 auto;" />`;
+
+  return `
     <tr>
       <td style="background-color: ${bgColor}; padding: ${paddingY}px 16px; text-align: ${alignStyle};">
         ${linkUrl ? `<a href="${linkUrl}">${imageHtml}</a>` : imageHtml}
@@ -307,14 +309,14 @@ function renderImageBlock(block: Block, options: RenderOptions): string {
 }
 
 function renderDividerBlock(block: Block): string {
-    const bgColor = block.style.backgroundColor || "transparent";
-    const lineColor = block.style.lineColor || "#e5e7eb";
-    const lineWidth = block.style.lineWidth || 1;
-    const lineStyle = block.style.lineStyle || "solid";
-    const paddingY = block.style.paddingY || 24;
-    const widthPercent = block.style.widthPercent || 100;
+  const bgColor = block.style.backgroundColor || "transparent";
+  const lineColor = block.style.lineColor || "#e5e7eb";
+  const lineWidth = block.style.lineWidth || 1;
+  const lineStyle = block.style.lineStyle || "solid";
+  const paddingY = block.style.paddingY || 24;
+  const widthPercent = block.style.widthPercent || 100;
 
-    return `
+  return `
     <tr>
       <td style="background-color: ${bgColor}; padding: ${paddingY}px 16px; text-align: center;">
         <hr style="width: ${widthPercent}%; border: none; border-top: ${lineWidth}px ${lineStyle} ${lineColor}; margin: 0 auto;" />
@@ -324,18 +326,18 @@ function renderDividerBlock(block: Block): string {
 }
 
 function renderFooterBlock(block: Block, options: RenderOptions): string {
-    const bgColor = block.style.backgroundColor || "#f9fafb";
-    const textColor = block.style.textColor || "#6b7280";
-    const companyName = block.content.companyName || "";
-    const companyAddress = block.content.companyAddress || "";
-    const siteLink = block.content.siteLink || "";
-    const unsubscribeText = block.content.unsubscribeText || "Abonelikten çık";
+  const bgColor = block.style.backgroundColor || "#f9fafb";
+  const textColor = block.style.textColor || "#6b7280";
+  const companyName = block.content.companyName || "";
+  const companyAddress = block.content.companyAddress || "";
+  const siteLink = block.content.siteLink || "";
+  const unsubscribeText = block.content.unsubscribeText || "Abonelikten çık";
 
-    const unsubscribeLink = options.trackingId
-        ? `${options.baseUrl}/unsubscribe?id=${options.trackingId}`
-        : "#";
+  const unsubscribeLink = options.trackingId
+    ? `${options.baseUrl}/unsubscribe?id=${options.trackingId}`
+    : "#";
 
-    return `
+  return `
     <tr>
       <td style="background-color: ${bgColor}; padding: 32px; text-align: center;">
         ${companyName ? `<p style="margin: 0 0 8px; font-size: 14px; font-weight: bold; color: ${textColor};">${companyName}</p>` : ""}
@@ -353,15 +355,15 @@ function renderFooterBlock(block: Block, options: RenderOptions): string {
  * Replace personalization variables in content
  */
 export function replaceVariables(
-    html: string,
-    variables: Record<string, string>
+  html: string,
+  variables: Record<string, string>
 ): string {
-    let result = html;
+  let result = html;
 
-    for (const [key, value] of Object.entries(variables)) {
-        const regex = new RegExp(`\\{\\{${key}\\}\\}`, "g");
-        result = result.replace(regex, value);
-    }
+  for (const [key, value] of Object.entries(variables)) {
+    const regex = new RegExp(`\\{\\{${key}\\}\\}`, "g");
+    result = result.replace(regex, value);
+  }
 
-    return result;
+  return result;
 }

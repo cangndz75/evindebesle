@@ -1,0 +1,93 @@
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { iyzico, iyzicoCall } from "@/lib/iyzico";
+import { commitReservationToSaleTx } from "@/lib/stock";
+
+/**
+ * Iyzico Webhook Handler
+ * 
+ * This endpoint is called asynchronously by Iyzico to notify about payment results.
+ * It's crucial for cases where the user closes the browser before the callback completes.
+ */
+export async function POST(req: NextRequest) {
+    try {
+        const body = await req.json();
+
+        // Iyzico Webhook typically includes iyziEventType and other fields.
+        // For standard payment notifications:
+        const { iyziEventType, iyziReferenceId, token, status } = body;
+
+        if (iyziEventType !== "PAYMENT_RESULT") {
+            // We only care about payment results for now
+            return NextResponse.json({ status: "ignored" });
+        }
+
+        if (!token) {
+            return NextResponse.json({ error: "Missing token" }, { status: 400 });
+        }
+
+        const payment = await prisma.paymentAttempt.findUnique({
+            where: { token },
+            include: { order: true }
+        });
+
+        if (!payment) {
+            console.error(`Webhook Error: Payment attempt with token ${token} not found.`);
+            return NextResponse.json({ error: "Payment not found" }, { status: 404 });
+        }
+
+        // If already succeeded, nothing to do
+        if (payment.status === "SUCCEEDED") {
+            return NextResponse.json({ status: "already_processed" });
+        }
+
+        // Verify status with Iyzico Retrieve API for security (Background verification)
+        const retrieveReq = {
+            locale: "tr",
+            conversationId: payment.orderId,
+            token: token
+        };
+
+        const retrieveRes: any = await iyzicoCall<any>(iyzico.checkoutForm.retrieve.bind(iyzico.checkoutForm), retrieveReq);
+
+        const isSuccess = retrieveRes.status === "success" && retrieveRes.paymentStatus === "SUCCESS";
+
+        if (isSuccess) {
+            // Commit stock and update order
+            await commitReservationToSaleTx(payment.orderId);
+
+            await prisma.$transaction([
+                prisma.order.update({
+                    where: { id: payment.orderId },
+                    data: {
+                        status: "PAID",
+                        paymentStatus: "PAID",
+                        paidAt: new Date()
+                    }
+                }),
+                prisma.paymentAttempt.update({
+                    where: { id: payment.id },
+                    data: {
+                        status: "SUCCEEDED",
+                        paymentId: retrieveRes.paymentId,
+                        rawResult: retrieveRes
+                    }
+                })
+            ]);
+
+            console.log(`Webhook: Order ${payment.orderId} successfully updated via webhook.`);
+            return NextResponse.json({ status: "success" });
+        } else {
+            // Note: We don't necessarily fail the order here because 
+            // the user might still be on the payment page trying again (if allowed)
+            // or we might just wait for expiration.
+            // But if it's a definitive failure reported by Iyzico:
+            console.log(`Webhook: Payment failed for token ${token}.`);
+            return NextResponse.json({ status: "failed_notification_received" });
+        }
+
+    } catch (error: any) {
+        console.error("Iyzico Webhook error:", error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}

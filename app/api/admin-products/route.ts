@@ -256,26 +256,22 @@ export async function POST(req: Request) {
     // Renkleri ekle (product.id artık mevcut)
     if (colors && colors.length > 0) {
       for (const c of colors) {
-        // Unique colorCode oluştur (productId + colorName + random)
-        let colorCode = `${product.id.substring(0, 8)}-${c.name.toLowerCase().replace(/\s+/g, '-')}-${generateVariantCode().substring(0, 6)}`;
-        
-        // Unique kontrolü
+        // Aynı ürün için aynı renk adı kontrolü
         let existing = await prisma.productColor.findFirst({
-          where: { colorCode },
+          where: { 
+            productId: product.id,
+            name: c.name,
+          },
         });
-        let counter = 1;
-        while (existing) {
-          colorCode = `${product.id.substring(0, 8)}-${c.name.toLowerCase().replace(/\s+/g, '-')}-${generateVariantCode().substring(0, 6)}-${counter}`;
-          existing = await prisma.productColor.findFirst({
-            where: { colorCode },
-          });
-          counter++;
+        
+        // Eğer aynı renk zaten varsa, atla
+        if (existing) {
+          continue;
         }
 
         await prisma.productColor.create({
           data: {
             productId: product.id,
-            colorCode,
             name: c.name,
             images: Array.isArray(c.images) ? JSON.stringify(c.images) : (c.images || null),
           },

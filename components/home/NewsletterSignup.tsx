@@ -7,11 +7,27 @@ import { Input } from "@/components/ui/input";
 export default function NewsletterSignup() {
   const [email, setEmail] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Newsletter signup logic
-    console.log("Newsletter signup:", email);
-    setEmail("");
+    if (!email) return;
+
+    try {
+      const res = await fetch("/api/newsletter/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      if (res.ok) {
+        import("sonner").then(({ toast }) => toast.success("Bültene başarıyla abone oldunuz!"));
+        setEmail("");
+      } else {
+        const error = await res.json();
+        import("sonner").then(({ toast }) => toast.error(error.error || "Abonelik başarısız oldu."));
+      }
+    } catch (err) {
+      import("sonner").then(({ toast }) => toast.error("Bir hata oluştu."));
+    }
   };
 
   return (

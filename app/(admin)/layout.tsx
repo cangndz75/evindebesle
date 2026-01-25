@@ -92,6 +92,16 @@ const navSections = [
     ],
   },
   {
+    title: "İÇERİK YÖNETİMİ",
+    links: [
+      {
+        label: "Blog Yazıları",
+        href: "/admin-blog",
+        icon: <FileText className="w-5 h-5" />,
+      },
+    ],
+  },
+  {
     title: "MÜŞTERİ & DESTEK",
     links: [
       {
@@ -162,9 +172,8 @@ export default function AdminLayout({
 
   return (
     <div className="flex min-h-screen bg-gray-50 overflow-hidden">
-      <aside className={`hidden md:flex bg-gray-900 text-white flex-col shrink-0 transition-all duration-300 ${
-        sidebarCollapsed ? "w-16" : "w-64"
-      }`}>
+      <aside className={`hidden md:flex bg-gray-900 text-white flex-col shrink-0 transition-all duration-300 ${sidebarCollapsed ? "w-16" : "w-64"
+        }`}>
         <div className={`border-b border-gray-800 ${sidebarCollapsed ? "p-3" : "p-6"}`}>
           {!sidebarCollapsed ? (
             <div className="flex items-center gap-2">
@@ -206,13 +215,11 @@ export default function AdminLayout({
                     <Link
                       key={`${section.title}-${label}-${href}`}
                       href={href}
-                      className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
-                        sidebarCollapsed ? "justify-center" : ""
-                      } ${
-                        isActive
+                      className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${sidebarCollapsed ? "justify-center" : ""
+                        } ${isActive
                           ? "bg-gray-800 text-white"
                           : "text-gray-300 hover:bg-gray-800 hover:text-white"
-                      }`}
+                        }`}
                       title={sidebarCollapsed ? label : undefined}
                     >
                       <span className="flex-shrink-0">{icon}</span>
@@ -232,9 +239,8 @@ export default function AdminLayout({
           )}
           <Button
             variant="ghost"
-            className={`w-full text-sm text-gray-300 hover:text-white hover:bg-gray-800 ${
-              sidebarCollapsed ? "justify-center px-0" : ""
-            }`}
+            className={`w-full text-sm text-gray-300 hover:text-white hover:bg-gray-800 ${sidebarCollapsed ? "justify-center px-0" : ""
+              }`}
             onClick={handleLogout}
             title={sidebarCollapsed ? "Çıkış Yap" : undefined}
           >
@@ -290,9 +296,8 @@ export default function AdminLayout({
         </div>
       )}
 
-      <main className={`flex-1 bg-gray-50 relative ${
-        isCampaignsPage ? "overflow-hidden" : "overflow-y-auto"
-      }`}>{children}</main>
+      <main className={`flex-1 bg-gray-50 relative ${isCampaignsPage ? "overflow-hidden" : "overflow-y-auto"
+        }`}>{children}</main>
     </div>
   );
 }

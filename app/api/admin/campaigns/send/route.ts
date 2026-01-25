@@ -138,68 +138,70 @@ export async function POST(req: NextRequest) {
 }
 
 async function getRecipients(segmentId: string | null) {
-  // Build where clause based on segment
-  const where: Record<string, unknown> = {
-    emailVerified: true,
+  // Common selection for both types
+  const userSelect = {
+    id: true,
+    email: true,
+    name: true,
+  };
+
+  const subscriberSelect = {
+    id: true,
+    email: true,
+    // Subscriber doesn't have a name, default to email or null
+  };
+
+  let users: any[] = [];
+  let anonymousSubscribers: any[] = [];
+
+  // Build where clause for users
+  const userWhere: Record<string, any> = {
     marketingEmailConsent: true,
+    // emailVerified: true, // Only if you strictly want verified
   };
 
   if (segmentId === "active") {
-    // Users with orders in last 30 days
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-    return prisma.user.findMany({
+    users = await prisma.user.findMany({
       where: {
-        ...where,
-        orders: {
-          some: {
-            createdAt: { gte: thirtyDaysAgo },
-          },
-        },
+        ...userWhere,
+        orders: { some: { createdAt: { gte: thirtyDaysAgo } } },
       },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-      },
+      select: userSelect,
     });
-  }
-
-  if (segmentId === "inactive") {
-    // Users without orders in last 90 days
+  } else if (segmentId === "inactive") {
     const ninetyDaysAgo = new Date();
     ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
-
-    return prisma.user.findMany({
+    users = await prisma.user.findMany({
       where: {
-        ...where,
+        ...userWhere,
         OR: [
           { orders: { none: {} } },
-          {
-            orders: {
-              every: {
-                createdAt: { lt: ninetyDaysAgo },
-              },
-            },
-          },
+          { orders: { every: { createdAt: { lt: ninetyDaysAgo } } } },
         ],
       },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-      },
+      select: userSelect,
     });
+  } else if (segmentId === "newsletter" || !segmentId) {
+    // Both users and anonymous subscribers
+    users = await prisma.user.findMany({
+      where: userWhere,
+      select: userSelect,
+    });
+    const subscribers = await prisma.subscriber.findMany({
+      where: { isActive: true },
+    });
+    anonymousSubscribers = subscribers.map(s => ({
+      id: s.id,
+      email: s.email,
+      name: s.email.split("@")[0], // Fallback name
+    }));
   }
 
-  // Default: all users with marketing consent
-  return prisma.user.findMany({
-    where,
-    select: {
-      id: true,
-      email: true,
-      name: true,
-    },
-  });
+  // Combine and de-duplicate by email
+  const allRecipients = [...users, ...anonymousSubscribers];
+  const uniqueRecipients = Array.from(new Map(allRecipients.map(r => [r.email, r])).values());
+
+  return uniqueRecipients;
 }

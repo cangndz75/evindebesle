@@ -13,13 +13,13 @@ function normalizeConnectionString(connectionString: string): string {
   try {
     const url = new URL(connectionString);
     const sslMode = url.searchParams.get('sslmode');
-    
+
     // Eğer sslmode yoksa veya eski modlardan biri ise, verify-full olarak ayarla
     if (!sslMode || ['prefer', 'require', 'verify-ca'].includes(sslMode)) {
       url.searchParams.set('sslmode', 'verify-full');
       return url.toString();
     }
-    
+
     return connectionString;
   } catch {
     // URL parse edilemezse, orijinal string'i döndür
@@ -32,11 +32,11 @@ const pool = new Pool({ connectionString: normalizedConnectionString });
 const adapter = new PrismaPg(pool);
 
 export const prisma =
-  globalForPrisma.prisma ??
-  new PrismaClient({
-    adapter,
-    log: ["error", "warn"],
-  });
+  (globalForPrisma.prisma ??
+    new PrismaClient({
+      adapter,
+      log: ["error", "warn"],
+    })) as any;
 
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;

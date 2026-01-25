@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Fragment } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -144,6 +144,12 @@ export default function StockManagementPage() {
             Ürün varyantlarını hızlıca yönetin
           </p>
         </div>
+        <div>
+          <Button variant="outline" onClick={() => router.push("/admin-stock/movements")}>
+            <Package className="w-4 h-4 mr-2" />
+            Geçmiş Hareketler
+          </Button>
+        </div>
       </div>
 
       {/* Özet Kartlar */}
@@ -237,7 +243,7 @@ export default function StockManagementPage() {
                     const isLowStock = !isOutOfStock && item.totalStock <= item.minStock;
 
                     return (
-                      <>
+                      <Fragment key={item.docId}>
                         <TableRow key={item.docId} className={isExpanded ? "bg-muted/50 border-b-0" : ""}>
                           <TableCell>
                             <div className="flex items-center gap-3">
@@ -336,7 +342,7 @@ export default function StockManagementPage() {
                             </TableCell>
                           </TableRow>
                         )}
-                      </>
+                      </Fragment>
                     );
                   })}
                 </TableBody>

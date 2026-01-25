@@ -1,104 +1,65 @@
 import { MetadataRoute } from "next";
 import { prisma } from "@/lib/db";
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://evindebesle.com";
-
+/**
+ * Dynamic Sitemap Generator (Next.js 13+ standard)
+ * 
+ * Automatically generates sitemap.xml by fetching routes, 
+ * products, categories, and blog posts from the database.
+ */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-    // Statik sayfalar
-    const staticPages: MetadataRoute.Sitemap = [
-        {
-            url: BASE_URL,
-            lastModified: new Date(),
-            changeFrequency: "daily",
-            priority: 1,
-        },
-        {
-            url: `${BASE_URL}/home`,
-            lastModified: new Date(),
-            changeFrequency: "daily",
-            priority: 1,
-        },
-        {
-            url: `${BASE_URL}/women`,
-            lastModified: new Date(),
-            changeFrequency: "daily",
-            priority: 0.9,
-        },
-        {
-            url: `${BASE_URL}/men`,
-            lastModified: new Date(),
-            changeFrequency: "daily",
-            priority: 0.9,
-        },
-        {
-            url: `${BASE_URL}/contact`,
-            lastModified: new Date(),
-            changeFrequency: "monthly",
-            priority: 0.5,
-        },
-        {
-            url: `${BASE_URL}/services`,
-            lastModified: new Date(),
-            changeFrequency: "weekly",
-            priority: 0.7,
-        },
-        {
-            url: `${BASE_URL}/privacy`,
-            lastModified: new Date(),
-            changeFrequency: "yearly",
-            priority: 0.3,
-        },
-        {
-            url: `${BASE_URL}/distance-selling`,
-            lastModified: new Date(),
-            changeFrequency: "yearly",
-            priority: 0.3,
-        },
-    ];
+    const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://evindebesle.com";
 
-    // Ürünler
-    let productPages: MetadataRoute.Sitemap = [];
-    try {
-        const products = await prisma.product.findMany({
-            where: { isActive: true },
-            select: {
-                id: true,
-                slug: true,
-                updatedAt: true,
-            },
-            orderBy: { updatedAt: "desc" },
-        });
+    // 1) Base Routes
+    const staticRoutes = [
+        "",
+        "/home",
+        "/blog",
+        "/about",
+        "/contact",
+        "/checkout",
+    ].map((route) => ({
+        url: `${BASE_URL}${route}`,
+        lastModified: new Date(),
+        changeFrequency: "daily" as const,
+        priority: route === "" ? 1.0 : 0.8,
+    }));
 
-        productPages = products.map((product) => ({
-            url: `${BASE_URL}/product/${product.slug || product.id}`,
-            lastModified: product.updatedAt,
-            changeFrequency: "weekly" as const,
-            priority: 0.8,
-        }));
-    } catch (error) {
-        console.error("Error fetching products for sitemap:", error);
-    }
+    // 2) Dynamic Categories
+    const categories = await prisma.category.findMany({
+        where: { isActive: true },
+        select: { slug: true, updatedAt: true },
+    });
+    const categoryRoutes = categories.map((cat) => ({
+        url: `${BASE_URL}/category/${cat.slug}`,
+        lastModified: cat.updatedAt,
+        changeFrequency: "weekly" as const,
+        priority: 0.7,
+    }));
 
-    // Kategoriler
-    let categoryPages: MetadataRoute.Sitemap = [];
-    try {
-        const categories = await prisma.category.findMany({
-            where: { isActive: true },
-            select: {
-                slug: true,
-                updatedAt: true,
-            },
-        });
+    // 3) Dynamic Products
+    const products = await prisma.product.findMany({
+        where: { isActive: true },
+        select: { slug: true, id: true, updatedAt: true },
+    });
+    const productRoutes = products.map((prod) => ({
+        url: `${BASE_URL}/product/${prod.slug || prod.id}`,
+        lastModified: prod.updatedAt,
+        changeFrequency: "daily" as const,
+        priority: 0.9,
+    }));
 
-        categoryPages = categories.map((category) => ({
-            url: `${BASE_URL}/category/${category.slug}`,
-            lastModified: category.updatedAt,
-            changeFrequency: "weekly" as const,
-            priority: 0.7,
-        }));
-    } catch (error) {
-        console.error("Error fetching categories for sitemap:", error);
-    }
+    // 4) Dynamic Blog Posts
+    const posts = await prisma.blogPost.findMany({
+        where: { isPublished: true },
+        select: { slug: true, updatedAt: true },
+    });
+    const blogRoutes = posts.map((post) => ({
+        url: `${BASE_URL}/blog/${post.slug}`,
+        lastModified: post.updatedAt,
+        changeFrequency: "weekly" as const,
+        priority: 0.6,
+    }));
 
-    return [...staticPages, ...productPages, ...categoryPages];
+    return [...staticRoutes, ...categoryRoutes, ...productRoutes, ...blogRoutes];
 }

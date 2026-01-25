@@ -26,60 +26,80 @@ export async function GET(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const order = await prisma.order.findUnique({
-      where: { id },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            phone: true,
-          },
-        },
-        items: {
-          include: {
-            product: {
-              select: {
-                id: true,
-                name: true,
-                slug: true,
-                image: true,
-              },
-            },
-            color: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-            size: {
-              select: {
-                id: true,
-                name: true,
-              },
+    const [order, auditLogs] = await Promise.all([
+      prisma.order.findUnique({
+        where: { id },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              phone: true,
+              image: true,
             },
           },
-        },
-        shippingAddress: {
-          include: {
-            district: true,
+          items: {
+            include: {
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                  image: true,
+                },
+              },
+              color: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+              size: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
+          shippingAddress: {
+            include: {
+              district: true,
+            },
+          },
+          billingAddress: {
+            include: {
+              district: true,
+            },
+          },
+          coupon: {
+            select: {
+              code: true,
+              discountType: true,
+              value: true,
+            },
           },
         },
-        billingAddress: {
-          include: {
-            district: true,
+      }),
+      prisma.auditLog.findMany({
+        where: {
+          entityId: id,
+          entityType: "ORDER",
+        },
+        include: {
+          performedBy: {
+            select: {
+              name: true,
+              email: true,
+            },
           },
         },
-        coupon: {
-          select: {
-            code: true,
-            discountType: true,
-            value: true,
-          },
+        orderBy: {
+          createdAt: "desc",
         },
-      },
-    });
+      }),
+    ]);
 
     if (!order) {
       return NextResponse.json(
@@ -88,7 +108,7 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({ order });
+    return NextResponse.json({ order, auditLogs });
   } catch (error: any) {
     console.error("Order detail fetch error:", error);
     return NextResponse.json(
@@ -123,6 +143,12 @@ export async function PATCH(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    // Get old order for audit log
+    const oldOrder = await prisma.order.findUnique({
+      where: { id },
+      select: { status: true, adminNote: true },
+    });
+
     const updateData: any = {};
     if (status) {
       updateData.status = status;
@@ -140,30 +166,26 @@ export async function PATCH(
       updateData.adminNote = adminNote;
     }
 
-    const order = await prisma.order.update({
-      where: { id },
-      data: updateData,
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
+    const [updatedOrder] = await prisma.$transaction([
+      prisma.order.update({
+        where: { id },
+        data: updateData,
+      }),
+      prisma.auditLog.create({
+        data: {
+          entityId: id,
+          entityType: "ORDER",
+          action: "UPDATE",
+          oldValue: oldOrder ? (oldOrder as any) : {},
+          newValue: updateData,
+          performedById: session.user.id,
         },
-        items: {
-          include: {
-            product: true,
-            color: true,
-            size: true,
-          },
-        },
-      },
-    });
+      }),
+    ]);
 
     return NextResponse.json({
       success: true,
-      order,
+      order: updatedOrder,
     });
   } catch (error: any) {
     console.error("Order update error:", error);

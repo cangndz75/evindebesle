@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Star, ShieldCheck, Zap, Scissors, Globe } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import HomeHeader from "@/components/home/HomeHeader";
 import Footer from "@/components/home/FooterAccordion";
 
 const stats = [
@@ -37,8 +36,6 @@ const values = [
 export default function About2Page() {
     return (
         <div className="min-h-screen bg-[#0A0A0A] text-white selection:bg-white/20">
-            <HomeHeader />
-
             <main className="overflow-hidden">
                 {/* Hero Section */}
                 <section className="relative pt-20 pb-32 md:pt-40 md:pb-60 flex flex-col items-center px-4 overflow-hidden">

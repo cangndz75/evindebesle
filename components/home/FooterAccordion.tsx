@@ -1,14 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Truck, RotateCcw, Star, Smartphone } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Truck, RotateCcw, Star, Smartphone, Map, X } from "lucide-react";
 
 const footerSections = [
   {
@@ -239,6 +246,103 @@ export default function Footer() {
           <p className="text-xs text-black/60">
             © 2026 Dark Velvet. Tüm hakları saklıdır.
           </p>
+
+          {/* Site Haritası Link & Modal */}
+          <Dialog>
+            <DialogTrigger asChild>
+              <button className="flex items-center gap-2 text-xs text-black/60 hover:text-black transition-colors group">
+                <Map className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                <span className="uppercase tracking-[0.15em]">Site Haritası</span>
+              </button>
+            </DialogTrigger>
+            <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto bg-white p-0">
+              <DialogHeader className="sticky top-0 bg-white z-10 px-8 py-6 border-b border-black/10">
+                <DialogTitle className="text-xl font-light uppercase tracking-[0.2em] text-center">
+                  Site Haritası
+                </DialogTitle>
+              </DialogHeader>
+
+              <div className="px-8 py-8">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+                  {/* Alışveriş */}
+                  <div className="space-y-4">
+                    <h5 className="text-xs uppercase tracking-[0.2em] font-medium text-black border-b border-black/10 pb-2">Alışveriş</h5>
+                    <ul className="space-y-3">
+                      <li><Link href="/category/new" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Yeni Gelenler</Link></li>
+                      <li><Link href="/women" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Kadın</Link></li>
+                      <li><Link href="/men" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Erkek</Link></li>
+                      <li><Link href="/category/collections" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Koleksiyonlar</Link></li>
+                      <li><Link href="/category/sale" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">İndirimler</Link></li>
+                    </ul>
+                  </div>
+
+                  {/* Hesabım */}
+                  <div className="space-y-4">
+                    <h5 className="text-xs uppercase tracking-[0.2em] font-medium text-black border-b border-black/10 pb-2">Hesabım</h5>
+                    <ul className="space-y-3">
+                      <li><Link href="/auth-tabs" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Giriş Yap</Link></li>
+                      <li><Link href="/auth-tabs" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Üye Ol</Link></li>
+                      <li><Link href="/profile/personal-info" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Profilim</Link></li>
+                      <li><Link href="/profile/orders" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Siparişlerim</Link></li>
+                      <li><Link href="/favorites" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Favorilerim</Link></li>
+                      <li><Link href="/profile/addresses" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Adreslerim</Link></li>
+                    </ul>
+                  </div>
+
+                  {/* Destek */}
+                  <div className="space-y-4">
+                    <h5 className="text-xs uppercase tracking-[0.2em] font-medium text-black border-b border-black/10 pb-2">Yardım & Destek</h5>
+                    <ul className="space-y-3">
+                      <li><Link href="/contact" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">İletişim</Link></li>
+                      <li><Link href="/faq" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Sıkça Sorulan Sorular</Link></li>
+                      <li><Link href="/track" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Sipariş Takibi</Link></li>
+                      <li><Link href="/returns" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">İade & Değişim</Link></li>
+                      <li><Link href="/shipping" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Kargo Bilgisi</Link></li>
+                      <li><Link href="/sizing" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Beden Rehberi</Link></li>
+                    </ul>
+                  </div>
+
+                  {/* Kurumsal */}
+                  <div className="space-y-4">
+                    <h5 className="text-xs uppercase tracking-[0.2em] font-medium text-black border-b border-black/10 pb-2">Kurumsal</h5>
+                    <ul className="space-y-3">
+                      <li><Link href="/about" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Hakkımızda</Link></li>
+                      <li><Link href="/about2" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Hikayemiz</Link></li>
+                      <li><Link href="/blog" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Blog</Link></li>
+                      <li><Link href="/careers" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Kariyer</Link></li>
+                      <li><Link href="/stores" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Mağazalarımız</Link></li>
+                    </ul>
+                  </div>
+
+                  {/* Yasal */}
+                  <div className="space-y-4">
+                    <h5 className="text-xs uppercase tracking-[0.2em] font-medium text-black border-b border-black/10 pb-2">Yasal</h5>
+                    <ul className="space-y-3">
+                      <li><Link href="/privacy" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Gizlilik Politikası</Link></li>
+                      <li><Link href="/terms" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Kullanım Koşulları</Link></li>
+                      <li><Link href="/kvkk" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">KVKK</Link></li>
+                      <li><Link href="/cookies" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Çerez Politikası</Link></li>
+                      <li><Link href="/contract" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Mesafeli Satış Sözleşmesi</Link></li>
+                    </ul>
+                  </div>
+
+                  {/* Sosyal Medya */}
+                  <div className="space-y-4">
+                    <h5 className="text-xs uppercase tracking-[0.2em] font-medium text-black border-b border-black/10 pb-2">Sosyal Medya</h5>
+                    <ul className="space-y-3">
+                      <li><a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Instagram</a></li>
+                      <li><a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Facebook</a></li>
+                      <li><a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">X (Twitter)</a></li>
+                      <li><a href="https://pinterest.com" target="_blank" rel="noopener noreferrer" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Pinterest</a></li>
+                      <li><a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">YouTube</a></li>
+                      <li><a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">TikTok</a></li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+
           <div className="text-xs text-black/60">
             Türkiye (TRY ₺)
           </div>

@@ -106,6 +106,11 @@ const navSections = [
         href: "/admin-blog",
         icon: <FileText className="w-5 h-5" />,
       },
+      {
+        label: "SSS Yönetimi",
+        href: "/admin-faq",
+        icon: <FileText className="w-5 h-5" />,
+      },
     ],
   },
   {

@@ -15,7 +15,20 @@ export async function GET(req: NextRequest) {
         const limit = parseInt(url.searchParams.get("limit") || "20");
 
         if (!query.trim()) {
-            return NextResponse.json({ products: [] });
+            const products = await prisma.product.findMany({
+                where: { isActive: true },
+                select: {
+                    id: true,
+                    name: true,
+                    price: true,
+                    originalPrice: true,
+                    primaryImage: true,
+                    slug: true,
+                },
+                take: limit,
+                orderBy: { updatedAt: "desc" },
+            });
+            return NextResponse.json({ products });
         }
 
         const products = await prisma.product.findMany({

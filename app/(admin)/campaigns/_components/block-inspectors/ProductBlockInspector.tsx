@@ -69,11 +69,6 @@ export default function ProductBlockInspector({
     };
 
     const searchProducts = async (query: string) => {
-        if (!query.trim()) {
-            setSearchResults([]);
-            return;
-        }
-
         setIsSearching(true);
         try {
             const response = await fetch(

@@ -10,8 +10,8 @@ const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Dark Velvet - Premium İç Çamaşırı",
-  description: "Dark Velvet - Erkek ve kadın premium iç çamaşırı koleksiyonu. Zarif tasarımlar, konforlu kumaşlar ve modern stil.",
+  title: "Evinde Besle - Profesyonel Evcil Hayvan Bakım Hizmetleri",
+  description: "Evinde Besle - Köpek gezdirme, evde bakım ve profesyonel evcil hayvan hizmetleri. Güvenilir ve sevgi dolu bakım.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || "https://evindebesle.com"),
   openGraph: {
     type: "website",

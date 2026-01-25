@@ -1,10 +1,10 @@
-"use client";
-
+import { useState } from "react";
 import { Block } from "../../types";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Upload } from "lucide-react";
+import { toast } from "sonner";
 
 interface HeaderBlockInspectorProps {
   block: Block;
@@ -15,10 +15,49 @@ export default function HeaderBlockInspector({
   block,
   onUpdate,
 }: HeaderBlockInspectorProps) {
+  const [isUploading, setIsUploading] = useState(false);
+
   const updateContent = (key: string, value: any) => {
     onUpdate({
       content: { ...block.content, [key]: value },
     });
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Lütfen bir görsel dosyası seçin");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Dosya boyutu 5MB'dan küçük olmalıdır");
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) throw new Error("Upload failed");
+
+      const data = await response.json();
+      updateContent("logoUrl", data.url);
+      toast.success("Logo yüklendi");
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error("Logo yüklenirken hata oluştu");
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const updateStyle = (key: string, value: any) => {
@@ -49,12 +88,37 @@ export default function HeaderBlockInspector({
     <div className="space-y-4">
       <div>
         <Label className="text-xs font-medium text-gray-700">Logo URL</Label>
-        <Input
-          value={block.content.logoUrl || ""}
-          onChange={(e) => updateContent("logoUrl", e.target.value)}
-          placeholder="https://..."
-          className="mt-1"
-        />
+        <div className="flex gap-2 mt-1">
+          <Input
+            value={block.content.logoUrl || ""}
+            onChange={(e) => updateContent("logoUrl", e.target.value)}
+            placeholder="https://..."
+            className="flex-1"
+          />
+          <label className="cursor-pointer">
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleFileUpload}
+              disabled={isUploading}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              disabled={isUploading}
+              asChild
+            >
+              <span>
+                <Upload className="w-4 h-4" />
+              </span>
+            </Button>
+          </label>
+        </div>
+        {isUploading && (
+          <p className="text-xs text-gray-500 mt-1">Yükleniyor...</p>
+        )}
       </div>
 
       <div>

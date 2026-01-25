@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
 
           // Calculate total stock for this color
           const totalStock = colorVariants.reduce(
-            (sum: number, v: any) => sum + (v.stock || 0),
+            (sum: number, v: any) => sum + (v.stock || v.size?.stock || 0),
             0
           );
 
@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
             subVariants: colorVariants.map((v: any) => ({
               variantId: v.id, // This is ProductVariant ID
               size: v.size?.name || "Standart",
-              stock: v.stock,
+              stock: v.stock || v.size?.stock || 0,
               isVariant: true,
             })),
           });

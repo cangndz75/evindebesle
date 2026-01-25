@@ -83,6 +83,11 @@ export default function SendBar({ draft, onUpdate }: SendBarProps) {
         body: JSON.stringify({
           campaignId: draft.id,
           email: testEmail,
+          blocks: draft.blocks,
+          subject: draft.subject,
+          fromName: draft.fromName,
+          fromEmail: draft.fromEmail,
+          replyTo: draft.replyTo,
         }),
       });
 

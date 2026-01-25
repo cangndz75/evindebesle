@@ -35,21 +35,21 @@ interface SearchModalProps {
 const collections: Collection[] = [
   {
     id: "1",
-    title: "Erkek Paketler",
-    href: "/men/bundles",
-    image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=600&auto=format&fit=crop",
+    title: "Köpek Hizmetleri",
+    href: "/category/dogs",
+    image: "https://images.unsplash.com/photo-1541599540903-216a46ca1df0?q=80&w=600&auto=format&fit=crop",
   },
   {
     id: "2",
-    title: "Kadın Paketler",
-    href: "/women/bundles",
-    image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600&auto=format&fit=crop",
+    title: "Kedi Hizmetleri",
+    href: "/category/cats",
+    image: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?q=80&w=600&auto=format&fit=crop",
   },
   {
     id: "3",
-    title: "Son Fırsat",
-    href: "/last-call",
-    image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=600&auto=format&fit=crop",
+    title: "Tüm Hizmetler",
+    href: "/services",
+    image: "https://images.unsplash.com/photo-1551730459-92db2a308d6a?q=80&w=600&auto=format&fit=crop",
   },
 ];
 
@@ -66,7 +66,7 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 5000]);
-  
+
   // API state
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
@@ -111,7 +111,7 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
 
       if (data.products) {
         setProducts(data.products);
-        
+
         // Suggestions oluştur - ürün adlarından ve etiketlerden
         const uniqueSuggestions = new Set<string>();
         data.products.forEach((product: Product) => {
@@ -194,9 +194,9 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
   const detectedCategory = useMemo(() => {
     if (!searchQuery) return null;
     const query = searchQuery.toLowerCase();
-    if (query.includes("erkek") || query.includes("men") || query.includes("kadın") || query.includes("women")) {
-      if (query.includes("erkek") || query.includes("men")) return "men";
-      if (query.includes("kadın") || query.includes("women")) return "women";
+    if (query.includes("köpek") || query.includes("dog") || query.includes("kedi") || query.includes("cat")) {
+      if (query.includes("köpek") || query.includes("dog")) return "dogs";
+      if (query.includes("kedi") || query.includes("cat")) return "cats";
     }
     return null;
   }, [searchQuery]);
@@ -254,7 +254,7 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
           {detectedCategory && (
             <div className="mb-6">
               <span className="inline-block px-4 py-2 bg-black text-white text-sm uppercase tracking-wide">
-                {detectedCategory === "men" ? "ERKEK" : "KADIN"}
+                {detectedCategory === "dogs" ? "KÖPEK" : "KEDİ"}
               </span>
             </div>
           )}
@@ -351,27 +351,24 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
                       <div className="space-y-1.5 pl-2">
                         <button
                           onClick={() => setSelectedCategory(null)}
-                          className={`block w-full text-left text-xs py-1 ${
-                            selectedCategory === null ? "font-medium text-black" : "text-gray-600"
-                          }`}
+                          className={`block w-full text-left text-xs py-1 ${selectedCategory === null ? "font-medium text-black" : "text-gray-600"
+                            }`}
                         >
                           Tümü
                         </button>
                         <button
-                          onClick={() => setSelectedCategory("men")}
-                          className={`block w-full text-left text-xs py-1 ${
-                            selectedCategory === "men" ? "font-medium text-black" : "text-gray-600"
-                          }`}
+                          onClick={() => setSelectedCategory("dogs")}
+                          className={`block w-full text-left text-xs py-1 ${selectedCategory === "dogs" ? "font-medium text-black" : "text-gray-600"
+                            }`}
                         >
-                          Erkek
+                          Köpek
                         </button>
                         <button
-                          onClick={() => setSelectedCategory("women")}
-                          className={`block w-full text-left text-xs py-1 ${
-                            selectedCategory === "women" ? "font-medium text-black" : "text-gray-600"
-                          }`}
+                          onClick={() => setSelectedCategory("cats")}
+                          className={`block w-full text-left text-xs py-1 ${selectedCategory === "cats" ? "font-medium text-black" : "text-gray-600"
+                            }`}
                         >
-                          Kadın
+                          Kedi
                         </button>
                       </div>
                     )}
@@ -400,11 +397,10 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
                                 prev.includes(size) ? prev.filter(s => s !== size) : [...prev, size]
                               );
                             }}
-                            className={`px-2 py-1.5 text-xs border transition-colors ${
-                              selectedSizes.includes(size)
+                            className={`px-2 py-1.5 text-xs border transition-colors ${selectedSizes.includes(size)
                                 ? "border-black bg-black text-white"
                                 : "border-gray-300 hover:border-black"
-                            }`}
+                              }`}
                           >
                             {size}
                           </button>
@@ -447,11 +443,10 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
                                   : [...prev, color.name]
                               );
                             }}
-                            className={`w-8 h-8 rounded-full border-2 transition-all ${
-                              selectedColors.includes(color.name)
+                            className={`w-8 h-8 rounded-full border-2 transition-all ${selectedColors.includes(color.name)
                                 ? "border-black scale-110"
                                 : "border-gray-300 hover:border-gray-500"
-                            }`}
+                              }`}
                             style={{ backgroundColor: color.value }}
                             aria-label={color.name}
                           />

@@ -36,42 +36,38 @@ interface ProductDetailPageProps {
 
 const defaultProduct = {
   id: "1",
-  slug: "dantel-balkonet-sutyen",
-  name: "Dantel Balkonet Sütyen",
-  price: 899,
+  slug: "kopek-gezdirme-hizmeti",
+  name: "Profesyonel Köpek Gezdirme",
+  price: 250,
   originalPrice: undefined,
-  description: "İtalyan dantelinden üretilen balkonet sütyen, zarif tasarımı ve mükemmel desteğiyle öne çıkıyor. Çıkarılabilir askıları sayesinde farklı kıyafetlerle kombinlenebilir.",
+  description: "Dostunuzun günlük egzersiz ihtiyacını profesyonel ekibimizle karşılıyoruz. GPS takibi ve fotoğraf güncellemeleri dahildir.",
   images: [
-    { url: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=1000&auto=format&fit=crop", badge: "Yeni Sezon" },
-    { url: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=1000&auto=format&fit=crop", badge: undefined },
-    { url: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=1000&auto=format&fit=crop", badge: "İndirim" },
-    { url: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=1000&auto=format&fit=crop", badge: undefined },
+    { url: "https://images.unsplash.com/photo-1551730459-92db2a308d6a?q=80&w=1000&auto=format&fit=crop", badge: "Popüler" },
+    { url: "https://images.unsplash.com/photo-1601758124510-52d02ddb7cbd?q=80&w=1000&auto=format&fit=crop", badge: undefined },
   ],
   colors: [
-    { name: "Siyah", value: "#000000" },
-    { name: "Beyaz", value: "#ffffff" },
-    { name: "Bej", value: "#e8d5c4" },
+    { name: "Standart", value: "#000000" },
   ],
-  sizes: ["70B", "70C", "75B", "75C", "80B", "80C", "85B", "85C"],
+  sizes: ["30 Dakika", "60 Dakika", "90 Dakika"],
   details: [
-    "İtalyan dantel detayları",
-    "Çıkarılabilir askılar",
-    "Ayarlanabilir arka klips",
-    "Balenli destek",
-    "Balkonet kesim",
+    "GPS ile gerçek zamanlı takip",
+    "Fotoğraf ve video güncellemeleri",
+    "Profesyonel gezdirici ekibi",
+    "Acil durum sigortası",
+    "Esnek saat seçenekleri",
   ],
-  fabric: "Polyester %85, Elastan %15",
-  care: "Yumuşak deterjanla yıkayın, düşük ısıda ütüleyin",
-  washing: "30°C'de yıkayın, kurutma makinesinde kurutmayın",
-  delivery: "2-3 iş günü içinde teslimat",
-  sizeNotes: "True to size - Kalıbına uygun",
+  fabric: "Tüm hava koşullarına uygun ekipman",
+  care: "Lütfen randevu saatinden 15 dakika önce iletişime geçin",
+  washing: "Her yürüyüş sonrası pati temizliği fiyata dahildir",
+  delivery: "Aynı gün hizmet imkanı",
+  sizeNotes: "Süreler yaklaşık değerlerdir",
 };
 
 export default function ProductDetailPage({ product = defaultProduct }: ProductDetailPageProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [selectedImage, setSelectedImage] = useState(0);
-  
+
   // URL'den variant parametresini al ve renk seçimini yap
   const initialVariant = searchParams.get("variant");
   const initialColorIndex = product.colors?.findIndex(c => c.variant === initialVariant) ?? 0;
@@ -84,9 +80,9 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
   const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
   const [liveStock, setLiveStock] = useState<number | null>(null);
   const [isSticky, setIsSticky] = useState(false);
-  
+
   // Kadın ürünü kontrolü - Tüm ürünler aynı görünümde
-  
+
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     details: true,
     fabric: false,
@@ -96,7 +92,7 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
   });
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
-  
+
   const imageContainerRef = useRef<HTMLDivElement>(null);
   const [thumbnailScrollIndex, setThumbnailScrollIndex] = useState(0);
 
@@ -116,7 +112,7 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
     );
 
     const colorId = selectedColorObj?.id || null;
-    const sizeId = (selectedSizeObj && typeof selectedSizeObj === 'object' && 'id' in selectedSizeObj) 
+    const sizeId = (selectedSizeObj && typeof selectedSizeObj === 'object' && 'id' in selectedSizeObj)
       ? (selectedSizeObj.id ?? null)
       : null;
 
@@ -191,7 +187,7 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
       } else if (Array.isArray(currentColor.images)) {
         parsedImages = currentColor.images;
       }
-      
+
       if (parsedImages.length > 0) {
         return parsedImages.map((img) => ({ url: img, badge: undefined }));
       }
@@ -222,12 +218,12 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
     setSelectedSize(""); // Beden seçimini sıfırla (yeni renk için)
     setQuantity(1); // Adeti 1'e sıfırla
     setThumbnailScrollIndex(0); // Thumbnail scroll'u sıfırla
-    
+
     // URL'i güncelle - variant parametresini ekle
     const selectedColorObj = product.colors?.[idx];
     const variantCode = selectedColorObj?.variant;
     const slug = (product as any).slug || product.id;
-    
+
     if (variantCode) {
       router.push(`/products/${slug}?variant=${variantCode}`, { scroll: false });
     } else {
@@ -239,7 +235,7 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
   const getSizeStock = (sizeName: string): number => {
     if (!product.sizes || product.sizes.length === 0) return 0;
     if (typeof product.sizes[0] === 'string') return 0;
-    const sizeObj = product.sizes.find((s: any) => 
+    const sizeObj = product.sizes.find((s: any) =>
       typeof s === 'object' && s.name === sizeName
     ) as { name: string; stock: number } | undefined;
     return sizeObj?.stock || 0;
@@ -252,38 +248,38 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
     if (sizeStock > 0) {
       return sizeStock;
     }
-    
+
     // ProductSize'da stok yoksa, variant'a bak
     const currentColor = product.colors?.[selectedColor];
     if (currentColor?.id && product.variants) {
       // Seçili renge ve bedene ait variant'ı bul
-      const sizeObj = product.sizes?.find((s: any) => 
+      const sizeObj = product.sizes?.find((s: any) =>
         typeof s === 'object' && s.name === sizeName
       );
       const sizeId = sizeObj && typeof sizeObj === 'object' && 'id' in sizeObj ? sizeObj.id : null;
-      
+
       if (sizeId) {
-        const variant = product.variants.find((v) => 
+        const variant = product.variants.find((v) =>
           v.colorId === currentColor.id && v.sizeId === sizeId
         );
         if (variant && variant.stock > 0) {
           return variant.stock;
         }
       }
-      
+
       // SizeId yoksa, sadece colorId ile variant'ı bul
-      const colorVariant = product.variants.find((v) => 
+      const colorVariant = product.variants.find((v) =>
         v.colorId === currentColor.id && !v.sizeId
       );
       if (colorVariant && colorVariant.stock > 0) {
         return colorVariant.stock;
       }
     }
-    
+
     // Hiçbiri yoksa 0 döndür
     return 0;
   };
-  
+
   // Seçili renge göre tüm bedenleri getir (stok kontrolü ayrı yapılacak)
   const getAvailableSizesForColor = (): string[] | Array<{ id?: string; name: string; stock?: number }> => {
     // 1) sizes string[]
@@ -360,7 +356,7 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
         }
         return [];
       })();
-      
+
       // İlk stoklu bedeni bul ve seç
       for (const sizeObj of availableSizes) {
         const sizeName = typeof sizeObj === 'string' ? sizeObj : sizeObj.name;
@@ -434,7 +430,7 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
       const scrollPosition = window.scrollY;
       const windowHeight = window.innerHeight;
       const documentHeight = document.documentElement.scrollHeight;
-      
+
       // Sayfa yeterince kaydırıldıysa sticky yap
       if (scrollPosition > 300 && scrollPosition + windowHeight < documentHeight - 100) {
         setIsSticky(true);
@@ -442,7 +438,7 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
         setIsSticky(false);
       }
     };
-    
+
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -450,7 +446,7 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
   // Canlı stok kontrolü - Mobil için
   useEffect(() => {
     if (!selectedSize) return;
-    
+
     const checkStock = async () => {
       try {
         const currentColor = product.colors?.[selectedColor]; // 0 dahil çalışır
@@ -476,7 +472,7 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
         setLiveStock(getVariantStock(selectedSize));
       }
     };
-    
+
     checkStock();
     const interval = setInterval(checkStock, 30000); // Her 30 saniyede bir kontrol et
     return () => clearInterval(interval);
@@ -567,7 +563,7 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
                       <ChevronLeft className="w-4 h-4 rotate-90" />
                     </button>
                   )}
-                  
+
                   <div className="flex lg:flex-col gap-2 overflow-hidden">
                     {getCurrentColorImages().slice(thumbnailScrollIndex, thumbnailScrollIndex + 4).map((img, displayIdx) => {
                       const actualIdx = thumbnailScrollIndex + displayIdx;
@@ -576,11 +572,10 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
                         <button
                           key={actualIdx}
                           onClick={() => setSelectedImage(actualIdx)}
-                          className={`relative w-16 h-20 lg:w-20 lg:h-24 flex-shrink-0 overflow-hidden border-2 transition-all ${
-                            selectedImage === actualIdx
+                          className={`relative w-16 h-20 lg:w-20 lg:h-24 flex-shrink-0 overflow-hidden border-2 transition-all ${selectedImage === actualIdx
                               ? "border-black"
                               : "border-transparent hover:border-gray-300"
-                          }`}
+                            }`}
                         >
                           <Image
                             src={imageUrl}
@@ -593,7 +588,7 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
                       );
                     })}
                   </div>
-                  
+
                   {/* Scroll Down Button - Sadece 4'ten fazla thumbnail varsa */}
                   {getCurrentColorImages().length > 4 && (
                     <button
@@ -615,7 +610,7 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
 
             {/* Ana Görsel */}
             <div className="order-1 lg:order-2 flex-1 min-w-0 relative">
-              <div 
+              <div
                 ref={imageContainerRef}
                 className="relative w-full aspect-[3/4] group overflow-hidden"
                 onTouchStart={handleTouchStart}
@@ -634,7 +629,7 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
                   const currentImage = currentColorImages[selectedImage] || currentColorImages[0];
                   const imageUrl = typeof currentImage === 'string' ? currentImage : currentImage.url;
                   const imageBadge = typeof currentImage === 'string' ? undefined : currentImage.badge;
-                  
+
                   return (
                     <>
                       <Image
@@ -645,7 +640,7 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
                         sizes="(max-width: 1024px) 100vw, 50vw"
                         priority
                       />
-                      
+
                       {/* Badge */}
                       {imageBadge && (
                         <div className="absolute top-3 left-3 bg-white text-black text-[10px] px-2 py-1 uppercase font-light">
@@ -765,11 +760,11 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
                 {product.colors?.map((color, idx) => {
                   // Renk için ilk fotoğrafı al - TabbedProductCarousel'deki gibi
                   let colorImage: string | null = null;
-                  
+
                   // Önce color.image property'sine bak (eğer varsa - TabbedProductCarousel'den gelebilir)
                   if ((color as any).image) {
                     colorImage = (color as any).image;
-                  } 
+                  }
                   // Sonra images array'ine bak
                   else if (color.images) {
                     // Eğer images string ise parse et
@@ -780,28 +775,27 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
                       } catch {
                         colorImage = color.images;
                       }
-                    } 
+                    }
                     // Eğer images array ise ilk elemanı al
                     else if (Array.isArray(color.images) && color.images.length > 0) {
                       colorImage = color.images[0];
                     }
                   }
-                  
+
                   // Eğer colorImage yoksa, ana görsellerden ilkini kullan
                   if (!colorImage && getCurrentColorImages().length > 0) {
                     const firstImage = getCurrentColorImages()[0];
                     colorImage = typeof firstImage === 'string' ? firstImage : firstImage.url;
                   }
-                  
+
                   return (
                     <div key={idx} className="relative group">
                       <button
                         onClick={() => handleColorChange(idx)}
-                        className={`relative w-16 h-20 overflow-hidden border transition-all rounded ${
-                          selectedColor === idx
+                        className={`relative w-16 h-20 overflow-hidden border transition-all rounded ${selectedColor === idx
                             ? "border-[#111]"
                             : "border-gray-200 hover:border-gray-300"
-                        }`}
+                          }`}
                         aria-label={color.name}
                       >
                         {colorImage ? (
@@ -813,7 +807,7 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
                             sizes="64px"
                           />
                         ) : (
-                          <div 
+                          <div
                             className="w-full h-full"
                             style={{ backgroundColor: color.value }}
                           />
@@ -836,7 +830,7 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
                 <p className="text-sm font-light text-black mb-3">
                   Beden: <span className="text-gray-500">{selectedSize || "Seçiniz"}</span>
                 </p>
-                
+
                 <div className="flex gap-2 flex-wrap">
                   {(() => {
                     const availableSizes = getAvailableSizesForColor();
@@ -845,25 +839,24 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
                         <p className="text-sm text-gray-500">Bu renk için beden seçeneği bulunmuyor.</p>
                       );
                     }
-                    
+
                     return availableSizes.map((sizeObj) => {
                       const sizeName = typeof sizeObj === 'string' ? sizeObj : sizeObj.name;
                       const stock = getVariantStock(sizeName);
                       const isOutOfStock = stock <= 0;
                       const isSelected = selectedSize === sizeName;
-                      
+
                       return (
                         <button
                           key={sizeName}
                           onClick={() => !isOutOfStock && setSelectedSize(sizeName)}
                           disabled={isOutOfStock}
-                          className={`px-4 py-2 text-sm font-light border transition-all ${
-                            isSelected
+                          className={`px-4 py-2 text-sm font-light border transition-all ${isSelected
                               ? "bg-[#111] text-white border-[#111]"
                               : isOutOfStock
-                              ? "border-gray-200 text-gray-400 line-through cursor-not-allowed bg-white"
-                              : "bg-white border-gray-300 hover:border-gray-500 text-black"
-                          }`}
+                                ? "border-gray-200 text-gray-400 line-through cursor-not-allowed bg-white"
+                                : "bg-white border-gray-300 hover:border-gray-500 text-black"
+                            }`}
                         >
                           {sizeName}
                         </button>
@@ -872,14 +865,14 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
                   })()}
                 </div>
               </div>
-              
+
               {/* Model Bilgisi ve Linkler */}
               <div className="mb-6">
                 <p className="text-xs text-gray-600 font-light mb-2">
                   Model 6'1 boyunda ve M beden giyiyor.
                 </p>
                 <div className="flex items-center gap-2 text-xs">
-                  <button 
+                  <button
                     onClick={() => setSizeGuideOpen(true)}
                     className="text-gray-600 hover:text-black underline font-light"
                   >
@@ -1062,17 +1055,16 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
       </div>
 
       {/* Yorumlar Bölümü */}
-      <ProductReviews 
-        productId={product.id} 
+      <ProductReviews
+        productId={product.id}
         selectedColorId={product.colors?.[selectedColor]?.id}
-        reviews={product.reviews || []} 
+        reviews={product.reviews || []}
       />
 
       {/* Sticky Bottom Bar - Mobil için */}
-      <div 
-        className={`fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 transition-transform duration-300 ease-in-out md:hidden ${
-          isSticky ? 'translate-y-0 shadow-lg' : 'translate-y-full'
-        }`}
+      <div
+        className={`fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 transition-transform duration-300 ease-in-out md:hidden ${isSticky ? 'translate-y-0 shadow-lg' : 'translate-y-full'
+          }`}
       >
         <div className="px-4 py-3 space-y-2">
           {/* Adet ve Sepete Ekle - Yan Yana */}
@@ -1099,7 +1091,7 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
 
             {/* Sepete Ekle Butonu */}
             <button
-                onClick={() => addToCart()}
+              onClick={() => addToCart()}
               disabled={!selectedSize || getVariantStock(selectedSize) <= 0}
               className="flex-1 px-4 py-3 border border-gray-300 text-black bg-white rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider text-sm font-light"
             >
@@ -1327,10 +1319,10 @@ function RecentlyViewedSection({ currentProductId }: { currentProductId?: string
     // localStorage'dan ve API'den son görüntülenen ürünleri getir
     const loadRecentlyViewed = async () => {
       if (typeof window === "undefined") return;
-      
+
       try {
         const localProducts = getRecentlyViewed();
-        
+
         // localStorage'dan gelen ürünleri formatla ve mevcut ürünü filtrele
         const localFormatted = localProducts
           .filter((p) => p.productId !== currentProductId) // Mevcut ürünü filtrele
@@ -1357,7 +1349,7 @@ function RecentlyViewedSection({ currentProductId }: { currentProductId?: string
           if (res.ok) {
             const data = await res.json();
             const apiProducts = Array.isArray(data?.products) ? data.products : [];
-            
+
             // API'den gelen ürünleri formatla ve mevcut ürünü filtrele
             const apiFormatted = apiProducts
               .filter((p: any) => p.id !== currentProductId) // Mevcut ürünü filtrele
@@ -1381,17 +1373,17 @@ function RecentlyViewedSection({ currentProductId }: { currentProductId?: string
               image: string | null;
             };
             const productMap = new Map<string, ProductItem>();
-            
+
             // Önce localStorage ürünlerini ekle
             localFormatted.forEach((p: ProductItem) => {
               productMap.set(p.productId, p);
             });
-            
+
             // Sonra API ürünlerini ekle (aynı ürün varsa üzerine yaz)
             apiFormatted.forEach((p: ProductItem) => {
               productMap.set(p.productId, p);
             });
-            
+
             // Map'ten array'e çevir (zaten sıralı - en yeni önce)
             const combined = Array.from(productMap.values());
             // En fazla 12 ürün göster
@@ -1416,7 +1408,7 @@ function RecentlyViewedSection({ currentProductId }: { currentProductId?: string
 
     // Event listener ekle (diğer sayfalardan güncelleme için)
     window.addEventListener("recentlyViewedUpdated", loadRecentlyViewed);
-    
+
     return () => {
       window.removeEventListener("recentlyViewedUpdated", loadRecentlyViewed);
     };

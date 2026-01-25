@@ -3,19 +3,18 @@
 import Image from "next/image";
 import Link from "next/link";
 
-export default function DarkVelvetHeroHeader() {
+export default function EvindeBesleHero() {
 
   return (
     <section className="relative w-full h-[70vh] md:h-[92vh] overflow-hidden bg-white">
       <div className="absolute inset-0">
         <Image
-          src="https://images.unsplash.com/photo-1537274942065-eda9d00a6293?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-          alt="Hero"
+          src="https://images.unsplash.com/photo-1541599540903-216a46ca1df0?q=80&w=1280&auto=format&fit=crop"
+          alt="Evinde Besle Hero"
           fill
           priority
           sizes="100vw"
           className="object-cover object-center"
-          unoptimized
         />
         {/* Gradient overlay for better contrast */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/30 to-black/40" />
@@ -34,16 +33,16 @@ export default function DarkVelvetHeroHeader() {
 
           <div className="flex flex-row items-center justify-center gap-3 md:gap-4">
             <Link
-              href="/women"
+              href="/services"
               className="w-full max-w-[200px] md:w-auto px-8 md:px-12 py-3 md:py-4 border-2 border-white text-white text-xs md:text-sm tracking-[0.22em] uppercase hover:bg-white hover:text-black transition-colors text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
             >
-              KADIN
+              HİZMETLERİMİZ
             </Link>
             <Link
-              href="/men"
+              href="/blog"
               className="w-full max-w-[200px] md:w-auto px-8 md:px-12 py-3 md:py-4 border-2 border-white text-white text-xs md:text-sm tracking-[0.22em] uppercase hover:bg-white hover:text-black transition-colors text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
             >
-              ERKEK
+              BLOG
             </Link>
           </div>
         </div>

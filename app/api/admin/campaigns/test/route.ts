@@ -18,11 +18,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Email address required" }, { status: 400 });
     }
 
-    // If campaignId provided, get campaign from DB
+    // If campaignId provided, get campaign from DB for fallbacks
     let campaignBlocks = blocks;
-    let campaignSubject = subject || "Test Email";
-    let senderName = fromName || "Test";
-    let senderEmail = fromEmail || "onboarding@resend.dev";
+    let campaignSubject = subject;
+    let senderName = fromName;
+    let senderEmail = fromEmail;
     let replyToEmail = replyTo;
 
     if (campaignId) {
@@ -31,13 +31,18 @@ export async function POST(req: NextRequest) {
       });
 
       if (campaign) {
-        campaignBlocks = JSON.parse(campaign.contentJson);
-        campaignSubject = campaign.subject;
-        senderName = campaign.fromName;
-        senderEmail = campaign.fromEmail;
-        replyToEmail = campaign.replyTo;
+        campaignBlocks = campaignBlocks || JSON.parse(campaign.contentJson);
+        campaignSubject = campaignSubject || campaign.subject;
+        senderName = senderName || campaign.fromName;
+        senderEmail = senderEmail || campaign.fromEmail;
+        replyToEmail = replyToEmail || campaign.replyTo;
       }
     }
+
+    // Default fallbacks
+    campaignSubject = campaignSubject || "Test Email";
+    senderName = senderName || "Test";
+    senderEmail = senderEmail || "onboarding@resend.dev";
 
     if (!campaignBlocks || campaignBlocks.length === 0) {
       return NextResponse.json({ error: "No blocks to render" }, { status: 400 });

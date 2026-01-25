@@ -277,7 +277,6 @@ export async function POST(req: Request) {
             productId: product.id,
             colorCode,
             name: c.name,
-            hexCode: c.hexCode || undefined,
             images: Array.isArray(c.images) ? JSON.stringify(c.images) : (c.images || null),
           },
         });
@@ -297,9 +296,14 @@ export async function POST(req: Request) {
       for (const color of createdColors) {
         const colorData = colors.find((c: any) => c.name === color.name);
         
+        // Renge özel bedenler varsa onları kullan, yoksa tüm bedenleri kullan
+        const colorSizes = colorData?.sizes && colorData.sizes.length > 0 
+          ? createdSizes.filter(s => colorData.sizes.includes(s.name))
+          : createdSizes;
+        
         // Eğer bedenler varsa, her beden için variant oluştur
-        if (createdSizes.length > 0) {
-          for (const size of createdSizes) {
+        if (colorSizes.length > 0) {
+          for (const size of colorSizes) {
             const variantCode = generateVariantCode();
             const sizeStock = colorData?.sizeStocks?.[size.name] || 0;
             await prisma.productVariant.create({

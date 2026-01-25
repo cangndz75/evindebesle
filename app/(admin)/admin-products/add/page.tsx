@@ -16,12 +16,12 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 type Color = {
   name: string;
-  hexCode: string;
   images: string[];
   useMainPrice?: boolean;
   price?: string;
   originalPrice?: string;
   stock?: { [sizeName: string]: number };
+  sizes?: string[]; // Renge özel bedenler
 };
 
 const letterSizes = ["XS", "S", "M", "L", "XL", "XXL", "3XL"];
@@ -53,13 +53,11 @@ export default function AddProductPage() {
   // Ana ürün rengi
   const [primaryProductColor, setPrimaryProductColor] = useState<Color | null>(null);
   const [primaryProductColorName, setPrimaryProductColorName] = useState("");
-  const [primaryProductColorHex, setPrimaryProductColorHex] = useState("#FF0000");
   
   // Renkler
   const [colors, setColors] = useState<Color[]>([]);
   const [selectedColor, setSelectedColor] = useState<number | null>(null);
   const [newColorName, setNewColorName] = useState("");
-  const [newColorHex, setNewColorHex] = useState("#FF0000");
   
   // Bedenler
   const [sizeType, setSizeType] = useState<"LETTER" | "NUMBER" | "CUP">("LETTER");
@@ -133,28 +131,25 @@ export default function AddProductPage() {
     if (!primaryProductColorName) return;
     const newColor: Color = {
       name: primaryProductColorName,
-      hexCode: primaryProductColorHex,
       images: [],
     };
     setPrimaryProductColor(newColor);
     setPrimaryProductColorName("");
-    setPrimaryProductColorHex("#FF0000");
   };
 
   const addColor = () => {
     if (!newColorName) return;
     const newColor: Color = {
       name: newColorName,
-      hexCode: newColorHex,
       images: [],
       useMainPrice: true,
       price: "",
       originalPrice: "",
       stock: {},
+      sizes: [], // Başlangıçta boş, kullanıcı seçecek
     };
     setColors([...colors, newColor]);
     setNewColorName("");
-    setNewColorHex("#FF0000");
     setSelectedColor(colors.length);
   };
 
@@ -339,7 +334,6 @@ export default function AddProductPage() {
         colors: [
           ...(primaryProductColor ? [{
             name: primaryProductColor.name,
-            hexCode: primaryProductColor.hexCode,
             images: primaryProductColor.images,
           }] : []),
           ...colors.map((c) => {
@@ -353,13 +347,16 @@ export default function AddProductPage() {
               ? parseFloat(c.price)
               : undefined;
 
+            // Renge özel bedenler varsa onları kullan, yoksa üstte seçilen bedenleri kullan
+            const colorSizes = c.sizes && c.sizes.length > 0 ? c.sizes : customSizes;
+
             return {
               name: c.name,
-              hexCode: c.hexCode,
               images: c.images,
               price: finalPrice !== parseFloat(price) ? finalPrice : undefined,
               originalPrice: finalOriginalPrice,
               sizeStocks: c.stock || {},
+              sizes: colorSizes, // Renge özel bedenler
             };
           }),
         ],
@@ -770,34 +767,28 @@ export default function AddProductPage() {
                       placeholder="Renk adı"
                       value={primaryProductColorName}
                       onChange={(e) => setPrimaryProductColorName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && primaryProductColorName) {
+                          e.preventDefault();
+                          addPrimaryProductColor();
+                        }
+                      }}
                       className="flex-1"
                     />
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="color"
-                        value={primaryProductColorHex}
-                        onChange={(e) => setPrimaryProductColorHex(e.target.value)}
-                        className="w-12 h-10 rounded border border-gray-300 cursor-pointer"
-                      />
-                      <Button
-                        type="button"
-                        onClick={addPrimaryProductColor}
-                        disabled={!primaryProductColorName}
-                        size="sm"
-                      >
-                        <Plus className="w-4 h-4" />
-                      </Button>
-                    </div>
+                    <Button
+                      type="button"
+                      onClick={addPrimaryProductColor}
+                      disabled={!primaryProductColorName}
+                      size="sm"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
                   </div>
                 </div>
               ) : (
                 <div className="border rounded-lg p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
-                      <div
-                        className="w-8 h-8 rounded border border-gray-300"
-                        style={{ backgroundColor: primaryProductColor.hexCode }}
-                      />
                       <span className="font-medium">{primaryProductColor.name}</span>
                     </div>
                     <Button
@@ -996,24 +987,22 @@ export default function AddProductPage() {
                   placeholder="Renk adı"
                   value={newColorName}
                   onChange={(e) => setNewColorName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && newColorName) {
+                      e.preventDefault();
+                      addColor();
+                    }
+                  }}
                   className="flex-1"
                 />
-                <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={newColorHex}
-                    onChange={(e) => setNewColorHex(e.target.value)}
-                    className="w-12 h-10 rounded border border-gray-300 cursor-pointer"
-                  />
-                  <Button
-                    type="button"
-                    onClick={addColor}
-                    disabled={!newColorName}
-                    size="sm"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </Button>
-                </div>
+                <Button
+                  type="button"
+                  onClick={addColor}
+                  disabled={!newColorName}
+                  size="sm"
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
               </div>
 
               {/* Renk Listesi */}
@@ -1029,10 +1018,6 @@ export default function AddProductPage() {
                   >
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-3">
-                        <div
-                          className="w-8 h-8 rounded border border-gray-300"
-                          style={{ backgroundColor: color.hexCode }}
-                        />
                         <span className="font-medium">{color.name}</span>
                       </div>
                       <div className="flex items-center gap-2">
@@ -1199,32 +1184,237 @@ export default function AddProductPage() {
                           </div>
                         </div>
 
-                        {/* Renge özel stok yönetimi */}
-                        {customSizes.length > 0 && (
-                          <div className="mt-4 pt-4 border-t border-gray-200">
-                            <Label className="text-sm font-medium mb-3 block">
-                              Stok Yönetimi
-                            </Label>
-                            <div className="grid grid-cols-3 gap-3">
-                              {customSizes.map((size) => (
-                                <div key={size}>
-                                  <Label className="text-xs text-gray-600 mb-1 block">
+                        {/* Renge özel beden seçimi */}
+                        <div className="mt-4 pt-4 border-t border-gray-200">
+                          <Label className="text-sm font-medium mb-3 block">
+                            Bu Renk İçin Bedenler
+                          </Label>
+                          <div className="text-xs text-gray-500 mb-3">
+                            Üstte seçilen bedenler otomatik gelir. İsterseniz bu renk için farklı bedenler seçebilirsiniz.
+                          </div>
+                          
+                          {/* Beden Tipi Seçimi */}
+                          <div className="mb-3">
+                            <Label className="text-xs font-medium mb-2 block">Beden Tipi</Label>
+                            <RadioGroup 
+                              value={sizeType} 
+                              onValueChange={(v: any) => {
+                                // Beden tipi değiştiğinde renge özel bedenleri temizle
+                                const updatedColors = [...colors];
+                                updatedColors[index].sizes = [];
+                                setColors(updatedColors);
+                              }}
+                            >
+                              <div className="flex gap-4">
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="LETTER" id={`color-${index}-letter`} />
+                                  <Label htmlFor={`color-${index}-letter`} className="cursor-pointer text-xs">Harf</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="NUMBER" id={`color-${index}-number`} />
+                                  <Label htmlFor={`color-${index}-number`} className="cursor-pointer text-xs">Sayı</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="CUP" id={`color-${index}-cup`} />
+                                  <Label htmlFor={`color-${index}-cup`} className="cursor-pointer text-xs">Beden</Label>
+                                </div>
+                              </div>
+                            </RadioGroup>
+                          </div>
+
+                          {/* Beden Seçimi - Harf */}
+                          {sizeType === "LETTER" && (
+                            <div className="flex flex-wrap gap-2 mb-3">
+                              {letterSizes.map((size) => (
+                                <div key={size} className="flex items-center gap-2">
+                                  <Checkbox
+                                    id={`color-${index}-size-${size}`}
+                                    checked={color.sizes?.includes(size) || false}
+                                    onCheckedChange={(checked) => {
+                                      const updatedColors = [...colors];
+                                      if (!updatedColors[index].sizes) {
+                                        updatedColors[index].sizes = [];
+                                      }
+                                      if (checked) {
+                                        if (!updatedColors[index].sizes!.includes(size)) {
+                                          updatedColors[index].sizes!.push(size);
+                                        }
+                                        // Stok değeri yoksa 0 olarak ekle
+                                        if (!updatedColors[index].stock) {
+                                          updatedColors[index].stock = {};
+                                        }
+                                        if (!(size in updatedColors[index].stock!)) {
+                                          updatedColors[index].stock![size] = 0;
+                                        }
+                                      } else {
+                                        updatedColors[index].sizes = updatedColors[index].sizes!.filter(s => s !== size);
+                                        if (updatedColors[index].stock) {
+                                          delete updatedColors[index].stock![size];
+                                        }
+                                      }
+                                      setColors(updatedColors);
+                                    }}
+                                  />
+                                  <Label
+                                    htmlFor={`color-${index}-size-${size}`}
+                                    className="cursor-pointer font-normal text-xs"
+                                  >
                                     {size}
                                   </Label>
-                                  <Input
-                                    type="number"
-                                    placeholder="0"
-                                    value={color.stock?.[size] || 0}
-                                    onChange={(e) =>
-                                      updateColorStock(index, size, parseInt(e.target.value) || 0)
-                                    }
-                                    className="w-full"
-                                  />
                                 </div>
                               ))}
                             </div>
-                          </div>
-                        )}
+                          )}
+
+                          {/* Beden Seçimi - Sayı */}
+                          {sizeType === "NUMBER" && (
+                            <div className="flex flex-wrap gap-2 mb-3">
+                              {numberSizes.map((size) => (
+                                <div key={size} className="flex items-center gap-2">
+                                  <Checkbox
+                                    id={`color-${index}-size-${size}`}
+                                    checked={color.sizes?.includes(size) || false}
+                                    onCheckedChange={(checked) => {
+                                      const updatedColors = [...colors];
+                                      if (!updatedColors[index].sizes) {
+                                        updatedColors[index].sizes = [];
+                                      }
+                                      if (checked) {
+                                        if (!updatedColors[index].sizes!.includes(size)) {
+                                          updatedColors[index].sizes!.push(size);
+                                        }
+                                        if (!updatedColors[index].stock) {
+                                          updatedColors[index].stock = {};
+                                        }
+                                        if (!(size in updatedColors[index].stock!)) {
+                                          updatedColors[index].stock![size] = 0;
+                                        }
+                                      } else {
+                                        updatedColors[index].sizes = updatedColors[index].sizes!.filter(s => s !== size);
+                                        if (updatedColors[index].stock) {
+                                          delete updatedColors[index].stock![size];
+                                        }
+                                      }
+                                      setColors(updatedColors);
+                                    }}
+                                  />
+                                  <Label
+                                    htmlFor={`color-${index}-size-${size}`}
+                                    className="cursor-pointer font-normal text-xs"
+                                  >
+                                    {size}
+                                  </Label>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Beden Seçimi - Beden (80B, 85C vb) */}
+                          {sizeType === "CUP" && (
+                            <div className="space-y-2 mb-3">
+                              <div className="flex gap-2">
+                                <Input
+                                  placeholder="Örn: 80B, 85C, 90D"
+                                  value={newSizeInput}
+                                  onChange={(e) => setNewSizeInput(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                      e.preventDefault();
+                                      const size = newSizeInput.trim();
+                                      if (size && !color.sizes?.includes(size)) {
+                                        const updatedColors = [...colors];
+                                        if (!updatedColors[index].sizes) {
+                                          updatedColors[index].sizes = [];
+                                        }
+                                        updatedColors[index].sizes!.push(size);
+                                        if (!updatedColors[index].stock) {
+                                          updatedColors[index].stock = {};
+                                        }
+                                        updatedColors[index].stock![size] = 0;
+                                        setColors(updatedColors);
+                                        setNewSizeInput("");
+                                      }
+                                    }
+                                  }}
+                                  className="flex-1 text-sm"
+                                />
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    const size = newSizeInput.trim();
+                                    if (size && !color.sizes?.includes(size)) {
+                                      const updatedColors = [...colors];
+                                      if (!updatedColors[index].sizes) {
+                                        updatedColors[index].sizes = [];
+                                      }
+                                      updatedColors[index].sizes!.push(size);
+                                      if (!updatedColors[index].stock) {
+                                        updatedColors[index].stock = {};
+                                      }
+                                      updatedColors[index].stock![size] = 0;
+                                      setColors(updatedColors);
+                                      setNewSizeInput("");
+                                    }
+                                  }}
+                                >
+                                  <Plus className="w-4 h-4" />
+                                </Button>
+                              </div>
+                              {color.sizes && color.sizes.length > 0 && (
+                                <div className="flex flex-wrap gap-2">
+                                  {color.sizes.map((size) => (
+                                    <div key={size} className="flex items-center gap-1 px-2 py-1 bg-gray-100 rounded text-xs">
+                                      <span>{size}</span>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          const updatedColors = [...colors];
+                                          updatedColors[index].sizes = updatedColors[index].sizes!.filter(s => s !== size);
+                                          if (updatedColors[index].stock) {
+                                            delete updatedColors[index].stock![size];
+                                          }
+                                          setColors(updatedColors);
+                                        }}
+                                        className="text-red-500 hover:text-red-700"
+                                      >
+                                        <X className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Renge özel stok yönetimi */}
+                          {color.sizes && color.sizes.length > 0 && (
+                            <div className="mt-4 pt-4 border-t border-gray-200">
+                              <Label className="text-sm font-medium mb-3 block">
+                                Stok Yönetimi
+                              </Label>
+                              <div className="grid grid-cols-3 gap-3">
+                                {color.sizes.map((size) => (
+                                  <div key={size}>
+                                    <Label className="text-xs text-gray-600 mb-1 block">
+                                      {size}
+                                    </Label>
+                                    <Input
+                                      type="number"
+                                      placeholder="0"
+                                      value={color.stock?.[size] || 0}
+                                      onChange={(e) =>
+                                        updateColorStock(index, size, parseInt(e.target.value) || 0)
+                                      }
+                                      className="w-full"
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>

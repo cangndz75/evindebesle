@@ -24,7 +24,6 @@ export async function GET(
           select: {
             id: true,
             name: true,
-            hexCode: true,
           },
         },
         sizes: true,
@@ -256,7 +255,6 @@ export async function PATCH(
               productId: id,
               colorCode,
               name: c.name,
-              hexCode: c.hexCode || undefined,
               images: Array.isArray(c.images) ? JSON.stringify(c.images) : (c.images || null),
             },
           });
@@ -302,8 +300,13 @@ export async function PATCH(
         for (const color of updatedColors) {
           const colorData = colors?.find((c: any) => c.name === color.name);
           
-          if (updatedSizes.length > 0) {
-            for (const size of updatedSizes) {
+          // Renge özel bedenler varsa onları kullan, yoksa tüm bedenleri kullan
+          const colorSizes = colorData?.sizes && colorData.sizes.length > 0 
+            ? updatedSizes.filter(s => colorData.sizes.includes(s.name))
+            : updatedSizes;
+          
+          if (colorSizes.length > 0) {
+            for (const size of colorSizes) {
               const variantCode = generateVariantCode();
               const sizeStock = colorData?.sizeStocks?.[size.name] || 0;
               await prisma.productVariant.create({
@@ -457,7 +460,6 @@ export async function DELETE(
           select: {
             id: true,
             name: true,
-            hexCode: true,
           },
         },
       },

@@ -81,7 +81,7 @@ export async function PATCH(
           finalSlug = `${slug}-${counter}`;
           counter++;
         }
-      } else {
+      } else if (existing) {
         finalSlug = existing.slug;
       }
       updateData.slug = finalSlug;

@@ -25,10 +25,10 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    const performance = coupons.map((coupon) => {
+    const performance = coupons.map((coupon: any) => {
       const orders = coupon.orders;
-      const totalDiscount = orders.reduce((sum, o) => sum + (o.discount || 0), 0);
-      const totalRevenue = orders.reduce((sum, o) => sum + (o.total || 0), 0);
+      const totalDiscount = orders.reduce((sum: number, o: any) => sum + (o.discount || 0), 0);
+      const totalRevenue = orders.reduce((sum: number, o: any) => sum + (o.total || 0), 0);
       const usageCount = orders.length;
 
       return {

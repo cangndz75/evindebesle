@@ -70,11 +70,11 @@ const completeSchema = z.object({
 // ISO string dizi → Date[]
 function parseDates(dateStrings: string[]) {
   const dates = dateStrings
-    .map((s) => {
+    .map((s: any) => {
       const d = new Date(String(s).trim());
       return isNaN(d.getTime()) ? null : d;
     })
-    .filter((d): d is Date => d !== null);
+    .filter((d: any): d is Date => d !== null);
   return dates;
 }
 
@@ -159,14 +159,14 @@ export async function POST(req: NextRequest) {
       select: { id: true, petId: true },
     });
     if (ownedPets.length !== ownedPetIds.length) {
-      const validSet = new Set(ownedPets.map((o) => o.id));
-      const invalid = ownedPetIds.filter((x) => !validSet.has(x));
+      const validSet = new Set(ownedPets.map((o: any) => o.id));
+      const invalid = ownedPetIds.filter((x: any) => !validSet.has(x));
       return NextResponse.json(
         { error: "Geçersiz veya yetkisiz ownedPetIds", invalid },
         { status: 400 }
       );
     }
-    const ownedMap = new Map(ownedPets.map((o) => [o.id, o]));
+    const ownedMap = new Map(ownedPets.map((o: any) => [o.id, o]));
 
     // Hizmet doğrulaması
     const foundServices = await prisma.service.findMany({
@@ -174,8 +174,8 @@ export async function POST(req: NextRequest) {
       select: { id: true, name: true, price: true },
     });
     if (foundServices.length !== serviceIds.length) {
-      const ok = new Set(foundServices.map((s) => s.id));
-      const missing = serviceIds.filter((x) => !ok.has(x));
+      const ok = new Set(foundServices.map((s: any) => s.id));
+      const missing = serviceIds.filter((x: any) => !ok.has(x));
       return NextResponse.json(
         { error: "Geçersiz serviceId'ler", invalidServiceIds: missing },
         { status: 400 }
@@ -192,7 +192,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Transaction: randevu oluştur + draft sil + kupon güncelle
-    const created = await prisma.$transaction(async (tx) => {
+    const created = await prisma.$transaction(async (tx: any) => {
       const appointment = await tx.appointment.create({
         data: {
           userId: draft.userId,
@@ -216,14 +216,14 @@ export async function POST(req: NextRequest) {
           specialRequest: draft.specialRequest || null,
 
           services: {
-            create: serviceIds.map((sid) => ({
+            create: serviceIds.map((sid: any) => ({
               service: { connect: { id: sid } },
             })),
           },
 
           pets: {
-            create: ownedPetIds.map((ownedId) => {
-              const owned = ownedMap.get(ownedId);
+            create: ownedPetIds.map((ownedId: any) => {
+              const owned = ownedMap.get(ownedId) as any;
               return {
                 ownedPet: { connect: { id: ownedId } },
                 ...(owned?.petId ? { pet: { connect: { id: owned.petId } } } : {}),
@@ -232,7 +232,7 @@ export async function POST(req: NextRequest) {
           },
 
           dates: {
-            create: dates.map((d) => ({ date: d })),
+            create: dates.map((d: any) => ({ date: d })),
           },
         },
         include: {
@@ -286,8 +286,8 @@ export async function POST(req: NextRequest) {
             <li><strong>Seçilen Hizmetler:</strong>
               <ul>
                 ${created.services
-                  .map((s) => `<li>${s.service.name} - ${s.service.price ?? 0} ₺</li>`)
-                  .join("")}
+            .map((s: any) => `<li>${s.service.name} - ${s.service.price ?? 0} ₺</li>`)
+            .join("")}
               </ul>
             </li>
           </ul>

@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
         take: 10,
       });
 
-      const productIds = bestSelling.map((item) => item.productId);
+      const productIds = bestSelling.map((item: any) => item.productId);
       const products = await prisma.product.findMany({
         where: {
           id: { in: productIds },
@@ -43,15 +43,15 @@ export async function GET(req: NextRequest) {
         },
       });
 
-      const productsWithSales = products.map((product) => {
-        const salesData = bestSelling.find((s) => s.productId === product.id);
+      const productsWithSales = products.map((product: any) => {
+        const salesData = bestSelling.find((s: any) => s.productId === product.id);
         return {
           ...product,
           totalSold: salesData?._sum.quantity || 0,
         };
       });
 
-      return NextResponse.json(productsWithSales.sort((a, b) => b.totalSold - a.totalSold));
+      return NextResponse.json(productsWithSales.sort((a: any, b: any) => b.totalSold - a.totalSold));
     } else if (type === "recent") {
       // Son eklenen ürünler
       const recentProducts = await prisma.product.findMany({
@@ -93,8 +93,8 @@ export async function GET(req: NextRequest) {
         },
       });
 
-      const productsWithStock = lowStockProducts.map((product) => {
-        const totalStock = product.sizes.reduce((sum, s) => sum + s.stock, 0);
+      const productsWithStock = lowStockProducts.map((product: any) => {
+        const totalStock = product.sizes.reduce((sum: number, s: any) => sum + s.stock, 0);
         return {
           id: product.id,
           name: product.name,

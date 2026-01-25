@@ -5,7 +5,7 @@ import FavoritesClient from "./_components/FavoritesClient";
 
 export default async function FavoritesPage() {
   const user = await getCurrentUser();
-  
+
   if (!user) {
     redirect("/auth-tabs");
   }
@@ -53,18 +53,18 @@ export default async function FavoritesPage() {
   });
 
   // Type dönüşümü: null -> undefined
-  const formattedFavorites = favorites.map((favorite) => ({
+  const formattedFavorites = favorites.map((favorite: any) => ({
     ...favorite,
     product: {
       ...favorite.product,
       slug: favorite.product.slug ?? undefined,
       image: favorite.product.image ?? undefined,
       primaryImage: favorite.product.primaryImage ?? undefined,
-      colors: favorite.product.colors.map((color) => ({
+      colors: favorite.product.colors.map((color: any) => ({
         id: color.id,
         name: color.name,
         hexCode: color.hexCode ?? undefined,
-        images: color.images 
+        images: color.images
           ? (typeof color.images === 'string' ? JSON.parse(color.images) : color.images)
           : [],
         variants: color.variants || [],
@@ -74,14 +74,14 @@ export default async function FavoritesPage() {
   }));
 
   // bestSellers için type dönüşümü
-  const formattedBestSellers = bestSellers.map((product) => ({
+  const formattedBestSellers = bestSellers.map((product: any) => ({
     id: product.id,
     name: product.name,
     slug: product.slug ?? undefined,
     price: product.price,
     image: product.image ?? undefined,
     primaryImage: product.primaryImage ?? undefined,
-    colors: product.colors?.map((color) => ({
+    colors: product.colors?.map((color: any) => ({
       id: color.id,
       name: color.name,
       hexCode: color.hexCode ?? undefined,

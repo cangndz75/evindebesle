@@ -238,12 +238,12 @@ export async function PATCH(
         for (const c of colors) {
           // Aynı ürün için aynı renk adı kontrolü
           let existing = await prisma.productColor.findFirst({
-            where: { 
+            where: {
               productId: id,
               name: c.name,
             },
           });
-          
+
           // Eğer aynı renk zaten varsa, atla
           if (existing) {
             continue;
@@ -297,12 +297,12 @@ export async function PATCH(
       if (updatedColors.length > 0) {
         for (const color of updatedColors) {
           const colorData = colors?.find((c: any) => c.name === color.name);
-          
+
           // Renge özel bedenler varsa onları kullan, yoksa tüm bedenleri kullan
-          const colorSizes = colorData?.sizes && colorData.sizes.length > 0 
-            ? updatedSizes.filter(s => colorData.sizes.includes(s.name))
+          const colorSizes = colorData?.sizes && colorData.sizes.length > 0
+            ? updatedSizes.filter((s: any) => colorData.sizes.includes(s.name))
             : updatedSizes;
-          
+
           if (colorSizes.length > 0) {
             for (const size of colorSizes) {
               const variantCode = generateVariantCode();
@@ -504,7 +504,7 @@ export async function DELETE(
         await prisma.orderItem.deleteMany({
           where: { colorId },
         });
-        
+
         // Renkleri sil
         await prisma.productColor.delete({
           where: { id: colorId },

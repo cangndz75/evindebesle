@@ -49,11 +49,11 @@ export async function GET(req: NextRequest) {
 
   // Randevu gelirlerini birleştir
   const revenue = [
-    ...appointmentRevenue.map((r) => ({
+    ...appointmentRevenue.map((r: any) => ({
       date: r.confirmedAt,
       amount: r.finalPrice || 0,
     })),
-    ...orderRevenue.map((r) => ({
+    ...orderRevenue.map((r: any) => ({
       date: r.createdAt,
       amount: r.total || 0,
     })),

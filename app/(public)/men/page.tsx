@@ -84,7 +84,7 @@ async function getInitialProducts() {
       take: 100, // İlk yükleme için yeterli
     });
 
-    return products.map((p) => ({
+    return products.map((p: any) => ({
       id: p.id,
       name: p.name,
       slug: p.slug ?? undefined,
@@ -94,7 +94,7 @@ async function getInitialProducts() {
       secondaryImage: p.secondaryImage ?? undefined,
       gender: p.gender ?? undefined,
       fabricType: p.fabricType ?? undefined,
-      colors: p.colors.map((c) => ({
+      colors: p.colors.map((c: any) => ({
         id: c.id,
         name: c.name,
         hexCode: c.hexCode ?? undefined,
@@ -106,15 +106,15 @@ async function getInitialProducts() {
         } : undefined,
         variants: c.variants,
       })),
-      sizes: p.sizes.map((s) => ({
+      sizes: p.sizes.map((s: any) => ({
         name: s.name,
         stock: s.stock,
       })),
-      sizeOptions: p.sizeOptions?.map((so) => ({
+      sizeOptions: p.sizeOptions?.map((so: any) => ({
         name: so.name,
         isActive: so.isActive,
       })),
-      tags: p.tags.map((t) => ({ name: t.name })),
+      tags: p.tags.map((t: any) => ({ name: t.name })),
     }));
   } catch (error) {
     console.error("Error fetching products:", error);

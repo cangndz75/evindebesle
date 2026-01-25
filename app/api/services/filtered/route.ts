@@ -5,7 +5,7 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const speciesList = searchParams.getAll("species");
 
-  console.log("API'ye gelen species:", speciesList); 
+  console.log("API'ye gelen species:", speciesList);
 
   if (speciesList.length === 0) {
     return NextResponse.json([], { status: 200 });
@@ -41,12 +41,12 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  const flat = services.map((s) => ({
+  const flat = services.map((s: any) => ({
     id: s.id,
     name: s.name,
     description: s.description,
     price: s.price,
-    petTags: s.tags.map((t) => t.pet?.species).filter(Boolean),
+    petTags: s.tags.map((t: any) => t.pet?.species).filter(Boolean),
   }));
 
   return NextResponse.json(flat);

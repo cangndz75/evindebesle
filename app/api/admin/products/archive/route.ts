@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
                 return NextResponse.json(
                     {
                         error: "Siparişi olan ürünler silinemez. Bunun yerine arşivleyin.",
-                        products: productsWithOrders.map((p) => p.name),
+                        products: productsWithOrders.map((p: any) => p.name),
                     },
                     { status: 400 }
                 );
@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
 
             // Delete products without orders
             const deleteIds = productIds.filter(
-                (id) => !productsWithOrders.find((p) => p.id === id)
+                (id: string) => !productsWithOrders.find((p: any) => p.id === id)
             );
 
             if (deleteIds.length > 0) {
@@ -92,11 +92,11 @@ export async function POST(req: NextRequest) {
             userAgent: req.headers.get("user-agent") || undefined,
         });
 
-        const actionText = {
+        const actionText = ({
             archive: "arşivlendi",
             restore: "geri yüklendi",
             delete: "silindi",
-        }[action];
+        } as any)[action];
 
         return NextResponse.json({
             success: true,

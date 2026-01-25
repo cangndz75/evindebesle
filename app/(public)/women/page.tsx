@@ -87,16 +87,16 @@ async function getInitialProducts() {
       take: 100, // İlk yükleme için yeterli
     });
 
-    return products.map((p) => {
+    return products.map((p: any) => {
       const colorImages = parseImages(p.colors[0]?.images);
       const primaryImg = p.primaryImage || p.image;
       const secondaryImg = p.secondaryImage || p.image;
-      
+
       // Yeni ürün mü kontrol et (tag'lere göre)
-      const isNew = p.tags.some(tag => 
+      const isNew = p.tags.some((tag: any) =>
         ["yeni ürün", "yeni", "yeni gelenler", "new", "new arrival"].includes(tag.name.toLowerCase())
       );
-      
+
       return {
         id: p.id,
         name: p.name,
@@ -106,7 +106,7 @@ async function getInitialProducts() {
         image: primaryImg ?? undefined,
         hoverImage: secondaryImg ?? undefined,
         badge: isNew ? "Yeni" : (p.originalPrice ? "İndirim" : undefined),
-        colors: p.colors.map((c) => {
+        colors: p.colors.map((c: any) => {
           const cImages = parseImages(c.images);
           return {
             name: c.name,

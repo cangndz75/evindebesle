@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
     });
 
     // Zaman farkını hesapla
-    const ordersWithTime = orders.map((order) => {
+    const ordersWithTime = orders.map((order: any) => {
       const createdAt = new Date(order.createdAt);
       const now = new Date();
       const diffMs = now.getTime() - createdAt.getTime();

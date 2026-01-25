@@ -145,8 +145,8 @@ export async function GET(request: NextRequest) {
   });
 
   // Parse color images JSON strings
-  const parsedProducts = products.map((product) => {
-    const colors = product.colors.map((color) => {
+  const parsedProducts = products.map((product: any) => {
+    const colors = product.colors.map((color: any) => {
       let images: string[] = [];
       if (color.images) {
         try {

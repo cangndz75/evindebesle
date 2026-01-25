@@ -52,14 +52,14 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    const productsWithStock = products.map((product) => {
-      const totalStock = product.sizes.reduce((sum, s) => sum + s.stock, 0);
+    const productsWithStock = products.map((product: any) => {
+      const totalStock = product.sizes.reduce((sum: number, s: any) => sum + s.stock, 0);
       return {
         id: product.id,
         name: product.name,
         image: product.image,
         stock: totalStock,
-        sizes: product.sizes.map((s) => ({
+        sizes: product.sizes.map((s: any) => ({
           name: s.name,
           stock: s.stock,
         })),

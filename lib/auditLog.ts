@@ -11,7 +11,8 @@ export type AuditAction =
     | "CAMPAIGN_SEND"
     | "SETTINGS_UPDATE"
     | "BULK_PRICE_UPDATE"
-    | "BULK_PRODUCT_IMPORT";
+    | "BULK_PRODUCT_IMPORT"
+    | "STOCK_UPDATE";
 
 interface AuditLogData {
     action: AuditAction;

@@ -24,7 +24,7 @@ export async function GET(
       },
     });
 
-    const formatted = services.map((s) => ({
+    const formatted = services.map((s: any) => ({
       serviceId: s.serviceId,
       name: s.service.name,
       description: s.service.description,

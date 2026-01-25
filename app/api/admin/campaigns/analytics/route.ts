@@ -35,11 +35,11 @@ export async function GET(req: NextRequest) {
         }
 
         // Calculate stats
-        const totalSent = campaign.emailSends.filter((s) => s.status === "sent").length;
-        const totalOpened = campaign.emailSends.filter((s) => s.openedAt !== null).length;
-        const totalClicked = campaign.emailSends.filter((s) => s.clickedAt !== null).length;
-        const totalFailed = campaign.emailSends.filter((s) => s.status === "failed").length;
-        const totalBounced = campaign.emailSends.filter((s) => s.status === "bounced").length;
+        const totalSent = campaign.emailSends.filter((s: any) => s.status === "sent").length;
+        const totalOpened = campaign.emailSends.filter((s: any) => s.openedAt !== null).length;
+        const totalClicked = campaign.emailSends.filter((s: any) => s.clickedAt !== null).length;
+        const totalFailed = campaign.emailSends.filter((s: any) => s.status === "failed").length;
+        const totalBounced = campaign.emailSends.filter((s: any) => s.status === "bounced").length;
 
         const openRate = totalSent > 0 ? (totalOpened / totalSent) * 100 : 0;
         const clickRate = totalOpened > 0 ? (totalClicked / totalOpened) * 100 : 0;
@@ -57,7 +57,7 @@ export async function GET(req: NextRequest) {
 
         // Group events by hour
         const timelineMap = new Map<string, { opens: number; clicks: number }>();
-        events.forEach((event) => {
+        events.forEach((event: any) => {
             const hour = new Date(event.createdAt).toISOString().slice(0, 13); // YYYY-MM-DDTHH
             if (!timelineMap.has(hour)) {
                 timelineMap.set(hour, { opens: 0, clicks: 0 });
@@ -67,14 +67,14 @@ export async function GET(req: NextRequest) {
             if (event.type === "click") data.clicks++;
         });
 
-        const timeline = Array.from(timelineMap.entries()).map(([hour, data]) => ({
+        const timeline = Array.from(timelineMap.entries()).map(([hour, data]: [string, any]) => ({
             time: hour,
             opens: data.opens,
             clicks: data.clicks,
         }));
 
         // Get recipients with status
-        const recipients = campaign.emailSends.map((send) => ({
+        const recipients = campaign.emailSends.map((send: any) => ({
             id: send.id,
             email: send.email,
             status: send.status,
@@ -84,7 +84,7 @@ export async function GET(req: NextRequest) {
         }));
 
         // Get link clicks
-        const links = campaign.emailLinks.map((link) => ({
+        const links = campaign.emailLinks.map((link: any) => ({
             id: link.id,
             url: link.originalUrl,
             clicks: link.clickCount,

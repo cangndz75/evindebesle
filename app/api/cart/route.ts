@@ -47,7 +47,7 @@ export async function GET() {
     });
 
     // Parse color images JSON strings
-    const parsedItems = cartItems.map((item) => {
+    const parsedItems = cartItems.map((item: any) => {
       // Parse selected color images
       let colorImages: string[] = [];
       if (item.color?.images) {

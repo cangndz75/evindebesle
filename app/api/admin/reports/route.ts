@@ -53,24 +53,24 @@ export async function GET(request: NextRequest) {
     const revenueByDate: Record<string, number> = {};
     const ordersByDate: Record<string, number> = {};
 
-    orders.forEach((order) => {
+    orders.forEach((order: any) => {
       const dateKey = format(new Date(order.createdAt), "yyyy-MM-dd");
       revenueByDate[dateKey] = (revenueByDate[dateKey] || 0) + order.total;
       ordersByDate[dateKey] = (ordersByDate[dateKey] || 0) + 1;
     });
 
     const revenue = Object.entries(revenueByDate)
-      .map(([date, revenue]) => ({ date, revenue }))
+      .map(([date, revenue]: [string, number]) => ({ date, revenue }))
       .sort((a, b) => a.date.localeCompare(b.date));
 
     const ordersData = Object.entries(ordersByDate)
-      .map(([date, orders]) => ({ date, orders }))
+      .map(([date, orders]: [string, number]) => ({ date, orders }))
       .sort((a, b) => a.date.localeCompare(b.date));
 
     // Kategori kırılımı
     const categoryRevenue: Record<string, { revenue: number; orders: number }> = {};
-    orders.forEach((order) => {
-      order.items.forEach((item) => {
+    orders.forEach((order: any) => {
+      order.items.forEach((item: any) => {
         const categoryName = item.product.category?.name || "Kategori Yok";
         if (!categoryRevenue[categoryName]) {
           categoryRevenue[categoryName] = { revenue: 0, orders: 0 };
@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
       });
     });
 
-    const categories = Object.entries(categoryRevenue).map(([name, data]) => ({
+    const categories = Object.entries(categoryRevenue).map(([name, data]: [string, any]) => ({
       name,
       revenue: data.revenue,
       orders: data.orders,
@@ -88,8 +88,8 @@ export async function GET(request: NextRequest) {
 
     // Ürün kırılımı
     const productRevenue: Record<string, { revenue: number; orders: number }> = {};
-    orders.forEach((order) => {
-      order.items.forEach((item) => {
+    orders.forEach((order: any) => {
+      order.items.forEach((item: any) => {
         const productName = item.product.name;
         if (!productRevenue[productName]) {
           productRevenue[productName] = { revenue: 0, orders: 0 };
@@ -100,7 +100,7 @@ export async function GET(request: NextRequest) {
     });
 
     const products = Object.entries(productRevenue)
-      .map(([name, data]) => ({
+      .map(([name, data]: [string, any]) => ({
         name,
         revenue: data.revenue,
         orders: data.orders,
@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
       .slice(0, 10);
 
     // Özet
-    const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0);
+    const totalRevenue = orders.reduce((sum: number, o: any) => sum + o.total, 0);
     const totalOrders = orders.length;
     const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 

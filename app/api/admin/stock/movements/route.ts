@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
         });
 
         // Map variant to flatter structure
-        const formattedMovements = movements.map((m) => ({
+        const formattedMovements = movements.map((m: any) => ({
             id: m.id,
             type: m.type,
             quantity: m.quantity,

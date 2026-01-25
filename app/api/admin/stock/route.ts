@@ -48,12 +48,12 @@ export async function GET(request: NextRequest) {
         for (const color of product.colors) {
           // Find variants belonging to this color
           const colorVariants = product.variants.filter(
-            (v) => v.colorId === color.id
+            (v: any) => v.colorId === color.id
           );
 
           // Calculate total stock for this color
           const totalStock = colorVariants.reduce(
-            (sum, v) => sum + (v.stock || 0),
+            (sum: number, v: any) => sum + (v.stock || 0),
             0
           );
 
@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
             stockCode: product.stockCode, // Base stock code
             totalStock,
             minStock: 5,
-            subVariants: colorVariants.map((v) => ({
+            subVariants: colorVariants.map((v: any) => ({
               variantId: v.id, // This is ProductVariant ID
               size: v.size?.name || "Standart",
               stock: v.stock,
@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
       } else {
         // Product has no colors (Size only or Simple)
         const totalStock = product.sizes.reduce(
-          (sum, s) => sum + (s.stock || 0),
+          (sum: number, s: any) => sum + (s.stock || 0),
           0
         );
 
@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
         // And ProductVariant table for Color-Size combinations.
 
         // Let's check sizes array
-        const subVariants = product.sizes.map((s) => ({
+        const subVariants = product.sizes.map((s: any) => ({
           variantId: s.id, // This is ProductSize ID
           size: s.name,
           stock: s.stock,
@@ -114,10 +114,10 @@ export async function GET(request: NextRequest) {
     let filteredItems = stockItems;
     if (filter === "lowStock") {
       filteredItems = stockItems.filter(
-        (item) => item.totalStock > 0 && item.totalStock <= item.minStock
+        (item: any) => item.totalStock > 0 && item.totalStock <= item.minStock
       );
     } else if (filter === "outOfStock") {
-      filteredItems = stockItems.filter((item) => item.totalStock === 0);
+      filteredItems = stockItems.filter((item: any) => item.totalStock === 0);
     }
 
     return NextResponse.json({

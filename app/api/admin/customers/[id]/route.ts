@@ -43,8 +43,8 @@ export async function GET(
     }
 
     const totalSpent = user.orders
-      .filter((o) => o.status !== "CANCELLED")
-      .reduce((sum, o) => sum + (o.total || 0), 0);
+      .filter((o: any) => o.status !== "CANCELLED")
+      .reduce((sum: number, o: any) => sum + (o.total || 0), 0);
 
     return NextResponse.json({
       id: user.id,

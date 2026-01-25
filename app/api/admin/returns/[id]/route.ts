@@ -42,7 +42,7 @@ export async function PATCH(
         }
 
         // Transaction start
-        await prisma.$transaction(async (tx) => {
+        await prisma.$transaction(async (tx: any) => {
             // 1. Update ReturnRequest status
             await tx.returnRequest.update({
                 where: { id },

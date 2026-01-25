@@ -100,7 +100,7 @@ export async function GET(req: NextRequest) {
     });
 
     const todayAOV = todayOrdersWithTotal.length > 0
-      ? todayOrdersWithTotal.reduce((sum, o) => sum + o.total, 0) / todayOrdersWithTotal.length
+      ? todayOrdersWithTotal.reduce((sum: number, o: any) => sum + o.total, 0) / todayOrdersWithTotal.length
       : 0;
 
     const weekOrdersWithTotal = await prisma.order.findMany({
@@ -112,7 +112,7 @@ export async function GET(req: NextRequest) {
     });
 
     const weekAOV = weekOrdersWithTotal.length > 0
-      ? weekOrdersWithTotal.reduce((sum, o) => sum + o.total, 0) / weekOrdersWithTotal.length
+      ? weekOrdersWithTotal.reduce((sum: number, o: any) => sum + o.total, 0) / weekOrdersWithTotal.length
       : 0;
 
     // İade/İptal Oranı
@@ -162,7 +162,7 @@ export async function GET(req: NextRequest) {
       _count: { id: true },
     });
 
-    const repeatCustomers = customersWithMultipleOrders.filter(c => c._count.id > 1).length;
+    const repeatCustomers = customersWithMultipleOrders.filter((c: any) => (c._count as any).id > 1).length;
     const totalCustomers = await prisma.user.count({
       where: {
         isAdmin: false,

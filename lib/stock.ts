@@ -7,7 +7,7 @@ export async function reserveStockTx(orderId: string, items: { variantId: string
     // 1) her variant için stockReserved artır (koşullu)
     // 2) StockReservation kayıtları oluştur
     // 3) Order.reservedUntil yaz
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: any) => {
         for (const it of items) {
             const updated = await tx.productVariant.updateMany({
                 where: {
@@ -42,7 +42,7 @@ export async function reserveStockTx(orderId: string, items: { variantId: string
 
 // ödeme başarısız ya da timeout: reserved’i düş
 export async function releaseReservationTx(orderId: string) {
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: any) => {
         const reservations = await tx.stockReservation.findMany({
             where: { orderId, releasedAt: null },
         });
@@ -68,7 +68,7 @@ export async function releaseReservationTx(orderId: string) {
 
 // ödeme başarılı: onHand (stock) düş + reserved düş
 export async function commitReservationToSaleTx(orderId: string) {
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: any) => {
         const reservations = await tx.stockReservation.findMany({
             where: { orderId, releasedAt: null },
         });

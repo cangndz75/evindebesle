@@ -5,7 +5,7 @@ import { createAdminNotification } from "@/lib/notifications/createAdminNotifica
 
 export async function finalizeAppointmentFromDraftInternal(opts: {
   draftAppointmentId: string;
-  userId: string;                    
+  userId: string;
   paidPrice: number;
   conversationId?: string | null;
   paymentId?: string | null;
@@ -49,14 +49,14 @@ export async function finalizeAppointmentFromDraftInternal(opts: {
   if (ownedPets.length !== ownedPetIds.length) {
     throw new Error("Geçersiz/Yetkisiz ownedPetIds");
   }
-  const ownedMap = new Map(ownedPets.map((o) => [o.id, o]));
+  const ownedMap = new Map(ownedPets.map((o: any) => [o.id, o]));
 
   const dates = dateStrings
-    .map((s) => {
+    .map((s: any) => {
       const d = new Date(String(s).trim());
       return isNaN(d.getTime()) ? null : d;
     })
-    .filter((d): d is Date => d !== null);
+    .filter((d: any): d is Date => d !== null);
   if (!dates.length) throw new Error("Geçerli tarih bulunamadı");
 
   const foundServices = await prisma.service.findMany({
@@ -67,7 +67,7 @@ export async function finalizeAppointmentFromDraftInternal(opts: {
     throw new Error("Geçersiz serviceId'ler");
   }
 
-  const appointment = await prisma.$transaction(async (tx) => {
+  const appointment = await prisma.$transaction(async (tx: any) => {
     const created = await tx.appointment.create({
       data: {
         userId: draft.userId,
@@ -90,13 +90,13 @@ export async function finalizeAppointmentFromDraftInternal(opts: {
         specialRequest: draft.specialRequest || null,
 
         services: {
-          create: serviceIds.map((sid) => ({
+          create: serviceIds.map((sid: string) => ({
             service: { connect: { id: sid } },
           })),
         },
         pets: {
-          create: ownedPetIds.map((ownedId) => {
-            const owned = ownedMap.get(ownedId);
+          create: ownedPetIds.map((ownedId: string) => {
+            const owned = ownedMap.get(ownedId) as any;
             return {
               ownedPet: { connect: { id: ownedId } },
               ...(owned?.petId ? { pet: { connect: { id: owned.petId } } } : {}),
@@ -104,7 +104,7 @@ export async function finalizeAppointmentFromDraftInternal(opts: {
           }),
         },
         dates: {
-          create: dates.map((d) => ({ date: d })),
+          create: dates.map((d: Date) => ({ date: d })),
         },
       },
       include: {
@@ -148,11 +148,11 @@ export async function finalizeAppointmentFromDraftInternal(opts: {
           <li><strong>Toplam Tutar:</strong> ${appointment.finalPrice?.toFixed(2) || "0"} ₺</li>
         </ul>`,
     });
-  } catch (_) {}
+  } catch (_) { }
 
   try {
     await generateAndSaveInvoice(appointment.id);
-  } catch (_) {}
+  } catch (_) { }
 
   return appointment;
 }

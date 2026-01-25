@@ -192,7 +192,7 @@ async function getRecipients(segmentId: string | null) {
     const subscribers = await prisma.subscriber.findMany({
       where: { isActive: true },
     });
-    anonymousSubscribers = subscribers.map(s => ({
+    anonymousSubscribers = subscribers.map((s: any) => ({
       id: s.id,
       email: s.email,
       name: s.email.split("@")[0], // Fallback name
@@ -201,7 +201,7 @@ async function getRecipients(segmentId: string | null) {
 
   // Combine and de-duplicate by email
   const allRecipients = [...users, ...anonymousSubscribers];
-  const uniqueRecipients = Array.from(new Map(allRecipients.map(r => [r.email, r])).values());
+  const uniqueRecipients = Array.from(new Map(allRecipients.map((r: any) => [r.email, r])).values());
 
   return uniqueRecipients;
 }

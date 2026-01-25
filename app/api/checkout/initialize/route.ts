@@ -81,7 +81,7 @@ export async function POST(req: Request) {
                 status: "PENDING_PAYMENT",
                 idempotencyKey: idem,
                 items: {
-                    create: orderItemsData.map(({ _variantId, ...rest }) => rest)
+                    create: orderItemsData.map(({ _variantId, ...rest }: any) => rest)
                 },
                 payment: { create: { provider: "IYZICO", status: "INITIATED" } },
             },
@@ -138,7 +138,7 @@ export async function POST(req: Request) {
                 address: body.billingAddress?.addressLine1 || "N/A",
                 zipCode: body.billingAddress?.zipCode || "34732",
             },
-            basketItems: orderItemsData.map((it) => ({
+            basketItems: orderItemsData.map((it: any) => ({
                 id: it.productId,
                 name: it.productName,
                 category1: "Pet",
@@ -147,7 +147,7 @@ export async function POST(req: Request) {
             })),
         };
 
-        const initRes: any = await iyzicoCall<any>(iyzico.checkoutFormInitialize.bind(iyzico), iyzicoReq);
+        const initRes: any = await iyzicoCall<any>((iyzico as any).checkoutFormInitialize.bind(iyzico), iyzicoReq);
 
         if (initRes.status !== "success") {
             // payment failed, unreserve stock? Or just wait for expiry? 

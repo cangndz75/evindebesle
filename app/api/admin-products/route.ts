@@ -62,9 +62,9 @@ export async function GET(request: NextRequest) {
     // Stok durumuna göre filtreleme
     let filteredProducts = products;
     if (stockStatus && stockStatus !== "all") {
-      filteredProducts = products.filter((product) => {
-        const totalStock = (product.sizes || []).reduce((sum, s) => sum + (s.stock || 0), 0);
-        
+      filteredProducts = products.filter((product: any) => {
+        const totalStock = (product.sizes || []).reduce((sum: number, s: any) => sum + (s.stock || 0), 0);
+
         if (stockStatus === "inStock") {
           return totalStock > 0;
         } else if (stockStatus === "outOfStock") {
@@ -78,8 +78,8 @@ export async function GET(request: NextRequest) {
 
     // Stok aralığına göre filtreleme
     if (minStock || maxStock) {
-      filteredProducts = filteredProducts.filter((product) => {
-        const totalStock = (product.sizes || []).reduce((sum, s) => sum + (s.stock || 0), 0);
+      filteredProducts = filteredProducts.filter((product: any) => {
+        const totalStock = (product.sizes || []).reduce((sum: number, s: any) => sum + (s.stock || 0), 0);
         if (minStock && totalStock < parseInt(minStock)) return false;
         if (maxStock && totalStock > parseInt(maxStock)) return false;
         return true;
@@ -89,20 +89,20 @@ export async function GET(request: NextRequest) {
     // Sıralama
     let sortedProducts = [...filteredProducts];
     if (sortBy === "name") {
-      sortedProducts.sort((a, b) => a.name.localeCompare(b.name, "tr"));
+      sortedProducts.sort((a: any, b: any) => a.name.localeCompare(b.name, "tr"));
     } else if (sortBy === "stock") {
-      sortedProducts.sort((a, b) => {
-        const stockA = (a.sizes || []).reduce((sum, s) => sum + (s.stock || 0), 0);
-        const stockB = (b.sizes || []).reduce((sum, s) => sum + (s.stock || 0), 0);
+      sortedProducts.sort((a: any, b: any) => {
+        const stockA = (a.sizes || []).reduce((sum: number, s: any) => sum + (s.stock || 0), 0);
+        const stockB = (b.sizes || []).reduce((sum: number, s: any) => sum + (s.stock || 0), 0);
         return stockB - stockA;
       });
     } else if (sortBy === "newest") {
-      sortedProducts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      sortedProducts.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     } else if (sortBy === "oldest") {
-      sortedProducts.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      sortedProducts.sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
     } else {
       // Varsayılan: en yeni
-      sortedProducts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      sortedProducts.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     }
 
     return NextResponse.json(sortedProducts);
@@ -221,34 +221,34 @@ export async function POST(req: Request) {
         // Bedenler - eğer sizes yoksa ama sizeOptions varsa, sizeOptions'tan ProductSize oluştur
         sizes: sizes && sizes.length > 0
           ? {
-              create: sizes.map((s: any) => ({
-                name: s.name,
-                stock: parseInt(s.stock) || 0,
-              })),
-            }
+            create: sizes.map((s: any) => ({
+              name: s.name,
+              stock: parseInt(s.stock) || 0,
+            })),
+          }
           : sizeOptions && sizeOptions.length > 0
-          ? {
+            ? {
               create: sizeOptions.map((so: any) => ({
                 name: typeof so === "string" ? so : so.name,
                 stock: 0, // sizeOptions'tan oluşturulanlar için varsayılan stok 0
               })),
             }
-          : undefined,
+            : undefined,
         // Etiketler
         tags: tags
           ? {
-              create: tags.map((t: any) => ({
-                name: typeof t === "string" ? t : t.name,
-              })),
-            }
+            create: tags.map((t: any) => ({
+              name: typeof t === "string" ? t : t.name,
+            })),
+          }
           : undefined,
         // Beden seçenekleri
         sizeOptions: sizeOptions
           ? {
-              create: sizeOptions.map((so: any) => ({
-                name: typeof so === "string" ? so : so.name,
-              })),
-            }
+            create: sizeOptions.map((so: any) => ({
+              name: typeof so === "string" ? so : so.name,
+            })),
+          }
           : undefined,
       },
     });
@@ -258,12 +258,12 @@ export async function POST(req: Request) {
       for (const c of colors) {
         // Aynı ürün için aynı renk adı kontrolü
         let existing = await prisma.productColor.findFirst({
-          where: { 
+          where: {
             productId: product.id,
             name: c.name,
           },
         });
-        
+
         // Eğer aynı renk zaten varsa, atla
         if (existing) {
           continue;
@@ -291,12 +291,12 @@ export async function POST(req: Request) {
       // Renk ve beden kombinasyonları için variant oluştur
       for (const color of createdColors) {
         const colorData = colors.find((c: any) => c.name === color.name);
-        
+
         // Renge özel bedenler varsa onları kullan, yoksa tüm bedenleri kullan
-        const colorSizes = colorData?.sizes && colorData.sizes.length > 0 
-          ? createdSizes.filter(s => colorData.sizes.includes(s.name))
+        const colorSizes = colorData?.sizes && colorData.sizes.length > 0
+          ? createdSizes.filter((s: any) => colorData.sizes.includes(s.name))
           : createdSizes;
-        
+
         // Eğer bedenler varsa, her beden için variant oluştur
         if (colorSizes.length > 0) {
           for (const size of colorSizes) {
@@ -328,7 +328,7 @@ export async function POST(req: Request) {
         }
       }
     }
-    
+
     // Ana ürün için beden bazlı variant oluştur (renk yoksa)
     if ((!colors || colors.length === 0) && sizes && sizes.length > 0) {
       const createdSizes = await prisma.productSize.findMany({

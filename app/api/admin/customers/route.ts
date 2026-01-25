@@ -30,9 +30,9 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    const customers = users.map((user) => {
+    const customers = users.map((user: any) => {
       const orders = user.orders;
-      const totalSpent = orders.reduce((sum, o) => sum + (o.total || 0), 0);
+      const totalSpent = orders.reduce((sum: number, o: any) => sum + (o.total || 0), 0);
       const lastOrder = orders[0];
 
       return {
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
     });
 
     // LTV'ye göre sırala
-    customers.sort((a, b) => b.totalSpent - a.totalSpent);
+    customers.sort((a: any, b: any) => b.totalSpent - a.totalSpent);
 
     return NextResponse.json(customers);
   } catch (error: any) {

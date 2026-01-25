@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
       ];
 
       widgets = await Promise.all(
-        defaultWidgets.map((w) =>
+        defaultWidgets.map((w: any) =>
           prisma.dashboardWidget.create({
             data: {
               userId,

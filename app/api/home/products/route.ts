@@ -158,7 +158,7 @@ export async function GET(request: NextRequest) {
       });
 
       // Sipariş sayısına göre sırala
-      products.sort((a, b) => {
+      products.sort((a: any, b: any) => {
         const aCount = a._count.orderItems;
         const bCount = b._count.orderItems;
         if (bCount !== aCount) {
@@ -240,7 +240,7 @@ export async function GET(request: NextRequest) {
       });
 
       // Sipariş sayısına göre sırala
-      products.sort((a, b) => {
+      products.sort((a: any, b: any) => {
         const aCount = a._count.orderItems;
         const bCount = b._count.orderItems;
         if (bCount !== aCount) {
@@ -256,7 +256,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Format products for frontend
-    const formattedProducts = products.map((product) => {
+    const formattedProducts = products.map((product: any) => {
       const firstColor = product.colors[0];
       const colorImages = firstColor?.images || [];
       const mainImage = product.primaryImage || product.image || colorImages[0] || "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop";
@@ -269,7 +269,7 @@ export async function GET(request: NextRequest) {
           price: product.price,
           image: mainImage,
           hoverImage: hoverImage !== mainImage ? hoverImage : undefined,
-          colors: product.colors.map((c) => {
+          colors: product.colors.map((c: any) => {
             const images = parseImages(c.images);
             return {
               name: (c as any).name || "",
@@ -296,12 +296,12 @@ export async function GET(request: NextRequest) {
         image: mainImage,
         hoverImage: hoverImage !== mainImage ? hoverImage : undefined,
         badge: product.originalPrice ? "İndirim" : "Yeni",
-        colors: product.colors.map((c) => {
+        colors: product.colors.map((c: any) => {
           const images = parseImages(c.images);
           return images[0] || "";
         }).filter(Boolean),
-        sizes: product.sizes?.map((s) => ({ name: s.name, stock: s.stock, id: s.id })) || [],
-        sizeOptions: product.sizeOptions?.map((so) => ({ name: so.name, id: so.id })) || [],
+        sizes: product.sizes?.map((s: any) => ({ name: s.name, stock: s.stock, id: s.id })) || [],
+        sizeOptions: product.sizeOptions?.map((so: any) => ({ name: so.name, id: so.id })) || [],
         colorId: product.colors[0]?.id,
         variants: product.colors[0]?.variants?.map((v: { colorId: string | null; sizeId: string | null; stock: number }) => ({
           colorId: v.colorId,

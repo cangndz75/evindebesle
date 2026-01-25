@@ -113,7 +113,7 @@ export async function POST(req: NextRequest) {
         const categories = await prisma.category.findMany({
             select: { id: true, name: true, slug: true },
         });
-        categories.forEach((c) => {
+        categories.forEach((c: any) => {
             categoryMap.set(c.name.toLowerCase(), c.id);
             categoryMap.set(c.slug.toLowerCase(), c.id);
         });

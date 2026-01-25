@@ -20,7 +20,7 @@ export async function GET() {
   });
 
   return NextResponse.json(
-    addresses.map((addr) => ({
+    addresses.map((addr: any) => ({
       id: addr.id,
       districtId: addr.districtId,
       districtName: addr.district?.name || "",

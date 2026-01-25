@@ -29,10 +29,10 @@ export async function generateAndSaveInvoice(appointmentId: string) {
       email: appointment.user.email,
     },
     appointment,
-    services: appointment.services.map((s) => ({
-    name: s.service.name,
-    price: s.service.price,
-  })),
+    services: appointment.services.map((s: any) => ({
+      name: s.service.name,
+      price: s.service.price,
+    })),
     totalPrice,
     invoiceNo,
   });

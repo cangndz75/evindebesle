@@ -58,7 +58,7 @@ export async function GET(
       return NextResponse.json({ error: "Ürün bulunamadı" }, { status: 404 });
     }
 
-    const totalStock = product.sizes.reduce((sum, s) => sum + s.stock, 0);
+    const totalStock = product.sizes.reduce((sum: number, s: any) => sum + s.stock, 0);
     return NextResponse.json({ stock: totalStock });
   } catch (error: any) {
     console.error("Stock check error:", error);

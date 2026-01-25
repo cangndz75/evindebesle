@@ -123,7 +123,7 @@ export async function generateMetadata({
       description,
       url: `${BASE_URL}/product/${product.slug || product.id}`,
       siteName: "Evinde Besle",
-      images: images.map((url) => ({
+      images: images.map((url: string) => ({
         url,
         width: 800,
         height: 800,
@@ -232,7 +232,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
         product={{
           name: product.name,
           description: product.description || "",
-          image: images.map((i) => i.url),
+          image: images.map((i: any) => i.url),
           sku: product.stockCode || product.id,
           brand: product.brand || "Evinde Besle",
           price: product.price,

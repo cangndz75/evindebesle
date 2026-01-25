@@ -98,7 +98,7 @@ export async function GET(request: NextRequest) {
           },
         },
       ];
-      
+
       if (searchConditions.length > 0) {
         // Hem arama hem beden filtresi varsa AND kullan
         where.AND = [
@@ -172,12 +172,12 @@ export async function GET(request: NextRequest) {
     });
 
     // Parse color images and format response
-    const formattedProducts = products.map((product) => {
+    const formattedProducts = products.map((product: any) => {
       let hoverImage: string | undefined;
       if (product.colors.length > 0 && product.colors[0].images) {
         try {
-          const images = typeof product.colors[0].images === 'string' 
-            ? JSON.parse(product.colors[0].images) 
+          const images = typeof product.colors[0].images === 'string'
+            ? JSON.parse(product.colors[0].images)
             : product.colors[0].images;
           if (Array.isArray(images) && images.length > 1) {
             hoverImage = images[1];
@@ -189,7 +189,7 @@ export async function GET(request: NextRequest) {
 
       // Badge logic - yeni ürün kontrolü
       let badge: string | undefined;
-      const isNew = product.tags.some(tag => 
+      const isNew = product.tags.some((tag: any) =>
         ["yeni", "new", "yeni ürün", "yeni gelenler", "new arrival"].includes(tag.name.toLowerCase())
       );
       if (isNew) {
@@ -207,7 +207,7 @@ export async function GET(request: NextRequest) {
         hoverImage: hoverImage || product.secondaryImage || undefined,
         badge,
         category: product.gender === "MALE" ? "men" : product.gender === "FEMALE" ? "women" : undefined,
-        tags: product.tags.map(t => t.name),
+        tags: product.tags.map((t: any) => t.name),
         slug: product.slug,
       };
     });

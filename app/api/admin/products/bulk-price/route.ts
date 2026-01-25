@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
         }
 
         // Calculate new prices
-        const updates = products.map((product) => {
+        const updates = products.map((product: any) => {
             let newPrice = product.price;
 
             switch (updateType) {
@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
 
         // Update products in transaction
         await prisma.$transaction(
-            updates.map((update) =>
+            updates.map((update: any) =>
                 prisma.product.update({
                     where: { id: update.id },
                     data: {
@@ -120,7 +120,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({
             success: true,
             message: `${products.length} ürün fiyatı güncellendi`,
-            updates: updates.map((u) => ({
+            updates: updates.map((u: any) => ({
                 id: u.id,
                 oldPrice: u.oldPrice,
                 newPrice: u.newPrice,

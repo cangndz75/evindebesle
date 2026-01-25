@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
     MISSED: "Kaçırıldı",
   };
 
-  const response = statusCounts.map((item) => ({
+  const response = statusCounts.map((item: any) => ({
     name: statusLabels[item.status] || item.status,
     value: item._count,
   }));

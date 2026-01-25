@@ -34,11 +34,11 @@ export async function GET(req: NextRequest) {
 
     // Tekrar eden ürünleri kaldır (en son görüntülenen kalır)
     const uniqueProducts = new Map();
-    views.forEach((view) => {
+    views.forEach((view: any) => {
       if (!uniqueProducts.has(view.productId)) {
         // Parse color images if they exist
         const product = view.product;
-        const colors = product.colors.map((color) => {
+        const colors = product.colors.map((color: any) => {
           let images: string[] = [];
           if (color.images) {
             try {

@@ -35,14 +35,14 @@ export async function GET(request: NextRequest) {
 
     // Benzersiz ürünleri döndür ve color images'ı parse et
     const uniqueProducts = combinations
-      .map((c) => c.relatedProduct)
-      .filter((p, index, self) =>
-        index === self.findIndex((t) => t.id === p.id)
+      .map((c: any) => c.relatedProduct)
+      .filter((p: any, index: number, self: any[]) =>
+        index === self.findIndex((t: any) => t.id === p.id)
       )
       .slice(0, 4)
-      .map((product) => {
+      .map((product: any) => {
         // Parse color images
-        const colors = product.colors.map((color) => {
+        const colors = product.colors.map((color: any) => {
           let images: string[] = [];
           if (color.images) {
             try {

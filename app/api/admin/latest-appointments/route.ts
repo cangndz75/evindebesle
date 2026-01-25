@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
     },
   });
 
-  const result = appointments.map((a) => ({
+  const result = appointments.map((a: any) => ({
     id: a.id,
     petName: a.pets[0]?.ownedPet?.name || "Evcil Hayvan",
     serviceName: a.services[0]?.service.name || "Hizmet",

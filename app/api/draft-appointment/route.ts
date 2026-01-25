@@ -26,7 +26,7 @@ const schema = z.object({
     })
   ).optional(),
 
-  totalPrice: z.number().min(0).optional(), 
+  totalPrice: z.number().min(0).optional(),
 });
 
 function toMidnightISO(s: string) {
@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
       select: { id: true, petId: true },
     });
     if (ownedPets.length !== ownedPetIds.length) {
-      const valid = new Set(ownedPets.map((p) => p.id));
+      const valid = new Set(ownedPets.map((p: any) => p.id));
       const invalid = ownedPetIds.filter((id) => !valid.has(id));
       return NextResponse.json(
         { error: "Geçersiz veya yetkisiz ownedPetIds", invalidOwnedPetIds: invalid },
@@ -95,14 +95,14 @@ export async function POST(req: NextRequest) {
       select: { id: true, name: true, price: true },
     });
     if (svcList.length !== serviceIds.length) {
-      const valid = new Set(svcList.map((s) => s.id));
+      const valid = new Set(svcList.map((s: any) => s.id));
       const invalid = serviceIds.filter((id) => !valid.has(id));
       return NextResponse.json(
         { error: "Geçersiz serviceId'ler", invalidServiceIds: invalid },
         { status: 400 }
       );
     }
-    const svcMap = new Map(svcList.map((s) => [s.id, s]));
+    const svcMap = new Map(svcList.map((s: any) => [s.id, s]));
 
     // Adres doğrulama
     const address = await prisma.userAddress.findFirst({
@@ -131,7 +131,7 @@ export async function POST(req: NextRequest) {
     }
 
     const petIds = Array.from(
-      new Set(ownedPets.map((p) => p.petId).filter(Boolean) as string[])
+      new Set(ownedPets.map((p: any) => p.petId).filter(Boolean) as string[])
     );
 
     // Gün sayısı
@@ -143,9 +143,9 @@ export async function POST(req: NextRequest) {
       ? lineItems
       : serviceIds.map((sid) => ({ serviceId: sid, quantity: totalSelectedPets }));
 
-    const lineTotals = rawLines.map((li) => {
-      const svc = svcMap.get(li.serviceId)!;
-      const unitPrice = Number(svc.price || 0);
+    const lineTotals = rawLines.map((li: any) => {
+      const svc = svcMap.get(li.serviceId) as any;
+      const unitPrice = Number(svc?.price || 0);
       const qty = Number(li.quantity || 0);
       const subtotal = unitPrice * qty;
       return { serviceId: li.serviceId, unitPrice, qty, subtotal };

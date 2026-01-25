@@ -22,7 +22,7 @@ export async function checkLowStockProducts(): Promise<LowStockProduct[]> {
 
     // Create lookup map for thresholds
     const thresholdMap = new Map<string, number>();
-    alerts.forEach((alert) => {
+    alerts.forEach((alert: any) => {
         const key = alert.variantId
             ? `${alert.productId}-${alert.variantId}`
             : alert.productId;
@@ -40,7 +40,7 @@ export async function checkLowStockProducts(): Promise<LowStockProduct[]> {
         },
     });
 
-    for (const variant of variants) {
+    for (const variant of variants as any[]) {
         const thresholdKey = `${variant.productId}-${variant.id}`;
         const productKey = variant.productId;
         const threshold =
@@ -119,7 +119,7 @@ export async function getStockSummary() {
     // Products with low stock (any variant below 5)
     const lowStockProducts = await checkLowStockProducts();
     const uniqueLowStockProducts = new Set(
-        lowStockProducts.map((p) => p.productId)
+        lowStockProducts.map((p: any) => p.productId)
     );
 
     // Out of stock (0 stock in all variants)

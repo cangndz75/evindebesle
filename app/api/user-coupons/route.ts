@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
   });
 
   const result = await Promise.all(
-    userCoupons.map(async (uc) => {
+    userCoupons.map(async (uc: any) => {
       const c = uc.coupon;
 
       const used = await prisma.appointment.findFirst({

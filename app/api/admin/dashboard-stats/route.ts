@@ -115,8 +115,8 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    const criticalStockCount = lowStockProducts.filter((p) => {
-      const totalStock = p.sizes.reduce((sum, s) => sum + s.stock, 0);
+    const criticalStockCount = lowStockProducts.filter((p: any) => {
+      const totalStock = p.sizes.reduce((sum: number, s: any) => sum + s.stock, 0);
       return totalStock <= 3;
     }).length;
 

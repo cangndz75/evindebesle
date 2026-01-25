@@ -53,7 +53,7 @@ export default async function SharedFavoritesPage({
     orderBy: { createdAt: "desc" },
   });
 
-  const favorites = favoritesRaw.map((favorite) => ({
+  const favorites = favoritesRaw.map((favorite: any) => ({
     id: favorite.id,
     productId: favorite.productId,
     createdAt: favorite.createdAt,
@@ -64,10 +64,10 @@ export default async function SharedFavoritesPage({
       price: favorite.product.price,
       image: favorite.product.image ?? undefined,
       primaryImage: favorite.product.primaryImage ?? undefined,
-      colors: favorite.product.colors.map((color) => ({
+      colors: favorite.product.colors.map((color: any) => ({
         name: color.name,
         hexCode: color.hexCode ?? undefined,
-        images: color.images 
+        images: color.images
           ? (typeof color.images === 'string' ? JSON.parse(color.images) : color.images)
           : [],
         variants: color.variants || [],

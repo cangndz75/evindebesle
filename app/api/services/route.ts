@@ -13,15 +13,15 @@ export async function GET() {
     },
   });
 
-  const flatServices = services.map((service) => ({
+  const flatServices = services.map((service: any) => ({
     id: service.id,
     name: service.name,
     description: service.description,
     image: service.image || null,
     price: service.price,
     petTags: service.tags
-      .map((tag) => tag.pet?.species?.toUpperCase())
-      .filter((species): species is string => Boolean(species)),
+      .map((tag: any) => tag.pet?.species?.toUpperCase())
+      .filter((species: any): species is string => Boolean(species)),
   }));
 
   return NextResponse.json(flatServices);

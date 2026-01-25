@@ -8,7 +8,7 @@ export async function PATCH(
   try {
     const body = await request.json();
 
-    return await prisma.$transaction(async (tx) => {
+    return await prisma.$transaction(async (tx: any) => {
       if (body.petIds) {
         await tx.serviceTag.deleteMany({ where: { serviceId: id } });
       }

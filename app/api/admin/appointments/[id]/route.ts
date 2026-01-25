@@ -50,8 +50,8 @@ export async function GET(
     fullAddress: fallback?.fullAddress ?? "",
     district: fallback?.district ?? null,
     pets: appointment.pets
-      .filter((p) => p.ownedPet !== null)
-      .map((p) => ({
+      .filter((p: any) => p.ownedPet !== null)
+      .map((p: any) => ({
         id: p.ownedPet!.id,
         name: p.ownedPet!.name,
         image: p.ownedPet!.image,

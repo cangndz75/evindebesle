@@ -10,7 +10,7 @@ const createPetSchema = z.object({
   age: z.number().int().min(0).optional(),
   gender: z.string().nullable().optional(),
   image: z.string().nullable().optional(),
-  allergy: z.array(z.string()).optional(), 
+  allergy: z.array(z.string()).optional(),
   sensitivity: z.string().nullable().optional(),
   specialNote: z.string().nullable().optional(),
   relation: z.string().nullable().optional(),
@@ -30,7 +30,7 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     });
 
-    const formattedPets = ownedPets.map((up) => ({
+    const formattedPets = ownedPets.map((up: any) => ({
       id: up.id,
       petName: up.pet?.name ?? "Bilinmeyen Hayvan",
       userPetName: up.name,

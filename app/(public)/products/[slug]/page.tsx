@@ -7,10 +7,10 @@ export async function generateStaticParams() {
     where: { isActive: true, slug: { not: null } },
     select: { slug: true },
   });
-  
+
   return products
-    .filter((p) => p.slug)
-    .map((product) => ({
+    .filter((p: any) => p.slug)
+    .map((product: any) => ({
       slug: product.slug!,
     }));
 }
@@ -79,7 +79,7 @@ export default async function ProductSlugPage({
   if (variant) {
     const variantData = await prisma.productVariant.findUnique({
       where: { variantCode: variant },
-      include: { 
+      include: {
         color: {
           include: {
             variants: true,
@@ -114,17 +114,17 @@ export default async function ProductSlugPage({
           colorImages = selectedColor.images;
         }
       }
-      
+
       // Debug: Server-side console'da görünecek
       console.log('[ProductSlugPage] Selected color:', selectedColor?.name);
       console.log('[ProductSlugPage] Color images (raw):', selectedColor?.images);
       console.log('[ProductSlugPage] Color images (parsed):', colorImages);
       console.log('[ProductSlugPage] Product primaryImage:', product.primaryImage);
       console.log('[ProductSlugPage] Product image:', product.image);
-      
+
       if (colorImages.length > 0) {
         console.log('[ProductSlugPage] Using color images');
-        return colorImages.map((img) => ({ url: img, badge: undefined }));
+        return colorImages.map((img: string) => ({ url: img, badge: undefined }));
       }
       if (product.primaryImage) {
         console.log('[ProductSlugPage] Using primaryImage');
@@ -137,7 +137,7 @@ export default async function ProductSlugPage({
       console.log('[ProductSlugPage] No images found');
       return [];
     })(),
-    colors: product.colors.map((c) => {
+    colors: product.colors.map((c: any) => {
       // images'ı parse et (eğer string ise)
       let parsedImages: string[] = [];
       if (c.images) {
@@ -151,7 +151,7 @@ export default async function ProductSlugPage({
           parsedImages = c.images;
         }
       }
-      
+
       return {
         id: c.id,
         name: c.name,
@@ -167,18 +167,18 @@ export default async function ProductSlugPage({
       console.log('[ProductSlugPage] Product sizeOptions:', product.sizeOptions);
       console.log('[ProductSlugPage] Sizes length:', product.sizes?.length || 0);
       console.log('[ProductSlugPage] SizeOptions length:', product.sizeOptions?.length || 0);
-      
+
       // Eğer sizes doluysa onu kullan, değilse sizeOptions'ı kullan
       if (product.sizes && product.sizes.length > 0) {
         console.log('[ProductSlugPage] Using sizes');
-        return product.sizes.map((s) => ({
+        return product.sizes.map((s: any) => ({
           id: s.id,
           name: s.name,
           stock: s.stock,
         }));
       } else if (product.sizeOptions && product.sizeOptions.length > 0) {
         console.log('[ProductSlugPage] Using sizeOptions');
-        return product.sizeOptions.map((so) => ({
+        return product.sizeOptions.map((so: any) => ({
           id: so.id,
           name: so.name,
           stock: 0, // sizeOptions için stok bilgisi yok, varsayılan 0
@@ -188,14 +188,14 @@ export default async function ProductSlugPage({
       return [];
     })(),
     variants: product.variants
-      .filter((v) => v.colorId !== null) // null colorId'li variant'ları filtrele
-      .map((v) => ({
+      .filter((v: any) => v.colorId !== null) // null colorId'li variant'ları filtrele
+      .map((v: any) => ({
         colorId: v.colorId!, // Non-null assertion çünkü yukarıda filtreledik
         sizeId: v.sizeId,
         stock: v.stock,
         variantCode: v.variantCode,
       })),
-    reviews: product.reviews.map((r) => ({
+    reviews: product.reviews.map((r: any) => ({
       id: r.id,
       userName: r.userName || "Misafir",
       rating: r.rating,

@@ -837,12 +837,12 @@ model Campaign {
   id                String         @id @default(cuid())
   name              String
   status            CampaignStatus @default(draft)
-  subject           String
+  subject           String?
   preheader         String?
-  fromName          String
-  fromEmail         String
+  fromName          String?
+  fromEmail         String?
   replyTo           String?
-  contentJson       String
+  contentJson       String?
   renderedHtml      String?
   audienceSegmentId String?
   scheduleAt        DateTime?
@@ -988,7 +988,9 @@ enum CampaignStatus {
   draft
   ready
   scheduled
+  sending
   sent
+  cancelled
 }
 
 model StockMovement {
@@ -1191,4 +1193,3 @@ model BlogPost {
   @@index([isPublished])
   @@index([category])
 }
-

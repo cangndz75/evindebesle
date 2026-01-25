@@ -87,6 +87,11 @@ const navSections = [
         icon: <Mail className="w-5 h-5" />,
       },
       {
+        label: "Kampanya Listesi",
+        href: "/email-campaigns",
+        icon: <Mail className="w-5 h-5" />,
+      },
+      {
         label: "Bülten Aboneleri",
         href: "/admin-subscribers",
         icon: <Users className="w-5 h-5" />,

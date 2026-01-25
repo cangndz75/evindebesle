@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import {
     TrendingUp,
     TrendingDown,
@@ -9,7 +10,9 @@ import {
     PackageX,
     Truck,
     RotateCcw,
-    AlertCircle
+    AlertCircle,
+    ChevronLeft,
+    ChevronRight,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
@@ -47,6 +50,17 @@ interface KPIStripProps {
 
 export default function KPIStrip({ data }: KPIStripProps) {
     const router = useRouter();
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+    const scroll = (direction: "left" | "right") => {
+        if (scrollContainerRef.current) {
+            const scrollAmount = 220; // Card width + gap
+            scrollContainerRef.current.scrollBy({
+                left: direction === "left" ? -scrollAmount : scrollAmount,
+                behavior: "smooth",
+            });
+        }
+    };
 
     const items: KPIItem[] = [
         {
@@ -85,7 +99,7 @@ export default function KPIStrip({ data }: KPIStripProps) {
             title: "Terk Edilen Sepet",
             value: data.abandonedCart.value.toString(),
             actionText: "Otomasyon başlat",
-            actionUrl: "/admin-marketing/automations",
+            actionUrl: "/abandoned-carts",
             icon: <ShoppingCart className="w-4 h-4 opacity-50" />,
             color: "orange",
         },
@@ -100,7 +114,7 @@ export default function KPIStrip({ data }: KPIStripProps) {
             title: "Kargo Gecikme",
             value: `${data.cargoDelay.value} paket`,
             actionText: data.cargoDelay.value > 0 ? "Kargo sorunları" : undefined,
-            actionUrl: "/admin-cargo/delays",
+            actionUrl: "/admin-orders?status=SHIPPED",
             icon: <Truck className="w-4 h-4" />,
             color: data.cargoDelay.value > 0 ? "red" : "green",
         },
@@ -115,25 +129,45 @@ export default function KPIStrip({ data }: KPIStripProps) {
     ];
 
     return (
-        <div className="w-full overflow-x-auto pb-4 -mx-6 px-6 scrollbar-hide">
-            <div className="flex gap-4 min-w-max">
-                {items.map((item, index) => (
-                    <div
-                        key={index}
-                        className={`
+        <div className="relative w-full group">
+            {/* Left Scroll Button */}
+            <button
+                onClick={() => scroll("left")}
+                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-full shadow-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-50"
+            >
+                <ChevronLeft className="w-5 h-5 text-gray-600" />
+            </button>
+
+            {/* Right Scroll Button */}
+            <button
+                onClick={() => scroll("right")}
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-full shadow-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-50"
+            >
+                <ChevronRight className="w-5 h-5 text-gray-600" />
+            </button>
+
+            <div
+                ref={scrollContainerRef}
+                className="w-full overflow-x-auto pb-4 px-6 scrollbar-hide"
+            >
+                <div className="flex gap-4 min-w-max">
+                    {items.map((item, index) => (
+                        <div
+                            key={index}
+                            className={`
               relative w-[200px] p-4 rounded-xl border border-gray-100 bg-white
               hover:shadow-lg hover:border-gray-200 transition-all duration-200
               flex flex-col justify-between group
             `}
-                        role="button"
-                        onClick={() => item.actionUrl && router.push(item.actionUrl)}
-                    >
-                        <div className="flex justify-between items-start mb-2">
-                            <span className="text-xs font-medium text-gray-500">{item.title}</span>
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger>
-                                        <div className={`
+                            role="button"
+                            onClick={() => item.actionUrl && router.push(item.actionUrl)}
+                        >
+                            <div className="flex justify-between items-start mb-2">
+                                <span className="text-xs font-medium text-gray-500">{item.title}</span>
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger>
+                                            <div className={`
                         p-1.5 rounded-lg 
                         ${item.color === 'green' ? 'bg-emerald-50 text-emerald-600' : ''}
                         ${item.color === 'blue' ? 'bg-blue-50 text-blue-600' : ''}
@@ -142,50 +176,51 @@ export default function KPIStrip({ data }: KPIStripProps) {
                         ${item.color === 'purple' ? 'bg-purple-50 text-purple-600' : ''}
                         ${item.color === 'indigo' ? 'bg-indigo-50 text-indigo-600' : ''}
                       `}>
-                                            {item.icon}
-                                        </div>
-                                    </TooltipTrigger>
-                                    {item.tooltip && <TooltipContent>{item.tooltip}</TooltipContent>}
-                                </Tooltip>
-                            </TooltipProvider>
-                        </div>
-
-                        <div className="space-y-1">
-                            <div className="text-2xl font-bold text-gray-900 tracking-tight">
-                                {item.value}
+                                                {item.icon}
+                                            </div>
+                                        </TooltipTrigger>
+                                        {item.tooltip && <TooltipContent>{item.tooltip}</TooltipContent>}
+                                    </Tooltip>
+                                </TooltipProvider>
                             </div>
 
-                            {(item.change || item.description) && (
-                                <div className="flex items-center gap-1.5">
-                                    {item.change && (
-                                        <span className={`
+                            <div className="space-y-1">
+                                <div className="text-2xl font-bold text-gray-900 tracking-tight">
+                                    {item.value}
+                                </div>
+
+                                {(item.change || item.description) && (
+                                    <div className="flex items-center gap-1.5">
+                                        {item.change && (
+                                            <span className={`
                       text-xs font-semibold px-1.5 py-0.5 rounded-md
                       ${item.changeType === 'positive' ? 'bg-green-50 text-green-700' : ''}
                       ${item.changeType === 'negative' ? 'bg-red-50 text-red-700' : ''}
                       ${item.changeType === 'neutral' ? 'bg-gray-50 text-gray-700' : ''}
                     `}>
-                                            {item.change}
-                                        </span>
-                                    )}
-                                    {item.description && (
-                                        <span className="text-xs text-gray-400">{item.description}</span>
-                                    )}
+                                                {item.change}
+                                            </span>
+                                        )}
+                                        {item.description && (
+                                            <span className="text-xs text-gray-400">{item.description}</span>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+
+                            {item.actionText && (
+                                <div className="mt-3 pt-3 border-t border-gray-50">
+                                    <span className="text-xs font-medium text-indigo-600 group-hover:text-indigo-700 flex items-center gap-1">
+                                        {item.actionText}
+                                        <svg className="w-3 h-3 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </span>
                                 </div>
                             )}
                         </div>
-
-                        {item.actionText && (
-                            <div className="mt-3 pt-3 border-t border-gray-50">
-                                <span className="text-xs font-medium text-indigo-600 group-hover:text-indigo-700 flex items-center gap-1">
-                                    {item.actionText}
-                                    <svg className="w-3 h-3 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                    </svg>
-                                </span>
-                            </div>
-                        )}
-                    </div>
-                ))}
+                    ))}
+                </div>
             </div>
         </div>
     );

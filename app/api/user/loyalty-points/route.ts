@@ -75,8 +75,8 @@ export async function POST(req: NextRequest) {
     }
 }
 
-// Puan kazanma kuralları
-export const LOYALTY_RULES = {
+// Puan kazanma kuralları (lib/loyalty.ts dosyasına taşınabilir)
+const LOYALTY_RULES = {
     PURCHASE_RATE: 5, // Her 100 TL için 5 puan
     REVIEW_BONUS: 20, // Yorum yapmak 20 puan
     SIGNUP_BONUS: 50, // Kayıt olunca 50 puan

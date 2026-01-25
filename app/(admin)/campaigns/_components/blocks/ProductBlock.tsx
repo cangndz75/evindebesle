@@ -26,6 +26,8 @@ export default function ProductBlock({ block }: ProductBlockProps) {
 
     const getGridClass = () => {
         switch (columns) {
+            case 1:
+                return "grid-cols-1";
             case 2:
                 return "grid-cols-2";
             case 4:

@@ -190,10 +190,10 @@ function renderCtaBlock(block: Block, options: RenderOptions): string {
   const bgColor = block.style.backgroundColor || "#ffffff";
   const buttonColor = block.style.buttonColor || "#000000";
   const buttonTextColor = block.style.buttonTextColor || "#ffffff";
-  const text = block.content.text || "Tıkla";
-  let url = block.content.url || "#";
+  const text = block.content.buttonText || "Tıkla";
+  let url = block.content.linkUrl || "#";
 
-  // Wrap URL for tracking if campaign exists
+  // Wrap URL for tracking if campaign Id exists
   if (options.campaignId && url !== "#") {
     url = `${options.baseUrl}/api/track/click?campaignId=${options.campaignId}&url=${encodeURIComponent(url)}`;
   }
@@ -254,19 +254,18 @@ function renderProductBlock(block: Block, options: RenderOptions): string {
 
   // Split products into rows
   const rows: string[] = [];
-  for (let i = 0; i < products.length; i += columns) {
-    const rowProducts = productCells
-      .split("</td>")
-      .slice(i, i + columns)
-      .join("</td>") + "</td>";
-    rows.push(`<tr>${rowProducts}</tr>`);
+  const cellArray = productCells.split("</td>").filter((c: string) => c.trim() !== "");
+
+  for (let i = 0; i < cellArray.length; i += columns) {
+    const rowCells = cellArray.slice(i, i + columns).map((cell: string) => cell + "</td>").join("");
+    rows.push(`<tr>${rowCells}</tr>`);
   }
 
   return `
     <tr>
       <td style="background-color: ${bgColor}; padding: 16px;">
         <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
-          <tr>${productCells}</tr>
+          ${rows.join("")}
         </table>
       </td>
     </tr>

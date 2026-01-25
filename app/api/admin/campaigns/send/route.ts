@@ -69,6 +69,7 @@ export async function POST(req: NextRequest) {
           user_name: recipient.name || "Değerli Müşterimiz",
           user_email: recipient.email,
           user_first_name: recipient.name?.split(" ")[0] || "Değerli Müşterimiz",
+          coupon_code: "HOŞGELDİN", // Default or you can add logic to fetch specific coupon
         });
 
         // Send email via Resend

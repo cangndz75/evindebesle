@@ -43,6 +43,10 @@ export default function SendBar({ draft, onUpdate }: SendBarProps) {
       errors.push("Subject boş olamaz");
     }
 
+    if (!draft.id) {
+      errors.push("Kampanya henüz kaydedilmemiş. Lütfen gönderimden önce kaydedin.");
+    }
+
     if (!draft.blocks.some((b) => b.type === "footer")) {
       errors.push("Footer bloğu zorunludur (unsubscribe linki için)");
     }

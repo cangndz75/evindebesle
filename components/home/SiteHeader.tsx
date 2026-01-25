@@ -365,7 +365,7 @@ export default function SiteHeader() {
                 aria-label="Ana Sayfa"
               >
                 <span className="text-xl font-serif font-light tracking-wider text-[#111] whitespace-nowrap">
-                  EVİNDE BESLE
+                  DARK VELVET
                 </span>
               </Link>
             </div>
@@ -377,7 +377,7 @@ export default function SiteHeader() {
               aria-label="Ana Sayfa"
             >
               <span className="text-2xl md:text-3xl font-serif font-light tracking-wider text-[#111]">
-                EVİNDE BESLE
+                DARK VELVET
               </span>
             </Link>
 

@@ -86,9 +86,8 @@ export default function CollectionSection() {
               src={heroImages[currentHeroIndex].left}
               alt="Koleksiyon görseli sol"
               fill
-              className={`object-cover transition-all duration-700 group-hover:scale-105 ${
-                isTransitioning ? "opacity-0" : "opacity-100"
-              }`}
+              className={`object-cover transition-all duration-700 group-hover:scale-105 ${isTransitioning ? "opacity-0" : "opacity-100"
+                }`}
               sizes="50vw"
               priority
             />
@@ -100,9 +99,8 @@ export default function CollectionSection() {
               src={heroImages[currentHeroIndex].right}
               alt="Koleksiyon görseli sağ"
               fill
-              className={`object-cover transition-all duration-700 group-hover:scale-105 ${
-                isTransitioning ? "opacity-0" : "opacity-100"
-              }`}
+              className={`object-cover transition-all duration-700 group-hover:scale-105 ${isTransitioning ? "opacity-0" : "opacity-100"
+                }`}
               sizes="50vw"
               priority
             />
@@ -134,7 +132,7 @@ export default function CollectionSection() {
               YENİ
             </p>
             <p className="text-lg md:text-2xl tracking-widest text-black font-light mb-1">
-              EVİNDE BESLE KOLEKSİYONU
+              DARK VELVET KOLEKSİYONU
             </p>
             <p className="text-xs md:text-sm tracking-wider text-black/70 font-light">
               YENİ SEZON
@@ -154,11 +152,10 @@ export default function CollectionSection() {
                       setTimeout(() => setIsTransitioning(false), 500);
                     }
                   }}
-                  className={`h-1.5 rounded-full transition-all duration-300 ${
-                    index === currentHeroIndex
+                  className={`h-1.5 rounded-full transition-all duration-300 ${index === currentHeroIndex
                       ? "w-8 bg-black"
                       : "w-1.5 bg-black/30 hover:bg-black/50"
-                  }`}
+                    }`}
                   aria-label={`Görsel ${index + 1}`}
                 />
               ))}

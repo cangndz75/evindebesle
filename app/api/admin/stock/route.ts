@@ -29,6 +29,7 @@ export async function GET(request: NextRequest) {
       where,
       include: {
         sizes: true,
+        colors: true,
         variants: {
           include: {
             color: true,
@@ -38,45 +39,90 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Stok hesaplama ve filtreleme
-    const productsWithStock = products.map((product) => {
-      const totalStock = product.sizes.reduce((sum, size) => sum + (size.stock || 0), 0);
-      const variants = product.variants.map((v) => ({
-        id: v.id,
-        colorName: v.color?.name || null,
-        sizeName: v.size?.name || null,
-        stock: v.stock || 0,
-      }));
+    // Flatten data: Product -> StockItems (Color or Base Product)
+    const stockItems: any[] = [];
 
-      return {
-        id: product.id,
-        name: product.name,
-        stockCode: product.stockCode,
-        image: product.image,
-        price: product.price,
-        totalStock,
-        minStock: 5, // Varsayılan min stock
-        sizes: product.sizes,
-        variants,
-      };
-    });
+    for (const product of products) {
+      // If product has colors, create an item for each color
+      if (product.colors.length > 0) {
+        for (const color of product.colors) {
+          // Find variants belonging to this color
+          const colorVariants = product.variants.filter(
+            (v) => v.colorId === color.id
+          );
 
-    // Filtreleme
-    let filteredProducts = productsWithStock;
-    if (filter === "lowStock") {
-      filteredProducts = productsWithStock.filter(
-        (p) => p.totalStock > 0 && p.totalStock <= p.minStock
-      );
-    } else if (filter === "outOfStock") {
-      filteredProducts = productsWithStock.filter((p) => p.totalStock === 0);
+          // Calculate total stock for this color
+          const totalStock = colorVariants.reduce(
+            (sum, v) => sum + (v.stock || 0),
+            0
+          );
+
+          stockItems.push({
+            docId: `${product.id}_${color.id}`,
+            productId: product.id,
+            productName: product.name,
+            colorId: color.id,
+            colorName: color.name,
+            image: product.image, // Could be color specific image if available
+            stockCode: product.stockCode, // Base stock code
+            totalStock,
+            minStock: 5,
+            subVariants: colorVariants.map((v) => ({
+              variantId: v.id, // This is ProductVariant ID
+              size: v.size?.name || "Standart",
+              stock: v.stock,
+              isVariant: true,
+            })),
+          });
+        }
+      } else {
+        // Product has no colors (Size only or Simple)
+        const totalStock = product.sizes.reduce(
+          (sum, s) => sum + (s.stock || 0),
+          0
+        );
+
+        // If product has variants but no colors (rare edge case in schema but possible)
+        // Or if it has sizes (ProductSize) which are used when no variants exist
+        // The schema has ProductSize table which is used for simple size-stock
+        // And ProductVariant table for Color-Size combinations.
+
+        // Let's check sizes array
+        const subVariants = product.sizes.map((s) => ({
+          variantId: s.id, // This is ProductSize ID
+          size: s.name,
+          stock: s.stock,
+          isVariant: false, // It's from ProductSize table
+        }));
+
+        stockItems.push({
+          docId: `${product.id}_base`,
+          productId: product.id,
+          productName: product.name,
+          colorId: null,
+          colorName: null,
+          image: product.image,
+          stockCode: product.stockCode,
+          totalStock,
+          minStock: 5,
+          subVariants: subVariants,
+        });
+      }
     }
 
-    // Stok hareketleri (şimdilik boş, ileride OrderItem'lardan hesaplanabilir)
-    const movements: any[] = [];
+    // Filter
+    let filteredItems = stockItems;
+    if (filter === "lowStock") {
+      filteredItems = stockItems.filter(
+        (item) => item.totalStock > 0 && item.totalStock <= item.minStock
+      );
+    } else if (filter === "outOfStock") {
+      filteredItems = stockItems.filter((item) => item.totalStock === 0);
+    }
 
     return NextResponse.json({
-      products: filteredProducts,
-      movements,
+      products: filteredItems, // Keep key 'products' for compatibility or rename to 'items'
+      movements: [],
     });
   } catch (error: any) {
     console.error("Stock fetch error:", error);

@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronRight, Heart, ShoppingBag, Info, Plus, Minus, ChevronLeft } from "lucide-react";
 import { toast } from "sonner";
 import ProductReviews from "./ProductReviews";
@@ -21,7 +22,7 @@ interface ProductDetailPageProps {
     colors: { id?: string; name: string; value: string; variant?: string; images?: string[] }[];
     sizes: string[] | { id?: string; name: string; stock: number }[];
     sizeOptions?: { id?: string; name: string; stock?: number }[];
-    variants?: { colorId: string; stock: number; variantCode: string }[];
+    variants?: { colorId: string | null; sizeId: string | null; stock: number; variantCode: string }[];
     details: string[];
     fabric?: string;
     care?: string;
@@ -35,6 +36,7 @@ interface ProductDetailPageProps {
 
 const defaultProduct = {
   id: "1",
+  slug: "dantel-balkonet-sutyen",
   name: "Dantel Balkonet Sütyen",
   price: 899,
   originalPrice: undefined,
@@ -66,8 +68,14 @@ const defaultProduct = {
 };
 
 export default function ProductDetailPage({ product = defaultProduct }: ProductDetailPageProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [selectedImage, setSelectedImage] = useState(0);
-  const [selectedColor, setSelectedColor] = useState(0);
+  
+  // URL'den variant parametresini al ve renk seçimini yap
+  const initialVariant = searchParams.get("variant");
+  const initialColorIndex = product.colors?.findIndex(c => c.variant === initialVariant) ?? 0;
+  const [selectedColor, setSelectedColor] = useState(initialColorIndex >= 0 ? initialColorIndex : 0);
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [quantity, setQuantity] = useState(1);
   const [emailNotify, setEmailNotify] = useState<string>("");
@@ -207,13 +215,24 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
     return [];
   };
 
-  // Renk değiştiğinde fotoğrafları güncelle
+  // Renk değiştiğinde fotoğrafları güncelle ve URL'i güncelle
   const handleColorChange = (idx: number) => {
     setSelectedColor(idx);
     setSelectedImage(0); // İlk fotoğrafa dön
     setSelectedSize(""); // Beden seçimini sıfırla (yeni renk için)
     setQuantity(1); // Adeti 1'e sıfırla
     setThumbnailScrollIndex(0); // Thumbnail scroll'u sıfırla
+    
+    // URL'i güncelle - variant parametresini ekle
+    const selectedColorObj = product.colors?.[idx];
+    const variantCode = selectedColorObj?.variant;
+    const slug = (product as any).slug || product.id;
+    
+    if (variantCode) {
+      router.push(`/products/${slug}?variant=${variantCode}`, { scroll: false });
+    } else {
+      router.push(`/products/${slug}`, { scroll: false });
+    }
   };
 
   // Beden stok kontrolü
@@ -228,27 +247,41 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
 
   // Seçili renge göre variant stok kontrolü
   const getVariantStock = (sizeName: string): number => {
+    // Önce ProductSize'dan direkt stok kontrolü yap (en güvenilir)
+    const sizeStock = getSizeStock(sizeName);
+    if (sizeStock > 0) {
+      return sizeStock;
+    }
+    
+    // ProductSize'da stok yoksa, variant'a bak
     const currentColor = product.colors?.[selectedColor];
-    if (!currentColor?.id) {
-      // Renk yoksa ProductSize'dan stok kontrolü yap
-      return getSizeStock(sizeName);
+    if (currentColor?.id && product.variants) {
+      // Seçili renge ve bedene ait variant'ı bul
+      const sizeObj = product.sizes?.find((s: any) => 
+        typeof s === 'object' && s.name === sizeName
+      );
+      const sizeId = sizeObj && typeof sizeObj === 'object' && 'id' in sizeObj ? sizeObj.id : null;
+      
+      if (sizeId) {
+        const variant = product.variants.find((v) => 
+          v.colorId === currentColor.id && v.sizeId === sizeId
+        );
+        if (variant && variant.stock > 0) {
+          return variant.stock;
+        }
+      }
+      
+      // SizeId yoksa, sadece colorId ile variant'ı bul
+      const colorVariant = product.variants.find((v) => 
+        v.colorId === currentColor.id && !v.sizeId
+      );
+      if (colorVariant && colorVariant.stock > 0) {
+        return colorVariant.stock;
+      }
     }
     
-    // Seçili renge ait variant'ı bul
-    const variant = product.variants?.find((v) => 
-      v.colorId === currentColor.id
-    );
-    
-    // Eğer variant varsa ve stoku varsa, o renk için tüm bedenler aktif
-    if (variant && variant.stock > 0) {
-      // Variant stoku varsa, ProductSize'dan da kontrol et
-      const sizeStock = getSizeStock(sizeName);
-      // Eğer ProductSize'da stok varsa onu kullan, yoksa variant stokunu kullan
-      return sizeStock > 0 ? sizeStock : variant.stock;
-    }
-    
-    // Variant yoksa veya stoku yoksa, ProductSize'dan stok kontrolü yap
-    return getSizeStock(sizeName);
+    // Hiçbiri yoksa 0 döndür
+    return 0;
   };
   
   // Seçili renge göre tüm bedenleri getir (stok kontrolü ayrı yapılacak)
@@ -292,6 +325,54 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
       console.error("Error:", error);
     }
   };
+
+  // İlk stoklu bedeni otomatik seç
+  useEffect(() => {
+    if (!selectedSize) {
+      const availableSizes = getAvailableSizesForColor();
+      for (const sizeObj of availableSizes) {
+        const sizeName = typeof sizeObj === 'string' ? sizeObj : sizeObj.name;
+        const stock = getVariantStock(sizeName);
+        if (stock > 0) {
+          setSelectedSize(sizeName);
+          break;
+        }
+      }
+    }
+  }, [product.id, selectedColor]);
+
+  // İlk stoklu bedeni otomatik seç
+  useEffect(() => {
+    if (!selectedSize) {
+      // Seçili renge göre tüm bedenleri getir
+      const availableSizes = (() => {
+        // 1) sizes string[]
+        if (Array.isArray(product.sizes) && product.sizes.length > 0 && typeof product.sizes[0] === "string") {
+          return product.sizes as string[];
+        }
+        // 2) sizes object[]
+        if (Array.isArray(product.sizes) && product.sizes.length > 0 && typeof product.sizes[0] === "object") {
+          return product.sizes as Array<{ id?: string; name: string; stock: number }>;
+        }
+        // 3) sizeOptions (fallback)
+        if (Array.isArray(product.sizeOptions) && product.sizeOptions.length > 0) {
+          return product.sizeOptions as Array<{ id?: string; name: string; stock?: number }>;
+        }
+        return [];
+      })();
+      
+      // İlk stoklu bedeni bul ve seç
+      for (const sizeObj of availableSizes) {
+        const sizeName = typeof sizeObj === 'string' ? sizeObj : sizeObj.name;
+        const stock = getVariantStock(sizeName);
+        if (stock > 0) {
+          setSelectedSize(sizeName);
+          break;
+        }
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product.id, selectedColor]);
 
   // Favori durumunu kontrol et
   useEffect(() => {

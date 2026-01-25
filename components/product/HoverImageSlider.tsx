@@ -1,0 +1,113 @@
+"use client";
+
+import { useState, useCallback, useMemo } from "react";
+import Image from "next/image";
+
+interface HoverImageSliderProps {
+    images: string[];
+    alt: string;
+    sizes?: string;
+    priority?: boolean;
+    className?: string;
+    aspectRatio?: "square" | "portrait"; // portrait = 3/4
+    badge?: React.ReactNode;
+    favoriteButton?: React.ReactNode;
+    onImageChange?: (index: number) => void;
+}
+
+export default function HoverImageSlider({
+    images,
+    alt,
+    sizes = "(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw",
+    priority = false,
+    className = "",
+    aspectRatio = "portrait",
+    badge,
+    favoriteButton,
+    onImageChange,
+}: HoverImageSliderProps) {
+    const [activeIndex, setActiveIndex] = useState(0);
+
+    // En az 1 resim olmasını garanti et
+    const validImages = useMemo(() => {
+        const filtered = images.filter((img) => img && img.trim() !== "");
+        return filtered.length > 0
+            ? filtered
+            : ["https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=600&auto=format&fit=crop"];
+    }, [images]);
+
+    const imageCount = validImages.length;
+
+    // Mouse pozisyonuna göre aktif resmi hesapla
+    const handleMouseMove = useCallback(
+        (e: React.MouseEvent<HTMLDivElement>) => {
+            if (imageCount <= 1) return;
+
+            const rect = e.currentTarget.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const percentage = x / rect.width;
+            const newIndex = Math.min(
+                Math.floor(percentage * imageCount),
+                imageCount - 1
+            );
+
+            if (newIndex !== activeIndex) {
+                setActiveIndex(newIndex);
+                onImageChange?.(newIndex);
+            }
+        },
+        [imageCount, activeIndex, onImageChange]
+    );
+
+    const handleMouseLeave = useCallback(() => {
+        setActiveIndex(0);
+        onImageChange?.(0);
+    }, [onImageChange]);
+
+    const aspectClass = aspectRatio === "square" ? "aspect-square" : "aspect-[3/4]";
+
+    return (
+        <div
+            className={`relative ${aspectClass} overflow-hidden bg-gray-100 ${className}`}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+        >
+            {/* Tüm resimleri render et, sadece aktif olanı göster */}
+            {validImages.map((img, idx) => (
+                <Image
+                    key={idx}
+                    src={img}
+                    alt={idx === 0 ? alt : `${alt} - ${idx + 1}`}
+                    fill
+                    className={`object-cover transition-opacity duration-200 ${idx === activeIndex ? "opacity-100" : "opacity-0"
+                        }`}
+                    sizes={sizes}
+                    loading={priority && idx === 0 ? "eager" : "lazy"}
+                    quality={85}
+                    priority={priority && idx === 0}
+                />
+            ))}
+
+            {/* Badge */}
+            {badge}
+
+            {/* Favorite Button */}
+            {favoriteButton}
+
+            {/* Alt kısımda resim sayısını gösteren dot indicator'lar */}
+            {imageCount > 1 && (
+                <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1 z-10">
+                    {validImages.map((_, idx) => (
+                        <div
+                            key={idx}
+                            className={`w-1.5 h-1.5 rounded-full transition-all duration-200 ${idx === activeIndex
+                                    ? "bg-white scale-125"
+                                    : "bg-white/50"
+                                }`}
+                        />
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}

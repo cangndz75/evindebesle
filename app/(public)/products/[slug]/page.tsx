@@ -95,6 +95,7 @@ export default async function ProductSlugPage({
   // ProductDetailPage için format
   const formattedProduct = {
     id: product.id,
+    slug: product.slug,
     name: product.name,
     price: product.price,
     originalPrice: product.originalPrice || undefined,
@@ -190,6 +191,7 @@ export default async function ProductSlugPage({
       .filter((v) => v.colorId !== null) // null colorId'li variant'ları filtrele
       .map((v) => ({
         colorId: v.colorId!, // Non-null assertion çünkü yukarıda filtreledik
+        sizeId: v.sizeId,
         stock: v.stock,
         variantCode: v.variantCode,
       })),

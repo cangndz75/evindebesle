@@ -90,61 +90,76 @@ export default function TabbedProductCarousel({
   };
 
   return (
-    <section className="w-full bg-white py-12 md:py-20">
+    <section className="w-full bg-gradient-to-b from-gray-50 to-white py-16 md:py-24">
       <div className="w-full">
         <Tabs
           defaultValue="new-arrivals"
           className="w-full"
           onValueChange={handleTabChange}
         >
-          <div className="flex items-center justify-between mb-8">
-            <TabsList className="bg-transparent border-b border-gray-200 rounded-none h-auto p-0">
+          {/* Modern Header - Ortalanmış */}
+          <div className="flex flex-col items-center mb-12 px-4">
+            {/* Başlık */}
+            <div className="text-center mb-8">
+              <span className="inline-block text-xs font-medium tracking-[0.3em] text-[#111]/40 uppercase mb-3">
+                DISCOVER
+              </span>
+              <h2 className="text-3xl md:text-4xl font-light text-[#111] tracking-tight">
+                Curated For You
+              </h2>
+            </div>
+
+            {/* Tablar - Modern Pill Style */}
+            <TabsList className="bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-full h-auto p-1.5 shadow-sm">
               <TabsTrigger
                 value="new-arrivals"
-                className="px-6 py-3 text-sm font-light uppercase tracking-wide data-[state=active]:border-b-2 data-[state=active]:border-[#111] data-[state=active]:bg-transparent rounded-none data-[state=active]:text-[#111] text-gray-500"
+                className="px-6 py-2.5 text-xs font-medium uppercase tracking-wider rounded-full transition-all duration-300 data-[state=active]:bg-[#111] data-[state=active]:text-white data-[state=active]:shadow-md text-[#111]/60 hover:text-[#111]"
               >
                 New Arrivals
               </TabsTrigger>
               <TabsTrigger
                 value="best-sellers"
-                className="px-6 py-3 text-sm font-light uppercase tracking-wide data-[state=active]:border-b-2 data-[state=active]:border-[#111] data-[state=active]:bg-transparent rounded-none data-[state=active]:text-[#111] text-gray-500"
+                className="px-6 py-2.5 text-xs font-medium uppercase tracking-wider rounded-full transition-all duration-300 data-[state=active]:bg-[#111] data-[state=active]:text-white data-[state=active]:shadow-md text-[#111]/60 hover:text-[#111]"
               >
                 Best Sellers
               </TabsTrigger>
               <TabsTrigger
                 value="recommended"
-                className="px-6 py-3 text-sm font-light uppercase tracking-wide data-[state=active]:border-b-2 data-[state=active]:border-[#111] data-[state=active]:bg-transparent rounded-none data-[state=active]:text-[#111] text-gray-500"
+                className="px-6 py-2.5 text-xs font-medium uppercase tracking-wider rounded-full transition-all duration-300 data-[state=active]:bg-[#111] data-[state=active]:text-white data-[state=active]:shadow-md text-[#111]/60 hover:text-[#111]"
               >
                 Recommended
               </TabsTrigger>
             </TabsList>
-            <div className="flex items-center gap-4">
-              {getViewAllLink() && (
-                <Link
-                  href={getViewAllLink()!}
-                  className="text-sm font-light text-[#111] hover:opacity-70 transition-opacity uppercase tracking-wide hidden sm:inline-block"
-                >
-                  VIEW ALL
-                </Link>
-              )}
-              <div className="flex gap-2">
-                <button
-                  onClick={scrollPrev}
-                  disabled={!canScrollPrev}
-                  className="p-2 border border-gray-300 hover:bg-gray-50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                  aria-label="Önceki"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={scrollNext}
-                  disabled={!canScrollNext}
-                  className="p-2 border border-gray-300 hover:bg-gray-50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                  aria-label="Sonraki"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
+          </div>
+
+          {/* Carousel Kontrolleri - Sağ üstte */}
+          <div className="flex items-center justify-end gap-4 mb-6 px-4 md:px-8">
+            {getViewAllLink() && (
+              <Link
+                href={getViewAllLink()!}
+                className="text-xs font-medium text-[#111] hover:opacity-70 transition-opacity uppercase tracking-wider hidden sm:inline-flex items-center gap-2 group"
+              >
+                VIEW ALL
+                <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              </Link>
+            )}
+            <div className="flex gap-2">
+              <button
+                onClick={scrollPrev}
+                disabled={!canScrollPrev}
+                className="w-10 h-10 flex items-center justify-center border border-gray-300 rounded-full hover:bg-[#111] hover:text-white hover:border-[#111] transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-[#111] disabled:hover:border-gray-300"
+                aria-label="Önceki"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                onClick={scrollNext}
+                disabled={!canScrollNext}
+                className="w-10 h-10 flex items-center justify-center border border-gray-300 rounded-full hover:bg-[#111] hover:text-white hover:border-[#111] transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-[#111] disabled:hover:border-gray-300"
+                aria-label="Sonraki"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
             </div>
           </div>
 

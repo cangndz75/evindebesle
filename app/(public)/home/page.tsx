@@ -4,6 +4,7 @@ import CampaignStrip from "@/components/home/CampaignStrip";
 import ByltStyleHero from "@/components/home/ByltStyleHero";
 import ProductShowcase from "@/components/home/ProductShowcase";
 import HomeHeader from "@/components/home/HomeHeader";
+import CategoryShowcase from "@/components/home/CategoryShowcase";
 
 // Lazy load büyük componentler
 const EditorialBanner = dynamic(() => import("@/components/home/EditorialBanner"), {
@@ -60,7 +61,26 @@ function formatProduct(product: any, type: "new-arrivals" | "best-sellers" | "fe
   const firstColor = product.colors[0];
   const colorImages = firstColor?.images ? parseImages(firstColor.images) : [];
   const mainImage = product.primaryImage || product.image || colorImages[0] || "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop";
-  const hoverImage = product.secondaryImage || colorImages[1] || mainImage;
+  
+  // Hover image için: önce secondaryImage, sonra ilk rengin 2. görseli, sonra diğer renklerin görselleri
+  let hoverImage = product.secondaryImage;
+  if (!hoverImage && colorImages.length > 1) {
+    hoverImage = colorImages[1];
+  }
+  // Eğer hala yoksa, diğer renklerden ilk görseli al
+  if (!hoverImage && product.colors && product.colors.length > 1) {
+    for (let i = 1; i < product.colors.length; i++) {
+      const otherColorImages = product.colors[i]?.images ? parseImages(product.colors[i].images) : [];
+      if (otherColorImages.length > 0) {
+        hoverImage = otherColorImages[0];
+        break;
+      }
+    }
+  }
+  // Son çare olarak mainImage
+  if (!hoverImage) {
+    hoverImage = mainImage;
+  }
 
   if (type === "featured") {
     return {
@@ -68,8 +88,10 @@ function formatProduct(product: any, type: "new-arrivals" | "best-sellers" | "fe
       title: product.name,
       slug: product.slug || undefined,
       price: product.price,
+      originalPrice: product.originalPrice || undefined,
       image: mainImage,
       hoverImage: hoverImage !== mainImage ? hoverImage : undefined,
+      badge: product.originalPrice ? "İndirim" : "Yeni",
       colors: product.colors.map((c: any) => {
         const images = parseImages(c.images);
         return {
@@ -389,8 +411,15 @@ export default async function HomePage() {
       <ByltStyleHero />
       <ProductShowcase products={featuredProducts} />
       <EditorialBanner />
-      <BrandShowcase title="WOMENS BRANDS" items={womensBrands} />
-      <BrandShowcase title="MEN'S BRANDS" items={mensBrands} />
+      {/* <CategoryShowcase 
+        categories={[
+          { label: "SWEATSHIRT", href: "/sweatshirt" },
+          { label: "BRA", href: "/bra" },
+          { label: "UNDERWEAR", href: "/underwear" },
+          { label: "SOCKS", href: "/socks" },
+        ]}
+        products={featuredProducts.slice(0, 4)}
+      /> */}
       {/* <CollectionCarousel /> */}
       <TabbedProductCarousel
         newArrivals={newArrivals}

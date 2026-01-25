@@ -41,3 +41,31 @@ export function generateVariantCode(): string {
   }
   return result;
 }
+
+/**
+ * Generates a product slug with category, color, and product name
+ * Format: "kategori-renk-urun-adi"
+ * Example: "kadin-siyah-sweatshirt"
+ */
+export function generateProductSlug(
+  productName: string,
+  categoryName?: string | null,
+  firstColorName?: string | null
+): string {
+  const parts: string[] = [];
+  
+  // Kategori ekle
+  if (categoryName) {
+    parts.push(generateSlug(categoryName));
+  }
+  
+  // İlk renk ekle (varsa)
+  if (firstColorName) {
+    parts.push(generateSlug(firstColorName));
+  }
+  
+  // Ürün adı ekle
+  parts.push(generateSlug(productName));
+  
+  return parts.join('-');
+}

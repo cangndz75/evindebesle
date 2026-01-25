@@ -171,10 +171,25 @@ export function EditProductModal({
               }
             });
 
+            // images'ı array'e dönüştür (JSON string ise parse et, array ise olduğu gibi kullan)
+            let imagesArray: string[] = [];
+            if (c.images) {
+              if (typeof c.images === 'string') {
+                try {
+                  const parsed = JSON.parse(c.images);
+                  imagesArray = Array.isArray(parsed) ? parsed : [];
+                } catch {
+                  imagesArray = [c.images]; // Tek bir string ise array'e çevir
+                }
+              } else if (Array.isArray(c.images)) {
+                imagesArray = c.images;
+              }
+            }
+
             return {
               name: c.name,
               hexCode: c.hexCode || "",
-              images: c.images || [],
+              images: imagesArray,
               price: colorPrice,
               sizeStocks: sizeStocks,
             };
@@ -249,15 +264,66 @@ export function EditProductModal({
     return results.filter((url): url is string => url !== null);
   };
 
+  const uploadBase64ToCloudinary = async (base64String: string): Promise<string | null> => {
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ base64: base64String }),
+      });
+      const data = await res.json();
+      return data.url || null;
+    } catch (error) {
+      console.error("Base64 upload error:", error);
+      return null;
+    }
+  };
+
   const addColorImage = async (colorIndex: number, imageUrl?: string, files?: File[]) => {
-    // URL ekleme
+    // Base64 görsel kontrolü ve yükleme
+    if (imageUrl && imageUrl.startsWith("data:image")) {
+      setLoading(true);
+      try {
+        const cloudinaryUrl = await uploadBase64ToCloudinary(imageUrl);
+        if (cloudinaryUrl) {
+          setColors((prev) => {
+            const updated = [...prev];
+            if (updated[colorIndex]) {
+              const currentImages = Array.isArray(updated[colorIndex].images) 
+                ? updated[colorIndex].images 
+                : [];
+              updated[colorIndex] = {
+                ...updated[colorIndex],
+                images: [...currentImages, cloudinaryUrl],
+              };
+            }
+            return updated;
+          });
+        } else {
+          toast.error("Görsel Cloudinary'e yüklenemedi");
+        }
+      } catch (error) {
+        console.error("Upload error:", error);
+        toast.error("Görsel yüklenirken hata oluştu");
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    // Normal URL ekleme
     if (imageUrl) {
       setColors((prev) => {
         const updated = [...prev];
         if (updated[colorIndex]) {
+          const currentImages = Array.isArray(updated[colorIndex].images) 
+            ? updated[colorIndex].images 
+            : [];
           updated[colorIndex] = {
             ...updated[colorIndex],
-            images: [...updated[colorIndex].images, imageUrl],
+            images: [...currentImages, imageUrl],
           };
         }
         return updated;
@@ -274,9 +340,12 @@ export function EditProductModal({
           setColors((prev) => {
             const updated = [...prev];
             if (updated[colorIndex]) {
+              const currentImages = Array.isArray(updated[colorIndex].images) 
+                ? updated[colorIndex].images 
+                : [];
               updated[colorIndex] = {
                 ...updated[colorIndex],
-                images: [...updated[colorIndex].images, ...uploadedUrls],
+                images: [...currentImages, ...uploadedUrls],
               };
             }
             return updated;
@@ -293,8 +362,10 @@ export function EditProductModal({
 
   const removeColorImage = (colorIndex: number, imageIndex: number) => {
     const updated = [...colors];
-    updated[colorIndex].images = updated[colorIndex].images.filter((_, i) => i !== imageIndex);
-    setColors(updated);
+    if (updated[colorIndex] && Array.isArray(updated[colorIndex].images)) {
+      updated[colorIndex].images = updated[colorIndex].images.filter((_, i) => i !== imageIndex);
+      setColors(updated);
+    }
   };
 
   const addSize = () => {
@@ -346,6 +417,46 @@ export function EditProductModal({
     setLoading(true);
 
     try {
+      // Base64 görselleri Cloudinary'e yükle
+      let finalImage = image;
+      let finalPrimaryImage = primaryImage;
+      let finalSecondaryImage = secondaryImage;
+
+      if (image?.startsWith("data:image")) {
+        const url = await uploadBase64ToCloudinary(image);
+        if (url) finalImage = url;
+      }
+      if (primaryImage?.startsWith("data:image")) {
+        const url = await uploadBase64ToCloudinary(primaryImage);
+        if (url) finalPrimaryImage = url;
+      }
+      if (secondaryImage?.startsWith("data:image")) {
+        const url = await uploadBase64ToCloudinary(secondaryImage);
+        if (url) finalSecondaryImage = url;
+      }
+
+      // Renk görsellerindeki base64'leri yükle
+      const processedColors = await Promise.all(
+        colors.map(async (c) => {
+          if (!Array.isArray(c.images)) return c;
+          
+          const processedImages = await Promise.all(
+            c.images.map(async (img: string) => {
+              if (img.startsWith("data:image")) {
+                const url = await uploadBase64ToCloudinary(img);
+                return url || img;
+              }
+              return img;
+            })
+          );
+          
+          return {
+            ...c,
+            images: processedImages.filter((img): img is string => !!img),
+          };
+        })
+      );
+
       const productData = {
         name,
         slug: generateSlug(name),
@@ -354,14 +465,14 @@ export function EditProductModal({
         detailText: detailText || undefined,
         price: parseFloat(price),
         originalPrice: originalPrice ? parseFloat(originalPrice) : undefined,
-        image: image || undefined,
-        primaryImage: primaryImage || undefined,
-        secondaryImage: secondaryImage || undefined,
+        image: finalImage || undefined,
+        primaryImage: finalPrimaryImage || undefined,
+        secondaryImage: finalSecondaryImage || undefined,
         gender: gender || undefined,
         sizeType: sizeType || undefined,
         fabricType: fabricType || undefined,
         isActive,
-        colors: colors.map((c) => ({
+        colors: processedColors.map((c) => ({
           name: c.name,
           hexCode: c.hexCode || undefined,
           images: c.images,
@@ -651,14 +762,38 @@ export function EditProductModal({
                 </div>
                 <Input
                   value={image}
-                  onChange={(e) => {
-                    setImage(e.target.value);
-                    // URL'den eklendiğinde uploadedImages'a da ekle
-                    if (e.target.value && !uploadedImages.includes(e.target.value)) {
-                      setUploadedImages((prev) => [...prev, e.target.value]);
+                  onChange={async (e) => {
+                    const value = e.target.value;
+                    
+                    // Base64 görsel kontrolü
+                    if (value.startsWith("data:image")) {
+                      setLoading(true);
+                      try {
+                        const cloudinaryUrl = await uploadBase64ToCloudinary(value);
+                        if (cloudinaryUrl) {
+                          setImage(cloudinaryUrl);
+                          if (!uploadedImages.includes(cloudinaryUrl)) {
+                            setUploadedImages((prev) => [...prev, cloudinaryUrl]);
+                          }
+                          toast.success("Görsel Cloudinary'e yüklendi");
+                        } else {
+                          toast.error("Görsel yüklenemedi");
+                        }
+                      } catch (error) {
+                        console.error("Upload error:", error);
+                        toast.error("Görsel yüklenirken hata oluştu");
+                      } finally {
+                        setLoading(false);
+                      }
+                    } else {
+                      // Normal URL
+                      setImage(value);
+                      if (value && !uploadedImages.includes(value)) {
+                        setUploadedImages((prev) => [...prev, value]);
+                      }
                     }
                   }}
-                  placeholder="veya Görsel URL girin..."
+                  placeholder="veya Görsel URL girin (base64 desteklenir)..."
                   className="text-sm"
                   disabled={loading}
                 />
@@ -914,13 +1049,13 @@ export function EditProductModal({
                       />
                     </div>
                     <div className="mt-2">
-                      {color.images.length > 0 && (
+                      {Array.isArray(color.images) && color.images.length > 0 && (
                         <div className="text-xs text-muted-foreground mb-2">
                           {color.images.length} fotoğraf eklendi
                         </div>
                       )}
                       <div className="flex flex-wrap gap-2">
-                        {color.images.map((img, imgIndex) => (
+                        {Array.isArray(color.images) && color.images.map((img, imgIndex) => (
                           <div key={imgIndex} className="relative">
                             <img
                               src={img}

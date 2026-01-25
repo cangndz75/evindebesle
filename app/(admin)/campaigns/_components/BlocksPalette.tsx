@@ -1,6 +1,6 @@
 "use client";
 
-import { Image, Gift, MousePointerClick, FileText, Layout } from "lucide-react";
+import { Image, Gift, MousePointerClick, FileText, Layout, ShoppingBag, ImageIcon, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BlockType } from "../types";
 
@@ -14,43 +14,61 @@ const blockTypes: Array<{
   icon: React.ReactNode;
   description: string;
 }> = [
-  {
-    type: "header",
-    label: "Header",
-    icon: <Layout className="w-4 h-4" />,
-    description: "Logo ve menü linkleri",
-  },
-  {
-    type: "hero",
-    label: "Hero Banner",
-    icon: <Image className="w-4 h-4" />,
-    description: "Büyük banner görseli",
-  },
-  {
-    type: "coupon",
-    label: "Kupon Bloğu",
-    icon: <Gift className="w-4 h-4" />,
-    description: "İndirim kuponu",
-  },
-  {
-    type: "cta",
-    label: "CTA Button",
-    icon: <MousePointerClick className="w-4 h-4" />,
-    description: "Aksiyon butonu",
-  },
-  {
-    type: "text",
-    label: "Metin",
-    icon: <FileText className="w-4 h-4" />,
-    description: "Paragraf metni",
-  },
-  {
-    type: "footer",
-    label: "Footer",
-    icon: <Layout className="w-4 h-4" />,
-    description: "Alt bilgi ve linkler",
-  },
-];
+    {
+      type: "header",
+      label: "Header",
+      icon: <Layout className="w-4 h-4" />,
+      description: "Logo ve menü linkleri",
+    },
+    {
+      type: "hero",
+      label: "Hero Banner",
+      icon: <Image className="w-4 h-4" />,
+      description: "Büyük banner görseli",
+    },
+    {
+      type: "product",
+      label: "Ürün Grid",
+      icon: <ShoppingBag className="w-4 h-4" />,
+      description: "Ürün kartları (2/3/4 sütun)",
+    },
+    {
+      type: "image",
+      label: "Görsel",
+      icon: <ImageIcon className="w-4 h-4" />,
+      description: "Tek görsel bloğu",
+    },
+    {
+      type: "coupon",
+      label: "Kupon Bloğu",
+      icon: <Gift className="w-4 h-4" />,
+      description: "İndirim kuponu",
+    },
+    {
+      type: "cta",
+      label: "CTA Button",
+      icon: <MousePointerClick className="w-4 h-4" />,
+      description: "Aksiyon butonu",
+    },
+    {
+      type: "text",
+      label: "Metin",
+      icon: <FileText className="w-4 h-4" />,
+      description: "Paragraf metni",
+    },
+    {
+      type: "divider",
+      label: "Ayırıcı",
+      icon: <Minus className="w-4 h-4" />,
+      description: "Bölüm ayırıcı çizgi",
+    },
+    {
+      type: "footer",
+      label: "Footer",
+      icon: <Layout className="w-4 h-4" />,
+      description: "Alt bilgi ve linkler",
+    },
+  ];
 
 export default function BlocksPalette({ onSelectBlock }: BlocksPaletteProps) {
   return (

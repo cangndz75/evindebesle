@@ -28,7 +28,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ChevronLeftIcon, ChevronRightIcon, Edit, Trash2, ChevronDown, ChevronUp, Filter, X } from "lucide-react";
-import { EditProductModal } from "./EditProductModal";
 import { InlineEditableCell } from "./_components/InlineEditableCell";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -47,6 +46,7 @@ import {
 } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { toast } from "sonner";
 
 type Product = {
   id: string;
@@ -67,6 +67,12 @@ type Product = {
   reviews?: Array<{ rating: number; isApproved: boolean }>;
 };
 
+type ProductColor = {
+  id: string;
+  name: string;
+  hexCode?: string;
+};
+
 export default function ProductsPage() {
   const router = useRouter();
   const [data, setData] = useState<Product[]>([]);
@@ -80,6 +86,10 @@ export default function ProductsPage() {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [productColors, setProductColors] = useState<ProductColor[]>([]);
+  const [selectedColorIds, setSelectedColorIds] = useState<string[]>([]);
+  const [deleteAll, setDeleteAll] = useState(false);
+  const [loadingColors, setLoadingColors] = useState(false);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   
   // Filtreleme state'leri
@@ -426,33 +436,90 @@ export default function ProductsPage() {
       header: "İşlemler",
       cell: ({ row }) => (
         <div className="flex items-center gap-1 whitespace-nowrap">
-          <EditProductModal
-            product={row.original}
-            onSuccess={refresh}
-            trigger={
-              <Button size="sm" variant="ghost" className="h-8 w-8 p-0 hover:bg-muted">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15.232 5.232l3.536 3.536M4 13v7h7l9-9-7-7-9 9z"
-                  />
-                </svg>
-              </Button>
-            }
-          />
+          <Button 
+            size="sm" 
+            variant="ghost" 
+            className="h-8 w-8 p-0 hover:bg-muted"
+            onClick={() => router.push(`/admin-products/${row.original.id}/edit`)}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15.232 5.232l3.536 3.536M4 13v7h7l9-9-7-7-9 9z"
+              />
+            </svg>
+          </Button>
           <Button
             size="sm"
             variant="ghost"
             className="h-8 w-8 p-0 hover:bg-muted"
-            onClick={() => setDeleteId(row.original.id)}
+            onClick={async () => {
+              setDeleteId(row.original.id);
+              setLoadingColors(true);
+              setProductColors([]);
+              setSelectedColorIds([]);
+              setDeleteAll(false);
+              
+              try {
+                const response = await fetch(`/api/admin-products/${row.original.id}`);
+                if (response.ok) {
+                  const productData = await response.json();
+                  if (productData.colors && Array.isArray(productData.colors) && productData.colors.length > 0) {
+                    setProductColors(productData.colors.map((c: any) => ({
+                      id: c.id,
+                      name: c.name,
+                      hexCode: c.hexCode,
+                    })));
+                  } else {
+                    // Renk yoksa direkt sil
+                    setDeleting(true);
+                    try {
+                      const deleteResponse = await fetch(`/api/admin-products/${row.original.id}`, {
+                        method: "DELETE",
+                        headers: {
+                          "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                          deleteAll: true,
+                          colorIds: [],
+                        }),
+                      });
+
+                      if (!deleteResponse.ok) {
+                        const error = await deleteResponse.json();
+                        toast.error(error.error || "Silme işlemi başarısız oldu");
+                        setDeleteId(null);
+                        return;
+                      }
+
+                      toast.success("Ürün başarıyla silindi");
+                      setDeleteId(null);
+                      refresh();
+                    } catch (error) {
+                      console.error("Silme hatası:", error);
+                      toast.error("Silme işlemi sırasında bir hata oluştu");
+                      setDeleteId(null);
+                    } finally {
+                      setDeleting(false);
+                    }
+                  }
+                }
+              } catch (error) {
+                console.error("Renkler yüklenirken hata:", error);
+                toast.error("Ürün bilgileri yüklenirken bir hata oluştu");
+                setDeleteId(null);
+              } finally {
+                setLoadingColors(false);
+              }
+            }}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -905,20 +972,77 @@ export default function ProductsPage() {
                       )}
                     </Button>
                     <div className="flex items-center gap-1">
-                      <EditProductModal
-                        product={product}
-                        onSuccess={refresh}
-                        trigger={
-                          <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                        }
-                      />
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="h-8 w-8 p-0"
+                        onClick={() => router.push(`/admin-products/${product.id}/edit`)}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
                       <Button
                         size="sm"
                         variant="ghost"
                         className="h-8 w-8 p-0 text-red-500 hover:text-red-600"
-                        onClick={() => setDeleteId(product.id)}
+                        onClick={async () => {
+                          setDeleteId(product.id);
+                          setLoadingColors(true);
+                          setProductColors([]);
+                          setSelectedColorIds([]);
+                          setDeleteAll(false);
+                          
+                          try {
+                            const response = await fetch(`/api/admin-products/${product.id}`);
+                            if (response.ok) {
+                              const productData = await response.json();
+                  if (productData.colors && Array.isArray(productData.colors) && productData.colors.length > 0) {
+                    setProductColors(productData.colors.map((c: any) => ({
+                      id: c.id,
+                      name: c.name,
+                      hexCode: c.hexCode,
+                    })));
+                  } else {
+                    // Renk yoksa direkt sil
+                    setDeleting(true);
+                    try {
+                      const deleteResponse = await fetch(`/api/admin-products/${product.id}`, {
+                        method: "DELETE",
+                        headers: {
+                          "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                          deleteAll: true,
+                          colorIds: [],
+                        }),
+                      });
+
+                      if (!deleteResponse.ok) {
+                        const error = await deleteResponse.json();
+                        toast.error(error.error || "Silme işlemi başarısız oldu");
+                        setDeleteId(null);
+                        return;
+                      }
+
+                      toast.success("Ürün başarıyla silindi");
+                      setDeleteId(null);
+                      refresh();
+                    } catch (error) {
+                      console.error("Silme hatası:", error);
+                      toast.error("Silme işlemi sırasında bir hata oluştu");
+                      setDeleteId(null);
+                    } finally {
+                      setDeleting(false);
+                    }
+                  }
+                }
+              } catch (error) {
+                console.error("Renkler yüklenirken hata:", error);
+                toast.error("Ürün bilgileri yüklenirken bir hata oluştu");
+                setDeleteId(null);
+              } finally {
+                setLoadingColors(false);
+              }
+            }}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -977,16 +1101,101 @@ export default function ProductsPage() {
           </Card>
         )}
       </div>
-      <Dialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <DialogContent className="max-w-sm">
+      <Dialog 
+        open={!!deleteId} 
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeleteId(null);
+            setProductColors([]);
+            setSelectedColorIds([]);
+            setDeleteAll(false);
+          }
+        }}
+      >
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Silme İşlemi</DialogTitle>
           </DialogHeader>
-          <div>Bu ürünü silmek istediğinize emin misiniz?</div>
+          {deleteId && (
+            <div className="space-y-4">
+              {loadingColors ? (
+                <div className="text-center py-4">Renkler yükleniyor...</div>
+              ) : productColors.length > 0 ? (
+                <>
+                  <div className="text-sm text-muted-foreground">
+                    Bu ürünün {productColors.length} rengi bulunmaktadır. Silmek istediğiniz renkleri seçin veya tümünü silin.
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="deleteAll"
+                        checked={deleteAll}
+                        onCheckedChange={(checked) => {
+                          setDeleteAll(checked === true);
+                          if (checked) {
+                            setSelectedColorIds([]);
+                          }
+                        }}
+                      />
+                      <label
+                        htmlFor="deleteAll"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                      >
+                        Tümünü Sil (Ürün ve tüm renkleri)
+                      </label>
+                    </div>
+
+                    {!deleteAll && (
+                      <div className="space-y-2 border rounded-md p-3 max-h-60 overflow-y-auto">
+                        <div className="text-sm font-medium mb-2">Renkleri Seç:</div>
+                        {productColors.map((color) => (
+                          <div key={color.id} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`color-${color.id}`}
+                              checked={selectedColorIds.includes(color.id)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setSelectedColorIds([...selectedColorIds, color.id]);
+                                } else {
+                                  setSelectedColorIds(selectedColorIds.filter(id => id !== color.id));
+                                }
+                              }}
+                            />
+                            <label
+                              htmlFor={`color-${color.id}`}
+                              className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex items-center gap-2"
+                            >
+                              {color.hexCode && (
+                                <div
+                                  className="w-4 h-4 rounded border"
+                                  style={{ backgroundColor: color.hexCode }}
+                                />
+                              )}
+                              {color.name}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <div className="text-sm text-muted-foreground">
+                  Bu ürünü silmek istediğinize emin misiniz? Bu işlem geri alınamaz.
+                </div>
+              )}
+            </div>
+          )}
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => setDeleteId(null)}
+              onClick={() => {
+                setDeleteId(null);
+                setProductColors([]);
+                setSelectedColorIds([]);
+                setDeleteAll(false);
+              }}
               disabled={deleting}
             >
               Vazgeç
@@ -994,15 +1203,83 @@ export default function ProductsPage() {
             <Button
               onClick={async () => {
                 if (!deleteId) return;
+                
+                // Renkler yoksa direkt sil (uyarı verme)
+                if (productColors.length === 0) {
+                  setDeleting(true);
+                  try {
+                    const response = await fetch(`/api/admin-products/${deleteId}`, {
+                      method: "DELETE",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({
+                        deleteAll: true,
+                        colorIds: [],
+                      }),
+                    });
+
+                    if (!response.ok) {
+                      const error = await response.json();
+                      toast.error(error.error || "Silme işlemi başarısız oldu");
+                      return;
+                    }
+
+                    toast.success("Ürün başarıyla silindi");
+                    setDeleteId(null);
+                    setProductColors([]);
+                    setSelectedColorIds([]);
+                    setDeleteAll(false);
+                    refresh();
+                  } catch (error) {
+                    console.error("Silme hatası:", error);
+                    toast.error("Silme işlemi sırasında bir hata oluştu");
+                  } finally {
+                    setDeleting(false);
+                  }
+                  return;
+                }
+                
+                // Renkler varsa seçim kontrolü yap
+                if (!deleteAll && selectedColorIds.length === 0) {
+                  toast.error("Lütfen silinecek renkleri seçin veya 'Tümünü Sil' seçeneğini işaretleyin.");
+                  return;
+                }
+
                 setDeleting(true);
-                await fetch(`/api/admin-products/${deleteId}`, {
-                  method: "DELETE",
-                });
-                setDeleting(false);
-                setDeleteId(null);
-                refresh();
+                try {
+                  const response = await fetch(`/api/admin-products/${deleteId}`, {
+                    method: "DELETE",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      deleteAll,
+                      colorIds: deleteAll ? [] : selectedColorIds,
+                    }),
+                  });
+
+                  if (!response.ok) {
+                    const error = await response.json();
+                    toast.error(error.error || "Silme işlemi başarısız oldu");
+                    return;
+                  }
+
+                  toast.success("Silme işlemi başarıyla tamamlandı");
+                  setDeleteId(null);
+                  setProductColors([]);
+                  setSelectedColorIds([]);
+                  setDeleteAll(false);
+                  refresh();
+                } catch (error) {
+                  console.error("Silme hatası:", error);
+                  toast.error("Silme işlemi sırasında bir hata oluştu");
+                } finally {
+                  setDeleting(false);
+                }
               }}
               disabled={deleting}
+              variant="destructive"
             >
               {deleting ? (
                 <span className="flex items-center gap-2">
@@ -1022,6 +1299,7 @@ export default function ProductsPage() {
                       d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
                     />
                   </svg>
+                  Siliniyor...
                 </span>
               ) : (
                 "Sil"

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Plus, GripVertical, Trash2, ChevronUp, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import BlocksPalette from "./BlocksPalette";
-import BlockInspector from "./BlockInspector";
+
 import Canvas from "./Canvas";
 import { CampaignDraft, Block } from "../types";
 
@@ -62,11 +62,10 @@ export default function BlockEditor({
             draft.blocks.map((block, index) => (
               <div
                 key={block.id}
-                className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                  selectedBlockId === block.id
-                    ? "border-blue-500 bg-blue-50"
-                    : "border-gray-200 bg-white hover:border-gray-300"
-                }`}
+                className={`p-3 border rounded-lg cursor-pointer transition-colors ${selectedBlockId === block.id
+                  ? "border-blue-500 bg-blue-50"
+                  : "border-gray-200 bg-white hover:border-gray-300"
+                  }`}
                 onClick={() => onSelectBlock(block.id)}
               >
                 <div className="flex items-center justify-between mb-2">
@@ -134,18 +133,11 @@ export default function BlockEditor({
           blocks={draft.blocks}
           selectedBlockId={selectedBlockId}
           onSelectBlock={onSelectBlock}
+          onUpdateBlock={onUpdateBlock}
         />
       </div>
 
-      {/* Sağ: Block Inspector */}
-      {selectedBlock && (
-        <div className="w-72 border-l border-gray-200 bg-gray-50 overflow-y-auto flex-shrink-0">
-          <BlockInspector
-            block={selectedBlock}
-            onUpdate={(updates) => onUpdateBlock(selectedBlock.id, updates)}
-          />
-        </div>
-      )}
+
     </div>
   );
 }

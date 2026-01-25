@@ -142,8 +142,53 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
     return results.filter((url): url is string => url !== null);
   };
 
+  const uploadBase64ToCloudinary = async (base64String: string): Promise<string | null> => {
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ base64: base64String }),
+      });
+      const data = await res.json();
+      return data.url || null;
+    } catch (error) {
+      console.error("Base64 upload error:", error);
+      return null;
+    }
+  };
+
   const addColorImage = async (colorIndex: number, imageUrl?: string, files?: File[]) => {
-    // URL ekleme
+    // Base64 görsel kontrolü ve yükleme
+    if (imageUrl && imageUrl.startsWith("data:image")) {
+      setLoading(true);
+      try {
+        const cloudinaryUrl = await uploadBase64ToCloudinary(imageUrl);
+        if (cloudinaryUrl) {
+          setColors((prev) => {
+            const updated = [...prev];
+            if (updated[colorIndex]) {
+              updated[colorIndex] = {
+                ...updated[colorIndex],
+                images: [...updated[colorIndex].images, cloudinaryUrl],
+              };
+            }
+            return updated;
+          });
+        } else {
+          toast.error("Görsel Cloudinary'e yüklenemedi");
+        }
+      } catch (error) {
+        console.error("Upload error:", error);
+        toast.error("Görsel yüklenirken hata oluştu");
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    // Normal URL ekleme
     if (imageUrl) {
       setColors((prev) => {
         const updated = [...prev];
@@ -239,6 +284,51 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
     setLoading(true);
 
     try {
+      // Base64 görselleri Cloudinary'e yükle
+      let finalImage = image;
+      let finalPrimaryImage = primaryImage;
+      let finalSecondaryImage = secondaryImage;
+
+      if (image?.startsWith("data:image")) {
+        const url = await uploadBase64ToCloudinary(image);
+        if (url) finalImage = url;
+      }
+      if (primaryImage?.startsWith("data:image")) {
+        const url = await uploadBase64ToCloudinary(primaryImage);
+        if (url) finalPrimaryImage = url;
+      }
+      if (secondaryImage?.startsWith("data:image")) {
+        const url = await uploadBase64ToCloudinary(secondaryImage);
+        if (url) finalSecondaryImage = url;
+      }
+
+      // Renk görsellerindeki base64'leri yükle
+      const processColorImages = async (colorImages: string[]) => {
+        return Promise.all(
+          colorImages.map(async (img: string) => {
+            if (img.startsWith("data:image")) {
+              const url = await uploadBase64ToCloudinary(img);
+              return url || img;
+            }
+            return img;
+          })
+        );
+      };
+
+      const processedPrimaryColor = primaryColor
+        ? {
+            ...primaryColor,
+            images: await processColorImages(primaryColor.images),
+          }
+        : null;
+
+      const processedColors = await Promise.all(
+        colors.map(async (c) => ({
+          ...c,
+          images: await processColorImages(c.images),
+        }))
+      );
+
       const productData = {
         name,
         slug: generateSlug(name),
@@ -246,25 +336,25 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
         description: description || undefined,
         detailText: detailText || undefined,
         price: parseFloat(price),
-        image: image || undefined,
-        primaryImage: primaryImage || image || undefined,
-        secondaryImage: secondaryImage || undefined,
+        image: finalImage || undefined,
+        primaryImage: finalPrimaryImage || finalImage || undefined,
+        secondaryImage: finalSecondaryImage || undefined,
         gender: gender || undefined,
         sizeType: sizeType || undefined,
         fabricType: fabricType || undefined,
         isActive,
         colors: [
-          ...(primaryColor ? [{
-            name: primaryColor.name,
-            hexCode: primaryColor.hexCode || undefined,
-            images: primaryColor.images,
-            price: primaryColor.price,
-            sizeStocks: primaryColor.sizeStocks || {},
+          ...(processedPrimaryColor ? [{
+            name: processedPrimaryColor.name,
+            hexCode: processedPrimaryColor.hexCode || undefined,
+            images: processedPrimaryColor.images.filter((img): img is string => !!img),
+            price: processedPrimaryColor.price,
+            sizeStocks: processedPrimaryColor.sizeStocks || {},
           }] : []),
-          ...colors.map((c) => ({
+          ...processedColors.map((c) => ({
             name: c.name,
             hexCode: c.hexCode || undefined,
-            images: c.images,
+            images: c.images.filter((img): img is string => !!img),
             price: c.price,
             sizeStocks: c.sizeStocks || {},
           })),
@@ -596,16 +686,41 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                     </div>
                     <Input
                       type="text"
-                      placeholder="veya Görsel URL girin..."
+                      placeholder="veya Görsel URL girin (base64 desteklenir)..."
                       className="text-sm"
-                      onKeyDown={(e) => {
+                      onKeyDown={async (e) => {
                         if (e.key === "Enter") {
                           const input = e.target as HTMLInputElement;
-                          if (input.value) {
-                            setPrimaryColor({
-                              ...primaryColor,
-                              images: [...primaryColor.images, input.value],
-                            });
+                          const value = input.value;
+                          
+                          if (value) {
+                            // Base64 görsel kontrolü
+                            if (value.startsWith("data:image")) {
+                              setLoading(true);
+                              try {
+                                const cloudinaryUrl = await uploadBase64ToCloudinary(value);
+                                if (cloudinaryUrl) {
+                                  setPrimaryColor({
+                                    ...primaryColor,
+                                    images: [...primaryColor.images, cloudinaryUrl],
+                                  });
+                                  toast.success("Görsel Cloudinary'e yüklendi");
+                                } else {
+                                  toast.error("Görsel yüklenemedi");
+                                }
+                              } catch (error) {
+                                console.error("Upload error:", error);
+                                toast.error("Görsel yüklenirken hata oluştu");
+                              } finally {
+                                setLoading(false);
+                              }
+                            } else {
+                              // Normal URL
+                              setPrimaryColor({
+                                ...primaryColor,
+                                images: [...primaryColor.images, value],
+                              });
+                            }
                             input.value = "";
                           }
                         }
@@ -700,14 +815,38 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                 <Input
                   value={image}
                   className="h-12 md:h-10 text-sm"
-                  onChange={(e) => {
-                    setImage(e.target.value);
-                    // URL'den eklendiğinde uploadedImages'a da ekle
-                    if (e.target.value && !uploadedImages.includes(e.target.value)) {
-                      setUploadedImages((prev) => [...prev, e.target.value]);
+                  onChange={async (e) => {
+                    const value = e.target.value;
+                    
+                    // Base64 görsel kontrolü
+                    if (value.startsWith("data:image")) {
+                      setLoading(true);
+                      try {
+                        const cloudinaryUrl = await uploadBase64ToCloudinary(value);
+                        if (cloudinaryUrl) {
+                          setImage(cloudinaryUrl);
+                          if (!uploadedImages.includes(cloudinaryUrl)) {
+                            setUploadedImages((prev) => [...prev, cloudinaryUrl]);
+                          }
+                          toast.success("Görsel Cloudinary'e yüklendi");
+                        } else {
+                          toast.error("Görsel yüklenemedi");
+                        }
+                      } catch (error) {
+                        console.error("Upload error:", error);
+                        toast.error("Görsel yüklenirken hata oluştu");
+                      } finally {
+                        setLoading(false);
+                      }
+                    } else {
+                      // Normal URL
+                      setImage(value);
+                      if (value && !uploadedImages.includes(value)) {
+                        setUploadedImages((prev) => [...prev, value]);
+                      }
                     }
                   }}
-                  placeholder="veya Görsel URL girin..."
+                  placeholder="veya Görsel URL girin (base64 desteklenir)..."
                 />
                 {uploadedImages.length > 0 && (
                   <div className="mt-4 space-y-4">
@@ -934,7 +1073,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                         </Button>
                       </div>
                       <Input
-                        placeholder="veya Fotoğraf URL girin..."
+                        placeholder="veya Fotoğraf URL girin (base64 desteklenir)..."
                         className="text-sm"
                         onKeyDown={(e) => {
                           if (e.key === "Enter") {

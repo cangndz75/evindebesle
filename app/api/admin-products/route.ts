@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
-import { generateVariantCode } from "@/lib/slug";
+import { generateVariantCode, generateProductSlug } from "@/lib/slug";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -38,12 +38,7 @@ export async function GET(request: NextRequest) {
         sizes: true,
         tags: true,
         sizeOptions: true,
-        variants: {
-          include: {
-            color: true,
-            size: true,
-          },
-        },
+        category: true,
         combinations: {
           include: {
             relatedProduct: {
@@ -143,10 +138,30 @@ export async function POST(req: Request) {
       tags,
       sizeOptions,
       combinations,
+      categoryId,
     } = body;
 
-    // Slug kontrolü - unique olmalı
+    // Kategori bilgisini al
+    let categoryName: string | null = null;
+    if (categoryId) {
+      const category = await prisma.category.findUnique({
+        where: { id: categoryId },
+        select: { name: true },
+      });
+      categoryName = category?.name || null;
+    }
+
+    // İlk renk adını al
+    const firstColorName = colors && colors.length > 0 ? colors[0].name : null;
+
+    // Slug oluştur veya kullanıcının verdiği slug'ı kullan
     let finalSlug = slug;
+    if (!finalSlug) {
+      // Otomatik slug oluştur: kategori-renk-ürünadı
+      finalSlug = generateProductSlug(name, categoryName, firstColorName);
+    }
+
+    // Slug kontrolü - unique olmalı
     if (finalSlug) {
       const existing = await prisma.product.findFirst({
         where: { slug: finalSlug },
@@ -155,7 +170,7 @@ export async function POST(req: Request) {
         // Eğer slug varsa, sonuna sayı ekle
         let counter = 1;
         while (existing) {
-          finalSlug = `${slug}-${counter}`;
+          finalSlug = `${slug || generateProductSlug(name, categoryName, firstColorName)}-${counter}`;
           const check = await prisma.product.findFirst({
             where: { slug: finalSlug },
           });
@@ -201,6 +216,7 @@ export async function POST(req: Request) {
         gender: gender || undefined,
         sizeType: sizeType || undefined,
         fabricType: fabricType || undefined,
+        categoryId: categoryId || undefined,
         isActive: isActive !== undefined ? isActive : true,
         // Bedenler - eğer sizes yoksa ama sizeOptions varsa, sizeOptions'tan ProductSize oluştur
         sizes: sizes && sizes.length > 0

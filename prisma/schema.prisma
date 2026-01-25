@@ -6,7 +6,817 @@ datasource db {
   provider = "postgresql"
 }
 
-// The enum definition remains here.
+model User {
+  id                     String               @id @default(uuid())
+  name                   String
+  email                  String               @unique
+  password               String
+  phone                  String?
+  districtId             String?
+  fullAddress            String?
+  image                  String?
+  isAdmin                Boolean              @default(false)
+  subscriptionPlan       SubscriptionPlan     @default(FREE)
+  preferredContactMethod ContactMethod?
+  referralCode           String?
+  emailVerified          Boolean              @default(false)
+  emailVerifyToken       String?
+  emailVerifyExpires     DateTime?
+  marketingEmailConsent  Boolean              @default(false)
+  profileNoteConsent     Boolean              @default(false)
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+  isTestUser             Boolean              @default(false)
+  accessInfo             AccessInfo?
+  accounts               Account[]
+  appointments           Appointment[]
+  reviews                AppointmentReview[]
+  campaigns              Campaign[]
+  cartItems              CartItem[]
+  emailLogs              EmailLog[]
+  feedbacks              Feedback[]
+  notificationLogs       NotificationLog[]
+  orders                 Order[]
+  ownedPets              OwnedPet[]
+  passwordResetTokens    PasswordResetToken[]
+  favorites              ProductFavorite[]
+  productViews           ProductViewHistory[]
+  sessions               Session[]
+  district               District?            @relation(fields: [districtId], references: [id])
+  addresses              UserAddress[]
+  userBadges             UserBadge[]
+  userCoupons            UserCoupon[]
+  wishlistShare          WishlistShare?
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  expiresAt DateTime
+  token     String   @unique
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Account {
+  id         String   @id @default(uuid())
+  accountId  String
+  providerId String
+  userId     String
+  password   String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Verification {
+  id         String    @id @default(uuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @updatedAt
+}
+
+model Pet {
+  id           String           @id @default(uuid())
+  name         String
+  breed        String?
+  createdAt    DateTime         @default(now())
+  image        String?
+  species      String?
+  appointments AppointmentPet[]
+  ownedBy      OwnedPet[]
+  prices       ServicePrice[]
+  tags         ServiceTag[]
+}
+
+model OwnedPet {
+  id           String           @id @default(uuid())
+  userId       String
+  petId        String
+  name         String?
+  age          Int?
+  gender       String?
+  image        String?
+  relation     String?
+  sensitivity  String?
+  specialNote  String?
+  allowAdUse   Boolean          @default(false)
+  createdAt    DateTime         @default(now())
+  allergy      String?
+  appointments AppointmentPet[]
+  pet          Pet              @relation(fields: [petId], references: [id], onDelete: Cascade)
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reports      PetReport[]
+}
+
+model Service {
+  id                  String               @id @default(uuid())
+  name                String
+  description         String?
+  price               Int
+  isActive            Boolean              @default(true)
+  createdAt           DateTime             @default(now())
+  image               String?
+  isWeeklyPopular     Boolean              @default(false)
+  checkItems          AppointmentCheck[]
+  appointmentServices AppointmentService[]
+  prices              ServicePrice[]
+  tags                ServiceTag[]
+}
+
+model ServicePrice {
+  id        String  @id @default(cuid())
+  serviceId String
+  petId     String
+  price     Int
+  pet       Pet     @relation(fields: [petId], references: [id])
+  service   Service @relation(fields: [serviceId], references: [id])
+}
+
+model ServiceTag {
+  id        String  @id @default(cuid())
+  serviceId String
+  petId     String
+  pet       Pet     @relation(fields: [petId], references: [id])
+  service   Service @relation(fields: [serviceId], references: [id])
+}
+
+model Appointment {
+  id                    String               @id @default(cuid())
+  userId                String
+  confirmedAt           DateTime             @default(now())
+  deliveredAt           DateTime?
+  assignedToId          String?
+  status                AppointmentStatus    @default(SCHEDULED)
+  summarySent           Boolean              @default(false)
+  isRecurring           Boolean              @default(false)
+  userNote              String?
+  allergy               String?
+  sensitivity           String?
+  specialRequest        String?
+  adminNote             String?
+  specialRequestStatus  String?
+  discountRate          Int?
+  discountReason        String?
+  timeSlot              String?
+  userAddressId         String?
+  recurringCount        Int?
+  recurringType         String?
+  paidAt                DateTime?
+  finalPrice            Float?
+  isPaid                Boolean              @default(false)
+  paymentConversationId String?
+  repeatInterval        String?
+  couponId              String?
+  paymentId             String?
+  draftId               String?
+  coupon                Coupon?              @relation(fields: [couponId], references: [id])
+  draft                 DraftAppointment?    @relation(fields: [draftId], references: [id])
+  address               UserAddress?         @relation(fields: [userAddressId], references: [id])
+  user                  User                 @relation(fields: [userId], references: [id])
+  checkItems            AppointmentCheck[]
+  dates                 AppointmentDate[]
+  media                 AppointmentMedia[]
+  pets                  AppointmentPet[]
+  reviews               AppointmentReview[]
+  services              AppointmentService[]
+  invoice               Invoice?
+  petReport             PetReport[]
+}
+
+model AppointmentDate {
+  id            String      @id @default(uuid())
+  appointmentId String
+  date          DateTime
+  appointment   Appointment @relation(fields: [appointmentId], references: [id])
+
+  @@unique([appointmentId, date])
+}
+
+model AppointmentService {
+  id            String             @id @default(cuid())
+  appointmentId String
+  serviceId     String
+  completedAt   DateTime?
+  isCompleted   Boolean            @default(false)
+  media         AppointmentMedia[]
+  appointment   Appointment        @relation(fields: [appointmentId], references: [id])
+  service       Service            @relation(fields: [serviceId], references: [id])
+}
+
+model AppointmentCheck {
+  id            String      @id @default(cuid())
+  appointmentId String
+  serviceId     String
+  title         String
+  isChecked     Boolean     @default(false)
+  note          String?
+  appointment   Appointment @relation(fields: [appointmentId], references: [id])
+  service       Service     @relation(fields: [serviceId], references: [id])
+}
+
+model AppointmentMedia {
+  id                   String              @id @default(cuid())
+  appointmentId        String
+  url                  String
+  type                 MediaType
+  uploadedAt           DateTime            @default(now())
+  appointmentServiceId String?
+  appointment          Appointment         @relation(fields: [appointmentId], references: [id])
+  service              AppointmentService? @relation(fields: [appointmentServiceId], references: [id])
+}
+
+model AppointmentReview {
+  id            String      @id @default(cuid())
+  appointmentId String
+  userId        String
+  rating        Int
+  comment       String?
+  createdAt     DateTime    @default(now())
+  appointment   Appointment @relation(fields: [appointmentId], references: [id])
+  user          User        @relation(fields: [userId], references: [id])
+}
+
+model AppointmentPet {
+  id            String      @id @default(cuid())
+  appointmentId String
+  ownedPetId    String?
+  petId         String?
+  appointment   Appointment @relation(fields: [appointmentId], references: [id])
+  ownedPet      OwnedPet?   @relation(fields: [ownedPetId], references: [id])
+  pet           Pet?        @relation(fields: [petId], references: [id])
+}
+
+model PetReport {
+  id            String       @id @default(cuid())
+  createdAt     DateTime     @default(now())
+  ownedPetId    String
+  appointmentId String?
+  behavior      String?
+  comments      String?
+  mealTime      String?
+  mood          String?
+  sleepStatus   String?
+  toiletInfo    String?
+  walkTime      String?
+  waterIntake   String?
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  ownedPet      OwnedPet     @relation(fields: [ownedPetId], references: [id], onDelete: Cascade)
+}
+
+model Feedback {
+  id        String   @id @default(cuid())
+  userId    String
+  subject   String
+  message   String
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model NotificationLog {
+  id         String   @id @default(cuid())
+  userId     String
+  type       String
+  message    String
+  sentAt     DateTime @default(now())
+  retryCount Int      @default(0)
+  success    Boolean  @default(true)
+  user       User     @relation(fields: [userId], references: [id])
+}
+
+model Invoice {
+  id            String      @id @default(cuid())
+  appointmentId String      @unique
+  fileUrl       String
+  createdAt     DateTime    @default(now())
+  ettn          String
+  invoiceNo     String      @unique
+  isSent        Boolean     @default(false)
+  sentAt        DateTime?
+  taxAmount     Float
+  taxRate       Int         @default(20)
+  totalPrice    Float
+  appointment   Appointment @relation(fields: [appointmentId], references: [id])
+}
+
+model EmailLog {
+  id      String   @id @default(cuid())
+  userId  String
+  subject String
+  content String
+  sentAt  DateTime @default(now())
+  type    String
+  success Boolean  @default(true)
+  user    User     @relation(fields: [userId], references: [id])
+}
+
+model AdminDiscountConfig {
+  id           String       @id @default(cuid())
+  triggerCount Int
+  type         DiscountType
+  value        Int
+  isActive     Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+}
+
+model Badge {
+  id          String      @id @default(cuid())
+  name        String
+  description String?
+  icon        String?
+  createdAt   DateTime    @default(now())
+  userBadges  UserBadge[]
+}
+
+model UserBadge {
+  id       String   @id @default(cuid())
+  userId   String
+  badgeId  String
+  earnedAt DateTime @default(now())
+  badge    Badge    @relation(fields: [badgeId], references: [id])
+  user     User     @relation(fields: [userId], references: [id])
+}
+
+model District {
+  id        String        @id @default(cuid())
+  name      String
+  city      String
+  createdAt DateTime      @default(now())
+  users     User[]
+  addresses UserAddress[]
+}
+
+model UserAddress {
+  id             String        @id @default(uuid())
+  userId         String
+  districtId     String
+  fullAddress    String
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  isPrimary      Boolean       @default(false)
+  appointments   Appointment[]
+  billingOrders  Order[]       @relation("BillingAddress")
+  shippingOrders Order[]       @relation("ShippingAddress")
+  district       District      @relation(fields: [districtId], references: [id])
+  user           User          @relation(fields: [userId], references: [id])
+}
+
+model Coupon {
+  id                String             @id @default(cuid())
+  code              String             @unique
+  description       String?
+  discountType      DiscountType
+  value             Int
+  maxUsage          Int?
+  usageCount        Int                @default(0)
+  expiresAt         DateTime?
+  isActive          Boolean            @default(true)
+  createdAt         DateTime           @default(now())
+  appointments      Appointment[]
+  draftAppointments DraftAppointment[]
+  orders            Order[]
+  userCoupons       UserCoupon[]
+}
+
+model UserCoupon {
+  id       String    @id @default(cuid())
+  userId   String
+  couponId String
+  usedAt   DateTime?
+  coupon   Coupon    @relation(fields: [couponId], references: [id])
+  user     User      @relation(fields: [userId], references: [id])
+}
+
+model DraftAppointment {
+  id             String        @id @default(uuid())
+  userId         String
+  userAddressId  String
+  timeSlot       String?
+  isRecurring    Boolean
+  recurringType  String?
+  recurringCount Int?
+  createdAt      DateTime      @default(now())
+  petIds         String?
+  dates          String?
+  ownedPetIds    String?
+  serviceIds     String?
+  allergy        String?
+  couponId       String?
+  sensitivity    String?
+  specialRequest String?
+  userNote       String?
+  finalPrice     Float?
+  isTest         Boolean       @default(false)
+  appointments   Appointment[]
+  coupon         Coupon?       @relation(fields: [couponId], references: [id])
+}
+
+model AccessInfo {
+  id                          String   @id @default(uuid())
+  keyLocation                 String?
+  keyInstruction              String?
+  keyPhotoUrl                 String?
+  neighborName                String?
+  neighborFlatNumber          String?
+  doorPassword                String?
+  doorNote                    String?
+  alarmExists                 Boolean  @default(false)
+  alarmPassword               String?
+  alarmInstruction            String?
+  alarmRoom                   String?
+  alarmTimeoutSeconds         Int?
+  notifySecurityGuard         Boolean  @default(false)
+  callBeforeEnter             Boolean  @default(false)
+  keyDropLocationAfterService String?
+  accessNote                  String?
+  createdAt                   DateTime @default(now())
+  updatedAt                   DateTime @updatedAt
+  userId                      String   @unique
+  user                        User     @relation(fields: [userId], references: [id])
+}
+
+model PaymentSession {
+  id               String               @id @default(cuid())
+  userId           String
+  amount           Int
+  currency         String               @default("TRY")
+  orderId          String?              @unique
+  correlationId    String?
+  status           PaymentSessionStatus @default(INIT)
+  threeDSHtml      String?
+  threeDSResultRaw String?
+  mdStatus         String?
+  success          Boolean?
+  paymentId        String?
+  appointmentId    String?
+  error            String?
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  draftId          String?
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  products    Product[]
+
+  @@index([slug])
+}
+
+model Product {
+  id              String               @id @default(cuid())
+  name            String
+  description     String?
+  price           Float
+  image           String?
+  isActive        Boolean              @default(true)
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  detailText      String?
+  gender          Gender?
+  sizeType        SizeType?
+  stockCode       String?              @unique
+  fabricType      String?
+  primaryImage    String?
+  secondaryImage  String?
+  slug            String?              @unique
+  originalPrice   Float?
+  brand           String?
+  categoryId      String?
+  weight          Float?
+  cartItems       CartItem[]
+  orderItems      OrderItem[]
+  category        Category?            @relation(fields: [categoryId], references: [id])
+  colors          ProductColor[]
+  combinations    ProductCombination[] @relation("ProductCombinations")
+  relatedProducts ProductCombination[] @relation("RelatedProducts")
+  favorites       ProductFavorite[]
+  productImages   ProductImage[]
+  reviews         ProductReview[]
+  sizes           ProductSize[]
+  sizeOptions     ProductSizeOption[]
+  tags            ProductTag[]
+  variants        ProductVariant[]
+  viewHistory     ProductViewHistory[]
+
+  @@index([categoryId])
+}
+
+model ProductColor {
+  id            String           @id @default(cuid())
+  productId     String
+  name          String
+  hexCode       String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  images        String?
+  cartItems     CartItem[]
+  orderItems    OrderItem[]
+  product       Product          @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productImages ProductImage[]
+  reviews       ProductReview[]
+  variants      ProductVariant[]
+
+  @@index([productId])
+}
+
+model ProductImage {
+  id          String          @id @default(cuid())
+  productId   String
+  colorId     String?
+  variantId   String?
+  url         String
+  order       Int             @default(0)
+  isPrimary   Boolean         @default(false)
+  isSecondary Boolean         @default(false)
+  alt         String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  color       ProductColor?   @relation(fields: [colorId], references: [id], onDelete: Cascade)
+  product     Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant     ProductVariant? @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@index([colorId])
+  @@index([variantId])
+  @@index([order])
+  @@index([isPrimary])
+  @@index([isSecondary])
+}
+
+model ProductVariant {
+  id            String         @id @default(cuid())
+  productId     String
+  colorId       String?
+  variantCode   String         @unique
+  price         Float?
+  stock         Int            @default(0)
+  isActive      Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  sizeId        String?
+  productImages ProductImage[]
+  color         ProductColor?  @relation(fields: [colorId], references: [id])
+  product       Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  size          ProductSize?   @relation(fields: [sizeId], references: [id])
+
+  @@unique([productId, colorId, sizeId])
+  @@index([productId])
+  @@index([colorId])
+  @@index([sizeId])
+}
+
+model ProductSize {
+  id         String           @id @default(cuid())
+  productId  String
+  name       String
+  stock      Int              @default(0)
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+  product    Product          @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variants   ProductVariant[]
+
+  @@unique([productId, name])
+  @@index([productId])
+}
+
+model ProductTag {
+  id        String   @id @default(cuid())
+  productId String
+  name      String
+  createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, name])
+  @@index([productId])
+}
+
+model ProductCombination {
+  id               String   @id @default(cuid())
+  productId        String
+  relatedProductId String
+  createdAt        DateTime @default(now())
+  product          Product  @relation("ProductCombinations", fields: [productId], references: [id], onDelete: Cascade)
+  relatedProduct   Product  @relation("RelatedProducts", fields: [relatedProductId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, relatedProductId])
+  @@index([productId])
+  @@index([relatedProductId])
+}
+
+model ProductReview {
+  id         String        @id @default(cuid())
+  productId  String
+  userId     String?
+  userName   String?
+  rating     Int
+  comment    String?
+  isApproved Boolean       @default(false)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  colorId    String?
+  color      ProductColor? @relation(fields: [colorId], references: [id])
+  product    Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@index([colorId])
+  @@index([isApproved])
+}
+
+model ProductSizeOption {
+  id        String   @id @default(cuid())
+  productId String
+  name      String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, name])
+  @@index([productId])
+}
+
+model ProductFavorite {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([userId])
+  @@index([productId])
+}
+
+model WishlistShare {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  shareId   String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([shareId])
+}
+
+model ProductViewHistory {
+  id        String   @id @default(cuid())
+  userId    String?
+  productId String
+  viewedAt  DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId, viewedAt])
+  @@index([userId])
+  @@index([productId])
+  @@index([viewedAt])
+}
+
+model CartItem {
+  id        String        @id @default(cuid())
+  userId    String
+  productId String
+  colorId   String?
+  sizeId    String?
+  quantity  Int           @default(1)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  color     ProductColor? @relation(fields: [colorId], references: [id])
+  product   Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  size      ProductSize?  @relation(fields: [sizeId], references: [id])
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId, colorId, sizeId])
+  @@index([userId])
+  @@index([productId])
+}
+
+model CompanySettings {
+  id                    String   @id @unique @default(cuid())
+  freeShippingThreshold Float    @default(99.0)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model DashboardWidget {
+  id        String   @id @default(cuid())
+  userId    String?
+  widgetKey String
+  position  Int
+  isVisible Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, widgetKey])
+  @@index([userId])
+}
+
+model Order {
+  id                String        @id @default(cuid())
+  orderNumber       String        @unique
+  userId            String
+  status            OrderStatus   @default(PENDING)
+  paymentStatus     PaymentStatus @default(PENDING)
+  subtotal          Float
+  shippingCost      Float         @default(0)
+  discount          Float         @default(0)
+  total             Float
+  shippingAddressId String?
+  billingAddressId  String?
+  paymentId         String?
+  paymentMethod     String?
+  paidAt            DateTime?
+  trackingNumber    String?
+  shippedAt         DateTime?
+  deliveredAt       DateTime?
+  couponId          String?
+  customerNote      String?
+  adminNote         String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  billingAddress    UserAddress?  @relation("BillingAddress", fields: [billingAddressId], references: [id])
+  coupon            Coupon?       @relation(fields: [couponId], references: [id])
+  shippingAddress   UserAddress?  @relation("ShippingAddress", fields: [shippingAddressId], references: [id])
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items             OrderItem[]
+
+  @@index([userId])
+  @@index([orderNumber])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id          String        @id @default(cuid())
+  orderId     String
+  productId   String
+  colorId     String?
+  sizeId      String?
+  productName String
+  colorName   String?
+  sizeName    String?
+  image       String?
+  quantity    Int
+  unitPrice   Float
+  totalPrice  Float
+  createdAt   DateTime      @default(now())
+  color       ProductColor? @relation(fields: [colorId], references: [id])
+  order       Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product     Product       @relation(fields: [productId], references: [id])
+  size        ProductSize?  @relation(fields: [sizeId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model Campaign {
+  id                String         @id @default(cuid())
+  name              String
+  status            CampaignStatus @default(draft)
+  subject           String
+  preheader         String?
+  fromName          String
+  fromEmail         String
+  replyTo           String?
+  contentJson       String
+  renderedHtml      String?
+  audienceSegmentId String?
+  scheduleAt        DateTime?
+  sentAt            DateTime?
+  sentCount         Int            @default(0)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  createdById       String
+  createdBy         User           @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([createdById])
+  @@index([scheduleAt])
+}
+
 enum SubscriptionPlan {
   FREE
   PREMIUM
@@ -38,554 +848,12 @@ enum MediaType {
 }
 
 enum PaymentSessionStatus {
-  INIT          // kayıt açıldı
-  AUTH_SENT     // /payment/auth atıldı, 3D HTML kaydedildi
-  AUTH_OK       // 3D doğrulama success (callback success=true)
-  CAPTURED      // complete-3ds başarılı (tahsil edildi)
-  CAPTURE_FAIL  // complete-3ds başarısız
-  FAILED        // auth/callback genel hata
-}
-
-
-model User {
-  id          String  @id @default(uuid())
-  name        String
-  email       String  @unique
-  password    String
-  phone       String?
-  districtId  String?
-  fullAddress String?
-  image       String?
-  isAdmin     Boolean @default(false)
-  isTestUser  Boolean @default(false)
-
-  subscriptionPlan       SubscriptionPlan @default(FREE)
-  preferredContactMethod ContactMethod?
-  referralCode           String?
-  emailVerified          Boolean          @default(false)
-  emailVerifyToken       String?
-  emailVerifyExpires     DateTime?
-  marketingEmailConsent  Boolean          @default(false)
-  profileNoteConsent     Boolean          @default(false)
-  createdAt              DateTime         @default(now())
-  updatedAt              DateTime         @updatedAt
-
-  district            District?            @relation(fields: [districtId], references: [id])
-  sessions            Session[]
-  accounts            Account[]
-  ownedPets           OwnedPet[]
-  appointments        Appointment[]
-  userCoupons         UserCoupon[]
-  feedbacks           Feedback[]
-  reviews             AppointmentReview[]
-  userBadges          UserBadge[]
-  notificationLogs    NotificationLog[]
-  emailLogs           EmailLog[]
-  addresses           UserAddress[]
-  passwordResetTokens PasswordResetToken[]
-  accessInfo         AccessInfo?
-  favorites          ProductFavorite[]
-  wishlistShare      WishlistShare?
-  productViews       ProductViewHistory[]
-  cartItems          CartItem[]
-  orders             Order[]
-  campaigns          Campaign[]
-}
-
-model PasswordResetToken {
-  id        String   @id @default(cuid())
-  token     String   @unique
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  createdAt DateTime @default(now())
-  expiresAt DateTime
-}
-
-model Session {
-  id        String   @id @default(uuid())
-  expiresAt DateTime
-  token     String   @unique
-  ipAddress String?
-  userAgent String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model Account {
-  id         String   @id @default(uuid())
-  accountId  String
-  providerId String
-  userId     String
-  password   String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model Verification {
-  id         String    @id @default(uuid())
-  identifier String
-  value      String
-  expiresAt  DateTime
-  createdAt  DateTime? @default(now())
-  updatedAt  DateTime? @updatedAt
-}
-
-model Pet {
-  id        String   @id @default(uuid())
-  name      String
-  image     String?
-  species   String? // Tür: Kedi, Köpek, vs.
-  breed     String? // Irk
-  createdAt DateTime @default(now())
-
-  ownedBy OwnedPet[]
-  prices  ServicePrice[]
-  tags    ServiceTag[]
-
-  appointments AppointmentPet[]
-}
-
-model OwnedPet {
-  id          String  @id @default(uuid())
-  userId      String
-  petId       String
-  name        String?
-  age         Int?
-  gender      String?
-  image       String?
-  relation    String?
-  allergy     String?  // JSON array olarak saklanacak
-  sensitivity String?
-  specialNote String?
-  allowAdUse  Boolean @default(false)
-
-  createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  pet  Pet  @relation(fields: [petId], references: [id], onDelete: Cascade)
-
-  reports      PetReport[]
-  appointments AppointmentPet[]
-}
-
-// model UserPet {s
-//   id        String   @id @default(uuid())
-//   userId    String
-//   petId     String
-//   name      String?
-//   age       Int?
-//   gender    String?        
-//   image     String?
-//   relation  String?        
-//   allergy   String?        
-//   sensitivity String?      
-//   specialNote String?     
-//   allowAdUse Boolean @default(false) 
-
-//   createdAt DateTime @default(now())
-
-//   user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-//   pet       Pet    @relation(fields: [petId], references: [id], onDelete: Cascade)
-
-//   appointments Appointment[] 
-//   reports      PetReport[]    
-// }
-
-model Service {
-  id              String   @id @default(uuid())
-  name            String
-  description     String?
-  image           String?
-  price           Int
-  isActive        Boolean  @default(true)
-  isWeeklyPopular Boolean  @default(false)
-  createdAt       DateTime @default(now())
-
-  appointmentServices AppointmentService[]
-  checkItems          AppointmentCheck[]
-  prices              ServicePrice[] // Hayvan türüne göre fiyat
-  tags                ServiceTag[] // Kedi, Köpek vs. için uygunluk
-}
-
-model ServicePrice {
-  id        String @id @default(cuid())
-  serviceId String
-  petId     String
-  price     Int
-
-  service Service @relation(fields: [serviceId], references: [id])
-  pet     Pet     @relation(fields: [petId], references: [id])
-}
-
-model ServiceTag {
-  id        String @id @default(cuid())
-  serviceId String
-  petId     String
-
-  service Service @relation(fields: [serviceId], references: [id])
-  pet     Pet     @relation(fields: [petId], references: [id])
-}
-
-model Appointment {
-  id            String            @id @default(cuid())
-  userId        String
-  userAddressId String?
-  draftId       String?          
-  draft         DraftAppointment? @relation(fields: [draftId], references: [id])
-
-  confirmedAt   DateTime          @default(now())
-  deliveredAt   DateTime?
-  assignedToId  String?
-  status        AppointmentStatus @default(SCHEDULED)
-  summarySent   Boolean           @default(false)
-
-  isRecurring    Boolean @default(false)
-  recurringType  String?
-  recurringCount Int?
-  repeatInterval String?
-
-  timeSlot              String?
-  paidAt                DateTime?
-  finalPrice            Float?
-  isPaid                Boolean   @default(false)
-  paymentConversationId String?
-  paymentId             String?
-
-  userNote             String?
-  allergy              String?
-  sensitivity          String?
-  specialRequest       String?
-  adminNote            String?
-  specialRequestStatus String?
-  discountRate         Int?
-  discountReason       String?
-
-  couponId             String? 
-  coupon               Coupon?    @relation(fields: [couponId], references: [id])
-
-  user       User                 @relation(fields: [userId], references: [id])
-  address    UserAddress?         @relation(fields: [userAddressId], references: [id])
-  services   AppointmentService[]
-  checkItems AppointmentCheck[]
-  media      AppointmentMedia[]
-  reviews    AppointmentReview[]
-  invoice    Invoice?
-  pets       AppointmentPet[]
-  dates      AppointmentDate[]
-  petReport  PetReport[]
-}
-
-model AppointmentDate {
-  id            String      @id @default(uuid())
-  appointmentId String
-  date          DateTime
-  appointment   Appointment @relation(fields: [appointmentId], references: [id])
-
-  @@unique([appointmentId, date])
-}
-
-model AppointmentService {
-  id            String @id @default(cuid())
-  appointmentId String
-  serviceId     String
-
-  isCompleted   Boolean  @default(false)
-  completedAt   DateTime?
-  
-  appointment Appointment @relation(fields: [appointmentId], references: [id])
-  service     Service     @relation(fields: [serviceId], references: [id])
-
-  media       AppointmentMedia[]
-}
-
-model AppointmentCheck {
-  id            String  @id @default(cuid())
-  appointmentId String
-  serviceId     String
-  title         String
-  isChecked     Boolean @default(false)
-  note          String?
-
-  appointment Appointment @relation(fields: [appointmentId], references: [id])
-  service     Service     @relation(fields: [serviceId], references: [id])
-}
-
-model AppointmentMedia {
-  id            String    @id @default(cuid())
-  appointmentId String
-  appointment   Appointment @relation(fields: [appointmentId], references: [id])
-
-  appointmentServiceId String?
-  service              AppointmentService? @relation(fields: [appointmentServiceId], references: [id])
-
-  url           String
-  type          MediaType
-  uploadedAt    DateTime  @default(now())
-}
-
-model AppointmentReview {
-  id            String   @id @default(cuid())
-  appointmentId String
-  userId        String
-  rating        Int
-  comment       String?
-  createdAt     DateTime @default(now())
-
-  user        User        @relation(fields: [userId], references: [id])
-  appointment Appointment @relation(fields: [appointmentId], references: [id])
-}
-
-model AppointmentPet {
-  id            String      @id @default(cuid())
-  appointment   Appointment @relation(fields: [appointmentId], references: [id])
-  appointmentId String
-
-  ownedPetId String?
-  ownedPet   OwnedPet? @relation(fields: [ownedPetId], references: [id])
-
-  petId String?
-  pet   Pet?    @relation(fields: [petId], references: [id])
-}
-
-model PetReport {
-  id            String   @id @default(cuid())
-  ownedPetId    String
-  appointmentId String?
-  mood          String?  // JSON array olarak saklanacak
-  behavior      String?  // JSON array olarak saklanacak
-  mealTime      String?  // JSON array olarak saklanacak
-  waterIntake   String?  // JSON array olarak saklanacak
-  walkTime      String?  // JSON array olarak saklanacak
-  sleepStatus   String?  // JSON array olarak saklanacak         
-  toiletInfo    String?                                
-  comments      String?                                
-  createdAt     DateTime @default(now())
-
-  ownedPet      OwnedPet @relation(fields: [ownedPetId], references: [id], onDelete: Cascade)
-  appointment   Appointment? @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
-}
-
-model Feedback {
-  id        String   @id @default(cuid())
-  userId    String
-  subject   String
-  message   String
-  status    String   @default("pending")
-  createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id])
-}
-
-model NotificationLog {
-  id         String   @id @default(cuid())
-  userId     String
-  type       String   
-  message    String
-  sentAt     DateTime @default(now())
-  retryCount Int      @default(0)
-  success    Boolean  @default(true)
-
-  user User @relation(fields: [userId], references: [id])
-}
-
-model Invoice {
-  id             String   @id @default(cuid())
-  appointmentId  String   @unique
-  invoiceNo      String   @unique
-  ettn           String
-  fileUrl        String
-  totalPrice     Float
-  taxRate        Int       @default(20)
-  taxAmount      Float
-  isSent         Boolean   @default(false)
-  sentAt         DateTime?
-  createdAt      DateTime  @default(now())
-
-  appointment    Appointment @relation(fields: [appointmentId], references: [id])
-}
-
-model EmailLog {
-  id      String   @id @default(cuid())
-  userId  String
-  subject String
-  content String
-  sentAt  DateTime @default(now())
-  type    String
-  success Boolean  @default(true)
-
-  user User @relation(fields: [userId], references: [id])
-}
-
-model AdminDiscountConfig {
-  id           String       @id @default(cuid())
-  triggerCount Int
-  type         DiscountType
-  value        Int
-  isActive     Boolean      @default(true)
-  createdAt    DateTime     @default(now())
-}
-
-model Badge {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  icon        String?
-  createdAt   DateTime @default(now())
-
-  userBadges UserBadge[]
-}
-
-model UserBadge {
-  id       String   @id @default(cuid())
-  userId   String
-  badgeId  String
-  earnedAt DateTime @default(now())
-
-  user  User  @relation(fields: [userId], references: [id])
-  badge Badge @relation(fields: [badgeId], references: [id])
-}
-
-model District {
-  id        String   @id @default(cuid())
-  name      String
-  city      String
-  createdAt DateTime @default(now())
-
-  users     User[]
-  addresses UserAddress[]
-}
-
-model UserAddress {
-  id          String   @id @default(uuid())
-  userId      String
-  districtId  String
-  fullAddress String
-  isPrimary   Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  user              User          @relation(fields: [userId], references: [id])
-  district          District      @relation(fields: [districtId], references: [id])
-  appointments      Appointment[]
-  shippingOrders    Order[]       @relation("ShippingAddress")
-  billingOrders     Order[]       @relation("BillingAddress")
-}
-
-model Coupon {
-  id           String       @id @default(cuid())
-  code         String       @unique
-  description  String?
-  discountType DiscountType
-  value        Int
-  maxUsage     Int?
-  usageCount   Int          @default(0)
-  expiresAt    DateTime?
-  isActive     Boolean      @default(true)
-  createdAt    DateTime     @default(now())
-
-  userCoupons      UserCoupon[]
-  draftAppointments DraftAppointment[]
-  appointments     Appointment[]
-  orders           Order[]
-}
-
-model UserCoupon {
-  id       String   @id @default(cuid())
-  userId   String
-  couponId String
-  usedAt   DateTime?
-
-  user   User   @relation(fields: [userId], references: [id])
-  coupon Coupon @relation(fields: [couponId], references: [id])
-}
-
-model DraftAppointment {
-  id             String   @id @default(uuid())
-  createdAt      DateTime @default(now())
-  userId         String
-  userAddressId  String
-
-  isRecurring    Boolean
-  recurringType  String?
-  recurringCount Int?
-  timeSlot       String?
-
-  dates          String?  // JSON array olarak saklanacak
-
-  ownedPetIds    String?  // JSON array olarak saklanacak
-  petIds         String?  // JSON array olarak saklanacak
-  serviceIds     String?  // JSON array olarak saklanacak
-
-  finalPrice     Float?
-  isTest         Boolean  @default(false)
-
-  couponId       String?
-  coupon         Coupon?  @relation(fields: [couponId], references: [id])
-
-  userNote       String?
-  allergy        String?
-  sensitivity    String?
-  specialRequest String?
-
-  appointments   Appointment[]   
-}
-
-model AccessInfo {
-  id        String   @id @default(uuid())
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id])
-
-  keyLocation                 String?
-  keyInstruction              String?
-  keyPhotoUrl                 String?
-  neighborName                String?
-  neighborFlatNumber          String?
-  doorPassword                String?
-  doorNote                    String?
-  alarmExists                 Boolean  @default(false)
-  alarmPassword               String?
-  alarmInstruction            String?
-  alarmRoom                   String?
-  alarmTimeoutSeconds         Int?
-  notifySecurityGuard         Boolean  @default(false)
-  callBeforeEnter             Boolean  @default(false)
-  keyDropLocationAfterService String?
-  accessNote                  String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model PaymentSession {
-  id                 String                @id @default(cuid())
-  userId             String
-  draftId            String?
-
-  amount             Int
-  currency           String                @default("TRY")
-
-  orderId            String?               @unique
-  correlationId      String?
-
-  status             PaymentSessionStatus  @default(INIT)
-
-  threeDSHtml        String?               // base64 decode edilmiş HTML
-  threeDSResultRaw   String?               // callback'te gelen tüm alanlar (JSON string)
-  mdStatus           String?
-  success            Boolean?
-
-  paymentId          String?               // genelde orderId (PSP tarafındaki id)
-  appointmentId      String?               // randevu id (tahsilat başarılıysa)
-
-  error              String?
-
-  createdAt          DateTime              @default(now())
-  updatedAt          DateTime              @updatedAt
+  INIT
+  AUTH_SENT
+  AUTH_OK
+  CAPTURED
+  CAPTURE_FAIL
+  FAILED
 }
 
 enum Gender {
@@ -595,381 +863,23 @@ enum Gender {
 }
 
 enum SizeType {
-  LETTER  // XS, S, M, L, XL
-  NUMBER  // 30, 32, 34, 36, 38
-}
-
-model Category {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  slug        String   @unique
-  description String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  products    Product[]
-
-  @@index([slug])
-}
-
-model Product {
-  id              String   @id @default(cuid())
-  name            String
-  slug            String?  @unique // URL-friendly slug (drop-cut-long-sleeve-lux)
-  stockCode       String?  @unique // Stok kodu
-  description     String?  // Kısa açıklama
-  detailText      String?  // Detaylı metin (HTML olabilir)
-  price           Float
-  originalPrice   Float?  // Orijinal fiyat (indirimli ürünler için)
-  image           String?  // Ana görsel
-  primaryImage    String?  // Birincil görsel (hover'da gösterilecek)
-  secondaryImage  String?  // İkincil görsel (hover'da gösterilecek)
-  gender          Gender?  // Cinsiyet
-  sizeType        SizeType? // Beden tipi (LETTER veya NUMBER)
-  fabricType      String?  // Kumaş tipi (Pamuk, Polyester, vb.)
-  categoryId      String?  // Kategori ID
-  brand           String?  // Marka
-  weight          Float?   // Ağırlık (kg)
-  isActive        Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  category        Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  colors          ProductColor[]
-  sizes           ProductSize[]
-  tags            ProductTag[]
-  combinations    ProductCombination[] @relation("ProductCombinations")
-  relatedProducts ProductCombination[] @relation("RelatedProducts")
-  reviews         ProductReview[]
-  sizeOptions     ProductSizeOption[]
-  variants        ProductVariant[]
-  productImages   ProductImage[] // Ürün resimleri (genel ve renk bazlı)
-  favorites       ProductFavorite[]
-  viewHistory     ProductViewHistory[]
-  cartItems       CartItem[]
-  orderItems      OrderItem[]
-
-  @@index([categoryId])
-}
-
-model ProductColor {
-  id        String   @id @default(cuid())
-  productId String
-  colorCode String   @unique // Unique renk kodu (her ürün ve her renk için unique)
-  name      String   // Renk adı (Kırmızı, Mavi, vb.)
-  hexCode   String?  // Hex renk kodu (#FF0000)
-  images    String?  // JSON array olarak saklanacak (Bu renge ait fotoğraflar) - DEPRECATED: ProductImage kullanılacak
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  variants ProductVariant[] // Bir renk için birden fazla variant (her beden için)
-  reviews ProductReview[] // Bu renge ait yorumlar
-  productImages ProductImage[] // Bu renge ait resimler
-  cartItems CartItem[]
-  orderItems OrderItem[]
-
-  @@index([productId])
-  @@index([colorCode])
-}
-
-model ProductImage {
-  id        String   @id @default(cuid())
-  productId String
-  colorId   String?  // Hangi renge ait (null ise genel ürün resmi - primaryImage, secondaryImage)
-  variantId String?  // Hangi varyanta ait (opsiyonel - variant'a özel resimler için)
-  url       String   // Resim URL'i
-  order     Int      @default(0) // Sıralama (0, 1, 2, 3...)
-  isPrimary Boolean  @default(false) // Ana resim mi? (primaryImage)
-  isSecondary Boolean @default(false) // İkincil resim mi? (secondaryImage)
-  alt       String?  // Alt text (SEO ve erişilebilirlik için)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  product Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
-  color   ProductColor? @relation(fields: [colorId], references: [id], onDelete: Cascade)
-  variant ProductVariant? @relation(fields: [variantId], references: [id], onDelete: Cascade)
-
-  @@index([productId])
-  @@index([colorId])
-  @@index([variantId])
-  @@index([order])
-  @@index([isPrimary])
-  @@index([isSecondary])
-}
-
-model ProductVariant {
-  id         String   @id @default(cuid())
-  productId String
-  colorId   String?  // Hangi renge ait variant (opsiyonel - ana ürün için null olabilir)
-  sizeId    String?  // Hangi bedene ait variant (opsiyonel)
-  variantCode String  @unique // Unique variant kodu (rastgele oluşturulacak)
-  price     Float?   // Variant'a özel fiyat (opsiyonel)
-  stock     Int      @default(0) // Variant stoku
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  product Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
-  color   ProductColor? @relation(fields: [colorId], references: [id], onDelete: SetNull)
-  size    ProductSize?  @relation(fields: [sizeId], references: [id], onDelete: SetNull)
-  productImages ProductImage[] // Bu varyanta özel resimler
-
-  @@unique([productId, colorId, sizeId])
-  @@index([productId])
-  @@index([colorId])
-  @@index([sizeId])
-}
-
-model ProductSize {
-  id        String   @id @default(cuid())
-  productId String
-  name      String   // Beden adı (XS, S, M, L, XL veya 30, 32, 34, vb.)
-  stock     Int      @default(0) // Stok adedi (genel stok - renk bazlı değil)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  variants ProductVariant[] // Bir beden için birden fazla variant (her renk için)
-  cartItems CartItem[]
-  orderItems OrderItem[]
-
-  @@unique([productId, name])
-  @@index([productId])
-}
-
-model ProductTag {
-  id        String   @id @default(cuid())
-  productId String
-  name      String   // Etiket adı (Moda, Etiket, vb.)
-  createdAt DateTime @default(now())
-
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  @@unique([productId, name])
-  @@index([productId])
-}
-
-model ProductCombination {
-  id              String   @id @default(cuid())
-  productId       String   // Ana ürün
-  relatedProductId String // Kombine edilen ürün
-  createdAt       DateTime @default(now())
-
-  product         Product @relation("ProductCombinations", fields: [productId], references: [id], onDelete: Cascade)
-  relatedProduct  Product @relation("RelatedProducts", fields: [relatedProductId], references: [id], onDelete: Cascade)
-
-  @@unique([productId, relatedProductId])
-  @@index([productId])
-  @@index([relatedProductId])
-}
-
-model ProductReview {
-  id        String   @id @default(cuid())
-  productId String
-  colorId   String?  // Renk ID (opsiyonel, renk bazlı yorumlar için)
-  userId    String?  // Kullanıcı ID (opsiyonel, misafir yorumları için)
-  userName  String?  // Kullanıcı adı (misafir yorumları için)
-  rating    Int      // 1-5 arası puan
-  comment   String?
-  isApproved Boolean @default(false) // Admin onayı
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  color   ProductColor? @relation(fields: [colorId], references: [id], onDelete: SetNull)
-
-  @@index([productId])
-  @@index([colorId])
-  @@index([isApproved])
-}
-
-model ProductSizeOption {
-  id        String   @id @default(cuid())
-  productId String
-  name      String   // Seçenek adı (XS, S, M, L, XL veya 30, 32, 34, vb.)
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  @@unique([productId, name])
-  @@index([productId])
-}
-
-model ProductFavorite {
-  id        String   @id @default(cuid())
-  userId    String
-  productId String
-  createdAt DateTime @default(now())
-
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, productId])
-  @@index([userId])
-  @@index([productId])
-}
-
-model WishlistShare {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  shareId   String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([shareId])
-}
-
-model ProductViewHistory {
-  id        String   @id @default(cuid())
-  userId    String?  // Kullanıcı ID (opsiyonel, misafir görüntülemeleri için)
-  productId String
-  viewedAt  DateTime @default(now())
-
-  user    User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([productId])
-  @@index([viewedAt])
-  @@unique([userId, productId, viewedAt])
-}
-
-model CartItem {
-  id        String   @id @default(cuid())
-  userId    String
-  productId String
-  colorId   String?  // Seçilen renk
-  sizeId    String?  // Seçilen beden
-  quantity  Int      @default(1)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  color   ProductColor? @relation(fields: [colorId], references: [id], onDelete: SetNull)
-  size    ProductSize? @relation(fields: [sizeId], references: [id], onDelete: SetNull)
-
-  @@unique([userId, productId, colorId, sizeId])
-  @@index([userId])
-  @@index([productId])
-}
-
-model CompanySettings {
-  id                    String   @id @default(cuid())
-  freeShippingThreshold Float    @default(99.0) // Ücretsiz kargo eşiği (TL)
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-
-  @@unique([id])
-}
-
-model DashboardWidget {
-  id        String   @id @default(cuid())
-  userId    String?  // Admin kullanıcı ID (null ise global)
-  widgetKey String   // Widget anahtarı (todayRevenue, todayOrders, aov, cancellationRate)
-  position  Int      // Pozisyon (0, 1, 2, 3)
-  isVisible Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([userId, widgetKey])
-  @@index([userId])
+  LETTER
+  NUMBER
 }
 
 enum OrderStatus {
-  PENDING      // Beklemede
-  PREPARING    // Hazırlanıyor
-  SHIPPED      // Kargoya verildi
-  DELIVERED    // Teslim edildi
-  CANCELLED    // İptal edildi
+  PENDING
+  PREPARING
+  SHIPPED
+  DELIVERED
+  CANCELLED
 }
 
 enum PaymentStatus {
-  PENDING      // Ödeme bekleniyor
-  PAID         // Ödendi
-  FAILED       // Ödeme başarısız
-  REFUNDED     // İade edildi
-}
-
-model Order {
-  id              String        @id @default(cuid())
-  orderNumber     String        @unique // Sipariş numarası (örn: ORD-20250121-001)
-  userId          String
-  status          OrderStatus   @default(PENDING)
-  paymentStatus   PaymentStatus @default(PENDING)
-  
-  // Fiyat bilgileri
-  subtotal        Float         // Ara toplam (ürünler)
-  shippingCost    Float         @default(0) // Kargo ücreti
-  discount        Float         @default(0) // İndirim tutarı
-  total           Float         // Toplam tutar
-  
-  // Adres bilgileri
-  shippingAddressId String?      // Teslimat adresi
-  billingAddressId  String?      // Fatura adresi
-  
-  // Ödeme bilgileri
-  paymentId       String?       // Ödeme ID (iyzico/tami)
-  paymentMethod   String?       // Ödeme yöntemi
-  paidAt          DateTime?
-  
-  // Kargo bilgileri
-  trackingNumber  String?       // Kargo takip numarası
-  shippedAt       DateTime?
-  deliveredAt     DateTime?
-  
-  // Kupon
-  couponId       String?
-  coupon         Coupon?       @relation(fields: [couponId], references: [id])
-  
-  // Notlar
-  customerNote   String?       // Müşteri notu
-  adminNote      String?       // Admin notu
-  
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  
-  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  shippingAddress UserAddress? @relation("ShippingAddress", fields: [shippingAddressId], references: [id])
-  billingAddress  UserAddress? @relation("BillingAddress", fields: [billingAddressId], references: [id])
-  items          OrderItem[]
-  
-  @@index([userId])
-  @@index([orderNumber])
-  @@index([status])
-  @@index([createdAt])
-}
-
-model OrderItem {
-  id          String   @id @default(cuid())
-  orderId     String
-  productId   String
-  colorId     String?
-  sizeId      String?
-  
-  productName String   // Ürün adı (snapshot)
-  colorName   String?  // Renk adı (snapshot)
-  sizeName    String?  // Beden adı (snapshot)
-  image       String?  // Ürün görseli (snapshot)
-  
-  quantity    Int      // Adet
-  unitPrice   Float    // Birim fiyat (snapshot)
-  totalPrice  Float    // Toplam fiyat (quantity * unitPrice)
-  
-  createdAt   DateTime @default(now())
-  
-  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product     Product  @relation(fields: [productId], references: [id])
-  color       ProductColor? @relation(fields: [colorId], references: [id])
-  size        ProductSize? @relation(fields: [sizeId], references: [id])
-  
-  @@index([orderId])
-  @@index([productId])
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
 }
 
 enum CampaignStatus {
@@ -977,30 +887,4 @@ enum CampaignStatus {
   ready
   scheduled
   sent
-}
-
-model Campaign {
-  id                String          @id @default(cuid())
-  name              String
-  status            CampaignStatus  @default(draft)
-  subject           String
-  preheader         String?
-  fromName          String
-  fromEmail         String
-  replyTo           String?
-  contentJson       String          // JSON string of blocks
-  renderedHtml      String?         // Generated HTML (optional, can be generated on send)
-  audienceSegmentId String?
-  scheduleAt        DateTime?
-  sentAt            DateTime?
-  sentCount         Int             @default(0)
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
-
-  createdBy         User            @relation(fields: [createdById], references: [id], onDelete: Cascade)
-  createdById       String
-
-  @@index([status])
-  @@index([createdById])
-  @@index([scheduleAt])
 }

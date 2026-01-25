@@ -11,6 +11,9 @@ import CouponBlockInspector from "./block-inspectors/CouponBlockInspector";
 import CtaBlockInspector from "./block-inspectors/CtaBlockInspector";
 import TextBlockInspector from "./block-inspectors/TextBlockInspector";
 import FooterBlockInspector from "./block-inspectors/FooterBlockInspector";
+import ProductBlockInspector from "./block-inspectors/ProductBlockInspector";
+import ImageBlockInspector from "./block-inspectors/ImageBlockInspector";
+import DividerBlockInspector from "./block-inspectors/DividerBlockInspector";
 
 interface BlockInspectorProps {
   block: Block;
@@ -32,6 +35,12 @@ export default function BlockInspector({ block, onUpdate }: BlockInspectorProps)
         return <TextBlockInspector block={block} onUpdate={onUpdate} />;
       case "footer":
         return <FooterBlockInspector block={block} onUpdate={onUpdate} />;
+      case "product":
+        return <ProductBlockInspector block={block} onUpdate={onUpdate} />;
+      case "image":
+        return <ImageBlockInspector block={block} onUpdate={onUpdate} />;
+      case "divider":
+        return <DividerBlockInspector block={block} onUpdate={onUpdate} />;
       default:
         return <div className="p-4 text-gray-500">Bilinmeyen blok tipi</div>;
     }

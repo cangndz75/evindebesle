@@ -28,6 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import HoverImageSlider from "@/components/product/HoverImageSlider";
 
 type ProductColor = {
   name: string;
@@ -150,9 +151,8 @@ function FavoriteButton({ productId, productName }: { productId: string; product
       aria-label={isFavorite ? "Favorilerden Çıkar" : "Favorilere Ekle"}
     >
       <Heart
-        className={`w-4 h-4 transition-colors ${
-          isFavorite ? "fill-[#111] text-[#111]" : "text-[#111]"
-        }`}
+        className={`w-4 h-4 transition-colors ${isFavorite ? "fill-[#111] text-[#111]" : "text-[#111]"
+          }`}
       />
     </button>
   );
@@ -202,7 +202,7 @@ export default function MenProductsPage({
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
-    
+
     debounceTimerRef.current = setTimeout(() => {
       setDebouncedFilters(filters);
     }, 300);
@@ -223,7 +223,7 @@ export default function MenProductsPage({
 
   // Build API URL with filters (debounced filters kullan)
   const buildApiUrl = useCallback(() => {
-    const hasFilters = 
+    const hasFilters =
       selectedCategory !== "All" ||
       debouncedFilters.minPrice ||
       debouncedFilters.maxPrice ||
@@ -237,7 +237,7 @@ export default function MenProductsPage({
 
     const params = new URLSearchParams();
     params.append("gender", "MALE");
-    
+
     if (selectedCategory !== "All") {
       params.append("tag", selectedCategory.toLowerCase());
     }
@@ -265,7 +265,7 @@ export default function MenProductsPage({
   }, [selectedCategory, debouncedFilters, initialProducts]);
 
   const apiUrl = buildApiUrl();
-  
+
   // SWR ile data fetching
   const { data: fetchedProducts, error, isLoading: swrLoading } = useSWR<Product[]>(
     apiUrl,
@@ -330,8 +330,8 @@ export default function MenProductsPage({
         filters.minPrice && filters.maxPrice
           ? `₺${filters.minPrice} - ₺${filters.maxPrice}`
           : filters.minPrice
-          ? `₺${filters.minPrice}+`
-          : `₺${filters.maxPrice}-`;
+            ? `₺${filters.minPrice}+`
+            : `₺${filters.maxPrice}-`;
       result.push({
         type: "price",
         label,
@@ -409,7 +409,7 @@ export default function MenProductsPage({
   };
 
   return (
-    <div className="min-h-screen bg-white pt-[65px] md:pt-[81px]">
+    <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
         {/* Breadcrumb */}
         <nav className="mb-4">
@@ -434,11 +434,10 @@ export default function MenProductsPage({
             <button
               key={category}
               onClick={() => setSelectedCategory(category)}
-              className={`px-4 py-2 text-sm font-light uppercase tracking-wide transition-colors whitespace-nowrap flex-shrink-0 ${
-                selectedCategory === category
-                  ? "bg-[#111] text-white"
-                  : "bg-white text-[#111] border border-[#111] hover:bg-[#111] hover:text-white"
-              }`}
+              className={`px-4 py-2 text-sm font-light uppercase tracking-wide transition-colors whitespace-nowrap flex-shrink-0 ${selectedCategory === category
+                ? "bg-[#111] text-white"
+                : "bg-white text-[#111] border border-[#111] hover:bg-[#111] hover:text-white"
+                }`}
             >
               {category}
             </button>
@@ -467,7 +466,7 @@ export default function MenProductsPage({
             <span className="text-sm text-[#111]/60 font-light hidden md:inline">
               {products.length} ürün
             </span>
-            
+
             {/* Mobil: Sırala Butonu */}
             <button
               onClick={() => setSortDialogOpen(true)}
@@ -587,83 +586,65 @@ export default function MenProductsPage({
             {products.map((product) => {
               // İlk açılışta ana renk (ilk renk) göster
               const defaultColor = product.colors?.[0];
-              
+
               // Seçili renk varsa onu kullan, yoksa ana renk
               const selectedColorForProduct = selectedColor?.productId === product.id && product.colors
                 ? product.colors.find(c => c.images?.[0] === selectedColor.colorImage)
                 : null;
-              
+
               // Aktif renk: seçili renk veya ana renk
               const activeColorObj = selectedColorForProduct || defaultColor;
-              
+
               // Hover durumunda hover'daki renk, yoksa aktif renk
               const hoveredColorObj = hoveredColor?.productId === product.id && product.colors
                 ? product.colors.find(c => c.images?.[0] === hoveredColor.colorImage)
                 : null;
-              
+
               // Görüntülenecek renk: hover varsa hover, yoksa aktif renk
               const displayColorObj = hoveredColorObj || activeColorObj;
-              
+
               // Ana görsel: aktif renge göre
               const currentImage =
                 (displayColorObj?.images && Array.isArray(displayColorObj.images) && displayColorObj.images.length > 0 ? displayColorObj.images[0] : null) ||
                 product.primaryImage ||
                 product.image ||
                 "/placeholder.jpg";
-              
+
               // Hover görseli: aktif renge göre (sadece 2+ resim varsa)
               const hasMultipleImages = displayColorObj?.images && Array.isArray(displayColorObj.images) && displayColorObj.images.length > 1;
               const hoverImage = hasMultipleImages
                 ? (Array.isArray(displayColorObj.images) && displayColorObj.images.length > 1 ? displayColorObj.images[1] : null)
                 : product.secondaryImage ||
-                  (defaultColor?.images && Array.isArray(defaultColor.images) && defaultColor.images.length > 1 ? defaultColor.images[1] : null) ||
-                  product.primaryImage ||
-                  currentImage;
+                (defaultColor?.images && Array.isArray(defaultColor.images) && defaultColor.images.length > 1 ? defaultColor.images[1] : null) ||
+                product.primaryImage ||
+                currentImage;
 
               // URL oluştur - slug varsa slug kullan, yoksa id
-              const productUrl = product.slug 
+              const productUrl = product.slug
                 ? `/products/${product.slug}`
                 : `/product/${product.id}`;
-              
+
               // Seçili renge göre variant ekle
-              const variant = selectedColor?.productId === product.id 
-                ? selectedColor.variantCode 
+              const variant = selectedColor?.productId === product.id
+                ? selectedColor.variantCode
                 : product.colors?.[0]?.variant?.variantCode;
               const finalUrl = variant ? `${productUrl}?variant=${variant}` : productUrl;
 
               return (
                 <div key={product.id} className="group relative overflow-hidden">
                   <Link href={finalUrl} prefetch={true} className="block">
-                    <div className="relative aspect-[3/4] mb-4 overflow-hidden bg-gray-100">
-                      <Image
-                        src={currentImage}
-                        alt={product.name}
-                        fill
-                        className={`object-cover transition-opacity duration-500 ${
-                          hasMultipleImages && hoverImage !== currentImage
-                            ? "group-hover:opacity-0"
-                            : ""
-                        }`}
-                        sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                        loading="lazy"
-                        quality={85}
-                        placeholder="blur"
-                        blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
-                      />
-                      {hasMultipleImages && hoverImage && hoverImage !== currentImage && (
-                        <Image
-                          src={hoverImage}
-                          alt={`${product.name} hover`}
-                          fill
-                          className="object-cover transition-opacity duration-500 opacity-0 group-hover:opacity-100"
-                          sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                          loading="lazy"
-                          quality={85}
-                        />
-                      )}
-                      <FavoriteButton productId={product.id} productName={product.name} />
-                      
-                    </div>
+                    <HoverImageSlider
+                      images={
+                        displayColorObj?.images && Array.isArray(displayColorObj.images) && displayColorObj.images.length > 0
+                          ? displayColorObj.images
+                          : [product.primaryImage || product.image || "/placeholder.jpg", product.secondaryImage].filter(Boolean) as string[]
+                      }
+                      alt={product.name}
+                      sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                      className="mb-4"
+                      badge={null}
+                      favoriteButton={<FavoriteButton productId={product.id} productName={product.name} />}
+                    />
                   </Link>
 
                   <div className="mb-2">
@@ -692,9 +673,9 @@ export default function MenProductsPage({
                           const availableSizes = product.sizes && product.sizes.length > 0
                             ? product.sizes
                             : product.sizeOptions && product.sizeOptions.length > 0
-                            ? product.sizeOptions.map(so => ({ name: so.name, stock: 0, id: undefined }))
-                            : [];
-                          
+                              ? product.sizeOptions.map(so => ({ name: so.name, stock: 0, id: undefined }))
+                              : [];
+
                           if (availableSizes.length === 0) {
                             return (
                               <p className="text-xs text-gray-500">Beden seçeneği bulunmuyor</p>
@@ -703,33 +684,33 @@ export default function MenProductsPage({
 
                           // Seçili renge göre variant stok kontrolü
                           const currentColorId = displayColorObj?.id || product.colors?.[0]?.id;
-                          
+
                           return availableSizes.map((size, sizeIdx) => {
                             const sizeName = typeof size === 'string' ? size : size.name;
                             const sizeStock = typeof size === 'object' ? size.stock : 0;
-                            const sizeId = typeof size === 'object' && (size as any).id 
-                              ? (size as any).id 
+                            const sizeId = typeof size === 'object' && (size as any).id
+                              ? (size as any).id
                               : null;
-                            
+
                             // Variant stok kontrolü (seçili renge göre)
                             let variantStock = 0;
                             if (currentColorId && displayColorObj?.variants) {
-                              const variant = displayColorObj.variants.find((v: any) => 
+                              const variant = displayColorObj.variants.find((v: any) =>
                                 v.colorId === currentColorId && v.sizeId === sizeId
                               );
                               variantStock = variant?.stock || 0;
                             }
-                            
+
                             const finalStock = variantStock > 0 ? variantStock : sizeStock;
                             const isOutOfStock = finalStock <= 0;
-                            
+
                             return (
                               <button
                                 key={sizeIdx}
                                 onClick={async (e) => {
                                   e.preventDefault();
                                   e.stopPropagation();
-                                  
+
                                   if (isOutOfStock) {
                                     toast.error("Bu beden stokta yok", {
                                       position: "bottom-left",
@@ -751,7 +732,7 @@ export default function MenProductsPage({
 
                                     if (res.ok) {
                                       const result = await res.json();
-                                      
+
                                       // Giriş yapmamış kullanıcı için localStorage'a kaydet
                                       if (!result.userId && result.product) {
                                         const { addToGuestCart } = await import("@/lib/cart-utils");
@@ -770,14 +751,14 @@ export default function MenProductsPage({
                                           result.size || null
                                         );
                                       }
-                                      
+
                                       window.dispatchEvent(new Event("cartUpdated"));
-                                      
+
                                       // Renk bilgisini al
                                       const selectedColorObj = product.colors?.find((c: any) => c.id === currentColorId) || product.colors?.[0];
                                       let colorName = "";
                                       let productImage = "";
-                                      
+
                                       if (selectedColorObj) {
                                         colorName = selectedColorObj.name || "";
                                         // images string olabilir (JSON)
@@ -792,12 +773,12 @@ export default function MenProductsPage({
                                           productImage = selectedColorObj.images[0];
                                         }
                                       }
-                                      
+
                                       // Fallback: product image
                                       if (!productImage) {
                                         productImage = product.image || product.primaryImage || "";
                                       }
-                                      
+
                                       // Pop-up için event gönder
                                       window.dispatchEvent(
                                         new CustomEvent("itemAddedToCart", {
@@ -827,11 +808,10 @@ export default function MenProductsPage({
                                   }
                                 }}
                                 disabled={isOutOfStock}
-                                className={`px-3 py-1.5 text-xs font-light border transition-all ${
-                                  isOutOfStock
-                                    ? "border-gray-200 text-gray-400 line-through cursor-not-allowed bg-white"
-                                    : "border-gray-300 hover:border-[#111] hover:bg-[#111] hover:text-white bg-white text-[#111]"
-                                }`}
+                                className={`px-3 py-1.5 text-xs font-light border transition-all ${isOutOfStock
+                                  ? "border-gray-200 text-gray-400 line-through cursor-not-allowed bg-white"
+                                  : "border-gray-300 hover:border-[#111] hover:bg-[#111] hover:text-white bg-white text-[#111]"
+                                  }`}
                               >
                                 {sizeName}
                               </button>
@@ -858,11 +838,10 @@ export default function MenProductsPage({
                                 }
                                 onMouseLeave={handleColorLeave}
                                 onClick={(e) => handleColorClick(product.id, color, e)}
-                                className={`w-4 h-4 rounded-full border transition-all duration-200 hover:scale-110 ${
-                                  isSelected
-                                    ? "border-[#111] scale-110"
-                                    : "border-gray-300"
-                                }`}
+                                className={`w-4 h-4 rounded-full border transition-all duration-200 hover:scale-110 ${isSelected
+                                  ? "border-[#111] scale-110"
+                                  : "border-gray-300"
+                                  }`}
                                 style={{
                                   backgroundColor:
                                     color.hexCode || "#ccc",

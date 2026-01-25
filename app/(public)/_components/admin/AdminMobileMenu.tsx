@@ -76,10 +76,6 @@ export default function AdminMobileMenu({ name }: { name?: string }) {
               <List className="w-4 h-4" />
               Siparişler
             </Link>
-            <Link href="/activity" className="flex items-center gap-2 hover:text-primary">
-              <Briefcase className="w-4 h-4" />
-              Hizmetler
-            </Link>
           </div>
 
           <Separator className="my-4" />

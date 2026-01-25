@@ -121,8 +121,8 @@ export default function FavoritesClient({
   }, []);
 
   return (
-    <div className="min-h-screen bg-white pt-[65px] md:pt-[81px]">
-      <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
+    <div className="min-h-screen bg-white">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 md:py-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-light text-[#111]">
@@ -205,9 +205,9 @@ export default function FavoritesClient({
                           const availableSizes = product.sizes && product.sizes.length > 0
                             ? product.sizes
                             : product.sizeOptions && product.sizeOptions.length > 0
-                            ? product.sizeOptions.map(so => ({ name: so.name, stock: 0, id: undefined }))
-                            : [];
-                          
+                              ? product.sizeOptions.map(so => ({ name: so.name, stock: 0, id: undefined }))
+                              : [];
+
                           if (availableSizes.length === 0) {
                             return (
                               <p className="text-xs text-gray-500">Beden seçeneği bulunmuyor</p>
@@ -216,33 +216,33 @@ export default function FavoritesClient({
 
                           // Seçili renge göre variant stok kontrolü
                           const currentColorId = product.colors?.[0]?.id;
-                          
+
                           return availableSizes.map((size, sizeIdx) => {
                             const sizeName = typeof size === 'string' ? size : size.name;
                             const sizeStock = typeof size === 'object' ? size.stock : 0;
-                            const sizeId = typeof size === 'object' && (size as any).id 
-                              ? (size as any).id 
+                            const sizeId = typeof size === 'object' && (size as any).id
+                              ? (size as any).id
                               : null;
-                            
+
                             // Variant stok kontrolü (seçili renge göre)
                             let variantStock = 0;
                             if (currentColorId && product.colors?.[0]?.variants) {
-                              const variant = product.colors[0].variants.find((v: any) => 
+                              const variant = product.colors[0].variants.find((v: any) =>
                                 v.colorId === currentColorId && v.sizeId === sizeId
                               );
                               variantStock = variant?.stock || 0;
                             }
-                            
+
                             const finalStock = variantStock > 0 ? variantStock : sizeStock;
                             const isOutOfStock = finalStock <= 0;
-                            
+
                             return (
                               <button
                                 key={sizeIdx}
                                 onClick={async (e) => {
                                   e.preventDefault();
                                   e.stopPropagation();
-                                  
+
                                   if (isOutOfStock) {
                                     toast.error("Bu beden stokta yok", {
                                       position: "bottom-left",
@@ -281,11 +281,10 @@ export default function FavoritesClient({
                                   }
                                 }}
                                 disabled={isOutOfStock}
-                                className={`px-3 py-1.5 text-xs font-light border transition-all ${
-                                  isOutOfStock
+                                className={`px-3 py-1.5 text-xs font-light border transition-all ${isOutOfStock
                                     ? "border-gray-200 text-gray-400 line-through cursor-not-allowed bg-white"
                                     : "border-gray-300 hover:border-[#111] hover:bg-[#111] hover:text-white bg-white text-[#111]"
-                                }`}
+                                  }`}
                               >
                                 {sizeName}
                               </button>

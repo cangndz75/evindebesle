@@ -2,24 +2,21 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect, useRef } from "react";
-import { ChevronLeft, ChevronRight, X, Star, ShoppingBag } from "lucide-react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { addToGuestCart } from "@/lib/cart-utils";
+import { useCartStore } from "@/lib/stores/cartStore";
 import type { Product, ColorOption } from "@/lib/homeData";
 
 // Base64 görselleri tespit et ve filtrele (performans için)
 const isBase64Image = (url: string | undefined | null): boolean => {
   if (!url) return false;
-  return url.startsWith("data:image/") || url.length > 10000; // Base64 görseller genellikle çok uzun
+  return url.startsWith("data:image/") || url.length > 10000;
 };
 
-// Base64 görselleri filtrele - sadece normal URL'leri kullan
 const filterBase64Images = (image: string | undefined | null): string | undefined => {
   if (!image) return undefined;
   if (isBase64Image(image)) {
-    console.warn("Base64 görsel tespit edildi ve filtrelendi:", image.substring(0, 50) + "...");
-    return undefined; // Base64 görselleri kullanma
+    return undefined;
   }
   return image;
 };
@@ -29,105 +26,48 @@ interface ProductShowcaseProps {
 }
 
 export default function ProductShowcase({ products = [] }: ProductShowcaseProps) {
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const addItemOptimistic = useCartStore((state) => state.addItemOptimistic);
 
-  const [hoveredColor, setHoveredColor] = useState<{ productId: string; colorImage: string } | null>(null);
-  const [selectedColor, setSelectedColor] = useState<{ productId: string; colorImage: string } | null>(null);
+  // Her ürün için seçili renk ve beden state'i
+  const [selectedOptions, setSelectedOptions] = useState<Record<string, {
+    colorId: string | null;
+    sizeId: string | null;
+    colorImage: string | null;
+    colorObj: ColorOption | null;
+  }>>({});
+  const [addingToCart, setAddingToCart] = useState<Record<string, boolean>>({});
 
-  const [isMobile, setIsMobile] = useState(false);
-  const [canScrollPrev, setCanScrollPrev] = useState(false);
-  const [canScrollNext, setCanScrollNext] = useState(true);
-
-  const [modalProduct, setModalProduct] = useState<Product | null>(null);
-  const [modalSelectedColor, setModalSelectedColor] = useState<string | null>(null);
-  const [modalSelectedSize, setModalSelectedSize] = useState<string | null>(null);
-  const [isAddingToCart, setIsAddingToCart] = useState(false);
-
+  // İlk renkleri otomatik seç
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
-
-  useEffect(() => {
-    checkScroll();
+    products.forEach((product) => {
+      if (!selectedOptions[product.id]) {
+        const normalizedColors = normalizeColors(product.colors);
+        if (normalizedColors.length > 0) {
+          const firstColor = normalizedColors[0];
+          setSelectedOptions((prev) => ({
+            ...prev,
+            [product.id]: {
+              colorId: firstColor.id || null,
+              sizeId: null,
+              colorImage: firstColor.image,
+              colorObj: firstColor,
+            },
+          }));
+        }
+      }
+    });
   }, [products]);
-
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && modalProduct) closeModal();
-    };
-    window.addEventListener("keydown", handleEscape);
-    return () => window.removeEventListener("keydown", handleEscape);
-  }, [modalProduct]);
-
-  useEffect(() => {
-    if (!modalProduct) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [modalProduct]);
-
-  const checkScroll = () => {
-    if (!scrollContainerRef.current) return;
-    const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
-    setCanScrollPrev(scrollLeft > 0);
-    setCanScrollNext(scrollLeft < scrollWidth - clientWidth - 10);
-  };
-
-  const scrollPrev = () => {
-    if (!scrollContainerRef.current) return;
-    scrollContainerRef.current.scrollBy({ left: -320, behavior: "smooth" });
-    setTimeout(checkScroll, 300);
-  };
-
-  const scrollNext = () => {
-    if (!scrollContainerRef.current) return;
-    scrollContainerRef.current.scrollBy({ left: 320, behavior: "smooth" });
-    setTimeout(checkScroll, 300);
-  };
-
-  const handleColorInteraction = (productId: string, colorImage: string) => {
-    setHoveredColor({ productId, colorImage });
-    setSelectedColor({ productId, colorImage });
-  };
-
-  const handleColorLeave = () => {
-    setHoveredColor(null);
-    if (!isMobile) setSelectedColor(null);
-  };
-
-  const openModal = (product: Product) => {
-    setModalProduct(product);
-    const normalizedColors = normalizeColors(product.colors);
-    const fallback = normalizedColors[0]?.image || product.image;
-    setModalSelectedColor(product.colorId || fallback || null);
-    setModalSelectedSize(null);
-    setIsAddingToCart(false);
-  };
-
-  const closeModal = () => {
-    setModalProduct(null);
-    setModalSelectedColor(null);
-    setModalSelectedSize(null);
-    setIsAddingToCart(false);
-  };
 
   // colors'ı ColorOption[] formatına normalize et
   const normalizeColors = (colors?: ColorOption[] | string[]): ColorOption[] => {
     if (!colors || colors.length === 0) return [];
-    // Eğer zaten ColorOption[] formatındaysa direkt döndür
     if (typeof colors[0] === 'object' && 'name' in colors[0] && 'value' in colors[0]) {
       return colors as ColorOption[];
     }
-    // string[] formatındaysa ColorOption[] formatına dönüştür
     return (colors as string[]).map((color, idx) => ({
       name: `Renk ${idx + 1}`,
       value: color,
-      image: color, // string[] durumunda image olarak color değerini kullan
+      image: color,
     }));
   };
 
@@ -139,634 +79,297 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
     return [];
   };
 
-  const getVariantStock = (product: Product, sizeId: string | null, colorKey: string | null) => {
+  const getVariantStock = (product: Product, sizeId: string | null, colorId: string | null) => {
     if (!sizeId) return 0;
-    if (!product.variants || product.variants.length === 0) return 0;
 
-    const variant =
-      product.variants.find((v) => v.sizeId === sizeId && v.colorId === colorKey) ||
-      product.variants.find((v) => v.sizeId === sizeId && v.colorId === product.colorId) ||
-      product.variants.find((v) => v.sizeId === sizeId && (v.colorId == null || v.colorId === "")) ||
-      null;
-
-    return variant?.stock || 0;
-  };
-
-  const getSizeStock = (product: Product, sizeObj: { name: string; stock: number; id?: string }, colorKey: string | null) => {
-    const sizeId = sizeObj.id || null;
-
-    // Eğer colorKey bir image URL ise, renk ID'sini bul
-    let actualColorId: string | null = colorKey;
-    if (colorKey && product.colors) {
-      const normalizedColors = normalizeColors(product.colors);
-      const colorObj = normalizedColors.find((c) =>
-        c.image === colorKey ||
-        (c.id && c.id === colorKey) ||
-        c.value === colorKey ||
-        c.name === colorKey
-      );
-      if (colorObj?.id) {
-        actualColorId = colorObj.id;
-      } else if (colorKey && /^[a-f0-9-]{36}$/i.test(colorKey)) {
-        // UUID formatındaysa direkt kullan
-        actualColorId = colorKey;
-      } else {
-        // Image URL ise, product'ın colorId'sini kullan
-        actualColorId = product.colorId || null;
-      }
-    } else if (!colorKey) {
-      // Renk seçilmemişse, product'ın colorId'sini veya ilk rengin ID'sini kullan
-      actualColorId = product.colorId || null;
-      if (!actualColorId && product.colors) {
-        const normalizedColors = normalizeColors(product.colors);
-        actualColorId = normalizedColors[0]?.id || null;
+    // Önce ProductSize'dan direkt stok kontrolü yap (en güvenilir)
+    if (product.sizes && product.sizes.length > 0) {
+      const sizeObj = product.sizes.find((s: any) => {
+        if (typeof s === 'object' && s.id) {
+          return s.id === sizeId || s.name === sizeId;
+        }
+        return false;
+      });
+      if (sizeObj && typeof sizeObj === 'object' && 'stock' in sizeObj) {
+        const sizeStock = sizeObj.stock || 0;
+        if (sizeStock > 0) {
+          return sizeStock;
+        }
       }
     }
 
-    // Önce variant stokuna bak
-    const variantStock = getVariantStock(product, sizeId, actualColorId);
-    if (variantStock > 0) return variantStock;
+    // ProductSize'da stok yoksa, variant'a bak
+    if (product.variants && product.variants.length > 0) {
+      const variant = product.variants.find(
+        (v) => v.sizeId === sizeId && (v.colorId === colorId || (!v.colorId && !colorId))
+      );
+      if (variant && variant.stock > 0) {
+        return variant.stock;
+      }
+    }
 
-    // Variant stoku yoksa size'ın kendi stokuna bak
-    // Eğer size'ın stoku varsa, onu kullan (variant stoku yoksa bile)
-    return sizeObj.stock || 0;
+    return 0;
   };
 
-  const resolveModalImage = () => {
-    if (!modalProduct) return "";
-    if (!modalSelectedColor) return modalProduct.image;
-
-    const normalizedColors = normalizeColors(modalProduct.colors);
-    const byImage = normalizedColors.find((c) => c.image === modalSelectedColor);
-    if (byImage?.image) return byImage.image;
-
-    const byIdLike = normalizedColors.find((c) => c.value === modalSelectedColor || c.name === modalSelectedColor);
-    if (byIdLike?.image) return byIdLike.image;
-
-    return modalProduct.image;
+  const handleColorSelect = (productId: string, color: ColorOption) => {
+    setSelectedOptions((prev) => ({
+      ...prev,
+      [productId]: {
+        ...prev[productId],
+        colorId: color.id || null,
+        colorImage: color.image,
+        colorObj: color,
+      },
+    }));
   };
 
-  const resolveSelectedColorName = () => {
-    if (!modalProduct || !modalSelectedColor) return "";
-    const normalizedColors = normalizeColors(modalProduct.colors);
-    return normalizedColors.find((c) => c.image === modalSelectedColor)?.name || "";
+  const handleSizeSelect = async (productId: string, sizeId: string | null) => {
+    if (!sizeId) return;
+
+    const product = products.find((p) => p.id === productId);
+    if (!product) return;
+
+    // Sepete ekleme işlemi devam ediyorsa tekrar tıklamayı engelle
+    if (addingToCart[productId]) return;
+
+    // State'i güncelle
+    setSelectedOptions((prev) => ({
+      ...prev,
+      [productId]: {
+        ...prev[productId],
+        sizeId: sizeId,
+      },
+    }));
+
+    // Mevcut options'ı al
+    const options = selectedOptions[productId] || {
+      colorId: null,
+      sizeId: null,
+      colorImage: null,
+      colorObj: null,
+    };
+
+    setAddingToCart((prev) => ({ ...prev, [productId]: true }));
+
+    try {
+      const sizes = getAvailableSizes(product);
+      const sizeObj = sizes.find((s: any) => {
+        if (typeof s === 'string') return s === sizeId;
+        return s.id === sizeId || s.name === sizeId;
+      });
+
+      const colorId = options.colorId || product.colorId || null;
+      const finalSizeId = sizeObj?.id || sizeId;
+
+      // Ürün görseli
+      const productImage = options.colorImage || product.image || "";
+
+      // Renk ve beden bilgileri
+      const color = options.colorObj ? {
+        id: options.colorObj.id || "",
+        name: options.colorObj.name,
+      } : null;
+
+      const size = sizeObj && typeof sizeObj === 'object' ? {
+        id: sizeObj.id || "",
+        name: sizeObj.name,
+      } : null;
+
+      await addItemOptimistic({
+        productId: product.id,
+        colorId,
+        sizeId: finalSizeId,
+        quantity: 1,
+        product: {
+          id: product.id,
+          name: product.title,
+          image: productImage,
+          price: product.price,
+        },
+        color,
+        size,
+      });
+
+      // CartPreview popup'ını göster
+      window.dispatchEvent(new CustomEvent("itemAddedToCart", {
+        detail: {
+          product: {
+            id: product.id,
+            name: product.title,
+            image: productImage,
+            price: product.price,
+          },
+          size: size?.name || sizeId,
+          color: color?.name || "",
+        },
+      }));
+
+      window.dispatchEvent(new Event("cartUpdated"));
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      toast.error("Sepete eklenirken bir hata oluştu", { position: "bottom-left" });
+    } finally {
+      setAddingToCart((prev) => ({ ...prev, [productId]: false }));
+    }
   };
 
-  const resolveSelectedSizeName = () => {
-    if (!modalProduct || !modalSelectedSize) return "";
-    const sizes = getAvailableSizes(modalProduct);
-    const found = sizes.find((s: any) => {
-      if (typeof s === "string") return s === modalSelectedSize;
-      return s.id === modalSelectedSize || s.name === modalSelectedSize;
-    });
-    if (!found) return modalSelectedSize;
-    return typeof found === "string" ? found : found.name;
-  };
+  const handleAddToCart = async (product: Product) => {
+    const options = selectedOptions[product.id] || {
+      colorId: null,
+      sizeId: null,
+      colorImage: null,
+      colorObj: null,
+    };
 
-  const handleAddToCart = async () => {
-    if (!modalProduct || !modalSelectedSize) {
-      toast.error("Lütfen beden seçiniz", { position: "bottom-left" });
+    if (!options.sizeId) {
+      toast.error("Lütfen bir beden seçin", { position: "bottom-left" });
       return;
     }
 
-    setIsAddingToCart(true);
-
-    // Renk ID'sini bul - modalSelectedColor bir image URL olabilir, gerçek ID'yi bul
-    let colorIdToSend = null;
-    if (modalSelectedColor) {
-      const normalizedColors = normalizeColors(modalProduct.colors);
-      const colorObj = normalizedColors.find((c) =>
-        c.image === modalSelectedColor ||
-        (c.id && c.id === modalSelectedColor) ||
-        c.value === modalSelectedColor ||
-        c.name === modalSelectedColor
-      );
-      if (colorObj?.id) {
-        colorIdToSend = colorObj.id;
-      } else if (modalSelectedColor && /^[a-f0-9-]{36}$/i.test(modalSelectedColor)) {
-        // UUID formatındaysa direkt kullan
-        colorIdToSend = modalSelectedColor;
-      } else {
-        // Son çare olarak product'ın colorId'sini kullan
-        colorIdToSend = modalProduct.colorId || null;
-      }
-    } else {
-      colorIdToSend = modalProduct.colorId || null;
-    }
-
-    // Beden ID'sini bul
-    let sizeIdToSend = null;
-    const availableSizes = getAvailableSizes(modalProduct);
-    const sizeObj = availableSizes.find((s: any) => {
-      if (typeof s === 'string') {
-        return s === modalSelectedSize;
-      }
-      return s.id === modalSelectedSize || s.name === modalSelectedSize;
-    });
-    sizeIdToSend = sizeObj?.id || modalSelectedSize;
+    setAddingToCart((prev) => ({ ...prev, [product.id]: true }));
 
     try {
-      const res = await fetch("/api/cart", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          productId: modalProduct.id,
-          colorId: colorIdToSend,
-          sizeId: sizeIdToSend,
-          quantity: 1,
-        }),
+      const sizes = getAvailableSizes(product);
+      const sizeObj = sizes.find((s: any) => {
+        if (typeof s === 'string') return s === options.sizeId;
+        return s.id === options.sizeId || s.name === options.sizeId;
       });
 
-      if (res.ok) {
-        const result = await res.json();
+      const colorId = options.colorId || product.colorId || null;
+      const finalSizeId = sizeObj?.id || options.sizeId;
 
-        // Giriş yapmamış kullanıcı için localStorage'a kaydet
-        if (!result.userId && result.product) {
-          addToGuestCart(
-            modalProduct.id,
-            colorIdToSend,
-            sizeIdToSend,
-            1,
-            {
-              id: result.product.id,
-              name: result.product.name || modalProduct.title,
-              image: result.product.image || modalProduct.image,
-              price: result.product.price || modalProduct.price || 0,
-            },
-            result.color || null,
-            result.size || null
-          );
-          // saveGuestCart içinde event dispatch ediliyor, burada tekrar etmeye gerek yok
-        } else {
-          // Giriş yapmış kullanıcı için event dispatch et
-          window.dispatchEvent(new Event("cartUpdated"));
-        }
+      // Ürün görseli
+      const productImage = options.colorImage || product.image || "";
 
-        // Pop-up için event gönder (modal kapanmadan önce)
-        // API response'undan resim bilgisini al
-        let productImage = modalProduct.image;
-        if (result.color?.images) {
-          // color.images JSON string olabilir
-          let colorImages: string[] = [];
-          if (typeof result.color.images === 'string') {
-            try {
-              colorImages = JSON.parse(result.color.images);
-            } catch {
-              colorImages = [result.color.images];
-            }
-          } else if (Array.isArray(result.color.images)) {
-            colorImages = result.color.images;
-          }
-          if (colorImages.length > 0) {
-            productImage = colorImages[0];
-          }
-        } else if (result.product?.image) {
-          productImage = result.product.image;
-        }
+      // Renk ve beden bilgileri
+      const color = options.colorObj ? {
+        id: options.colorObj.id || "",
+        name: options.colorObj.name,
+      } : null;
 
-        window.dispatchEvent(
-          new CustomEvent("itemAddedToCart", {
-            detail: {
-              product: {
-                id: modalProduct.id,
-                name: result.product?.name || modalProduct.title,
-                image: productImage,
-                price: result.product?.price || modalProduct.price || 0,
-              },
-              size: result.size?.name || resolveSelectedSizeName(),
-              color: result.color?.name || resolveSelectedColorName(),
-            },
-          })
-        );
+      const size = sizeObj && typeof sizeObj === 'object' ? {
+        id: sizeObj.id || "",
+        name: sizeObj.name,
+      } : null;
 
-        setIsAddingToCart(false);
-        // Modal'ı kapatmayı biraz geciktir ki popup görünsün
-        setTimeout(() => {
-          closeModal();
-        }, 100);
-        return;
-      }
+      await addItemOptimistic({
+        productId: product.id,
+        colorId,
+        sizeId: finalSizeId,
+        quantity: 1,
+        product: {
+          id: product.id,
+          name: product.title,
+          image: productImage,
+          price: product.price,
+        },
+        color,
+        size,
+      });
 
-      const error = await res.json().catch(() => null);
-      setIsAddingToCart(false);
-      toast.error(error?.error || "Sepete eklenirken bir hata oluştu", { position: "bottom-left" });
-    } catch (e) {
-      setIsAddingToCart(false);
+      toast.success("Sepete eklendi", { position: "bottom-left" });
+      window.dispatchEvent(new Event("cartUpdated"));
+    } catch (error) {
+      console.error("Error adding to cart:", error);
       toast.error("Sepete eklenirken bir hata oluştu", { position: "bottom-left" });
+    } finally {
+      setAddingToCart((prev) => ({ ...prev, [product.id]: false }));
     }
+  };
+
+
+  const getProductUrl = (product: Product) => {
+    if (product.slug) return `/products/${product.slug}`;
+    return `/products/${product.id}`;
   };
 
   return (
     <section className="w-full bg-white py-12 md:py-20">
-      <div className="w-full">
-        <div className="hidden md:block relative">
-          <div className="overflow-hidden">
-            <div
-              ref={scrollContainerRef}
-              onScroll={checkScroll}
-              className="flex gap-6 overflow-x-auto scrollbar-hide snap-x snap-mandatory"
-              style={{ scrollBehavior: "smooth" }}
-            >
-              {products.map((product) => {
-                const isColorActive = hoveredColor?.productId === product.id || selectedColor?.productId === product.id;
-
-                const activeColorImage =
-                  hoveredColor?.productId === product.id
-                    ? hoveredColor.colorImage
-                    : selectedColor?.productId === product.id
-                      ? selectedColor.colorImage
-                      : null;
-
-                // Base64 görselleri filtrele
-                const baseImage = activeColorImage || product.image;
-                const currentImage = filterBase64Images(baseImage) || baseImage || "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop";
-                const normalizedColors = normalizeColors(product.colors);
-
-                return (
-                  <div
-                    key={product.id}
-                    className="flex-shrink-0 w-[280px] snap-start group bg-white cursor-pointer"
-                    onClick={() => openModal(product)}
-                  >
-                    <div className="relative w-full h-[400px] overflow-hidden bg-white">
-                      <Image
-                        src={currentImage}
-                        alt={product.title}
-                        fill
-                        className="object-cover object-center transition-opacity duration-700"
-                        sizes="280px"
-                        loading="lazy"
-                        quality={90}
-                      />
-
-                      {!isColorActive && filterBase64Images(product.hoverImage) && (
-                        <Image
-                          src={filterBase64Images(product.hoverImage)!}
-                          alt={`${product.title} hover`}
-                          fill
-                          className="object-cover object-center opacity-0 transition-opacity duration-700 group-hover:opacity-100 absolute inset-0"
-                          sizes="280px"
-                          loading="lazy"
-                          quality={90}
-                        />
-                      )}
-                    </div>
-
-                    <div className="mt-4 px-2">
-                      <h3 className="text-sm font-light text-[#111] mb-1 uppercase tracking-wide">{product.title}</h3>
-                      {product.price != null && (
-                        <div className="flex items-center gap-2 mb-3">
-                          {product.originalPrice && product.originalPrice > product.price ? (
-                            <>
-                              <p className="text-sm font-light text-[#111]">₺{product.price.toFixed(2)}</p>
-                              <p className="text-sm font-light text-gray-400 line-through">₺{product.originalPrice.toFixed(2)}</p>
-                            </>
-                          ) : (
-                            <p className="text-sm font-light text-[#111]">
-                              ₺{product.originalPrice ? product.originalPrice.toFixed(2) : product.price.toFixed(2)}
-                            </p>
-                          )}
-                        </div>
-                      )}
-
-                      {normalizedColors.length > 0 && (
-                        <div className="flex items-center gap-1.5">
-                          {normalizedColors.map((color, idx) => {
-                            const isActive =
-                              (hoveredColor?.productId === product.id && hoveredColor.colorImage === color.image) ||
-                              (selectedColor?.productId === product.id && selectedColor.colorImage === color.image);
-
-                            return (
-                              <button
-                                key={idx}
-                                onMouseEnter={() => setHoveredColor({ productId: product.id, colorImage: color.image })}
-                                onMouseLeave={handleColorLeave}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleColorInteraction(product.id, color.image);
-                                }}
-                                className={`w-3 h-3 rounded-full border transition-all duration-200 ${isActive ? "border-[#111] scale-125" : "border-gray-300"
-                                  }`}
-                                style={{ backgroundColor: color.value }}
-                                aria-label={`${color.name} renk seçeneği`}
-                              />
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+      <div className="w-full max-w-7xl mx-auto px-4 md:px-8">
+        {products.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-[#111]/60 font-light">Henüz ürün bulunmuyor.</p>
           </div>
-
-          {canScrollPrev && (
-            <button
-              onClick={scrollPrev}
-              className="absolute left-0 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white border border-gray-200 p-3 transition-all shadow-sm z-10"
-              aria-label="Önceki"
-            >
-              <ChevronLeft className="w-5 h-5 text-[#111]" />
-            </button>
-          )}
-
-          {canScrollNext && (
-            <button
-              onClick={scrollNext}
-              className="absolute right-0 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white border border-gray-200 p-3 transition-all shadow-sm z-10"
-              aria-label="Sonraki"
-            >
-              <ChevronRight className="w-5 h-5 text-[#111]" />
-            </button>
-          )}
-        </div>
-
-        <div className="md:hidden relative w-full overflow-hidden">
-          <div
-            ref={scrollContainerRef}
-            onScroll={checkScroll}
-            className="flex gap-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory"
-            style={{ scrollBehavior: "smooth" }}
-          >
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 justify-start">
             {products.map((product) => {
-              const isColorActive = hoveredColor?.productId === product.id || selectedColor?.productId === product.id;
-
-              const activeColorImage =
-                hoveredColor?.productId === product.id
-                  ? hoveredColor.colorImage
-                  : selectedColor?.productId === product.id
-                    ? selectedColor.colorImage
-                    : null;
-
-              // Base64 görselleri filtrele
-              const baseImage = activeColorImage || product.image;
-              const currentImage = filterBase64Images(baseImage) || baseImage || "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop";
               const normalizedColors = normalizeColors(product.colors);
+              const sizes = getAvailableSizes(product);
+              const options = selectedOptions[product.id] || {
+                colorId: null,
+                sizeId: null,
+                colorImage: null,
+                colorObj: null,
+              };
+
+              // Görsel seçimi
+              const currentImage = filterBase64Images(options.colorImage || product.image) ||
+                product.image ||
+                "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop";
+
+              const productUrl = getProductUrl(product);
 
               return (
                 <div
                   key={product.id}
-                  className="flex-shrink-0 w-[calc(50%-8px)] snap-start group bg-white cursor-pointer"
-                  onClick={() => openModal(product)}
+                  className="group flex flex-col bg-white"
                 >
-                  <div className="relative w-full h-[450px] overflow-hidden bg-white">
+                  {/* Ürün Görseli - Tıklanabilir */}
+                  <Link href={productUrl} className="relative w-full aspect-[3/4] overflow-hidden bg-gray-100 mb-4 group">
                     <Image
                       src={currentImage}
                       alt={product.title}
                       fill
-                      className="object-cover object-center transition-opacity duration-700"
-                      sizes="50vw"
+                      className="object-cover object-center transition-opacity duration-300"
+                      sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                       loading="lazy"
                       quality={90}
                     />
-
-                    {!isColorActive && filterBase64Images(product.hoverImage) && (
-                        <Image
+                    {product.hoverImage && filterBase64Images(product.hoverImage) && (
+                      <Image
                         src={filterBase64Images(product.hoverImage)!}
                         alt={`${product.title} hover`}
                         fill
-                        className="object-cover object-center opacity-0 transition-opacity duration-700 group-hover:opacity-100 absolute inset-0"
-                        sizes="50vw"
+                        className="object-cover object-center opacity-0 transition-opacity duration-300 group-hover:opacity-100 absolute inset-0"
+                        sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                         loading="lazy"
                         quality={90}
                       />
                     )}
-                  </div>
-
-                  <div className="mt-4 px-2">
-                    <h3 className="text-xs font-light text-[#111] mb-1 uppercase tracking-wide">{product.title}</h3>
-                    {product.price != null && (
-                      <div className="flex items-center gap-2 mb-3">
-                        {product.originalPrice && product.originalPrice > product.price ? (
-                          <>
-                            <p className="text-sm font-light text-[#111]">₺{product.price.toFixed(2)}</p>
-                            <p className="text-sm font-light text-gray-400 line-through">₺{product.originalPrice.toFixed(2)}</p>
-                          </>
-                        ) : (
-                          <p className="text-sm font-light text-[#111]">₺{product.price.toFixed(2)}</p>
-                        )}
+                    {product.badge && (
+                      <div className="absolute top-2 left-2 bg-[#111] text-white text-[10px] px-2 py-1 uppercase tracking-wide z-10">
+                        {product.badge}
                       </div>
                     )}
 
-                    {normalizedColors.length > 0 && (
-                      <div className="flex items-center gap-1.5">
-                        {normalizedColors.map((color, idx) => {
-                          const isActive =
-                            (hoveredColor?.productId === product.id && hoveredColor.colorImage === color.image) ||
-                            (selectedColor?.productId === product.id && selectedColor.colorImage === color.image);
+                    {/* Beden Seçimi - Hover ile görünür, görselin alt kısmında */}
+                    {sizes.length > 0 && (
+                      <div className="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-3 border-t border-gray-200">
+                        <div className="flex items-center gap-1.5 flex-wrap justify-center">
+                          {sizes.map((size: any, idx: number) => {
+                            const sizeName = typeof size === "string" ? size : size.name;
+                            const sizeId = typeof size === "object" && size.id ? size.id : sizeName;
+                            const stock = typeof size === "object"
+                              ? getVariantStock(product, sizeId, options.colorId)
+                              : 0;
+                            const isOutOfStock = stock <= 0;
+                            const isSelected = options.sizeId === sizeId;
 
-                          return (
-                            <button
-                              key={idx}
-                              onMouseEnter={() => setHoveredColor({ productId: product.id, colorImage: color.image })}
-                              onMouseLeave={handleColorLeave}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleColorInteraction(product.id, color.image);
-                              }}
-                              className={`w-3 h-3 rounded-full border transition-all duration-200 ${isActive ? "border-[#111] scale-125" : "border-gray-300"
-                                }`}
-                              style={{ backgroundColor: color.value }}
-                              aria-label={`${color.name} renk seçeneği`}
-                            />
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {canScrollPrev && (
-            <button
-              onClick={scrollPrev}
-              className="absolute left-0 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white border border-gray-200 p-2 transition-all shadow-sm z-10"
-              aria-label="Önceki"
-            >
-              <ChevronLeft className="w-4 h-4 text-[#111]" />
-            </button>
-          )}
-
-          {canScrollNext && (
-            <button
-              onClick={scrollNext}
-              className="absolute right-0 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white border border-gray-200 p-2 transition-all shadow-sm z-10"
-              aria-label="Sonraki"
-            >
-              <ChevronRight className="w-4 h-4 text-[#111]" />
-            </button>
-          )}
-        </div>
-
-        {products.length > 0 && (
-          <div className="mt-12 md:mt-16 flex justify-center">
-            <Link
-              href="/products"
-              className="px-8 py-3 border border-[#111] bg-white text-[#111] text-sm md:text-base font-light hover:bg-[#111] hover:text-white transition-all duration-300"
-            >
-              Daha Fazla Göster
-            </Link>
-          </div>
-        )}
-
-        {products.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-[#111]/60 font-light">Henüz ürün bulunmuyor.</p>
-          </div>
-        )}
-      </div>
-
-      {modalProduct && (
-        <div
-          className="fixed inset-0 z-50 bg-black/55 backdrop-blur-sm flex items-center justify-center p-3 md:p-6"
-          onClick={closeModal}
-        >
-          <div
-            className="relative w-full max-w-6xl h-[88vh] bg-white rounded-lg shadow-2xl overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={closeModal}
-              className="absolute top-3 right-3 z-10 w-10 h-10 flex items-center justify-center bg-white/90 hover:bg-white rounded-full transition-colors shadow"
-              aria-label="Kapat"
-            >
-              <X className="w-5 h-5 text-[#111]" />
-            </button>
-
-            <div className="h-full grid grid-rows-[auto_1fr_auto] md:grid-rows-1 md:grid-cols-2">
-              <div className="md:hidden bg-gray-50 p-4">
-                <div className="relative w-full aspect-square bg-gray-100 overflow-hidden rounded-md">
-                  <Image
-                    src={resolveModalImage()}
-                    alt={modalProduct.title}
-                    fill
-                    className="object-cover"
-                    sizes="100vw"
-                    quality={90}
-                  />
-                </div>
-              </div>
-
-              <div className="hidden md:flex bg-gray-50 p-6 items-center justify-center">
-                <div className="relative w-full max-w-[720px] aspect-square bg-gray-100 overflow-hidden rounded-md">
-                  <Image
-                    src={resolveModalImage()}
-                    alt={modalProduct.title}
-                    fill
-                    className="object-cover"
-                    sizes="50vw"
-                    quality={90}
-                  />
-                </div>
-              </div>
-
-              <div className="flex flex-col min-h-0">
-                <div className="flex-1 min-h-0 overflow-y-auto px-5 py-5 md:px-8 md:py-8">
-                  <p className="text-xs text-[#111]/60 font-light uppercase mb-2">DARK VELVET</p>
-
-                  <h2 className="text-xl md:text-2xl font-light text-[#111] mb-2 uppercase">{modalProduct.title}</h2>
-
-                  {modalProduct.price != null && (
-                    <div className="mb-4">
-                      {modalProduct.originalPrice && modalProduct.originalPrice > modalProduct.price ? (
-                        <div className="flex items-center gap-3">
-                          <p className="text-xl font-light text-[#111]">₺{modalProduct.price.toFixed(2)}</p>
-                          <p className="text-lg font-light text-gray-400 line-through">₺{modalProduct.originalPrice.toFixed(2)}</p>
-                        </div>
-                      ) : (
-                        <p className="text-xl font-light text-[#111]">
-                          ₺{modalProduct.originalPrice ? modalProduct.originalPrice.toFixed(2) : modalProduct.price.toFixed(2)}
-                        </p>
-                      )}
-                    </div>
-                  )}
-
-                  <div className="flex items-center gap-2 mb-5">
-                    <div className="flex items-center gap-1">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star
-                          key={star}
-                          className={`w-4 h-4 ${star <= 4 ? "fill-[#111] text-[#111]" : "fill-gray-300 text-gray-300"}`}
-                        />
-                      ))}
-                    </div>
-                    <span className="text-sm text-[#111]/60 font-light">4.8 (4)</span>
-                  </div>
-
-                  <Link
-                    href={`/product/${modalProduct.id}`}
-                    className="text-sm text-[#111] hover:underline font-light inline-block mb-6"
-                    onClick={closeModal}
-                  >
-                    View product details →
-                  </Link>
-
-                  {(() => {
-                    const normalizedModalColors = normalizeColors(modalProduct.colors);
-                    if (normalizedModalColors.length === 0) return null;
-
-                    return (
-                      <div className="mb-6">
-                        <p className="text-sm font-light text-[#111] mb-3">
-                          Color: <span className="text-[#111]/60">{resolveSelectedColorName() || "Seçiniz"}</span>
-                        </p>
-                        <div className="flex gap-2 flex-wrap">
-                          {normalizedModalColors.map((color, idx) => {
-                            const isSelected = modalSelectedColor === color.image;
                             return (
                               <button
                                 key={idx}
-                                onClick={() => setModalSelectedColor(color.image)}
-                                className={`w-9 h-9 rounded-full border-2 transition-all ${isSelected ? "border-[#111] scale-110" : "border-gray-300 hover:scale-105"
-                                  }`}
-                                style={{ backgroundColor: color.value }}
-                                aria-label={color.name}
-                              />
-                            );
-                          })}
-                        </div>
-                      </div>
-                    );
-                  })()}
-
-                  {(() => {
-                    const sizes = getAvailableSizes(modalProduct);
-                    if (!sizes || sizes.length === 0) return null;
-
-                    return (
-                      <div className="mb-6">
-                        <p className="text-sm font-light text-[#111] mb-3">
-                          Size: <span className="text-[#111]/60">{resolveSelectedSizeName() || "Seçiniz"}</span>
-                        </p>
-
-                        <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
-                          {sizes.map((s: any, idx: number) => {
-                            const sizeName = typeof s === "string" ? s : s.name;
-                            const sizeId = typeof s === "object" && s.id ? s.id : null;
-
-                            const stock =
-                              typeof s === "object"
-                                ? getSizeStock(modalProduct, s, modalSelectedColor || null)
-                                : 0;
-
-                            const isOutOfStock = stock <= 0;
-                            const isSelected = modalSelectedSize === (sizeId || sizeName);
-
-                            return (
-                              <button
-                                key={`${sizeId || sizeName}_${idx}`}
-                                onClick={() => {
-                                  if (!isOutOfStock) setModalSelectedSize(sizeId || sizeName);
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  if (!isOutOfStock) {
+                                    handleSizeSelect(product.id, sizeId);
+                                  }
                                 }}
                                 disabled={isOutOfStock}
-                                className={`px-4 py-3 text-sm font-light border transition-all ${isSelected
+                                className={`px-3 py-1.5 text-xs font-light border transition-all ${isSelected
                                     ? "border-[#111] bg-[#111] text-white"
                                     : isOutOfStock
-                                      ? "border-gray-200 text-gray-400 line-through cursor-not-allowed bg-white"
+                                      ? "border-gray-200 text-gray-400 cursor-not-allowed"
                                       : "border-gray-300 hover:border-[#111] bg-white text-[#111]"
                                   }`}
                               >
@@ -776,50 +379,73 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                           })}
                         </div>
                       </div>
-                    );
-                  })()}
-
-                  <div className="mb-6">
-                    <p className="text-sm font-light text-[#111] leading-relaxed">
-                      {modalProduct.title} - Premium kalite ve zarif tasarım ile üretilmiştir.
-                    </p>
-                  </div>
-
-                  <div className="mb-10">
-                    <ul className="space-y-2 text-sm font-light text-[#111]">
-                      <li>• Premium kumaş</li>
-                      <li>• Yüksek kalite</li>
-                      <li>• Zarif tasarım</li>
-                    </ul>
-                  </div>
-                </div>
-
-                <div className="border-t border-gray-200 p-4 md:p-6 bg-white">
-                  <button
-                    onClick={handleAddToCart}
-                    disabled={!modalSelectedSize || isAddingToCart}
-                    className={`w-full py-4 md:py-5 text-base font-light uppercase tracking-wide transition-all ${modalSelectedSize && !isAddingToCart
-                        ? "bg-[#111] text-white hover:bg-[#333]"
-                        : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      }`}
-                  >
-                    {isAddingToCart ? (
-                      <span className="inline-flex items-center justify-center gap-2">
-                        <ShoppingBag className="w-5 h-5" />
-                        Ekleniyor...
-                      </span>
-                    ) : modalSelectedSize ? (
-                      "Sepete Ekle"
-                    ) : (
-                      "Select a Size"
                     )}
-                  </button>
+                  </Link>
+
+                  {/* Ürün Bilgileri */}
+                  <div className="flex-1 flex flex-col">
+                    <Link href={productUrl} className="mb-2">
+                      <h3 className="text-sm font-light text-[#111] uppercase tracking-wide line-clamp-2">
+                        {product.title}
+                      </h3>
+                    </Link>
+
+                    {/* Fiyat */}
+                    {product.price != null && (
+                      <div className="flex items-center gap-2 mb-3">
+                        {product.originalPrice ? (
+                          <>
+                            <p className="text-sm font-light text-[#111]">₺{product.originalPrice.toFixed(2)}</p>
+                            <p className="text-sm font-light text-gray-400 line-through">
+                              ₺{product.price.toFixed(2)}
+                            </p>
+                          </>
+                        ) : (
+                          <p className="text-sm font-light text-[#111]">
+                            ₺{product.price.toFixed(2)}
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Renk Seçimi */}
+                    {normalizedColors.length > 0 && (
+                      <div className="mb-3">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {normalizedColors.map((color, idx) => {
+                            const colorKey = color.id || color.image || color.value;
+                            const isSelected = options.colorId === colorKey ||
+                              (options.colorImage === color.image) ||
+                              (!options.colorId && !options.colorImage && idx === 0);
+
+                            return (
+                              <button
+                                key={idx}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  handleColorSelect(product.id, color);
+                                }}
+                                className={`w-4 h-4 rounded-full border transition-all ${isSelected
+                                    ? "border-[#111] scale-125"
+                                    : "border-gray-300 hover:scale-110"
+                                  }`}
+                                style={{ backgroundColor: color.value }}
+                                aria-label={color.name}
+                              />
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                  </div>
                 </div>
-              </div>
-            </div>
+              );
+            })}
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </section>
   );
 }

@@ -16,7 +16,7 @@ export interface CampaignDraft {
   scheduleAt: Date | null;
 }
 
-export type BlockType = "header" | "hero" | "coupon" | "cta" | "footer" | "text";
+export type BlockType = "header" | "hero" | "coupon" | "cta" | "footer" | "text" | "product" | "image" | "divider";
 
 export interface Block {
   id: string;

@@ -15,7 +15,7 @@ export default function ProfileLayout({ children }: { children: ReactNode }) {
 
   return (
     <>
-      <div className="flex flex-col md:flex-row min-h-screen bg-white overflow-x-hidden pt-[65px] md:pt-[81px]">
+      <div className="flex flex-col md:flex-row min-h-screen bg-white overflow-x-hidden">
         <aside className="hidden md:block w-64 border-r bg-gray-50 px-4 py-6 shrink-0">
           <Sidebar />
         </aside>

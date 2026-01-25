@@ -288,7 +288,7 @@ export default function AddProductPage() {
   // Kategorileri yükle
   const loadCategories = async () => {
     try {
-      const res = await fetch("/api/admin/categories");
+      const res = await fetch("/api/admin-categories");
       if (res.ok) {
         const data = await res.json();
         setCategories(data);

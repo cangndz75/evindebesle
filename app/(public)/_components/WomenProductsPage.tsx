@@ -22,6 +22,7 @@ import {
 import { Button } from "@/components/ui/button";
 import ProductFilters from "./ProductFilters";
 import { useMemo } from "react";
+import HoverImageSlider from "@/components/product/HoverImageSlider";
 
 type ColorOption = {
   name: string;
@@ -132,10 +133,9 @@ function FavoriteButton({ productId }: { productId: string }) {
       onClick={handleToggle}
       aria-label="Favorilere Ekle"
     >
-      <Heart 
-        className={`w-4 h-4 transition-colors ${
-          isFavorite ? "fill-red-500 text-red-500" : "text-[#111]"
-        }`} 
+      <Heart
+        className={`w-4 h-4 transition-colors ${isFavorite ? "fill-red-500 text-red-500" : "text-[#111]"
+          }`}
       />
     </button>
   );
@@ -216,7 +216,7 @@ export default function WomenProductsPage({
       if (productIndex < productItems.length) {
         items.push({
           ...productItems[productIndex],
-          _gridPosition: { 
+          _gridPosition: {
             type: 'large-left',
             row: currentRow,
             col: 1,
@@ -225,12 +225,12 @@ export default function WomenProductsPage({
         });
         productIndex++;
       }
-      
+
       // Sağ üst ürün
       if (productIndex < productItems.length) {
         items.push({
           ...productItems[productIndex],
-          _gridPosition: { 
+          _gridPosition: {
             type: 'small',
             row: currentRow,
             col: 3,
@@ -239,12 +239,12 @@ export default function WomenProductsPage({
         });
         productIndex++;
       }
-      
+
       // Sağ alt ürün
       if (productIndex < productItems.length) {
         items.push({
           ...productItems[productIndex],
-          _gridPosition: { 
+          _gridPosition: {
             type: 'small',
             row: currentRow + 1,
             col: 3,
@@ -253,14 +253,14 @@ export default function WomenProductsPage({
         });
         productIndex++;
       }
-      
+
       currentRow += 2; // 2 satır kullandık
-      
+
       // Pattern 2: 4 ürün yatay
       for (let i = 0; i < 4 && productIndex < productItems.length; i++) {
         items.push({
           ...productItems[productIndex],
-          _gridPosition: { 
+          _gridPosition: {
             type: 'small',
             row: currentRow,
             col: i + 1,
@@ -270,13 +270,13 @@ export default function WomenProductsPage({
         productIndex++;
       }
       currentRow += 1; // 1 satır kullandık
-      
+
       // Pattern 3: Solda 2 ürün dikey + Büyük sağ (2x2)
       // Sol üst
       if (productIndex < productItems.length) {
         items.push({
           ...productItems[productIndex],
-          _gridPosition: { 
+          _gridPosition: {
             type: 'small',
             row: currentRow,
             col: 1,
@@ -285,12 +285,12 @@ export default function WomenProductsPage({
         });
         productIndex++;
       }
-      
+
       // Sol alt
       if (productIndex < productItems.length) {
         items.push({
           ...productItems[productIndex],
-          _gridPosition: { 
+          _gridPosition: {
             type: 'small',
             row: currentRow + 1,
             col: 1,
@@ -299,12 +299,12 @@ export default function WomenProductsPage({
         });
         productIndex++;
       }
-      
+
       // Büyük sağ (2x2)
       if (productIndex < productItems.length) {
         items.push({
           ...productItems[productIndex],
-          _gridPosition: { 
+          _gridPosition: {
             type: 'large-right',
             row: currentRow,
             col: 3,
@@ -313,14 +313,14 @@ export default function WomenProductsPage({
         });
         productIndex++;
       }
-      
+
       currentRow += 2; // 2 satır kullandık
-      
+
       // Pattern 4: 4 ürün yatay
       for (let i = 0; i < 4 && productIndex < productItems.length; i++) {
         items.push({
           ...productItems[productIndex],
-          _gridPosition: { 
+          _gridPosition: {
             type: 'small',
             row: currentRow,
             col: i + 1,
@@ -345,8 +345,8 @@ export default function WomenProductsPage({
           filters.minPrice && filters.maxPrice
             ? `₺${filters.minPrice} - ₺${filters.maxPrice}`
             : filters.minPrice
-            ? `₺${filters.minPrice}+`
-            : `₺${filters.maxPrice}-`,
+              ? `₺${filters.minPrice}+`
+              : `₺${filters.maxPrice}-`,
         value: `${filters.minPrice || ""}-${filters.maxPrice || ""}`,
       });
     }
@@ -406,7 +406,7 @@ export default function WomenProductsPage({
   };
 
   return (
-    <div className="min-h-screen bg-white pt-[65px] md:pt-[81px]">
+    <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 md:py-12">
         {/* Breadcrumb */}
         <nav className="mb-3 md:mb-4">
@@ -428,11 +428,10 @@ export default function WomenProductsPage({
             <button
               key={category}
               onClick={() => setSelectedCategory(category)}
-              className={`px-3 md:px-4 py-2 text-xs md:text-sm font-light uppercase tracking-wide transition-colors whitespace-nowrap flex-shrink-0 ${
-                selectedCategory === category
-                  ? "bg-[#111] text-white"
-                  : "bg-white text-[#111] border border-[#111] hover:bg-[#111] hover:text-white"
-              }`}
+              className={`px-3 md:px-4 py-2 text-xs md:text-sm font-light uppercase tracking-wide transition-colors whitespace-nowrap flex-shrink-0 ${selectedCategory === category
+                ? "bg-[#111] text-white"
+                : "bg-white text-[#111] border border-[#111] hover:bg-[#111] hover:text-white"
+                }`}
             >
               {category}
             </button>
@@ -459,7 +458,7 @@ export default function WomenProductsPage({
           {/* Sırala - Sağ */}
           <div className="flex items-center gap-2 md:gap-4">
             <span className="text-xs md:text-sm text-[#111]/60 font-light hidden md:inline">{products.length} ürün</span>
-            
+
             {/* Mobil: Sırala Butonu */}
             <button
               onClick={() => setSortDialogOpen(true)}
@@ -575,40 +574,31 @@ export default function WomenProductsPage({
             const activeColorImage = hoveredColor?.productId === product.id
               ? hoveredColor.colorImage
               : selectedColor?.productId === product.id
-              ? selectedColor.colorImage
-              : null;
+                ? selectedColor.colorImage
+                : null;
 
             const currentImage = activeColorImage || product.image || "/placeholder.png";
 
             return (
               <div key={product.id} className="group">
                 <Link href={product.slug ? `/products/${product.slug}` : `/product/${product.id}`} className="block">
-                  <div className="relative mb-3 overflow-hidden bg-gray-100 aspect-[3/4]">
-                    <Image
-                      src={currentImage}
-                      alt={product.name}
-                      fill
-                      className="object-cover transition-opacity duration-500"
-                      sizes="50vw"
-                      unoptimized
-                    />
-                    {!isColorActive && product.hoverImage && (
-                      <Image
-                        src={product.hoverImage}
-                        alt={`${product.name} hover`}
-                        fill
-                        className="object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-                        sizes="50vw"
-                        unoptimized
-                      />
-                    )}
-                    {product.badge && (
-                      <div className="absolute top-3 left-3 bg-[#111] text-white uppercase font-light text-[10px] px-2 py-1">
-                        {product.badge}
-                      </div>
-                    )}
-                    <FavoriteButton productId={product.id} />
-                  </div>
+                  <HoverImageSlider
+                    images={[
+                      activeColorImage || product.image || "/placeholder.png",
+                      product.hoverImage
+                    ].filter(Boolean) as string[]}
+                    alt={product.name}
+                    sizes="50vw"
+                    className="mb-3"
+                    badge={
+                      product.badge ? (
+                        <div className="absolute top-3 left-3 bg-[#111] text-white uppercase font-light text-[10px] px-2 py-1 z-10">
+                          {product.badge}
+                        </div>
+                      ) : null
+                    }
+                    favoriteButton={<FavoriteButton productId={product.id} />}
+                  />
                 </Link>
 
                 <div className="space-y-1">
@@ -647,9 +637,8 @@ export default function WomenProductsPage({
                         onMouseEnter={() => handleColorInteraction(product.id, color.image)}
                         onMouseLeave={handleColorLeave}
                         onClick={() => handleColorInteraction(product.id, color.image)}
-                        className={`w-3 h-3 rounded-full border transition-all duration-200 flex-shrink-0 ${
-                          isActive ? "border-[#111] scale-110" : "border-gray-300"
-                        }`}
+                        className={`w-3 h-3 rounded-full border transition-all duration-200 flex-shrink-0 ${isActive ? "border-[#111] scale-110" : "border-gray-300"
+                          }`}
                         style={{ backgroundColor: color.value }}
                         aria-label={`${color.name} renk seçeneği`}
                       />
@@ -671,11 +660,11 @@ export default function WomenProductsPage({
           {gridItems.map((item, index) => {
             // Ürün kartı
             const product = item as ProductWithGridPosition;
-            
+
             // Grid pozisyonunu _gridPosition'dan al
             const gridPos = (product as ProductWithGridPosition)._gridPosition;
             let gridStyle: React.CSSProperties = {};
-            
+
             if (gridPos) {
               const { row, col, span } = gridPos;
               if (span.row > 1 || span.col > 1) {
@@ -696,11 +685,11 @@ export default function WomenProductsPage({
             const activeColorImage = hoveredColor?.productId === product.id
               ? hoveredColor.colorImage
               : selectedColor?.productId === product.id
-              ? selectedColor.colorImage
-              : null;
+                ? selectedColor.colorImage
+                : null;
 
             const currentImage = activeColorImage || product.image || "/placeholder.png";
-            
+
             // Büyük ürünler için square, küçükler için 3/4 aspect ratio
             const isLarge = gridPos && (gridPos.span.row > 1 || gridPos.span.col > 1);
             const aspectClass = isLarge ? "aspect-square" : "aspect-[3/4]";
@@ -708,32 +697,24 @@ export default function WomenProductsPage({
             return (
               <div key={product.id} className="group" style={gridStyle}>
                 <Link href={product.slug ? `/products/${product.slug}` : `/product/${product.id}`} className="block">
-                  <div className={`relative mb-3 overflow-hidden bg-gray-100 ${aspectClass}`}>
-                    <Image
-                      src={currentImage}
-                      alt={product.name}
-                      fill
-                      className="object-cover transition-opacity duration-500"
-                      sizes="(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 25vw"
-                      unoptimized
-                    />
-                    {!isColorActive && product.hoverImage && (
-                      <Image
-                        src={product.hoverImage}
-                        alt={`${product.name} hover`}
-                        fill
-                        className="object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-                        sizes="(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 25vw"
-                        unoptimized
-                      />
-                    )}
-                    {product.badge && (
-                      <div className="absolute top-3 left-3 bg-[#111] text-white uppercase font-light text-[10px] px-2 py-1">
-                        {product.badge}
-                      </div>
-                    )}
-                    <FavoriteButton productId={product.id} />
-                  </div>
+                  <HoverImageSlider
+                    images={[
+                      activeColorImage || product.image || "/placeholder.png",
+                      product.hoverImage
+                    ].filter(Boolean) as string[]}
+                    alt={product.name}
+                    sizes="(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 25vw"
+                    className="mb-3"
+                    aspectRatio={isLarge ? "square" : "portrait"}
+                    badge={
+                      product.badge ? (
+                        <div className="absolute top-3 left-3 bg-[#111] text-white uppercase font-light text-[10px] px-2 py-1 z-10">
+                          {product.badge}
+                        </div>
+                      ) : null
+                    }
+                    favoriteButton={<FavoriteButton productId={product.id} />}
+                  />
                 </Link>
 
                 <div className="space-y-1">
@@ -772,9 +753,8 @@ export default function WomenProductsPage({
                         onMouseEnter={() => handleColorInteraction(product.id, color.image)}
                         onMouseLeave={handleColorLeave}
                         onClick={() => handleColorInteraction(product.id, color.image)}
-                        className={`w-3 h-3 rounded-full border transition-all duration-200 ${
-                          isActive ? "border-[#111]" : "border-gray-300"
-                        }`}
+                        className={`w-3 h-3 rounded-full border transition-all duration-200 ${isActive ? "border-[#111]" : "border-gray-300"
+                          }`}
                         style={{ backgroundColor: color.value }}
                         aria-label={`${color.name} renk seçeneği`}
                       />

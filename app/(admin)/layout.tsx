@@ -70,9 +70,9 @@ const navSections = [
         icon: <Package className="w-5 h-5" />,
       },
       {
-        label: "Hizmetler",
-        href: "/admin-services",
-        icon: <Scissors className="w-5 h-5" />,
+        label: "Kategoriler",
+        href: "/admin-categories",
+        icon: <List className="w-5 h-5" />,
       },
     ],
   },

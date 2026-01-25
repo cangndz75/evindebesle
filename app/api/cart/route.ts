@@ -14,34 +14,40 @@ export async function GET() {
       where: { userId: user.id },
       include: {
         product: {
-          include: {
-            colors: {
-              take: 1,
-            },
-            sizes: true,
+          select: {
+            id: true,
+            name: true,
+            price: true,
+            originalPrice: true,
+            image: true,
+            primaryImage: true,
+            secondaryImage: true,
+            slug: true,
+            description: true,
+            isActive: true,
           },
         },
-        color: true,
-        size: true,
+        color: {
+          select: {
+            id: true,
+            name: true,
+            hexCode: true,
+            images: true,
+          },
+        },
+        size: {
+          select: {
+            id: true,
+            name: true,
+            stock: true,
+          },
+        },
       },
       orderBy: { createdAt: "desc" },
     });
 
     // Parse color images JSON strings
     const parsedItems = cartItems.map((item) => {
-      // Parse product colors images
-      const productColors = item.product.colors.map((color) => {
-        let images: string[] = [];
-        if (color.images) {
-          try {
-            images = typeof color.images === 'string' ? JSON.parse(color.images) : color.images;
-          } catch {
-            images = [color.images as string];
-          }
-        }
-        return { ...color, images };
-      });
-
       // Parse selected color images
       let colorImages: string[] = [];
       if (item.color?.images) {
@@ -54,10 +60,6 @@ export async function GET() {
 
       return {
         ...item,
-        product: {
-          ...item.product,
-          colors: productColors,
-        },
         color: item.color ? { ...item.color, images: colorImages } : null,
       };
     });
@@ -134,13 +136,34 @@ export async function POST(request: NextRequest) {
           data: { quantity: existingItem.quantity + quantity },
           include: {
             product: {
-              include: {
-                colors: { take: 1 },
-                sizes: true,
+              select: {
+                id: true,
+                name: true,
+                price: true,
+                originalPrice: true,
+                image: true,
+                primaryImage: true,
+                secondaryImage: true,
+                slug: true,
+                description: true,
+                isActive: true,
               },
             },
-            color: true,
-            size: true,
+            color: {
+              select: {
+                id: true,
+                name: true,
+                hexCode: true,
+                images: true,
+              },
+            },
+            size: {
+              select: {
+                id: true,
+                name: true,
+                stock: true,
+              },
+            },
           },
         });
         return NextResponse.json({ ...updated, userId: user.id });
@@ -156,13 +179,34 @@ export async function POST(request: NextRequest) {
           },
           include: {
             product: {
-              include: {
-                colors: { take: 1 },
-                sizes: true,
+              select: {
+                id: true,
+                name: true,
+                price: true,
+                originalPrice: true,
+                image: true,
+                primaryImage: true,
+                secondaryImage: true,
+                slug: true,
+                description: true,
+                isActive: true,
               },
             },
-            color: true,
-            size: true,
+            color: {
+              select: {
+                id: true,
+                name: true,
+                hexCode: true,
+                images: true,
+              },
+            },
+            size: {
+              select: {
+                id: true,
+                name: true,
+                stock: true,
+              },
+            },
           },
         });
         return NextResponse.json({ ...newItem, userId: user.id });
@@ -182,8 +226,6 @@ export async function POST(request: NextRequest) {
           name: product.name,
           image: product.image,
           price: product.price,
-          colors: product.colors,
-          sizes: product.sizes,
         },
         color: color,
         size: size,

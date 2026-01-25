@@ -8,14 +8,36 @@ cloudinary.config({
 });
 
 export async function POST(req: NextRequest) {
-  const data = await req.formData();
-  const file = data.get("file") as File;
-  if (!file) return NextResponse.json({ error: "No file" }, { status: 400 });
-
-  const arrayBuffer = await file.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
-
   try {
+    const contentType = req.headers.get("content-type");
+    let buffer: Buffer;
+
+    // Base64 string kontrolü (JSON body)
+    if (contentType?.includes("application/json")) {
+      const body = await req.json();
+      const base64String = body.base64 || body.data;
+      
+      if (!base64String || typeof base64String !== "string") {
+        return NextResponse.json({ error: "No base64 data provided" }, { status: 400 });
+      }
+
+      // Base64 string'i buffer'a çevir
+      // Format: data:image/jpeg;base64,/9j/4AAQSkZJRg...
+      const base64Data = base64String.includes(",") 
+        ? base64String.split(",")[1] 
+        : base64String;
+      
+      buffer = Buffer.from(base64Data, "base64");
+    } else {
+      // FormData (dosya yükleme)
+      const data = await req.formData();
+      const file = data.get("file") as File;
+      if (!file) return NextResponse.json({ error: "No file" }, { status: 400 });
+
+      const arrayBuffer = await file.arrayBuffer();
+      buffer = Buffer.from(arrayBuffer);
+    }
+
     const res = await new Promise<{ secure_url: string }>((resolve, reject) => {
       cloudinary.uploader.upload_stream(
         { 
@@ -36,6 +58,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ url: res.secure_url });
   } catch (e) {
+    console.error("Upload error:", e);
     return NextResponse.json({ error: "Cloudinary upload failed" }, { status: 500 });
   }
 }

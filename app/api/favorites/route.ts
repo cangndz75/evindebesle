@@ -14,15 +14,17 @@ export async function GET(req: NextRequest) {
       where: { userId: user.id },
       include: {
         product: {
-          include: {
-            colors: {
-              take: 1,
-              include: {
-                variants: true,
-              },
-            },
-            sizes: true,
-            tags: true,
+          select: {
+            id: true,
+            name: true,
+            price: true,
+            originalPrice: true,
+            image: true,
+            primaryImage: true,
+            secondaryImage: true,
+            slug: true,
+            description: true,
+            isActive: true,
           },
         },
       },

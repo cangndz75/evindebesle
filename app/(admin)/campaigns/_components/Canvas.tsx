@@ -7,12 +7,14 @@ interface CanvasProps {
   blocks: Block[];
   selectedBlockId: string | null;
   onSelectBlock: (blockId: string | null) => void;
+  onUpdateBlock?: (blockId: string, updates: Partial<Block>) => void;
 }
 
 export default function Canvas({
   blocks,
   selectedBlockId,
   onSelectBlock,
+  onUpdateBlock,
 }: CanvasProps) {
   return (
     <div className="p-6 bg-gray-100" style={{ minHeight: '100%' }}>
@@ -28,13 +30,15 @@ export default function Canvas({
               <div
                 key={block.id}
                 onClick={() => onSelectBlock(block.id)}
-                className={`cursor-pointer transition-all ${
-                  selectedBlockId === block.id
+                className={`cursor-pointer transition-all ${selectedBlockId === block.id
                     ? "ring-2 ring-blue-500 ring-offset-2"
                     : "hover:bg-gray-50"
-                }`}
+                  }`}
               >
-                <BlockRenderer block={block} />
+                <BlockRenderer
+                  block={block}
+                  onUpdate={onUpdateBlock ? (updates) => onUpdateBlock(block.id, updates) : undefined}
+                />
               </div>
             ))
           )}

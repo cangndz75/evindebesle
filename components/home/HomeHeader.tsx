@@ -34,8 +34,8 @@ type Promo = {
 const navItems = [
     { key: "men" as const, label: "ERKEK", href: "/men" },
     { key: "women" as const, label: "KADIN", href: "/women" },
-    { key: "kids" as const, label: "ÇOCUK", href: "/kids" },
-    { key: "bundles" as const, label: "PAKETLER", href: "/bundles" },
+    // { key: "kids" as const, label: "ÇOCUK", href: "/kids" },
+    { key: "bundles" as const, label: "YENİ GELENLER", href: "/bundles" },
     { key: "lastcall" as const, label: "SON FIRSAT", href: "/last-call" },
 ] as const;
 

@@ -30,7 +30,7 @@ export default function ProfileMobileHeader() {
 
   return (
     <div className="md:hidden space-y-4 border-b bg-white pb-4">
-      <div className="flex items-center justify-between px-4 pt-2">
+      <div className="flex items-center justify-between px-4 pt-0">
         <div className="flex items-center gap-3">
           <Avatar className="w-9 h-9">
             <AvatarFallback>

@@ -22,37 +22,43 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertTriangle, Package, TrendingDown, TrendingUp, Search, Filter } from "lucide-react";
+import {
+  AlertTriangle,
+  Package,
+  ChevronDown,
+  ChevronRight,
+  Save,
+} from "lucide-react";
 import { toast } from "sonner";
+import StockUpdateModal from "./_components/StockUpdateModal";
 
-type StockProduct = {
-  id: string;
-  name: string;
-  stockCode: string | null;
+type StockItem = {
+  docId: string;
+  productId: string;
+  productName: string;
+  colorId: string | null;
+  colorName: string | null;
   image: string | null;
-  price: number;
+  stockCode: string | null;
   totalStock: number;
   minStock: number;
-  sizes: Array<{
-    id: string;
-    name: string;
+  subVariants: Array<{
+    variantId: string;
+    size: string;
     stock: number;
-  }>;
-  variants: Array<{
-    id: string;
-    colorName: string | null;
-    sizeName: string | null;
-    stock: number;
+    isVariant: boolean;
   }>;
 };
 
 export default function StockManagementPage() {
   const router = useRouter();
-  const [products, setProducts] = useState<StockProduct[]>([]);
+  const [items, setItems] = useState<StockItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "lowStock" | "outOfStock">("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [stockMovements, setStockMovements] = useState<any[]>([]);
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [editingStock, setEditingStock] = useState<Record<string, number>>({});
+  const [selectedProductForModal, setSelectedProductForModal] = useState<string | null>(null);
 
   useEffect(() => {
     fetchStockData();
@@ -68,8 +74,7 @@ export default function StockManagementPage() {
       const res = await fetch(`/api/admin/stock?${params.toString()}`);
       if (res.ok) {
         const data = await res.json();
-        setProducts(data.products || []);
-        setStockMovements(data.movements || []);
+        setItems(data.products || []); // API returns 'products' key but with new structure
       }
     } catch (error) {
       console.error("Error fetching stock data:", error);
@@ -79,12 +84,30 @@ export default function StockManagementPage() {
     }
   };
 
-  const handleStockUpdate = async (productId: string, sizeId: string, newStock: number) => {
+  const toggleRow = (docId: string) => {
+    const newExpanded = new Set(expandedRows);
+    if (newExpanded.has(docId)) {
+      newExpanded.delete(docId);
+    } else {
+      newExpanded.add(docId);
+    }
+    setExpandedRows(newExpanded);
+  };
+
+  const handleQuickUpdate = async (variantId: string, isVariant: boolean, newStock: number) => {
     try {
-      const res = await fetch(`/api/admin/stock/${productId}`, {
-        method: "PATCH",
+      // Determine if update is for ProductVariant or ProductSize
+      // We can use a unified endpoint or existing one
+      // For now let's assume specific endpoint for variant update
+
+      const res = await fetch(`/api/admin/products/stock-update`, {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sizeId, stock: newStock }),
+        body: JSON.stringify({
+          variantId,
+          isVariant,
+          stock: newStock
+        })
       });
 
       if (res.ok) {
@@ -94,28 +117,32 @@ export default function StockManagementPage() {
         throw new Error("Güncelleme başarısız");
       }
     } catch (error) {
-      toast.error("Stok güncellenirken bir hata oluştu");
+      toast.error("Güncelleme hatası");
+      console.error(error);
     }
   };
 
-  const filteredProducts = products.filter((product) => {
+  const filteredItems = items.filter((item) => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
     return (
-      product.name.toLowerCase().includes(query) ||
-      (product.stockCode && product.stockCode.toLowerCase().includes(query))
+      item.productName.toLowerCase().includes(query) ||
+      (item.stockCode && item.stockCode.toLowerCase().includes(query)) ||
+      (item.colorName && item.colorName.toLowerCase().includes(query))
     );
   });
 
-  const lowStockCount = products.filter((p) => p.totalStock > 0 && p.totalStock <= p.minStock).length;
-  const outOfStockCount = products.filter((p) => p.totalStock === 0).length;
+  const lowStockCount = items.filter((p) => p.totalStock > 0 && p.totalStock <= p.minStock).length;
+  const outOfStockCount = items.filter((p) => p.totalStock === 0).length;
 
   return (
     <div className="space-y-6 p-4 md:p-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold">Stok ve Tedarik</h1>
-          <p className="text-sm text-gray-600 mt-1">Stok durumunu takip edin ve yönetin</p>
+          <p className="text-sm text-gray-600 mt-1">
+            Ürün varyantlarını hızlıca yönetin
+          </p>
         </div>
       </div>
 
@@ -123,10 +150,10 @@ export default function StockManagementPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-600">Toplam Ürün</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">Toplam Kalem</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{products.length}</div>
+            <div className="text-2xl font-bold">{items.length}</div>
           </CardContent>
         </Card>
         <Card>
@@ -156,7 +183,7 @@ export default function StockManagementPage() {
       {/* Filtreler */}
       <div className="flex flex-col md:flex-row gap-4">
         <Input
-          placeholder="Ürün adı veya stok kodu ile ara..."
+          placeholder="Ürün adı, renk veya stok kodu..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="flex-1"
@@ -173,21 +200,21 @@ export default function StockManagementPage() {
         </Select>
       </div>
 
-      {/* Ürün Listesi */}
+      {/* Liste */}
       {loading ? (
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
             <Skeleton key={i} className="h-20 w-full" />
           ))}
         </div>
-      ) : filteredProducts.length === 0 ? (
+      ) : filteredItems.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
-          Ürün bulunamadı
+          Kayıt bulunamadı
         </div>
       ) : (
         <Card>
           <CardHeader>
-            <CardTitle>Stok Durumu</CardTitle>
+            <CardTitle>Stok Listesi</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="rounded-md border overflow-x-auto">
@@ -195,82 +222,121 @@ export default function StockManagementPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Ürün</TableHead>
+                    <TableHead>Renk</TableHead>
                     <TableHead>Stok Kodu</TableHead>
                     <TableHead>Toplam Stok</TableHead>
-                    <TableHead>Min. Stok</TableHead>
                     <TableHead>Durum</TableHead>
-                    <TableHead>Varyantlar</TableHead>
+                    <TableHead className="w-[50px]"></TableHead>
                     <TableHead className="text-right">İşlemler</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredProducts.map((product) => {
-                    const isLowStock = product.totalStock > 0 && product.totalStock <= product.minStock;
-                    const isOutOfStock = product.totalStock === 0;
+                  {filteredItems.map((item) => {
+                    const isExpanded = expandedRows.has(item.docId);
+                    const isOutOfStock = item.totalStock === 0;
+                    const isLowStock = !isOutOfStock && item.totalStock <= item.minStock;
 
                     return (
-                      <TableRow key={product.id}>
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            {product.image && (
-                              <img
-                                src={product.image}
-                                alt={product.name}
-                                className="w-12 h-12 object-cover rounded"
-                              />
-                            )}
-                            <div>
-                              <p className="font-medium">{product.name}</p>
-                              <p className="text-sm text-gray-500">{product.price.toFixed(2)} ₺</p>
+                      <>
+                        <TableRow key={item.docId} className={isExpanded ? "bg-muted/50 border-b-0" : ""}>
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              {item.image && (
+                                <img
+                                  src={item.image}
+                                  alt={item.productName}
+                                  className="w-10 h-10 object-cover rounded"
+                                />
+                              )}
+                              <span className="font-medium">{item.productName}</span>
                             </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <span className="font-mono text-sm">{product.stockCode || "-"}</span>
-                        </TableCell>
-                        <TableCell>
-                          <span className="font-semibold">{product.totalStock}</span>
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-sm text-gray-600">{product.minStock || 5}</span>
-                        </TableCell>
-                        <TableCell>
-                          {isOutOfStock ? (
-                            <Badge className="bg-red-100 text-red-800">Tükendi</Badge>
-                          ) : isLowStock ? (
-                            <Badge className="bg-amber-100 text-amber-800">Düşük</Badge>
-                          ) : (
-                            <Badge className="bg-green-100 text-green-800">Yeterli</Badge>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm space-y-1">
-                            {product.variants.length > 0 ? (
-                              product.variants.slice(0, 2).map((variant, idx) => (
-                                <div key={idx} className="text-xs">
-                                  {variant.colorName || variant.sizeName}: {variant.stock}
-                                </div>
-                              ))
+                          </TableCell>
+                          <TableCell>
+                            {item.colorName ? (
+                              <Badge variant="outline">{item.colorName}</Badge>
                             ) : (
-                              <span className="text-gray-400">Varyant yok</span>
+                              <span className="text-gray-400 text-xs">-</span>
                             )}
-                            {product.variants.length > 2 && (
-                              <span className="text-xs text-gray-500">
-                                +{product.variants.length - 2} daha
-                              </span>
+                          </TableCell>
+                          <TableCell className="font-mono text-sm">
+                            {item.stockCode || "-"}
+                          </TableCell>
+                          <TableCell>
+                            <span className="font-bold">{item.totalStock}</span>
+                          </TableCell>
+                          <TableCell>
+                            {isOutOfStock ? (
+                              <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Tükendi</Badge>
+                            ) : isLowStock ? (
+                              <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">Kritik</Badge>
+                            ) : (
+                              <Badge variant="secondary" className="bg-green-100 text-green-800 hover:bg-green-100">Yeterli</Badge>
                             )}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => router.push(`/admin-products?productId=${product.id}`)}
-                          >
-                            Stok Güncelle
-                          </Button>
-                        </TableCell>
-                      </TableRow>
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                              onClick={() => toggleRow(item.docId)}
+                            >
+                              {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                            </Button>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              size="sm"
+                              variant="default"
+                              onClick={() => setSelectedProductForModal(item.productId)}
+                            >
+                              Stok Güncelle
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+
+                        {/* Expanded details (Accordion) */}
+                        {isExpanded && (
+                          <TableRow className="bg-muted/30 hover:bg-muted/30">
+                            <TableCell colSpan={7}>
+                              <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                {item.subVariants.map((sub) => (
+                                  <div key={sub.variantId} className="flex items-center gap-2 bg-white p-2 rounded border">
+                                    <div className="flex-1">
+                                      <div className="text-xs text-gray-500 font-medium">Beden</div>
+                                      <div className="font-semibold">{sub.size}</div>
+                                    </div>
+                                    <div className="w-[80px]">
+                                      <Input
+                                        type="number"
+                                        defaultValue={sub.stock}
+                                        className="h-8 text-right"
+                                        min={0}
+                                        onChange={(e) => setEditingStock({
+                                          ...editingStock,
+                                          [sub.variantId]: parseInt(e.target.value) || 0
+                                        })}
+                                      />
+                                    </div>
+                                    <Button
+                                      size="icon"
+                                      variant="ghost"
+                                      className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
+                                      onClick={() => {
+                                        const val = editingStock[sub.variantId];
+                                        if (val !== undefined) {
+                                          handleQuickUpdate(sub.variantId, sub.isVariant, val);
+                                        }
+                                      }}
+                                    >
+                                      <Save className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </>
                     );
                   })}
                 </TableBody>
@@ -280,38 +346,16 @@ export default function StockManagementPage() {
         </Card>
       )}
 
-      {/* Stok Hareketleri */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Son Stok Hareketleri</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {stockMovements.length === 0 ? (
-            <p className="text-sm text-gray-500 text-center py-4">
-              Henüz stok hareketi kaydı yok
-            </p>
-          ) : (
-            <div className="space-y-2">
-              {stockMovements.slice(0, 10).map((movement, idx) => (
-                <div key={idx} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div>
-                    <p className="font-medium text-sm">{movement.productName}</p>
-                    <p className="text-xs text-gray-500">{movement.type}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className={`text-sm font-semibold ${
-                      movement.type === "Giriş" ? "text-green-600" : "text-red-600"
-                    }`}>
-                      {movement.type === "Giriş" ? "+" : "-"}{movement.quantity}
-                    </p>
-                    <p className="text-xs text-gray-500">{movement.date}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {selectedProductForModal && (
+        <StockUpdateModal
+          productId={selectedProductForModal}
+          isOpen={!!selectedProductForModal}
+          onClose={() => {
+            setSelectedProductForModal(null);
+            fetchStockData();
+          }}
+        />
+      )}
     </div>
   );
 }

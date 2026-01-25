@@ -1,113 +1,253 @@
+import { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { prisma } from "@/lib/db";
 import ProductDetailPage from "../../_components/ProductDetailPage";
-import { bestSellersWomen, bestSellersMen, newArrivals } from "@/lib/homeData";
+import ProductSchema from "@/components/seo/ProductSchema";
+import BreadcrumbJsonLd from "@/components/seo/BreadcrumbJsonLd";
 
-// Mock product data - Later will be fetched from database
-function getProductById(id: string) {
-  // Combine all products
-  const allProducts = [
-    ...bestSellersWomen.map((p) => ({
-      id: p.id,
-      name: p.title,
-      price: p.price,
-      originalPrice: undefined,
-      description: "Premium kalite ve zarif tasarım. Günlük kullanım için ideal.",
-      images: [
-        { url: p.image.startsWith("http") ? p.image : "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=1000&auto=format&fit=crop", badge: p.badge },
-        { url: p.hoverImage?.startsWith("http") ? p.hoverImage : "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1000&auto=format&fit=crop", badge: undefined },
-      ],
-      colors: p.colors?.map((c, idx) => ({
-        name: typeof c === "string" ? `Renk ${idx + 1}` : c.name,
-        value: typeof c === "string" ? c : c.value,
-      })) || [],
-      sizes: ["XS", "S", "M", "L", "XL", "XXL"],
-      details: [
-        "Premium kumaş",
-        "Zarif tasarım",
-        "Günlük kullanım için ideal",
-      ],
-      fabric: "Polyester %85, Elastan %15",
-      care: "Yumuşak deterjanla yıkayın",
-      washing: "30°C'de yıkayın",
-      delivery: "2-3 iş günü içinde teslimat",
-      sizeNotes: "True to size - Kalıbına uygun",
-    })),
-    ...bestSellersMen.map((p) => ({
-      id: p.id,
-      name: p.title,
-      price: p.price,
-      originalPrice: undefined,
-      description: "Premium kalite ve zarif tasarım. Günlük kullanım için ideal.",
-      images: [
-        { url: p.image.startsWith("http") ? p.image : "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=1000&auto=format&fit=crop", badge: p.badge },
-        { url: p.hoverImage?.startsWith("http") ? p.hoverImage : "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1000&auto=format&fit=crop", badge: undefined },
-      ],
-      colors: p.colors?.map((c, idx) => ({
-        name: typeof c === "string" ? `Renk ${idx + 1}` : c.name,
-        value: typeof c === "string" ? c : c.value,
-      })) || [],
-      sizes: ["XS", "S", "M", "L", "XL", "XXL"],
-      details: [
-        "Premium kumaş",
-        "Zarif tasarım",
-        "Günlük kullanım için ideal",
-      ],
-      fabric: "Polyester %85, Elastan %15",
-      care: "Yumuşak deterjanla yıkayın",
-      washing: "30°C'de yıkayın",
-      delivery: "2-3 iş günü içinde teslimat",
-      sizeNotes: "True to size - Kalıbına uygun",
-    })),
-    ...newArrivals.map((p) => ({
-      id: p.id,
-      name: p.title,
-      price: p.price,
-      originalPrice: undefined,
-      description: "Premium kalite ve zarif tasarım. Günlük kullanım için ideal.",
-      images: [
-        { url: p.image.startsWith("http") ? p.image : "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=1000&auto=format&fit=crop", badge: p.badge || "Yeni" },
-        { url: p.hoverImage?.startsWith("http") ? p.hoverImage : "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1000&auto=format&fit=crop", badge: undefined },
-      ],
-      colors: p.colors?.map((c, idx) => ({
-        name: typeof c === "string" ? `Renk ${idx + 1}` : c.name,
-        value: typeof c === "string" ? c : c.value,
-      })) || [],
-      sizes: ["XS", "S", "M", "L", "XL", "XXL"],
-      details: [
-        "Premium kumaş",
-        "Zarif tasarım",
-        "Günlük kullanım için ideal",
-      ],
-      fabric: "Polyester %85, Elastan %15",
-      care: "Yumuşak deterjanla yıkayın",
-      washing: "30°C'de yıkayın",
-      delivery: "2-3 iş günü içinde teslimat",
-      sizeNotes: "True to size - Kalıbına uygun",
-    })),
-  ];
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://evindebesle.com";
 
-  return allProducts.find((p) => p.id === id) || null;
+// ISR: Her 1 saatte bir yeniden oluştur
+export const revalidate = 3600;
+
+interface ProductPageProps {
+  params: Promise<{ id: string }>;
 }
 
-export default async function ProductPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
-  const product = getProductById(id);
+// Ürünü DB'den çek
+async function getProduct(idOrSlug: string) {
+  // Önce slug ile dene, sonra id ile
+  let product = await prisma.product.findUnique({
+    where: { slug: idOrSlug },
+    include: {
+      category: true,
+      colors: {
+        include: {
+          productImages: {
+            orderBy: { order: "asc" },
+          },
+        },
+      },
+      sizes: true,
+      reviews: {
+        where: { isApproved: true },
+        orderBy: { createdAt: "desc" },
+        take: 20,
+      },
+      variants: {
+        include: {
+          color: true,
+          size: true,
+        },
+      },
+      productImages: {
+        orderBy: { order: "asc" },
+      },
+    },
+  });
 
+  // Slug ile bulamazsa id ile dene
   if (!product) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-light mb-4">Ürün bulunamadı</h1>
-          <a href="/home" className="text-sm text-gray-600 hover:text-black">
-            Ana Sayfaya Dön
-          </a>
-        </div>
-      </div>
-    );
+    product = await prisma.product.findUnique({
+      where: { id: idOrSlug },
+      include: {
+        category: true,
+        colors: {
+          include: {
+            productImages: {
+              orderBy: { order: "asc" },
+            },
+          },
+        },
+        sizes: true,
+        reviews: {
+          where: { isApproved: true },
+          orderBy: { createdAt: "desc" },
+          take: 20,
+        },
+        variants: {
+          include: {
+            color: true,
+            size: true,
+          },
+        },
+        productImages: {
+          orderBy: { order: "asc" },
+        },
+      },
+    });
   }
 
-  return <ProductDetailPage product={product} />;
+  return product;
+}
+
+// Dynamic SEO Metadata
+export async function generateMetadata({
+  params,
+}: ProductPageProps): Promise<Metadata> {
+  const { id } = await params;
+  const product = await getProduct(id);
+
+  if (!product) {
+    return {
+      title: "Ürün Bulunamadı | Evinde Besle",
+      description: "Aradığınız ürün bulunamadı.",
+    };
+  }
+
+  const categoryName = product.category?.name || "Ürünler";
+
+  const description = product.description
+    ? product.description.slice(0, 160)
+    : `${product.name} - ${categoryName} kategorisinde. Evinde Besle'de uygun fiyatlarla.`;
+
+  const images = product.primaryImage
+    ? [product.primaryImage]
+    : product.productImages?.[0]?.url
+      ? [product.productImages[0].url]
+      : [];
+
+  return {
+    title: `${product.name} | Evinde Besle`,
+    description,
+    keywords: [
+      product.name,
+      categoryName,
+      product.brand || "",
+      product.fabricType || "",
+      "evcil hayvan",
+      "online alışveriş",
+    ].filter(Boolean),
+    openGraph: {
+      title: product.name,
+      description,
+      url: `${BASE_URL}/product/${product.slug || product.id}`,
+      siteName: "Evinde Besle",
+      images: images.map((url) => ({
+        url,
+        width: 800,
+        height: 800,
+        alt: product.name,
+      })),
+      type: "website",
+      locale: "tr_TR",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: product.name,
+      description,
+      images,
+    },
+    alternates: {
+      canonical: `${BASE_URL}/product/${product.slug || product.id}`,
+    },
+    robots: {
+      index: product.isActive,
+      follow: product.isActive,
+    },
+  };
+}
+
+// Ürün detay sayfası
+export default async function ProductPage({ params }: ProductPageProps) {
+  const { id } = await params;
+  const product = await getProduct(id);
+
+  if (!product || !product.isActive) {
+    notFound();
+  }
+
+  // Ortalama rating hesapla
+  const avgRating =
+    product.reviews.length > 0
+      ? product.reviews.reduce((sum: number, r: { rating: number }) => sum + r.rating, 0) / product.reviews.length
+      : 0;
+
+  // Stok durumu hesapla
+  const totalStock = product.variants.reduce((sum: number, v: { stock: number }) => sum + v.stock, 0);
+  const inStock = totalStock > 0;
+
+  // Görselleri hazırla
+  const images = [
+    ...(product.primaryImage ? [{ url: product.primaryImage, badge: undefined }] : []),
+    ...(product.secondaryImage ? [{ url: product.secondaryImage, badge: undefined }] : []),
+    ...product.productImages.map((img: { url: string }) => ({ url: img.url, badge: undefined })),
+  ];
+
+  // Renkleri hazırla
+  const colors = product.colors.map((c: { name: string; hexCode: string | null; productImages: { url: string }[] }) => ({
+    name: c.name,
+    value: c.hexCode || "#000000",
+    images: c.productImages.map((img: { url: string }) => img.url),
+  }));
+
+  // Bedenleri hazırla
+  const sizes = product.sizes.map((s: { name: string }) => s.name);
+
+  // Kategori breadcrumb
+  const categoryName = product.category?.name || "Ürünler";
+  const categorySlug = product.category?.slug || "";
+
+  // ProductDetailPage formatına dönüştür
+  const productData = {
+    id: product.id,
+    name: product.name,
+    price: product.price,
+    originalPrice: product.originalPrice || undefined,
+    description: product.description || "",
+    images: images.length > 0 ? images : [{
+      url: "https://via.placeholder.com/600x600?text=No+Image",
+      badge: undefined
+    }],
+    colors,
+    sizes,
+    details: product.detailText ? [product.detailText] : [],
+    fabric: product.fabricType || "",
+    care: "",
+    washing: "",
+    delivery: "2-3 iş günü içinde kargo",
+    sizeNotes: "",
+    rating: avgRating,
+    reviewCount: product.reviews.length,
+    inStock,
+    stockCount: totalStock,
+    brand: product.brand || "",
+    category: categoryName,
+    categorySlug,
+  };
+
+  // Breadcrumb items
+  const breadcrumbItems = [
+    { name: "Ana Sayfa", url: `${BASE_URL}/home` },
+    ...(categorySlug
+      ? [{ name: categoryName, url: `${BASE_URL}/category/${categorySlug}` }]
+      : []),
+    { name: product.name, url: `${BASE_URL}/product/${product.slug || product.id}` },
+  ];
+
+  return (
+    <>
+      {/* JSON-LD Structured Data */}
+      <ProductSchema
+        product={{
+          name: product.name,
+          description: product.description || "",
+          image: images.map((i) => i.url),
+          sku: product.stockCode || product.id,
+          brand: product.brand || "Evinde Besle",
+          price: product.price,
+          originalPrice: product.originalPrice || undefined,
+          currency: "TRY",
+          inStock,
+          url: `${BASE_URL}/product/${product.slug || product.id}`,
+          rating: avgRating,
+          reviewCount: product.reviews.length,
+        }}
+      />
+      <BreadcrumbJsonLd items={breadcrumbItems} />
+
+      {/* Ürün Detay Sayfası */}
+      <ProductDetailPage product={productData} />
+    </>
+  );
 }

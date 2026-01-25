@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import BlockInspector from "./BlockInspector";
 import CampaignMetaBar from "./CampaignMetaBar";
 import EditorTabs from "./EditorTabs";
 import PreviewPane from "./PreviewPane";
@@ -94,14 +95,14 @@ export default function CampaignComposerPage() {
     setDraft((prev) => {
       const index = prev.blocks.findIndex((b) => b.id === blockId);
       if (index === -1) return prev;
-      
+
       const newBlocks = [...prev.blocks];
       const targetIndex = direction === "up" ? index - 1 : index + 1;
-      
+
       if (targetIndex < 0 || targetIndex >= newBlocks.length) return prev;
-      
+
       [newBlocks[index], newBlocks[targetIndex]] = [newBlocks[targetIndex], newBlocks[index]];
-      
+
       const newDraft = { ...prev, blocks: newBlocks };
       const newHistory = history.slice(0, historyIndex + 1);
       newHistory.push(newDraft);
@@ -159,15 +160,35 @@ export default function CampaignComposerPage() {
           />
         </div>
 
-        {/* Sağ: Preview */}
-        <div className="w-[360px] border-l border-gray-200 bg-gray-50 overflow-y-auto flex-shrink-0">
-          <PreviewPane
-            draft={draft}
-            previewUser={previewUser}
-            deviceView={deviceView}
-            onPreviewUserChange={setPreviewUser}
-            onDeviceViewChange={setDeviceView}
-          />
+        {/* Sağ: Sidebar (Preview veya Inspector) */}
+        <div className="w-[360px] border-l border-gray-200 bg-gray-50 overflow-y-auto flex-shrink-0 transition-all duration-300">
+          {selectedBlock ? (
+            <div className="h-full flex flex-col">
+              <div className="p-4 border-b border-gray-200 bg-white flex items-center justify-between">
+                <h3 className="font-semibold text-sm">Blok Ayarları</h3>
+                <button
+                  onClick={() => setSelectedBlockId(null)}
+                  className="text-xs text-blue-600 hover:text-blue-800"
+                >
+                  Kapat
+                </button>
+              </div>
+              <div className="p-4 overflow-y-auto flex-1">
+                <BlockInspector
+                  block={selectedBlock}
+                  onUpdate={(updates) => updateBlock(selectedBlock.id, updates)}
+                />
+              </div>
+            </div>
+          ) : (
+            <PreviewPane
+              draft={draft}
+              previewUser={previewUser}
+              deviceView={deviceView}
+              onPreviewUserChange={setPreviewUser}
+              onDeviceViewChange={setDeviceView}
+            />
+          )}
         </div>
       </div>
 

@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { dlPush } from "@/lib/ga4";
 
-export default function CheckoutSuccessPage() {
+function SuccessContent() {
     const searchParams = useSearchParams();
     const orderId = searchParams.get("orderId");
     const [status, setStatus] = useState("loading"); // loading, success, failed
@@ -27,7 +27,6 @@ export default function CheckoutSuccessPage() {
                     if (data.paymentStatus === "SUCCEEDED" || data.orderStatus === "PAID") {
                         setStatus("success");
                         // GA4 Purchase Event
-                        // Check if already sent logic can be here (localStorage)
                         const sentKey = `ga4_sent_${orderId}`;
                         if (!localStorage.getItem(sentKey)) {
                             dlPush("purchase", {
@@ -100,5 +99,18 @@ export default function CheckoutSuccessPage() {
                 </Link>
             </div>
         </div>
+    );
+}
+
+export default function CheckoutSuccessPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex flex-col items-center justify-center min-h-[60vh]">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+                <h2 className="text-xl font-medium">Yükleniyor...</h2>
+            </div>
+        }>
+            <SuccessContent />
+        </Suspense>
     );
 }

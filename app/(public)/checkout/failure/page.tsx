@@ -1,9 +1,10 @@
 "use client";
 
+import { Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
-export default function CheckoutFailurePage() {
+function FailureContent() {
     const searchParams = useSearchParams();
     // const orderId = searchParams.get("orderId");
 
@@ -23,5 +24,13 @@ export default function CheckoutFailurePage() {
                 </Link>
             </div>
         </div>
+    );
+}
+
+export default function CheckoutFailurePage() {
+    return (
+        <Suspense fallback={<div>Yükleniyor...</div>}>
+            <FailureContent />
+        </Suspense>
     );
 }

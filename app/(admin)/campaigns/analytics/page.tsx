@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import {
     Mail,
@@ -84,7 +84,7 @@ interface CampaignAnalytics {
     }>;
 }
 
-export default function CampaignAnalyticsPage() {
+function AnalyticsContent() {
     const searchParams = useSearchParams();
     const campaignId = searchParams.get("id");
     const [data, setData] = useState<CampaignAnalytics | null>(null);
@@ -458,5 +458,17 @@ export default function CampaignAnalyticsPage() {
                 </TabsContent>
             </Tabs>
         </div>
+    );
+}
+
+export default function CampaignAnalyticsPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+            </div>
+        }>
+            <AnalyticsContent />
+        </Suspense>
     );
 }

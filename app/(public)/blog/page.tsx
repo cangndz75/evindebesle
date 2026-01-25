@@ -1,72 +1,221 @@
-import { prisma } from "@/lib/db";
-import Link from "next/link";
-import Image from "next/image";
+import { Suspense } from "react";
+import { Home } from "lucide-react";
 import { Metadata } from "next";
-import { getOptimizedCloudinaryUrl, getBlurPlaceholderUrl } from "@/lib/cloudinary";
+import Script from "next/script";
 
-export const metadata: Metadata = {
-    title: "Blog - Evin De Besle",
-    description: "Evcil hayvan bakımı, ipuçları ve rehberler.",
-};
+import { getAllPosts } from "@/lib/blogData";
+import BlogCard from "./_components/BlogCard";
+import BlogSidebar from "./_components/BlogSidebar";
+import BlogPagination from "./_components/BlogPagination";
+import { Skeleton } from "@/components/ui/skeleton";
 
-// Revalidate every hour
-export const revalidate = 3600;
+const PAGE_SIZE = 9;
 
-export default async function BlogPage() {
-    const posts = await prisma.blogPost.findMany({
-        where: { isPublished: true },
-        orderBy: { publishedAt: "desc" },
-        include: { author: { select: { name: true } } }
-    });
+const one = (v?: string | string[]) => (Array.isArray(v) ? v[0] : v);
 
-    return (
-        <div className="container mx-auto px-4 py-12">
-            <h1 className="text-4xl font-bold mb-8 text-center text-gray-900">Blog</h1>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {posts.map((post: any) => (
-                    <Link href={`/blog/${post.slug}`} key={post.id} className="group">
-                        <article className="border border-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow bg-white h-full flex flex-col">
-                            <div className="relative h-48 w-full bg-gray-100">
-                                {post.coverImage ? (
-                                    <Image
-                                        src={getOptimizedCloudinaryUrl(post.coverImage, 600)}
-                                        alt={post.title}
-                                        fill
-                                        className="object-cover group-hover:scale-105 transition-transform duration-300"
-                                        placeholder="blur"
-                                        blurDataURL={getBlurPlaceholderUrl(post.coverImage)}
-                                    />
-                                ) : (
-                                    <div className="flex items-center justify-center h-full text-gray-300">
-                                        <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                        </svg>
-                                    </div>
-                                )}
-                            </div>
-                            <div className="p-6 flex-1 flex flex-col">
-                                <div className="flex items-center text-sm text-gray-500 mb-3">
-                                    <span>{post.publishedAt ? new Date(post.publishedAt).toLocaleDateString("tr-TR") : ""}</span>
-                                    <span className="mx-2">•</span>
-                                    <span>{post.author.name}</span>
-                                </div>
-                                <h2 className="text-xl font-bold mb-3 text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2">
-                                    {post.title}
-                                </h2>
-                                <p className="text-gray-600 line-clamp-3 mb-4 flex-1">
-                                    {post.excerpt || post.content.substring(0, 150)}...
-                                </p>
-                                <div className="text-blue-600 font-medium text-sm flex items-center">
-                                    Devamını Oku
-                                    <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                    </svg>
-                                </div>
-                            </div>
-                        </article>
-                    </Link>
-                ))}
-            </div>
-        </div>
+function slugify(s: string) {
+  return s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+const uniqBySlug = <T extends { slug: string }>(arr: T[]) =>
+  Array.from(new Map(arr.map((x) => [x.slug, x])).values());
+
+function PaginationSkeleton() {
+  return (
+    <div className="flex justify-center gap-2">
+      <Skeleton className="h-9 w-24" />
+      <Skeleton className="h-9 w-10" />
+      <Skeleton className="h-9 w-10" />
+      <Skeleton className="h-9 w-24" />
+    </div>
+  );
+}
+
+// Mobile header: breadcrumb + başlık
+function BlogMobileHeader() {
+  return (
+    <div className="md:hidden rounded-xl bg-gradient-to-r from-primary/5 to-transparent">
+      <div className="px-4 pt-4 pb-3">
+        <nav className="flex items-center gap-1 text-xs">
+          <Home className="w-4 h-4" />
+          <span className="text-muted-foreground">Ana Sayfa</span>
+          <span className="text-muted-foreground">›</span>
+          <span className="font-semibold text-primary">Blog</span>
+        </nav>
+        <hr className="my-3 border-border" />
+        <h1 className="text-2xl font-extrabold">Blog Yazıları</h1>
+      </div>
+    </div>
+  );
+}
+
+/* --- SEO: metadata (Next 15: searchParams Promise) --- */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}): Promise<Metadata> {
+  const sp = (await searchParams) ?? {};
+  const baseUrl =
+    process.env.NEXT_PUBLIC_SITE_URL || "https://www.evindebesle.com";
+  const canonicalUrl = `${baseUrl}/blog`;
+
+  const tag = one(sp.tag)?.trim();
+  const category = one(sp.category)?.trim();
+  const q = one(sp.q)?.trim();
+
+  let title = "Evcil Hayvan Bakım Blogu | Evinde Besle";
+  let description =
+    "Evcil hayvan bakımı, beslenme, sağlık ve eğitim konularında en güncel blog yazılarımızı keşfedin.";
+
+  if (tag) {
+    title = `${tag} Hakkında Blog Yazıları | Evinde Besle`;
+    description = `${tag} ile ilgili en güncel blog yazılarını okuyun.`;
+  } else if (category) {
+    title = `${category} Kategorisi Blog Yazıları | Evinde Besle`;
+    description = `${category} kategorisinde evcil hayvan bakımıyla ilgili yazılar.`;
+  } else if (q) {
+    title = `"${q}" Arama Sonuçları | Evinde Besle Blog`;
+    description = `"${q}" ile ilgili blog sonuçlarını görüntüleyin.`;
+  }
+
+  // Filtre/arama sayfalarını index dışı bırakıyoruz
+  const noIndex = !!q || !!tag || !!category;
+
+  return {
+    title,
+    description,
+    alternates: { canonical: canonicalUrl },
+    robots: { index: !noIndex, follow: true },
+  };
+}
+
+/* --- Page (Next 15: searchParams Promise) --- */
+export default async function BlogHomePage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const posts = await getAllPosts();
+  const sp = (await searchParams) ?? {};
+
+  const tag = one(sp.tag)?.trim();
+  const category = one(sp.category)?.trim();
+  const q = one(sp.q)?.trim()?.toLowerCase();
+
+  let filtered = posts.slice();
+
+  if (tag) {
+    const t = slugify(tag);
+    filtered = filtered.filter((p) => (p.tags ?? []).map(slugify).includes(t));
+  }
+  if (category) {
+    const c = slugify(category);
+    filtered = filtered.filter((p) => slugify(p.category) === c);
+  }
+  if (q) {
+    filtered = filtered.filter(
+      (p) =>
+        p.title.toLowerCase().includes(q) ||
+        p.excerpt.toLowerCase().includes(q) ||
+        p.content.toLowerCase().includes(q)
     );
+  }
+
+  const uniqueSorted = uniqBySlug(filtered).sort(
+    (a, b) => +new Date(b.date) - +new Date(a.date)
+  );
+
+  const totalPages = Math.max(1, Math.ceil(uniqueSorted.length / PAGE_SIZE));
+  const pageNumRaw = Number(one(sp.page) ?? "1") || 1;
+  const pageNum = Math.min(Math.max(pageNumRaw, 1), totalPages);
+
+  const start = (pageNum - 1) * PAGE_SIZE;
+  const pageItems = uniqueSorted.slice(start, start + PAGE_SIZE);
+
+  const baseUrl =
+    process.env.NEXT_PUBLIC_SITE_URL || "https://www.evindebesle.com";
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    name: "Evinde Besle Blog",
+    description:
+      "Evcil hayvan bakımı, beslenme, sağlık ve eğitim konularında en güncel blog yazıları.",
+    url: `${baseUrl}/blog`,
+    blogPost: pageItems.map((post: any) => ({
+      "@type": "BlogPosting",
+      headline: post.title,
+      image: post.image || `${baseUrl}/default-blog.jpg`,
+      url: `${baseUrl}/blog/${post.slug}`,
+      datePublished: post.date,
+      dateModified: post.date,
+      author: { "@type": "Organization", name: "Evinde Besle" },
+      publisher: {
+        "@type": "Organization",
+        name: "Evinde Besle",
+        logo: { "@type": "ImageObject", url: `${baseUrl}/logo.png` },
+      },
+      description: post.excerpt,
+    })),
+    mainEntityOfPage: {
+      "@type": "ItemList",
+      itemListElement: pageItems.map((post: any, index: number) => ({
+        "@type": "ListItem",
+        position: index + 1 + (pageNum - 1) * PAGE_SIZE,
+        url: `${baseUrl}/blog/${post.slug}`,
+      })),
+      numberOfItems: pageItems.length,
+    },
+  };
+
+  return (
+    <>
+      <Script
+        id="ld-blog"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
+        <BlogMobileHeader />
+
+        <div className="mt-4 grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div className="lg:col-span-8 space-y-10">
+            {pageItems.length === 0 ? (
+              <div className="rounded-xl border p-6 text-sm text-muted-foreground">
+                Aramanızla eşleşen yazı bulunamadı. Filtreleri temizleyip
+                yeniden deneyin.
+              </div>
+            ) : (
+              pageItems.map((post: any) => (
+                <BlogCard key={`${post.slug}-${post.date}`} post={post} />
+              ))
+            )}
+
+            <Suspense fallback={<PaginationSkeleton />}>
+              <BlogPagination totalPages={totalPages} />
+            </Suspense>
+          </div>
+
+          <div className="lg:col-span-4">
+            <Suspense
+              fallback={
+                <div className="space-y-4">
+                  <Skeleton className="h-6 w-40" />
+                  {[...Array(6)].map((_, i) => (
+                    <Skeleton key={i} className="h-8 w-full" />
+                  ))}
+                </div>
+              }
+            >
+              <BlogSidebar />
+            </Suspense>
+          </div>
+        </div>
+      </div>
+    </>
+  );
 }

@@ -38,6 +38,7 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-dialog', '@radix-ui/react-select'],
   },
+  serverExternalPackages: ["iyzipay"],
 
   // Security Headers
   async headers() {

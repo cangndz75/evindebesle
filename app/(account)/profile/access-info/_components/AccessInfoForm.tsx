@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import { uploadFileToCloudinary } from "@/lib/cloudinary";
 import ImageUpload from "./ImageUpload";
 
 export type AccessInfo = {
@@ -70,20 +71,9 @@ export default function AccessInfoForm({ defaultData, onSaved }: Props) {
       let imageUrl = form.keyPhotoUrl;
 
       if (imageFile) {
-        const fd = new FormData();
-        fd.append("file", imageFile);
-        fd.append(
-          "upload_preset",
-          process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!
-        );
-
-        const res = await fetch(
-          `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/upload`,
-          { method: "POST", body: fd }
-        );
-        if (!res.ok) throw new Error("Görsel yüklenemedi");
-        const data = await res.json();
-        imageUrl = data.secure_url;
+        const secure_url = await uploadFileToCloudinary(imageFile);
+        if (!secure_url) throw new Error("Görsel yüklenemedi");
+        imageUrl = secure_url;
       }
 
       const res = await fetch("/api/access-info", {

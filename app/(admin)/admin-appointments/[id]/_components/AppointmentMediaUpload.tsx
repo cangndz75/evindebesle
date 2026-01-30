@@ -4,10 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ImageIcon, VideoIcon, MicIcon } from "lucide-react";
-import {
-  CLOUDINARY_UPLOAD_URL,
-  CLOUDINARY_UPLOAD_PRESET,
-} from "@/lib/cloudinary";
+import { uploadFileToCloudinary } from "@/lib/cloudinary";
 
 type UploadedMedia = {
   url: string;
@@ -28,19 +25,10 @@ export default function AppointmentMediaUpload({
 
     setUploading(true);
 
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
-    formData.append("folder", "appointment_uploads");
-
     try {
-      const res = await fetch(CLOUDINARY_UPLOAD_URL, {
-        method: "POST",
-        body: formData,
-      });
-      const data = await res.json();
-      if (data.secure_url) {
-        onUploaded({ url: data.secure_url, type: fileType });
+      const secure_url = await uploadFileToCloudinary(file);
+      if (secure_url) {
+        onUploaded({ url: secure_url, type: fileType });
       }
     } catch (err) {
       console.error("Yükleme hatası:", err);

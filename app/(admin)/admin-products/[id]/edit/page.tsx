@@ -13,6 +13,10 @@ import { toast } from "sonner";
 import { ArrowLeft, X, Plus, Upload, Image as ImageIcon } from "lucide-react";
 import Image from "next/image";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  uploadBase64ToCloudinary,
+  processHtmlImages
+} from "@/lib/cloudinary";
 
 type Color = {
   name: string;
@@ -207,22 +211,6 @@ export default function EditProductPage() {
     return results.filter((url): url is string => url !== null);
   };
 
-  const uploadBase64ToCloudinary = async (base64String: string): Promise<string | null> => {
-    try {
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ base64: base64String }),
-      });
-      const data = await res.json();
-      return data.url || null;
-    } catch (error) {
-      console.error("Base64 upload error:", error);
-      return null;
-    }
-  };
 
   const addColorImage = async (colorIndex: number, imageUrl: string) => {
     // Base64 görsel kontrolü
@@ -503,7 +491,7 @@ export default function EditProductPage() {
         categoryId: selectedCategoryId || undefined,
         brand: brand || undefined,
         weight: weight ? parseFloat(weight) : undefined,
-        detailText: detailText || undefined,
+        detailText: await processHtmlImages(detailText) || undefined,
         combinations: combinations && combinations.length > 0 ? combinations : undefined,
         colors: [
           ...(primaryProductColor ? [{
@@ -540,11 +528,13 @@ export default function EditProductPage() {
 
       if (primaryImage?.startsWith("data:image")) {
         const url = await uploadBase64ToCloudinary(primaryImage);
-        if (url) finalPrimaryImage = url;
+        if (!url) throw new Error("Ana görsel yüklenemedi");
+        finalPrimaryImage = url;
       }
       if (secondaryImage?.startsWith("data:image")) {
         const url = await uploadBase64ToCloudinary(secondaryImage);
-        if (url) finalSecondaryImage = url;
+        if (!url) throw new Error("Hover görseli yüklenemedi");
+        finalSecondaryImage = url;
       }
 
       // Renk görsellerindeki base64'leri yükle
@@ -553,7 +543,8 @@ export default function EditProductPage() {
           colorImages.map(async (img: string) => {
             if (img.startsWith("data:image")) {
               const url = await uploadBase64ToCloudinary(img);
-              return url || img;
+              if (!url) throw new Error("Renk görseli yüklenemedi");
+              return url;
             }
             return img;
           })

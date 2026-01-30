@@ -25,7 +25,12 @@ import { useState, useEffect } from "react";
 import { X, Plus, Trash2 } from "lucide-react";
 import { generateSlug } from "@/lib/slug";
 import { toast } from "sonner";
-import { CLOUDINARY_UPLOAD_URL, CLOUDINARY_UPLOAD_PRESET } from "@/lib/cloudinary";
+import {
+  CLOUDINARY_UPLOAD_URL,
+  CLOUDINARY_UPLOAD_PRESET,
+  uploadBase64ToCloudinary,
+  processHtmlImages
+} from "@/lib/cloudinary";
 
 type Color = {
   name: string;
@@ -280,28 +285,6 @@ export function EditProductModal({
     return results.filter((url): url is string => url !== null);
   };
 
-  const uploadBase64ToCloudinary = async (base64String: string): Promise<string | null> => {
-    try {
-      const formData = new FormData();
-      formData.append("file", base64String);
-      formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
-
-      const res = await fetch(CLOUDINARY_UPLOAD_URL, {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error?.message || "Upload failed");
-      }
-      return data.secure_url || null;
-    } catch (error: any) {
-      console.error("Base64 upload error:", error);
-      toast.error(`Görsel yükleme hatası: ${error.message || "Bilinmeyen hata"}`);
-      return null;
-    }
-  };
 
   const addColorImage = async (colorIndex: number, imageUrl?: string, files?: File[]) => {
     // Base64 görsel kontrolü ve yükleme
@@ -485,12 +468,14 @@ export function EditProductModal({
         })
       );
 
+      const processedDetailText = await processHtmlImages(detailText);
+
       const productData = {
         name,
         slug: generateSlug(name),
         stockCode: stockCode || undefined,
         description: description || undefined,
-        detailText: detailText || undefined,
+        detailText: processedDetailText || undefined,
         price: parseFloat(price),
         originalPrice: originalPrice ? parseFloat(originalPrice) : undefined,
         image: finalImage || undefined,

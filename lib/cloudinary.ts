@@ -34,3 +34,48 @@ export function getBlurPlaceholderUrl(url: string | null | undefined): string {
 
     return `${parts[0]}/upload/w_40,f_auto,q_10,e_blur:1000/${parts[1]}`;
 }
+
+/**
+ * Uploads a base64 encoded image string to Cloudinary.
+ */
+export async function uploadBase64ToCloudinary(base64String: string): Promise<string | null> {
+    try {
+        const formData = new FormData();
+        formData.append("file", base64String);
+        formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+
+        const res = await fetch(CLOUDINARY_UPLOAD_URL, {
+            method: "POST",
+            body: formData,
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+            throw new Error(data.error?.message || "Upload failed");
+        }
+        return data.secure_url || null;
+    } catch (error: any) {
+        console.error("Base64 upload error:", error);
+        return null;
+    }
+}
+
+/**
+ * Finds and uploads all base64 images in an HTML string to Cloudinary.
+ */
+export async function processHtmlImages(html: string): Promise<string> {
+    const base64Regex = /src="(data:image\/[^;]+;base64,[^"]+)"/g;
+    let newHtml = html;
+
+    const matches = Array.from(html.matchAll(base64Regex));
+
+    for (const match of matches) {
+        const base64 = match[1];
+        const uploadedUrl = await uploadBase64ToCloudinary(base64);
+        if (uploadedUrl) {
+            newHtml = newHtml.replace(base64, uploadedUrl);
+        }
+    }
+
+    return newHtml;
+}

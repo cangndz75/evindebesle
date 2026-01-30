@@ -80,7 +80,7 @@ export default function ActionInbox({ items }: ActionInboxProps) {
             <div className="p-2 rounded-lg bg-gray-100">
               <AlertTriangle className="w-4 h-4 text-gray-600" />
             </div>
-            <CardTitle className="text-xl font-semibold text-gray-900">Action Inbox</CardTitle>
+            <CardTitle className="text-xl font-semibold text-gray-900">Gelen Kutusu</CardTitle>
           </div>
         </CardHeader>
         <CardContent className="p-12 text-center">

@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useState, useRef, useEffect } from "react";
+import { uploadBase64ToCloudinary } from "@/lib/cloudinary";
+import { toast } from "sonner";
 
 type Props = {
   open: boolean;
@@ -66,16 +68,19 @@ export default function PetEditModal({ open, onClose, onUpdated, pet }: Props) {
     let uploadedImage: string | null = image;
 
     if (file) {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const uploadRes = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
+      const reader = new FileReader();
+      const base64Promise = new Promise<string>((resolve) => {
+        reader.onload = (e) => resolve(e.target?.result as string);
+        reader.readAsDataURL(file);
       });
-
-      const uploadData = await uploadRes.json();
-      uploadedImage = uploadData.url;
+      const base64 = await base64Promise;
+      const url = await uploadBase64ToCloudinary(base64);
+      if (!url) {
+        toast.error("Görsel yüklenemedi");
+        setLoading(false);
+        return;
+      }
+      uploadedImage = url;
     }
 
     await fetch(`/api/user-pets/${pet.id}`, {

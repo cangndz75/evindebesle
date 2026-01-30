@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { uploadBase64ToCloudinary } from "@/lib/cloudinary";
+import { toast } from "sonner";
 
 type Props = {
   onSaved: () => void;
@@ -99,6 +101,13 @@ export default function PetAddForm({ onSaved, species }: Props) {
 
     setSaving(true);
     try {
+      let finalImageUrl = image;
+      if (image && image.startsWith("data:image")) {
+        const uploadedUrl = await uploadBase64ToCloudinary(image);
+        if (!uploadedUrl) throw new Error("Görsel yüklenemedi");
+        finalImageUrl = uploadedUrl;
+      }
+
       const res = await fetch("/api/user-pets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -106,7 +115,7 @@ export default function PetAddForm({ onSaved, species }: Props) {
           name: form.name,
           age: form.age ? Number(form.age) : null,
           petId: selectedSpecies,        // <- tür UUID backend'de petId olarak karşılanıyor
-          image,
+          image: finalImageUrl,
           allergy: form.allergy,         // zod: z.array(z.string()).optional()
           specialNote: form.specialNote || null,
         }),
@@ -118,7 +127,7 @@ export default function PetAddForm({ onSaved, species }: Props) {
         try {
           const err = await res.json();
           msg = err?.error || msg;
-        } catch {}
+        } catch { }
         throw new Error(msg);
       }
 
@@ -293,7 +302,7 @@ export default function PetAddForm({ onSaved, species }: Props) {
                   d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
                 ></path>
               </svg>
-              
+
             </>
           ) : (
             "Kaydet"

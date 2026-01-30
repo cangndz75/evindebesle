@@ -12,6 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import Link from "next/link";
 import TipTapEditor from "@/components/admin/blog/TipTapEditor";
+import { processHtmlImages } from "@/lib/cloudinary";
 
 export default function NewBlogPostPage() {
     const router = useRouter();
@@ -37,11 +38,13 @@ export default function NewBlogPostPage() {
 
         setLoading(true);
         try {
+            const processedContent = await processHtmlImages(formData.content);
             const res = await fetch("/api/admin/blog", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     ...formData,
+                    content: processedContent,
                     isPublished: publish,
                     tags: formData.tags.split(",").map((t) => t.trim()).filter((t) => t),
                 }),

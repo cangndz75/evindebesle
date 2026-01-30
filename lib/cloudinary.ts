@@ -1,8 +1,17 @@
-export const CLOUDINARY_FOLDER = "appointment_uploads";
+const getCloudinaryConfig = () => {
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+    const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 
-export const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/upload`;
+    if (!cloudName || !uploadPreset) {
+        console.error("Cloudinary configuration missing:", { cloudName, uploadPreset });
+    }
 
-export const CLOUDINARY_UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!;
+    return {
+        cloudName,
+        uploadPreset,
+        uploadUrl: `https://api.cloudinary.com/v1_1/${cloudName}/upload`
+    };
+};
 
 /**
  * Transforms a standard Cloudinary URL to include optimization parameters.
@@ -39,12 +48,19 @@ export function getBlurPlaceholderUrl(url: string | null | undefined): string {
  * Uploads a base64 encoded image string to Cloudinary.
  */
 export async function uploadBase64ToCloudinary(base64String: string): Promise<string | null> {
+    const config = getCloudinaryConfig();
+
+    if (!config.cloudName || !config.uploadPreset) {
+        console.error("Cloudinary configuration is incomplete. Skipping upload.");
+        return null;
+    }
+
     try {
         const formData = new FormData();
         formData.append("file", base64String);
-        formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+        formData.append("upload_preset", config.uploadPreset);
 
-        const res = await fetch(CLOUDINARY_UPLOAD_URL, {
+        const res = await fetch(config.uploadUrl, {
             method: "POST",
             body: formData,
         });
@@ -56,6 +72,38 @@ export async function uploadBase64ToCloudinary(base64String: string): Promise<st
         return data.secure_url || null;
     } catch (error: any) {
         console.error("Base64 upload error:", error);
+        return null;
+    }
+}
+
+/**
+ * Uploads a File object to Cloudinary.
+ */
+export async function uploadFileToCloudinary(file: File): Promise<string | null> {
+    const config = getCloudinaryConfig();
+
+    if (!config.cloudName || !config.uploadPreset) {
+        console.error("Cloudinary configuration is incomplete. Skipping upload.");
+        return null;
+    }
+
+    try {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("upload_preset", config.uploadPreset);
+
+        const res = await fetch(config.uploadUrl, {
+            method: "POST",
+            body: formData,
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+            throw new Error(data.error?.message || "Upload failed");
+        }
+        return data.secure_url || null;
+    } catch (error: any) {
+        console.error("File upload error:", error);
         return null;
     }
 }

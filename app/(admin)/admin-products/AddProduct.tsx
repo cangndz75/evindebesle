@@ -26,9 +26,8 @@ import { generateSlug, generateVariantCode } from "@/lib/slug";
 import { X, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
-  CLOUDINARY_UPLOAD_URL,
-  CLOUDINARY_UPLOAD_PRESET,
   uploadBase64ToCloudinary,
+  uploadFileToCloudinary,
   processHtmlImages
 } from "@/lib/cloudinary";
 
@@ -131,28 +130,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
   const uploadFiles = async (files: File[]): Promise<string[]> => {
     // Tüm dosyaları paralel olarak yükle
     const uploadPromises = files.map(async (file) => {
-      try {
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
-
-        const uploadRes = await fetch(CLOUDINARY_UPLOAD_URL, {
-          method: "POST",
-          body: formData,
-        });
-
-        if (!uploadRes.ok) {
-          const errorData = await uploadRes.json();
-          throw new Error(errorData.error?.message || "Cloudinary upload failed");
-        }
-
-        const uploadData = await uploadRes.json();
-        return uploadData.secure_url || null;
-      } catch (error: any) {
-        console.error("Upload error:", error);
-        toast.error(`Yükleme hatası: ${error.message || "Bilinmeyen hata"}`);
-        return null;
-      }
+      return await uploadFileToCloudinary(file);
     });
 
     // Tüm yüklemeleri paralel olarak bekle

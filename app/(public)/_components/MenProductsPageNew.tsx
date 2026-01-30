@@ -237,6 +237,7 @@ export default function MenProductsPage({
 
     const params = new URLSearchParams();
     params.append("gender", "MALE");
+    params.append("gender", "UNISEX");
 
     if (selectedCategory !== "All") {
       params.append("tag", selectedCategory.toLowerCase());

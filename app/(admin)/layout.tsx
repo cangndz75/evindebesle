@@ -224,7 +224,7 @@ export default function AdminLayout({
           {!sidebarCollapsed ? (
             <div className="flex items-center gap-2">
               <Home className="w-5 h-5 flex-shrink-0" />
-              <h2 className="text-xl font-bold whitespace-nowrap flex-1">Evinde Besle</h2>
+              <h2 className="text-xl font-bold whitespace-nowrap flex-1">Dark Velvet</h2>
               <button
                 onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
                 className="flex-shrink-0 p-1 hover:bg-gray-800 rounded transition-colors"
@@ -298,7 +298,7 @@ export default function AdminLayout({
 
       {!isCampaignsPage && (
         <div className="md:hidden fixed top-0 left-0 w-full z-50 bg-white border-b border-border flex items-center justify-between px-4 py-3">
-          <h2 className="text-xl font-bold">Evinde Besle</h2>
+          <h2 className="text-xl font-bold">Dark Velvet</h2>
           <Button variant="ghost" size="icon" onClick={() => setOpen(!open)}>
             {open ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </Button>
@@ -309,7 +309,7 @@ export default function AdminLayout({
         <div className="fixed inset-0 z-40 bg-gray-900 text-white p-6 space-y-6 pt-20 overflow-y-auto">
           <div className="flex items-center gap-2 mb-6">
             <Home className="w-5 h-5" />
-            <h2 className="text-xl font-bold">Evinde Besle</h2>
+            <h2 className="text-xl font-bold">Dark Velvet</h2>
           </div>
           {navSections.map((section) => (
             <div key={section.title}>

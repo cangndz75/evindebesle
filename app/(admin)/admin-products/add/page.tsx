@@ -441,8 +441,8 @@ export default function AddProductPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header - Sticky */}
-      <div className="sticky top-0 z-50 bg-white border-b border-gray-200 px-6 py-4 shadow-sm">
-        <div className="flex items-center justify-between max-w-7xl mx-auto">
+      <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 shadow-sm">
+        <div className="flex items-center justify-between max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
@@ -453,28 +453,29 @@ export default function AddProductPage() {
               <ArrowLeft className="w-4 h-4" />
               Geri
             </Button>
-            <h1 className="text-2xl font-bold text-gray-900">Yeni Ürün Ekle</h1>
+            <h1 className="text-xl font-bold text-gray-900 md:text-2xl">Yeni Ürün Ekle</h1>
           </div>
           <div className="flex items-center gap-3">
             <Button
               variant="outline"
               onClick={() => router.back()}
               disabled={loading}
+              className="hidden sm:inline-flex"
             >
               İptal
             </Button>
             <Button
               onClick={handleSubmit}
               disabled={loading}
-              className="bg-black text-white hover:bg-gray-800"
+              className="bg-black text-white hover:bg-gray-800 shadow-lg"
             >
               {loading ? "Oluşturuluyor..." : "Ürün Oluştur"}
             </Button>
           </div>
         </div>
-      </div>
+      </header>
 
-      <div className="p-6">
+      <main className="p-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
           {/* Sol Taraf - Önizleme */}
           <div className="space-y-6">
@@ -1663,7 +1664,7 @@ export default function AddProductPage() {
             </div>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

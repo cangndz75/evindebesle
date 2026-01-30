@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic'; // Filtreler için dynamic
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
 
-  const gender = searchParams.get("gender"); // MALE, FEMALE, UNISEX
+  const genders = searchParams.getAll("gender"); // MALE, FEMALE, UNISEX
   const tag = searchParams.get("tag"); // ProductTag name
   const minPrice = searchParams.get("minPrice");
   const maxPrice = searchParams.get("maxPrice");
@@ -23,8 +23,8 @@ export async function GET(request: NextRequest) {
   };
 
   // Gender filter
-  if (gender) {
-    where.gender = gender;
+  if (genders.length > 0) {
+    where.gender = { in: genders };
   }
 
   // Tag filter

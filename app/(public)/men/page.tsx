@@ -25,7 +25,7 @@ async function getInitialProducts() {
     const products = await prisma.product.findMany({
       where: {
         isActive: true,
-        gender: "MALE",
+        gender: { in: ["MALE", "UNISEX"] },
       },
       select: {
         id: true,
@@ -127,7 +127,7 @@ async function getPriceRange() {
     const result = await prisma.product.aggregate({
       where: {
         isActive: true,
-        gender: "MALE",
+        gender: { in: ["MALE", "UNISEX"] },
       },
       _min: { price: true },
       _max: { price: true },

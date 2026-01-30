@@ -36,6 +36,7 @@ const navItems = [
     { key: "women" as const, label: "KADIN", href: "/women" },
     { key: "new" as const, label: "YENİ", href: "/category/new" },
     { key: "collections" as const, label: "KOLEKSİYON", href: "/category/collections" },
+    { key: "blog" as const, label: "BLOG", href: "/blog" },
 ] as const;
 
 export default function HomeHeader() {

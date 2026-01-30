@@ -110,22 +110,22 @@ export default function TabbedProductCarousel({
             </div>
 
             {/* Tablar - Modern Pill Style */}
-            <TabsList className="bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-full h-auto p-1.5 shadow-sm">
+            <TabsList className="bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-full h-auto p-1.5 shadow-sm mx-4 md:mx-0">
               <TabsTrigger
                 value="new-arrivals"
-                className="px-6 py-2.5 text-xs font-medium uppercase tracking-wider rounded-full transition-all duration-300 data-[state=active]:bg-[#111] data-[state=active]:text-white data-[state=active]:shadow-md text-[#111]/60 hover:text-[#111]"
+                className="px-4 md:px-6 py-2.5 text-xs font-medium uppercase tracking-wider rounded-full transition-all duration-300 data-[state=active]:bg-[#111] data-[state=active]:text-white data-[state=active]:shadow-md text-[#111]/60 hover:text-[#111]"
               >
                 New Arrivals
               </TabsTrigger>
               <TabsTrigger
                 value="best-sellers"
-                className="px-6 py-2.5 text-xs font-medium uppercase tracking-wider rounded-full transition-all duration-300 data-[state=active]:bg-[#111] data-[state=active]:text-white data-[state=active]:shadow-md text-[#111]/60 hover:text-[#111]"
+                className="px-4 md:px-6 py-2.5 text-xs font-medium uppercase tracking-wider rounded-full transition-all duration-300 data-[state=active]:bg-[#111] data-[state=active]:text-white data-[state=active]:shadow-md text-[#111]/60 hover:text-[#111]"
               >
                 Best Sellers
               </TabsTrigger>
               <TabsTrigger
                 value="recommended"
-                className="px-6 py-2.5 text-xs font-medium uppercase tracking-wider rounded-full transition-all duration-300 data-[state=active]:bg-[#111] data-[state=active]:text-white data-[state=active]:shadow-md text-[#111]/60 hover:text-[#111]"
+                className="px-4 md:px-6 py-2.5 text-xs font-medium uppercase tracking-wider rounded-full transition-all duration-300 data-[state=active]:bg-[#111] data-[state=active]:text-white data-[state=active]:shadow-md text-[#111]/60 hover:text-[#111]"
               >
                 Recommended
               </TabsTrigger>

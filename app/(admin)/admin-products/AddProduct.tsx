@@ -312,42 +312,40 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
 
       if (image?.startsWith("data:image")) {
         const url = await uploadBase64ToCloudinary(image);
-        if (url) finalImage = url;
+        if (!url) throw new Error("Ana görsel yüklenemedi");
+        finalImage = url;
       }
       if (primaryImage?.startsWith("data:image")) {
         const url = await uploadBase64ToCloudinary(primaryImage);
-        if (url) finalPrimaryImage = url;
+        if (!url) throw new Error("Birinci görsel yüklenemedi");
+        finalPrimaryImage = url;
       }
       if (secondaryImage?.startsWith("data:image")) {
         const url = await uploadBase64ToCloudinary(secondaryImage);
-        if (url) finalSecondaryImage = url;
+        if (!url) throw new Error("İkinci görsel yüklenemedi");
+        finalSecondaryImage = url;
       }
 
       // Renk görsellerindeki base64'leri yükle
-      const processColorImages = async (colorImages: string[]) => {
-        return Promise.all(
-          colorImages.map(async (img: string) => {
-            if (img.startsWith("data:image")) {
-              const url = await uploadBase64ToCloudinary(img);
-              return url || img;
-            }
-            return img;
-          })
-        );
-      };
-
-      const processedPrimaryColor = primaryColor
-        ? {
-          ...primaryColor,
-          images: await processColorImages(primaryColor.images),
-        }
-        : null;
-
       const processedColors = await Promise.all(
-        colors.map(async (c) => ({
-          ...c,
-          images: await processColorImages(c.images),
-        }))
+        colors.map(async (c) => {
+          const processedImages = await Promise.all(
+            c.images.map(async (img: string) => {
+              if (img.startsWith("data:image")) {
+                const url = await uploadBase64ToCloudinary(img);
+                if (!url) {
+                  throw new Error(`${c.name} rengi için görsel yüklenemedi`);
+                }
+                return url;
+              }
+              return img;
+            })
+          );
+          return {
+            ...c,
+            images: processedImages,
+          };
+        })
       );
 
       const productData = {
@@ -365,12 +363,19 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
         fabricType: fabricType || undefined,
         isActive,
         colors: [
-          ...(processedPrimaryColor ? [{
-            name: processedPrimaryColor.name,
-            hexCode: processedPrimaryColor.hexCode || undefined,
-            images: processedPrimaryColor.images.filter((img): img is string => !!img),
-            price: processedPrimaryColor.price,
-            sizeStocks: processedPrimaryColor.sizeStocks || {},
+          ...(primaryColor ? [{
+            name: primaryColor.name,
+            hexCode: primaryColor.hexCode || undefined,
+            images: await Promise.all(primaryColor.images.map(async (img: string) => {
+              if (img.startsWith("data:image")) {
+                const url = await uploadBase64ToCloudinary(img);
+                if (!url) throw new Error(`${primaryColor.name} rengi için görsel yüklenemedi`);
+                return url;
+              }
+              return img;
+            })).then(imgs => imgs.filter((img): img is string => !!img)),
+            price: primaryColor.price,
+            sizeStocks: primaryColor.sizeStocks || {},
           }] : []),
           ...processedColors.map((c) => ({
             name: c.name,
@@ -403,9 +408,9 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
         const error = await res.json();
         alert("Hata: " + (error.error || "Bilinmeyen hata"));
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Hata:", error);
-      alert("Ürün eklenirken bir hata oluştu");
+      toast.error(error.message || "Ürün eklenirken bir hata oluştu");
     } finally {
       setLoading(false);
     }

@@ -19,7 +19,7 @@ import CartPreview from "@/components/home/CartPreview";
 import AnnouncementBanner from "@/components/home/AnnouncementBanner";
 import { useHeaderStore } from "@/lib/stores/headerStore";
 
-type MenuKey = "men" | "women" | "new" | "collections" | "about";
+type MenuKey = "men" | "women" | "new" | "collections" | "blog" | "about";
 
 type MegaGroup = {
   title?: string;
@@ -39,6 +39,7 @@ const navItems = [
   { key: "women" as const, label: "KADIN", href: "/women" },
   { key: "new" as const, label: "YENİ", href: "/category/new" },
   { key: "collections" as const, label: "KOLEKSİYON", href: "/category/collections" },
+  { key: "blog" as const, label: "BLOG", href: "/blog" },
   { key: "about" as const, label: "HAKKIMIZDA", href: "/about" },
 ] as const;
 
@@ -209,10 +210,19 @@ export default function SiteHeader() {
           },
         ],
         rightPromo: {
-          title: "Evinde Besle",
+          title: "Modern Giyim",
           subtitle: "Biz kimiz?",
           image: "https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?q=80&w=1200&auto=format&fit=crop",
           href: "/about",
+        },
+      },
+      blog: {
+        left: [],
+        rightPromo: {
+          title: "Fashion Blog",
+          subtitle: "Stil önerileri ve moda haberleri",
+          image: "https://images.unsplash.com/photo-1512486130939-2c4f79935e4f?q=80&w=1200&auto=format&fit=crop",
+          href: "/blog",
         },
       },
     }),

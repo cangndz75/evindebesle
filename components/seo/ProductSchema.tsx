@@ -40,7 +40,7 @@ export default function ProductSchema({ product }: ProductSchemaProps) {
                 : "https://schema.org/OutOfStock",
             seller: {
                 "@type": "Organization",
-                name: "Evinde Besle",
+                name: "Dark Velvet",
             },
         },
         ...(product.rating &&

@@ -12,7 +12,7 @@ function mapPrismaToBlogPost(post: any): BlogPost {
     content: post.content,
     imageUrl: post.coverImage || "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=1600",
     date: post.publishedAt ? post.publishedAt.toISOString().split("T")[0] : post.createdAt.toISOString().split("T")[0],
-    author: post.author?.name || "Evinde Besle",
+    author: post.author?.name || "Dark Velvet",
     tags: post.tags || [],
     category: post.category || "Genel",
   };

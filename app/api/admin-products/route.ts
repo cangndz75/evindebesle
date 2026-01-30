@@ -1,6 +1,13 @@
 import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: "10mb",
+    },
+  },
+};
 import { generateVariantCode, generateProductSlug } from "@/lib/slug";
 
 export async function GET(request: NextRequest) {

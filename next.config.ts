@@ -22,7 +22,7 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "res.cloudinary.com",
         port: "",
-        pathname: "/dhe3yon5d/**",
+        pathname: "/**",
       },
     ],
     formats: ['image/avif', 'image/webp'],

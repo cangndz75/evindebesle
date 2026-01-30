@@ -10,13 +10,13 @@ const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Evinde Besle - Premium Pet Services",
-  description: "Evinde Besle - Evcil hayvanlarınız için profesyonel bakım ve hizmetler. Sevgiyle bakıyoruz.",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || "https://evindebesle.com"),
+  title: "Dark Velvet - Premium Giyim & Koleksiyon",
+  description: "Dark Velvet - Modern tasarım ve premium kalite ile tarzınızı yansıtın.",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || "https://darkvelvet.com"),
   openGraph: {
     type: "website",
     locale: "tr_TR",
-    siteName: "Evinde Besle",
+    siteName: "Dark Velvet",
   },
   twitter: {
     card: "summary_large_image",

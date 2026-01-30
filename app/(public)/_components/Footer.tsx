@@ -7,23 +7,23 @@ export default function Footer() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-20">
         <div className="flex flex-col justify-between">
           <div>
-            <h1 className="text-2xl font-bold mb-6">Evinde Besle</h1>
+            <h1 className="text-2xl font-bold mb-6 uppercase tracking-wider">Dark Velvet</h1>
             <p className="text-sm">İstanbul Ticaret Odası’na kayıtlıdır.</p>
           </div>
           <p className="text-xs text-[#6b6059]">
-            © Evinde Besle 2026. Tüm hakları saklıdır.
+            © Dark Velvet 2026. Tüm hakları saklıdır.
           </p>
         </div>
 
         <div className="leading-7 text-[15px]">
-          <p className="font-medium">Evinde Besle bir Premium Evcil Hayvan Hizmetleri markasıdır.</p>
+          <p className="font-medium uppercase tracking-wide">Dark Velvet bir Premium Giyim markasıdır.</p>
           <p>
             Uptwins Blok, Orta, Yalnız Selvi Cd. No : 5AB, 34880 Kartal/İstanbul
           </p>
           <p className="mt-1">Telefon: +90 216 519 26 00</p>
-          <p className="mt-2">
-            <a href="mailto:info@evindebesle.com" className="underline">
-              info@evindebesle.com
+          <p className="mt-2 text-primary font-medium">
+            <a href="mailto:info@darkvelvet.com" className="hover:underline">
+              info@darkvelvet.com
             </a>
           </p>
         </div>

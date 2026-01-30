@@ -18,7 +18,7 @@ export async function POST(req: Request) {
   const htmlContent = `
   <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 32px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #ffffff;">
     <div style="text-align: center; margin-bottom: 24px;">
-      <img src="https://res.cloudinary.com/dlahfchej/image/upload/v1752619913/16_ennpd0.png" alt="Evinde Besle" width="150" />
+      <h1 style="color: #111111; font-size: 24px; text-transform: uppercase; letter-spacing: 2px;">Dark Velvet</h1>
     </div>
     <h2 style="color: #333333; font-size: 20px;">Tek Kullanımlık Doğrulama Kodunuz</h2>
     <p style="color: #555555; font-size: 16px;">
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
     </p>
     <hr style="margin: 24px 0; border: none; border-top: 1px solid #ddd;" />
     <p style="color: #999999; font-size: 12px; text-align: center;">
-      Bu e-posta <a href="https://evindebesle.com" style="color: #999999;">evindebesle.com</a> üzerinden gönderilmiştir.
+      Bu e-posta <a href="https://darkvelvet.com" style="color: #999999;">darkvelvet.com</a> üzerinden gönderilmiştir.
     </p>
   </div>
 `;
@@ -48,7 +48,7 @@ export async function POST(req: Request) {
   });
 
   await resend.emails.send({
-    from: "Evinde Besle <onboarding@evindebesle.com>",
+    from: "Dark Velvet <onboarding@darkvelvet.com>",
     to: email,
     subject: "Doğrulama Kodunuz",
     html: htmlContent,

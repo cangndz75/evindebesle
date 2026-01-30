@@ -131,29 +131,22 @@ export default function ProductFilters({
             {/* Filter Icon - 3 lines with arrows on middle line */}
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
               {/* Top line (long) */}
-              <path d="M2 4H14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              <path d="M2 4H14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
               {/* Middle line (shorter with arrows) */}
-              <path d="M4 8H12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              <path d="M4 8H12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
               {/* Left arrow */}
-              <path d="M3 7L4 8L3 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+              <path d="M3 7L4 8L3 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
               {/* Right arrow */}
-              <path d="M13 7L12 8L13 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+              <path d="M13 7L12 8L13 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
               {/* Bottom line (long) */}
-              <path d="M2 12H14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              <path d="M2 12H14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
             <span>Filtrele</span>
           </button>
         </SheetTrigger>
         <SheetContent side="left" className="w-[400px] overflow-y-auto p-0">
-          <SheetHeader className="px-6 pt-6 pb-4 border-b flex flex-row items-center justify-between">
+          <SheetHeader className="px-6 pt-6 pb-4 border-b">
             <SheetTitle className="text-left font-bold text-[#111]">Filtreler</SheetTitle>
-            <button
-              onClick={() => setOpen(false)}
-              className="text-[#111] hover:opacity-70 transition-opacity"
-              aria-label="Kapat"
-            >
-              <X className="w-5 h-5" />
-            </button>
           </SheetHeader>
 
           <div className="px-6 py-4">
@@ -311,8 +304,8 @@ export default function ProductFilters({
 
             {/* Apply Button */}
             <div className="pt-6 mt-4 border-t">
-              <Button 
-                onClick={applyFilters} 
+              <Button
+                onClick={applyFilters}
                 className="w-full bg-[#111] text-white hover:bg-[#333] h-12 text-sm font-semibold uppercase tracking-wide"
               >
                 Filtrele

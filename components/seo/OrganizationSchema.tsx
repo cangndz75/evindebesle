@@ -1,13 +1,13 @@
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://evindebesle.com";
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://darkvelvet.com";
 
 export default function OrganizationSchema() {
     const schema = {
         "@context": "https://schema.org",
         "@type": "Organization",
-        name: "Evinde Besle",
+        name: "Dark Velvet",
         url: BASE_URL,
         logo: `${BASE_URL}/logo.png`,
-        description: "Evcil hayvan ürünleri ve bakım hizmetleri",
+        description: "Premium Giyim ve Stil Koleksiyonu",
         address: {
             "@type": "PostalAddress",
             addressCountry: "TR",
@@ -19,8 +19,8 @@ export default function OrganizationSchema() {
             availableLanguage: "Turkish",
         },
         sameAs: [
-            "https://www.instagram.com/evindebesle",
-            "https://www.facebook.com/evindebesle",
+            "https://www.instagram.com/darkvelvet",
+            "https://www.facebook.com/darkvelvet",
         ],
     };
 

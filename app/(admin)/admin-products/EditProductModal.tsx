@@ -446,15 +446,18 @@ export function EditProductModal({
 
       if (image?.startsWith("data:image")) {
         const url = await uploadBase64ToCloudinary(image);
-        if (url) finalImage = url;
+        if (!url) throw new Error("Ana görsel yüklenemedi");
+        finalImage = url;
       }
       if (primaryImage?.startsWith("data:image")) {
         const url = await uploadBase64ToCloudinary(primaryImage);
-        if (url) finalPrimaryImage = url;
+        if (!url) throw new Error("Birinci görsel yüklenemedi");
+        finalPrimaryImage = url;
       }
       if (secondaryImage?.startsWith("data:image")) {
         const url = await uploadBase64ToCloudinary(secondaryImage);
-        if (url) finalSecondaryImage = url;
+        if (!url) throw new Error("İkinci görsel yüklenemedi");
+        finalSecondaryImage = url;
       }
 
       // Renk görsellerindeki base64'leri yükle
@@ -466,7 +469,10 @@ export function EditProductModal({
             c.images.map(async (img: string) => {
               if (img.startsWith("data:image")) {
                 const url = await uploadBase64ToCloudinary(img);
-                return url || img;
+                if (!url) {
+                  throw new Error(`${c.name} rengi için görsel yüklenemedi`);
+                }
+                return url;
               }
               return img;
             })
@@ -474,7 +480,7 @@ export function EditProductModal({
 
           return {
             ...c,
-            images: processedImages.filter((img): img is string => !!img),
+            images: processedImages,
           };
         })
       );
@@ -523,9 +529,9 @@ export function EditProductModal({
         const error = await res.json();
         alert("Hata: " + (error.error || "Bilinmeyen hata"));
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Hata:", error);
-      alert("Ürün güncellenirken bir hata oluştu");
+      toast.error(error.message || "Ürün güncellenirken bir hata oluştu");
     } finally {
       setLoading(false);
     }

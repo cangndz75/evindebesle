@@ -68,18 +68,18 @@ export async function generateMetadata({
   const category = one(sp.category)?.trim();
   const q = one(sp.q)?.trim();
 
-  let title = "Evcil Hayvan Bakım Blogu | Evinde Besle";
+  let title = "Moda ve Stil Blogu | Dark Velvet";
   let description =
-    "Evcil hayvan bakımı, beslenme, sağlık ve eğitim konularında en güncel blog yazılarımızı keşfedin.";
+    "En son moda trendleri, stil önerileri ve koleksiyon haberleri için blogumuzu takip edin.";
 
   if (tag) {
-    title = `${tag} Hakkında Blog Yazıları | Evinde Besle`;
-    description = `${tag} ile ilgili en güncel blog yazılarını okuyun.`;
+    title = `${tag} Hakkında Stil Yazıları | Dark Velvet`;
+    description = `${tag} ile ilgili en güncel moda yazılarını okuyun.`;
   } else if (category) {
-    title = `${category} Kategorisi Blog Yazıları | Evinde Besle`;
-    description = `${category} kategorisinde evcil hayvan bakımıyla ilgili yazılar.`;
+    title = `${category} Kategorisi Moda Yazıları | Dark Velvet`;
+    description = `${category} kategorisinde stil ve tasarım üzerine yazılar.`;
   } else if (q) {
-    title = `"${q}" Arama Sonuçları | Evinde Besle Blog`;
+    title = `"${q}" Arama Sonuçları | Dark Velvet Blog`;
     description = `"${q}" ile ilgili blog sonuçlarını görüntüleyin.`;
   }
 
@@ -142,9 +142,9 @@ export default async function BlogHomePage({
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "Blog",
-    name: "Evinde Besle Blog",
+    name: "Dark Velvet Blog",
     description:
-      "Evcil hayvan bakımı, beslenme, sağlık ve eğitim konularında en güncel blog yazıları.",
+      "Moda, stil ve yaşam üzerine en güncel blog yazıları.",
     url: `${baseUrl}/blog`,
     blogPost: pageItems.map((post: any) => ({
       "@type": "BlogPosting",
@@ -153,10 +153,10 @@ export default async function BlogHomePage({
       url: `${baseUrl}/blog/${post.slug}`,
       datePublished: post.date,
       dateModified: post.date,
-      author: { "@type": "Organization", name: "Evinde Besle" },
+      author: { "@type": "Organization", name: "Dark Velvet" },
       publisher: {
         "@type": "Organization",
-        name: "Evinde Besle",
+        name: "Dark Velvet",
         logo: { "@type": "ImageObject", url: `${baseUrl}/logo.png` },
       },
       description: post.excerpt,

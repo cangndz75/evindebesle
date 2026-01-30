@@ -29,16 +29,16 @@ export async function generateMetadata({
 
   if (!post) {
     return {
-      title: "Yazı bulunamadı | Evinde Besle",
+      title: "Yazı bulunamadı | Dark Velvet",
       robots: { index: false, follow: true },
     };
   }
 
   const url = `${SITE}/blog/${post.slug}`;
-  const title = `${post.title} | Evinde Besle`;
+  const title = `${post.title} | Dark Velvet`;
   const description =
     (post.excerpt ?? "").slice(0, 160) ||
-    "Evcil hayvan bakımı ve evde bakım rehberleri.";
+    "Dark Velvet ile stilinizi keşfedin.";
   const image = post.imageUrl ?? `${SITE}/og-default.jpg`;
 
   return {
@@ -52,7 +52,7 @@ export async function generateMetadata({
       title,
       description,
       images: [{ url: image }],
-      siteName: "Evinde Besle",
+      siteName: "Dark Velvet",
     },
     twitter: {
       card: "summary_large_image",
@@ -81,10 +81,10 @@ export default async function BlogDetailPage({ params }: PageProps) {
     image: post.imageUrl ? [post.imageUrl] : undefined,
     datePublished: post.date,
     dateModified: post.date,
-    author: [{ "@type": "Organization", name: "Evinde Besle" }],
+    author: [{ "@type": "Organization", name: "Dark Velvet" }],
     publisher: {
       "@type": "Organization",
-      name: "Evinde Besle",
+      name: "Dark Velvet",
       logo: {
         "@type": "ImageObject",
         url: `${SITE}/logo.png`,
@@ -140,8 +140,8 @@ export default async function BlogDetailPage({ params }: PageProps) {
           </article>
 
           <AuthorCard
-            name="Evinde Besle Editör Ekibi"
-            bio="Pet bakımında günlük rutin, doğru beslenme ve davranış zenginleştirme üzerine yazıyoruz."
+            name="Dark Velvet Editör Ekibi"
+            bio="E-ticarette premium bir bakış açısı"
             avatarUrl="https://res.cloudinary.com/dlahfchej/image/upload/v1752619387/13_lmksmp.png"
           />
 

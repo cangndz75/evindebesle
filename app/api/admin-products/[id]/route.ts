@@ -1,5 +1,12 @@
 import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: "10mb",
+    },
+  },
+};
 import { generateVariantCode, generateProductSlug } from "@/lib/slug";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";

@@ -1,11 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-export const config = {
-    api: {
-        bodyParser: {
-            sizeLimit: "10mb",
-        },
-    },
-};
+export const dynamic = "force-dynamic";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 

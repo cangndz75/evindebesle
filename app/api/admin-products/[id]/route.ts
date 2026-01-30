@@ -1,12 +1,6 @@
 import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: "10mb",
-    },
-  },
-};
+export const dynamic = "force-dynamic";
 import { generateVariantCode, generateProductSlug } from "@/lib/slug";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
@@ -109,6 +103,8 @@ export async function PATCH(
       metaTitle,
       metaDescription,
       canonicalUrl,
+      brand,
+      weight,
       categoryId,
     } = body;
 
@@ -196,6 +192,8 @@ export async function PATCH(
     if (sizeType !== undefined) updateData.sizeType = sizeType || null;
     if (fabricType !== undefined) updateData.fabricType = fabricType;
     if (categoryId !== undefined) updateData.categoryId = categoryId || null;
+    if (brand !== undefined) updateData.brand = brand || null;
+    if (weight !== undefined) updateData.weight = weight ? parseFloat(weight) : null;
     if (isActive !== undefined) updateData.isActive = isActive;
 
     // SEO alanları (şimdilik JSON olarak saklanabilir veya schema'ya eklenebilir)

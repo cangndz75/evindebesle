@@ -58,10 +58,7 @@ export default function SendBar({ draft, onUpdate }: SendBarProps) {
       errors.push("Unsubscribe linki eklenmelidir");
     }
 
-    const hasHero = draft.blocks.some((b) => b.type === "hero");
-    if (!hasHero) {
-      warnings.push("Hero banner görseli eklenmedi");
-    }
+
 
     const hasCoupon = draft.blocks.some((b) => b.type === "coupon");
     if (hasCoupon) {

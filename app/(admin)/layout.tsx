@@ -217,7 +217,7 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50 overflow-hidden">
+    <div className="flex h-screen bg-gray-50 overflow-hidden">
       <aside className={`hidden md:flex bg-gray-900 text-white flex-col shrink-0 transition-all duration-300 ${sidebarCollapsed ? "w-16" : "w-64"
         }`}>
         <div className={`border-b border-gray-800 ${sidebarCollapsed ? "p-3" : "p-6"}`}>

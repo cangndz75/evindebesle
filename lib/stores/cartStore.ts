@@ -218,6 +218,24 @@ export const useCartStore = create<CartState>((set, get) => ({
       addToGuestCart(productId, colorId, sizeId, quantity, product, color, size);
     }
 
+    // UI için event fırlat (CartPreview popup için)
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("itemAddedToCart", {
+          detail: {
+            product: {
+              id: product.id,
+              name: product.name,
+              image: product.image,
+              price: product.price,
+            },
+            size: size?.name,
+            color: color?.name,
+          },
+        })
+      );
+    }
+
     // API isteğini arka planda başlat
     try {
       const res = await fetch("/api/cart", {

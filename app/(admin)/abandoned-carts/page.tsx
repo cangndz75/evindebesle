@@ -361,9 +361,11 @@ export default function AbandonedCartsPage() {
                                             // Label'ı formatla (örn: 30 Jan -> 30 Oca)
                                             let formattedLabel = label;
                                             try {
-                                                const date = new Date(label);
-                                                if (!isNaN(date.getTime())) {
-                                                    formattedLabel = format(date, "d MMMM yyyy", { locale: tr });
+                                                if (label) {
+                                                    const date = new Date(label);
+                                                    if (!isNaN(date.getTime())) {
+                                                        formattedLabel = format(date, "d MMMM yyyy", { locale: tr });
+                                                    }
                                                 }
                                             } catch { }
 

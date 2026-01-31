@@ -116,6 +116,118 @@ export default function AbandonedCartsPage() {
         }).format(value);
     };
 
+    const handleSendEmail = (email: string) => {
+        // Find the user's cart
+        const cart = data?.abandonedCarts.find(c => c.user.email === email);
+        if (!cart) return;
+
+        // Create campaign draft
+        const draft = {
+            id: null,
+            name: `Terk Edilen Sepet - ${cart.user.name || email}`,
+            status: "draft",
+            subject: "Sepetinizde ürün unuttunuz!",
+            preheader: "Beğendiğiniz ürünler sizi bekliyor",
+            fromName: "Evinde Besle",
+            fromEmail: "info@evindebesle.com",
+            replyTo: "info@evindebesle.com",
+            recipientEmail: email,
+            audienceSegmentId: null,
+            scheduleAt: null,
+            blocks: [
+                {
+                    id: "header-1",
+                    type: "header",
+                    content: {
+                        logoUrl: "https://evindebesle.com/images/logo.png",
+                        align: "center",
+                        backgroundColor: "#ffffff",
+                        padding: "20px"
+                    },
+                    style: {},
+                    visibility: { mobile: true, desktop: true }
+                },
+                {
+                    id: "text-1",
+                    type: "text",
+                    content: {
+                        text: `<p style="font-size: 16px; text-align: center; color: #333;">Merhaba <strong>${cart.user.name || "Değerli Müşterimiz"}</strong>,<br><br>Sepetinizde harika ürünler bıraktığınızı fark ettik. Tükenmeden hemen tamamlayın!</p>`,
+                    },
+                    style: {
+                        padding: "20px",
+                        backgroundColor: "#ffffff"
+                    },
+                    visibility: { mobile: true, desktop: true }
+                },
+                // Add first product as example
+                ...(cart.items.length > 0 ? [{
+                    id: "product-1",
+                    type: "image", // Using image block for simplicity as product block might be complex
+                    content: {
+                        imageUrl: cart.items[0].product.image || "https://evindebesle.com/images/placeholder.png",
+                        altText: cart.items[0].product.name,
+                        linkUrl: `https://evindebesle.com/product/${cart.items[0].product.id}`,
+                        align: "center",
+                        width: "300px" // Reasonable width for product image
+                    },
+                    style: {
+                        padding: "10px",
+                        backgroundColor: "#ffffff"
+                    },
+                    visibility: { mobile: true, desktop: true }
+                }, {
+                    id: "text-prod-1",
+                    type: "text",
+                    content: {
+                        text: `<p style="font-size: 18px; font-weight: bold; text-align: center; color: #000; margin: 10px 0;">${cart.items[0].product.name}</p><p style="font-size: 16px; text-align: center; color: #666;">${formatPrice(cart.items[0].value)}</p>`,
+                    },
+                    style: {
+                        padding: "0 20px",
+                        backgroundColor: "#ffffff"
+                    },
+                    visibility: { mobile: true, desktop: true }
+                }] : []),
+                {
+                    id: "cta-1",
+                    type: "cta",
+                    content: {
+                        text: "Sepeti Tamamla",
+                        url: "https://evindebesle.com/cart",
+                        align: "center",
+                        backgroundColor: "#000000",
+                        textColor: "#ffffff",
+                        borderRadius: "4px",
+                        padding: "12px 24px"
+                    },
+                    style: {
+                        padding: "20px",
+                        backgroundColor: "#ffffff"
+                    },
+                    visibility: { mobile: true, desktop: true }
+                },
+                {
+                    id: "footer-1",
+                    type: "footer",
+                    content: {
+                        text: "© 2026 Evinde Besle. Tüm hakları saklıdır.",
+                        socialHidden: true,
+                        siteLink: "https://evindebesle.com",
+                        address: "İstanbul, Türkiye"
+                    },
+                    style: {
+                        padding: "20px",
+                        backgroundColor: "#f9fafb"
+                    },
+                    visibility: { mobile: true, desktop: true }
+                }
+            ]
+        };
+
+        // Save to localStorage and redirect
+        localStorage.setItem("abandonedCartDraft", JSON.stringify(draft));
+        router.push("/campaigns");
+    };
+
     if (loading) {
         return (
             <div className="flex min-h-screen items-center justify-center">
@@ -227,9 +339,46 @@ export default function AbandonedCartsPage() {
                     <CardContent>
                         <ResponsiveContainer width="100%" height={200}>
                             <BarChart data={data?.dailyTrend || []}>
-                                <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                                <XAxis
+                                    dataKey="date"
+                                    tick={{ fontSize: 12 }}
+                                    tickFormatter={(value) => {
+                                        // "25 Jan" formatını TR'ye çevir
+                                        try {
+                                            const date = new Date(value);
+                                            // Eğer valid date değilse direkt value döndür
+                                            if (isNaN(date.getTime())) return value;
+                                            return format(date, "d MMM", { locale: tr });
+                                        } catch {
+                                            return value;
+                                        }
+                                    }}
+                                />
                                 <YAxis tick={{ fontSize: 12 }} />
-                                <Tooltip />
+                                <Tooltip
+                                    content={({ active, payload, label }) => {
+                                        if (active && payload && payload.length) {
+                                            // Label'ı formatla (örn: 30 Jan -> 30 Oca)
+                                            let formattedLabel = label;
+                                            try {
+                                                const date = new Date(label);
+                                                if (!isNaN(date.getTime())) {
+                                                    formattedLabel = format(date, "d MMMM yyyy", { locale: tr });
+                                                }
+                                            } catch { }
+
+                                            return (
+                                                <div className="bg-white p-2 border border-gray-200 shadow-sm rounded-lg text-xs">
+                                                    <p className="font-semibold mb-1">{formattedLabel}</p>
+                                                    <p className="text-orange-600">
+                                                        Sepet: {payload[0].value}
+                                                    </p>
+                                                </div>
+                                            );
+                                        }
+                                        return null;
+                                    }}
+                                />
                                 <Bar dataKey="count" fill="#f97316" radius={[4, 4, 0, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
@@ -390,7 +539,7 @@ export default function AbandonedCartsPage() {
                                 ))}
                             </div>
                             <div className="pt-4 border-t flex gap-2">
-                                <Button className="flex-1" onClick={() => router.push(`/campaigns?email=${selectedUser.user.email}`)}>
+                                <Button className="flex-1" onClick={() => handleSendEmail(selectedUser.user.email)}>
                                     <Mail className="w-4 h-4 mr-2" />
                                     E-posta Gönder
                                 </Button>

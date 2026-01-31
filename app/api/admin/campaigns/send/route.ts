@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { id: campaignId } = body;
+    const { id: campaignId, recipientEmail } = body;
 
     if (!campaignId) {
       return NextResponse.json({ error: "Campaign ID required" }, { status: 400 });
@@ -31,8 +31,34 @@ export async function POST(req: NextRequest) {
     // Parse blocks from contentJson
     const blocks = JSON.parse(campaign.contentJson);
 
-    // Get recipients based on audience segment
-    const recipients = await getRecipients(campaign.audienceSegmentId);
+    let recipients: any[] = [];
+
+    // If recipient email is provided (Single Send), use it
+    if (recipientEmail) {
+      // Try to find user in DB to get name, otherwise use email as name base
+      const user = await prisma.user.findUnique({
+        where: { email: recipientEmail },
+        select: { id: true, name: true, email: true },
+      });
+
+      if (user) {
+        recipients = [user];
+      } else {
+        // ID is required for tracking, use a placeholder or check if subscriber exists
+        const subscriber = await prisma.subscriber.findUnique({
+          where: { email: recipientEmail },
+        });
+
+        recipients = [{
+          id: subscriber?.id || `anon-${Date.now()}`,
+          email: recipientEmail,
+          name: recipientEmail.split("@")[0],
+        }];
+      }
+    } else {
+      // Bulk send based on segment
+      recipients = await getRecipients(campaign.audienceSegmentId);
+    }
 
     if (recipients.length === 0) {
       return NextResponse.json({ error: "No recipients found" }, { status: 400 });

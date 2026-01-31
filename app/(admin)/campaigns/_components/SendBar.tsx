@@ -163,26 +163,33 @@ export default function SendBar({ draft, onUpdate }: SendBarProps) {
               </div>
             </div>
 
-            {/* Orta: Segment ve Zamanlama */}
+            {/* Orta: Segment veya Alıcı ve Zamanlama */}
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <Users className="w-5 h-5 text-gray-500" />
-                <Select
-                  value={draft.audienceSegmentId || ""}
-                  onValueChange={(value) =>
-                    onUpdate({ audienceSegmentId: value || null })
-                  }
-                >
-                  <SelectTrigger className="w-56">
-                    <SelectValue placeholder="Segment seç" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="newsletter">Bülten Aboneleri</SelectItem>
-                    <SelectItem value="all">Tüm Kullanıcılar</SelectItem>
-                    <SelectItem value="active">Aktif Kullanıcılar</SelectItem>
-                    <SelectItem value="inactive">Pasif Kullanıcılar</SelectItem>
-                  </SelectContent>
-                </Select>
+                {draft.recipientEmail ? (
+                  <div className="flex flex-col">
+                    <span className="text-xs text-gray-500">Alıcı</span>
+                    <span className="text-sm font-medium">{draft.recipientEmail}</span>
+                  </div>
+                ) : (
+                  <Select
+                    value={draft.audienceSegmentId || ""}
+                    onValueChange={(value) =>
+                      onUpdate({ audienceSegmentId: value || null })
+                    }
+                  >
+                    <SelectTrigger className="w-56">
+                      <SelectValue placeholder="Segment seç" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="newsletter">Bülten Aboneleri</SelectItem>
+                      <SelectItem value="all">Tüm Kullanıcılar</SelectItem>
+                      <SelectItem value="active">Aktif Kullanıcılar</SelectItem>
+                      <SelectItem value="inactive">Pasif Kullanıcılar</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
 
               <div className="flex items-center gap-2">
@@ -260,7 +267,7 @@ export default function SendBar({ draft, onUpdate }: SendBarProps) {
 
           <div className="space-y-4 py-4">
             <div>
-              <strong>Alıcı Sayısı:</strong> Hesaplanıyor...
+              <strong>Alıcı:</strong> {draft.recipientEmail ? draft.recipientEmail : "Hesaplanıyor..."}
             </div>
             <div>
               <strong>Kampanya:</strong> {draft.name || "İsimsiz"}

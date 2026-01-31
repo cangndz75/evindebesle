@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import BlockInspector from "./BlockInspector";
 import CampaignMetaBar from "./CampaignMetaBar";
 import EditorTabs from "./EditorTabs";
@@ -29,6 +29,22 @@ export default function CampaignComposerPage() {
   const [deviceView, setDeviceView] = useState<"desktop" | "mobile">("desktop");
   const [history, setHistory] = useState<CampaignDraft[]>([initialDraft]);
   const [historyIndex, setHistoryIndex] = useState(0);
+
+  // Load draft from localStorage if available
+  useEffect(() => {
+    const savedDraft = localStorage.getItem("abandonedCartDraft");
+    if (savedDraft) {
+      try {
+        const parsedDraft = JSON.parse(savedDraft);
+        setDraft(parsedDraft);
+        setHistory([parsedDraft]);
+        setHistoryIndex(0);
+        localStorage.removeItem("abandonedCartDraft"); // Clear after loading
+      } catch (e) {
+        console.error("Failed to parse saved draft", e);
+      }
+    }
+  }, []);
 
   const updateDraft = useCallback((updates: Partial<CampaignDraft>) => {
     setDraft((prev) => {

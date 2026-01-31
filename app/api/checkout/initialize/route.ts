@@ -88,6 +88,34 @@ export async function POST(req: Request) {
             include: { items: true, payment: true },
         });
 
+        // 3.5) Attribution: Check if user has clicked an email recently
+        if (body.email) {
+            try {
+                // Find last clicked email within 24 hours
+                const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
+                const lastClick = await prisma.emailSend.findFirst({
+                    where: {
+                        email: body.email,
+                        clickedAt: { gte: yesterday }
+                    },
+                    orderBy: { clickedAt: 'desc' }
+                });
+
+                if (lastClick) {
+                    await prisma.emailSend.update({
+                        where: { id: lastClick.id },
+                        data: {
+                            convertedAt: new Date(),
+                            revenue: total // Track potential revenue
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error("Attribution Error:", e);
+                // Don't block checkout
+            }
+        }
+
         // 4) Reserve Stock (15 mins)
         await reserveStockTx(
             order.id,

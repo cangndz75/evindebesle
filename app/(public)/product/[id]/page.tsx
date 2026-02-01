@@ -43,6 +43,11 @@ async function getProduct(idOrSlug: string) {
       productImages: {
         orderBy: { order: "asc" },
       },
+      washingInstruction: true,
+      deliveryInfo: true,
+      sizeNote: true,
+      sizeGuide: true,
+      modelInfo: true,
     },
   });
 
@@ -74,6 +79,11 @@ async function getProduct(idOrSlug: string) {
         productImages: {
           orderBy: { order: "asc" },
         },
+        washingInstruction: true,
+        deliveryInfo: true,
+        sizeNote: true,
+        sizeGuide: true,
+        modelInfo: true,
       },
     });
   }
@@ -215,6 +225,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
     brand: product.brand || "",
     category: categoryName,
     categorySlug,
+    gender: product.gender,
+    washingInstruction: product.washingInstruction,
+    deliveryInfo: product.deliveryInfo,
+    sizeNote: product.sizeNote,
+    sizeGuide: product.sizeGuide,
+    modelInfo: product.modelInfo,
   };
 
   // Breadcrumb items

@@ -31,6 +31,13 @@ interface ProductDetailPageProps {
     sizeNotes?: string;
     gender?: "MALE" | "FEMALE" | "UNISEX";
     reviews?: { id: string; userName: string; rating: number; comment: string; createdAt: Date; colorId?: string; colorName?: string }[];
+    category?: string;
+    categorySlug?: string;
+    washingInstruction?: { id: string; title: string; content: string } | null;
+    deliveryInfo?: { id: string; title: string; content: string } | null;
+    sizeNote?: { id: string; title: string; content: string } | null;
+    sizeGuide?: { id: string; title: string; imageUrl?: string; content?: any } | null;
+    modelInfo?: { id: string; title: string; height: string; size: string; gender?: string } | null;
   };
   hasOrdered?: boolean;
 }
@@ -62,6 +69,11 @@ const defaultProduct = {
   washing: "Her yürüyüş sonrası pati temizliği fiyata dahildir",
   delivery: "Aynı gün hizmet imkanı",
   sizeNotes: "Süreler yaklaşık değerlerdir",
+  washingInstruction: null,
+  deliveryInfo: null,
+  sizeNote: null,
+  sizeGuide: null,
+  modelInfo: null,
 };
 
 export default function ProductDetailPage({ product = defaultProduct, hasOrdered = false }: ProductDetailPageProps) {
@@ -90,6 +102,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
     washing: false,
     delivery: false,
     sizeNotes: false,
+    modelInfo: true,
   });
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
@@ -536,10 +549,20 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
             Ana Sayfa
           </Link>
           <ChevronRight className="w-4 h-4" />
-          <Link href="/services" className="hover:text-black transition-colors">
-            Hizmetler
-          </Link>
-          <ChevronRight className="w-4 h-4" />
+
+          {/* Gender-based breadcrumb */}
+          {product.gender && (
+            <>
+              <Link
+                href={product.gender === "MALE" ? "/men" : product.gender === "FEMALE" ? "/women" : "/home"}
+                className="hover:text-black transition-colors"
+              >
+                {product.gender === "MALE" ? "Erkek" : product.gender === "FEMALE" ? "Kadın" : "Unisex"}
+              </Link>
+              <ChevronRight className="w-4 h-4" />
+            </>
+          )}
+
           <span className="text-black">{product.name}</span>
         </nav>
       </div>
@@ -868,10 +891,15 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
               </div>
 
               {/* Model Bilgisi ve Linkler */}
+              {/* Model Bilgisi ve Linkler */}
               <div className="mb-6">
-                <p className="text-xs text-gray-600 font-light mb-2">
-                  Model 6'1 boyunda ve M beden giyiyor.
-                </p>
+                {product.modelInfo && (
+                  <p className="text-xs text-gray-600 font-light mb-2">
+                    {product.modelInfo.title}
+                    {product.modelInfo.height && ` - Boy: ${product.modelInfo.height}`}
+                    {product.modelInfo.size && ` - Beden: ${product.modelInfo.size}`}
+                  </p>
+                )}
                 <div className="flex items-center gap-2 text-xs">
                   <button
                     onClick={() => setSizeGuideOpen(true)}
@@ -885,86 +913,88 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                   </button>
                 </div>
               </div>
-
-              {/* Stok Durumu ve Bildirim */}
-              {(() => {
-                // Seçili beden varsa onun stoğuna, yoksa seçili rengin genel stoğuna bakılabilir
-                // Ancak "beden bazında stok" istendiği için seçili beden baz alınmalı.
-
-                if (selectedSize) {
-                  const stock = getVariantStock(selectedSize);
-
-                  if (stock <= 0) {
-                    return (
-                      <div className="mb-6 p-3 bg-gray-50 border border-gray-200 rounded">
-                        <p className="text-sm text-gray-700 mb-2">Bu beden şu anda stokta yok.</p>
-                        <div className="flex gap-2">
-                          <input
-                            type="email"
-                            placeholder="E-posta adresiniz"
-                            value={emailNotify}
-                            onChange={(e) => setEmailNotify(e.target.value)}
-                            className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded"
-                          />
-                          <button
-                            onClick={handleStockNotify}
-                            disabled={!emailNotify}
-                            className="px-4 py-2 text-sm bg-black text-white rounded hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            Haber Ver
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  } else if (stock < 5) {
-                    return (
-                      <div className="mb-4">
-                        <span className="text-red-600 text-sm font-medium animate-pulse">
-                          Son {stock} ürün!
-                        </span>
-                      </div>
-                    );
-                  }
-                }
-                return null;
-              })()}
             </div>
 
-            {/* Adet ve Sepete Ekle */}
-            <div className="flex items-center gap-4 mb-8">
-              {/* Adet Seçici */}
-              <div className="flex items-center border border-gray-300 h-[56px]">
-                <button
-                  onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
-                  className="px-4 h-full text-black hover:bg-gray-100 transition-colors font-light flex items-center justify-center disabled:opacity-50"
-                  disabled={quantity <= 1}
-                >
-                  <Minus className="w-4 h-4" />
-                </button>
-                <span className="px-6 h-full text-sm font-light text-black border-x border-gray-300 min-w-[60px] text-center flex items-center justify-center">
-                  {quantity}
-                </span>
-                <button
-                  onClick={() => setQuantity((prev) => prev + 1)}
-                  className="px-4 h-full text-black hover:bg-gray-100 transition-colors font-light flex items-center justify-center"
-                >
-                  <Plus className="w-4 h-4" />
-                </button>
-              </div>
+            {/* Stok Durumu ve Bildirim */}
+            {(() => {
+              // Seçili beden varsa onun stoğuna, yoksa seçili rengin genel stoğuna bakılabilir
+              // Ancak "beden bazında stok" istendiği için seçili beden baz alınmalı.
 
-              {/* Sepete Ekle Butonu */}
+              if (selectedSize) {
+                const stock = getVariantStock(selectedSize);
+
+                if (stock <= 0) {
+                  return (
+                    <div className="mb-6 p-3 bg-gray-50 border border-gray-200 rounded">
+                      <p className="text-sm text-gray-700 mb-2">Bu beden şu anda stokta yok.</p>
+                      <div className="flex gap-2">
+                        <input
+                          type="email"
+                          placeholder="E-posta adresiniz"
+                          value={emailNotify}
+                          onChange={(e) => setEmailNotify(e.target.value)}
+                          className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded"
+                        />
+                        <button
+                          onClick={handleStockNotify}
+                          disabled={!emailNotify}
+                          className="px-4 py-2 text-sm bg-black text-white rounded hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Haber Ver
+                        </button>
+                      </div>
+                    </div>
+                  );
+                } else if (stock < 5) {
+                  return (
+                    <div className="mb-4">
+                      <span className="text-red-600 text-sm font-medium animate-pulse">
+                        Son {stock} ürün!
+                      </span>
+                    </div>
+                  );
+                }
+              }
+              return null;
+            })()}
+          </div>
+
+          {/* Adet ve Sepete Ekle */}
+          <div className="flex items-center gap-4 mb-8">
+            {/* Adet Seçici */}
+            <div className="flex items-center border border-gray-300 h-[56px]">
               <button
-                onClick={() => addToCart()}
-                disabled={!selectedSize || getVariantStock(selectedSize) <= 0}
-                className="flex-1 bg-[#111] text-white hover:bg-[#333] uppercase tracking-wider text-sm font-semibold h-[56px] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
+                className="px-4 h-full text-black hover:bg-gray-100 transition-colors font-light flex items-center justify-center disabled:opacity-50"
+                disabled={quantity <= 1}
               >
-                Sepete Ekle
+                <Minus className="w-4 h-4" />
+              </button>
+              <span className="px-6 h-full text-sm font-light text-black border-x border-gray-300 min-w-[60px] text-center flex items-center justify-center">
+                {quantity}
+              </span>
+              <button
+                onClick={() => setQuantity((prev) => prev + 1)}
+                className="px-4 h-full text-black hover:bg-gray-100 transition-colors font-light flex items-center justify-center"
+              >
+                <Plus className="w-4 h-4" />
               </button>
             </div>
 
+            {/* Sepete Ekle Butonu */}
+            <button
+              onClick={() => addToCart()}
+              disabled={!selectedSize || getVariantStock(selectedSize) <= 0}
+              className="flex-1 bg-[#111] text-white hover:bg-[#333] uppercase tracking-wider text-sm font-semibold h-[56px] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Sepete Ekle
+            </button>
           </div>
+
         </div>
       </div>
+
+
 
       {/* Accordion Detaylar */}
       <div className="max-w-4xl mx-auto px-4 md:px-8 py-12 border-t border-gray-200">
@@ -989,6 +1019,12 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                     {detail}
                   </p>
                 ))}
+                {product.modelInfo && (
+                  <div className="mt-4 pt-4 border-t border-gray-100">
+                    <h4 className="font-medium text-sm mb-2">Model Bilgisi</h4>
+                    <p className="text-sm text-gray-700 font-light">{product.modelInfo.title}</p>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -1029,7 +1065,10 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
             </button>
             {expandedSections.washing && (
               <div className="pb-6">
-                <p className="text-sm text-gray-700 font-light">{product.washing}</p>
+                <div
+                  className="text-sm text-gray-700 font-light prose prose-sm max-w-none"
+                  dangerouslySetInnerHTML={{ __html: product.washingInstruction?.content || product.washing || "" }}
+                />
               </div>
             )}
           </div>
@@ -1049,7 +1088,10 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
             </button>
             {expandedSections.delivery && (
               <div className="pb-6">
-                <p className="text-sm text-gray-700 font-light">{product.delivery}</p>
+                <div
+                  className="text-sm text-gray-700 font-light prose prose-sm max-w-none"
+                  dangerouslySetInnerHTML={{ __html: product.deliveryInfo?.content || product.delivery || "" }}
+                />
               </div>
             )}
           </div>
@@ -1069,15 +1111,18 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
             </button>
             {expandedSections.sizeNotes && (
               <div className="pb-6">
-                <p className="text-sm text-gray-700 font-light">{product.sizeNotes}</p>
+                <div
+                  className="text-sm text-gray-700 font-light prose prose-sm max-w-none"
+                  dangerouslySetInnerHTML={{ __html: product.sizeNote?.content || product.sizeNotes || "" }}
+                />
               </div>
             )}
           </div>
         </div>
-      </div>
+      </div >
 
       {/* Yorumlar Bölümü */}
-      <ProductReviews
+      < ProductReviews
         productId={product.id}
         productName={product.name}
         productImage={(() => {
@@ -1088,7 +1133,8 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
             if (firstImg && typeof firstImg === 'object' && 'url' in firstImg) return firstImg.url;
           }
           return (product as any).image || null;
-        })()}
+        })()
+        }
         selectedColorId={product.colors?.[selectedColor]?.id}
         reviews={product.reviews || []}
         hasOrdered={hasOrdered}
@@ -1104,10 +1150,12 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
       <SizeGuideModal
         open={sizeGuideOpen}
         onOpenChange={setSizeGuideOpen}
-        sizeGuide={{
-          productName: product.name,
-          measurements: [], // Veritabanından gelecek
-        }}
+        sizeGuide={
+          product.sizeGuide || {
+            productName: product.name,
+            measurements: [],
+          }
+        }
       />
     </div>
   );

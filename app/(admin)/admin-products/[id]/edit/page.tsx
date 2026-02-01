@@ -17,6 +17,11 @@ import {
   uploadBase64ToCloudinary,
   processHtmlImages
 } from "@/lib/cloudinary";
+import { WashingInstructionModal } from "@/components/admin/WashingInstructionModal";
+import { DeliveryInfoModal } from "@/components/admin/DeliveryInfoModal";
+import { SizeNoteModal } from "@/components/admin/SizeNoteModal";
+import { SizeGuideModal } from "@/components/admin/SizeGuideModal";
+import { ModelInfoModal } from "@/components/admin/ModelInfoModal";
 
 type Color = {
   name: string;
@@ -88,6 +93,27 @@ export default function EditProductPage() {
 
   // Detay metni
   const [detailText, setDetailText] = useState("");
+
+  // Template seçimleri
+  const [washingInstructionId, setWashingInstructionId] = useState("");
+  const [deliveryInfoId, setDeliveryInfoId] = useState("");
+  const [sizeNoteId, setSizeNoteId] = useState("");
+  const [sizeGuideId, setSizeGuideId] = useState("");
+  const [modelInfoId, setModelInfoId] = useState("");
+
+  // Template listleri
+  const [washingInstructions, setWashingInstructions] = useState<any[]>([]);
+  const [deliveryInfos, setDeliveryInfos] = useState<any[]>([]);
+  const [sizeNotes, setSizeNotes] = useState<any[]>([]);
+  const [sizeGuides, setSizeGuides] = useState<any[]>([]);
+  const [modelInfos, setModelInfos] = useState<any[]>([]);
+
+  // Modal states
+  const [washingModalOpen, setWashingModalOpen] = useState(false);
+  const [deliveryModalOpen, setDeliveryModalOpen] = useState(false);
+  const [sizeNoteModalOpen, setSizeNoteModalOpen] = useState(false);
+  const [sizeGuideModalOpen, setSizeGuideModalOpen] = useState(false);
+  const [modelInfoModalOpen, setModelInfoModalOpen] = useState(false);
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -339,6 +365,25 @@ export default function EditProductPage() {
   };
 
   // Kategorileri yükle
+  const loadTemplates = async () => {
+    try {
+      const [wash, delivery, notes, guides, models] = await Promise.all([
+        fetch("/api/admin/washing-instructions").then(r => r.json()),
+        fetch("/api/admin/delivery-info").then(r => r.json()),
+        fetch("/api/admin/size-notes").then(r => r.json()),
+        fetch("/api/admin/size-guides").then(r => r.json()),
+        fetch("/api/admin/model-info").then(r => r.json()),
+      ]);
+      setWashingInstructions(wash);
+      setDeliveryInfos(delivery);
+      setSizeNotes(notes);
+      setSizeGuides(guides);
+      setModelInfos(models);
+    } catch (error) {
+      console.error("Template'ler yüklenirken hata:", error);
+    }
+  };
+
   const loadCategories = async () => {
     try {
       const res = await fetch("/api/admin/categories");
@@ -371,6 +416,11 @@ export default function EditProductPage() {
         setWeight(product.weight?.toString() || "");
         setBrand(product.brand || "");
         setDetailText(product.detailText || "");
+        setWashingInstructionId(product.washingInstructionId || "");
+        setDeliveryInfoId(product.deliveryInfoId || "");
+        setSizeNoteId(product.sizeNoteId || "");
+        setSizeGuideId(product.sizeGuideId || "");
+        setModelInfoId(product.modelInfoId || "");
         setSizeType(product.sizeType || "LETTER");
         setSelectedCategoryId(product.categoryId || "");
 
@@ -449,6 +499,7 @@ export default function EditProductPage() {
 
   useEffect(() => {
     loadCategories();
+    loadTemplates();
     if (productId) {
       loadProductData();
     }
@@ -492,6 +543,11 @@ export default function EditProductPage() {
         brand: brand || undefined,
         weight: weight ? parseFloat(weight) : undefined,
         detailText: await processHtmlImages(detailText) || undefined,
+        washingInstructionId: washingInstructionId || undefined,
+        deliveryInfoId: deliveryInfoId || undefined,
+        sizeNoteId: sizeNoteId || undefined,
+        sizeGuideId: sizeGuideId || undefined,
+        modelInfoId: modelInfoId || undefined,
         combinations: combinations && combinations.length > 0 ? combinations : undefined,
         colors: [
           ...(primaryProductColor ? [{
@@ -1845,6 +1901,174 @@ export default function EditProductPage() {
                 )}
               </div>
             </div>
+
+            {/* Ürün Detay Şablonları */}
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <h2 className="text-lg font-semibold mb-4">Ürün Detay Şablonları</h2>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="washingInstruction">Yıkama Talimatı</Label>
+                  <div className="flex gap-2">
+                    <Select value={washingInstructionId} onValueChange={setWashingInstructionId}>
+                      <SelectTrigger className="mt-1 flex-1">
+                        <SelectValue placeholder="Seçiniz..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Seçim Yok</SelectItem>
+                        {washingInstructions.map((item) => (
+                          <SelectItem key={item.id} value={item.id}>
+                            {item.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="mt-1"
+                      onClick={() => setWashingModalOpen(true)}
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="deliveryInfo">Teslimat ve İade Bilgisi</Label>
+                  <div className="flex gap-2">
+                    <Select value={deliveryInfoId} onValueChange={setDeliveryInfoId}>
+                      <SelectTrigger className="mt-1 flex-1">
+                        <SelectValue placeholder="Seçiniz..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Seçim Yok</SelectItem>
+                        {deliveryInfos.map((item) => (
+                          <SelectItem key={item.id} value={item.id}>
+                            {item.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="mt-1"
+                      onClick={() => setDeliveryModalOpen(true)}
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="sizeNote">Beden Notu</Label>
+                  <div className="flex gap-2">
+                    <Select value={sizeNoteId} onValueChange={setSizeNoteId}>
+                      <SelectTrigger className="mt-1 flex-1">
+                        <SelectValue placeholder="Seçiniz..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Seçim Yok</SelectItem>
+                        {sizeNotes.map((item) => (
+                          <SelectItem key={item.id} value={item.id}>
+                            {item.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="mt-1"
+                      onClick={() => setSizeNoteModalOpen(true)}
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="sizeGuide">Beden Rehberi</Label>
+                  <div className="flex gap-2">
+                    <Select value={sizeGuideId} onValueChange={setSizeGuideId}>
+                      <SelectTrigger className="mt-1 flex-1">
+                        <SelectValue placeholder="Seçiniz..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Seçim Yok</SelectItem>
+                        {sizeGuides.map((item) => (
+                          <SelectItem key={item.id} value={item.id}>
+                            {item.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="mt-1"
+                      onClick={() => setSizeGuideModalOpen(true)}
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="modelInfo">Model Bilgisi</Label>
+                  <div className="flex gap-2">
+                    <Select value={modelInfoId} onValueChange={setModelInfoId}>
+                      <SelectTrigger className="mt-1 flex-1">
+                        <SelectValue placeholder="Seçiniz..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Seçim Yok</SelectItem>
+                        {modelInfos.map((item) => (
+                          <SelectItem key={item.id} value={item.id}>
+                            {item.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="mt-1"
+                      onClick={() => setModelInfoModalOpen(true)}
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modals */}
+            <WashingInstructionModal
+              open={washingModalOpen}
+              onOpenChange={setWashingModalOpen}
+              onSuccess={loadTemplates}
+            />
+            <DeliveryInfoModal
+              open={deliveryModalOpen}
+              onOpenChange={setDeliveryModalOpen}
+              onSuccess={loadTemplates}
+            />
+            <SizeNoteModal
+              open={sizeNoteModalOpen}
+              onOpenChange={setSizeNoteModalOpen}
+              onSuccess={loadTemplates}
+            />
+            <SizeGuideModal
+              open={sizeGuideModalOpen}
+              onOpenChange={setSizeGuideModalOpen}
+              onSuccess={loadTemplates}
+            />
+            <ModelInfoModal
+              open={modelInfoModalOpen}
+              onOpenChange={setModelInfoModalOpen}
+              onSuccess={loadTemplates}
+            />
           </div>
         </div>
       </div>

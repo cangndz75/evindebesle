@@ -259,12 +259,22 @@ model Product {
   sizeNoteId           String?
   sizeGuideId          String?
   modelInfoId          String?
-
-  washingInstruction WashingInstruction? @relation(fields: [washingInstructionId], references: [id])
-  deliveryInfo       DeliveryInfo?       @relation(fields: [deliveryInfoId], references: [id])
-  sizeNote           SizeNote?           @relation(fields: [sizeNoteId], references: [id])
-  sizeGuide          SizeGuide?          @relation(fields: [sizeGuideId], references: [id])
-  modelInfo          ModelInfo?          @relation(fields: [modelInfoId], references: [id])
+  
+  washingInstruction   WashingInstruction? @relation(fields: [washingInstructionId], references: [id])
+  deliveryInfo         DeliveryInfo?       @relation(fields: [deliveryInfoId], references: [id])
+  sizeNote             SizeNote?           @relation(fields: [sizeNoteId], references: [id])
+  sizeGuide            SizeGuide?          @relation(fields: [sizeGuideId], references: [id])
+  modelInfo            ModelInfo?          @relation(fields: [modelInfoId], references: [id])
+  washingInstruction   WashingInstruction?  @relation(fields: [washingInstructionId], references: [id])
+  washingInstructionId String?
+  deliveryInfo         DeliveryInfo?        @relation(fields: [deliveryInfoId], references: [id])
+  deliveryInfoId       String?
+  sizeNote             SizeNote?            @relation(fields: [sizeNoteId], references: [id])
+  sizeNoteId           String?
+  sizeGuide            SizeGuide?           @relation(fields: [sizeGuideId], references: [id])
+  sizeGuideId          String?
+  modelInfo            ModelInfo?           @relation(fields: [modelInfoId], references: [id])
+  modelInfoId          String?
 
   @@index([categoryId])
 }

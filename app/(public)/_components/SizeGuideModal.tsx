@@ -9,8 +9,12 @@ import {
 import Image from "next/image";
 
 type SizeGuideData = {
-  productName: string;
-  measurements: {
+  id?: string;
+  title?: string;
+  productName?: string;
+  imageUrl?: string | null;
+  content?: any;
+  measurements?: {
     size: string;
     chest: number;
     length: number;
@@ -22,7 +26,7 @@ type SizeGuideData = {
 interface SizeGuideModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  sizeGuide?: SizeGuideData;
+  sizeGuide?: SizeGuideData | null;
 }
 
 export default function SizeGuideModal({
@@ -30,7 +34,7 @@ export default function SizeGuideModal({
   onOpenChange,
   sizeGuide,
 }: SizeGuideModalProps) {
-  // Örnek beden rehberi verisi (veritabanından gelecek)
+  // Varsayılan/Fallback veri
   const defaultSizeGuide: SizeGuideData = {
     productName: "Ürün",
     measurements: [
@@ -45,141 +49,188 @@ export default function SizeGuideModal({
   };
 
   const guide = sizeGuide || defaultSizeGuide;
+  const title = guide.title || guide.productName || "Beden Tablosu";
+
+  // Content JSON ise ve headers/rows varsa onu kullan
+  const hasDynamicTable = guide.content && guide.content.headers && guide.content.rows;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold uppercase text-center mb-6">
-            {guide.productName} BEDEN ÖLÇÜ TABLOSU
+            {title}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Ürün Çizimi */}
-          <div className="relative w-full h-64 bg-gray-50 flex items-center justify-center border">
-            {/* Basit hoodie çizimi */}
-            <svg
-              viewBox="0 0 200 300"
-              className="w-full h-full"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              {/* Hoodie gövde */}
-              <rect
-                x="50"
-                y="80"
-                width="100"
-                height="180"
-                fill="none"
-                stroke="#000"
-                strokeWidth="2"
+          {/* Görsel Alanı */}
+          {guide.imageUrl ? (
+            <div className="relative w-full aspect-video bg-gray-50 flex items-center justify-center border overflow-hidden rounded-lg">
+              <Image
+                src={guide.imageUrl}
+                alt={title}
+                fill
+                className="object-contain"
               />
-              {/* Kapüşon */}
-              <path
-                d="M 50 80 Q 50 40 100 40 Q 150 40 150 80"
-                fill="none"
-                stroke="#000"
-                strokeWidth="2"
-              />
-              {/* Kollar */}
-              <rect
-                x="30"
-                y="100"
-                width="30"
-                height="120"
-                fill="none"
-                stroke="#000"
-                strokeWidth="2"
-              />
-              <rect
-                x="140"
-                y="100"
-                width="30"
-                height="120"
-                fill="none"
-                stroke="#000"
-                strokeWidth="2"
-              />
-              {/* Ölçü çizgileri */}
-              {/* Göğüs */}
-              <line
-                x1="50"
-                y1="140"
-                x2="150"
-                y2="140"
-                stroke="#999"
-                strokeWidth="1"
-                strokeDasharray="5,5"
-              />
-              <text x="100" y="135" textAnchor="middle" fontSize="10" fill="#666">
-                GÖĞÜS (CHEST)
-              </text>
-              {/* Boy */}
-              <line
-                x1="100"
-                y1="80"
-                x2="100"
-                y2="260"
-                stroke="#999"
-                strokeWidth="1"
-                strokeDasharray="5,5"
-              />
-              <text x="105" y="170" fontSize="10" fill="#666">
-                BOY (FULL LENGTH)
-              </text>
-              {/* Kol */}
-              <line
-                x1="45"
-                y1="100"
-                x2="45"
-                y2="220"
-                stroke="#999"
-                strokeWidth="1"
-                strokeDasharray="5,5"
-              />
-              <text x="25" y="160" fontSize="10" fill="#666">
-                KOL (ARM)
-              </text>
-            </svg>
-          </div>
+            </div>
+          ) : (
+            /* Varsayılan Çizim (Eğer görsel yoksa ve measurements varsa/default ise) */
+            (!guide.imageUrl && !hasDynamicTable && guide.measurements) && (
+              <div className="relative w-full h-64 bg-gray-50 flex items-center justify-center border">
+                <svg
+                  viewBox="0 0 200 300"
+                  className="w-full h-full"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  {/* Hoodie gövde */}
+                  <rect
+                    x="50"
+                    y="80"
+                    width="100"
+                    height="180"
+                    fill="none"
+                    stroke="#000"
+                    strokeWidth="2"
+                  />
+                  {/* Kapüşon */}
+                  <path
+                    d="M 50 80 Q 50 40 100 40 Q 150 40 150 80"
+                    fill="none"
+                    stroke="#000"
+                    strokeWidth="2"
+                  />
+                  {/* Kollar */}
+                  <rect
+                    x="30"
+                    y="100"
+                    width="30"
+                    height="120"
+                    fill="none"
+                    stroke="#000"
+                    strokeWidth="2"
+                  />
+                  <rect
+                    x="140"
+                    y="100"
+                    width="30"
+                    height="120"
+                    fill="none"
+                    stroke="#000"
+                    strokeWidth="2"
+                  />
+                  {/* Ölçü çizgileri */}
+                  {/* Göğüs */}
+                  <line
+                    x1="50"
+                    y1="140"
+                    x2="150"
+                    y2="140"
+                    stroke="#999"
+                    strokeWidth="1"
+                    strokeDasharray="5,5"
+                  />
+                  <text x="100" y="135" textAnchor="middle" fontSize="10" fill="#666">
+                    GÖĞÜS (CHEST)
+                  </text>
+                  {/* Boy */}
+                  <line
+                    x1="100"
+                    y1="80"
+                    x2="100"
+                    y2="260"
+                    stroke="#999"
+                    strokeWidth="1"
+                    strokeDasharray="5,5"
+                  />
+                  <text x="105" y="170" fontSize="10" fill="#666">
+                    BOY (FULL LENGTH)
+                  </text>
+                  {/* Kol */}
+                  <line
+                    x1="45"
+                    y1="100"
+                    x2="45"
+                    y2="220"
+                    stroke="#999"
+                    strokeWidth="1"
+                    strokeDasharray="5,5"
+                  />
+                  <text x="25" y="160" fontSize="10" fill="#666">
+                    KOL (ARM)
+                  </text>
+                </svg>
+              </div>
+            )
+          )}
 
           {/* Ölçü Tablosu */}
           <div className="overflow-x-auto">
             <table className="w-full border-collapse border border-gray-300">
-              <thead>
-                <tr className="bg-gray-100">
-                  <th className="border border-gray-300 px-4 py-2 text-left font-semibold">
-                    Beden
-                  </th>
-                  <th className="border border-gray-300 px-4 py-2 text-left font-semibold">
-                    GÖĞÜS (CHEST)
-                  </th>
-                  <th className="border border-gray-300 px-4 py-2 text-left font-semibold">
-                    BOY (LENGTH)
-                  </th>
-                  <th className="border border-gray-300 px-4 py-2 text-left font-semibold">
-                    KOL (ARM)
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {guide.measurements.map((measurement, idx) => (
-                  <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                    <td className="border border-gray-300 px-4 py-2 font-semibold">
-                      {measurement.size}
-                    </td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      {measurement.chest} cm
-                    </td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      {measurement.length} cm
-                    </td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      {measurement.arm} cm
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
+              {hasDynamicTable ? (
+                <>
+                  <thead>
+                    <tr className="bg-gray-100">
+                      {guide.content.headers.map((header: string, idx: number) => (
+                        <th key={idx} className="border border-gray-300 px-4 py-2 text-left font-semibold">
+                          {header}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {guide.content.rows.map((row: string[], rowIdx: number) => (
+                      <tr key={rowIdx} className={rowIdx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                        {row.map((cell: string, cellIdx: number) => (
+                          <td key={cellIdx} className={`border border-gray-300 px-4 py-2 ${cellIdx === 0 ? "font-semibold" : ""}`}>
+                            {cell}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </>
+              ) : (
+                /* Varsayılan Tablo Yapısı */
+                guide.measurements && (
+                  <>
+                    <thead>
+                      <tr className="bg-gray-100">
+                        <th className="border border-gray-300 px-4 py-2 text-left font-semibold">
+                          Beden
+                        </th>
+                        <th className="border border-gray-300 px-4 py-2 text-left font-semibold">
+                          GÖĞÜS (CHEST)
+                        </th>
+                        <th className="border border-gray-300 px-4 py-2 text-left font-semibold">
+                          BOY (LENGTH)
+                        </th>
+                        <th className="border border-gray-300 px-4 py-2 text-left font-semibold">
+                          KOL (ARM)
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {guide.measurements.map((measurement, idx) => (
+                        <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                          <td className="border border-gray-300 px-4 py-2 font-semibold">
+                            {measurement.size}
+                          </td>
+                          <td className="border border-gray-300 px-4 py-2">
+                            {measurement.chest} cm
+                          </td>
+                          <td className="border border-gray-300 px-4 py-2">
+                            {measurement.length} cm
+                          </td>
+                          <td className="border border-gray-300 px-4 py-2">
+                            {measurement.arm} cm
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </>
+                )
+              )}
             </table>
           </div>
 

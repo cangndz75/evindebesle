@@ -11,7 +11,6 @@ import { tr } from "date-fns/locale";
 import { useRouter } from "next/navigation";
 import {
   Package,
-  Calendar,
   Truck,
   CheckCircle,
   Clock,
@@ -20,30 +19,10 @@ import {
   ArrowRight,
   MessageSquarePlus,
 } from "lucide-react";
-import ReviewModal from "./_components/ReviewModal";
 import Link from "next/link";
 import ProductReviewModal from "@/components/product/ProductReviewModal";
 
-type Appointment = {
-  id: string;
-  timeSlot: string | null;
-  status: string;
-  confirmedAt: string;
-  ownedPet: {
-    name: string;
-  } | null;
-  services: {
-    service: {
-      name: string;
-    };
-  }[];
-  address?: {
-    fullAddress: string;
-    district: {
-      name: string;
-    };
-  } | null;
-};
+
 
 type ProductOrder = {
   id: string;
@@ -76,9 +55,7 @@ type ProductOrder = {
 };
 
 export default function OrdersPage() {
-  const [appointments, setAppointments] = useState<Appointment[] | null>(null);
   const [productOrders, setProductOrders] = useState<ProductOrder[]>([]);
-  const [loadingAppointments, setLoadingAppointments] = useState(true);
   const [loadingOrders, setLoadingOrders] = useState(true);
   const router = useRouter();
 
@@ -91,12 +68,6 @@ export default function OrdersPage() {
   } | null>(null);
 
   useEffect(() => {
-    // Randevuları yükle
-    fetch("/api/appointments")
-      .then((res) => res.json())
-      .then((data) => setAppointments(data.data))
-      .finally(() => setLoadingAppointments(false));
-
     // Ürün siparişlerini yükle
     fetch("/api/orders")
       .then((res) => res.json())
@@ -109,26 +80,7 @@ export default function OrdersPage() {
     setReviewModalOpen(true);
   };
 
-  const renderStatus = (status: string) => {
-    const map: Record<string, string> = {
-      SCHEDULED: "Planlandı",
-      COMPLETED: "Tamamlandı",
-      CANCELED: "İptal",
-      MISSED: "Kaçırıldı",
-    };
-    const colorMap: Record<string, string> = {
-      SCHEDULED: "bg-yellow-100 text-yellow-800",
-      COMPLETED: "bg-green-100 text-green-800",
-      CANCELED: "bg-red-100 text-red-800",
-      MISSED: "bg-gray-200 text-gray-600",
-    };
 
-    return (
-      <Badge className={`${colorMap[status]} px-3 py-1 text-sm rounded-full`}>
-        {map[status] || status}
-      </Badge>
-    );
-  };
 
   const getOrderStatusBadge = (status: string) => {
     const statusMap: Record<string, { label: string; className: string; icon: React.ReactNode }> = {
@@ -184,26 +136,17 @@ export default function OrdersPage() {
     <div className="max-w-6xl mx-auto w-full">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Siparişlerim</h1>
-        <p className="text-gray-600">Tüm siparişlerinizi ve randevularınızı buradan görüntüleyebilirsiniz</p>
+        <p className="text-gray-600">Tüm siparişlerinizi buradan görüntüleyebilirsiniz</p>
       </div>
 
       <Tabs defaultValue="products" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-6">
+        <TabsList className="grid w-full grid-cols-1 mb-6">
           <TabsTrigger value="products" className="flex items-center gap-2">
             <Package className="w-4 h-4" />
             Ürün Siparişleri
             {productOrders.length > 0 && (
               <Badge variant="secondary" className="ml-2">
                 {productOrders.length}
-              </Badge>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="appointments" className="flex items-center gap-2">
-            <Calendar className="w-4 h-4" />
-            Randevularım
-            {appointments && appointments.length > 0 && (
-              <Badge variant="secondary" className="ml-2">
-                {appointments.length}
               </Badge>
             )}
           </TabsTrigger>
@@ -366,89 +309,6 @@ export default function OrdersPage() {
                           Detayları Görüntüle
                           <ArrowRight className="w-4 h-4" />
                         </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </TabsContent>
-
-        {/* Randevular */}
-        <TabsContent value="appointments" className="space-y-4">
-          {loadingAppointments ? (
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-32 w-full rounded-lg" />
-              ))}
-            </div>
-          ) : appointments?.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <Calendar className="w-16 h-16 text-gray-300 mb-4" />
-                <p className="text-lg font-medium text-gray-600 mb-2">Henüz randevunuz yok</p>
-                <p className="text-sm text-gray-500 text-center mb-6">
-                  Hizmetlerimizden yararlanmak için randevu oluşturabilirsiniz
-                </p>
-                <Button onClick={() => router.push("/services")}>
-                  Hizmetleri İncele
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-4">
-              {appointments?.map((item) => (
-                <Card key={item.id} className="hover:shadow-lg transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-3">
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center text-white font-bold">
-                            <Calendar className="w-6 h-6" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-lg">
-                              {item.ownedPet?.name || "Evcil Hayvan"} Randevu Detayı
-                            </h3>
-                            <p className="text-sm text-gray-600">
-                              {format(new Date(item.confirmedAt), "dd MMMM yyyy, EEEE", { locale: tr })}
-                              {item.timeSlot && ` • ${item.timeSlot}`}
-                            </p>
-                          </div>
-                        </div>
-                        {item.services && item.services.length > 0 && (
-                          <div className="flex flex-wrap gap-2 mb-3">
-                            {item.services.map((service, idx) => (
-                              <Badge key={idx} variant="outline" className="text-sm">
-                                {service.service.name}
-                              </Badge>
-                            ))}
-                          </div>
-                        )}
-                        {item.address && (
-                          <p className="text-sm text-gray-600">
-                            📍 {item.address.district?.name} - {item.address.fullAddress}
-                          </p>
-                        )}
-                      </div>
-                      <div className="flex flex-col items-end gap-3">
-                        {renderStatus(item.status)}
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => router.push(`/profile/orders/${item.id}`)}
-                            className="flex items-center gap-2"
-                          >
-                            <Eye className="w-4 h-4" />
-                            Detay
-                          </Button>
-                          {item.status === "COMPLETED" && (
-                            <ReviewModal appointmentId={item.id} />
-                          )}
-                        </div>
                       </div>
                     </div>
                   </CardContent>

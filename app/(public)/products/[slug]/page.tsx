@@ -26,7 +26,11 @@ export default async function ProductSlugPage({
   const { slug } = await params;
   const { variant } = await searchParams;
 
-  const product = await prisma.product.findFirst({
+  if (!slug) {
+    notFound();
+  }
+
+  const product = await prisma.product.findUnique({
     where: { slug },
     include: {
       colors: {
@@ -68,6 +72,11 @@ export default async function ProductSlugPage({
           },
         },
       },
+      washingInstruction: true,
+      deliveryInfo: true,
+      sizeNote: true,
+      sizeGuide: true,
+      modelInfo: true,
     },
   });
 

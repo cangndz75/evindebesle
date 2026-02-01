@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/db";
-import { AppointmentStatus } from "@prisma/client";
 import { generateAndSaveInvoice } from "@/lib/invoice/generateAndSaveInvoice";
 import { createAdminNotification } from "@/lib/notifications/createAdminNotification";
 
@@ -76,7 +75,7 @@ export async function finalizeAppointmentFromDraftInternal(opts: {
         isRecurring: draft.isRecurring,
         recurringType: draft.recurringType,
         recurringCount: draft.recurringCount,
-        status: AppointmentStatus.SCHEDULED,
+        status: "SCHEDULED",
         finalPrice: Number(paidPrice),
         paidAt: new Date(),
         isPaid: true,

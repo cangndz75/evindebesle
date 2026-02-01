@@ -38,18 +38,25 @@ export default async function FavoritesPage() {
     orderBy: { createdAt: "desc" },
   });
 
-  // Çok satanlar için örnek ürünler (şimdilik boş, sonra veritabanından çekilecek)
-  // TODO: Veritabanından çok satan ürünleri çek
-  const bestSellers = await prisma.product.findMany({
-    take: 8,
-    include: {
-      colors: {
-        take: 1,
+  // Takımı Tamamla - Favori ürünlerin kombinasyonlarını çek
+  const favoriteProductIds = favorites.map((f: any) => f.productId);
+
+  const productCombinations = await prisma.productCombination.findMany({
+    where: {
+      productId: {
+        in: favoriteProductIds,
       },
     },
-    orderBy: {
-      createdAt: "desc",
+    include: {
+      relatedProduct: {
+        include: {
+          colors: {
+            take: 1,
+          },
+        },
+      },
     },
+    take: 8,
   });
 
   // Type dönüşümü: null -> undefined
@@ -73,15 +80,15 @@ export default async function FavoritesPage() {
     },
   }));
 
-  // bestSellers için type dönüşümü
-  const formattedBestSellers = bestSellers.map((product: any) => ({
-    id: product.id,
-    name: product.name,
-    slug: product.slug ?? undefined,
-    price: product.price,
-    image: product.image ?? undefined,
-    primaryImage: product.primaryImage ?? undefined,
-    colors: product.colors?.map((color: any) => ({
+  // Takımı Tamamla için type dönüşümü
+  const completeTheSet = productCombinations.map((combination: any) => ({
+    id: combination.relatedProduct.id,
+    name: combination.relatedProduct.name,
+    slug: combination.relatedProduct.slug ?? undefined,
+    price: combination.relatedProduct.price,
+    image: combination.relatedProduct.image ?? undefined,
+    primaryImage: combination.relatedProduct.primaryImage ?? undefined,
+    colors: combination.relatedProduct.colors?.map((color: any) => ({
       id: color.id,
       name: color.name,
       hexCode: color.hexCode ?? undefined,
@@ -89,5 +96,5 @@ export default async function FavoritesPage() {
     })) || [],
   }));
 
-  return <FavoritesClient favorites={formattedFavorites} bestSellers={formattedBestSellers} />;
+  return <FavoritesClient favorites={formattedFavorites} completeTheSet={completeTheSet} />;
 }

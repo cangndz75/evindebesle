@@ -56,9 +56,10 @@ interface ProductReviewsProps {
   productImage?: string | null;
   selectedColorId?: string;
   reviews?: { id: string; userName: string; rating: number; comment: string; createdAt: Date; colorId?: string; colorName?: string }[];
+  hasOrdered?: boolean; // Kullanıcı bu ürünü sipariş verdi mi?
 }
 
-export default function ProductReviews({ productId, productName = "Ürün", productImage = null, selectedColorId, reviews = [] }: ProductReviewsProps) {
+export default function ProductReviews({ productId, productName = "Ürün", productImage = null, selectedColorId, reviews = [], hasOrdered = false }: ProductReviewsProps) {
   const [showAllModal, setShowAllModal] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -154,13 +155,15 @@ export default function ProductReviews({ productId, productName = "Ürün", prod
           <h2 className="text-3xl md:text-4xl font-serif font-light text-black text-center md:text-left">
             Yorumlar
           </h2>
-          <Button
-            onClick={() => setShowReviewModal(true)}
-            className="bg-black text-white hover:bg-gray-800 flex items-center gap-2"
-          >
-            <MessageSquarePlus className="w-4 h-4" />
-            Yorum Yap
-          </Button>
+          {hasOrdered && (
+            <Button
+              onClick={() => setShowReviewModal(true)}
+              className="bg-black text-white hover:bg-gray-800 flex items-center gap-2"
+            >
+              <MessageSquarePlus className="w-4 h-4" />
+              Yorum Yap
+            </Button>
+          )}
         </div>
 
         {/* Empty State */}
@@ -173,9 +176,11 @@ export default function ProductReviews({ productId, productName = "Ürün", prod
             <p className="text-gray-500 mb-6 max-w-sm mx-auto">
               Bu ürün hakkında ilk yorumu siz yaparak diğer kullanıcılara yardımcı olabilirsiniz.
             </p>
-            <Button variant="outline" onClick={() => setShowReviewModal(true)}>
-              İlk Yorumu Yap
-            </Button>
+            {hasOrdered && (
+              <Button variant="outline" onClick={() => setShowReviewModal(true)}>
+                İlk Yorumu Yap
+              </Button>
+            )}
           </div>
         ) : (
           <>
@@ -188,8 +193,8 @@ export default function ProductReviews({ productId, productName = "Ürün", prod
                     <Star
                       key={star}
                       className={`w-6 h-6 ${star <= Math.round(Number(averageRating))
-                          ? "fill-black text-black"
-                          : "text-gray-300"
+                        ? "fill-black text-black"
+                        : "text-gray-300"
                         }`}
                     />
                   ))}
@@ -222,8 +227,8 @@ export default function ProductReviews({ productId, productName = "Ürün", prod
                     key={rating}
                     onClick={() => setFilterRating(filterRating === rating ? null : rating)}
                     className={`px-3 py-1 text-sm border transition-colors font-light ${filterRating === rating
-                        ? "border-black bg-black text-white"
-                        : "border-gray-300 hover:border-black"
+                      ? "border-black bg-black text-white"
+                      : "border-gray-300 hover:border-black"
                       }`}
                   >
                     {rating} Yıldız
@@ -305,8 +310,8 @@ export default function ProductReviews({ productId, productName = "Ürün", prod
                     key={rating}
                     onClick={() => setFilterRating(filterRating === rating ? null : rating)}
                     className={`px-3 py-1 text-sm border transition-colors ${filterRating === rating
-                        ? "border-black bg-black text-white"
-                        : "border-gray-300 hover:border-black"
+                      ? "border-black bg-black text-white"
+                      : "border-gray-300 hover:border-black"
                       }`}
                   >
                     {rating} Yıldız

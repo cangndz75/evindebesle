@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import ProductDetailPage from "../../_components/ProductDetailPage";
+import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 
 export async function generateStaticParams() {
   const products = await prisma.product.findMany({
@@ -72,6 +73,25 @@ export default async function ProductSlugPage({
 
   if (!product) {
     notFound();
+  }
+
+  // Kullanıcının bu ürünü sipariş verip vermediğini kontrol et
+  const user = await getCurrentUser();
+  let hasOrdered = false;
+
+  if (user) {
+    const orderCount = await prisma.order.count({
+      where: {
+        userId: user.id,
+        status: "DELIVERED", // Sadece teslim edilmiş siparişler
+        items: {
+          some: {
+            productId: product.id,
+          },
+        },
+      },
+    });
+    hasOrdered = orderCount > 0;
   }
 
   // Variant'a göre renk seçimi
@@ -213,5 +233,5 @@ export default async function ProductSlugPage({
     sizeNotes: "",
   };
 
-  return <ProductDetailPage product={formattedProduct} />;
+  return <ProductDetailPage product={formattedProduct} hasOrdered={hasOrdered} />;
 }

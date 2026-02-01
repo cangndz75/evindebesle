@@ -32,6 +32,7 @@ interface ProductDetailPageProps {
     gender?: "MALE" | "FEMALE" | "UNISEX";
     reviews?: { id: string; userName: string; rating: number; comment: string; createdAt: Date; colorId?: string; colorName?: string }[];
   };
+  hasOrdered?: boolean;
 }
 
 const defaultProduct = {
@@ -63,7 +64,7 @@ const defaultProduct = {
   sizeNotes: "Süreler yaklaşık değerlerdir",
 };
 
-export default function ProductDetailPage({ product = defaultProduct }: ProductDetailPageProps) {
+export default function ProductDetailPage({ product = defaultProduct, hasOrdered = false }: ProductDetailPageProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [selectedImage, setSelectedImage] = useState(0);
@@ -1090,6 +1091,7 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
         })()}
         selectedColorId={product.colors?.[selectedColor]?.id}
         reviews={product.reviews || []}
+        hasOrdered={hasOrdered}
       />
 
       {/* Sticky Bottom Bar - Mobil için */}

@@ -46,7 +46,7 @@ type Favorite = {
   createdAt: Date;
 };
 
-type BestSeller = {
+type CompleteTheSetItem = {
   id: string;
   name: string;
   slug?: string | null;
@@ -63,10 +63,10 @@ type BestSeller = {
 
 export default function FavoritesClient({
   favorites,
-  bestSellers,
+  completeTheSet,
 }: {
   favorites: Favorite[];
-  bestSellers: BestSeller[];
+  completeTheSet: CompleteTheSetItem[];
 }) {
   const [favoritesList, setFavoritesList] = useState(favorites);
   const [shareLink, setShareLink] = useState<string | null>(null);
@@ -263,10 +263,30 @@ export default function FavoritesClient({
                                     });
 
                                     if (res.ok) {
+                                      // Sepete eklendi event'ini dispatch et
+                                      const productImage =
+                                        product.colors?.[0]?.images?.[0] ||
+                                        product.primaryImage ||
+                                        product.image ||
+                                        "/placeholder.jpg";
+
+                                      window.dispatchEvent(
+                                        new CustomEvent("itemAddedToCart", {
+                                          detail: {
+                                            product: {
+                                              id: product.id,
+                                              name: product.name,
+                                              image: productImage,
+                                              price: product.price,
+                                            },
+                                            size: sizeName,
+                                            color: product.colors?.[0]?.name || "",
+                                          },
+                                        })
+                                      );
+
                                       window.dispatchEvent(new Event("cartUpdated"));
-                                      toast.success(`${product.name} (${sizeName}) sepete eklendi`, {
-                                        position: "bottom-left",
-                                      });
+
                                     } else {
                                       const error = await res.json();
                                       toast.error(error.error || "Sepete eklenirken bir hata oluştu", {
@@ -282,8 +302,8 @@ export default function FavoritesClient({
                                 }}
                                 disabled={isOutOfStock}
                                 className={`px-3 py-1.5 text-xs font-light border transition-all ${isOutOfStock
-                                    ? "border-gray-200 text-gray-400 line-through cursor-not-allowed bg-white"
-                                    : "border-gray-300 hover:border-[#111] hover:bg-[#111] hover:text-white bg-white text-[#111]"
+                                  ? "border-gray-200 text-gray-400 line-through cursor-not-allowed bg-white"
+                                  : "border-gray-300 hover:border-[#111] hover:bg-[#111] hover:text-white bg-white text-[#111]"
                                   }`}
                               >
                                 {sizeName}
@@ -332,14 +352,14 @@ export default function FavoritesClient({
           </div>
         )}
 
-        {/* Best Sellers Section */}
-        {bestSellers.length > 0 && (
+        {/* Takımı Tamamla Section */}
+        {completeTheSet.length > 0 && (
           <div className="mt-16">
             <h2 className="text-2xl md:text-3xl font-light text-[#111] mb-8 text-center">
-              Çok Satanlar
+              Takımı Tamamla
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-              {bestSellers.map((product) => {
+              {completeTheSet.map((product: CompleteTheSetItem) => {
                 const productImage =
                   product.colors?.[0]?.images?.[0] ||
                   product.primaryImage ||

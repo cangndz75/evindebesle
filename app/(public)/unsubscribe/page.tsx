@@ -4,10 +4,18 @@ import { CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { toast } from "sonner";
 
 export default function UnsubscribePage() {
+    return (
+        <Suspense fallback={<div>Yükleniyor...</div>}>
+            <UnsubscribeContent />
+        </Suspense>
+    );
+}
+
+function UnsubscribeContent() {
     const searchParams = useSearchParams();
     const id = searchParams.get("id");
     const email = searchParams.get("email");

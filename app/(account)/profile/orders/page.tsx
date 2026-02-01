@@ -18,9 +18,11 @@ import {
   XCircle,
   Eye,
   ArrowRight,
+  MessageSquarePlus,
 } from "lucide-react";
 import ReviewModal from "./_components/ReviewModal";
 import Link from "next/link";
+import ProductReviewModal from "@/components/product/ProductReviewModal";
 
 type Appointment = {
   id: string;
@@ -80,6 +82,14 @@ export default function OrdersPage() {
   const [loadingOrders, setLoadingOrders] = useState(true);
   const router = useRouter();
 
+  // Review Modal State
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [selectedReviewProduct, setSelectedReviewProduct] = useState<{
+    id: string;
+    name: string;
+    image: string | null;
+  } | null>(null);
+
   useEffect(() => {
     // Randevuları yükle
     fetch("/api/appointments")
@@ -93,6 +103,11 @@ export default function OrdersPage() {
       .then((data) => setProductOrders(data))
       .finally(() => setLoadingOrders(false));
   }, []);
+
+  const handleOpenReviewModal = (product: { id: string; name: string; image: string | null }) => {
+    setSelectedReviewProduct(product);
+    setReviewModalOpen(true);
+  };
 
   const renderStatus = (status: string) => {
     const map: Record<string, string> = {
@@ -248,51 +263,74 @@ export default function OrdersPage() {
                         {order.items.map((item) => (
                           <div
                             key={item.id}
-                            className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                            className="flex items-center justify-between gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                           >
-                            <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">
-                              {item.image || item.product.image ? (
-                                <img
-                                  src={item.image || item.product.image || ""}
-                                  alt={item.productName}
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center">
-                                  <Package className="w-8 h-8 text-gray-400" />
-                                </div>
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-semibold text-base mb-1">{item.productName}</h4>
-                              <div className="flex flex-wrap gap-2 text-sm text-gray-600">
-                                {(item.colorName || item.sizeName) && (
-                                  <>
-                                    {item.colorName && (
-                                      <span className="px-2 py-1 bg-white rounded border border-gray-200">
-                                        Renk: {item.colorName}
-                                      </span>
-                                    )}
-                                    {item.sizeName && (
-                                      <span className="px-2 py-1 bg-white rounded border border-gray-200">
-                                        Beden: {item.sizeName}
-                                      </span>
-                                    )}
-                                  </>
+                            <div className="flex items-center gap-4 flex-1">
+                              <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">
+                                {item.image || item.product.image ? (
+                                  <img
+                                    src={item.image || item.product.image || ""}
+                                    alt={item.productName}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center">
+                                    <Package className="w-8 h-8 text-gray-400" />
+                                  </div>
                                 )}
-                                <span className="px-2 py-1 bg-white rounded border border-gray-200">
-                                  Adet: {item.quantity}
-                                </span>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-semibold text-base mb-1">{item.productName}</h4>
+                                <div className="flex flex-wrap gap-2 text-sm text-gray-600">
+                                  {(item.colorName || item.sizeName) && (
+                                    <>
+                                      {item.colorName && (
+                                        <span className="px-2 py-1 bg-white rounded border border-gray-200">
+                                          Renk: {item.colorName}
+                                        </span>
+                                      )}
+                                      {item.sizeName && (
+                                        <span className="px-2 py-1 bg-white rounded border border-gray-200">
+                                          Beden: {item.sizeName}
+                                        </span>
+                                      )}
+                                    </>
+                                  )}
+                                  <span className="px-2 py-1 bg-white rounded border border-gray-200">
+                                    Adet: {item.quantity}
+                                  </span>
+                                </div>
                               </div>
                             </div>
-                            {item.product.slug && (
-                              <Link
-                                href={`/product/${item.product.slug}`}
-                                className="text-blue-600 hover:text-blue-700 flex-shrink-0"
-                              >
-                                <Eye className="w-5 h-5" />
-                              </Link>
-                            )}
+
+                            <div className="flex flex-col items-end gap-2">
+                              {item.product.slug && (
+                                <Link
+                                  href={`/product/${item.product.slug}`}
+                                  className="text-blue-600 hover:text-blue-700 flex-shrink-0"
+                                  title="Ürünü Görüntüle"
+                                >
+                                  <Eye className="w-5 h-5" />
+                                </Link>
+                              )}
+
+                              {/* Sipariş teslim edildiyse yorum yap butonu göster */}
+                              {order.status === "DELIVERED" && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="flex items-center gap-2 text-xs"
+                                  onClick={() => handleOpenReviewModal({
+                                    id: item.product.id,
+                                    name: item.product.name,
+                                    image: item.image || item.product.image || null
+                                  })}
+                                >
+                                  <MessageSquarePlus className="w-3 h-3" />
+                                  Yorum Yap
+                                </Button>
+                              )}
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -420,6 +458,20 @@ export default function OrdersPage() {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Product Review Modal */}
+      {selectedReviewProduct && (
+        <ProductReviewModal
+          isOpen={reviewModalOpen}
+          onClose={() => setReviewModalOpen(false)}
+          productId={selectedReviewProduct.id}
+          productName={selectedReviewProduct.name}
+          productImage={selectedReviewProduct.image}
+          onReviewSubmitted={() => {
+            // İsteğe bağlı: Başarılı işlem sonrası bir şeyler yap
+          }}
+        />
+      )}
     </div>
   );
 }

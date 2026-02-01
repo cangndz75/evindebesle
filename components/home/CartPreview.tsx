@@ -24,7 +24,7 @@ export default function CartPreview({ cartIconRef, headerBottom }: CartPreviewPr
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const router = useRouter();
   const { data: session } = useSession();
-  
+
   // Header store'dan cart count'u al
   const { cartCount, refreshCartCount } = useHeaderStore();
 
@@ -181,7 +181,7 @@ export default function CartPreview({ cartIconRef, headerBottom }: CartPreviewPr
             Sepeti Görüntüle {cartCount > 0 && `(${cartCount})`}
           </button>
           <Link
-            href="/payment"
+            href="/checkout/summary"
             onClick={() => {
               setPopup(null);
               if (timerRef.current) {
@@ -190,7 +190,7 @@ export default function CartPreview({ cartIconRef, headerBottom }: CartPreviewPr
             }}
             className="w-full px-4 py-2.5 bg-[#111] text-white font-light text-xs uppercase tracking-wider hover:bg-[#333] transition-colors text-center block"
           >
-            Ödeme
+            Ödeme Adımına Geç
           </Link>
         </div>
       </div>

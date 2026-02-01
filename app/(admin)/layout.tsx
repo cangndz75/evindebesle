@@ -10,7 +10,6 @@ import {
   X,
   Home,
   User,
-  PawPrint,
   List,
   Briefcase,
   LogOut,
@@ -121,13 +120,9 @@ const navSections = [
         href: "/admin-customers",
         icon: <User className="w-5 h-5" />,
       },
-      {
-        label: "Evcil Hayvanlar",
-        href: "/admin-pets",
-        icon: <PawPrint className="w-5 h-5" />,
-      },
     ],
   },
+
   {
     title: "RAPORLAMA",
     links: [

@@ -27,17 +27,13 @@ model User {
   createdAt              DateTime             @default(now())
   updatedAt              DateTime             @updatedAt
   isTestUser             Boolean              @default(false)
-  accessInfo             AccessInfo?
   accounts               Account[]
-  appointments           Appointment[]
-  reviews                AppointmentReview[]
   campaigns              Campaign[]
   cartItems              CartItem[]
   emailLogs              EmailLog[]
   feedbacks              Feedback[]
   notificationLogs       NotificationLog[]
   orders                 Order[]
-  ownedPets              OwnedPet[]
   passwordResetTokens    PasswordResetToken[]
   favorites              ProductFavorite[]
   productViews           ProductViewHistory[]
@@ -97,194 +93,6 @@ model Verification {
   updatedAt  DateTime? @updatedAt
 }
 
-model Pet {
-  id           String           @id @default(uuid())
-  name         String
-  breed        String?
-  createdAt    DateTime         @default(now())
-  image        String?
-  species      String?
-  appointments AppointmentPet[]
-  ownedBy      OwnedPet[]
-  prices       ServicePrice[]
-  tags         ServiceTag[]
-}
-
-model OwnedPet {
-  id           String           @id @default(uuid())
-  userId       String
-  petId        String
-  name         String?
-  age          Int?
-  gender       String?
-  image        String?
-  relation     String?
-  sensitivity  String?
-  specialNote  String?
-  allowAdUse   Boolean          @default(false)
-  createdAt    DateTime         @default(now())
-  allergy      String?
-  appointments AppointmentPet[]
-  pet          Pet              @relation(fields: [petId], references: [id], onDelete: Cascade)
-  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  reports      PetReport[]
-}
-
-model Service {
-  id                  String               @id @default(uuid())
-  name                String
-  description         String?
-  price               Int
-  isActive            Boolean              @default(true)
-  createdAt           DateTime             @default(now())
-  image               String?
-  isWeeklyPopular     Boolean              @default(false)
-  checkItems          AppointmentCheck[]
-  appointmentServices AppointmentService[]
-  prices              ServicePrice[]
-  tags                ServiceTag[]
-}
-
-model ServicePrice {
-  id        String  @id @default(cuid())
-  serviceId String
-  petId     String
-  price     Int
-  pet       Pet     @relation(fields: [petId], references: [id])
-  service   Service @relation(fields: [serviceId], references: [id])
-}
-
-model ServiceTag {
-  id        String  @id @default(cuid())
-  serviceId String
-  petId     String
-  pet       Pet     @relation(fields: [petId], references: [id])
-  service   Service @relation(fields: [serviceId], references: [id])
-}
-
-model Appointment {
-  id                    String               @id @default(cuid())
-  userId                String
-  confirmedAt           DateTime             @default(now())
-  deliveredAt           DateTime?
-  assignedToId          String?
-  status                AppointmentStatus    @default(SCHEDULED)
-  summarySent           Boolean              @default(false)
-  isRecurring           Boolean              @default(false)
-  userNote              String?
-  allergy               String?
-  sensitivity           String?
-  specialRequest        String?
-  adminNote             String?
-  specialRequestStatus  String?
-  discountRate          Int?
-  discountReason        String?
-  timeSlot              String?
-  userAddressId         String?
-  recurringCount        Int?
-  recurringType         String?
-  paidAt                DateTime?
-  finalPrice            Float?
-  isPaid                Boolean              @default(false)
-  paymentConversationId String?
-  repeatInterval        String?
-  couponId              String?
-  paymentId             String?
-  draftId               String?
-  coupon                Coupon?              @relation(fields: [couponId], references: [id])
-  draft                 DraftAppointment?    @relation(fields: [draftId], references: [id])
-  address               UserAddress?         @relation(fields: [userAddressId], references: [id])
-  user                  User                 @relation(fields: [userId], references: [id])
-  checkItems            AppointmentCheck[]
-  dates                 AppointmentDate[]
-  media                 AppointmentMedia[]
-  pets                  AppointmentPet[]
-  reviews               AppointmentReview[]
-  services              AppointmentService[]
-  invoice               Invoice?
-  petReport             PetReport[]
-}
-
-model AppointmentDate {
-  id            String      @id @default(uuid())
-  appointmentId String
-  date          DateTime
-  appointment   Appointment @relation(fields: [appointmentId], references: [id])
-
-  @@unique([appointmentId, date])
-}
-
-model AppointmentService {
-  id            String             @id @default(cuid())
-  appointmentId String
-  serviceId     String
-  completedAt   DateTime?
-  isCompleted   Boolean            @default(false)
-  media         AppointmentMedia[]
-  appointment   Appointment        @relation(fields: [appointmentId], references: [id])
-  service       Service            @relation(fields: [serviceId], references: [id])
-}
-
-model AppointmentCheck {
-  id            String      @id @default(cuid())
-  appointmentId String
-  serviceId     String
-  title         String
-  isChecked     Boolean     @default(false)
-  note          String?
-  appointment   Appointment @relation(fields: [appointmentId], references: [id])
-  service       Service     @relation(fields: [serviceId], references: [id])
-}
-
-model AppointmentMedia {
-  id                   String              @id @default(cuid())
-  appointmentId        String
-  url                  String
-  type                 MediaType
-  uploadedAt           DateTime            @default(now())
-  appointmentServiceId String?
-  appointment          Appointment         @relation(fields: [appointmentId], references: [id])
-  service              AppointmentService? @relation(fields: [appointmentServiceId], references: [id])
-}
-
-model AppointmentReview {
-  id            String      @id @default(cuid())
-  appointmentId String
-  userId        String
-  rating        Int
-  comment       String?
-  createdAt     DateTime    @default(now())
-  appointment   Appointment @relation(fields: [appointmentId], references: [id])
-  user          User        @relation(fields: [userId], references: [id])
-}
-
-model AppointmentPet {
-  id            String      @id @default(cuid())
-  appointmentId String
-  ownedPetId    String?
-  petId         String?
-  appointment   Appointment @relation(fields: [appointmentId], references: [id])
-  ownedPet      OwnedPet?   @relation(fields: [ownedPetId], references: [id])
-  pet           Pet?        @relation(fields: [petId], references: [id])
-}
-
-model PetReport {
-  id            String       @id @default(cuid())
-  createdAt     DateTime     @default(now())
-  ownedPetId    String
-  appointmentId String?
-  behavior      String?
-  comments      String?
-  mealTime      String?
-  mood          String?
-  sleepStatus   String?
-  toiletInfo    String?
-  walkTime      String?
-  waterIntake   String?
-  appointment   Appointment? @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
-  ownedPet      OwnedPet     @relation(fields: [ownedPetId], references: [id], onDelete: Cascade)
-}
-
 model Feedback {
   id        String   @id @default(cuid())
   userId    String
@@ -304,21 +112,6 @@ model NotificationLog {
   retryCount Int      @default(0)
   success    Boolean  @default(true)
   user       User     @relation(fields: [userId], references: [id])
-}
-
-model Invoice {
-  id            String      @id @default(cuid())
-  appointmentId String      @unique
-  fileUrl       String
-  createdAt     DateTime    @default(now())
-  ettn          String
-  invoiceNo     String      @unique
-  isSent        Boolean     @default(false)
-  sentAt        DateTime?
-  taxAmount     Float
-  taxRate       Int         @default(20)
-  totalPrice    Float
-  appointment   Appointment @relation(fields: [appointmentId], references: [id])
 }
 
 model EmailLog {
@@ -376,7 +169,6 @@ model UserAddress {
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   isPrimary      Boolean       @default(false)
-  appointments   Appointment[]
   billingOrders  Order[]       @relation("BillingAddress")
   shippingOrders Order[]       @relation("ShippingAddress")
   district       District      @relation(fields: [districtId], references: [id])
@@ -394,8 +186,6 @@ model Coupon {
   expiresAt         DateTime?
   isActive          Boolean            @default(true)
   createdAt         DateTime           @default(now())
-  appointments      Appointment[]
-  draftAppointments DraftAppointment[]
   orders            Order[]
   userCoupons       UserCoupon[]
 }
@@ -409,73 +199,7 @@ model UserCoupon {
   user     User      @relation(fields: [userId], references: [id])
 }
 
-model DraftAppointment {
-  id             String        @id @default(uuid())
-  userId         String
-  userAddressId  String
-  timeSlot       String?
-  isRecurring    Boolean
-  recurringType  String?
-  recurringCount Int?
-  createdAt      DateTime      @default(now())
-  petIds         String?
-  dates          String?
-  ownedPetIds    String?
-  serviceIds     String?
-  allergy        String?
-  couponId       String?
-  sensitivity    String?
-  specialRequest String?
-  userNote       String?
-  finalPrice     Float?
-  isTest         Boolean       @default(false)
-  appointments   Appointment[]
-  coupon         Coupon?       @relation(fields: [couponId], references: [id])
-}
 
-model AccessInfo {
-  id                          String   @id @default(uuid())
-  keyLocation                 String?
-  keyInstruction              String?
-  keyPhotoUrl                 String?
-  neighborName                String?
-  neighborFlatNumber          String?
-  doorPassword                String?
-  doorNote                    String?
-  alarmExists                 Boolean  @default(false)
-  alarmPassword               String?
-  alarmInstruction            String?
-  alarmRoom                   String?
-  alarmTimeoutSeconds         Int?
-  notifySecurityGuard         Boolean  @default(false)
-  callBeforeEnter             Boolean  @default(false)
-  keyDropLocationAfterService String?
-  accessNote                  String?
-  createdAt                   DateTime @default(now())
-  updatedAt                   DateTime @updatedAt
-  userId                      String   @unique
-  user                        User     @relation(fields: [userId], references: [id])
-}
-
-model PaymentSession {
-  id               String               @id @default(cuid())
-  userId           String
-  amount           Int
-  currency         String               @default("TRY")
-  orderId          String?              @unique
-  correlationId    String?
-  status           PaymentSessionStatus @default(INIT)
-  threeDSHtml      String?
-  threeDSResultRaw String?
-  mdStatus         String?
-  success          Boolean?
-  paymentId        String?
-  appointmentId    String?
-  error            String?
-  createdAt        DateTime             @default(now())
-  updatedAt        DateTime             @updatedAt
-  draftId          String?
-}
 
 model Category {
   id          String    @id @default(cuid())
@@ -990,22 +714,9 @@ enum ContactMethod {
   WHATSAPP
 }
 
-enum AppointmentStatus {
-  SCHEDULED
-  COMPLETED
-  CANCELED
-  MISSED
-}
-
 enum DiscountType {
   PERCENT
   AMOUNT
-}
-
-enum MediaType {
-  PHOTO
-  VIDEO
-  AUDIO
 }
 
 enum PaymentSessionStatus {

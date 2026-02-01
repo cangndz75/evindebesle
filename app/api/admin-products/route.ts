@@ -14,6 +14,8 @@ export async function GET(request: NextRequest) {
   const minStock = searchParams.get("minStock");
   const maxStock = searchParams.get("maxStock");
 
+  const categoryId = searchParams.get("categoryId");
+
   const where: any = {};
 
   if (search) {
@@ -21,9 +23,11 @@ export async function GET(request: NextRequest) {
       { name: { contains: search, mode: "insensitive" } },
       { stockCode: { contains: search, mode: "insensitive" } },
       { description: { contains: search, mode: "insensitive" } },
+      { colors: { some: { name: { contains: search, mode: "insensitive" } } } },
     ];
   }
 
+  if (categoryId) where.categoryId = categoryId;
   if (gender) where.gender = gender;
   if (sizeType) where.sizeType = sizeType;
 
@@ -239,7 +243,38 @@ export async function POST(req: Request) {
       },
     });
 
-    // 2. Renkleri Oluştur
+    // 2. ProductImage kayıtlarını oluştur (Primary ve Secondary)
+    let imageOrder = 0;
+
+    // Primary Image
+    if (primaryImage || image) {
+      await prisma.productImage.create({
+        data: {
+          productId: product.id,
+          url: primaryImage || image,
+          isPrimary: true,
+          isSecondary: false,
+          order: imageOrder++,
+          alt: `${name} - Ana Görsel`,
+        },
+      });
+    }
+
+    // Secondary Image
+    if (secondaryImage) {
+      await prisma.productImage.create({
+        data: {
+          productId: product.id,
+          url: secondaryImage,
+          isPrimary: false,
+          isSecondary: true,
+          order: imageOrder++,
+          alt: `${name} - İkinci Görsel`,
+        },
+      });
+    }
+
+    // 3. Renkleri Oluştur
     // Frontend artık Base64 değil, Cloudinary URL'leri gönderiyor.
     if (colors && colors.length > 0) {
       for (const c of colors) {
@@ -247,8 +282,9 @@ export async function POST(req: Request) {
           where: { productId: product.id, name: c.name },
         });
 
+        let colorRecord;
         if (!existing) {
-          await prisma.productColor.create({
+          colorRecord = await prisma.productColor.create({
             data: {
               productId: product.id,
               name: c.name,
@@ -258,6 +294,25 @@ export async function POST(req: Request) {
               images: Array.isArray(c.images) ? JSON.stringify(c.images) : (c.images || null),
             },
           });
+        } else {
+          colorRecord = existing;
+        }
+
+        // Renk için ProductImage kayıtları oluştur
+        if (c.images && Array.isArray(c.images) && c.images.length > 0) {
+          for (let i = 0; i < c.images.length; i++) {
+            await prisma.productImage.create({
+              data: {
+                productId: product.id,
+                colorId: colorRecord.id,
+                url: c.images[i],
+                isPrimary: false,
+                isSecondary: false,
+                order: imageOrder++,
+                alt: `${name} - ${c.name} ${i + 1}`,
+              },
+            });
+          }
         }
       }
     }

@@ -1,13 +1,15 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Star, Search, Check, ChevronDown, X } from "lucide-react";
+import { Star, Search, Check, ChevronDown, X, MessageSquarePlus } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import ProductReviewModal from "@/components/product/ProductReviewModal";
 
 type Review = {
   id: string;
@@ -32,7 +34,7 @@ function formatDate(date: Date): string {
   const reviewDate = new Date(date);
   const diffTime = Math.abs(now.getTime() - reviewDate.getTime());
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  
+
   if (diffDays === 0) return "BUGÜN";
   if (diffDays === 1) return "1 GÜN ÖNCE";
   if (diffDays < 7) return `${diffDays} GÜN ÖNCE`;
@@ -50,12 +52,15 @@ function formatDate(date: Date): string {
 
 interface ProductReviewsProps {
   productId: string;
+  productName?: string;
+  productImage?: string | null;
   selectedColorId?: string;
   reviews?: { id: string; userName: string; rating: number; comment: string; createdAt: Date; colorId?: string; colorName?: string }[];
 }
 
-export default function ProductReviews({ productId, selectedColorId, reviews = [] }: ProductReviewsProps) {
+export default function ProductReviews({ productId, productName = "Ürün", productImage = null, selectedColorId, reviews = [] }: ProductReviewsProps) {
   const [showAllModal, setShowAllModal] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("highest");
   const [filterRating, setFilterRating] = useState<number | null>(null);
@@ -117,113 +122,139 @@ export default function ProductReviews({ productId, selectedColorId, reviews = [
       filtered.sort((a, b) => a.rating - b.rating);
     } else if (sortBy === "newest") {
       filtered.sort((a, b) => {
-        const dateA = parseInt(a.date);
-        const dateB = parseInt(b.date);
+        const dateA = parseInt(a.date) || 0; // Basit parse, geliştirilebilir
+        const dateB = parseInt(b.date) || 0;
         return dateA - dateB;
       });
     } else if (sortBy === "oldest") {
       filtered.sort((a, b) => {
-        const dateA = parseInt(a.date);
-        const dateB = parseInt(b.date);
+        const dateA = parseInt(a.date) || 0;
+        const dateB = parseInt(b.date) || 0;
         return dateB - dateA;
       });
     }
 
     return filtered;
-  }, [searchQuery, sortBy, filterRating]);
+  }, [filteredReviews, searchQuery, sortBy, filterRating]);
 
   // Show first 2 reviews on page
   const initialReviews = displayedReviews.slice(0, 2);
   const remainingCount = displayedReviews.length - 2;
 
-  // Ürüne ait yorum yoksa hiçbir şey gösterme
-  if (filteredReviews.length === 0) {
-    return null;
-  }
+  const handleReviewSubmitted = () => {
+    // Sayfayı yenilemek en basiti, veya bir callback ile üst componenti güncelleyebiliriz.
+    // Şimdilik reload.
+    window.location.reload();
+  };
 
   return (
     <>
       <section className="max-w-4xl mx-auto px-4 md:px-8 py-12 border-t border-gray-200">
-        <h2 className="text-3xl md:text-4xl font-serif font-light text-black text-center mb-8">
-          Yorumlar
-        </h2>
+        <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
+          <h2 className="text-3xl md:text-4xl font-serif font-light text-black text-center md:text-left">
+            Yorumlar
+          </h2>
+          <Button
+            onClick={() => setShowReviewModal(true)}
+            className="bg-black text-white hover:bg-gray-800 flex items-center gap-2"
+          >
+            <MessageSquarePlus className="w-4 h-4" />
+            Yorum Yap
+          </Button>
+        </div>
 
-        {/* Overall Rating */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <span className="text-4xl font-light text-black">{averageRating}</span>
-            <div className="flex gap-1">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <Star
-                  key={star}
-                  className={`w-6 h-6 ${
-                    star <= Math.round(Number(averageRating))
-                      ? "fill-black text-black"
-                      : "text-gray-300"
-                  }`}
+        {/* Empty State */}
+        {filteredReviews.length === 0 ? (
+          <div className="text-center py-12 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+            <div className="flex justify-center mb-4">
+              <Star className="w-12 h-12 text-gray-300" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Henüz yorum yapılmamış</h3>
+            <p className="text-gray-500 mb-6 max-w-sm mx-auto">
+              Bu ürün hakkında ilk yorumu siz yaparak diğer kullanıcılara yardımcı olabilirsiniz.
+            </p>
+            <Button variant="outline" onClick={() => setShowReviewModal(true)}>
+              İlk Yorumu Yap
+            </Button>
+          </div>
+        ) : (
+          <>
+            {/* Overall Rating */}
+            <div className="text-center mb-8">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <span className="text-4xl font-light text-black">{averageRating}</span>
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star
+                      key={star}
+                      className={`w-6 h-6 ${star <= Math.round(Number(averageRating))
+                          ? "fill-black text-black"
+                          : "text-gray-300"
+                        }`}
+                    />
+                  ))}
+                </div>
+              </div>
+              <p className="text-sm text-gray-600 font-light">
+                {filteredReviews.length} yoruma dayanarak
+              </p>
+            </div>
+
+            {/* Filtreleme UI - Ana Sayfada */}
+            <div className="mb-8 space-y-4">
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Yorumlarda ara..."
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 focus:outline-none focus:border-black text-sm font-light"
                 />
+              </div>
+
+              {/* Rating Filter */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-sm text-gray-600 font-light">Filtrele:</span>
+                {[5, 4, 3, 2, 1].map((rating) => (
+                  <button
+                    key={rating}
+                    onClick={() => setFilterRating(filterRating === rating ? null : rating)}
+                    className={`px-3 py-1 text-sm border transition-colors font-light ${filterRating === rating
+                        ? "border-black bg-black text-white"
+                        : "border-gray-300 hover:border-black"
+                      }`}
+                  >
+                    {rating} Yıldız
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Initial Reviews */}
+            <div className="space-y-8 mb-8">
+              {displayedReviews.slice(0, 2).map((review) => (
+                <ReviewCard key={review.id} review={review} />
               ))}
             </div>
-          </div>
-          <p className="text-sm text-gray-600 font-light">
-            {filteredReviews.length} yoruma dayanarak
-          </p>
-        </div>
 
-        {/* Filtreleme UI - Ana Sayfada */}
-        <div className="mb-8 space-y-4">
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Yorumlarda ara..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 focus:outline-none focus:border-black text-sm font-light"
-            />
-          </div>
-
-          {/* Rating Filter */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm text-gray-600 font-light">Filtrele:</span>
-            {[5, 4, 3, 2, 1].map((rating) => (
-              <button
-                key={rating}
-                onClick={() => setFilterRating(filterRating === rating ? null : rating)}
-                className={`px-3 py-1 text-sm border transition-colors font-light ${
-                  filterRating === rating
-                    ? "border-black bg-black text-white"
-                    : "border-gray-300 hover:border-black"
-                }`}
-              >
-                {rating} Yıldız
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Initial Reviews */}
-        <div className="space-y-8 mb-8">
-          {displayedReviews.slice(0, 2).map((review) => (
-            <ReviewCard key={review.id} review={review} />
-          ))}
-        </div>
-
-        {/* Load More Button */}
-        {displayedReviews.length > 2 && (
-          <div className="text-center">
-            <button
-              onClick={() => setShowAllModal(true)}
-              className="px-8 py-3 border border-black text-black text-sm font-light uppercase tracking-wide hover:bg-black hover:text-white transition-colors"
-            >
-              Daha Fazla Yükle ({displayedReviews.length - 2})
-            </button>
-          </div>
+            {/* Load More Button */}
+            {displayedReviews.length > 2 && (
+              <div className="text-center">
+                <button
+                  onClick={() => setShowAllModal(true)}
+                  className="px-8 py-3 border border-black text-black text-sm font-light uppercase tracking-wide hover:bg-black hover:text-white transition-colors"
+                >
+                  Daha Fazla Yükle ({displayedReviews.length - 2})
+                </button>
+              </div>
+            )}
+          </>
         )}
       </section>
 
-      {/* Reviews Modal */}
+      {/* Reviews Modal - Show All */}
       <Dialog open={showAllModal} onOpenChange={setShowAllModal}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
           <DialogHeader className="px-6 py-4 border-b border-gray-200 sticky top-0 bg-white z-10">
@@ -273,11 +304,10 @@ export default function ProductReviews({ productId, selectedColorId, reviews = [
                   <button
                     key={rating}
                     onClick={() => setFilterRating(filterRating === rating ? null : rating)}
-                    className={`px-3 py-1 text-sm border transition-colors ${
-                      filterRating === rating
+                    className={`px-3 py-1 text-sm border transition-colors ${filterRating === rating
                         ? "border-black bg-black text-white"
                         : "border-gray-300 hover:border-black"
-                    }`}
+                      }`}
                   >
                     {rating} Yıldız
                   </button>
@@ -294,6 +324,16 @@ export default function ProductReviews({ productId, selectedColorId, reviews = [
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Review Submission Modal */}
+      <ProductReviewModal
+        isOpen={showReviewModal}
+        onClose={() => setShowReviewModal(false)}
+        productId={productId}
+        productName={productName}
+        productImage={productImage}
+        onReviewSubmitted={handleReviewSubmitted}
+      />
     </>
   );
 }
@@ -316,9 +356,8 @@ function ReviewCard({ review }: { review: Review }) {
             {[1, 2, 3, 4, 5].map((star) => (
               <Star
                 key={star}
-                className={`w-4 h-4 ${
-                  star <= review.rating ? "fill-black text-black" : "text-gray-300"
-                }`}
+                className={`w-4 h-4 ${star <= review.rating ? "fill-black text-black" : "text-gray-300"
+                  }`}
               />
             ))}
           </div>

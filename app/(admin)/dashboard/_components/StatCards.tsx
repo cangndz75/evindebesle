@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { DollarSign, CalendarCheck, PawPrint, User } from "lucide-react";
+import { DollarSign, ShoppingBag, Package, User } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -15,8 +15,8 @@ export default function StatCards() {
   const router = useRouter();
   const [counts, setCounts] = useState({
     users: 0,
-    pets: 0,
-    appointments: 0,
+    orders: 0,
+    products: 0,
     revenue: 0,
   });
 
@@ -25,10 +25,10 @@ export default function StatCards() {
       .then((res) => res.json())
       .then((data) =>
         setCounts({
-          users: data.users,
-          pets: data.pets,
-          appointments: data.appointments,
-          revenue: data.revenue,
+          users: data.users || 0,
+          orders: data.orders || 0,
+          products: data.products || 0,
+          revenue: data.revenue || 0,
         })
       );
   }, []);
@@ -38,22 +38,22 @@ export default function StatCards() {
       title: "Toplam Gelir",
       description: "+%15 bu ay",
       value: `${counts.revenue.toLocaleString()} ₺`,
-      href: "/reports",
+      href: "/admin-reports",
       icon: <DollarSign className="text-green-600" />,
     },
     {
-      title: "Randevular",
-      description: "+%8 artış",
-      value: `${counts.appointments}`,
-      href: "/admin-appointments",
-      icon: <CalendarCheck className="text-blue-600" />,
+      title: "Siparişler",
+      description: "Toplam sipariş",
+      value: `${counts.orders}`,
+      href: "/admin-orders",
+      icon: <ShoppingBag className="text-blue-600" />,
     },
     {
-      title: "Evcil Hayvanlar",
-      description: "Kayıtlı pet",
-      value: `${counts.pets}`,
-      href: "/admin-pets",
-      icon: <PawPrint className="text-orange-500" />,
+      title: "Ürünler",
+      description: "Aktif ürün",
+      value: `${counts.products}`,
+      href: "/admin-products",
+      icon: <Package className="text-orange-500" />,
     },
     {
       title: "Kullanıcılar",

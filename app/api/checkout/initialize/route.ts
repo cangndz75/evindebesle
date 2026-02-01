@@ -36,7 +36,11 @@ export async function POST(req: Request) {
                     colorId: item.colorId || null,
                     sizeId: item.sizeId || null,
                 },
-                include: { product: true }
+                include: {
+                    product: {
+                        include: { category: true }
+                    }
+                }
             });
 
             if (!variant) {
@@ -58,12 +62,33 @@ export async function POST(req: Request) {
                 quantity: item.quantity,
                 totalPrice: lineTotal,
                 // variantId is internal, we don't save it to OrderItem directly but we use it for stock reservation
-                _variantId: variant.id
+                _variantId: variant.id,
+                productCategory: variant.product.category?.name || "General"
             });
         }
 
         const shipping = Number(body.shippingPrice || 0);
-        const discount = 0; // Implement coupon logic if needed
+
+        // Coupon logic
+        let discount = 0;
+        let couponId: string | null = null;
+
+        if (body.couponCode) {
+            const coupon = await prisma.coupon.findUnique({
+                where: { code: body.couponCode }
+            });
+
+            if (coupon && coupon.isActive && (!coupon.expiresAt || coupon.expiresAt > new Date())) {
+                couponId = coupon.id;
+                if (coupon.discountType === "PERCENT") {
+                    discount = (subtotal * coupon.value) / 100;
+                } else {
+                    discount = coupon.value;
+                }
+                if (discount > subtotal) discount = subtotal;
+            }
+        }
+
         const total = subtotal + shipping - discount;
         const currency = "TRY";
 
@@ -78,6 +103,7 @@ export async function POST(req: Request) {
                 shippingCost: shipping,
                 discount,
                 total,
+                couponId: couponId,
                 status: "PENDING_PAYMENT",
                 idempotencyKey: idem,
                 items: {
@@ -169,7 +195,7 @@ export async function POST(req: Request) {
             basketItems: orderItemsData.map((it: any) => ({
                 id: it.productId,
                 name: it.productName,
-                category1: "Pet",
+                category1: it.productCategory || "General",
                 itemType: "PHYSICAL",
                 price: it.totalPrice.toFixed(2),
             })),

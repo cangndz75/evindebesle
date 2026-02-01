@@ -10,22 +10,22 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Yetkisiz erişim" }, { status: 403 });
   }
 
-  const [users, pets, appointments, revenueResult] = await Promise.all([
+  const [users, products, orders, revenueResult] = await Promise.all([
     prisma.user.count(),
-    prisma.ownedPet.count(),
-    prisma.appointment.count(),
-    prisma.appointment.aggregate({
-      _sum: { finalPrice: true },
-      where: { isPaid: true },
+    prisma.product.count({ where: { isActive: true } }),
+    prisma.order.count(),
+    prisma.order.aggregate({
+      _sum: { total: true },
+      where: { status: { in: ["PAID", "PREPARING", "SHIPPED", "DELIVERED"] } },
     }),
   ]);
 
-  const revenue = revenueResult._sum?.finalPrice ?? 0;
+  const revenue = revenueResult._sum?.total ?? 0;
 
   return NextResponse.json({
     users,
-    pets,
-    appointments,
+    products,
+    orders,
     revenue,
   });
 }

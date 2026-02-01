@@ -14,6 +14,7 @@ import { ArrowLeft, X, Plus, Upload, Image as ImageIcon } from "lucide-react";
 import Image from "next/image";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { uploadBase64ToCloudinary, processHtmlImages } from "@/lib/cloudinary";
+import ProductSelectionModal from "../_components/ProductSelectionModal";
 
 type Color = {
   name: string;
@@ -75,8 +76,8 @@ export default function AddProductPage() {
 
   // Ürün kombinleri
   const [combinations, setCombinations] = useState<string[]>([]);
-  const [searchProduct, setSearchProduct] = useState("");
-  const [searchResults, setSearchResults] = useState<Array<{ id: string; name: string; image: string | null }>>([]);
+
+  const [searchResults, setSearchResults] = useState<Array<{ id: string; name: string; image: string | null; price: number; stock: number; categoryId: string; gender?: string }>>([]);
 
   // Detay metni
   const [detailText, setDetailText] = useState("");
@@ -236,49 +237,7 @@ export default function AddProductPage() {
     setSizeStocks(newStocks);
   };
 
-  const searchProducts = async (query: string) => {
-    if (!query || query.length < 2) {
-      setSearchResults([]);
-      return;
-    }
-    try {
-      const res = await fetch(`/api/admin-products?search=${encodeURIComponent(query)}`);
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-      const text = await res.text();
-      if (!text) {
-        setSearchResults([]);
-        return;
-      }
-      const data = JSON.parse(text);
-      setSearchResults(
-        (Array.isArray(data) ? data : [])
-          .filter((p: any) => !combinations.includes(p.id))
-          .map((p: any) => ({
-            id: p.id,
-            name: p.name,
-            image: p.image || p.primaryImage || "/placeholder.jpg",
-          }))
-          .slice(0, 10)
-      );
-    } catch (error) {
-      console.error("Ürün arama hatası:", error);
-      setSearchResults([]);
-    }
-  };
 
-  const addCombination = (productId: string) => {
-    if (!combinations.includes(productId)) {
-      setCombinations([...combinations, productId]);
-    }
-    setSearchProduct("");
-    setSearchResults([]);
-  };
-
-  const removeCombination = (productId: string) => {
-    setCombinations(combinations.filter((id) => id !== productId));
-  };
 
   // Kategorileri yükle
   const loadCategories = async () => {
@@ -1582,82 +1541,57 @@ export default function AddProductPage() {
 
             {/* Ürün Kombinleri */}
             <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold mb-4">Ürün Kombinleri</h2>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="searchProduct">Ürün Ara</Label>
-                  <div className="relative mt-1">
-                    <Input
-                      id="searchProduct"
-                      value={searchProduct}
-                      onChange={(e) => {
-                        setSearchProduct(e.target.value);
-                        searchProducts(e.target.value);
-                      }}
-                      placeholder="Ürün adı ile ara..."
-                    />
-                    {searchResults.length > 0 && (
-                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                        {searchResults.map((product) => (
-                          <div
-                            key={product.id}
-                            className="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-                            onClick={() => addCombination(product.id)}
-                          >
-                            <div className="relative w-12 h-12 rounded overflow-hidden bg-gray-100">
-                              <Image
-                                src={product.image || "/placeholder.jpg"}
-                                alt={product.name}
-                                fill
-                                className="object-cover"
-                              />
-                            </div>
-                            <span className="text-sm font-medium">{product.name}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold">Ürün Kombinleri</h2>
+                <ProductSelectionModal
+                  selectedIds={combinations}
+                  onSelect={(newProducts) => {
+                    // Yeni seçilenleri mevcut listeye ekle (state'i güncelle)
+                    // Sadece ID'leri tutuyoruz ama UI için searchResults'ı da güncelleyebiliriz veya ayrı bir state tutabiliriz.
+                    // Şimdilik sadece combinations (ID array) tutuyoruz, o yüzden UI'da göstermek için 
+                    // gelen full objeleri searchResults (ya da yeni bir selectedProductsDetails state) içine atalım.
+                    const newIds = newProducts.map(p => p.id);
+                    setCombinations(prev => [...prev, ...newIds]);
+                    setSearchResults(prev => [...prev, ...newProducts]);
+                  }}
+                />
+              </div>
 
-                {/* Eklenen Kombinler */}
-                {combinations.length > 0 && (
-                  <div>
-                    <Label className="text-sm text-gray-600 mb-2 block">Eklenen Ürünler</Label>
-                    <div className="space-y-2">
-                      {combinations.map((productId) => {
-                        const product = searchResults.find((p) => p.id === productId);
-                        return (
-                          <div
-                            key={productId}
-                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                          >
-                            <div className="flex items-center gap-3">
-                              <div className="relative w-10 h-10 rounded overflow-hidden bg-gray-100">
-                                <Image
-                                  src={product?.image || "/placeholder.jpg"}
-                                  alt={product?.name || "Ürün"}
-                                  fill
-                                  className="object-cover"
-                                />
-                              </div>
-                              <span className="text-sm font-medium">
-                                {product?.name || "Yükleniyor..."}
-                              </span>
-                            </div>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removeCombination(productId)}
-                              className="text-red-500 hover:text-red-600"
-                            >
-                              <X className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        );
-                      })}
-                    </div>
+              <div className="space-y-4">
+                {/* Seçili Kombinler Listesi */}
+                {searchResults.length === 0 && (
+                  <div className="text-center py-8 text-gray-500 border border-dashed rounded-lg">
+                    Henüz kombin ürünü eklenmemiş.
+                  </div>
+                )}
+
+                {searchResults.length > 0 && (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {searchResults.map(product => (
+                      <div key={product.id} className="relative group border rounded-lg overflow-hidden">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setCombinations(prev => prev.filter(id => id !== product.id));
+                            setSearchResults(prev => prev.filter(p => p.id !== product.id));
+                          }}
+                          className="absolute top-1 right-1 z-10 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                        <div className="aspect-[3/4] relative bg-gray-100">
+                          {product.image ? (
+                            <Image src={product.image} alt={product.name} fill className="object-cover" />
+                          ) : (
+                            <div className="flex items-center justify-center h-full text-xs text-gray-400">Görsel Yok</div>
+                          )}
+                        </div>
+                        <div className="p-2">
+                          <h4 className="text-sm font-medium line-clamp-1">{product.name}</h4>
+                          <p className="text-xs text-gray-500">{product.price.toFixed(2)} ₺</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>

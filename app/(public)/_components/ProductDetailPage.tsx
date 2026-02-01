@@ -885,27 +885,48 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
                 </div>
               </div>
 
-              {selectedSize && getVariantStock(selectedSize) <= 0 && (
-                <div className="mb-6 p-3 bg-gray-50 border border-gray-200 rounded">
-                  <p className="text-sm text-gray-700 mb-2">Bu beden şu anda stokta yok.</p>
-                  <div className="flex gap-2">
-                    <input
-                      type="email"
-                      placeholder="E-posta adresiniz"
-                      value={emailNotify}
-                      onChange={(e) => setEmailNotify(e.target.value)}
-                      className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded"
-                    />
-                    <button
-                      onClick={handleStockNotify}
-                      disabled={!emailNotify}
-                      className="px-4 py-2 text-sm bg-black text-white rounded hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Bildir
-                    </button>
-                  </div>
-                </div>
-              )}
+              {/* Stok Durumu ve Bildirim */}
+              {(() => {
+                // Seçili beden varsa onun stoğuna, yoksa seçili rengin genel stoğuna bakılabilir
+                // Ancak "beden bazında stok" istendiği için seçili beden baz alınmalı.
+
+                if (selectedSize) {
+                  const stock = getVariantStock(selectedSize);
+
+                  if (stock <= 0) {
+                    return (
+                      <div className="mb-6 p-3 bg-gray-50 border border-gray-200 rounded">
+                        <p className="text-sm text-gray-700 mb-2">Bu beden şu anda stokta yok.</p>
+                        <div className="flex gap-2">
+                          <input
+                            type="email"
+                            placeholder="E-posta adresiniz"
+                            value={emailNotify}
+                            onChange={(e) => setEmailNotify(e.target.value)}
+                            className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded"
+                          />
+                          <button
+                            onClick={handleStockNotify}
+                            disabled={!emailNotify}
+                            className="px-4 py-2 text-sm bg-black text-white rounded hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            Haber Ver
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  } else if (stock < 5) {
+                    return (
+                      <div className="mb-4">
+                        <span className="text-red-600 text-sm font-medium animate-pulse">
+                          Son {stock} ürün!
+                        </span>
+                      </div>
+                    );
+                  }
+                }
+                return null;
+              })()}
             </div>
 
             {/* Adet ve Sepete Ekle */}
@@ -1057,6 +1078,16 @@ export default function ProductDetailPage({ product = defaultProduct }: ProductD
       {/* Yorumlar Bölümü */}
       <ProductReviews
         productId={product.id}
+        productName={product.name}
+        productImage={(() => {
+          if ((product as any).primaryImage) return (product as any).primaryImage;
+          if (product.images && product.images.length > 0) {
+            const firstImg = product.images[0];
+            if (typeof firstImg === 'string') return firstImg;
+            if (firstImg && typeof firstImg === 'object' && 'url' in firstImg) return firstImg.url;
+          }
+          return (product as any).image || null;
+        })()}
         selectedColorId={product.colors?.[selectedColor]?.id}
         reviews={product.reviews || []}
       />

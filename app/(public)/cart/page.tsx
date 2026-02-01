@@ -211,20 +211,19 @@ export default function CartPage() {
     const loadRecentlyViewed = async () => {
         try {
             const localProducts = getRecentlyViewed();
+            const localIds = localProducts.map((p) => p.productId || p.id).filter(Boolean);
 
-            const localFormatted = localProducts.map((p) => ({
-                id: p.id,
-                productId: p.productId,
-                name: p.name,
-                slug: p.slug || null,
-                price: p.price,
-                image: p.image || p.primaryImage || null,
-                primaryImage: p.primaryImage || p.image || null,
-                colors: [],
-            }));
+            // Eğer local data yoksa ve giriş yapmamışsa, boş döndür
+            if (localIds.length === 0 && !session?.user) {
+                setRecentlyViewedProducts([]);
+                return;
+            }
 
             try {
-                const res = await fetch("/api/products/recent-views");
+                // API'ye local ID'leri de gönder (validasyon için)
+                const idsQuery = localIds.length > 0 ? `?ids=${localIds.join(",")}` : "";
+                const res = await fetch(`/api/products/recent-views${idsQuery}`);
+
                 if (res.ok) {
                     const data = await res.json();
                     const apiProducts = Array.isArray(data?.products) ? data.products : [];
@@ -240,34 +239,17 @@ export default function CartPage() {
                         colors: p.colors || [],
                     }));
 
-                    type ProductItem = {
-                        id: string;
-                        productId: string;
-                        name: string;
-                        slug: string | null;
-                        price: number;
-                        image: string | null;
-                        primaryImage: string | null;
-                        colors: any[];
-                    };
-                    const productMap = new Map<string, ProductItem>();
-
-                    localFormatted.forEach((p: ProductItem) => {
-                        productMap.set(p.productId, p);
-                    });
-
-                    apiFormatted.forEach((p: ProductItem) => {
-                        productMap.set(p.productId, p);
-                    });
-
-                    const combined = Array.from(productMap.values());
-                    setRecentlyViewedProducts(combined.slice(0, 12));
+                    setRecentlyViewedProducts(apiFormatted);
                 } else {
-                    setRecentlyViewedProducts(localFormatted.slice(0, 12));
+                    // API hata verirse fallback olarak local data'yı göster (ama bu durumda stale data riski var)
+                    // Yine de hiç göstermemektense, local data'yı göstermeyi deneyebiliriz veya boş bırakabiliriz.
+                    // Task isteği "yoksa gösterme" olduğu için, API hatası durumunda boş bırakmak daha güvenli olabilir.
+                    console.error("Failed to fetch recent views");
+                    setRecentlyViewedProducts([]);
                 }
             } catch (apiError) {
                 console.error("Error fetching API recent views:", apiError);
-                setRecentlyViewedProducts(localFormatted.slice(0, 12));
+                setRecentlyViewedProducts([]);
             }
         } catch (error) {
             console.error("Error loading recently viewed products:", error);

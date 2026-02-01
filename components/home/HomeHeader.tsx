@@ -318,11 +318,6 @@ export default function HomeHeader() {
                                         >
                                             <ShoppingBag className="w-5 h-5" />
                                             <span>Sepet</span>
-                                            {cartCount > 0 && (
-                                                <span className="absolute left-5 top-0 w-4 h-4 text-white text-[10px] rounded-full flex items-center justify-center font-light bg-[#111]">
-                                                    {cartCount}
-                                                </span>
-                                            )}
                                         </button>
                                     </div>
                                 </SheetContent>

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/db";
 
 export async function PUT(
     request: NextRequest,
@@ -9,7 +9,7 @@ export async function PUT(
         const body = await request.json();
         const { title, content, isActive } = body;
 
-        const instruction = await prisma.washingInstruction.update({
+        const washingInstruction = await prisma.washingInstruction.update({
             where: { id: params.id },
             data: {
                 ...(title && { title }),
@@ -18,7 +18,7 @@ export async function PUT(
             },
         });
 
-        return NextResponse.json(instruction);
+        return NextResponse.json(washingInstruction);
     } catch (error) {
         console.error("Error updating washing instruction:", error);
         return NextResponse.json(

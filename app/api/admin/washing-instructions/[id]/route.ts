@@ -3,14 +3,15 @@ import { prisma } from "@/lib/db";
 
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
+    const { id } = await params;
     try {
         const body = await request.json();
         const { title, content, isActive } = body;
 
         const washingInstruction = await prisma.washingInstruction.update({
-            where: { id: params.id },
+            where: { id },
             data: {
                 ...(title && { title }),
                 ...(content && { content }),
@@ -30,11 +31,12 @@ export async function PUT(
 
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
+    const { id } = await params;
     try {
         await prisma.washingInstruction.delete({
-            where: { id: params.id },
+            where: { id },
         });
 
         return NextResponse.json({ success: true });

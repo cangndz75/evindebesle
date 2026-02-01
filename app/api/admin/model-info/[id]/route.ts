@@ -3,14 +3,15 @@ import { prisma } from "@/lib/db";
 
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
+    const { id } = await params;
     try {
         const body = await request.json();
         const { title, height, size, gender, isActive } = body;
 
         const modelInfo = await prisma.modelInfo.update({
-            where: { id: params.id },
+            where: { id },
             data: {
                 ...(title && { title }),
                 ...(height && { height }),
@@ -32,11 +33,12 @@ export async function PUT(
 
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
+    const { id } = await params;
     try {
         await prisma.modelInfo.delete({
-            where: { id: params.id },
+            where: { id },
         });
 
         return NextResponse.json({ success: true });

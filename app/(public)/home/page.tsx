@@ -34,9 +34,6 @@ const TabbedBestSellers = dynamic(() => import("@/components/home/TabbedBestSell
 const NewsletterSignup = dynamic(() => import("@/components/home/NewsletterSignup"), {
   loading: () => <div className="h-32 bg-gray-100 animate-pulse" />,
 });
-const FooterAccordion = dynamic(() => import("@/components/home/FooterAccordion"), {
-  loading: () => <div className="h-64 bg-gray-100 animate-pulse" />,
-});
 import { womensBrands, mensBrands } from "@/lib/homeData";
 import type { Product } from "@/lib/homeData";
 import TabbedProductCarousel from "@/components/home/TabbedProductCarousel";
@@ -437,7 +434,6 @@ export default async function HomePage() {
         bestSellersMen={bestSellersMen}
       /> */}
       <NewsletterSignup />
-      <FooterAccordion />
     </>
   );
 }

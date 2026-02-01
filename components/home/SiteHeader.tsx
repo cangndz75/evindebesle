@@ -358,12 +358,31 @@ export default function SiteHeader() {
                     >
                       <ShoppingBag className="w-5 h-5" />
                       <span>Sepet</span>
-                      {cartCount > 0 && (
-                        <span className="absolute left-5 top-0 w-4 h-4 text-white text-[10px] rounded-full flex items-center justify-center font-light bg-[#111]">
-                          {cartCount}
-                        </span>
-                      )}
                     </button>
+
+                    {/* Login/Logout Button - Centered at Bottom */}
+                    <div className="pt-4 border-t">
+                      {session?.user ? (
+                        <button
+                          onClick={async () => {
+                            const { signOut } = await import("next-auth/react");
+                            await signOut({ redirect: false });
+                            setMenuOpen(false);
+                          }}
+                          className="w-full px-4 py-2.5 text-center bg-black text-white hover:bg-gray-800 transition-colors rounded-md font-light uppercase tracking-wide text-sm"
+                        >
+                          Çıkış Yap
+                        </button>
+                      ) : (
+                        <Link
+                          href="/auth-tabs"
+                          onClick={() => setMenuOpen(false)}
+                          className="block w-full px-4 py-2.5 text-center bg-black text-white hover:bg-gray-800 transition-colors rounded-md font-light uppercase tracking-wide text-sm"
+                        >
+                          Giriş Yap
+                        </Link>
+                      )}
+                    </div>
                   </div>
                 </SheetContent>
               </Sheet>

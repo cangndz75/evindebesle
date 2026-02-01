@@ -5,6 +5,7 @@ import SessionWrapper from "./(public)/_components/SessionWrapper";
 import ToasterWrapper from "./(public)/_components/ToasterWrapper";
 import SiteHeader from "@/components/home/SiteHeader";
 import OrganizationSchema from "@/components/seo/OrganizationSchema";
+import FooterAccordion from "@/components/home/FooterAccordion";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
@@ -44,6 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SessionWrapper>
           <SiteHeader />
           <main className="flex-1">{children}</main>
+          <FooterAccordion />
           <ToasterWrapper />
         </SessionWrapper>
       </body>

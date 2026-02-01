@@ -1094,63 +1094,11 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
         hasOrdered={hasOrdered}
       />
 
-      {/* Sticky Bottom Bar - Mobil için */}
-      <div
-        className={`fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 transition-transform duration-300 ease-in-out md:hidden ${isSticky ? 'translate-y-0 shadow-lg' : 'translate-y-full'
-          }`}
-      >
-        <div className="px-4 py-3 space-y-2">
-          {/* Adet ve Sepete Ekle - Yan Yana */}
-          <div className="flex items-center gap-2">
-            {/* Adet Seçici */}
-            <div className="flex items-center border border-gray-300 rounded-lg bg-white h-[48px]">
-              <button
-                onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
-                className="px-3 h-full text-black hover:bg-gray-100 transition-colors font-light flex items-center justify-center disabled:opacity-50"
-                disabled={quantity <= 1}
-              >
-                <Minus className="w-4 h-4" />
-              </button>
-              <span className="px-4 h-full text-sm font-light text-black border-x border-gray-300 min-w-[50px] text-center flex items-center justify-center">
-                {quantity}
-              </span>
-              <button
-                onClick={() => setQuantity((prev) => prev + 1)}
-                className="px-3 h-full text-black hover:bg-gray-100 transition-colors font-light flex items-center justify-center"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Sepete Ekle Butonu */}
-            <button
-              onClick={() => addToCart()}
-              disabled={!selectedSize || getVariantStock(selectedSize) <= 0}
-              className="flex-1 px-4 py-3 border border-gray-300 text-black bg-white rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider text-sm font-light"
-            >
-              SEPETE EKLE
-            </button>
-          </div>
-
-          {/* Hızlı Satın Alın Butonu */}
-          <button
-            onClick={() => addToCart({ redirectToPayment: true })}
-            disabled={!selectedSize || getVariantStock(selectedSize) <= 0}
-            className="w-full px-4 py-3 bg-[#111] text-white rounded-lg hover:bg-[#333] transition-all disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider text-sm font-semibold"
-          >
-            HIZLI SATIN ALIN
-          </button>
-        </div>
-      </div>
-
       {/* Takımı Tamamla Bölümü */}
       <CompleteTheSetSection />
 
       {/* Son Görüntülenenler */}
       <RecentlyViewedSection currentProductId={product.id} />
-
-      {/* Footer */}
-      <FooterSection />
 
       {/* Beden Rehberi Modal */}
       <SizeGuideModal
@@ -1266,74 +1214,6 @@ function CompleteTheSetSection() {
         </button>
       </div>
     </section>
-  );
-}
-
-// Footer Section
-function FooterSection() {
-  return (
-    <>
-      {/* Marquee Strip */}
-      <div className="w-full overflow-hidden border-t border-b border-black/10 bg-white py-3">
-        <div className="flex animate-marquee whitespace-nowrap">
-          <span className="text-xs md:text-sm font-light text-[#111] tracking-wider uppercase mr-8">
-            ÜCRETSİZ KARGO 999₺+ • 30 GÜN KOLAY İADE • PREMIUM KUMAŞ • HIZLI TESLİMAT
-          </span>
-          <span className="text-xs md:text-sm font-light text-[#111] tracking-wider uppercase mr-8">
-            ÜCRETSİZ KARGO 999₺+ • 30 GÜN KOLAY İADE • PREMIUM KUMAŞ • HIZLI TESLİMAT
-          </span>
-        </div>
-      </div>
-
-      {/* Footer Accordion */}
-      <div className="w-full bg-white border-t border-black/10">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12">
-            <div>
-              <h3 className="text-sm font-light uppercase tracking-wider text-[#111] mb-4">Müşteri Hizmetleri</h3>
-              <ul className="space-y-2 text-sm font-light text-[#111]/70">
-                <li><Link href="/contact" className="hover:text-[#111] transition-colors">İletişim</Link></li>
-                <li><Link href="/shipping" className="hover:text-[#111] transition-colors">Kargo & Teslimat</Link></li>
-                <li><Link href="/returns" className="hover:text-[#111] transition-colors">İade & Değişim</Link></li>
-                <li><Link href="/faq" className="hover:text-[#111] transition-colors">Sık Sorulan Sorular</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-sm font-light uppercase tracking-wider text-[#111] mb-4">Hesabım</h3>
-              <ul className="space-y-2 text-sm font-light text-[#111]/70">
-                <li><Link href="/profile" className="hover:text-[#111] transition-colors">Profil</Link></li>
-                <li><Link href="/orders" className="hover:text-[#111] transition-colors">Siparişlerim</Link></li>
-                <li><Link href="/favorites" className="hover:text-[#111] transition-colors">Favorilerim</Link></li>
-                <li><Link href="/addresses" className="hover:text-[#111] transition-colors">Adreslerim</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-sm font-light uppercase tracking-wider text-[#111] mb-4">Şirket</h3>
-              <ul className="space-y-2 text-sm font-light text-[#111]/70">
-                <li><Link href="/about" className="hover:text-[#111] transition-colors">Hakkımızda</Link></li>
-                <li><Link href="/stores" className="hover:text-[#111] transition-colors">Mağazalarımız</Link></li>
-                <li><Link href="/careers" className="hover:text-[#111] transition-colors">Kariyer</Link></li>
-                <li><Link href="/blog" className="hover:text-[#111] transition-colors">Blog</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-sm font-light uppercase tracking-wider text-[#111] mb-4">Yasal</h3>
-              <ul className="space-y-2 text-sm font-light text-[#111]/70">
-                <li><Link href="/privacy" className="hover:text-[#111] transition-colors">Gizlilik Politikası</Link></li>
-                <li><Link href="/terms" className="hover:text-[#111] transition-colors">Kullanım Koşulları</Link></li>
-                <li><Link href="/kvkk" className="hover:text-[#111] transition-colors">KVKK</Link></li>
-                <li><Link href="/distance-selling" className="hover:text-[#111] transition-colors">Mesafeli Satış</Link></li>
-              </ul>
-            </div>
-          </div>
-          <div className="mt-12 pt-8 border-t border-black/10 text-center">
-            <p className="text-xs font-light text-[#111]/60">
-              © 2024 Dark Velvet. Tüm hakları saklıdır.
-            </p>
-          </div>
-        </div>
-      </div>
-    </>
   );
 }
 

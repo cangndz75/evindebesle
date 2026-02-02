@@ -44,7 +44,7 @@ export default function CurtainReveal({ children }: CurtainRevealProps) {
                         end: `${(index + 1) * (100 / (sections.length - 1))}% top`,
                         scrub: 1, // Add slight lag for "luxury" feel
                     },
-                    clipPath: "inset(0% 0% 100% 0%)",
+                    clipPath: "inset(100% 0% 0% 0%)", // Section closes from bottom to top (shutter effect)
                     ease: "power2.inOut",
                 });
             });

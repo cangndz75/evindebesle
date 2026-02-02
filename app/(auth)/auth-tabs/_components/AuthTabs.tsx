@@ -57,33 +57,47 @@ export default function AuthTabs() {
 
   const handleLogin = () => {
     startTransition(async () => {
-      const res = await signIn("credentials", {
-        redirect: false,
-        email,
-        password,
-      });
+      try {
+        console.log('🔐 Starting login attempt for:', email);
 
-      if (res?.error) {
-        const message =
-          res.error === "CredentialsSignin"
-            ? "E-posta adresi veya şifre hatalı."
-            : res.error;
-        toast.error(message);
-        return;
+        const res = await signIn("credentials", {
+          redirect: false,
+          email,
+          password,
+        });
+
+        console.log('✅ SignIn response:', res);
+
+        if (res?.error) {
+          const message =
+            res.error === "CredentialsSignin"
+              ? "E-posta adresi veya şifre hatalı."
+              : res.error;
+          console.error('❌ Login failed:', res.error);
+          toast.error(message);
+          return;
+        }
+
+        await new Promise((r) => setTimeout(r, 500));
+
+        const session = await getSession();
+        console.log('👤 Session retrieved:', session);
+
+        if (!session) {
+          console.error('❌ No session returned after login');
+          toast.error("Oturum alınamadı. Lütfen tekrar deneyin.");
+          return;
+        }
+
+        toast.success("Giriş başarılı!");
+        const isAdmin = session.user?.isAdmin === true;
+        const redirectUrl = isAdmin ? "/dashboard" : "/home";
+        console.log('🚀 Redirecting to:', redirectUrl);
+        window.location.href = redirectUrl;
+      } catch (error) {
+        console.error('💥 Login exception:', error);
+        toast.error("Giriş sırasında bir hata oluştu. Lütfen tekrar deneyin.");
       }
-
-      await new Promise((r) => setTimeout(r, 500));
-
-      const session = await getSession();
-
-      if (!session) {
-        toast.error("Oturum alınamadı.");
-        return;
-      }
-
-      toast.success("Giriş başarılı!");
-      const isAdmin = session.user?.isAdmin === true;
-      window.location.href = isAdmin ? "/dashboard" : "/home";
     });
   };
 

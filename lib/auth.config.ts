@@ -63,5 +63,5 @@ export const authConfig: AuthOptions = {
   pages: {
     signIn: "/login",
   },
-  secret: process.env.JWT_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
 };

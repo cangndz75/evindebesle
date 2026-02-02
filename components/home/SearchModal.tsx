@@ -112,6 +112,13 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
       if (data.products) {
         setProducts(data.products);
 
+        // Track search event for analytics
+        if (typeof window !== 'undefined') {
+          import('@/lib/analytics-tracker').then(({ trackSearchEvent }) => {
+            trackSearchEvent(query, data.products.length);
+          });
+        }
+
         // Suggestions oluştur - ürün adlarından ve etiketlerden
         const uniqueSuggestions = new Set<string>();
         data.products.forEach((product: Product) => {
@@ -398,8 +405,8 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
                               );
                             }}
                             className={`px-2 py-1.5 text-xs border transition-colors ${selectedSizes.includes(size)
-                                ? "border-black bg-black text-white"
-                                : "border-gray-300 hover:border-black"
+                              ? "border-black bg-black text-white"
+                              : "border-gray-300 hover:border-black"
                               }`}
                           >
                             {size}
@@ -444,8 +451,8 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
                               );
                             }}
                             className={`w-8 h-8 rounded-full border-2 transition-all ${selectedColors.includes(color.name)
-                                ? "border-black scale-110"
-                                : "border-gray-300 hover:border-gray-500"
+                              ? "border-black scale-110"
+                              : "border-gray-300 hover:border-gray-500"
                               }`}
                             style={{ backgroundColor: color.value }}
                             aria-label={color.name}

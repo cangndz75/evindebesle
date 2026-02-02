@@ -34,6 +34,28 @@ export async function POST(req: Request) {
     });
     console.log("[REGISTER_SUCCESS]", newUser.id);
 
+    // Track signup event for analytics
+    try {
+      await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/analytics/track`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId: req.headers.get('x-session-id') || 'backend-session',
+          eventType: 'SIGNUP',
+          eventData: {
+            userId: newUser.id,
+            method: 'email',
+            userEmail: newUser.email,
+          },
+          page: '/register',
+          timestamp: new Date().toISOString(),
+        }),
+      });
+    } catch (err) {
+      // Don't fail registration if analytics fails
+      console.error('[ANALYTICS_TRACK_ERROR]', err);
+    }
+
     return NextResponse.json({ success: true, userId: newUser.id }, { status: 201 });
 
   } catch (error) {

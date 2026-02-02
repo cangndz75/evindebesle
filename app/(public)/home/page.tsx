@@ -385,10 +385,50 @@ async function getFeaturedProducts(): Promise<Product[]> {
 }
 
 
-export const metadata = {
-  title: "Dark Velvet | Premium Giyim Koleksiyonu",
-  description:
-    "Dark Velvet ile stilinizi keşfedin. Güncel moda trendleri, kaliteli kumaşlar ve özgün tasarımlar burada.",
+import { Metadata } from "next";
+
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://darkvelvet.com";
+
+export const metadata: Metadata = {
+  title: "Dark Velvet | Premium İç ve Dış Giyim Koleksiyonu",
+  description: "Türkiye'nin önde gelen premium iç giyim markası. Kadın ve erkek için kaliteli iç çamaşırı, külot, sütyen, boxer, sweat koleksiyonları. Ücretsiz kargo, hızlı teslimat.",
+  keywords: [
+    "iç çamaşırı",
+    "kadın iç çamaşırı",
+    "erkek iç çamaşırı",
+    "külot",
+    "sütyen",
+    "boxer",
+    "sweat",
+    "Dark Velvet",
+    "premium iç giyim",
+    "online iç çamaşırı",
+    "iç giyim mağazası"
+  ],
+  openGraph: {
+    title: "Dark Velvet - Premium İç Giyim",
+    description: "Türkiye'nin önde gelen premium iç giyim markası. Kaliteli ve şık tasarımlar.",
+    url: `${BASE_URL}/home`,
+    type: "website",
+    locale: "tr_TR",
+    siteName: "Dark Velvet",
+    images: [
+      {
+        url: `${BASE_URL}/og-home.jpg`,
+        width: 1200,
+        height: 630,
+        alt: "Dark Velvet Premium İç Giyim"
+      }
+    ]
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Dark Velvet - Premium İç Giyim",
+    description: "Türkiye'nin önde gelen premium iç giyim markası"
+  },
+  alternates: {
+    canonical: `${BASE_URL}/home`
+  }
 };
 
 export default async function HomePage() {

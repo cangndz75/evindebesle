@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import ProductDetailPage from "../../_components/ProductDetailPage";
 import ProductSchema from "@/components/seo/ProductSchema";
 import BreadcrumbJsonLd from "@/components/seo/BreadcrumbJsonLd";
+import FAQPageSchema from "@/components/seo/FAQPageSchema";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://evindebesle.com";
 
@@ -251,7 +252,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
           description: product.description || "",
           image: images.map((i: any) => i.url),
           sku: product.stockCode || product.id,
-          brand: product.brand || "Evinde Besle",
+          brand: product.brand || "Dark Velvet",
           price: product.price,
           originalPrice: product.originalPrice || undefined,
           currency: "TRY",
@@ -259,9 +260,34 @@ export default async function ProductPage({ params }: ProductPageProps) {
           url: `${BASE_URL}/product/${product.slug || product.id}`,
           rating: avgRating,
           reviewCount: product.reviews.length,
+          color: product.colors?.[0]?.name,
+          size: product.sizes?.[0]?.name,
+          material: product.fabricType || undefined,
+          gender: product.gender || undefined,
+          category: product.category?.name || undefined,
         }}
       />
       <BreadcrumbJsonLd items={breadcrumbItems} />
+      <FAQPageSchema
+        faqs={[
+          {
+            question: "Ürün ne zaman kargoya verilir?",
+            answer: "Siparişiniz onaylandıktan sonra 1-2 iş günü içinde kargoya verilir. Kargo süresi 2-3 iş günüdür."
+          },
+          {
+            question: "Ürün değişimi yapılabilir mi?",
+            answer: "Evet, ürün teslim tarihinden itibaren 14 gün içinde ücretsiz değişim ve iade hakkınız bulunmaktadır."
+          },
+          {
+            question: "Ürün bakımı nasıl yapılmalı?",
+            answer: product.washingInstruction?.content || "Ürün etiketindeki yıkama talimatlarına uyunuz. Genellikle 30 derecede makinede yıkanabilir."
+          },
+          {
+            question: "Kargo ücreti ne kadar?",
+            answer: "199 TL üzeri alışverişlerde kargo ücretsizdir. Altındaki siparişlerde kargo bedeli 29.90 TL'dir."
+          }
+        ]}
+      />
 
       {/* Ürün Detay Sayfası */}
       <ProductDetailPage product={productData} />

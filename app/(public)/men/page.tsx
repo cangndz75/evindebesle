@@ -1,9 +1,51 @@
 import MenProductsPage from "../_components/MenProductsPageNew";
 import { prisma } from "@/lib/db";
+import { Metadata } from "next";
+import CollectionPageSchema from "@/components/seo/CollectionPageSchema";
 
-export const metadata = {
-  title: "Erkek Ürünleri - Dark Velvet",
-  description: "Dark Velvet erkek premium iç çamaşırı koleksiyonu. Tüm erkek ürünlerimizi keşfedin.",
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://darkvelvet.com";
+
+export const metadata: Metadata = {
+  title: "Erkek İç Giyim - Premium Boxer, İç Çamaşırı ve Sweat | Dark Velvet",
+  description: "Dark Velvet erkek iç giyim koleksiyonu. Premium kalitede boxer, iç çamaşırı, sweat ve daha fazlası. Ücretsiz kargo ve hızlı teslimat ile tüm erkek ürünlerimizi keşfedin.",
+  keywords: [
+    "erkek iç çamaşırı",
+    "erkek boxer",
+    "erkek sweat",
+    "erkek iç giyim",
+    "premium iç çamaşırı",
+    "erkek atlet",
+    "erkek pijama",
+    "online iç çamaşırı"
+  ],
+  openGraph: {
+    title: "Erkek İç Giyim Koleksiyonu - Dark Velvet",
+    description: "Premium kalitede erkek iç çamaşırı, boxer, sweat ve daha fazlası.",
+    url: `${BASE_URL}/men`,
+    type: "website",
+    locale: "tr_TR",
+    siteName: "Dark Velvet",
+    images: [
+      {
+        url: `${BASE_URL}/og-men.jpg`,
+        width: 1200,
+        height: 630,
+        alt: "Dark Velvet Erkek İç Giyim"
+      }
+    ]
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Erkek İç Giyim - Dark Velvet",
+    description: "Premium erkek iç çamaşırı koleksiyonu"
+  },
+  alternates: {
+    canonical: `${BASE_URL}/men`
+  },
+  robots: {
+    index: true,
+    follow: true
+  }
 };
 
 // ISR - 5 dakikada bir yenilenir
@@ -149,10 +191,29 @@ export default async function MenPage() {
     getPriceRange(),
   ]);
 
+  // Format products for schema
+  const schemaProducts = initialProducts.slice(0, 12).map((p: any) => ({
+    id: p.id,
+    name: p.name,
+    slug: p.slug,
+    price: p.price,
+    image: p.image || p.primaryImage
+  }));
+
   return (
-    <MenProductsPage
-      initialProducts={initialProducts}
-      initialPriceRange={priceRange}
-    />
+    <>
+      <CollectionPageSchema
+        name="Erkek İç Giyim Koleksiyonu"
+        description="Dark Velvet premium erkek iç çamaşırı, boxer, sweat ve daha fazlası"
+        url={`${BASE_URL}/men`}
+        products={schemaProducts}
+        minPrice={priceRange.min}
+        maxPrice={priceRange.max}
+      />
+      <MenProductsPage
+        initialProducts={initialProducts}
+        initialPriceRange={priceRange}
+      />
+    </>
   );
 }

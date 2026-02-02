@@ -59,6 +59,13 @@ export const trackViewItem = (product: {
             currency: "TRY",
         });
     }
+
+    // Custom Analytics  
+    if (typeof window !== "undefined") {
+        import('@/lib/analytics-tracker').then(({ trackProductView }) => {
+            trackProductView(product);
+        });
+    }
 };
 
 export const trackAddToCart = (product: {
@@ -93,6 +100,13 @@ export const trackAddToCart = (product: {
             content_type: "product",
             value: product.price * product.quantity,
             currency: "TRY",
+        });
+    }
+
+    // Custom Analytics
+    if (typeof window !== "undefined") {
+        import('@/lib/analytics-tracker').then(({ trackAddToCartEvent }) => {
+            trackAddToCartEvent(product);
         });
     }
 };

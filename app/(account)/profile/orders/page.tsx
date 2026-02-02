@@ -18,6 +18,7 @@ import {
   Eye,
   ArrowRight,
   MessageSquarePlus,
+  FileDown,
 } from "lucide-react";
 import Link from "next/link";
 import ProductReviewModal from "@/components/product/ProductReviewModal";
@@ -28,7 +29,7 @@ type ProductOrder = {
   id: string;
   orderNumber: string;
   status: "PENDING" | "PREPARING" | "SHIPPED" | "DELIVERED" | "CANCELLED";
-  paymentStatus: "PENDING" | "PAID" | "FAILED" | "REFUNDED";
+  paymentStatus: "PENDING" | "PAID" | "FAILED" | "REFUNDED" | "SUCCEEDED";
   total: number;
   createdAt: string;
   items: Array<{
@@ -78,6 +79,29 @@ export default function OrdersPage() {
   const handleOpenReviewModal = (product: { id: string; name: string; image: string | null }) => {
     setSelectedReviewProduct(product);
     setReviewModalOpen(true);
+  };
+
+  const handleDownloadInvoice = async (orderId: string, orderNumber: string) => {
+    try {
+      const response = await fetch(`/api/orders/${orderId}/invoice`);
+
+      if (!response.ok) {
+        throw new Error("Fatura oluşturulamadı");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `fatura-${orderNumber}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error("Invoice download error:", error);
+      alert("Fatura indirirken bir hata oluştu. Lütfen tekrar deneyin.");
+    }
   };
 
 
@@ -299,8 +323,20 @@ export default function OrdersPage() {
                         </div>
                       )}
 
-                      {/* Detay Butonu */}
-                      <div className="flex justify-end pt-2 border-t">
+                      {/* Detay ve Fatura Butonları */}
+                      <div className="flex justify-end gap-2 pt-2 border-t">
+                        {/* Fatura İndir - Sadece ödeme yapılmış siparişler için */}
+                        {(order.paymentStatus === "PAID" || order.paymentStatus === "SUCCEEDED") && (
+                          <Button
+                            variant="outline"
+                            onClick={() => handleDownloadInvoice(order.id, order.orderNumber)}
+                            className="flex items-center gap-2"
+                          >
+                            <FileDown className="w-4 h-4" />
+                            Fatura İndir
+                          </Button>
+                        )}
+
                         <Button
                           variant="outline"
                           onClick={() => router.push(`/profile/orders/product/${order.id}`)}

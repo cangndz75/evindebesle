@@ -50,6 +50,8 @@ model User {
   supportTickets         SupportTicket[]
   loyaltyPoints          LoyaltyPoint[]
   userAutomations        UserAutomation[]
+  analyticsEvents        AnalyticsEvent[]
+  analyticsSessions      AnalyticsSession[]
 }
 
 model PasswordResetToken {
@@ -466,10 +468,21 @@ model CartItem {
 }
 
 model CompanySettings {
-  id                    String   @id @unique @default(cuid())
-  freeShippingThreshold Float    @default(99.0)
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  id                    String @id @unique @default(cuid())
+  freeShippingThreshold Float  @default(99.0)
+
+  // Invoice/Fatura bilgileri
+  companyName    String? @default("Evindebesle")
+  companyAddress String?
+  taxOffice      String? // Vergi dairesi
+  taxNumber      String? // Vergi numarası
+  phone          String?
+  email          String?
+  logoUrl        String?
+  website        String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model DashboardWidget {
@@ -1195,4 +1208,93 @@ model ModelInfo {
 
   @@index([isActive])
   @@index([gender])
+}
+
+// ==========================================
+// Advanced Analytics System
+// ==========================================
+
+// Analytics Event Tracking
+model AnalyticsEvent {
+  id        String   @id @default(cuid())
+  sessionId String
+  userId    String?
+  eventType String // VIEW_PRODUCT, ADD_TO_CART, BEGIN_CHECKOUT, PURCHASE, etc.
+  eventData Json? // Flexible data storage for event metadata
+  page      String?
+  referrer  String?
+  userAgent String?
+  ipAddress String?
+  timestamp DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([sessionId])
+  @@index([eventType])
+  @@index([timestamp])
+  @@index([page])
+}
+
+// User Sessions for analytics tracking
+model AnalyticsSession {
+  id          String    @id @default(cuid())
+  sessionId   String    @unique
+  userId      String?
+  startedAt   DateTime  @default(now())
+  endedAt     DateTime?
+  device      String?
+  browser     String?
+  country     String?
+  referrer    String?
+  landingPage String?
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([startedAt])
+  @@index([sessionId])
+}
+
+// Funnel Definitions
+model Funnel {
+  id          String       @id @default(cuid())
+  name        String
+  description String?
+  steps       FunnelStep[]
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([isActive])
+}
+
+model FunnelStep {
+  id        String @id @default(cuid())
+  funnelId  String
+  stepOrder Int
+  eventType String // Event type to track (e.g., VIEW_PRODUCT, ADD_TO_CART)
+  name      String
+
+  funnel Funnel @relation(fields: [funnelId], references: [id], onDelete: Cascade)
+
+  @@unique([funnelId, stepOrder])
+  @@index([funnelId])
+}
+
+// Heatmap Click Data
+model HeatmapClick {
+  id        String   @id @default(cuid())
+  page      String // Page URL or identifier
+  elementId String? // DOM element ID if available
+  xPercent  Float // X position as percentage of viewport
+  yPercent  Float // Y position as percentage of viewport
+  timestamp DateTime @default(now())
+  userId    String?
+  sessionId String
+  device    String? // mobile, tablet, desktop
+
+  @@index([page])
+  @@index([timestamp])
+  @@index([sessionId])
 }

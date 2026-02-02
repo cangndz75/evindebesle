@@ -12,6 +12,11 @@ interface ProductSchemaProps {
         url: string;
         rating?: number;
         reviewCount?: number;
+        color?: string;
+        size?: string;
+        material?: string;
+        gender?: string;
+        category?: string;
     };
 }
 
@@ -27,6 +32,17 @@ export default function ProductSchema({ product }: ProductSchemaProps) {
             "@type": "Brand",
             name: product.brand,
         },
+        ...(product.color && { color: product.color }),
+        ...(product.size && { size: product.size }),
+        ...(product.material && { material: product.material }),
+        ...(product.gender && {
+            audience: {
+                "@type": "PeopleAudience",
+                suggestedGender: product.gender === "MALE" ? "Male" : product.gender === "FEMALE" ? "Female" : "Unisex"
+            }
+        }),
+        ...(product.category && { category: product.category }),
+        itemCondition: "https://schema.org/NewCondition",
         offers: {
             "@type": "Offer",
             url: product.url,
@@ -42,6 +58,33 @@ export default function ProductSchema({ product }: ProductSchemaProps) {
                 "@type": "Organization",
                 name: "Dark Velvet",
             },
+            shippingDetails: {
+                "@type": "OfferShippingDetails",
+                shippingDestination: {
+                    "@type": "DefinedRegion",
+                    addressCountry: "TR"
+                },
+                deliveryTime: {
+                    "@type": "ShippingDeliveryTime",
+                    businessDays: {
+                        "@type": "OpeningHoursSpecification",
+                        dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+                    },
+                    cutoffTime: "15:00:00",
+                    handlingTime: {
+                        "@type": "QuantitativeValue",
+                        minValue: 1,
+                        maxValue: 2,
+                        unitCode: "DAY"
+                    },
+                    transitTime: {
+                        "@type": "QuantitativeValue",
+                        minValue: 2,
+                        maxValue: 3,
+                        unitCode: "DAY"
+                    }
+                }
+            }
         },
         ...(product.rating &&
             product.reviewCount && {

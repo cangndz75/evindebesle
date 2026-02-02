@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
         // Group users into cohorts
         const cohorts: Map<string, any[]> = new Map();
 
-        users.forEach(user => {
+        users.forEach((user: typeof users[0]) => {
             const cohortDate = getCohortPeriod(user.createdAt, periodDays);
             const cohortKey = cohortDate.toISOString().split('T')[0];
 

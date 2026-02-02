@@ -35,16 +35,14 @@ export default function CurtainReveal({ children }: CurtainRevealProps) {
             sections.forEach((section, index) => {
                 if (index === sections.length - 1) return;
 
-                gsap.set(section, { clipPath: "inset(0% 0% 0% 0%)" }); // Explicit initial state
-
                 gsap.to(section, {
                     scrollTrigger: {
                         trigger: containerRef.current,
                         start: `${index * (100 / (sections.length - 1))}% top`,
                         end: `${(index + 1) * (100 / (sections.length - 1))}% top`,
-                        scrub: 1, // Add slight lag for "luxury" feel
+                        scrub: 1,
                     },
-                    clipPath: "inset(100% 0% 0% 0%)", // Section closes from bottom to top (shutter effect)
+                    y: "-100%", // Section physically moves upward
                     ease: "power2.inOut",
                 });
             });

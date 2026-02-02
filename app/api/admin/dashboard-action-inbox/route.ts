@@ -98,46 +98,13 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    // Bugünkü randevular
-    const todayAppointments = await prisma.appointment.count({
-      where: {
-        confirmedAt: {
-          gte: new Date(new Date().setHours(0, 0, 0, 0)),
-          lte: new Date(new Date().setHours(23, 59, 59, 999)),
-        },
-        status: { in: ["SCHEDULED"] },
-      },
-    });
 
-    // Yaklaşan randevular (24 saat içinde)
-    const upcomingAppointments = await prisma.appointment.count({
-      where: {
-        confirmedAt: {
-          gte: new Date(),
-          lte: new Date(Date.now() + 24 * 60 * 60 * 1000),
-        },
-        status: { in: ["SCHEDULED"] },
-      },
-    });
-
-    // İptal edilen randevular (bugün - confirmedAt'a göre)
-    const cancelledAppointments = await prisma.appointment.count({
-      where: {
-        confirmedAt: {
-          gte: new Date(new Date().setHours(0, 0, 0, 0)),
-        },
-        status: "CANCELED",
-      },
-    });
 
     return NextResponse.json({
       readyToShip,
       paymentFailed,
       lowStockCount,
       refundRequests,
-      todayAppointments,
-      upcomingAppointments,
-      cancelledAppointments,
       items: [
         ...(pendingOrders > 0 ? [{
           type: "pending_orders",
@@ -181,27 +148,7 @@ export async function GET(req: NextRequest) {
           action: "/admin-products?stockStatus=lowStock",
           priority: "medium",
         }] : []),
-        ...(todayAppointments > 0 ? [{
-          type: "today_appointments",
-          count: todayAppointments,
-          label: `${todayAppointments} randevu bugün`,
-          action: "/admin-appointments?date=today",
-          priority: "low",
-        }] : []),
-        ...(upcomingAppointments > 0 ? [{
-          type: "upcoming_appointments",
-          count: upcomingAppointments,
-          label: `${upcomingAppointments} randevu yaklaşıyor`,
-          action: "/admin-appointments?date=upcoming",
-          priority: "low",
-        }] : []),
-        ...(cancelledAppointments > 0 ? [{
-          type: "cancelled_appointments",
-          count: cancelledAppointments,
-          label: `${cancelledAppointments} randevu iptal edildi`,
-          action: "/admin-appointments?status=CANCELED",
-          priority: "low",
-        }] : []),
+
       ],
     });
   } catch (error: any) {

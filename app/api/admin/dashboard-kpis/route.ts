@@ -55,27 +55,10 @@ export async function GET(req: NextRequest) {
       _sum: { total: true },
     });
 
-    // Randevu gelirleri de ekle
-    const todayAppointmentRevenue = await prisma.appointment.aggregate({
-      where: {
-        confirmedAt: { gte: todayStart, lte: todayEnd },
-        status: "COMPLETED",
-      },
-      _sum: { finalPrice: true },
-    });
-
-    const weekAppointmentRevenue = await prisma.appointment.aggregate({
-      where: {
-        confirmedAt: { gte: weekStart, lte: weekEnd },
-        status: "COMPLETED",
-      },
-      _sum: { finalPrice: true },
-    });
-
-    const todayTotalRevenue = (todayRevenue._sum.total || 0) + (todayAppointmentRevenue._sum.finalPrice || 0);
-    const yesterdayTotalRevenue = (yesterdayRevenue._sum.total || 0);
-    const weekTotalRevenue = (weekRevenue._sum.total || 0) + (weekAppointmentRevenue._sum.finalPrice || 0);
-    const lastWeekTotalRevenue = (lastWeekRevenue._sum.total || 0);
+    const todayTotalRevenue = todayRevenue._sum.total || 0;
+    const yesterdayTotalRevenue = yesterdayRevenue._sum.total || 0;
+    const weekTotalRevenue = weekRevenue._sum.total || 0;
+    const lastWeekTotalRevenue = lastWeekRevenue._sum.total || 0;
 
     // Sipariş Adedi
     const todayOrders = await prisma.order.count({

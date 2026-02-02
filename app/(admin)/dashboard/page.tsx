@@ -48,11 +48,6 @@ type DashboardStats = {
     count: number;
     newLastHour: number;
   };
-  todayAppointments: {
-    count: number;
-    change: number;
-    cancelled: number;
-  };
   stockAlarm: {
     count: number;
     lowStock: number;

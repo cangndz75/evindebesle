@@ -17,47 +17,26 @@ export async function GET(req: NextRequest) {
 
   const days = eachDayOfInterval({ start, end });
 
-  // Hem randevu hem de ürün siparişlerinden gelir hesapla
-  const [appointmentRevenue, orderRevenue] = await Promise.all([
-    prisma.appointment.findMany({
-      where: {
-        isPaid: true,
-        confirmedAt: {
-          gte: start,
-          lte: end,
-        },
+  // Ürün siparişlerinden gelir hesapla
+  const orderRevenue = await prisma.order.findMany({
+    where: {
+      paymentStatus: "PAID",
+      createdAt: {
+        gte: start,
+        lte: end,
       },
-      select: {
-        confirmedAt: true,
-        finalPrice: true,
-      },
-    }),
-    prisma.order.findMany({
-      where: {
-        paymentStatus: "PAID",
-        createdAt: {
-          gte: start,
-          lte: end,
-        },
-      },
-      select: {
-        createdAt: true,
-        total: true,
-      },
-    }),
-  ]);
+    },
+    select: {
+      createdAt: true,
+      total: true,
+    },
+  });
 
-  // Randevu gelirlerini birleştir
-  const revenue = [
-    ...appointmentRevenue.map((r: any) => ({
-      date: r.confirmedAt,
-      amount: r.finalPrice || 0,
-    })),
-    ...orderRevenue.map((r: any) => ({
-      date: r.createdAt,
-      amount: r.total || 0,
-    })),
-  ];
+  // Gelir verilerini hazırla
+  const revenue = orderRevenue.map((r: any) => ({
+    date: r.createdAt,
+    amount: r.total || 0,
+  }));
 
   const grouped: Record<string, number> = {};
 

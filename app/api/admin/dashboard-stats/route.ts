@@ -58,33 +58,7 @@ export async function GET(req: NextRequest) {
       }),
     ]);
 
-    // Bugünkü Randevular
-    const [todayAppointments, yesterdayAppointments] = await Promise.all([
-      prisma.appointment.count({
-        where: {
-          confirmedAt: { gte: todayStart, lte: todayEnd },
-        },
-      }),
-      prisma.appointment.count({
-        where: {
-          confirmedAt: {
-            gte: startOfDay(subDays(now, 1)),
-            lte: endOfDay(subDays(now, 1)),
-          },
-        },
-      }),
-    ]);
 
-    const appointmentsChange = yesterdayAppointments > 0
-      ? ((todayAppointments - yesterdayAppointments) / yesterdayAppointments) * 100
-      : 0;
-
-    const cancelledToday = await prisma.appointment.count({
-      where: {
-        status: "CANCELED",
-        confirmedAt: { gte: todayStart, lte: todayEnd },
-      },
-    });
 
     // Stok Alarmı
     const lowStockProducts = await prisma.product.findMany({
@@ -136,11 +110,7 @@ export async function GET(req: NextRequest) {
         count: pendingOrders,
         newLastHour: pendingOrdersLastHour,
       },
-      todayAppointments: {
-        count: todayAppointments,
-        change: appointmentsChange,
-        cancelled: cancelledToday,
-      },
+
       stockAlarm: {
         count: stockAlarmCount,
         lowStock: lowStockProducts.length,

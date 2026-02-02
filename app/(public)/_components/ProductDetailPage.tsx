@@ -957,38 +957,38 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
               }
               return null;
             })()}
-          </div>
 
-          {/* Adet ve Sepete Ekle */}
-          <div className="flex items-center gap-4 mb-8">
-            {/* Adet Seçici */}
-            <div className="flex items-center border border-gray-300 h-[56px]">
+            {/* Adet ve Sepete Ekle */}
+            <div className="flex items-center gap-4 mb-8">
+              {/* Adet Seçici */}
+              <div className="flex items-center border border-gray-300 h-[56px]">
+                <button
+                  onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
+                  className="px-4 h-full text-black hover:bg-gray-100 transition-colors font-light flex items-center justify-center disabled:opacity-50"
+                  disabled={quantity <= 1}
+                >
+                  <Minus className="w-4 h-4" />
+                </button>
+                <span className="px-6 h-full text-sm font-light text-black border-x border-gray-300 min-w-[60px] text-center flex items-center justify-center">
+                  {quantity}
+                </span>
+                <button
+                  onClick={() => setQuantity((prev) => prev + 1)}
+                  className="px-4 h-full text-black hover:bg-gray-100 transition-colors font-light flex items-center justify-center"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Sepete Ekle Butonu */}
               <button
-                onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
-                className="px-4 h-full text-black hover:bg-gray-100 transition-colors font-light flex items-center justify-center disabled:opacity-50"
-                disabled={quantity <= 1}
+                onClick={() => addToCart()}
+                disabled={!selectedSize || getVariantStock(selectedSize) <= 0}
+                className="flex-1 bg-[#111] text-white hover:bg-[#333] uppercase tracking-wider text-sm font-semibold h-[56px] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                <Minus className="w-4 h-4" />
-              </button>
-              <span className="px-6 h-full text-sm font-light text-black border-x border-gray-300 min-w-[60px] text-center flex items-center justify-center">
-                {quantity}
-              </span>
-              <button
-                onClick={() => setQuantity((prev) => prev + 1)}
-                className="px-4 h-full text-black hover:bg-gray-100 transition-colors font-light flex items-center justify-center"
-              >
-                <Plus className="w-4 h-4" />
+                Sepete Ekle
               </button>
             </div>
-
-            {/* Sepete Ekle Butonu */}
-            <button
-              onClick={() => addToCart()}
-              disabled={!selectedSize || getVariantStock(selectedSize) <= 0}
-              className="flex-1 bg-[#111] text-white hover:bg-[#333] uppercase tracking-wider text-sm font-semibold h-[56px] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Sepete Ekle
-            </button>
           </div>
 
         </div>

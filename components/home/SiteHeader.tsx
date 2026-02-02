@@ -37,8 +37,8 @@ type Promo = {
 const navItems = [
   { key: "men" as const, label: "ERKEK", href: "/men" },
   { key: "women" as const, label: "KADIN", href: "/women" },
-  { key: "new" as const, label: "YENİ", href: "/category/new" },
-  { key: "collections" as const, label: "KOLEKSİYON", href: "/category/collections" },
+  { key: "new" as const, label: "YENİ", href: "/men/new" },
+  { key: "collections" as const, label: "KOLEKSİYON", href: "/women" },
   { key: "blog" as const, label: "BLOG", href: "/blog" },
   { key: "about" as const, label: "HAKKIMIZDA", href: "/about" },
 ] as const;
@@ -168,7 +168,7 @@ export default function SiteHeader() {
             title: "YENİ GELENLER",
             items: [
               { label: "Bu Haftalık", href: "/category/new-this-week" },
-              { label: "En Yeniler", href: "/category/new" },
+              { label: "En Yeniler", href: "/men/new" },
               { label: "Trending", href: "/category/trends" },
             ],
           },
@@ -177,7 +177,7 @@ export default function SiteHeader() {
           title: "Yeni Sezon",
           subtitle: "En güncel trendler",
           image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=1200&auto=format&fit=crop",
-          href: "/category/new",
+          href: "/men/new",
         },
       },
       collections: {
@@ -195,7 +195,7 @@ export default function SiteHeader() {
           title: "Dark Collection",
           subtitle: "Özel seri tasarımlar",
           image: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?q=80&w=1200&auto=format&fit=crop",
-          href: "/category/collections",
+          href: "/women",
         },
       },
       about: {

@@ -268,10 +268,10 @@ export default function Footer() {
                   <div className="space-y-4">
                     <h5 className="text-xs uppercase tracking-[0.2em] font-medium text-black border-b border-black/10 pb-2">Alışveriş</h5>
                     <ul className="space-y-3">
-                      <li><Link href="/category/new" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Yeni Gelenler</Link></li>
+                      <li><Link href="/men/new" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Yeni Gelenler</Link></li>
                       <li><Link href="/women" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Kadın</Link></li>
                       <li><Link href="/men" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Erkek</Link></li>
-                      <li><Link href="/category/collections" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Koleksiyonlar</Link></li>
+                      <li><Link href="/women" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Koleksiyonlar</Link></li>
                       <li><Link href="/category/sale" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">İndirimler</Link></li>
                     </ul>
                   </div>

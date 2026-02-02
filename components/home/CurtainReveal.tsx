@@ -31,18 +31,25 @@ export default function CurtainReveal({ children }: CurtainRevealProps) {
                 scrub: true,
             });
 
-            // Animate each section (except the last one)
+            // Animate each section (except the last one) with modern effects
             sections.forEach((section, index) => {
                 if (index === sections.length - 1) return;
 
-                gsap.to(section, {
+                // Create a timeline for each section
+                const tl = gsap.timeline({
                     scrollTrigger: {
                         trigger: containerRef.current,
                         start: `${index * (100 / (sections.length - 1))}% top`,
                         end: `${(index + 1) * (100 / (sections.length - 1))}% top`,
-                        scrub: 1,
+                        scrub: 1.5,
                     },
-                    y: "-100%", // Section physically moves upward
+                });
+
+                // Combine: fade out + scale down + blur
+                tl.to(section, {
+                    opacity: 0,
+                    scale: 0.9,
+                    filter: "blur(10px)",
                     ease: "power2.inOut",
                 });
             });
@@ -56,7 +63,10 @@ export default function CurtainReveal({ children }: CurtainRevealProps) {
                 <div
                     key={index}
                     className="reveal-section absolute inset-0 w-full h-full"
-                    style={{ zIndex: children.length - index }}
+                    style={{
+                        zIndex: children.length - index,
+                        willChange: "transform, opacity, filter"
+                    }}
                 >
                     {child}
                 </div>

@@ -139,34 +139,7 @@ export default function AuthTabs() {
   return (
     <div className="h-screen w-full flex flex-col lg:flex-row overflow-hidden bg-white">
       {/* Mobil: Üstte Banner */}
-      <div
-        className="lg:hidden relative w-full flex-shrink-0 bg-cover bg-center"
-        style={{
-          minHeight: '40vh',
-          backgroundImage: `url('https://images.unsplash.com/photo-1604066867775-43f48e3957d8?q=80&w=1170&auto=format&fit=crop')`
-        }}
-      >
-        <div className="absolute inset-0 bg-black/40" />
-        <div className="absolute inset-0 flex items-center justify-center px-6">
-          <div className="flex flex-col items-center justify-center text-center">
-            <div className="text-xs uppercase tracking-widest mb-3 text-white/90 font-medium">
-              TANITIM
-            </div>
-            <h2 className="text-4xl font-bold mb-4 text-white leading-tight">
-              BYLT+<br />Rewards
-            </h2>
-            <p className="text-sm text-white/80 mb-6 font-light leading-relaxed max-w-xs">
-              Her alışverişte mağaza kredisi kazanın ve özel ödüllerin kilidini açın.
-            </p>
-            <Button
-              variant="outline"
-              className="bg-white text-[#111] hover:bg-gray-100 border-none uppercase tracking-wider text-sm font-semibold px-8 py-2.5 h-auto rounded-none"
-            >
-              Daha Fazla Bilgi
-            </Button>
-          </div>
-        </div>
-      </div>
+
 
       {/* Sol Taraf - Login/Register Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center bg-white px-6 sm:px-8 md:px-12 py-8 overflow-y-auto">

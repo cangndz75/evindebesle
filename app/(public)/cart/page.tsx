@@ -100,7 +100,7 @@ export default function CartPage() {
     const [recommendedProducts, setRecommendedProducts] = useState<RecommendedProduct[]>([]);
     const [recentlyViewedProducts, setRecentlyViewedProducts] = useState<RecommendedProduct[]>([]);
     const [activeTab, setActiveTab] = useState<"recommended" | "recent">("recommended");
-    const [isCreatingOrder, setIsCreatingOrder] = useState(false);
+
     const router = useRouter();
 
     const emptySliderRef = useRef<HTMLDivElement | null>(null);
@@ -113,64 +113,12 @@ export default function CartPage() {
         el.scrollBy({ left: dir === "left" ? -amount : amount, behavior: "smooth" });
     };
 
-    const handleCreateOrder = async () => {
+    const handleCreateOrder = () => {
         if (cartItems.length === 0) {
             toast.error("Sepetiniz boş");
             return;
         }
-
-        const addressesRes = await fetch("/api/user-addresses");
-
-        if (addressesRes.status === 401) {
-            router.push("/auth-tabs");
-            return;
-        }
-
-        try {
-            setIsCreatingOrder(true);
-
-            if (!addressesRes.ok) {
-                throw new Error("Adresler yüklenemedi");
-            }
-
-            const addresses = await addressesRes.json();
-            if (!addresses || addresses.length === 0) {
-                toast.error("Lütfen önce bir teslimat adresi ekleyin");
-                router.push("/profile/addresses");
-                return;
-            }
-
-            const shippingAddressId = addresses[0].id;
-
-            const orderRes = await fetch("/api/orders", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    shippingAddressId,
-                    billingAddressId: shippingAddressId,
-                    customerNote: "Test siparişi",
-                    paymentMethod: "TEST",
-                }),
-            });
-
-            if (!orderRes.ok) {
-                const error = await orderRes.json();
-                throw new Error(error.error || "Sipariş oluşturulamadı");
-            }
-
-            const result = await orderRes.json();
-            toast.success(`Siparişiniz oluşturuldu! Sipariş No: ${result.order.orderNumber}`);
-
-            useCartStore.getState().setItems([]);
-            router.push("/profile/orders");
-        } catch (error: any) {
-            console.error("Order creation error:", error);
-            if (!error.message?.includes('401')) {
-                toast.error(error.message || "Sipariş oluşturulurken bir hata oluştu");
-            }
-        } finally {
-            setIsCreatingOrder(false);
-        }
+        router.push("/checkout");
     };
 
     const loadCompanySettings = async () => {
@@ -515,10 +463,9 @@ export default function CartPage() {
                                         <div className="flex flex-col gap-3">
                                             <Button
                                                 onClick={handleCreateOrder}
-                                                disabled={isCreatingOrder}
                                                 className="w-full h-14 rounded-2xl bg-black text-white hover:bg-black/90 text-lg"
                                             >
-                                                {isCreatingOrder ? "Sipariş Oluşturuluyor..." : "Sepeti Onayla ve Satın Al"}
+                                                Sepeti Onayla ve Satın Al
                                             </Button>
                                             <Button
                                                 variant="outline"

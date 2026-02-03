@@ -3,10 +3,77 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform, MotionValue } from "framer-motion";
 import { featuredCards } from "@/lib/homeData";
-import CurtainReveal from "./CurtainReveal";
 import { useMediaQuery } from "../../hooks/use-media-query";
+import { useRef } from "react";
+
+function MobileCard({ card, index, total }: { card: any; index: number; total: number }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start end", "start start"],
+  });
+
+  const scale = useTransform(scrollYProgress, [0, 1], [1, 1.15]);
+  // const opacity = useTransform(scrollYProgress, [0, 0.5, 1], [0.8, 1, 1]); // Optional opacity effect
+
+  return (
+    <div ref={containerRef} className="w-full h-[80vh] sticky top-0 flex items-center justify-center overflow-hidden bg-black">
+      <motion.div style={{ scale }} className="absolute inset-0 w-full h-full">
+        {(card as any).videoUrl ? (
+          <video
+            src={(card as any).videoUrl}
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <Image
+            src={card.image}
+            alt={card.title}
+            fill
+            className="object-cover"
+            sizes="100vw"
+            priority={index === 0}
+            onError={(e) => {
+              e.currentTarget.src =
+                "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=1200&auto=format&fit=crop";
+            }}
+          />
+        )}
+      </motion.div>
+
+      {/* Visual Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+      {/* Content */}
+      <div className="absolute bottom-20 left-8 right-8 text-white z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          viewport={{ once: true }}
+        >
+          <h3 className="text-4xl font-light mb-4 tracking-tight leading-tight">
+            {card.title}
+          </h3>
+          <p className="text-base text-white/90 font-light mb-8 leading-relaxed max-w-sm">
+            {card.description}
+          </p>
+          <Link
+            href={card.href}
+            className="inline-flex items-center gap-3 text-sm font-light uppercase tracking-[0.2em] border-b border-white/30 pb-2 hover:border-white transition-all duration-300"
+          >
+            Keşfet <ArrowRight className="w-4 h-4" />
+          </Link>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
 
 export default function FeaturedCardsRow() {
   const isMobile = useMediaQuery("(max-width: 768px)");
@@ -14,53 +81,11 @@ export default function FeaturedCardsRow() {
   if (isMobile) {
     return (
       <section className="w-full bg-black">
-        <CurtainReveal>
+        <div className="flex flex-col">
           {featuredCards.map((card, index) => (
-            <div key={index} className="relative w-full h-full group">
-              <div className="absolute inset-0 overflow-hidden">
-                {(card as any).videoUrl ? (
-                  <video
-                    src={(card as any).videoUrl}
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    className="w-full h-full object-cover transition-transform duration-[2s] scale-100 group-hover:scale-110"
-                  />
-                ) : (
-                  <Image
-                    src={card.image}
-                    alt={card.title}
-                    fill
-                    className="object-cover transition-transform duration-[2s] scale-100 group-hover:scale-110"
-                    sizes="100vw"
-                    priority={index === 0}
-                    onError={(e) => {
-                      e.currentTarget.src = "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=1200&auto=format&fit=crop";
-                    }}
-                  />
-                )}
-                {/* Visual Overlay for contrast */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-              </div>
-
-              <div className="absolute bottom-16 left-8 right-8 text-white z-10 transition-transform duration-700 group-hover:-translate-y-2">
-                <h3 className="text-4xl md:text-5xl font-light mb-4 tracking-tight">
-                  {card.title}
-                </h3>
-                <p className="text-lg text-white/80 font-light mb-6 leading-relaxed max-w-md">
-                  {card.description}
-                </p>
-                <Link
-                  href={card.href}
-                  className="inline-flex items-center gap-3 text-sm font-light uppercase tracking-[0.2em] border-b border-white/30 pb-2 hover:border-white transition-all duration-300"
-                >
-                  Keşfet <ArrowRight className="w-4 h-4" />
-                </Link>
-              </div>
-            </div>
+            <MobileCard key={index} card={card} index={index} total={featuredCards.length} />
           ))}
-        </CurtainReveal>
+        </div>
       </section>
     );
   }

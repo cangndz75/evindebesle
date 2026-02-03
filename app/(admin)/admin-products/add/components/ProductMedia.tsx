@@ -46,15 +46,15 @@ export function ProductMedia({
         <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">
                 <div>
-                    <h2 className="text-lg font-semibold text-gray-900">Media Assets</h2>
-                    <p className="text-sm text-gray-500">Upload product images and assign to variants</p>
+                    <h2 className="text-lg font-semibold text-gray-900">Medya Dosyaları</h2>
+                    <p className="text-sm text-gray-500">Ürün görsellerini yükleyin ve varyantlara atayın</p>
                 </div>
                 <Button
                     variant="outline"
                     className="gap-2 bg-gray-900 text-white hover:bg-gray-800 border-transparent shadow-sm"
                     onClick={() => fileInputRef.current?.click()}
                 >
-                    <Upload className="w-4 h-4" /> Upload Image
+                    <Upload className="w-4 h-4" /> Görsel Yükle
                 </Button>
             </div>
 
@@ -84,14 +84,14 @@ export function ProductMedia({
                         <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center mb-1">
                             <ImageIcon className="w-6 h-6 text-gray-400" />
                         </div>
-                        <h3 className="text-sm font-medium text-gray-900">No images uploaded yet</h3>
+                        <h3 className="text-sm font-medium text-gray-900">Henüz görsel yüklenmedi</h3>
                         <Button
                             variant="secondary"
                             size="sm"
                             onClick={() => fileInputRef.current?.click()}
                             className="mt-2"
                         >
-                            Upload First Image
+                            İlk Görseli Yükle
                         </Button>
                     </div>
                 ) : (
@@ -121,7 +121,7 @@ export function ProductMedia({
                                             }}
                                             className={`py-1 rounded px-1 transition-colors ${primaryImage === img ? 'bg-green-500 text-white' : 'bg-white/90 text-gray-700 hover:bg-green-50'}`}
                                         >
-                                            Main
+                                            Ana
                                         </button>
                                         <button
                                             type="button"
@@ -139,7 +139,7 @@ export function ProductMedia({
                                 {/* Badges */}
                                 {!dragActive && (
                                     <>
-                                        {primaryImage === img && <div className="absolute top-2 left-2 px-2 py-0.5 bg-green-500 text-white text-[10px] uppercase font-bold rounded shadow-sm">Main</div>}
+                                        {primaryImage === img && <div className="absolute top-2 left-2 px-2 py-0.5 bg-green-500 text-white text-[10px] uppercase font-bold rounded shadow-sm">Ana</div>}
                                         {secondaryImage === img && <div className="absolute top-2 left-2 px-2 py-0.5 bg-blue-500 text-white text-[10px] uppercase font-bold rounded shadow-sm">Hover</div>}
                                     </>
                                 )}
@@ -150,11 +150,11 @@ export function ProductMedia({
             </div>
 
             <div className="mt-4 p-4 bg-blue-50 rounded-lg text-xs text-blue-800 space-y-1">
-                <h4 className="font-semibold mb-1">Image Guidelines</h4>
+                <h4 className="font-semibold mb-1">Görsel Kuralları</h4>
                 <ul className="list-disc pl-4 space-y-0.5 opacity-80">
-                    <li>Use high-resolution images (at least 1000x1000px)</li>
-                    <li>First image will be used as the primary product image if not specified</li>
-                    <li>Assign specific images to color variants for better customer experience</li>
+                    <li>Yüksek çözünürlüklü görseller kullanın (en az 1000x1000px)</li>
+                    <li>İlk görsel varsayılan olarak ana ürün görseli olacaktır</li>
+                    <li>Daha iyi bir müşteri deneyimi için renk varyantlarına özel görseller atayın</li>
                 </ul>
             </div>
         </div>

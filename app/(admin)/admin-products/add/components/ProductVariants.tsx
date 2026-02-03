@@ -94,7 +94,7 @@ export function ProductVariants({
     return (
         <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-gray-900">Product Variants</h2>
+                <h2 className="text-lg font-semibold text-gray-900">Ürün Varyantları</h2>
                 <div className="flex items-center space-x-2">
                     <Checkbox
                         id="isVariable"
@@ -102,7 +102,7 @@ export function ProductVariants({
                         onCheckedChange={(c) => setIsVariable(c as boolean)}
                     />
                     <Label htmlFor="isVariable" className="text-sm font-medium cursor-pointer">
-                        This product has variants (colors, sizes)
+                        Bu ürünün varyantları var (renk, beden)
                     </Label>
                 </div>
             </div>
@@ -112,7 +112,7 @@ export function ProductVariants({
 
                     {/* 1. Size Type Selection */}
                     <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
-                        <Label className="mb-2 block font-semibold text-gray-700">Size System</Label>
+                        <Label className="mb-2 block font-semibold text-gray-700">Beden Sistemi</Label>
                         <div className="flex flex-wrap gap-4">
                             {(Object.keys(SIZE_OPTIONS) as SizeType[]).map((type) => (
                                 <div key={type} className="flex items-center space-x-2">
@@ -126,7 +126,7 @@ export function ProductVariants({
                                         className="text-black focus:ring-black border-gray-300"
                                     />
                                     <Label htmlFor={`size-${type}`} className="capitalize cursor-pointer">
-                                        {type} Sizes
+                                        {type === 'letter' ? 'Harf' : type === 'number' ? 'Numara' : 'Kup'}
                                     </Label>
                                 </div>
                             ))}
@@ -140,16 +140,16 @@ export function ProductVariants({
 
                     {/* 2. Add Colors */}
                     <div>
-                        <Label className="mb-2 block font-semibold text-gray-700">Add Colors</Label>
+                        <Label className="mb-2 block font-semibold text-gray-700">Renk Ekle</Label>
                         <div className="flex gap-2">
                             <Input
-                                placeholder="Color name (e.g. Navy Blue)"
+                                placeholder="Renk adı (örn. Lacivert)"
                                 value={newColorName}
                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewColorName(e.target.value)}
                                 onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === "Enter" && addColor()}
                             />
                             <Button onClick={addColor} className="bg-gray-900 text-white shrink-0">
-                                <Plus className="w-4 h-4 mr-2" /> Add Color
+                                <Plus className="w-4 h-4 mr-2" /> Renk Ekle
                             </Button>
                         </div>
                     </div>
@@ -167,7 +167,7 @@ export function ProductVariants({
                                         <div className="w-4 h-4 rounded-full border border-gray-300 shadow-sm" style={{ backgroundColor: color.hexCode }} />
                                         <span className="font-semibold text-gray-900">{color.name}</span>
                                         <span className="text-xs text-gray-500">
-                                            ({(color.sizes || sizes).length} sizes, {(color.images || []).length} images)
+                                            ({(color.sizes || sizes).length} beden, {(color.images || []).length} görsel)
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-2">
@@ -189,14 +189,14 @@ export function ProductVariants({
                                         {/* Color Config */}
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div>
-                                                <Label className="text-xs mb-1.5 block">Display Name</Label>
+                                                <Label className="text-xs mb-1.5 block">Görünen İsim</Label>
                                                 <Input
                                                     value={color.name}
                                                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateColor(colorIndex, { name: e.target.value })}
                                                 />
                                             </div>
                                             <div>
-                                                <Label className="text-xs mb-1.5 block">Color Hex</Label>
+                                                <Label className="text-xs mb-1.5 block">Renk Kodu (Hex)</Label>
                                                 <div className="flex gap-2">
                                                     <Input
                                                         type="color"
@@ -216,7 +216,7 @@ export function ProductVariants({
                                         {/* Images */}
                                         <div>
                                             <div className="flex items-center justify-between mb-2">
-                                                <Label className="text-sm font-medium">Variant Images</Label>
+                                                <Label className="text-sm font-medium">Varyant Görselleri</Label>
                                                 <div className="relative">
                                                     <LinkButtonOnClick />
                                                     {/* Hacky way to handle upload button click without ref mess in map */}
@@ -233,14 +233,14 @@ export function ProductVariants({
                                                             className="absolute inset-0 opacity-0 cursor-pointer"
                                                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => e.target.files && onColorImageUpload(e.target.files, colorIndex)}
                                                         />
-                                                        <UploadIcon /> Upload
+                                                        <UploadIcon /> Yükle
                                                     </Button>
                                                 </div>
                                             </div>
 
                                             <div className="flex gap-2 overflow-x-auto py-2 bg-gray-50 rounded p-2">
                                                 {(!color.images || color.images.length === 0) ? (
-                                                    <span className="text-xs text-gray-400 italic p-2">No specific images for this color.</span>
+                                                    <span className="text-xs text-gray-400 italic p-2">Bu renk için henüz görsel seçilmedi.</span>
                                                 ) : (
                                                     color.images.map((img, i) => (
                                                         <div key={i} className="relative w-16 h-16 shrink-0 border rounded overflow-hidden group">
@@ -263,7 +263,7 @@ export function ProductVariants({
 
                                         {/* Stock Matrix */}
                                         <div>
-                                            <Label className="text-sm font-medium mb-3 block">Stock Levels & Sizes</Label>
+                                            <Label className="text-sm font-medium mb-3 block">Stok Seviyeleri ve Bedenler</Label>
                                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                                                 {sizes.map(size => (
                                                     <div key={size} className="bg-gray-50 p-2 rounded border border-gray-100 flex flex-col gap-1">
@@ -303,7 +303,7 @@ export function ProductVariants({
 
                         {colors.length === 0 && (
                             <div className="text-center py-8 text-gray-400 bg-gray-50 rounded border border-dashed">
-                                Start by adding a color variant above.
+                                Başlamak için yukarıdan bir renk ekleyin.
                             </div>
                         )}
                     </div>

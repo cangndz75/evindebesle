@@ -57,9 +57,9 @@ export default function AddProductPage() {
 
   // Mock Categories (In real app, fetch these)
   const [categories, setCategories] = useState([
-    { id: "clothing", name: "Clothing" },
-    { id: "accessories", name: "Accessories" },
-    { id: "new-arrivals", name: "New Arrivals" },
+    { id: "clothing", name: "Giyim" },
+    { id: "accessories", name: "Aksesuar" },
+    { id: "new-arrivals", name: "Yeni Gelenler" },
   ]);
 
   // --- EFFECT: Auto-Slug ---
@@ -70,7 +70,7 @@ export default function AddProductPage() {
     const generated = generateProductSlug(name);
     if (!slug || slug.startsWith(generated.slice(0, 5))) { // approximate check
       setSlug(generated);
-      setSeoTitle(`${name} - ${brand || "Store"}`);
+      setSeoTitle(`${name} - ${brand || "Mağaza"}`);
     }
   }, [name, brand]);
 
@@ -79,12 +79,6 @@ export default function AddProductPage() {
 
   const handleMediaUpload = async (files: FileList) => {
     const newImages: string[] = [];
-    const formData = new FormData();
-    const uploadedUrls: string[] = [];
-
-    // Optimistic UI update could happen here (reading files as DataURLs)
-    // For now, implementing simulated upload or direct Cloudinary integration logic
-    // Assuming we have an endpoint or using the direct upload logic from previous implementation
 
     // For this refactor, we'll simulate succesful upload by creating local object URLs
     // In production, you MUST replace this with actual backend upload
@@ -101,7 +95,7 @@ export default function AddProductPage() {
       if (newImages.length > 1) setSecondaryImage(newImages[1]);
     }
 
-    toast.success(`${newImages.length} images uploaded`);
+    toast.success(`${newImages.length} görsel yüklendi`);
 
     // TODO: Implement actual API upload call here:
     // const res = await fetch('/api/upload', { method: 'POST', body: formData }); ...
@@ -118,7 +112,7 @@ export default function AddProductPage() {
     newColors[colorIndex].images = [...(newColors[colorIndex].images || []), ...newImages];
     setColors(newColors);
 
-    toast.success("Color variant images updated");
+    toast.success("Varyant görselleri güncellendi");
   };
 
   const addTag = (tag: string) => {
@@ -134,7 +128,7 @@ export default function AddProductPage() {
 
     try {
       if (!name || !price) {
-        toast.error("Please fill in required fields (Name, Price)");
+        toast.error("Lütfen zorunlu alanları doldurun (İsim, Fiyat)");
         setLoading(false);
         return;
       }
@@ -172,7 +166,7 @@ export default function AddProductPage() {
         })) : [],
 
         // Simple Product Logic
-        sizes: !isVariable && stock > 0 ? [{ name: "Standard", stock: stock }] : [], // Simplification for non-variant
+        sizes: !isVariable && stock > 0 ? [{ name: "Standart", stock: stock }] : [], // Simplification for non-variant
 
         // Additional
         gender: "Unisex", // Default or add to UI
@@ -189,11 +183,11 @@ export default function AddProductPage() {
 
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.error || "Failed to create product");
+        throw new Error(err.error || "Ürün oluşturulamadı");
       }
 
       const createdProduct = await res.json();
-      toast.success("Product created successfully!");
+      toast.success("Ürün başarıyla oluşturuldu!");
       router.push("/admin-products"); // Redirect to list
 
     } catch (error: any) {
@@ -213,20 +207,20 @@ export default function AddProductPage() {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="text-xl font-bold text-gray-900 leading-none">Add New Product</h1>
-            <p className="text-xs text-gray-500 mt-1">{isVariable ? "Variable Product" : "Single SKU Product"}</p>
+            <h1 className="text-xl font-bold text-gray-900 leading-none">Yeni Ürün Ekle</h1>
+            <p className="text-xs text-gray-500 mt-1">{isVariable ? "Varyantlı Ürün" : "Tekil Ürün"}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" className="text-gray-600 border-gray-300" onClick={() => toast.info("Draft saved locally")}>
-            Save Draft
+          <Button variant="outline" className="text-gray-600 border-gray-300" onClick={() => toast.info("Taslak yerel olarak kaydedildi")}>
+            Taslağı Kaydet
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={loading}
             className="bg-gray-900 text-white hover:bg-black shadow-md transition-all active:scale-95"
           >
-            {loading ? "Publishing..." : "Publish Product"}
+            {loading ? "Yayınlanıyor..." : "Ürünü Yayınla"}
           </Button>
         </div>
       </header>

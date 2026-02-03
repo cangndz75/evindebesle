@@ -48,32 +48,32 @@ export function ProductSidebar({
         <div className="space-y-6">
             {/* Status Card */}
             <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-                <h3 className="text-sm font-semibold text-gray-900 mb-4">Status</h3>
+                <h3 className="text-sm font-semibold text-gray-900 mb-4">Durum</h3>
                 <Select value={status} onValueChange={(v: any) => setStatus(v)}>
                     <SelectTrigger className="w-full">
                         <div className="flex items-center gap-2">
                             <div className={`w-2 h-2 rounded-full ${status === 'published' ? 'bg-green-500' : status === 'draft' ? 'bg-yellow-500' : 'bg-gray-500'}`} />
-                            <SelectValue placeholder="Select status" />
+                            <SelectValue placeholder="Durum seçin" />
                         </div>
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="draft">Draft</SelectItem>
-                        <SelectItem value="published">Published</SelectItem>
-                        <SelectItem value="archived">Archived</SelectItem>
+                        <SelectItem value="draft">Taslak</SelectItem>
+                        <SelectItem value="published">Yayında</SelectItem>
+                        <SelectItem value="archived">Arşivlenmiş</SelectItem>
                     </SelectContent>
                 </Select>
             </div>
 
             {/* Organization Card */}
             <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-                <h3 className="text-sm font-semibold text-gray-900 mb-4">Organization</h3>
+                <h3 className="text-sm font-semibold text-gray-900 mb-4">Organizasyon</h3>
 
                 <div className="space-y-4">
                     <div>
-                        <Label className="text-xs font-medium text-gray-700 mb-1.5 block">Category</Label>
+                        <Label className="text-xs font-medium text-gray-700 mb-1.5 block">Kategori</Label>
                         <Select value={categoryId} onValueChange={setCategoryId}>
                             <SelectTrigger>
-                                <SelectValue placeholder="Select category" />
+                                <SelectValue placeholder="Kategori seçin" />
                             </SelectTrigger>
                             <SelectContent>
                                 {categories.map((cat) => (
@@ -84,16 +84,16 @@ export function ProductSidebar({
                     </div>
 
                     <div>
-                        <Label className="text-xs font-medium text-gray-700 mb-1.5 block">Brand</Label>
+                        <Label className="text-xs font-medium text-gray-700 mb-1.5 block">Marka</Label>
                         <Input
                             value={brand}
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBrand(e.target.value)}
-                            placeholder="Enter brand name"
+                            placeholder="Marka adı girin"
                         />
                     </div>
 
                     <div>
-                        <Label className="text-xs font-medium text-gray-700 mb-1.5 block">Tags</Label>
+                        <Label className="text-xs font-medium text-gray-700 mb-1.5 block">Etiketler</Label>
                         <div className="flex gap-2 mb-2">
                             <Input
                                 value={newTag}
@@ -105,7 +105,7 @@ export function ProductSidebar({
                                         setNewTag("");
                                     }
                                 }}
-                                placeholder="Add tag"
+                                placeholder="Etiket ekle"
                             />
                             <Button
                                 type="button"
@@ -138,7 +138,7 @@ export function ProductSidebar({
                     className="w-full flex items-center justify-between p-4 text-sm font-semibold text-gray-900 bg-gray-50 hover:bg-gray-100 transition-colors"
                     onClick={() => setIsAdvancedOpen(!isAdvancedOpen)}
                 >
-                    <span>Advanced Settings</span>
+                    <span>Gelişmiş Ayarlar (SEO)</span>
                     <span className={`transform transition-transform ${isAdvancedOpen ? 'rotate-180' : ''}`}>
                         <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M1 1L5 5L9 1" stroke="#6B7280" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -149,32 +149,32 @@ export function ProductSidebar({
                 {isAdvancedOpen && (
                     <div className="p-4 space-y-4 border-t border-gray-200">
                         <div>
-                            <Label className="text-xs font-medium text-gray-700 mb-1 block">SEO Title</Label>
+                            <Label className="text-xs font-medium text-gray-700 mb-1 block">SEO Başlığı</Label>
                             <Input
                                 value={seoTitle}
                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSeoTitle(e.target.value)}
-                                placeholder="Product name - Brand"
+                                placeholder="Ürün adı - Marka"
                             />
                             <div className="text-[10px] text-gray-400 mt-1 flex justify-end">{seoTitle.length}/60</div>
                         </div>
 
                         <div>
-                            <Label className="text-xs font-medium text-gray-700 mb-1 block">SEO Description</Label>
+                            <Label className="text-xs font-medium text-gray-700 mb-1 block">SEO Açıklaması</Label>
                             <Textarea
                                 value={seoDescription}
                                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setSeoDescription(e.target.value)}
-                                placeholder="Brief description for search engines"
+                                placeholder="Arama motorları için kısa açıklama"
                                 rows={3}
                             />
                             <div className="text-[10px] text-gray-400 mt-1 flex justify-end">{seoDescription.length}/160</div>
                         </div>
 
                         <div>
-                            <Label className="text-xs font-medium text-gray-700 mb-1 block">URL Slug</Label>
+                            <Label className="text-xs font-medium text-gray-700 mb-1 block">URL Bağlantısı (Slug)</Label>
                             <Input
                                 value={slug}
                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSlug(e.target.value)}
-                                placeholder="product-name"
+                                placeholder="urun-adi"
                             />
                         </div>
                     </div>
@@ -193,9 +193,9 @@ export function ProductSidebar({
                         </svg>
                     </div>
                     <div>
-                        <h4 className="font-semibold text-sm mb-1">Quick Tip</h4>
+                        <h4 className="font-semibold text-sm mb-1">İpucu</h4>
                         <p className="text-xs text-gray-300 leading-relaxed">
-                            Use descriptive titles and add relevant tags to make products easier to find in your catalog.
+                            Ürünlerinizin katalogda daha kolay bulunması için açıklayıcı başlıklar kullanın ve ilgili etiketleri ekleyin.
                         </p>
                     </div>
                 </div>

@@ -55,6 +55,9 @@ export default function AddProductPage() {
   const [brand, setBrand] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [slug, setSlug] = useState("");
+  const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
+  const [slugSuffix] = useState(() => Math.random().toString(36).substring(2, 8)); // Stable 6-char suffix
+
   const [seoTitle, setSeoTitle] = useState("");
   const [seoDescription, setSeoDescription] = useState("");
 
@@ -67,15 +70,20 @@ export default function AddProductPage() {
 
   // --- EFFECT: Auto-Slug ---
   useEffect(() => {
-    // Only auto-update if user hasn't manually edited it significantly (simple check: if it matches old name slug)
-    // Or just auto-update until save.
-    if (!name) return;
-    const generated = generateProductSlug(name);
-    if (!slug || slug.startsWith(generated.slice(0, 5))) { // approximate check
-      setSlug(generated);
-      setSeoTitle(`${name} - ${brand || "Mağaza"}`);
-    }
-  }, [name, brand]);
+    // Only auto-update if user hasn't manually edited it
+    if (!name || isSlugManuallyEdited) return;
+
+    const baseSlug = generateProductSlug(name);
+    // User requested to append first 6 chars of ID. Since ID is not yet created, using a stable random suffix.
+    setSlug(`${baseSlug}-${slugSuffix}`);
+
+    setSeoTitle(`${name} - ${brand || "Mağaza"}`);
+  }, [name, brand, isSlugManuallyEdited, slugSuffix]);
+
+  const handleSlugChange = (val: string) => {
+    setSlug(val);
+    setIsSlugManuallyEdited(true);
+  };
 
 
   // --- HANDLERS ---
@@ -293,6 +301,8 @@ export default function AddProductPage() {
                 sizeType={sizeType} setSizeType={setSizeType}
                 mainStock={mainStock} setMainStock={setMainStock}
                 isVariable={isVariable}
+                mainColorName={mainColorName} setMainColorName={setMainColorName}
+                mainColorHex={mainColorHex} setMainColorHex={setMainColorHex}
                 isTrackInventory={isTrackInventory}
               />
             </section>
@@ -318,7 +328,7 @@ export default function AddProductPage() {
                 categories={categories}
                 brand={brand} setBrand={setBrand}
                 tags={tags} addTag={addTag} removeTag={removeTag}
-                slug={slug} setSlug={setSlug}
+                slug={slug} setSlug={handleSlugChange}
                 seoTitle={seoTitle} setSeoTitle={setSeoTitle}
                 seoDescription={seoDescription} setSeoDescription={setSeoDescription}
               />

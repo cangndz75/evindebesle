@@ -18,10 +18,10 @@ interface ProductSizeStockProps {
     setMainStock: (value: { [size: string]: number }) => void;
     // New Props for "Main Variant" logic
     isVariable: boolean;
-    mainColorName?: string;
-    setMainColorName?: (value: string) => void;
-    mainColorHex?: string;
-    setMainColorHex?: (value: string) => void;
+    mainColorName: string | undefined;
+    setMainColorName: (value: string) => void;
+    mainColorHex: string | undefined;
+    setMainColorHex: (value: string) => void;
     isTrackInventory: boolean;
 }
 
@@ -92,8 +92,8 @@ export function ProductSizeStock({
                                 <Input
                                     placeholder="Örn: Siyah, Lacivert"
                                     value={mainColorName || ""}
-                                    onChange={(e) => setMainColorName && setMainColorName(e.target.value)}
-                                    className="bg-white"
+                                    onChange={(e) => setMainColorName(e.target.value)}
+                                    className="bg-white text-black"
                                 />
                             </div>
                             <div>
@@ -102,13 +102,19 @@ export function ProductSizeStock({
                                     <Input
                                         type="color"
                                         className="w-12 h-10 p-1 cursor-pointer bg-white"
-                                        value={mainColorHex || "#000000"}
-                                        onChange={(e) => setMainColorHex && setMainColorHex(e.target.value)}
+                                        value={(/^#[0-9A-Fa-f]{6}$/.test(mainColorHex || "")) ? mainColorHex : "#000000"}
+                                        onChange={(e) => setMainColorHex(e.target.value)}
                                     />
                                     <Input
-                                        value={mainColorHex || "#000000"}
-                                        onChange={(e) => setMainColorHex && setMainColorHex(e.target.value)}
-                                        className="uppercase bg-white"
+                                        placeholder="#000000"
+                                        value={mainColorHex || "#"}
+                                        onChange={(e) => {
+                                            let val = e.target.value;
+                                            // Enforce logical max length
+                                            if (val.length > 7) return;
+                                            setMainColorHex(val);
+                                        }}
+                                        className="uppercase bg-white font-mono text-black"
                                     />
                                 </div>
                             </div>

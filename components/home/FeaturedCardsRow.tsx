@@ -8,19 +8,19 @@ import { featuredCards } from "@/lib/homeData";
 import { useMediaQuery } from "../../hooks/use-media-query";
 import { useRef } from "react";
 
-function MobileCard({ card, index, total }: { card: any; index: number; total: number }) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start end", "start start"],
-  });
+function useParallax(value: MotionValue<number>, distance: number) {
+  return useTransform(value, [0, 1], [-distance, distance]);
+}
 
-  const scale = useTransform(scrollYProgress, [0, 1], [1, 1.15]);
-  // const opacity = useTransform(scrollYProgress, [0, 0.5, 1], [0.8, 1, 1]); // Optional opacity effect
+function MobileCard({ card, index }: { card: any; index: number }) {
+  const ref = useRef(null);
+  const { scrollYProgress } = useScroll({ target: ref });
+  const y = useParallax(scrollYProgress, 300);
+  const opacity = useTransform(scrollYProgress, [0.8, 1], [1, 0]);
 
   return (
-    <div ref={containerRef} className="w-full h-[80vh] sticky top-0 flex items-center justify-center overflow-hidden bg-black">
-      <motion.div style={{ scale }} className="absolute inset-0 w-full h-full">
+    <section className="relative h-[100vh] w-full flex items-center justify-center overflow-hidden bg-black snap-center">
+      <div ref={ref} className="absolute inset-0 w-full h-full">
         {(card as any).videoUrl ? (
           <video
             src={(card as any).videoUrl}
@@ -28,14 +28,14 @@ function MobileCard({ card, index, total }: { card: any; index: number; total: n
             muted
             loop
             playsInline
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover opacity-80"
           />
         ) : (
           <Image
             src={card.image}
             alt={card.title}
             fill
-            className="object-cover"
+            className="object-cover opacity-80"
             sizes="100vw"
             priority={index === 0}
             onError={(e) => {
@@ -44,34 +44,27 @@ function MobileCard({ card, index, total }: { card: any; index: number; total: n
             }}
           />
         )}
-      </motion.div>
-
-      {/* Visual Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-
-      {/* Content */}
-      <div className="absolute bottom-20 left-8 right-8 text-white z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          viewport={{ once: true }}
-        >
-          <h3 className="text-4xl font-light mb-4 tracking-tight leading-tight">
-            {card.title}
-          </h3>
-          <p className="text-base text-white/90 font-light mb-8 leading-relaxed max-w-sm">
-            {card.description}
-          </p>
-          <Link
-            href={card.href}
-            className="inline-flex items-center gap-3 text-sm font-light uppercase tracking-[0.2em] border-b border-white/30 pb-2 hover:border-white transition-all duration-300"
-          >
-            Keşfet <ArrowRight className="w-4 h-4" />
-          </Link>
-        </motion.div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
       </div>
-    </div>
+
+      <motion.div
+        style={{ y, opacity }}
+        className="relative z-10 text-center px-6 max-w-lg"
+      >
+        <h3 className="text-4xl md:text-5xl font-serif text-white mb-4 tracking-tight">
+          {card.title}
+        </h3>
+        <p className="text-lg text-white/90 font-light mb-8 leading-relaxed">
+          {card.description}
+        </p>
+        <Link
+          href={card.href}
+          className="inline-flex items-center gap-3 text-sm font-light uppercase tracking-[0.2em] border-b border-white/30 pb-2 hover:border-white transition-all duration-300 text-white"
+        >
+          Keşfet <ArrowRight className="w-4 h-4" />
+        </Link>
+      </motion.div>
+    </section>
   );
 }
 
@@ -81,9 +74,9 @@ export default function FeaturedCardsRow() {
   if (isMobile) {
     return (
       <section className="w-full bg-black">
-        <div className="flex flex-col">
+        <div className="flex flex-col snap-y snap-mandatory h-auto">
           {featuredCards.map((card, index) => (
-            <MobileCard key={index} card={card} index={index} total={featuredCards.length} />
+            <MobileCard key={index} card={card} index={index} />
           ))}
         </div>
       </section>

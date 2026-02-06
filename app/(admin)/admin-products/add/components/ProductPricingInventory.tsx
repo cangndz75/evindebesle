@@ -16,8 +16,6 @@ interface ProductPricingInventoryProps {
     setBarcode: (value: string) => void;
     isTrackInventory: boolean;
     setIsTrackInventory: (value: boolean) => void;
-    stock: number;
-    setStock: (value: number) => void;
     isVariable: boolean;
     allowBackorders: boolean;
     setAllowBackorders: (value: boolean) => void;
@@ -31,7 +29,6 @@ export function ProductPricingInventory({
     sku, setSku,
     barcode, setBarcode,
     isTrackInventory, setIsTrackInventory,
-    stock, setStock,
     isVariable,
     allowBackorders, setAllowBackorders,
     isTaxable, setIsTaxable
@@ -157,20 +154,7 @@ export function ProductPricingInventory({
                 </div>
             )}
 
-            {/* Stock Quantity for Simple Product */}
-            {isTrackInventory && !isVariable && (
-                <div className="mb-4">
-                    <Label htmlFor="stock" className="text-gray-700 font-medium">Stok Adedi</Label>
-                    <Input
-                        id="stock"
-                        type="number"
-                        value={stock}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setStock(parseInt(e.target.value) || 0)}
-                        placeholder="0"
-                        className="mt-1.5 w-full md:w-1/2"
-                    />
-                </div>
-            )}
+
 
             {/* Backorders */}
             <div className="flex items-center gap-2 mb-6">

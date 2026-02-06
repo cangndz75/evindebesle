@@ -10,7 +10,8 @@ import { ArrowLeft, Save } from "lucide-react";
 import { ProductInfo } from "./components/ProductInfo";
 import { ProductPricingInventory } from "./components/ProductPricingInventory";
 import { ProductMedia } from "./components/ProductMedia";
-import { ProductVariants, Color, SizeType } from "./components/ProductVariants";
+import { ProductVariants, Color } from "./components/ProductVariants";
+import { ProductSizeStock, SizeType, SIZE_OPTIONS } from "./components/ProductSizeStock";
 import { ProductSidebar } from "./components/ProductSidebar";
 
 // Utils
@@ -32,7 +33,7 @@ export default function AddProductPage() {
   const [sku, setSku] = useState("");
   const [barcode, setBarcode] = useState("");
   const [isTrackInventory, setIsTrackInventory] = useState(true);
-  const [stock, setStock] = useState(0); // For simple product
+  const [mainStock, setMainStock] = useState<{ [size: string]: number }>({});
   const [allowBackorders, setAllowBackorders] = useState(false);
   const [isTaxable, setIsTaxable] = useState(true);
 
@@ -43,6 +44,8 @@ export default function AddProductPage() {
 
   // 4. Variants
   const [isVariable, setIsVariable] = useState(false);
+  const [mainColorName, setMainColorName] = useState("");
+  const [mainColorHex, setMainColorHex] = useState("#000000");
   const [sizeType, setSizeType] = useState<SizeType>("letter");
   const [colors, setColors] = useState<Color[]>([]);
 
@@ -156,17 +159,32 @@ export default function AddProductPage() {
         isActive: status === 'published',
 
         // Variants Logic
-        colors: isVariable ? colors.map(c => ({
-          name: c.name,
-          hexCode: c.hexCode,
-          images: c.images, // Array of URLs
-          sizes: c.sizes,   // Array of size strings
-          stock: c.stock,   // Stock object { "S": 10 }
-          sizeStocks: c.stock // Backend might expect this naming or we adapt
-        })) : [],
+        colors: isVariable ? [
+          // 1. The "Main" Color (from top-level inputs)
+          {
+            name: mainColorName || "Ana Renk",
+            hexCode: mainColorHex,
+            images: uploadedImages, // The main images
+            sizes: SIZE_OPTIONS[sizeType],
+            stock: mainStock,
+            sizeStocks: mainStock
+          },
+          // 2. Extra Variants
+          ...colors.map(c => ({
+            name: c.name,
+            hexCode: c.hexCode,
+            images: c.images,
+            sizes: c.sizes,
+            stock: c.stock,
+            sizeStocks: c.stock
+          }))
+        ] : [],
 
         // Simple Product Logic
-        sizes: !isVariable && stock > 0 ? [{ name: "Standart", stock: stock }] : [], // Simplification for non-variant
+        // Simple Product Logic
+        sizes: !isVariable
+          ? Object.entries(mainStock).map(([name, stock]) => ({ name, stock }))
+          : [],
 
         // Additional
         gender: "Unisex", // Default or add to UI
@@ -263,10 +281,19 @@ export default function AddProductPage() {
                 sku={sku} setSku={setSku}
                 barcode={barcode} setBarcode={setBarcode}
                 isTrackInventory={isTrackInventory} setIsTrackInventory={setIsTrackInventory}
-                stock={stock} setStock={setStock}
                 isVariable={isVariable}
                 allowBackorders={allowBackorders} setAllowBackorders={setAllowBackorders}
                 isTaxable={isTaxable} setIsTaxable={setIsTaxable}
+              />
+            </section>
+
+            {/* 3.5. Size & Stock (Moved from Pricing) */}
+            <section id="size-stock">
+              <ProductSizeStock
+                sizeType={sizeType} setSizeType={setSizeType}
+                mainStock={mainStock} setMainStock={setMainStock}
+                isVariable={isVariable}
+                isTrackInventory={isTrackInventory}
               />
             </section>
 
@@ -275,7 +302,7 @@ export default function AddProductPage() {
               <ProductVariants
                 isVariable={isVariable} setIsVariable={setIsVariable}
                 sizeType={sizeType} setSizeType={setSizeType}
-                availableSizes={[]} // handled internally
+                availableSizes={SIZE_OPTIONS[sizeType]}
                 colors={colors} setColors={setColors}
                 onColorImageUpload={handleColorImageUpload}
               />

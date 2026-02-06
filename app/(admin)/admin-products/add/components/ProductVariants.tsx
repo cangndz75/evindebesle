@@ -7,8 +7,10 @@ import { Plus, X, Trash2, ChevronDown, ChevronUp } from "lucide-react";
 import Image from "next/image";
 import React from "react";
 
+import { SIZE_OPTIONS, SizeType } from "./ProductSizeStock";
+
 // Re-using types
-export type SizeType = "letter" | "number" | "cup";
+export type { SizeType };
 
 export interface VariantImage {
     url: string;
@@ -36,12 +38,6 @@ interface ProductVariantsProps {
     setColors: (colors: Color[]) => void;
     onColorImageUpload: (files: FileList, colorIndex: number) => void;
 }
-
-const SIZE_OPTIONS: Record<SizeType, string[]> = {
-    letter: ["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"],
-    number: ["32", "34", "36", "38", "40", "42", "44", "46", "48", "50", "52", "54"],
-    cup: ["75A", "75B", "75C", "80A", "80B", "80C", "85B", "85C", "90B", "90C"]
-};
 
 export function ProductVariants({
     isVariable, setIsVariable,
@@ -94,7 +90,7 @@ export function ProductVariants({
     return (
         <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-gray-900">Ürün Varyantları</h2>
+                <h2 className="text-lg font-semibold text-gray-900">Diğer Varyant Seçenekleri</h2>
                 <div className="flex items-center space-x-2">
                     <Checkbox
                         id="isVariable"
@@ -110,37 +106,12 @@ export function ProductVariants({
             {isVariable && (
                 <div className="space-y-8 animate-in fade-in slide-in-from-top-4 duration-300">
 
-                    {/* 1. Size Type Selection */}
-                    <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
-                        <Label className="mb-2 block font-semibold text-gray-700">Beden Sistemi</Label>
-                        <div className="flex flex-wrap gap-4">
-                            {(Object.keys(SIZE_OPTIONS) as SizeType[]).map((type) => (
-                                <div key={type} className="flex items-center space-x-2">
-                                    <input
-                                        type="radio"
-                                        id={`size-${type}`}
-                                        name="sizeType"
-                                        value={type}
-                                        checked={sizeType === type}
-                                        onChange={() => setSizeType(type)}
-                                        className="text-black focus:ring-black border-gray-300"
-                                    />
-                                    <Label htmlFor={`size-${type}`} className="capitalize cursor-pointer">
-                                        {type === 'letter' ? 'Harf' : type === 'number' ? 'Numara' : 'Kup'}
-                                    </Label>
-                                </div>
-                            ))}
-                        </div>
-                        <div className="mt-3 flex flex-wrap gap-1">
-                            {sizes.map(s => (
-                                <span key={s} className="text-xs px-2 py-1 bg-white border rounded text-gray-500">{s}</span>
-                            ))}
-                        </div>
-                    </div>
+
+
 
                     {/* 2. Add Colors */}
                     <div>
-                        <Label className="mb-2 block font-semibold text-gray-700">Renk Ekle</Label>
+                        <Label className="mb-2 block font-semibold text-gray-700">Diğer Renkleri Ekle</Label>
                         <div className="flex gap-2">
                             <Input
                                 placeholder="Renk adı (örn. Lacivert)"

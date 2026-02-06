@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Star, ShieldCheck, Zap, Scissors, Globe } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import Footer from "@/components/home/FooterAccordion";
+import EditorialGrid from "@/components/home/EditorialGrid";
 
 const stats = [
     { label: "MUTLU MÜŞTERİ", value: "25,000+" },
@@ -109,25 +109,7 @@ export default function About2Page() {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-6 relative">
-                            <div className="absolute -inset-4 bg-white/5 blur-[100px] pointer-events-none -z-10" />
-                            <div className="space-y-6 pt-16">
-                                <div className="overflow-hidden aspect-[3/4] border border-white/5 transition-transform duration-700 hover:scale-[1.02]">
-                                    <Image src="https://images.unsplash.com/photo-1618221195710-dd6b41faeaa6?q=80&w=800" alt="Lingerie Detail" width={400} height={600} className="object-cover h-full grayscale brightness-75 hover:grayscale-0 transition-all duration-700" />
-                                </div>
-                                <div className="overflow-hidden aspect-[4/5] border border-white/5 transition-transform duration-700 hover:scale-[1.02]">
-                                    <Image src="https://images.unsplash.com/photo-1541099649105-f69ad21f3246?q=80&w=800" alt="Fabric Quality" width={400} height={500} className="object-cover h-full brightness-75 hover:brightness-100 transition-all duration-700" />
-                                </div>
-                            </div>
-                            <div className="space-y-6">
-                                <div className="overflow-hidden aspect-[4/5] border border-white/5 transition-transform duration-700 hover:scale-[1.02]">
-                                    <Image src="https://images.unsplash.com/photo-1558769132-cb1aea458c5e?q=80&w=800" alt="Creative Studio" width={400} height={500} className="object-cover h-full grayscale brightness-75 hover:grayscale-0 transition-all duration-700" />
-                                </div>
-                                <div className="overflow-hidden aspect-[3/4] border border-white/5 transition-transform duration-700 hover:scale-[1.02]">
-                                    <Image src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800" alt="Modern Styling" width={400} height={600} className="object-cover h-full brightness-75 hover:brightness-100 transition-all duration-700" />
-                                </div>
-                            </div>
-                        </div>
+                        <EditorialGrid />
                     </div>
                 </section>
 
@@ -191,8 +173,6 @@ export default function About2Page() {
                     </div>
                 </section>
             </main>
-
-            <Footer />
         </div>
     );
 }

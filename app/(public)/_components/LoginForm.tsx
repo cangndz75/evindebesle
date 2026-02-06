@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import AuthHeader from "./AuthHeader";
-import { authClient } from "@/lib/auth-client";
 import { getSession, signIn } from "next-auth/react";
 
 export default function LoginForm() {
@@ -16,7 +15,6 @@ export default function LoginForm() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [pending, startTransition] = useTransition();
-  const [otpPending, startOtpTransition] = useTransition();
 
   const handleLoginWithPassword = () => {
     startTransition(async () => {
@@ -47,28 +45,6 @@ export default function LoginForm() {
       toast.success("Giriş başarılı!");
       const isAdmin = session.user?.isAdmin === true;
       window.location.href = isAdmin ? "/dashboard" : "/home";
-    });
-  };
-
-  const handleLoginWithOtp = () => {
-    startOtpTransition(async () => {
-      try {
-        await authClient.emailOtp.sendVerificationOtp({
-          email,
-          type: "sign-in",
-          fetchOptions: {
-            onSuccess: () => {
-              toast.success("Doğrulama kodu gönderildi!");
-              router.push("/verify-request");
-            },
-            onError: () => {
-              toast.error("Kod gönderilemedi.");
-            },
-          },
-        });
-      } catch {
-        toast.error("Bir hata oluştu.");
-      }
     });
   };
 
@@ -132,15 +108,6 @@ export default function LoginForm() {
             "Giriş Yap"
           )}
         </Button>
-
-        {/* <Button
-          variant="outline"
-          onClick={handleLoginWithOtp}
-          disabled={otpPending}
-          className="w-full h-12 text-base"
-        >
-          {otpPending ? "Gönderiliyor..." : "Şifresiz Giriş (OTP)"}
-        </Button> */}
       </div>
 
       <div className="text-sm text-center text-muted-foreground pt-6 space-y-1">

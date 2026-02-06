@@ -140,6 +140,11 @@ export async function POST(req: Request) {
       weight
     } = body;
 
+    // Gender normalization (handle "Unisex" -> "UNISEX")
+    const genderKey = gender ? gender.toUpperCase() : undefined;
+    const validGenders = ["MALE", "FEMALE", "UNISEX"];
+    const finalGender = validGenders.includes(genderKey) ? genderKey : undefined;
+
     // Kategori kontrolü
     let categoryName: string | null = null;
     if (categoryId) {
@@ -200,7 +205,7 @@ export async function POST(req: Request) {
         image: image || undefined,
         primaryImage: primaryImage || image || undefined,
         secondaryImage: secondaryImage || undefined,
-        gender: gender || undefined,
+        gender: finalGender,
         sizeType: sizeType || undefined,
         fabricType: fabricType || undefined,
         categoryId: categoryId || undefined,

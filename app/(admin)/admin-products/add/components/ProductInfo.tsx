@@ -8,25 +8,44 @@ interface ProductInfoProps {
     setName: (value: string) => void;
     description: string;
     setDescription: (value: string) => void;
+    gender?: "MALE" | "FEMALE" | "UNISEX";
+    setGender: (value: "MALE" | "FEMALE" | "UNISEX") => void;
 }
 
-export function ProductInfo({ name, setName, description, setDescription }: ProductInfoProps) {
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Add this import
+
+export function ProductInfo({ name, setName, description, setDescription, gender, setGender }: ProductInfoProps) {
     return (
         <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
             <h2 className="text-lg font-semibold mb-4 text-gray-900">Ürün Bilgileri</h2>
 
             <div className="space-y-6">
-                <div>
-                    <Label htmlFor="name" className="text-gray-700 font-medium">
-                        Ürün Adı <span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                        id="name"
-                        value={name}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
-                        placeholder="Örn: Premium Pamuklu Tişört"
-                        className="mt-1.5"
-                    />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <Label htmlFor="name" className="text-gray-700 font-medium">
+                            Ürün Adı <span className="text-red-500">*</span>
+                        </Label>
+                        <Input
+                            id="name"
+                            value={name}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
+                            placeholder="Örn: Premium Pamuklu Tişört"
+                            className="mt-1.5"
+                        />
+                    </div>
+                    <div>
+                        <Label className="text-gray-700 font-medium">Cinsiyet</Label>
+                        <Select value={gender} onValueChange={(val: any) => setGender(val)}>
+                            <SelectTrigger className="mt-1.5 bg-white">
+                                <SelectValue placeholder="Seçiniz" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="MALE">Erkek</SelectItem>
+                                <SelectItem value="FEMALE">Kadın</SelectItem>
+                                <SelectItem value="UNISEX">Unisex</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </div>
 
                 <div>

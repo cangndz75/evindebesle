@@ -159,7 +159,7 @@ const navSections = [
       },
       {
         label: "Destek Merkezi",
-        href: "/support",
+        href: "/admin-support",
         icon: <HelpCircle className="w-5 h-5" />,
       },
       {

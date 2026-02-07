@@ -19,9 +19,11 @@ import {
   ArrowRight,
   MessageSquarePlus,
   FileDown,
+  RotateCcw,
 } from "lucide-react";
 import Link from "next/link";
 import ProductReviewModal from "@/components/product/ProductReviewModal";
+import ReturnRequestModal from "@/components/returns/ReturnRequestModal";
 
 
 
@@ -67,6 +69,15 @@ export default function OrdersPage() {
     name: string;
     image: string | null;
   } | null>(null);
+
+  // Return Modal State
+  const [returnModalOpen, setReturnModalOpen] = useState(false);
+  const [selectedReturnOrder, setSelectedReturnOrder] = useState<ProductOrder | null>(null);
+
+  const handleOpenReturnModal = (order: ProductOrder) => {
+    setSelectedReturnOrder(order);
+    setReturnModalOpen(true);
+  };
 
   useEffect(() => {
     // Ürün siparişlerini yükle
@@ -324,7 +335,19 @@ export default function OrdersPage() {
                       )}
 
                       {/* Detay ve Fatura Butonları */}
-                      <div className="flex justify-end gap-2 pt-2 border-t">
+                      <div className="flex flex-wrap justify-end gap-2 pt-2 border-t">
+                        {/* İade Talep Et - Sadece teslim edilmiş siparişler için */}
+                        {order.status === "DELIVERED" && (
+                          <Button
+                            variant="outline"
+                            onClick={() => handleOpenReturnModal(order)}
+                            className="flex items-center gap-2"
+                          >
+                            <RotateCcw className="w-4 h-4" />
+                            İade Talep Et
+                          </Button>
+                        )}
+
                         {/* Fatura İndir - Sadece ödeme yapılmış siparişler için */}
                         {(order.paymentStatus === "PAID" || order.paymentStatus === "SUCCEEDED") && (
                           <Button
@@ -368,6 +391,19 @@ export default function OrdersPage() {
           }}
         />
       )}
+
+      {/* Return Request Modal */}
+      <ReturnRequestModal
+        isOpen={returnModalOpen}
+        onClose={() => setReturnModalOpen(false)}
+        order={selectedReturnOrder}
+        onSuccess={() => {
+          // Refresh orders after successful return request
+          fetch("/api/orders")
+            .then((res) => res.json())
+            .then((data) => setProductOrders(data));
+        }}
+      />
     </div>
   );
 }

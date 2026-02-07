@@ -9,6 +9,7 @@ const links = [
   { href: "/profile/personal-info", label: "Kişisel Bilgilerim" },
   { href: "/profile/addresses", label: "Adreslerim" },
   { href: "/profile/orders", label: "Siparişlerim" },
+  { href: "/profile/support", label: "Destek Taleplerim" },
 ];
 
 export default function Sidebar() {
@@ -50,11 +51,10 @@ export default function Sidebar() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`group flex items-center justify-between px-0 py-2 text-sm font-light transition-colors ${
-                    isActive
+                  className={`group flex items-center justify-between px-0 py-2 text-sm font-light transition-colors ${isActive
                       ? "text-black"
                       : "text-gray-600 hover:text-black"
-                  }`}
+                    }`}
                 >
                   <span>{link.label}</span>
                   {isActive && (

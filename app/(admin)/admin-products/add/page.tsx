@@ -25,6 +25,23 @@ export default function AddProductPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [fileMap, setFileMap] = useState<Map<string, File>>(new Map());
+  const [categories, setCategories] = useState<{ id: string; name: string; }[]>([]);
+
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const res = await fetch("/api/admin-categories");
+        if (res.ok) {
+          const data = await res.json();
+          setCategories(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch categories", error);
+        toast.error("Kategoriler yüklenemedi");
+      }
+    }
+    fetchCategories();
+  }, []);
 
   // Initialize Form
   const methods = useForm<ProductFormValues>({
@@ -404,9 +421,5 @@ export default function AddProductPage() {
   // We keep the state consistent with original file
 }
 
-const categories = [
-  { id: "clothing", name: "Giyim" },
-  { id: "accessories", name: "Aksesuar" },
-  { id: "new-arrivals", name: "Yeni Gelenler" },
-];
+
 

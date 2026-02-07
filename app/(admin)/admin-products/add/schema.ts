@@ -23,6 +23,7 @@ export const productSchema = z.object({
     price: z.coerce.number().min(0.01, "Fiyat 0'dan büyük olmalıdır"),
     originalPrice: z.coerce.number().optional(),
     sku: z.string().optional(),
+    barcode: z.string().optional(),
     date: z.date().optional(), // For logic if needed, usually not in form input directly but handled by backend
 
     // Inventory Logic

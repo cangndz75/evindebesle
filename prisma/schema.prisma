@@ -227,6 +227,7 @@ model Product {
   gender               Gender?
   sizeType             SizeType?
   stockCode            String?              @unique
+  barcode              String?              @unique // ISBN, UPC, GTIN
   fabricType           String?
   primaryImage         String?
   secondaryImage       String?
@@ -235,6 +236,9 @@ model Product {
   brand                String?
   categoryId           String?
   weight               Float?
+  isTrackInventory     Boolean              @default(true) // Stok takibi yapılsın mı?
+  allowBackorders      Boolean              @default(false) // Stok yokken satışa izin verilsin mi?
+
   cartItems            CartItem[]
   orderItems           OrderItem[]
   category             Category?            @relation(fields: [categoryId], references: [id])

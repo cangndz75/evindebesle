@@ -47,6 +47,17 @@ export async function POST(req: Request) {
                 return NextResponse.json({ error: `Ürün varyantı bulunamadı: ${item.productId}` }, { status: 400 });
             }
 
+            // Stok Kontrolü
+            if (variant.product.isTrackInventory && !variant.product.allowBackorders) {
+                // Varyant stoğunu kontrol et (variant.stock - variant.stockReserved)
+                const availableStock = variant.stock - (variant.stockReserved || 0);
+                if (availableStock < item.quantity) {
+                    return NextResponse.json({
+                        error: `"${variant.product.name}" için yeterli stok yok. Mevcut: ${availableStock}`
+                    }, { status: 400 });
+                }
+            }
+
             const price = variant.price || variant.product.price;
             const lineTotal = Number(price) * item.quantity;
             subtotal += lineTotal;

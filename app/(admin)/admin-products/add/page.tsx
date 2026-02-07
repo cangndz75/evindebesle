@@ -35,6 +35,7 @@ export default function AddProductPage() {
       price: 0,
       originalPrice: 0,
       sku: "",
+      barcode: "",
       isTrackInventory: true,
       allowBackorders: false,
       isTaxable: true,
@@ -295,7 +296,7 @@ export default function AddProductPage() {
                 price={String(watch("price"))} setPrice={(val) => setValue("price", Number(val))}
                 originalPrice={String(watch("originalPrice") || "")} setOriginalPrice={(val) => setValue("originalPrice", Number(val))}
                 sku={watch("sku") || ""} setSku={(val) => setValue("sku", val)}
-                barcode={watch("sku") || ""} setBarcode={(val) => { }} // Barcode not in schema? reuse Sku or add
+                barcode={watch("barcode") || ""} setBarcode={(val) => setValue("barcode", val)}
                 isTrackInventory={watch("isTrackInventory")} setIsTrackInventory={(val) => setValue("isTrackInventory", val)}
                 isVariable={watch("isVariable")}
                 allowBackorders={watch("allowBackorders")} setAllowBackorders={(val) => setValue("allowBackorders", val)}

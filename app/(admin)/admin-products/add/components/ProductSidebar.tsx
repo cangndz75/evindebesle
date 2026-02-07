@@ -182,7 +182,7 @@ export function ProductSidebar({
             </div>
 
             {/* Quick Tip */}
-            <div className="bg-gray-900 rounded-lg p-4 text-white shadow-lg">
+            {/* <div className="bg-gray-900 rounded-lg p-4 text-white shadow-lg">
                 <div className="flex items-start gap-3">
                     <div className="mt-1">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -199,7 +199,7 @@ export function ProductSidebar({
                         </p>
                     </div>
                 </div>
-            </div>
+            </div> */}
         </div>
     );
 }

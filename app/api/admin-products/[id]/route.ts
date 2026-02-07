@@ -180,7 +180,20 @@ export async function PATCH(
     const updateData: any = {};
     if (name !== undefined) updateData.name = name;
     if (slug !== undefined) updateData.slug = finalSlug;
+    if (slug !== undefined) updateData.slug = finalSlug;
     if (stockCode !== undefined) updateData.stockCode = stockCode;
+
+    // Barcode update and unique check
+    if (body.barcode !== undefined) {
+      if (body.barcode && body.barcode !== existingProduct.barcode) {
+        const existing = await prisma.product.findFirst({ where: { barcode: body.barcode } });
+        if (existing) {
+          throw new Error(`Barkod (${body.barcode}) zaten kullanımda.`);
+        }
+      }
+      updateData.barcode = body.barcode || null;
+    }
+
     if (description !== undefined) updateData.description = description;
     if (detailText !== undefined) updateData.detailText = detailText;
     if (price !== undefined) updateData.price = parseFloat(price);
@@ -194,7 +207,10 @@ export async function PATCH(
     if (categoryId !== undefined) updateData.categoryId = categoryId || null;
     if (brand !== undefined) updateData.brand = brand || null;
     if (weight !== undefined) updateData.weight = weight ? parseFloat(weight) : null;
+    if (weight !== undefined) updateData.weight = weight ? parseFloat(weight) : null;
     if (isActive !== undefined) updateData.isActive = isActive;
+    if (body.isTrackInventory !== undefined) updateData.isTrackInventory = body.isTrackInventory;
+    if (body.allowBackorders !== undefined) updateData.allowBackorders = body.allowBackorders;
 
     // SEO alanları (şimdilik JSON olarak saklanabilir veya schema'ya eklenebilir)
     // TODO: Schema'ya metaTitle, metaDescription, canonicalUrl alanları eklendiğinde burayı güncelle

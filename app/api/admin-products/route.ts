@@ -119,6 +119,7 @@ export async function POST(req: Request) {
       name,
       slug,
       stockCode,
+      barcode,
       description,
       detailText,
       price,
@@ -139,6 +140,15 @@ export async function POST(req: Request) {
       brand,
       weight
     } = body;
+
+    // Unique Barcode kontrolü
+    let finalBarcode = barcode;
+    if (finalBarcode) {
+      const existing = await prisma.product.findFirst({ where: { barcode: finalBarcode } });
+      if (existing) {
+        throw new Error(`Barkod (${finalBarcode}) zaten kullanımda.`);
+      }
+    }
 
     // Gender normalization (handle "Unisex" -> "UNISEX")
     const genderKey = gender ? gender.toUpperCase() : undefined;
@@ -191,6 +201,8 @@ export async function POST(req: Request) {
       }
     }
 
+
+
     // 1. Ürünü ve doğrudan ilişkili verileri (Sizes, Tags, SizeOptions) oluştur
     const product = await prisma.product.create({
       data: {
@@ -212,6 +224,8 @@ export async function POST(req: Request) {
         brand: brand || undefined,
         weight: weight ? parseFloat(weight) : undefined,
         isActive: isActive !== undefined ? isActive : true,
+        isTrackInventory: body.isTrackInventory ?? true,
+        allowBackorders: body.allowBackorders ?? false,
 
         // Bedenler (Eğer sizes varsa sizes'dan, yoksa sizeOptions'tan oluştur)
         sizes: sizes && sizes.length > 0

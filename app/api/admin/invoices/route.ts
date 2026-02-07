@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 
@@ -116,7 +116,7 @@ export async function POST(req: Request) {
             address: order.billingAddress || order.shippingAddress,
         };
 
-        const itemsSnapshot = order.items.map(item => ({
+        const itemsSnapshot = order.items.map((item: any) => ({
             productName: item.productName,
             quantity: item.quantity,
             unitPrice: item.unitPrice,

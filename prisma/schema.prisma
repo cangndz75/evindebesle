@@ -1097,6 +1097,22 @@ enum TicketStatus {
 }
 
 // ==========================================
+// Admin Bildirim Sistemi
+// ==========================================
+model AdminNotification {
+  id        String   @id @default(cuid())
+  type      String   // ORDER, STOCK, RETURN, SYSTEM, SUPPORT
+  title     String
+  message   String
+  link      String?  // Optional link to relevant page (e.g. /admin-orders/123)
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+// ==========================================
 // Fiyat ve Stok Bildirimleri
 // ==========================================
 model PriceAlert {

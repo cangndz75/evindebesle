@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { iyzico, iyzicoCall } from "@/lib/iyzico";
 import { commitReservationToSaleTx } from "@/lib/stock";
+import { createAdminNotification } from "@/lib/admin-notification";
 
 /**
  * Iyzico Webhook Handler
@@ -76,6 +77,15 @@ export async function POST(req: NextRequest) {
             ]);
 
             console.log(`Webhook: Order ${payment.orderId} successfully updated via webhook.`);
+
+            // Notify Admins
+            await createAdminNotification({
+                type: "ORDER",
+                title: "Yeni Sipariş Alındı",
+                message: `#${payment.order.orderNumber} numaralı sipariş başarıyla oluşturuldu.`,
+                link: `/admin-orders/${payment.orderId}`
+            });
+
             return NextResponse.json({ status: "success" });
         } else {
             // Note: We don't necessarily fail the order here because 

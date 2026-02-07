@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePathname } from "next/navigation";
+import { AdminNotificationBell } from "./_components/AdminNotificationBell";
 
 const navSections = [
   {
@@ -230,6 +231,7 @@ export default function AdminLayout({
             <div className="flex items-center gap-2">
               <Home className="w-5 h-5 flex-shrink-0" />
               <h2 className="text-xl font-bold whitespace-nowrap flex-1">Dark Velvet</h2>
+              <AdminNotificationBell />
               <button
                 onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
                 className="flex-shrink-0 p-1 hover:bg-gray-800 rounded transition-colors"
@@ -241,6 +243,7 @@ export default function AdminLayout({
           ) : (
             <div className="flex flex-col items-center gap-2">
               <Home className="w-5 h-5 flex-shrink-0" />
+              <AdminNotificationBell />
               <button
                 onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
                 className="w-full flex items-center justify-center p-1.5 hover:bg-gray-800 rounded transition-colors"

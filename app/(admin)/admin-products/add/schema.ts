@@ -77,14 +77,15 @@ export const productSchema = z.object({
     message: "Varyantlı ürün için en az bir varyant (renk) eklemelisiniz",
     path: ["variants"],
 }).refine((data) => {
-    // Validate that originalPrice (List Price) is >= price (Selling Price)
-    // ONLY if originalPrice is provided and greater than 0
+    // Validate that originalPrice (List Price) is NOT greater than price (Selling Price)
+    // As per user request: "İndirimsiz fiyat, satış fiyatından büyük olamaz"
+    // This implies we cannot show a discount (Original > Price) but rather the opposite or equal.
     if (data.originalPrice && data.originalPrice > 0) {
-        return data.originalPrice >= data.price;
+        return data.originalPrice <= data.price;
     }
     return true;
 }, {
-    message: "İndirimsiz fiyat, satış fiyatından küçük olamaz",
+    message: "İndirimsiz fiyat, satış fiyatından büyük olamaz",
     path: ["originalPrice"],
 });
 

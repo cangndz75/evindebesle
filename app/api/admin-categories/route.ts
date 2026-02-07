@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     }
 
     const categories = await prisma.category.findMany({
-      orderBy: { createdAt: "desc" },
+      orderBy: { sortOrder: "asc" },
       include: {
         _count: {
           select: {
@@ -41,7 +41,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { name, description, isActive } = body;
+    const { name, description, isActive, image } = body;
 
     if (!name) {
       return NextResponse.json(
@@ -70,12 +70,20 @@ export async function POST(req: Request) {
       counter++;
     }
 
+    // En yüksek sortOrder'ı bul
+    const maxSortOrder = await prisma.category.aggregate({
+      _max: { sortOrder: true },
+    });
+    const nextSortOrder = (maxSortOrder._max.sortOrder ?? -1) + 1;
+
     const category = await prisma.category.create({
       data: {
         name,
         slug: finalSlug,
         description: description || null,
         isActive: isActive !== undefined ? isActive : true,
+        image: image || null,
+        sortOrder: nextSortOrder,
       },
     });
 

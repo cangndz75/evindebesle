@@ -5,6 +5,7 @@ import ByltStyleHero from "@/components/home/ByltStyleHero";
 import ProductShowcase from "@/components/home/ProductShowcase";
 import HomeHeader from "@/components/home/HomeHeader";
 import CategoryShowcase from "@/components/home/CategoryShowcase";
+import HomeCategoryRail from "@/components/home/HomeCategoryRail";
 
 // Lazy load büyük componentler
 const EditorialBanner = dynamic(() => import("@/components/home/EditorialBanner"), {
@@ -384,6 +385,32 @@ async function getFeaturedProducts(): Promise<Product[]> {
   }
 }
 
+// Kategorileri getir
+type CategoryForRail = {
+  id: string;
+  name: string;
+  slug: string;
+  image: string | null;
+};
+
+async function getCategories(): Promise<CategoryForRail[]> {
+  try {
+    const categories = await prisma.category.findMany({
+      where: { isActive: true },
+      orderBy: { sortOrder: "asc" },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        image: true,
+      },
+    });
+    return categories;
+  } catch (error) {
+    console.error("Error fetching categories:", error);
+    return [];
+  }
+}
 
 import { Metadata } from "next";
 
@@ -433,18 +460,20 @@ export const metadata: Metadata = {
 
 export default async function HomePage() {
   // Paralel olarak tüm verileri çek (performans için)
-  const [newArrivals, newArrivalsWomen, newArrivalsMen, bestSellersWomen, bestSellersMen, featuredProducts] = await Promise.all([
+  const [newArrivals, newArrivalsWomen, newArrivalsMen, bestSellersWomen, bestSellersMen, featuredProducts, categories] = await Promise.all([
     getNewArrivals(), // Tüm yeni gelenler
     getNewArrivals("FEMALE"), // Kadın yeni gelenler
     getNewArrivals("MALE"), // Erkek yeni gelenler
     getBestSellers("FEMALE"),
     getBestSellers("MALE"),
     getFeaturedProducts(), // Öne çıkan ürünler (ProductShowcase için)
+    getCategories(), // Kategoriler
   ]);
 
   return (
     <>
       <HomeHeader />
+      <HomeCategoryRail categories={categories} />
       <ByltStyleHero />
       <ProductShowcase products={featuredProducts} />
       <EditorialBanner />

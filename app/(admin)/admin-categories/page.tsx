@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   flexRender,
   getCoreRowModel,
@@ -16,6 +16,24 @@ import {
 } from "@tanstack/react-table";
 
 import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+
+import {
   Table,
   TableBody,
   TableCell,
@@ -26,7 +44,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ChevronLeftIcon, ChevronRightIcon, Edit, Trash2, Plus, Search } from "lucide-react";
+import { ChevronLeftIcon, ChevronRightIcon, Edit, Trash2, Plus, Search, GripVertical, Upload, X, Image as ImageIcon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
@@ -39,12 +57,15 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import Image from "next/image";
 
 type Category = {
   id: string;
   name: string;
   slug: string;
   description?: string;
+  image?: string | null;
+  sortOrder: number;
   isActive: boolean;
   createdAt: string;
   _count?: {
@@ -53,6 +74,39 @@ type Category = {
   };
 };
 
+// Sortable Row Component
+function SortableRow({ id, children }: { id: string; children: React.ReactNode }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <TableRow ref={setNodeRef} style={style} className={isDragging ? "bg-gray-100" : ""}>
+      <TableCell className="w-10">
+        <button
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing p-1 hover:bg-gray-100 rounded"
+        >
+          <GripVertical className="h-4 w-4 text-gray-400" />
+        </button>
+      </TableCell>
+      {children}
+    </TableRow>
+  );
+}
+
 export default function CategoriesPage() {
   const [data, setData] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,7 +114,7 @@ export default function CategoriesPage() {
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
-    pageSize: 10,
+    pageSize: 50,
   });
   const [sorting, setSorting] = useState<SortingState>([]);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -69,12 +123,23 @@ export default function CategoriesPage() {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [reordering, setReordering] = useState(false);
 
   // Form state
   const [formName, setFormName] = useState("");
   const [formDescription, setFormDescription] = useState("");
   const [formIsActive, setFormIsActive] = useState(true);
+  const [formImage, setFormImage] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // DnD sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const fetchCategories = async () => {
     setLoading(true);
@@ -96,11 +161,53 @@ export default function CategoriesPage() {
     fetchCategories();
   }, []);
 
+  // Image upload handler
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      toast.error("Lütfen geçerli bir resim dosyası seçin");
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Resim boyutu 5MB'dan küçük olmalıdır");
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("folder", "categories");
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) throw new Error("Yükleme başarısız");
+
+      const data = await res.json();
+      setFormImage(data.url);
+      toast.success("Resim yüklendi");
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error("Resim yüklenirken bir hata oluştu");
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const handleAdd = () => {
     setEditingCategory(null);
     setFormName("");
     setFormDescription("");
     setFormIsActive(true);
+    setFormImage(null);
     setAddDialogOpen(true);
   };
 
@@ -109,6 +216,7 @@ export default function CategoriesPage() {
     setFormName(category.name);
     setFormDescription(category.description || "");
     setFormIsActive(category.isActive);
+    setFormImage(category.image || null);
     setEditDialogOpen(true);
   };
 
@@ -132,6 +240,7 @@ export default function CategoriesPage() {
           name: formName.trim(),
           description: formDescription.trim() || null,
           isActive: formIsActive,
+          image: formImage || null,
         }),
       });
 
@@ -177,25 +286,67 @@ export default function CategoriesPage() {
     }
   };
 
+  // Drag and drop handler
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = data.findIndex((item) => item.id === active.id);
+    const newIndex = data.findIndex((item) => item.id === over.id);
+
+    const newData = arrayMove(data, oldIndex, newIndex);
+    setData(newData);
+
+    // Update sortOrder values
+    const updates = newData.map((item, index) => ({
+      id: item.id,
+      sortOrder: index,
+    }));
+
+    setReordering(true);
+    try {
+      const res = await fetch("/api/admin-categories/reorder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items: updates }),
+      });
+
+      if (!res.ok) throw new Error("Sıralama kaydedilemedi");
+      toast.success("Sıralama güncellendi");
+    } catch (error) {
+      console.error("Reorder error:", error);
+      toast.error("Sıralama kaydedilemedi");
+      fetchCategories(); // Rollback
+    } finally {
+      setReordering(false);
+    }
+  };
+
   const columns: ColumnDef<Category>[] = [
     {
-      id: "select",
-      header: ({ table }) => (
-        <Checkbox
-          checked={table.getIsAllPageRowsSelected()}
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Tümünü seç"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Satırı seç"
-        />
-      ),
-      enableSorting: false,
-      enableHiding: false,
+      accessorKey: "image",
+      header: "Görsel",
+      cell: ({ row }) => {
+        const image = row.original.image;
+        return (
+          <div className="w-12 h-16 relative rounded overflow-hidden bg-gray-100">
+            {image ? (
+              <Image
+                src={image}
+                alt={row.original.name}
+                fill
+                className="object-cover"
+                sizes="48px"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <ImageIcon className="w-5 h-5 text-gray-400" />
+              </div>
+            )}
+          </div>
+        );
+      },
     },
     {
       accessorKey: "name",
@@ -209,15 +360,6 @@ export default function CategoriesPage() {
       header: "Slug",
       cell: ({ row }) => (
         <div className="text-sm text-gray-500">{row.getValue("slug")}</div>
-      ),
-    },
-    {
-      accessorKey: "description",
-      header: "Açıklama",
-      cell: ({ row }) => (
-        <div className="max-w-xs truncate text-sm text-gray-600">
-          {row.getValue("description") || "-"}
-        </div>
       ),
     },
     {
@@ -238,11 +380,10 @@ export default function CategoriesPage() {
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           <span
-            className={`px-2 py-1 rounded-full text-xs font-medium ${
-              row.getValue("isActive")
-                ? "bg-green-100 text-green-800"
-                : "bg-gray-100 text-gray-800"
-            }`}
+            className={`px-2 py-1 rounded-full text-xs font-medium ${row.getValue("isActive")
+              ? "bg-green-100 text-green-800"
+              : "bg-gray-100 text-gray-800"
+              }`}
           >
             {row.getValue("isActive") ? "Aktif" : "Pasif"}
           </span>
@@ -295,8 +436,6 @@ export default function CategoriesPage() {
     },
   });
 
-  const filteredData = table.getFilteredRowModel().rows;
-
   if (loading) {
     return (
       <div className="p-6 space-y-4">
@@ -306,10 +445,93 @@ export default function CategoriesPage() {
     );
   }
 
+  // Form Dialog Content
+  const FormDialogContent = () => (
+    <div className="space-y-4">
+      <div>
+        <Label htmlFor="name">Kategori Adı *</Label>
+        <Input
+          id="name"
+          value={formName}
+          onChange={(e) => setFormName(e.target.value)}
+          placeholder="Kategori adı"
+          className="mt-1"
+        />
+      </div>
+      <div>
+        <Label htmlFor="description">Açıklama</Label>
+        <Textarea
+          id="description"
+          value={formDescription}
+          onChange={(e) => setFormDescription(e.target.value)}
+          placeholder="Kategori açıklaması"
+          className="mt-1"
+          rows={3}
+        />
+      </div>
+
+      {/* Image Upload */}
+      <div>
+        <Label>Kategori Görseli (Dikey)</Label>
+        <div className="mt-2">
+          {formImage ? (
+            <div className="relative w-32 h-44 rounded-lg overflow-hidden bg-gray-100 group">
+              <Image
+                src={formImage}
+                alt="Kategori görseli"
+                fill
+                className="object-cover"
+              />
+              <button
+                onClick={() => setFormImage(null)}
+                className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          ) : (
+            <label className="flex flex-col items-center justify-center w-32 h-44 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 transition-colors">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+                disabled={uploadingImage}
+              />
+              {uploadingImage ? (
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-600" />
+              ) : (
+                <>
+                  <Upload className="w-6 h-6 text-gray-400 mb-2" />
+                  <span className="text-xs text-gray-500">Resim Yükle</span>
+                </>
+              )}
+            </label>
+          )}
+          <p className="text-xs text-gray-500 mt-1">Önerilen oran: 3:4 (dikey)</p>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <Switch
+          id="isActive"
+          checked={formIsActive}
+          onCheckedChange={setFormIsActive}
+        />
+        <Label htmlFor="isActive">Aktif</Label>
+      </div>
+    </div>
+  );
+
   return (
     <div className="p-6 space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Kategoriler</h1>
+        <div>
+          <h1 className="text-2xl font-bold">Kategoriler</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Sıralamaları değiştirmek için sürükleyip bırakın
+          </p>
+        </div>
         <Button onClick={handleAdd}>
           <Plus className="h-4 w-4 mr-2" />
           Yeni Kategori
@@ -329,76 +551,66 @@ export default function CategoriesPage() {
             className="pl-10"
           />
         </div>
+        {reordering && (
+          <span className="text-sm text-gray-500 animate-pulse">
+            Sıralama kaydediliyor...
+          </span>
+        )}
       </div>
 
       <div className="border rounded-lg">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-10"></TableHead>
+                {table.getHeaderGroups()[0]?.headers.map((header) => (
                   <TableHead key={header.id}>
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
                   </TableHead>
                 ))}
               </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {filteredData.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={columns.length} className="text-center py-8">
-                  Kategori bulunamadı
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredData.map((row) => (
-                <TableRow key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
+            </TableHeader>
+            <TableBody>
+              <SortableContext
+                items={data.map((d) => d.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                {data.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={columns.length + 1} className="text-center py-8">
+                      Kategori bulunamadı
                     </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+                  </TableRow>
+                ) : (
+                  table.getRowModel().rows.map((row) => (
+                    <SortableRow key={row.original.id} id={row.original.id}>
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
+                      ))}
+                    </SortableRow>
+                  ))
+                )}
+              </SortableContext>
+            </TableBody>
+          </Table>
+        </DndContext>
       </div>
 
       <div className="flex items-center justify-between">
         <div className="text-sm text-gray-500">
-          Toplam {filteredData.length} kategori
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            <ChevronLeftIcon className="h-4 w-4" />
-          </Button>
-          <div className="text-sm">
-            Sayfa {table.getState().pagination.pageIndex + 1} /{" "}
-            {table.getPageCount()}
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            <ChevronRightIcon className="h-4 w-4" />
-          </Button>
+          Toplam {data.length} kategori
         </div>
       </div>
 
@@ -408,42 +620,12 @@ export default function CategoriesPage() {
           <DialogHeader>
             <DialogTitle>Yeni Kategori Ekle</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="name">Kategori Adı *</Label>
-              <Input
-                id="name"
-                value={formName}
-                onChange={(e) => setFormName(e.target.value)}
-                placeholder="Kategori adı"
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label htmlFor="description">Açıklama</Label>
-              <Textarea
-                id="description"
-                value={formDescription}
-                onChange={(e) => setFormDescription(e.target.value)}
-                placeholder="Kategori açıklaması"
-                className="mt-1"
-                rows={3}
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <Switch
-                id="isActive"
-                checked={formIsActive}
-                onCheckedChange={setFormIsActive}
-              />
-              <Label htmlFor="isActive">Aktif</Label>
-            </div>
-          </div>
+          <FormDialogContent />
           <DialogFooter>
             <Button variant="outline" onClick={() => setAddDialogOpen(false)}>
               İptal
             </Button>
-            <Button onClick={handleSave} disabled={saving}>
+            <Button onClick={handleSave} disabled={saving || uploadingImage}>
               {saving ? "Kaydediliyor..." : "Kaydet"}
             </Button>
           </DialogFooter>
@@ -456,42 +638,12 @@ export default function CategoriesPage() {
           <DialogHeader>
             <DialogTitle>Kategori Düzenle</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="edit-name">Kategori Adı *</Label>
-              <Input
-                id="edit-name"
-                value={formName}
-                onChange={(e) => setFormName(e.target.value)}
-                placeholder="Kategori adı"
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit-description">Açıklama</Label>
-              <Textarea
-                id="edit-description"
-                value={formDescription}
-                onChange={(e) => setFormDescription(e.target.value)}
-                placeholder="Kategori açıklaması"
-                className="mt-1"
-                rows={3}
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <Switch
-                id="edit-isActive"
-                checked={formIsActive}
-                onCheckedChange={setFormIsActive}
-              />
-              <Label htmlFor="edit-isActive">Aktif</Label>
-            </div>
-          </div>
+          <FormDialogContent />
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
               İptal
             </Button>
-            <Button onClick={handleSave} disabled={saving}>
+            <Button onClick={handleSave} disabled={saving || uploadingImage}>
               {saving ? "Kaydediliyor..." : "Kaydet"}
             </Button>
           </DialogFooter>

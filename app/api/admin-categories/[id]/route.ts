@@ -54,7 +54,7 @@ export async function PATCH(
 
     const { id } = await params;
     const body = await request.json();
-    const { name, description, isActive } = body;
+    const { name, description, isActive, image } = body;
 
     const updateData: any = {};
 
@@ -89,6 +89,7 @@ export async function PATCH(
 
     if (description !== undefined) updateData.description = description;
     if (isActive !== undefined) updateData.isActive = isActive;
+    if (image !== undefined) updateData.image = image || null;
 
     const category = await prisma.category.update({
       where: { id },

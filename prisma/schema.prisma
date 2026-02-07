@@ -799,6 +799,7 @@ enum Gender {
 enum SizeType {
   LETTER
   NUMBER
+  CUP
 }
 
 enum OrderStatus {

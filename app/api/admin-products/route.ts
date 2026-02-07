@@ -155,6 +155,13 @@ export async function POST(req: Request) {
     const validGenders = ["MALE", "FEMALE", "UNISEX"];
     const finalGender = validGenders.includes(genderKey) ? genderKey : undefined;
 
+    // SizeType normalization (handle "letter" -> "LETTER")
+    const sizeTypeKey = sizeType ? sizeType.toUpperCase() : undefined;
+    // Note: If 'cup' is sent but not in enum, it will fail unless we add it or filter it. 
+    // Assuming enum is LETTER, NUMBER for now based on error.
+    const validSizeTypes = ["LETTER", "NUMBER", "CUP"];
+    const finalSizeType = validSizeTypes.includes(sizeTypeKey) ? sizeTypeKey : undefined;
+
     // Kategori kontrolü
     let categoryName: string | null = null;
     if (categoryId) {
@@ -218,7 +225,7 @@ export async function POST(req: Request) {
         primaryImage: primaryImage || image || undefined,
         secondaryImage: secondaryImage || undefined,
         gender: finalGender,
-        sizeType: sizeType || undefined,
+        sizeType: finalSizeType,
         fabricType: fabricType || undefined,
         categoryId: categoryId || undefined,
         brand: brand || undefined,

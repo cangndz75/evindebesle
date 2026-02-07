@@ -48,6 +48,8 @@ export default function AddProductPage() {
       primaryImage: "",
       secondaryImage: "",
       simpleStock: {},
+      mainColorName: "",
+      mainColorHex: "",
     },
     mode: "onChange",
   });
@@ -185,7 +187,16 @@ export default function AddProductPage() {
           sizes: SIZE_OPTIONS[data.sizeType], // Use default full list or potentially filtered
           stock: v.stock,
           sizeStocks: v.stock
-        })) : [],
+        })) :
+          // If simple product BUT has main color defined, send it as a single color variant
+          (data.mainColorName && data.mainColorHex) ? [{
+            name: data.mainColorName,
+            hexCode: data.mainColorHex,
+            images: [], // or use primary/secondary if we want to link them specific to this color
+            sizes: Object.keys(data.simpleStock || {}),
+            stock: data.simpleStock,
+            sizeStocks: data.simpleStock
+          }] : [],
         // Simple product mapping
         sizes: !data.isVariable
           ? Object.entries(data.simpleStock || {}).map(([name, stock]) => ({ name, stock }))
@@ -309,8 +320,8 @@ export default function AddProductPage() {
                 sizeType={watch("sizeType")} setSizeType={(val) => setValue("sizeType", val)}
                 mainStock={watch("simpleStock") || {}} setMainStock={(val) => setValue("simpleStock", val)}
                 isVariable={watch("isVariable")}
-                mainColorName="-" setMainColorName={() => { }} // Not needed for simple
-                mainColorHex="-" setMainColorHex={() => { }}
+                mainColorName={watch("mainColorName")} setMainColorName={(val) => setValue("mainColorName", val)}
+                mainColorHex={watch("mainColorHex")} setMainColorHex={(val) => setValue("mainColorHex", val)}
                 isTrackInventory={watch("isTrackInventory")}
               />
 
@@ -320,7 +331,6 @@ export default function AddProductPage() {
                 sizeType={watch("sizeType")} setSizeType={(val) => setValue("sizeType", val)}
                 availableSizes={SIZE_OPTIONS[watch("sizeType")]}
                 /* Use custom mapping for UI Component which expects different structure */
-                /* Use custom mapping for UI Component which expects different structure */
                 colors={(watch("variants") || []).map(v => ({
                   id: Math.random().toString(36).substring(7),
                   name: v.colorName,
@@ -328,7 +338,10 @@ export default function AddProductPage() {
                   images: v.images,
                   sizes: v.stock ? Object.keys(v.stock) : [],
                   stock: v.stock,
-                  isOpen: false
+                  isOpen: v.isOpen ?? false,
+                  price: v.price?.toString(),
+                  originalPrice: v.originalPrice?.toString(),
+                  useMainPrice: v.useMainPrice ?? true
                 })) as any}
                 setColors={(newColors) => {
                   // Convert UI 'color' objects back to schema 'variant' objects
@@ -336,11 +349,17 @@ export default function AddProductPage() {
                     colorName: c.name,
                     hexCode: c.hexCode,
                     images: c.images || [],
-                    stock: c.stock || c.sizeStocks || {}
+                    stock: c.stock || c.sizeStocks || {},
+                    isOpen: c.isOpen,
+                    price: c.price ? Number(c.price) : undefined,
+                    originalPrice: c.originalPrice ? Number(c.originalPrice) : undefined,
+                    useMainPrice: c.useMainPrice
                   }));
                   setValue("variants", variants);
                 }}
                 onColorImageUpload={handleColorImageUpload}
+                mainPrice={String(watch("price"))}
+                mainOriginalPrice={String(watch("originalPrice") || "")}
               />
               {errors.variants && <p className="text-red-500 text-sm">{errors.variants.message}</p>}
 

@@ -11,6 +11,12 @@ export const productVariantSchema = z.object({
     stock: z.record(z.string(), z.number().min(0)).refine((val) => Object.keys(val).length > 0, {
         message: "En az bir beden stoğu girmelisiniz",
     }),
+    isOpen: z.boolean().optional(),
+
+    // Pricing Override
+    price: z.coerce.number().optional(),
+    originalPrice: z.coerce.number().optional(),
+    useMainPrice: z.boolean().default(true),
 });
 
 export const productSchema = z.object({
@@ -56,9 +62,13 @@ export const productSchema = z.object({
     primaryImage: z.string().optional(),
     secondaryImage: z.string().optional(),
     uploadedImages: z.array(z.string()).default([]),
+
+    // NEW: Main Color for Simple Products
+    mainColorName: z.string().optional(),
+    mainColorHex: z.string().optional(),
 }).refine((data) => {
     if (data.isVariable) {
-        return data.variants && data.variants.length > 0;
+        return data.variants && data.variants && data.variants.length > 0;
     } else {
         // If simple, strictly speaking we might want check stock > 0 but it's optional
         return true;
@@ -66,6 +76,16 @@ export const productSchema = z.object({
 }, {
     message: "Varyantlı ürün için en az bir varyant (renk) eklemelisiniz",
     path: ["variants"],
+}).refine((data) => {
+    // Validate that originalPrice (List Price) is >= price (Selling Price)
+    // ONLY if originalPrice is provided and greater than 0
+    if (data.originalPrice && data.originalPrice > 0) {
+        return data.originalPrice >= data.price;
+    }
+    return true;
+}, {
+    message: "İndirimsiz fiyat, satış fiyatından küçük olamaz",
+    path: ["originalPrice"],
 });
 
 export type ProductFormValues = z.infer<typeof productSchema>;

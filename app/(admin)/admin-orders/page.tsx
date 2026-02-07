@@ -36,7 +36,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MoreVertical, Eye, Package, Truck, CheckCircle, XCircle, Search, Bell, Download, Filter, Clock } from "lucide-react";
+import { MoreVertical, Eye, Package, Truck, CheckCircle, XCircle, Search, Bell, Download, Filter, Clock, FileText } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -143,6 +143,30 @@ export default function AdminOrdersPage() {
       }
     } catch (error) {
       toast.error("Sipariş durumu güncellenirken bir hata oluştu");
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
+
+  const handleCreateInvoice = async (orderId: string) => {
+    try {
+      setUpdatingStatus(true);
+      const res = await fetch("/api/admin/invoices", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId }),
+      });
+
+      if (res.ok) {
+        const invoice = await res.json();
+        toast.success("Fatura başarıyla oluşturuldu");
+        router.push(`/admin-invoices/${invoice.id}`);
+      } else {
+        const msg = await res.text();
+        toast.error(msg || "Fatura oluşturulamadı");
+      }
+    } catch (error) {
+      toast.error("Bir hata oluştu");
     } finally {
       setUpdatingStatus(false);
     }
@@ -463,6 +487,10 @@ export default function AdminOrdersPage() {
                             Hazırlanıyor Yap
                           </DropdownMenuItem>
                         )}
+                        <DropdownMenuItem onClick={() => handleCreateInvoice(order.id)}>
+                          <FileText className="w-4 h-4 mr-2" />
+                          Fatura Oluştur
+                        </DropdownMenuItem>
                         {order.status !== "SHIPPED" && order.status !== "DELIVERED" && order.status !== "CANCELLED" && (
                           <DropdownMenuItem
                             onClick={() => {

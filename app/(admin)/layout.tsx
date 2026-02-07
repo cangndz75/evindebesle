@@ -55,6 +55,16 @@ const navSections = [
         href: "/admin-stock",
         icon: <Package className="w-5 h-5" />,
       },
+      {
+        label: "Faturalar",
+        href: "/admin-invoices",
+        icon: <FileText className="w-5 h-5" />,
+      },
+      {
+        label: "İşlemler",
+        href: "/admin-transactions",
+        icon: <Briefcase className="w-5 h-5" />,
+      },
     ],
   },
   {

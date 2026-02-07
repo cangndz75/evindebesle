@@ -545,6 +545,42 @@ model Order {
   @@index([orderNumber])
   @@index([status])
   @@index([createdAt])
+
+  invoices Invoice[]
+}
+
+model Invoice {
+  id              String        @id @default(cuid())
+  invoiceNumber   String        @unique // F-20240001 gibi
+  orderId         String
+  status          InvoiceStatus @default(DRAFT)
+  
+  // Snapshot data (fatura kesildiği andaki bilgiler)
+  companyDetails  Json          // Şirket bilgileri
+  customerDetails Json          // Müşteri bilgileri
+  items           Json          // Ürün kalemleri
+  
+  subtotal        Float
+  taxAmount       Float
+  totalAmount     Float
+  
+  issuedAt        DateTime?
+  dueDate         DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  order           Order         @relation(fields: [orderId], references: [id])
+
+  @@index([orderId])
+  @@index([invoiceNumber])
+  @@index([status])
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PAID
+  CANCELLED
 }
 
 model AuditLog {

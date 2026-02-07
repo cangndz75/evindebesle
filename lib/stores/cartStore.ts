@@ -374,6 +374,10 @@ export const useCartStore = create<CartState>((set, get) => ({
     if (currentItem?.isGuest) {
       try {
         removeFromGuestCart(itemId);
+        // Event tetikle
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("cartUpdated"));
+        }
       } catch (e) {
         console.error("Error removing from guest cart:", e);
         // Hata durumunda refresh
@@ -388,10 +392,18 @@ export const useCartStore = create<CartState>((set, get) => ({
       if (res.ok) {
         // API'den güncel cart'ı al
         await get().refreshCart();
+        // Event tetikle
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("cartUpdated"));
+        }
       } else if (res.status === 401) {
         // Guest kullanıcı - localStorage'dan sil
         try {
           removeFromGuestCart(itemId);
+          // Event tetikle
+          if (typeof window !== "undefined") {
+            window.dispatchEvent(new Event("cartUpdated"));
+          }
         } catch (e) {
           // Sessizce devam et
         }
@@ -413,6 +425,10 @@ export const useCartStore = create<CartState>((set, get) => ({
       if (res.ok) {
         const items = await res.json();
         set({ items, isReady: true });
+        // Event tetikle
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("cartUpdated"));
+        }
       } else if (res.status === 401) {
         // Guest kullanıcı - localStorage'dan yükle
         const guestCart = getGuestCart();
@@ -420,6 +436,10 @@ export const useCartStore = create<CartState>((set, get) => ({
           set({ items: formatGuestCart(guestCart), isReady: true });
         } else {
           set({ items: [], isReady: true });
+        }
+        // Event tetikle
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("cartUpdated"));
         }
       }
     } catch (error) {

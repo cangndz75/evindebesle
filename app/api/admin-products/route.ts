@@ -269,89 +269,86 @@ export async function POST(req: Request) {
       },
     });
 
-    // 2. ProductImage kayıtlarını oluştur (Primary ve Secondary)
+
+
+    // 2. ProductImage kayıtlarını toplu oluştur (Primary ve Secondary)
+    const productImagesToCreate: any[] = [];
     let imageOrder = 0;
 
-    // Primary Image
     if (primaryImage || image) {
-      await prisma.productImage.create({
-        data: {
-          productId: product.id,
-          url: primaryImage || image,
-          isPrimary: true,
-          isSecondary: false,
-          order: imageOrder++,
-          alt: `${name} - Ana Görsel`,
-        },
+      productImagesToCreate.push({
+        productId: product.id,
+        url: primaryImage || image,
+        isPrimary: true,
+        isSecondary: false,
+        order: imageOrder++,
+        alt: `${name} - Ana Görsel`,
       });
     }
 
-    // Secondary Image
     if (secondaryImage) {
-      await prisma.productImage.create({
-        data: {
-          productId: product.id,
-          url: secondaryImage,
-          isPrimary: false,
-          isSecondary: true,
-          order: imageOrder++,
-          alt: `${name} - İkinci Görsel`,
-        },
+      productImagesToCreate.push({
+        productId: product.id,
+        url: secondaryImage,
+        isPrimary: false,
+        isSecondary: true,
+        order: imageOrder++,
+        alt: `${name} - İkinci Görsel`,
       });
     }
 
-    // 3. Renkleri Oluştur
-    // Frontend artık Base64 değil, Cloudinary URL'leri gönderiyor.
+    // 3. Renkleri toplu oluştur
     if (colors && colors.length > 0) {
-      for (const c of colors) {
-        const existing = await prisma.productColor.findFirst({
-          where: { productId: product.id, name: c.name },
-        });
+      const colorData = colors.map((c: any) => ({
+        productId: product.id,
+        name: c.name,
+        hexCode: c.hexCode || null,
+        description: c.description || null,
+        images: Array.isArray(c.images) ? JSON.stringify(c.images) : (c.images || null),
+      }));
 
-        let colorRecord;
-        if (!existing) {
-          colorRecord = await prisma.productColor.create({
-            data: {
+      await prisma.productColor.createMany({
+        data: colorData,
+        skipDuplicates: true,
+      });
+
+      // Renk görsellerini ekle
+      const createdColors = await prisma.productColor.findMany({ where: { productId: product.id } });
+
+      for (const color of createdColors) {
+        const originalColor = colors.find((c: any) => c.name === color.name);
+        if (originalColor?.images && Array.isArray(originalColor.images)) {
+          for (const imgUrl of originalColor.images) {
+            productImagesToCreate.push({
               productId: product.id,
-              name: c.name,
-              hexCode: c.hexCode || undefined,
-              description: c.description || undefined,
-              // Gelen images array'ini veritabanına JSON string olarak kaydediyoruz
-              images: Array.isArray(c.images) ? JSON.stringify(c.images) : (c.images || null),
-            },
-          });
-        } else {
-          colorRecord = existing;
-        }
-
-        // Renk için ProductImage kayıtları oluştur
-        if (c.images && Array.isArray(c.images) && c.images.length > 0) {
-          for (let i = 0; i < c.images.length; i++) {
-            await prisma.productImage.create({
-              data: {
-                productId: product.id,
-                colorId: colorRecord.id,
-                url: c.images[i],
-                isPrimary: false,
-                isSecondary: false,
-                order: imageOrder++,
-                alt: `${name} - ${c.name} ${i + 1}`,
-              },
+              colorId: color.id,
+              url: imgUrl,
+              isPrimary: false,
+              isSecondary: false,
+              order: imageOrder++,
+              alt: `${name} - ${color.name}`,
             });
           }
         }
       }
     }
 
-    // 3. Varyantları (Stok Kartlarını) Oluştur
+    // Tüm görselleri toplu oluştur
+    if (productImagesToCreate.length > 0) {
+      await prisma.productImage.createMany({
+        data: productImagesToCreate,
+      });
+    }
+
+    // 4. Varyantları toplu oluştur
+    const variantsToCreate: any[] = [];
+
     if (colors && colors.length > 0) {
       const createdColors = await prisma.productColor.findMany({ where: { productId: product.id } });
       const createdSizes = await prisma.productSize.findMany({ where: { productId: product.id } });
 
       for (const color of createdColors) {
         const colorData = colors.find((c: any) => c.name === color.name);
-
-        // Eğer bu renk için özel bedenler seçilmişse sadece onları kullan, yoksa hepsini
         const colorSizes = colorData?.sizes && colorData.sizes.length > 0
           ? createdSizes.filter((s: any) => colorData.sizes.includes(s.name))
           : createdSizes;
@@ -360,51 +357,51 @@ export async function POST(req: Request) {
           for (const size of colorSizes) {
             const variantCode = generateVariantCode();
             const sizeStock = colorData?.sizeStocks?.[size.name] || 0;
-
-            await prisma.productVariant.create({
-              data: {
-                productId: product.id,
-                colorId: color.id,
-                sizeId: size.id,
-                variantCode,
-                price: colorData?.price || undefined,
-                stock: sizeStock,
-              },
+            variantsToCreate.push({
+              productId: product.id,
+              colorId: color.id,
+              sizeId: size.id,
+              variantCode,
+              price: colorData?.price || null,
+              stock: sizeStock,
             });
           }
         } else {
-          // Beden yoksa sadece renk bazlı variant
           const variantCode = generateVariantCode();
-          await prisma.productVariant.create({
-            data: {
-              productId: product.id,
-              colorId: color.id,
-              variantCode,
-              price: colorData?.price || undefined,
-              stock: 0,
-            },
+          variantsToCreate.push({
+            productId: product.id,
+            colorId: color.id,
+            variantCode,
+            price: colorData?.price || null,
+            stock: 0,
           });
         }
       }
     }
 
-    // 4. Renk Yoksa Sadece Beden Bazlı Varyantlar
+    // 5. Renk yoksa sadece beden bazlı varyantlar
     if ((!colors || colors.length === 0) && sizes && sizes.length > 0) {
       const createdSizes = await prisma.productSize.findMany({ where: { productId: product.id } });
       for (const size of createdSizes) {
         const variantCode = generateVariantCode();
-        await prisma.productVariant.create({
-          data: {
-            productId: product.id,
-            sizeId: size.id,
-            variantCode,
-            stock: size.stock || 0,
-          },
+        variantsToCreate.push({
+          productId: product.id,
+          sizeId: size.id,
+          variantCode,
+          stock: size.stock || 0,
         });
       }
     }
 
-    // 5. Kombinleri Oluştur
+    // Tüm varyantları toplu oluştur
+    if (variantsToCreate.length > 0) {
+      await prisma.productVariant.createMany({
+        data: variantsToCreate,
+        skipDuplicates: true,
+      });
+    }
+
+    // 6. Kombinleri Oluştur
     if (combinations && Array.isArray(combinations) && combinations.length > 0) {
       await prisma.productCombination.createMany({
         data: combinations.map((relatedProductId: any) => ({

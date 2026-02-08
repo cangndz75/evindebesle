@@ -78,38 +78,67 @@ export async function GET(
         });
 
         // Puppeteer ile PDF oluştur
-        const browser = await puppeteer.launch({
-            headless: true,
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+        console.log("Starting debug invoice generation...");
+        let browser;
+        try {
+            console.log("Launching puppeteer...");
+            browser = await puppeteer.launch({
+                headless: true,
+                args: [
+                    "--no-sandbox",
+                    "--disable-setuid-sandbox",
+                    "--disable-dev-shm-usage", // Add this to prevent memory issues in some envs
+                    "--disable-gpu"
+                ],
+            });
+            console.log("Puppeteer launched successfully.");
+
+            const page = await browser.newPage();
+            console.log("New page created.");
+
+            await page.setContent(html, { waitUntil: "networkidle0" });
+            console.log("Content set.");
+
+            const pdf = await page.pdf({
+                format: "A4",
+                printBackground: true,
+                margin: {
+                    top: "20mm",
+                    right: "15mm",
+                    bottom: "20mm",
+                    left: "15mm",
+                },
+            });
+            console.log("PDF generated successfully.");
+
+            await browser.close();
+            console.log("Browser closed.");
+
+            // PDF'i döndür - Convert Buffer to Uint8Array for proper type
+            return new NextResponse(Buffer.from(pdf), {
+                headers: {
+                    "Content-Type": "application/pdf",
+                    "Content-Disposition": `attachment; filename="fatura-${order.orderNumber}.pdf"`,
+                },
+            });
+        } catch (puppeteerError) {
+            console.error("Puppeteer specific error:", puppeteerError);
+            if (browser) await browser.close();
+            throw puppeteerError; // Re-throw to be caught by outer catch
+        }
+    } catch (error: any) {
+        console.error("Invoice generation error details:", {
+            message: error.message,
+            stack: error.stack,
+            name: error.name
         });
 
-        const page = await browser.newPage();
-        await page.setContent(html, { waitUntil: "networkidle0" });
-
-        const pdf = await page.pdf({
-            format: "A4",
-            printBackground: true,
-            margin: {
-                top: "20mm",
-                right: "15mm",
-                bottom: "20mm",
-                left: "15mm",
-            },
-        });
-
-        await browser.close();
-
-        // PDF'i döndür - Convert Buffer to Uint8Array for proper type
-        return new NextResponse(Buffer.from(pdf), {
-            headers: {
-                "Content-Type": "application/pdf",
-                "Content-Disposition": `attachment; filename="fatura-${order.orderNumber}.pdf"`,
-            },
-        });
-    } catch (error) {
-        console.error("Invoice generation error:", error);
         return NextResponse.json(
-            { error: "Failed to generate invoice" },
+            {
+                error: "Failed to generate invoice",
+                details: error.message,
+                stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            },
             { status: 500 }
         );
     }

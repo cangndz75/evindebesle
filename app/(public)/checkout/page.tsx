@@ -89,7 +89,9 @@ export default function CheckoutPage() {
         }
     };
 
-    const handleCheckout = async () => {
+    const handleCheckout = async (methodOverride?: "CREDIT_CARD" | "TEST") => {
+        const methodToUse = methodOverride || paymentMethod;
+
         if (!cart || cart.length === 0) {
             toast.error("Sepetiniz boş!");
             return;
@@ -126,7 +128,7 @@ export default function CheckoutPage() {
                     billingAddress: formData,
                     shippingAddress: formData, // Keeping it simple: shipping = billing
                     shippingPrice: shippingPrice,
-                    paymentMethod: paymentMethod, // CREDIT_CARD or TEST
+                    paymentMethod: methodToUse, // CREDIT_CARD or TEST
                     couponCode: couponCode
                 }),
             });
@@ -387,27 +389,28 @@ export default function CheckoutPage() {
                                     <div id="iyzico-checkout-form" className="min-h-[10px]"></div>
                                 </div>
                             )}
-
-                            {/* Option 2: Test Payment */}
-                            <div className={`p-4 flex items-center gap-3 cursor-pointer ${paymentMethod === "TEST" ? "bg-gray-50" : "bg-white"}`}
-                                onClick={() => setPaymentMethod("TEST")}
-                            >
-                                <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${paymentMethod === "TEST" ? "border-black" : "border-gray-300"}`}>
-                                    {paymentMethod === "TEST" && <div className="w-2 h-2 rounded-full bg-black" />}
-                                </div>
-                                <span className="flex-1 font-medium">Test Ödemesi (Kart Gerektirmez)</span>
-                                <Wallet className="w-5 h-5 text-gray-400" />
-                            </div>
                         </div>
                     </div>
 
-                    <button
-                        onClick={handleCheckout}
-                        disabled={loading}
-                        className="w-full bg-black text-white py-4 rounded font-medium text-lg hover:bg-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        {loading ? "İşleniyor..." : `Ödemeyi Tamamla • ${total.toFixed(2)} TL`}
-                    </button>
+                    <div className="space-y-3">
+                        <button
+                            onClick={() => handleCheckout("CREDIT_CARD")}
+                            disabled={loading}
+                            className="w-full bg-black text-white py-4 rounded font-medium text-lg hover:bg-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {loading && paymentMethod === "CREDIT_CARD" ? "İşleniyor..." : `Ödemeyi Tamamla • ${total.toFixed(2)} TL`}
+                        </button>
+
+                        {/* Separate Test Payment Button */}
+                        <button
+                            onClick={() => handleCheckout("TEST")}
+                            disabled={loading}
+                            className="w-full border border-gray-300 text-gray-600 py-3 rounded font-medium text-sm hover:bg-gray-50 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                        >
+                            <Wallet className="w-4 h-4" />
+                            {loading && paymentMethod === "TEST" ? "İşleniyor..." : "Test Siparişi Oluştur (Ödemesiz)"}
+                        </button>
+                    </div>
 
                     <div className="text-xs text-gray-400 text-center mt-4">
                         All rights reserved Goodhood

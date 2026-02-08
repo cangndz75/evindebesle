@@ -116,7 +116,7 @@ export async function POST(req: Request) {
                     total,
                     couponId: couponId,
                     status: "PENDING_PAYMENT", // Will be updated to PAID if successful, or we can set PAID immediately for test
-                    paymentStatus: "paid", // Lowercase enum match if needed, checks schema
+                    paymentStatus: "PAID", // Lowercase enum match if needed, checks schema
                     idempotencyKey: idem,
                     items: {
                         create: orderItemsData.map(({ _variantId, ...rest }: any) => rest)

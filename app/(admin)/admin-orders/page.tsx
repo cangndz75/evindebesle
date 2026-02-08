@@ -86,7 +86,7 @@ export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [activeTab, setActiveTab] = useState<"PAID" | "PREPARING" | "SHIPPED" | "CANCELLED">("PAID");
+  const [activeTab, setActiveTab] = useState<"ALL" | "PAID" | "PREPARING" | "SHIPPED" | "CANCELLED">("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
@@ -205,11 +205,10 @@ export default function AdminOrdersPage() {
   };
 
   const filteredOrders = orders.filter((order) => {
-    // Tab filtresi
-    if (activeTab === "PAID" && order.status !== "PAID") return false;
-    if (activeTab === "PREPARING" && order.status !== "PREPARING") return false;
-    if (activeTab === "SHIPPED" && order.status !== "SHIPPED") return false;
-    if (activeTab === "CANCELLED" && order.status !== "CANCELLED") return false;
+    // Tab filtresi (ALL hariç)
+    if (activeTab !== "ALL") {
+      if (order.status !== activeTab) return false;
+    }
 
     // Ödeme durumu filtresi
     if (paymentFilter !== "all" && order.paymentStatus !== paymentFilter) return false;
@@ -272,6 +271,7 @@ export default function AdminOrdersPage() {
   };
 
   const tabs = [
+    { key: "ALL" as const, label: "Tüm Siparişler", count: orders.length },
     { key: "PAID" as const, label: "Yeni Siparişler", count: orders.filter((o) => o.status === "PAID").length },
     { key: "PREPARING" as const, label: "Hazırlanıyor", count: orders.filter((o) => o.status === "PREPARING").length },
     { key: "SHIPPED" as const, label: "Kargoda", count: orders.filter((o) => o.status === "SHIPPED").length },

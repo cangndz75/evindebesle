@@ -31,7 +31,7 @@ export default function HomeCategoryRail({ categories }: HomeCategoryRailProps) 
     if (!categories || categories.length === 0) return null;
 
     return (
-        <section className="w-full bg-white">
+        <section className="w-full bg-white relative z-[1]">
             <div className="relative">
                 {/* Sol Ok - Desktop */}
                 <button
@@ -51,7 +51,7 @@ export default function HomeCategoryRail({ categories }: HomeCategoryRailProps) 
                         <Link
                             key={category.id}
                             href={`/category/${category.slug}`}
-                            className="group flex-shrink-0 w-[calc(100vw/2.5)] sm:w-[calc(100vw/3.5)] md:w-[calc(100vw/4.5)] lg:w-[calc(100vw/6)] relative"
+                            className="group flex-shrink-0 w-[85vw] sm:w-[45vw] md:w-[calc(100vw/4)] lg:w-[calc(100vw/5)] xl:w-[calc(100vw/6)] relative"
                         >
                             {/* Dikey resim container */}
                             <div className="relative aspect-[3/4] overflow-hidden bg-gray-100">

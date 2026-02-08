@@ -89,16 +89,43 @@ function StickyMobileCard({ item, index, total }: { item: SplitItem; index: numb
 export default function SplitShowcase() {
   return (
     <section className="w-full bg-white py-0">
-      {/* Mobile: Sticky Stacking Layout (Pandora Style) */}
+      {/* Mobile: Horizontal Swipeable Carousel */}
       <div className="md:hidden">
-        <div className="relative">
+        <div
+          className="flex gap-4 overflow-x-auto snap-x snap-mandatory px-4 py-8 scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
           {splitItems.map((item, index) => (
-            <StickyMobileCard
+            <Link
               key={item.id}
-              item={item}
-              index={index}
-              total={splitItems.length}
-            />
+              href={item.href}
+              className="flex-shrink-0 w-[85vw] snap-center group"
+            >
+              {/* Görsel Kart */}
+              <div className="relative aspect-[3/4] overflow-hidden rounded-lg bg-gray-100">
+                <Image
+                  src={item.image}
+                  alt={item.title}
+                  fill
+                  className="object-cover object-center transition-transform duration-500 group-active:scale-105"
+                  sizes="85vw"
+                  priority={index === 0}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+              </div>
+
+              {/* Yazılar - Altta */}
+              <div className="mt-4 text-center">
+                <h3 className="text-xl font-light text-[#111] mb-1">
+                  {item.title}
+                </h3>
+                <p className="text-sm text-gray-600 font-light mb-3">
+                  {item.subtitle}
+                </p>
+                <span className="inline-block px-5 py-2 border border-[#111] text-xs tracking-wider uppercase text-[#111]">
+                  KEŞFET
+                </span>
+              </div>
+            </Link>
           ))}
         </div>
       </div>

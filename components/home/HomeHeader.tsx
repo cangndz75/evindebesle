@@ -477,8 +477,8 @@ export default function HomeHeader() {
                 <CartPreview cartIconRef={cartIconRef} headerBottom={isScrolled ? 80 : 116} />
             </header>
 
-            {/* Spacer when navbar is fixed */}
-            {isScrolled && <div className="h-16 md:h-20" />}
+            {/* Spacer when navbar is fixed - includes banner height */}
+            {isScrolled && <div className="h-[100px] md:h-[116px]" />}
 
             {/* Shopping Cart Sidebar */}
             <ShoppingCart isOpen={cartOpen} onClose={() => setCartOpen(false)} />

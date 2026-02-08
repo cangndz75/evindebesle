@@ -473,10 +473,14 @@ export default async function HomePage() {
   return (
     <>
       <HomeHeader />
-      <HomeCategoryRail categories={categories} />
       <ByltStyleHero />
+      <div className="py-4">
+        <HomeCategoryRail categories={categories} />
+      </div>
+      <div className="py-4">
+        <EditorialBanner />
+      </div>
       <ProductShowcase products={featuredProducts} />
-      <EditorialBanner />
       {/* <CategoryShowcase 
         categories={[
           { label: "SWEATSHIRT", href: "/sweatshirt" },
@@ -487,12 +491,12 @@ export default async function HomePage() {
         products={featuredProducts.slice(0, 4)}
       /> */}
       {/* <CollectionCarousel /> */}
+      <SplitShowcase />
       <TabbedProductCarousel
         newArrivals={newArrivals}
         bestSellers={[...bestSellersWomen, ...bestSellersMen]}
         recommended={newArrivals}
       />
-      <SplitShowcase />
       {/* <TwoUpEditorialTiles /> */}
       {/* <CategoryRail /> */}
       <FeaturedCardsRow />

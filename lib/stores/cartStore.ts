@@ -14,6 +14,7 @@ export type CartItem = {
     name: string;
     slug: string | null;
     price: number;
+    originalPrice?: number | null;
     image: string | null;
     primaryImage: string | null;
     colors: Array<{
@@ -47,6 +48,7 @@ type AddItemParams = {
     name: string;
     image: string | null;
     price: number;
+    originalPrice?: number | null;
   };
   color?: { id: string; name: string } | null;
   size?: { id: string; name: string } | null;
@@ -199,6 +201,7 @@ export const useCartStore = create<CartState>((set, get) => ({
           name: product.name,
           slug: null,
           price: product.price,
+          originalPrice: product.originalPrice,
           image: product.image,
           primaryImage: product.image,
           colors: [],

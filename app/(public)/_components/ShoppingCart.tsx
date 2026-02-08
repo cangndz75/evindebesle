@@ -361,7 +361,10 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
 
 
   const totalPrice = useMemo(() => {
-    return cartItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+    return cartItems.reduce((sum, item) => {
+      const price = item.product.originalPrice || item.product.price;
+      return sum + price * item.quantity;
+    }, 0);
   }, [cartItems]);
 
   const remainingForFreeShipping = useMemo(() => {
@@ -671,10 +674,10 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
 
                               <div className="text-right">
                                 <p className="text-sm font-semibold text-black">
-                                  {formatPriceTRY(item.product.price * item.quantity)}
+                                  {formatPriceTRY((item.product.originalPrice || item.product.price) * item.quantity)}
                                 </p>
                                 <p className="text-xs text-gray-500">
-                                  {formatPriceTRY(item.product.price)} adet
+                                  {item.quantity} adet x {formatPriceTRY(item.product.originalPrice || item.product.price)}
                                 </p>
                               </div>
                             </div>

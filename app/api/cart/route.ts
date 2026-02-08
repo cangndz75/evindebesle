@@ -226,6 +226,7 @@ export async function POST(request: NextRequest) {
           name: product.name,
           image: product.image,
           price: product.price,
+          originalPrice: product.originalPrice,
         },
         color: color,
         size: size,

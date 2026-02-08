@@ -156,6 +156,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
           name: product.name,
           image: firstImage,
           price: product.price || 0,
+          originalPrice: product.originalPrice,
         },
         color: selectedColorName ? { id: colorId || "", name: selectedColorName } : null,
         size: selectedSizeName ? { id: sizeId || "", name: selectedSizeName } : null,
@@ -545,11 +546,6 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
       {/* Breadcrumb */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 pt-6 pb-4">
         <nav className="flex items-center gap-2 text-sm font-light text-gray-500">
-          <Link href="/home" className="hover:text-black transition-colors">
-            Ana Sayfa
-          </Link>
-          <ChevronRight className="w-4 h-4" />
-
           {/* Gender-based breadcrumb */}
           {product.gender && (
             <>
@@ -558,6 +554,19 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                 className="hover:text-black transition-colors"
               >
                 {product.gender === "MALE" ? "Erkek" : product.gender === "FEMALE" ? "Kadın" : "Unisex"}
+              </Link>
+              <ChevronRight className="w-4 h-4" />
+            </>
+          )}
+
+          {/* Category breadcrumb */}
+          {product.category && product.categorySlug && (
+            <>
+              <Link
+                href={`/category/${product.categorySlug}`}
+                className="hover:text-black transition-colors"
+              >
+                {product.category}
               </Link>
               <ChevronRight className="w-4 h-4" />
             </>

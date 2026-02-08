@@ -11,6 +11,7 @@ export interface GuestCartItem {
     name: string;
     image: string | null;
     price: number;
+    originalPrice?: number | null;
   };
   color?: {
     id: string;
@@ -58,12 +59,13 @@ export function addToGuestCart(
     name: string;
     image: string | null;
     price: number;
+    originalPrice?: number | null;
   },
   color?: { id: string; name: string } | null,
   size?: { id: string; name: string } | null
 ): GuestCartItem {
   const cart = getGuestCart();
-  
+
   // Aynı ürün, renk ve beden kombinasyonunu kontrol et
   const existingIndex = cart.findIndex(
     (item) =>

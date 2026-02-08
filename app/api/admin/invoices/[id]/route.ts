@@ -5,9 +5,10 @@ import { authConfig } from "@/lib/auth.config";
 
 export async function GET(
     req: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const session = await getServerSession(authConfig);
 
         if (!session || !session.user?.isAdmin) {
@@ -15,7 +16,7 @@ export async function GET(
         }
 
         const invoice = await prisma.invoice.findUnique({
-            where: { id: params.id },
+            where: { id },
             include: {
                 order: {
                     include: {
@@ -82,9 +83,10 @@ export async function GET(
 
 export async function PATCH(
     req: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const session = await getServerSession(authConfig);
 
         if (!session || !session.user?.isAdmin) {
@@ -95,7 +97,7 @@ export async function PATCH(
         const { status, notes } = body;
 
         const invoice = await prisma.invoice.update({
-            where: { id: params.id },
+            where: { id },
             data: {
                 ...(status && { status }),
                 ...(notes && { notes }),
@@ -111,9 +113,10 @@ export async function PATCH(
 
 export async function DELETE(
     req: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const session = await getServerSession(authConfig);
 
         if (!session || !session.user?.isAdmin) {
@@ -121,7 +124,7 @@ export async function DELETE(
         }
 
         await prisma.invoice.delete({
-            where: { id: params.id }
+            where: { id }
         });
 
         return new NextResponse(null, { status: 204 });

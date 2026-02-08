@@ -45,7 +45,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 type Order = {
   id: string;
   orderNumber: string;
-  status: "PENDING" | "PREPARING" | "SHIPPED" | "DELIVERED" | "CANCELLED";
+  status: "PENDING" | "PAID" | "PREPARING" | "SHIPPED" | "DELIVERED" | "CANCELLED";
   paymentStatus: "PENDING" | "PAID" | "FAILED" | "REFUNDED";
   subtotal: number;
   shippingCost: number;
@@ -86,7 +86,7 @@ export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [activeTab, setActiveTab] = useState<"PENDING" | "PREPARING" | "SHIPPED" | "CANCELLED">("PENDING");
+  const [activeTab, setActiveTab] = useState<"PAID" | "PREPARING" | "SHIPPED" | "CANCELLED">("PAID");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
@@ -175,6 +175,7 @@ export default function AdminOrdersPage() {
   const getStatusBadge = (status: string) => {
     const statusMap: Record<string, { label: string; className: string }> = {
       PENDING: { label: "Beklemede", className: "bg-yellow-100 text-yellow-800" },
+      PAID: { label: "Ödendi", className: "bg-green-100 text-green-800" },
       PREPARING: { label: "Hazırlanıyor", className: "bg-blue-100 text-blue-800" },
       SHIPPED: { label: "Kargoya Verildi", className: "bg-purple-100 text-purple-800" },
       DELIVERED: { label: "Teslim Edildi", className: "bg-green-100 text-green-800" },
@@ -205,7 +206,7 @@ export default function AdminOrdersPage() {
 
   const filteredOrders = orders.filter((order) => {
     // Tab filtresi
-    if (activeTab === "PENDING" && order.status !== "PENDING") return false;
+    if (activeTab === "PAID" && order.status !== "PAID") return false;
     if (activeTab === "PREPARING" && order.status !== "PREPARING") return false;
     if (activeTab === "SHIPPED" && order.status !== "SHIPPED") return false;
     if (activeTab === "CANCELLED" && order.status !== "CANCELLED") return false;
@@ -271,7 +272,7 @@ export default function AdminOrdersPage() {
   };
 
   const tabs = [
-    { key: "PENDING" as const, label: "Bekleyen", count: orders.filter((o) => o.status === "PENDING").length },
+    { key: "PAID" as const, label: "Yeni Siparişler", count: orders.filter((o) => o.status === "PAID").length },
     { key: "PREPARING" as const, label: "Hazırlanıyor", count: orders.filter((o) => o.status === "PREPARING").length },
     { key: "SHIPPED" as const, label: "Kargoda", count: orders.filter((o) => o.status === "SHIPPED").length },
     { key: "CANCELLED" as const, label: "İade", count: orders.filter((o) => o.status === "CANCELLED").length },

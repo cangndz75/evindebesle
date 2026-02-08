@@ -55,11 +55,16 @@ export async function finalizePayment({
             const updatedOrder = await tx.order.update({
                 where: { id: orderId },
                 data: {
-                    status: "PREPARING" as OrderStatus, // or PAID
+                    status: "PAID" as OrderStatus,
                     paymentStatus: "PAID",
                     paidAt: new Date(),
                     paymentId: paymentId,
                 },
+            });
+
+            // Clear user's cart
+            await tx.cartItem.deleteMany({
+                where: { userId: order.userId }
             });
 
             // Audit Log

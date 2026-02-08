@@ -5,11 +5,11 @@ import { useParams, useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Printer, ArrowLeft, Download, Mail } from "lucide-react";
 import { toast } from "sonner";
-import Link from "next/link";
+import { QRCodeCanvas } from "qrcode.react";
+import { numberToTurkishText } from "@/lib/utils/numberToTurkishText";
 
 interface InvoiceItem {
     productName: string;
@@ -27,6 +27,8 @@ interface Invoice {
     totalAmount: number;
     subtotal: number;
     taxAmount: number;
+    couponDiscount: number; // Add if available in API
+    shippingCost: number;   // Add if available in API
     createdAt: string;
     issuedAt: string | null;
     dueDate: string | null;
@@ -83,168 +85,352 @@ export default function InvoiceDetailPage() {
 
     if (!invoice) return null;
 
+    // Hardcoded Metadata (as per request/example)
+    const OZELLESTIRME_NO = "TR1.2";
+    const SENARYO = "EARSIVFATURA";
+    const FATURA_TIPI = "SATIS";
+
+    // ETTN (Using UUID part of ID for demo purposes if not separate field)
+    const ETTN = invoice.id;
+
+    // Company Data with Fallbacks
+    const companyName = invoice.companyDetails?.companyName || "EVİNDEBESLE E-TİC.";
+    const companyAddress = invoice.companyDetails?.companyAddress || "Merkez Mah. Örnek Cad. No:1 İstanbul";
+    const companyPhone = invoice.companyDetails?.phone || "+90 212 111 22 33";
+    const companyEmail = invoice.companyDetails?.email || "info@evindebesle.com";
+    const taxOffice = invoice.companyDetails?.taxOffice || "Marmara Kurumlar";
+    const taxNumber = invoice.companyDetails?.taxNumber || "1234567890";
+    const mersisNo = "0388023942900019"; // Example
+    const logoUrl = invoice.companyDetails?.logoUrl; // Could be null
+
     return (
-        <div className="min-h-screen bg-gray-50 p-4 md:p-8 print:p-0 print:bg-white">
+        <div className="min-h-screen bg-gray-50 p-4 md:p-8 print:p-0 print:bg-white text-[11px] leading-tight font-sans text-black">
             {/* Header - Hidden in Print */}
-            <div className="max-w-4xl mx-auto mb-6 flex items-center justify-between print:hidden">
+            <div className="max-w-[210mm] mx-auto mb-6 flex items-center justify-between print:hidden">
                 <div className="flex items-center gap-4">
                     <Button variant="outline" size="icon" onClick={() => router.back()}>
                         <ArrowLeft className="w-4 h-4" />
                     </Button>
-                    <h1 className="text-2xl font-bold">Fatura Detayı</h1>
+                    <h1 className="text-xl font-bold">Fatura Önizleme</h1>
                 </div>
                 <div className="flex gap-2">
-                    <Button variant="outline" onClick={handlePrint}>
+                    <Button onClick={handlePrint}>
                         <Printer className="w-4 h-4 mr-2" />
                         Yazdır
-                    </Button>
-                    <Button variant="outline">
-                        <Download className="w-4 h-4 mr-2" />
-                        PDF İndir
-                    </Button>
-                    <Button>
-                        <Mail className="w-4 h-4 mr-2" />
-                        E-posta Gönder
                     </Button>
                 </div>
             </div>
 
-            {/* Invoice Paper */}
-            <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg p-8 print:shadow-none print:p-0 print:w-full print:max-w-none">
-                {/* Header Section */}
-                <div className="flex justify-between items-start border-b pb-8 mb-8">
-                    <div>
-                        <h1 className="text-3xl font-bold text-gray-900 mb-2">FATURA</h1>
-                        <p className="text-gray-500">#{invoice.invoiceNumber}</p>
-                        <div className="mt-4 space-y-1 text-sm text-gray-600">
-                            <p>
-                                <span className="font-semibold">Düzenleme Tarihi:</span>{" "}
-                                {invoice.issuedAt
-                                    ? format(new Date(invoice.issuedAt), "dd.MM.yyyy", { locale: tr })
-                                    : "-"}
-                            </p>
-                            <p>
-                                <span className="font-semibold">Vade Tarihi:</span>{" "}
-                                {invoice.dueDate
-                                    ? format(new Date(invoice.dueDate), "dd.MM.yyyy", { locale: tr })
-                                    : "-"}
-                            </p>
-                            <p>
-                                <span className="font-semibold">Durum:</span>{" "}
-                                <span className={`uppercase font-medium ${invoice.status === 'PAID' ? 'text-green-600' :
-                                        invoice.status === 'ISSUED' ? 'text-blue-600' : 'text-gray-600'
-                                    }`}>
-                                    {invoice.status === 'ISSUED' ? 'KESİLDİ' : invoice.status}
-                                </span>
-                            </p>
+            {/* A4 Invoice Paper */}
+            <div className="max-w-[210mm] min-h-[297mm] mx-auto bg-white shadow-lg p-8 print:shadow-none print:p-8 print:w-full print:max-w-none relative">
+
+                {/* 1. Header Section */}
+                <div className="flex justify-between items-start mb-6">
+                    {/* Left: Company Details */}
+                    <div className="w-1/2 pr-4">
+                        <h2 className="font-bold text-sm mb-1 uppercase">{companyName}</h2>
+                        <div className="text-gray-700 whitespace-pre-line">
+                            {companyAddress}
+                        </div>
+                        <div className="mt-2">
+                            <p>Tel: {companyPhone}</p>
+                            <p>E-Posta: {companyEmail}</p>
+                            <p>Web Sitesi: https://www.evindebesle.com</p>
+                        </div>
+                        <div className="mt-2 text-gray-700">
+                            <p>Vergi Dairesi: {taxOffice}</p>
+                            <p>Vergi Kimlik Numarası: {taxNumber}</p>
+                            <p>Mersis No: {mersisNo}</p>
                         </div>
                     </div>
-                    <div className="text-right">
-                        {/* Logo placeholder */}
-                        {invoice.companyDetails?.logoUrl ? (
-                            <img src={invoice.companyDetails.logoUrl} alt="Logo" className="h-12 w-auto ml-auto mb-4" />
-                        ) : (
-                            <div className="text-2xl font-bold text-gray-800 mb-4">{invoice.companyDetails?.companyName || "COMPANY NAME"}</div>
-                        )}
-                        <div className="text-sm text-gray-600 space-y-1">
-                            <p className="font-semibold">{invoice.companyDetails?.companyName || "Şirket Adı"}</p>
-                            <p>{invoice.companyDetails?.companyAddress || "Adres Bilgisi"}</p>
-                            <p>{invoice.companyDetails?.email || "email@company.com"}</p>
-                            <p>{invoice.companyDetails?.phone || "+90 555 555 55 55"}</p>
-                            {invoice.companyDetails?.taxOffice && <p>VD: {invoice.companyDetails.taxOffice}</p>}
-                            {invoice.companyDetails?.taxNumber && <p>VN: {invoice.companyDetails.taxNumber}</p>}
+
+                    {/* Right: Logo & Signature */}
+                    <div className="w-1/2 flex flex-col items-end text-right">
+                        <div className="flex items-center justify-end gap-2 mb-2">
+                            {logoUrl ? (
+                                <img src={logoUrl} alt="Logo" className="h-12 w-auto object-contain" />
+                            ) : (
+                                <h1 className="text-2xl font-bold text-orange-600">EVİNDEBESLE</h1>
+                            )}
+                        </div>
+                        <div className="flex flex-col items-center">
+                            {/* Signature Image Placeholder */}
+                            {/* <img src="/signature.png" className="h-10 w-auto mb-1 opacity-50" /> */}
+                            <span className="font-bold text-sm">e-Arşiv Fatura</span>
+                        </div>
+
+                        {/* Page Number */}
+                        <div className="absolute top-8 right-8 text-xs text-gray-500">
+                            Sayfa 1 / 1
+                        </div>
+
+                        {/* QR Code */}
+                        <div className="mt-4 mr-2">
+                            <QRCodeCanvas
+                                value={`https://gib.gov.tr/fatura/${invoice.invoiceNumber}`}
+                                size={90}
+                                level={"M"}
+                            />
                         </div>
                     </div>
                 </div>
 
-                {/* Client & Shipping Info */}
-                <div className="grid grid-cols-2 gap-8 mb-8">
-                    <div>
-                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">SAYIN</h3>
-                        <div className="text-gray-700">
-                            <p className="font-semibold text-lg">{invoice.customerDetails?.name}</p>
+                {/* 2. Customer & Invoice Meta Data Grid */}
+                <div className="flex gap-4 mb-6">
+                    {/* Customer Info (SAYIN Block) */}
+                    <div className="w-1/2">
+                        <div className="mb-2">
+                            <span className="font-bold underline">SAYIN</span>
+                        </div>
+                        <div className="pl-0">
+                            <p className="font-bold">{invoice.customerDetails?.name}</p>
                             <p>{invoice.customerDetails?.address?.fullAddress}</p>
                             <p>{invoice.customerDetails?.address?.district?.name} / {invoice.customerDetails?.address?.district?.city}</p>
-                            <p className="mt-2">{invoice.customerDetails?.email}</p>
-                            <p>{invoice.customerDetails?.phone}</p>
+                            <p className="mt-2">E-Posta: {invoice.customerDetails?.email}</p>
+                            <p>Tel: {invoice.customerDetails?.phone}</p>
+                            {/* Only show tax details if entered */}
+                            {invoice.customerDetails?.taxNumber && (
+                                <>
+                                    <p>Vergi Dairesi: {invoice.customerDetails?.taxOffice || "-"}</p>
+                                    <p>TCKN/VKN: {invoice.customerDetails?.taxNumber}</p>
+                                </>
+                            )}
                         </div>
                     </div>
-                    {/* Additional Info could go here */}
+
+                    {/* Invoice Metadata */}
+                    <div className="w-1/2 pl-8">
+                        <table className="w-full text-xs">
+                            <tbody>
+                                <tr>
+                                    <td className="font-bold py-0.5">Özelleştirme No:</td>
+                                    <td>{OZELLESTIRME_NO}</td>
+                                </tr>
+                                <tr>
+                                    <td className="font-bold py-0.5">Senaryo:</td>
+                                    <td>{SENARYO}</td>
+                                </tr>
+                                <tr>
+                                    <td className="font-bold py-0.5">Fatura Tipi:</td>
+                                    <td>{FATURA_TIPI}</td>
+                                </tr>
+                                <tr>
+                                    <td className="font-bold py-0.5">Fatura No:</td>
+                                    <td>{invoice.invoiceNumber}</td>
+                                </tr>
+                                <tr>
+                                    <td className="font-bold py-0.5">Fatura Tarihi:</td>
+                                    <td>{invoice.issuedAt ? format(new Date(invoice.issuedAt), "dd-MM-yyyy", { locale: tr }) : "-"}</td>
+                                </tr>
+                                <tr>
+                                    <td className="font-bold py-0.5">Son Ödeme Tarihi:</td>
+                                    <td>{invoice.dueDate ? format(new Date(invoice.dueDate), "dd-MM-yyyy", { locale: tr }) : "-"}</td>
+                                </tr>
+                                <tr>
+                                    <td className="font-bold py-0.5">Oluşma Zamanı:</td>
+                                    <td>{invoice.createdAt ? format(new Date(invoice.createdAt), "HH:mm:ss", { locale: tr }) : "-"}</td>
+                                </tr>
+                                <tr>
+                                    <td className="font-bold py-0.5">Sipariş No:</td>
+                                    <td>{invoice.order.orderNumber}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
-                {/* Items Table */}
-                <div className="mb-8">
-                    <table className="w-full text-left">
+                {/* ETTN Line */}
+                <div className="border-t border-gray-200 py-1 text-xs">
+                    <span className="font-bold mr-2">ETTN:</span>
+                    <span className="font-mono">{ETTN}</span>
+                </div>
+
+                {/* Note (Dispatch List) */}
+                <div className="my-2 text-xs">
+                    <p className="font-bold mb-1">İrsaliye Listesi</p>
+                    <div className="border border-gray-300 p-1 inline-block">
+                        {invoice.issuedAt ? format(new Date(invoice.issuedAt), "dd-MM-yyyy", { locale: tr }) : "-"} {invoice.order.orderNumber}
+                    </div>
+                </div>
+
+                {/* 3. Items Table */}
+                <div className="mt-4 mb-2">
+                    <table className="w-full border-collapse text-[10px]">
                         <thead>
-                            <tr className="border-b border-gray-200">
-                                <th className="py-3 font-semibold text-gray-600">Ürün / Hizmet</th>
-                                <th className="py-3 font-semibold text-gray-600 text-center">Miktar</th>
-                                <th className="py-3 font-semibold text-gray-600 text-right">Birim Fiyat</th>
-                                <th className="py-3 font-semibold text-gray-600 text-right">Toplam</th>
+                            <tr className="bg-gray-100 border-y border-gray-300">
+                                <th className="py-1 px-2 text-left border-r border-gray-300 w-8">Sıra No</th>
+                                <th className="py-1 px-2 text-left border-r border-gray-300 w-24">Mal Hizmet Kodu</th>
+                                <th className="py-1 px-2 text-left border-r border-gray-300">Mal Hizmet Adı</th>
+                                <th className="py-1 px-2 text-center border-r border-gray-300 w-16">Miktar</th>
+                                <th className="py-1 px-2 text-right border-r border-gray-300 w-20">Birim Fiyat</th>
+                                <th className="py-1 px-2 text-right border-r border-gray-300 w-20">Mal Hizmet Tutarı</th>
+                                <th className="py-1 px-2 text-center border-r border-gray-300 w-12">KDV Oranı</th>
+                                <th className="py-1 px-2 text-right w-20">KDV Tutarı</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100">
-                            {invoice.items.map((item, index) => (
-                                <tr key={index}>
-                                    <td className="py-4 text-gray-800">{item.productName}</td>
-                                    <td className="py-4 text-center text-gray-600">{item.quantity}</td>
-                                    <td className="py-4 text-right text-gray-600">{item.unitPrice?.toFixed(2)} ₺</td>
-                                    <td className="py-4 text-right font-medium text-gray-800">{item.totalPrice?.toFixed(2)} ₺</td>
-                                </tr>
-                            ))}
+                        <tbody>
+                            {invoice.items.map((item, index) => {
+                                // Calculate tax per item (assuming 20% standard if not specified)
+                                const taxRate = item.taxRate || 20;
+                                const itemTotal = item.totalPrice;
+                                // Back-calculate base price if needed, but usually we store totals
+                                // Let's assume item.unitPrice is Tax Included for display simplicity or handled by backend?
+                                // Standard: Unit Price (Excl Tax) | Total (Excl Tax) | Tax Rate | Tax Amount
+
+                                // Simplified for demo as backend data might vary:
+                                const taxAmount = (itemTotal * taxRate) / (100 + taxRate);
+                                const exTaxTotal = itemTotal - taxAmount;
+                                const exTaxUnit = exTaxTotal / item.quantity;
+
+                                return (
+                                    <tr key={index} className="border-b border-gray-200">
+                                        <td className="py-1 px-2 text-center border-r border-gray-200">{index + 1}</td>
+                                        <td className="py-1 px-2 border-r border-gray-200">PROD-{index + 100}</td>
+                                        <td className="py-1 px-2 border-r border-gray-200">{item.productName}</td>
+                                        <td className="py-1 px-2 text-center border-r border-gray-200">{item.quantity} Adet</td>
+                                        <td className="py-1 px-2 text-right border-r border-gray-200">{exTaxUnit.toFixed(2)} TRY</td>
+                                        <td className="py-1 px-2 text-right border-r border-gray-200">{exTaxTotal.toFixed(2)} TRY</td>
+                                        <td className="py-1 px-2 text-center border-r border-gray-200">%{taxRate.toFixed(2)}</td>
+                                        <td className="py-1 px-2 text-right">{taxAmount.toFixed(2)} TRY</td>
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                     </table>
                 </div>
 
-                {/* Totals */}
-                <div className="flex justify-end border-t pt-8">
-                    <div className="w-64 space-y-3">
-                        <div className="flex justify-between text-gray-600">
-                            <span>Ara Toplam</span>
-                            <span>{invoice.subtotal.toFixed(2)} ₺</span>
+                {/* 4. Totals & Footer Grid */}
+                <div className="flex gap-4 mt-2">
+                    {/* Left Footer: Barcode, Text Amount, Notes */}
+                    <div className="w-2/3 pr-4 flex flex-col justify-between">
+                        <div>
+                            {/* Barcode Placeholder */}
+                            <div className="h-12 w-64 bg-black mb-1 pattern-lines">
+                                {/* Use a barcode lib or an image/font in real app */}
+                                <div className="w-full h-full bg-repeating-linear-gradient-90 from-black to-white" style={{ background: "repeating-linear-gradient(90deg, black 0px, black 2px, white 2px, white 4px)" }}></div>
+                            </div>
+                            <p className="font-mono text-[10px] mb-4">{invoice.id}</p>
+
+                            <p className="font-bold text-xs uppercase mb-1">*{numberToTurkishText(invoice.totalAmount)}*</p>
+
+                            <div className="text-[9px] mt-2 space-y-1 text-gray-700">
+                                <p>*{invoice.order.orderNumber} nolu sipariş faturası</p>
+                                <p>*İrsaliye yerine geçer.</p>
+                                <p>*İşletme Merkezi: İstanbul</p>
+                                <p>*Bu satış internet üzerinden yapılmıştır.</p>
+                                <p>*Ürün iadesi ve değişimi için kesinlikle ürünün faturası veya irsaliyesiyle birlikte başvurulması gerekmektedir.</p>
+                                <p>*İşbu faturanin tanziminde yapılan herhangi bir hatadan mütevellit haklarımız mahfuzdur.</p>
+                            </div>
                         </div>
-                        <div className="flex justify-between text-gray-600">
-                            <span>KDV (%20)</span>
-                            <span>{invoice.taxAmount.toFixed(2)} ₺</span>
+
+                        {/* Bank Info */}
+                        <div className="mt-4 text-[9px] flex gap-8">
+                            <div>
+                                <span className="font-bold underline block mb-1">BANKA BİLGİLERİ</span>
+                                <div className="grid grid-cols-[60px_1fr] gap-x-2">
+                                    <span>Garanti</span>
+                                    <span>TR00 0000 0000 0000 0000 0000 00</span>
+                                    <span>Yapı Kredi</span>
+                                    <span>TR00 0000 0000 0000 0000 0000 00</span>
+                                </div>
+                            </div>
                         </div>
-                        <div className="flex justify-between text-lg font-bold text-gray-900 border-t pt-3 mt-3">
-                            <span>GENEL TOPLAM</span>
-                            <span>{invoice.totalAmount.toFixed(2)} ₺</span>
-                        </div>
+                    </div>
+
+                    {/* Right Footer: Totals */}
+                    <div className="w-1/3">
+                        <table className="w-full text-xs border border-gray-300">
+                            <tbody>
+                                <tr>
+                                    <td className="p-1 border-b border-gray-300">Mal Hizmet Toplam Tutar:</td>
+                                    <td className="p-1 text-right font-bold border-b border-gray-300 border-l">{(invoice.subtotal).toFixed(2)} TRY</td>
+                                </tr>
+                                <tr>
+                                    <td className="p-1 border-b border-gray-300">Vergi Hariç Tutar:</td>
+                                    <td className="p-1 text-right font-bold border-b border-gray-300 border-l">{(invoice.subtotal).toFixed(2)} TRY</td>
+                                </tr>
+                                <tr>
+                                    <td className="p-1 border-b border-gray-300">Hesaplanan KDV (%20):</td>
+                                    <td className="p-1 text-right font-bold border-b border-gray-300 border-l">{invoice.taxAmount.toFixed(2)} TRY</td>
+                                </tr>
+                                {/* Add shipping or discounts if needed */}
+                                {invoice.shippingCost > 0 && (
+                                    <tr>
+                                        <td className="p-1 border-b border-gray-300">Kargo:</td>
+                                        <td className="p-1 text-right font-bold border-b border-gray-300 border-l">{invoice.shippingCost.toFixed(2)} TRY</td>
+                                    </tr>
+                                )}
+                                <tr className="bg-gray-100">
+                                    <td className="p-1 font-bold border-b border-gray-300">Vergiler Dahil Toplam Tutar:</td>
+                                    <td className="p-1 text-right font-bold border-b border-gray-300 border-l">{invoice.totalAmount.toFixed(2)} TRY</td>
+                                </tr>
+                                <tr className="bg-gray-100">
+                                    <td className="p-1 font-bold">Ödenecek Tutar:</td>
+                                    <td className="p-1 text-right font-bold border-l">{invoice.totalAmount.toFixed(2)} TRY</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
-                {/* Footer */}
-                <div className="border-t mt-12 pt-8 text-center text-sm text-gray-500 print:fixed print:bottom-0 print:left-0 print:w-full print:mb-8">
-                    <p>Bu fatura elektronik ortamda düzenlenmiştir.</p>
-                    <p className="mt-2">Ödemeniz vadesi gelen faturalar için teşekkür ederiz.</p>
+                {/* Bottom Footer Info Table */}
+                <div className="mt-8 border-t border-b border-gray-300 py-1 text-[10px]">
+                    <div className="grid grid-cols-4 gap-2 font-bold text-center uppercase">
+                        <div>Ödeme Şekli</div>
+                        <div>Taşıyıcı VKN/TCKN</div>
+                        <div>Ödeme Aracısı Adı</div>
+                        <div>Gönderim Tarihi</div>
+                    </div>
+                    <div className="grid grid-cols-4 gap-2 text-center mt-1 uppercase">
+                        <div>KREDI KARTI / IYZICO</div>
+                        <div>0720039666</div>
+                        <div>Aras Kargo A.Ş.</div>
+                        <div>{invoice.issuedAt ? format(new Date(invoice.issuedAt), "dd.MM.yyyy", { locale: tr }) : "-"}</div>
+                    </div>
                 </div>
+
+                <div className="flex justify-between mt-1 text-[10px] font-bold uppercase">
+                    <div className="w-1/2 text-center">MALI İADE EDEN</div>
+                    <div className="w-1/2 text-center">İADE EDİLEN</div>
+                </div>
+                <div className="flex justify-between mt-8 text-[10px]">
+                    <div className="w-1/2 px-4 space-y-1">
+                        <p>Adı Soyadı: .......................................</p>
+                        <p>Adresi: ............................................</p>
+                        <p className="mt-4">İmza: ............................................</p>
+                    </div>
+                    <div className="w-1/2 px-4 space-y-1 text-right">
+                        <div className="flex justify-end gap-2"><span className="w-20 text-left">Cinsi:</span> <span className="w-32 border-b border-gray-300"></span></div>
+                        <div className="flex justify-end gap-2"><span className="w-20 text-left">Miktar:</span> <span className="w-32 border-b border-gray-300"></span></div>
+                        <div className="flex justify-end gap-2"><span className="w-20 text-left">Birim Fiyat:</span> <span className="w-32 border-b border-gray-300"></span></div>
+                        <div className="flex justify-end gap-2"><span className="w-20 text-left">Tutar:</span> <span className="w-32 border-b border-gray-300"></span></div>
+                    </div>
+                </div>
+
             </div>
 
             {/* Print Styles */}
             <style jsx global>{`
-        @media print {
-            body * {
-                visibility: hidden;
-            }
-            .print\\:p-0, .print\\:p-0 * {
-                visibility: visible;
-            }
-            .print\\:p-0 {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                margin: 0;
-                padding: 0 !important;
-                background: white;
-            }
-            /* Hide layout elements */
-            aside, nav, header, .fixed, .print\\:hidden {
-                display: none !important;
-            }
-        }
-      `}</style>
+                @media print {
+                    @page {
+                        margin: 0;
+                        size: A4;
+                    }
+                    body {
+                        background: white;
+                    }
+                    .print\\:hidden {
+                        display: none !important;
+                    }
+                    .print\\:p-8 {
+                        padding: 10mm !important;
+                    }
+                    .print\\:shadow-none {
+                        box-shadow: none !important;
+                    }
+                }
+            `}</style>
         </div>
     );
 }
+

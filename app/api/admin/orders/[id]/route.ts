@@ -112,7 +112,7 @@ export async function GET(
   } catch (error: any) {
     console.error("Order detail fetch error:", error);
     return NextResponse.json(
-      { error: error.message || "Sipariş detayı yüklenirken bir hata oluştu" },
+      { error: "Sipariş detayı yüklenirken bir hata oluştu." },
       { status: 500 }
     );
   }
@@ -190,7 +190,7 @@ export async function PATCH(
   } catch (error: any) {
     console.error("Order update error:", error);
     return NextResponse.json(
-      { error: error.message || "Sipariş güncellenirken bir hata oluştu" },
+      { error: "Sipariş güncellenirken bir hata oluştu." },
       { status: 500 }
     );
   }

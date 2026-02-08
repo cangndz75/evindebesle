@@ -61,7 +61,7 @@ export async function GET(
   } catch (error: any) {
     console.error("Customer detail error:", error);
     return NextResponse.json(
-      { error: error.message || "Müşteri detayları yüklenirken bir hata oluştu" },
+      { error: "Müşteri detayları yüklenirken bir hata oluştu." },
       { status: 500 }
     );
   }

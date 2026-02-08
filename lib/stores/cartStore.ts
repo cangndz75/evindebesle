@@ -56,6 +56,8 @@ type CartState = {
   items: CartItem[];
   hydrated: boolean;
   isReady: boolean; // hydrate tamamlandı ve initial fetch tamamlandı
+  couponCode: string | null;
+  discountAmount: number;
   setItems: (items: CartItem[]) => void;
   hydrate: () => Promise<void>;
   refreshCart: () => Promise<void>; // API'den cart'ı fetch edip güncelle (hydrate değil)
@@ -65,6 +67,8 @@ type CartState = {
   addItemOptimistic: (params: AddItemParams) => Promise<void>;
   updateQuantity: (itemId: string, quantity: number) => void;
   removeItem: (itemId: string) => Promise<void>;
+  applyCoupon: (code: string) => Promise<{ success: boolean; message: string }>;
+  removeCoupon: () => void;
 };
 
 // Guest cart'ı CartItem formatına dönüştür
@@ -92,6 +96,8 @@ export const useCartStore = create<CartState>((set, get) => ({
   items: [],
   hydrated: false,
   isReady: false,
+  couponCode: null,
+  discountAmount: 0,
 
   setItems: (items) => set({ items, hydrated: true, isReady: true }),
 
@@ -101,6 +107,8 @@ export const useCartStore = create<CartState>((set, get) => ({
       items: [],
       hydrated: false,
       isReady: false,
+      couponCode: null,
+      discountAmount: 0,
     });
     // Guest cart'ı da temizle
     if (typeof window !== "undefined") {
@@ -416,6 +424,30 @@ export const useCartStore = create<CartState>((set, get) => ({
       console.error("Error removing item:", error);
       await get().refreshCart();
     }
+  },
+
+  applyCoupon: async (code: string) => {
+    // Şimdilik mock yapıyoruz
+    // Gerçek uygulamada API'ye istek atılmalı: await fetch('/api/coupons/verify', ...)
+
+    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate loading
+
+    if (code.toUpperCase() === "TEST10") {
+      set({ couponCode: code, discountAmount: 100 }); // 100 TL indirim
+      return { success: true, message: "Kupon uygulandı" };
+    }
+
+    if (code.toUpperCase() === "YAZ30") {
+      // Yüzde hesabı store içinde toplam fiyata göre yapılabilir ama basit olması için sabit indirim verelim
+      set({ couponCode: code, discountAmount: 300 });
+      return { success: true, message: "Kupon uygulandı" };
+    }
+
+    return { success: false, message: "Geçersiz kupon kodu" };
+  },
+
+  removeCoupon: () => {
+    set({ couponCode: null, discountAmount: 0 });
   },
 
   refreshCart: async () => {

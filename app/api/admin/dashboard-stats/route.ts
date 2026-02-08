@@ -122,7 +122,7 @@ export async function GET(req: NextRequest) {
   } catch (error: any) {
     console.error("Dashboard stats error:", error);
     return NextResponse.json(
-      { error: error.message || "İstatistikler yüklenirken bir hata oluştu" },
+      { error: "İstatistikler yüklenirken bir hata oluştu." },
       { status: 500 }
     );
   }

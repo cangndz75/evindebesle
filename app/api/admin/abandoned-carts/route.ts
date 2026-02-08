@@ -186,7 +186,7 @@ export async function GET(req: NextRequest) {
     } catch (error: any) {
         console.error("Abandoned carts error:", error);
         return NextResponse.json(
-            { error: error.message || "Terk edilen sepet verileri yüklenirken hata oluştu" },
+            { error: "Terk edilen sepet verileri yüklenirken hata oluştu." },
             { status: 500 }
         );
     }

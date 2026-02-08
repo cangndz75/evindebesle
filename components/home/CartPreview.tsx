@@ -19,7 +19,6 @@ export default function CartPreview({ cartIconRef, headerBottom }: CartPreviewPr
     size: string;
     color: string;
   } | null>(null);
-  const [position, setPosition] = useState<{ top: number; right: number }>({ top: 80, right: 20 });
   const popupRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const router = useRouter();
@@ -42,12 +41,6 @@ export default function CartPreview({ cartIconRef, headerBottom }: CartPreviewPr
     const handleItemAdded = (e: CustomEvent) => {
       const { product, size, color } = e.detail;
       setPopup({ product, size, color });
-
-      // Sağ üstte sabit pozisyon (ikinci resimdeki gibi)
-      setPosition({
-        top: 80, // Header'dan 80px aşağı
-        right: 20, // Sağdan 20px
-      });
 
       // Sepet sayısını güncelle
       refreshCartCount(session);
@@ -114,11 +107,7 @@ export default function CartPreview({ cartIconRef, headerBottom }: CartPreviewPr
   return (
     <div
       ref={popupRef}
-      className="fixed bg-white rounded-lg shadow-2xl z-[9999] border border-black/10 animate-in slide-in-from-top-2 duration-200 w-[420px]"
-      style={{
-        top: `${position.top}px`,
-        right: `${position.right}px`,
-      }}
+      className="fixed bg-white rounded-lg shadow-2xl z-[9999] border border-black/10 animate-in slide-in-from-top-2 duration-200 w-[95%] max-w-[420px] left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:right-5 top-24 md:top-20"
     >
       <div className="p-5">
         {/* Header with Close Button */}

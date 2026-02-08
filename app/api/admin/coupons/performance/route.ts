@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error("Coupon performance error:", error);
     return NextResponse.json(
-      { error: error.message || "Kupon performans verileri yüklenirken bir hata oluştu" },
+      { error: "Kupon performans verileri yüklenirken bir hata oluştu." },
       { status: 500 }
     );
   }

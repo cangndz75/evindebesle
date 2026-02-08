@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Minus, Plus, ShoppingBag, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Minus, Plus, ShoppingBag, Trash2, ChevronLeft, ChevronRight, Tag, XCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -93,7 +94,7 @@ function ProductTile({
 
 export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
   const { data: session } = useSession();
-  
+
   // Store'dan cart items, state ve actions al
   const cartItems = useCartStore((state) => state.items);
   const hydrated = useCartStore((state) => state.hydrated);
@@ -101,7 +102,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
   const hydrate = useCartStore((state) => state.hydrate);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
   const removeItem = useCartStore((state) => state.removeItem);
-  
+
   const [freeShippingThreshold, setFreeShippingThreshold] = useState(99);
   const [recommendedProducts, setRecommendedProducts] = useState<RecommendedProduct[]>([]);
   const [recentlyViewedProducts, setRecentlyViewedProducts] = useState<RecommendedProduct[]>([]);
@@ -127,7 +128,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
 
     // Önce kullanıcının giriş yapıp yapmadığını kontrol et (setIsCreatingOrder'dan önce)
     const addressesRes = await fetch("/api/user-addresses");
-    
+
     // 401 hatası = giriş yapmamış kullanıcı - direkt yönlendir, loading gösterme
     if (addressesRes.status === 401) {
       // Sepeti localStorage'da tut (zaten tutuluyor ama emin olmak için)
@@ -174,11 +175,11 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
 
       const result = await orderRes.json();
       toast.success(`Siparişiniz oluşturuldu! Sipariş No: ${result.order.orderNumber}`);
-      
+
       // Sepeti temizle ve kapat
       useCartStore.getState().setItems([]);
       onClose();
-      
+
       // Siparişlerim sayfasına yönlendir
       router.push("/profile/orders");
     } catch (error: any) {
@@ -233,7 +234,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
     try {
       // Önce localStorage'dan veri çek
       const localProducts = getRecentlyViewed();
-      
+
       // localStorage'dan gelen ürünleri formatla
       const localFormatted = localProducts.map((p) => ({
         id: p.id,
@@ -252,7 +253,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
         if (res.ok) {
           const data = await res.json();
           const apiProducts = Array.isArray(data?.products) ? data.products : [];
-          
+
           // API'den gelen ürünleri formatla
           const apiFormatted = apiProducts.map((p: any) => ({
             id: p.id,
@@ -278,17 +279,17 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
             colors: any[];
           };
           const productMap = new Map<string, ProductItem>();
-          
+
           // Önce localStorage ürünlerini ekle
           localFormatted.forEach((p: ProductItem) => {
             productMap.set(p.productId, p);
           });
-          
+
           // Sonra API ürünlerini ekle (aynı ürün varsa üzerine yaz)
           apiFormatted.forEach((p: ProductItem) => {
             productMap.set(p.productId, p);
           });
-          
+
           // Map'ten array'e çevir (zaten sıralı - en yeni önce)
           const combined = Array.from(productMap.values());
           // En fazla 12 ürün göster
@@ -330,7 +331,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
   // Tab değiştiğinde lazy load yap
   useEffect(() => {
     if (!isOpen) return;
-    
+
     if (activeTab === "recent") {
       loadRecentlyViewed();
     } else if (activeTab === "recommended" && !hasLoadedRecommendedRef.current) {
@@ -347,7 +348,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
   // Event listener: recentlyViewedUpdated event'i için
   useEffect(() => {
     if (!isOpen) return;
-    
+
     const handleRecentlyViewedUpdated = () => {
       if (activeTab === "recent") {
         loadRecentlyViewed();
@@ -392,7 +393,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
         return colorImages[0];
       }
     }
-    
+
     // Ürünün renklerinden ilk resmi al
     if (item.product.colors?.[0]?.images) {
       let productColorImages: string[] = [];
@@ -409,7 +410,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
         return productColorImages[0];
       }
     }
-    
+
     // Fallback: product.image (guest cart için önemli)
     return item.product.primaryImage || item.product.image || "/placeholder.jpg";
   };
@@ -424,8 +425,8 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
   const itemCount = cartItems.reduce((acc, it) => acc + (it.quantity || 0), 0);
 
   return (
-    <Sheet 
-      open={isOpen} 
+    <Sheet
+      open={isOpen}
       onOpenChange={(open) => {
         if (!open) onClose();
       }}

@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
   } catch (error: any) {
     console.error("Kategoriler yüklenirken hata:", error);
     return NextResponse.json(
-      { error: error.message || "Kategoriler yüklenirken bir hata oluştu" },
+      { error: "Kategoriler yüklenirken bir hata oluştu." },
       { status: 500 }
     );
   }
@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
   } catch (error: any) {
     console.error("Kategori oluşturulurken hata:", error);
     return NextResponse.json(
-      { error: error.message || "Kategori oluşturulurken bir hata oluştu" },
+      { error: "Kategori oluşturulurken bir hata oluştu." },
       { status: 500 }
     );
   }

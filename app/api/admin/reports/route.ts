@@ -138,7 +138,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error("Reports error:", error);
     return NextResponse.json(
-      { error: error.message || "Rapor verileri yüklenirken bir hata oluştu" },
+      { error: "Rapor verileri yüklenirken bir hata oluştu." },
       { status: 500 }
     );
   }

@@ -41,7 +41,7 @@ export async function GET(
     } catch (error: any) {
         console.error("Product fetch error:", error);
         return NextResponse.json(
-            { error: error.message || "Ürün yüklenirken bir hata oluştu" },
+            { error: "Ürün yüklenirken bir hata oluştu." },
             { status: 500 }
         );
     }

@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
-import { Menu, Search, User, Heart, ShoppingBag } from "lucide-react";
+import { Menu, Search, User, Heart, ShoppingBag, ChevronRight, ChevronLeft } from "lucide-react";
 import {
     Sheet,
     SheetContent,
@@ -16,6 +16,7 @@ import ShoppingCart from "@/app/(public)/_components/ShoppingCart";
 import SearchModal from "@/components/home/SearchModal";
 import CartPreview from "@/components/home/CartPreview";
 import { useHeaderStore } from "@/lib/stores/headerStore";
+import { useCategories } from "@/hooks/useCategories";
 
 type MenuKey = "men" | "women" | "new" | "collections" | "blog";
 
@@ -43,6 +44,8 @@ export default function HomeHeader() {
     const { data: session } = useSession();
     const [menuOpen, setMenuOpen] = useState(false);
     const [openMenu, setOpenMenu] = useState<MenuKey | null>(null);
+    const [mobileMenuState, setMobileMenuState] = useState<"main" | "men" | "women">("main");
+    const { categories, loading } = useCategories();
     const [cartOpen, setCartOpen] = useState(false);
     const [searchModalOpen, setSearchModalOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
@@ -250,7 +253,10 @@ export default function HomeHeader() {
                             </div>
 
                             {/* Mobile Menu */}
-                            <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+                            <Sheet open={menuOpen} onOpenChange={(open) => {
+                                setMenuOpen(open);
+                                if (!open) setMobileMenuState("main");
+                            }}>
                                 <SheetTrigger asChild>
                                     <button
                                         className="md:hidden hover:opacity-70 transition-opacity text-[#111]"
@@ -261,21 +267,76 @@ export default function HomeHeader() {
                                 </SheetTrigger>
                                 <SheetContent side="left" className="w-[300px] p-0 flex flex-col">
                                     <SheetHeader className="px-6 pt-6 pb-4 border-b">
-                                        <SheetTitle className="text-lg font-light uppercase tracking-wide text-[#111]">
-                                            Menü
+                                        <SheetTitle className="text-lg font-light uppercase tracking-wide text-[#111] text-left">
+                                            {mobileMenuState === "main" ? "Menü" :
+                                                mobileMenuState === "men" ? "Erkek Giyim" : "Kadın Giyim"}
                                         </SheetTitle>
                                     </SheetHeader>
-                                    <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
-                                        {navItems.map((item) => (
-                                            <Link
-                                                key={item.href}
-                                                href={item.href}
-                                                onClick={() => setMenuOpen(false)}
-                                                className="block text-[#111] font-light hover:opacity-70 transition-opacity uppercase"
-                                            >
-                                                {item.label}
-                                            </Link>
-                                        ))}
+
+                                    <div className="flex-1 overflow-y-auto px-6 py-4">
+                                        {mobileMenuState === "main" ? (
+                                            <div className="space-y-4">
+                                                {navItems.map((item) => (
+                                                    item.key === "men" || item.key === "women" ? (
+                                                        <button
+                                                            key={item.key}
+                                                            onClick={() => setMobileMenuState(item.key as "men" | "women")}
+                                                            className="flex items-center justify-between w-full text-[#111] font-light hover:opacity-70 transition-opacity uppercase text-left"
+                                                        >
+                                                            {item.label}
+                                                            <ChevronRight className="w-4 h-4 opacity-50" />
+                                                        </button>
+                                                    ) : (
+                                                        <Link
+                                                            key={item.href}
+                                                            href={item.href}
+                                                            onClick={() => setMenuOpen(false)}
+                                                            className="block text-[#111] font-light hover:opacity-70 transition-opacity uppercase"
+                                                        >
+                                                            {item.label}
+                                                        </Link>
+                                                    )
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-4 animate-in slide-in-from-right-4 duration-300">
+                                                <button
+                                                    onClick={() => setMobileMenuState("main")}
+                                                    className="flex items-center gap-2 text-sm text-[#111]/60 font-medium mb-6 hover:text-[#111] transition-colors"
+                                                >
+                                                    <ChevronLeft className="w-4 h-4" />
+                                                    Tüm Menü
+                                                </button>
+
+                                                <Link
+                                                    href={mobileMenuState === "men" ? "/men" : "/women"}
+                                                    onClick={() => setMenuOpen(false)}
+                                                    className="block text-[#111] font-medium hover:opacity-70 transition-opacity uppercase border-b border-gray-100 pb-2 mb-4"
+                                                >
+                                                    Tüm {mobileMenuState === "men" ? "Erkek" : "Kadın"} Giyim
+                                                </Link>
+
+                                                <div className="space-y-1">
+                                                    <p className="text-xs text-[#111]/40 uppercase tracking-widest font-medium mb-3">Kategoriler</p>
+                                                    {loading ? (
+                                                        <div className="space-y-3">
+                                                            {[1, 2, 3, 4].map(i => (
+                                                                <div key={i} className="h-4 bg-gray-100 rounded w-2/3 animate-pulse" />
+                                                            ))}
+                                                        </div>
+                                                    ) : categories.map((cat) => (
+                                                        <Link
+                                                            key={cat.id}
+                                                            href={`/category/${cat.slug}?gender=${mobileMenuState === "men" ? "MALE" : "FEMALE"}`}
+                                                            onClick={() => setMenuOpen(false)}
+                                                            className="block py-2 text-[#111] font-light hover:opacity-70 transition-opacity"
+                                                        >
+                                                            {cat.name}
+                                                        </Link>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="border-t px-6 py-4 space-y-3">
                                         <button

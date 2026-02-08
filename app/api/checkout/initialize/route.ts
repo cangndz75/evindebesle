@@ -73,8 +73,7 @@ export async function POST(req: Request) {
                 quantity: item.quantity,
                 totalPrice: lineTotal,
                 // variantId is internal, we don't save it to OrderItem directly but we use it for stock reservation
-                _variantId: variant.id,
-                productCategory: variant.product.category?.name || "General"
+                _variantId: variant.id
             });
         }
 

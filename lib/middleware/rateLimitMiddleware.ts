@@ -17,7 +17,7 @@ export function withRateLimit<T extends Request>(
         const identifier = getClientIdentifier(req);
         const limit = RateLimits[preset];
 
-        const result = checkRateLimit(identifier, limit);
+        const result = await checkRateLimit(identifier, limit);
 
         if (!result.success) {
             return NextResponse.json(
@@ -54,13 +54,14 @@ export function withRateLimit<T extends Request>(
  * Simple rate limit check for use in existing handlers
  * Returns NextResponse with 429 if rate limited, null otherwise
  */
-export function rateLimitCheck(
+export async function rateLimitCheck(
     request: Request,
     preset: RateLimitPreset = "standard"
-): NextResponse | null {
+): Promise<NextResponse | null> {
     const identifier = getClientIdentifier(request);
     const limit = RateLimits[preset];
-    const result = checkRateLimit(identifier, limit);
+
+    const result = await checkRateLimit(identifier, limit);
 
     if (!result.success) {
         return NextResponse.json(

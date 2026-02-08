@@ -22,7 +22,7 @@ interface CSVRow {
 export async function POST(req: NextRequest) {
     try {
         // Rate limit check
-        const rateLimitError = rateLimitCheck(req, "upload");
+        const rateLimitError = await rateLimitCheck(req, "upload");
         if (rateLimitError) return rateLimitError;
 
         const user = await getCurrentUser();

@@ -15,6 +15,9 @@ export async function GET(request: NextRequest) {
   const sizes = searchParams.getAll("size"); // Array of sizes
   const colors = searchParams.getAll("color"); // Array of color names
   const fabricType = searchParams.get("fabricType");
+  const categoryId = searchParams.get("categoryId");
+  const categorySlug = searchParams.get("categorySlug");
+
   const isActive = searchParams.get("isActive") !== "false"; // Default true
   const take = searchParams.get("take"); // Limit results
 
@@ -78,6 +81,15 @@ export async function GET(request: NextRequest) {
     where.fabricType = {
       contains: fabricType,
       mode: "insensitive",
+    };
+  }
+
+  // Category filter
+  if (categoryId) {
+    where.categoryId = categoryId;
+  } else if (categorySlug) {
+    where.category = {
+      slug: categorySlug,
     };
   }
 

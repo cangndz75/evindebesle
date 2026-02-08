@@ -1,10 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Script from "next/script";
 import { useCartStore } from "@/lib/stores/cartStore";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Loader2, CreditCard, Wallet } from "lucide-react";
 
 declare global {
     interface Window {
@@ -13,30 +16,82 @@ declare global {
 }
 
 export default function CheckoutPage() {
-    const { items: cart, refreshCart } = useCartStore();
-    const { data: session } = useSession();
+    const { items: cart, refreshCart, couponCode, discountAmount, applyCoupon, removeCoupon } = useCartStore();
+    const { data: session, status } = useSession();
+    const router = useRouter();
     const [loading, setLoading] = useState(false);
+    const [initLoading, setInitLoading] = useState(true);
 
-    // Calculate total
-    const totalPrice = cart.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
+    // Form State
     const [formData, setFormData] = useState({
+        email: "",
         firstName: "",
         lastName: "",
-        email: "",
-        phone: "",
         addressLine1: "",
+        apartment: "",
         city: "",
-        country: "Turkey",
         zipCode: "",
+        phone: "",
+        country: "Turkey" // Default
     });
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const [couponInput, setCouponInput] = useState("");
+    const [couponLoading, setCouponLoading] = useState(false);
+
+    // Payment Method State
+    const [paymentMethod, setPaymentMethod] = useState<"CREDIT_CARD" | "TEST">("CREDIT_CARD");
+
+    // Hydration check
+    useEffect(() => {
+        const init = async () => {
+            await refreshCart();
+            if (status === "authenticated" && session?.user) {
+                setFormData(prev => ({
+                    ...prev,
+                    email: session.user.email || "",
+                    firstName: session.user.name?.split(" ")[0] || "",
+                    lastName: session.user.name?.split(" ").slice(1).join(" ") || "",
+                }));
+            }
+            setInitLoading(false);
+        };
+        init();
+    }, [refreshCart, session, status]);
+
+    // Handle Auth Redirect if needed (optional, effectively handled by UI state)
+    // But keeping it flexible for guest checkout if we wanted, though user asked for forced auth/register prompt
+
+    // Calculations
+    const subtotal = cart.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
+    const shippingPrice = subtotal > 1500 ? 0 : 59.90; // Example threshold
+    const total = Math.max(0, subtotal + shippingPrice - discountAmount);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleApplyCoupon = async () => {
+        if (!couponInput.trim()) return;
+        setCouponLoading(true);
+        const res = await applyCoupon(couponInput);
+        setCouponLoading(false);
+        if (res.success) {
+            toast.success(res.message);
+            setCouponInput("");
+        } else {
+            toast.error(res.message);
+        }
     };
 
     const handleCheckout = async () => {
         if (!cart || cart.length === 0) {
             toast.error("Sepetiniz boş!");
+            return;
+        }
+
+        // Basic Validation
+        if (!formData.email || !formData.firstName || !formData.lastName || !formData.addressLine1 || !formData.city || !formData.phone) {
+            toast.error("Lütfen tüm zorunlu alanları doldurunuz.");
             return;
         }
 
@@ -53,7 +108,7 @@ export default function CheckoutPage() {
                 },
                 body: JSON.stringify({
                     userId: session?.user?.id,
-                    email: session?.user?.email || formData.email,
+                    email: formData.email,
                     items: cart.map(item => ({
                         productId: item.productId,
                         colorId: item.colorId,
@@ -63,8 +118,10 @@ export default function CheckoutPage() {
                         sizeName: item.size?.name
                     })),
                     billingAddress: formData,
-                    shippingAddress: formData, // Simplified for now
-                    shippingPrice: totalPrice > 500 ? 0 : 50, // Example logic, should come from server
+                    shippingAddress: formData, // Keeping it simple: shipping = billing
+                    shippingPrice: shippingPrice,
+                    paymentMethod: paymentMethod, // CREDIT_CARD or TEST
+                    couponCode: couponCode
                 }),
             });
 
@@ -72,19 +129,15 @@ export default function CheckoutPage() {
 
             if (!res.ok) throw new Error(data.error);
 
-            // Render Checkout Form
-            if (data.checkoutFormContent) {
-                const scriptStart = '<script type="text/javascript">';
-                const scriptEnd = '</script>';
-
-                // Extract script content or render raw html carefully
-                // Iyzico usually sends a script block. We need to execute it.
-                // A safer way for Next.js is injecting the HTML into a div.
-
+            if (data.status === "success" && data.paymentPageUrl) {
+                // Direct redirect (for Test payment or 3D secure if fully supported direclty)
+                window.location.href = data.paymentPageUrl;
+            }
+            else if (data.checkoutFormContent) {
+                // Iyzico Form Injection
                 const container = document.getElementById("iyzico-checkout-form");
                 if (container) {
                     container.innerHTML = data.checkoutFormContent + '<div id="iyzipay-checkout-form" class="responsive"></div>';
-                    // Evaluate scripts
                     const scripts = container.getElementsByTagName('script');
                     for (let i = 0; i < scripts.length; i++) {
                         // eslint-disable-next-line no-eval
@@ -102,42 +155,320 @@ export default function CheckoutPage() {
         }
     };
 
-    return (
-        <div className="container mx-auto px-4 py-8">
-            <h1 className="text-2xl font-bold mb-6">Ödeme</h1>
+    if (initLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+            </div>
+        );
+    }
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div>
-                    <h2 className="text-xl font-semibold mb-4">Adres Bilgileri</h2>
-                    <form className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                            <input name="firstName" placeholder="Ad" onChange={handleChange} className="border p-2 rounded w-full" />
-                            <input name="lastName" placeholder="Soyad" onChange={handleChange} className="border p-2 rounded w-full" />
+    // 1. Auth Check State
+    if (status === "unauthenticated") {
+        return (
+            <div className="container mx-auto px-4 py-12 md:py-20 max-w-lg text-center">
+                <h1 className="text-3xl font-serif font-light mb-4">Giriş Yapın</h1>
+                <p className="text-gray-500 mb-8 font-light">
+                    Siparişinizi tamamlamak için lütfen giriş yapın veya üye olun.
+                </p>
+                <div className="flex flex-col gap-4">
+                    <Link
+                        href="/auth-tabs?mode=login&redirect=/checkout"
+                        className="w-full bg-black text-white py-4 rounded text-sm uppercase tracking-widest hover:bg-gray-800 transition-colors"
+                    >
+                        Giriş Yap
+                    </Link>
+                    <Link
+                        href="/auth-tabs?mode=register&redirect=/checkout"
+                        className="w-full bg-white text-black border border-black py-4 rounded text-sm uppercase tracking-widest hover:bg-gray-50 transition-colors"
+                    >
+                        Üye Ol
+                    </Link>
+                </div>
+                <div className="mt-8 pt-8 border-t border-gray-100">
+                    <p className="text-xs text-gray-400">
+                        Devam ederek Kullanım Koşulları ve Gizlilik Politikamızı kabul etmiş olursunuz.
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!cart || cart.length === 0) {
+        return (
+            <div className="container mx-auto px-4 py-20 text-center">
+                <h1 className="text-2xl font-serif mb-4">Sepetiniz Boş</h1>
+                <Link href="/men" className="text-blue-600 underline">Alışverişe Başla</Link>
+            </div>
+        );
+    }
+
+    return (
+        <div className="container mx-auto px-4 md:px-8 py-8 md:py-12">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+
+                {/* LEFT COLUMN - Forms */}
+                <div className="lg:col-span-7 space-y-10">
+
+                    {/* Contact Info */}
+                    <div>
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-xl font-medium">İletişim</h2>
+                            {session?.user ? (
+                                <span className="text-sm text-gray-500">Giriş yapıldı: {session.user.email}</span>
+                            ) : (
+                                <Link href="/auth-tabs" className="text-sm underline">Giriş Yap</Link>
+                            )}
                         </div>
-                        <input name="email" placeholder="Email" onChange={handleChange} className="border p-2 rounded w-full" />
-                        <input name="phone" placeholder="Telefon" onChange={handleChange} className="border p-2 rounded w-full" />
-                        <input name="addressLine1" placeholder="Adres" onChange={handleChange} className="border p-2 rounded w-full" />
-                        <div className="grid grid-cols-2 gap-4">
-                            <input name="city" placeholder="Şehir" onChange={handleChange} className="border p-2 rounded w-full" />
-                            <input name="zipCode" placeholder="Posta Kodu" onChange={handleChange} className="border p-2 rounded w-full" />
+                        <input
+                            type="email"
+                            name="email"
+                            placeholder="E-posta adresi"
+                            value={formData.email}
+                            onChange={handleChange}
+                            className="w-full border border-gray-300 rounded p-3 focus:outline-none focus:border-black transition-colors"
+                        />
+                        <div className="mt-2 flex items-center gap-2">
+                            <input type="checkbox" id="newsletter" className="rounded border-gray-300" />
+                            <label htmlFor="newsletter" className="text-sm text-gray-600">Kampanyalardan ve fırsatlardan haberdar olmak istiyorum</label>
                         </div>
-                    </form>
+                    </div>
+
+                    {/* Delivery Address */}
+                    <div>
+                        <h2 className="text-xl font-medium mb-4">Teslimat Adresi</h2>
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-1">
+                                <select
+                                    name="country"
+                                    value={formData.country}
+                                    onChange={handleChange}
+                                    className="w-full border border-gray-300 rounded p-3 bg-white focus:outline-none focus:border-black"
+                                >
+                                    <option value="Turkey">Türkiye</option>
+                                </select>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <input
+                                    type="text"
+                                    name="firstName"
+                                    placeholder="Ad"
+                                    value={formData.firstName}
+                                    onChange={handleChange}
+                                    className="w-full border border-gray-300 rounded p-3 focus:outline-none focus:border-black"
+                                />
+                                <input
+                                    type="text"
+                                    name="lastName"
+                                    placeholder="Soyad"
+                                    value={formData.lastName}
+                                    onChange={handleChange}
+                                    className="w-full border border-gray-300 rounded p-3 focus:outline-none focus:border-black"
+                                />
+                            </div>
+                            <input
+                                type="text"
+                                name="addressLine1"
+                                placeholder="Adres"
+                                value={formData.addressLine1}
+                                onChange={handleChange}
+                                className="w-full border border-gray-300 rounded p-3 focus:outline-none focus:border-black"
+                            />
+                            <input
+                                type="text"
+                                name="apartment"
+                                placeholder="Apartman, daire vb. (opsiyonel)"
+                                value={formData.apartment}
+                                onChange={handleChange}
+                                className="w-full border border-gray-300 rounded p-3 focus:outline-none focus:border-black"
+                            />
+                            <div className="grid grid-cols-3 gap-4">
+                                <input
+                                    type="text"
+                                    name="city"
+                                    placeholder="Şehir"
+                                    value={formData.city}
+                                    onChange={handleChange}
+                                    className="w-full border border-gray-300 rounded p-3 focus:outline-none focus:border-black"
+                                />
+                                <input
+                                    type="text"
+                                    name="zipCode"
+                                    placeholder="Posta Kodu"
+                                    value={formData.zipCode}
+                                    onChange={handleChange}
+                                    className="w-full border border-gray-300 rounded p-3 focus:outline-none focus:border-black col-span-2"
+                                />
+                            </div>
+                            <input
+                                type="tel"
+                                name="phone"
+                                placeholder="Telefon"
+                                value={formData.phone}
+                                onChange={handleChange}
+                                className="w-full border border-gray-300 rounded p-3 focus:outline-none focus:border-black"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Shipping Method - Fixed/Visual for now */}
+                    <div>
+                        <h2 className="text-xl font-medium mb-4">Kargo Yöntemi</h2>
+                        <div className="border border-gray-200 rounded p-4 flex justify-between items-center bg-gray-50">
+                            <span className="text-sm">Standart Kargo (1-3 İş Günü)</span>
+                            <span className="font-medium">{shippingPrice === 0 ? "Ücretsiz" : `${shippingPrice} TL`}</span>
+                        </div>
+                    </div>
+
+                    {/* Payment Method */}
+                    <div>
+                        <h2 className="text-xl font-medium mb-2">Ödeme</h2>
+                        <p className="text-sm text-gray-500 mb-4">Tüm işlemler şifreli ve güvenlidir.</p>
+
+                        <div className="border border-gray-200 rounded overflow-hidden">
+                            {/* Option 1: Credit Card */}
+                            <div className={`p-4 border-b border-gray-200 flex items-center gap-3 cursor-pointer ${paymentMethod === "CREDIT_CARD" ? "bg-gray-50" : "bg-white"}`}
+                                onClick={() => setPaymentMethod("CREDIT_CARD")}
+                            >
+                                <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${paymentMethod === "CREDIT_CARD" ? "border-black" : "border-gray-300"}`}>
+                                    {paymentMethod === "CREDIT_CARD" && <div className="w-2 h-2 rounded-full bg-black" />}
+                                </div>
+                                <span className="flex-1 font-medium">Kredi / Banka Kartı</span>
+                                <div className="flex gap-1">
+                                    {/* Simple visual placeholders for card icons */}
+                                    {["visa", "mastercard"].map(brand => (
+                                        <div key={brand} className="w-8 h-5 bg-gray-200 rounded text-[8px] flex items-center justify-center uppercase text-gray-500">{brand}</div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Credit Card Content - Only one shown as "redirect" info or form container */}
+                            {paymentMethod === "CREDIT_CARD" && (
+                                <div className="p-6 bg-gray-50 border-b border-gray-200 text-center">
+                                    <CreditCard className="w-12 h-12 mx-auto text-gray-400 mb-2" />
+                                    <p className="text-sm text-gray-600 mb-4">
+                                        Güvenli ödeme sayfasına yönlendirileceksiniz.
+                                    </p>
+
+                                    {/* Container for Iyzico Form */}
+                                    <div id="iyzico-checkout-form" className="min-h-[10px]"></div>
+                                </div>
+                            )}
+
+                            {/* Option 2: Test Payment */}
+                            <div className={`p-4 flex items-center gap-3 cursor-pointer ${paymentMethod === "TEST" ? "bg-gray-50" : "bg-white"}`}
+                                onClick={() => setPaymentMethod("TEST")}
+                            >
+                                <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${paymentMethod === "TEST" ? "border-black" : "border-gray-300"}`}>
+                                    {paymentMethod === "TEST" && <div className="w-2 h-2 rounded-full bg-black" />}
+                                </div>
+                                <span className="flex-1 font-medium">Test Ödemesi (Kart Gerektirmez)</span>
+                                <Wallet className="w-5 h-5 text-gray-400" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <button
+                        onClick={handleCheckout}
+                        disabled={loading}
+                        className="w-full bg-black text-white py-4 rounded font-medium text-lg hover:bg-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {loading ? "İşleniyor..." : `Ödemeyi Tamamla • ${total.toFixed(2)} TL`}
+                    </button>
+
+                    <div className="text-xs text-gray-400 text-center mt-4">
+                        All rights reserved Goodhood
+                    </div>
+
                 </div>
 
-                <div>
-                    <h2 className="text-xl font-semibold mb-4">Ödeme</h2>
-                    <div id="iyzico-checkout-form" className="min-h-[400px]">
-                        {!loading && (
+                {/* RIGHT COLUMN - Summary */}
+                <div className="lg:col-span-5">
+                    <div className="bg-gray-50 p-6 rounded-lg sticky top-24">
+                        <h2 className="text-xl font-medium mb-6">Sipariş Özeti</h2>
+
+                        {/* Items */}
+                        <div className="space-y-4 mb-6 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                            {cart.map((item) => (
+                                <div key={item.id} className="flex gap-4">
+                                    <div className="relative w-16 h-20 bg-gray-200 rounded overflow-hidden flex-shrink-0">
+                                        {item.product.image ? (
+                                            <Image
+                                                src={item.product.image}
+                                                alt={item.product.name}
+                                                fill
+                                                className="object-cover"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">No Img</div>
+                                        )}
+                                        <div className="absolute top-0 right-0 bg-gray-500 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-bl-md">
+                                            {item.quantity}
+                                        </div>
+                                    </div>
+                                    <div className="flex-1">
+                                        <h3 className="text-sm font-medium leading-tight mb-1">{item.product.name}</h3>
+                                        <p className="text-xs text-gray-500 mb-1">{item.size?.name} {item.color?.name && `• ${item.color.name}`}</p>
+                                    </div>
+                                    <div className="text-sm font-medium">
+                                        {(item.product.price * item.quantity).toFixed(2)} TL
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Coupon */}
+                        <div className="flex gap-2 mb-6">
+                            <input
+                                type="text"
+                                placeholder="İndirim kodu"
+                                value={couponInput}
+                                onChange={(e) => setCouponInput(e.target.value)}
+                                className="flex-1 border border-gray-300 rounded p-2 text-sm focus:outline-none focus:border-black"
+                            />
                             <button
-                                onClick={handleCheckout}
-                                className="w-full bg-blue-600 text-white py-3 rounded font-bold hover:bg-blue-700 transition"
+                                onClick={handleApplyCoupon}
+                                disabled={couponLoading || !couponInput.trim()}
+                                className="bg-gray-200 text-gray-700 px-4 rounded text-sm font-medium hover:bg-gray-300 transition-colors disabled:opacity-50"
                             >
-                                Ödeme Formunu Yükle
+                                {couponLoading ? "..." : "Uygula"}
                             </button>
+                        </div>
+
+                        {/* Active Coupon Display */}
+                        {couponCode && (
+                            <div className="flex justify-between items-center bg-green-50 p-2 rounded border border-green-200 mb-4">
+                                <span className="text-sm text-green-700 font-medium">{couponCode}</span>
+                                <button onClick={removeCoupon} className="text-xs text-red-500 hover:text-red-700">Kaldır</button>
+                            </div>
                         )}
-                        {loading && <p className="text-center text-gray-500">Yükleniyor...</p>}
+
+                        {/* Totals */}
+                        <div className="space-y-2 text-sm border-t border-gray-200 pt-4">
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Ara Toplam</span>
+                                <span>{subtotal.toFixed(2)} TL</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Kargo</span>
+                                <span>{shippingPrice === 0 ? "Ücretsiz" : `${shippingPrice.toFixed(2)} TL`}</span>
+                            </div>
+                            {discountAmount > 0 && (
+                                <div className="flex justify-between text-green-600">
+                                    <span>İndirim</span>
+                                    <span>-{discountAmount.toFixed(2)} TL</span>
+                                </div>
+                            )}
+                            <div className="flex justify-between text-lg font-bold pt-2 border-t border-gray-200 mt-2">
+                                <span>Toplam</span>
+                                <span>{total.toFixed(2)} TL</span>
+                            </div>
+                            <p className="text-xs text-gray-400 mt-1">Vergiler dahildir</p>
+                        </div>
+
                     </div>
                 </div>
+
             </div>
         </div>
     );

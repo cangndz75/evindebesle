@@ -430,23 +430,49 @@ export const useCartStore = create<CartState>((set, get) => ({
   },
 
   applyCoupon: async (code: string) => {
-    // Şimdilik mock yapıyoruz
-    // Gerçek uygulamada API'ye istek atılmalı: await fetch('/api/coupons/verify', ...)
+    try {
+      const res = await fetch("/api/coupons/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code })
+      });
 
-    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate loading
+      const data = await res.json();
 
-    if (code.toUpperCase() === "TEST10") {
-      set({ couponCode: code, discountAmount: 100 }); // 100 TL indirim
-      return { success: true, message: "Kupon uygulandı" };
+      if (data.valid) {
+        // Calculate discount amount based on type
+        // Note: For percentage, we need the current cart total. 
+        // This logic might be better placed in a getter or updated when items change.
+        // For now, we will just store the coupon details and let the UI/derived state handle the math if possible,
+        // or calculating it here based on current items.
+
+        const currentItems = get().items;
+        const subtotal = currentItems.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
+
+        let discount = 0;
+        if (data.discountType === "PERCENT") {
+          discount = (subtotal * data.value) / 100;
+        } else {
+          discount = data.value;
+        }
+
+        // Ensure discount doesn't exceed total
+        if (discount > subtotal) discount = subtotal;
+
+        set({
+          couponCode: data.code,
+          discountAmount: discount
+        });
+
+        return { success: true, message: "Kupon uygulandı" };
+      } else {
+        set({ couponCode: null, discountAmount: 0 });
+        return { success: false, message: data.message || "Geçersiz kupon kodu" };
+      }
+    } catch (error) {
+      console.error("Coupon apply error:", error);
+      return { success: false, message: "Kupon doğrulanırken bir hata oluştu" };
     }
-
-    if (code.toUpperCase() === "YAZ30") {
-      // Yüzde hesabı store içinde toplam fiyata göre yapılabilir ama basit olması için sabit indirim verelim
-      set({ couponCode: code, discountAmount: 300 });
-      return { success: true, message: "Kupon uygulandı" };
-    }
-
-    return { success: false, message: "Geçersiz kupon kodu" };
   },
 
   removeCoupon: () => {

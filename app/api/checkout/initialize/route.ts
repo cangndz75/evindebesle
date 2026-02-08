@@ -103,7 +103,70 @@ export async function POST(req: Request) {
         const total = subtotal + shipping - discount;
         const currency = "TRY";
 
-        // 3) Create Order
+        if (body.paymentMethod === "TEST") {
+            const order = await prisma.order.create({
+                data: {
+                    orderNumber: `DV-${Date.now()}`,
+                    userId: body.userId ?? null,
+                    email: body.email,
+                    currency,
+                    subtotal,
+                    shippingCost: shipping,
+                    discount,
+                    total,
+                    couponId: couponId,
+                    status: "PENDING_PAYMENT", // Will be updated to PAID if successful, or we can set PAID immediately for test
+                    paymentStatus: "paid", // Lowercase enum match if needed, checks schema
+                    idempotencyKey: idem,
+                    items: {
+                        create: orderItemsData.map(({ _variantId, ...rest }: any) => rest)
+                    },
+                    payment: {
+                        create: {
+                            provider: "TEST",
+                            status: "PAID",
+                            paymentId: `TEST-${Date.now()}`,
+                            conversationId: `TEST-CONV-${Date.now()}`
+                        }
+                    },
+                },
+                include: { items: true, payment: true },
+            });
+
+            // Reserve Stock 
+            await reserveStockTx(
+                order.id,
+                orderItemsData.map((i: any) => ({ variantId: i._variantId, qty: i.quantity })),
+                15
+            );
+
+            // Attribution
+            if (body.email) {
+                try {
+                    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
+                    const lastClick = await prisma.emailSend.findFirst({
+                        where: { email: body.email, clickedAt: { gte: yesterday } },
+                        orderBy: { clickedAt: 'desc' }
+                    });
+                    if (lastClick) {
+                        await prisma.emailSend.update({
+                            where: { id: lastClick.id },
+                            data: { convertedAt: new Date(), revenue: total }
+                        });
+                    }
+                } catch (e) {
+                    console.error("Attribution Error:", e);
+                }
+            }
+
+            return NextResponse.json({
+                orderId: order.id,
+                paymentPageUrl: `/success?orderId=${order.id}`, // Direct redirect
+                status: "success"
+            });
+        }
+
+        // 3) Create Order (Iyzico Flow)
         const order = await prisma.order.create({
             data: {
                 orderNumber: `DV-${Date.now()}`,

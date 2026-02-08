@@ -18,6 +18,7 @@ export default function ConditionalFooter() {
         "/analytics",
         "/automations",
         "/coupons",
+        "/checkout",
     ];
 
     // Check if current path starts with any of the admin routes

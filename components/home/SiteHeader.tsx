@@ -259,7 +259,30 @@ export default function SiteHeader() {
     return null;
   }
 
+  // Checkout Header - Simplified
+  if (pathname === "/checkout") {
+    return (
+      <header className="sticky top-0 z-50 bg-white border-b border-black/10 w-full">
+        <div className="w-full px-4 md:px-8 h-16 md:h-20 flex items-center justify-between relative">
+          {/* Empty left side for balance or back link could go here */}
+          <div className="w-10"></div>
+
+          {/* Center Brand */}
+          <div className="absolute left-1/2 -translate-x-1/2 text-2xl md:text-3xl font-serif font-light tracking-wider text-[#111]">
+            Dark velvet
+          </div>
+
+          {/* Right Cart Icon */}
+          <Link href="/cart" className="hover:opacity-70 transition-opacity">
+            <ShoppingBag className="w-6 h-6 text-[#111]" />
+          </Link>
+        </div>
+      </header>
+    );
+  }
+
   const bannerVariant = "default";
+
 
   return (
     <div className="relative flex flex-col z-[50]">

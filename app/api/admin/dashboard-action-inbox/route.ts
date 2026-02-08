@@ -23,10 +23,10 @@ export async function GET(req: NextRequest) {
 
     const oneHourAgo = subHours(new Date(), 1);
 
-    // Bekleyen siparişler (yeni + hazırlanıyor)
+    // Bekleyen siparişler (sadece PAID - ödendi ama henüz hazırlanmaya başlanmamış)
     const pendingOrders = await prisma.order.count({
       where: {
-        status: { in: ["PAID", "PREPARING"] },
+        status: "PAID",
         paymentStatus: "PAID",
       },
     });

@@ -158,6 +158,13 @@ export async function POST(req: Request) {
                 }
             }
 
+            // Clear Cart for User
+            if (body.userId) {
+                await prisma.cartItem.deleteMany({
+                    where: { userId: body.userId }
+                });
+            }
+
             return NextResponse.json({
                 orderId: order.id,
                 paymentPageUrl: `/success?orderId=${order.id}`, // Direct redirect

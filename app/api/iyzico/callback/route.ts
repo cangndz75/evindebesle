@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { iyzico, iyzicoCall } from "@/lib/iyzico";
 import { commitReservationToSaleTx, releaseReservationTx } from "@/lib/stock";
+import { finalizePayment } from "@/lib/services/payment";
 
 export async function POST(req: NextRequest) {
     try {
@@ -63,28 +64,13 @@ export async function POST(req: NextRequest) {
         const isSuccess = retrieveRes.status === "success" && retrieveRes.paymentStatus === "SUCCESS";
 
         if (isSuccess) {
-            // 1) Commit stock
-            await commitReservationToSaleTx(orderId);
-
-            // 2) Update Order and Payment status
-            await prisma.$transaction([
-                prisma.order.update({
-                    where: { id: orderId },
-                    data: {
-                        status: "PAID",
-                        paymentStatus: "PAID",
-                        paidAt: new Date()
-                    }
-                }),
-                prisma.paymentAttempt.update({
-                    where: { orderId },
-                    data: {
-                        status: "SUCCEEDED",
-                        paymentId: retrieveRes.paymentId,
-                        rawResult: retrieveRes
-                    }
-                })
-            ]);
+            // Use centralized payment finalization
+            await finalizePayment({
+                orderId,
+                paymentId: retrieveRes.paymentId,
+                conversationId: retrieveRes.conversationId,
+                rawResult: retrieveRes
+            });
 
             return NextResponse.redirect(`${process.env.NEXT_PUBLIC_BASE_URL || ""}/checkout/success?orderId=${orderId}`);
         } else {
@@ -106,7 +92,7 @@ export async function POST(req: NextRequest) {
                 })
             ]);
 
-            return NextResponse.redirect(`${process.env.NEXT_PUBLIC_BASE_URL || ""}/checkout/success?orderId=${orderId}`);
+            return NextResponse.redirect(`${process.env.NEXT_PUBLIC_BASE_URL || ""}/checkout/success?orderId=${orderId}&error=payment_failed`);
         }
 
     } catch (error: any) {

@@ -71,6 +71,7 @@ type CartState = {
   removeItem: (itemId: string) => Promise<void>;
   applyCoupon: (code: string) => Promise<{ success: boolean; message: string }>;
   removeCoupon: () => void;
+  clearCart: () => void;
 };
 
 // Guest cart'ı CartItem formatına dönüştür
@@ -113,6 +114,19 @@ export const useCartStore = create<CartState>((set, get) => ({
       discountAmount: 0,
     });
     // Guest cart'ı da temizle
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("guestCart");
+    }
+  },
+
+  clearCart: () => {
+    set({
+      items: [],
+      hydrated: true,
+      isReady: true,
+      couponCode: null,
+      discountAmount: 0,
+    });
     if (typeof window !== "undefined") {
       localStorage.removeItem("guestCart");
     }

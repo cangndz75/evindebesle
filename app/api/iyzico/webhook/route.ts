@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { iyzico, iyzicoCall } from "@/lib/iyzico";
 import { commitReservationToSaleTx } from "@/lib/stock";
-import { createAdminNotification } from "@/lib/admin-notification";
+import { finalizePayment } from "@/lib/services/payment";
+// import { createAdminNotification } from "@/lib/admin-notification"; // Removed as it's now internal to finalizePayment
 
 /**
  * Iyzico Webhook Handler
@@ -55,36 +56,16 @@ export async function POST(req: NextRequest) {
 
         if (isSuccess) {
             // Commit stock and update order
-            await commitReservationToSaleTx(payment.orderId);
-
-            await prisma.$transaction([
-                prisma.order.update({
-                    where: { id: payment.orderId },
-                    data: {
-                        status: "PAID",
-                        paymentStatus: "PAID",
-                        paidAt: new Date()
-                    }
-                }),
-                prisma.paymentAttempt.update({
-                    where: { id: payment.id },
-                    data: {
-                        status: "SUCCEEDED",
-                        paymentId: retrieveRes.paymentId,
-                        rawResult: retrieveRes
-                    }
-                })
-            ]);
+            await finalizePayment({
+                orderId: payment.orderId,
+                paymentId: retrieveRes.paymentId,
+                conversationId: retrieveRes.conversationId,
+                rawResult: retrieveRes
+            });
 
             console.log(`Webhook: Order ${payment.orderId} successfully updated via webhook.`);
 
-            // Notify Admins
-            await createAdminNotification({
-                type: "ORDER",
-                title: "Yeni Sipariş Alındı",
-                message: `#${payment.order.orderNumber} numaralı sipariş başarıyla oluşturuldu.`,
-                link: `/admin-orders/${payment.orderId}`
-            });
+            // Notifications are now handled in finalizePayment
 
             return NextResponse.json({ status: "success" });
         } else {

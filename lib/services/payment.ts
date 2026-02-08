@@ -2,6 +2,7 @@
 import { prisma } from "@/lib/db";
 import { OrderStatus } from "@prisma/client";
 import { commitReservationToSaleTx, releaseReservationTx } from "@/lib/stock";
+import { createAdminNotification } from "@/lib/admin-notification";
 
 interface FinalizePaymentParams {
     orderId: string;
@@ -79,25 +80,28 @@ export async function finalizePayment({
             return result.order;
         }
 
-        // 2. Stock Management (Outside the main transaction to avoid long locking if complex, 
-        // but better inside if consistency is paramount. 
-        // implementation_plan said: "Consume Stock (if reserved) or release (if failed)"
-        // The stock.ts functions are strictly transactional themselves. 
-        // Calling them here effectively makes multiple transactions, which is slightly risky if server crashes in between.
-        // However, since we marked order as PAID, a mismatch would mean stock is reserved but order is paid (so stock acts as sold).
-        // Correct approach: commitReservationToSaleTx handles converting reservation to decrement.
-
+        // 2. Stock Management
         await commitReservationToSaleTx(orderId);
+
+        // 3. Send Notification
+        try {
+            // We need to fetch the order number for the notification message if we don't have it in the result.order object yet (it should be there)
+            // result.order is the updated order object
+            await createAdminNotification({
+                type: "ORDER",
+                title: "Yeni Sipariş Alındı",
+                message: `#${result.order.orderNumber} numaralı sipariş başarıyla oluşturuldu.`,
+                link: `/admin/orders/${result.order.id}` // Corrected link path
+            });
+        } catch (notifError) {
+            console.error("Failed to send admin notification:", notifError);
+            // Don't fail the request if notification fails
+        }
 
         return result.order;
 
     } catch (error) {
         console.error("Payment Finalization Error:", error);
-
-        // If we failed to finalize, we might want to release stock? 
-        // No, only if we determined payment FAILED. 
-        // Here we are inside finalizePayment only called when payment IS successful.
-        // If database update fails, we throw. 
         throw error;
     }
 }

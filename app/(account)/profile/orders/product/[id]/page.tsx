@@ -16,7 +16,8 @@ import {
     Clock,
     XCircle,
     ChevronRight,
-    ShoppingBag
+    ShoppingBag,
+    MessageSquarePlus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -25,6 +26,7 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { toast } from "sonner";
+import ProductReviewModal from "@/components/product/ProductReviewModal";
 
 interface OrderDetail {
     id: string;
@@ -45,6 +47,8 @@ interface OrderDetail {
         colorName: string | null;
         sizeName: string | null;
         product: {
+            id: string;
+            name: string;
             slug: string | null;
             image: string | null;
         };
@@ -70,6 +74,14 @@ export default function OrderDetailPage() {
     const [order, setOrder] = useState<OrderDetail | null>(null);
     const [loading, setLoading] = useState(true);
     const [downloading, setDownloading] = useState(false);
+
+    // Review Modal State
+    const [reviewModalOpen, setReviewModalOpen] = useState(false);
+    const [selectedReviewProduct, setSelectedReviewProduct] = useState<{
+        id: string;
+        name: string;
+        image: string | null;
+    } | null>(null);
 
     useEffect(() => {
         const fetchOrder = async () => {
@@ -119,6 +131,11 @@ export default function OrderDetailPage() {
         } finally {
             setDownloading(false);
         }
+    };
+
+    const handleOpenReviewModal = (product: { id: string; name: string; image: string | null }) => {
+        setSelectedReviewProduct(product);
+        setReviewModalOpen(true);
     };
 
     const getStatusBadge = (status: string) => {
@@ -250,13 +267,32 @@ export default function OrderDetailPage() {
                                             </div>
 
                                             <div className="mt-4 flex items-center justify-between">
-                                                {item.product.slug && (
-                                                    <Link
-                                                        href={`/product/${item.product.slug}`}
-                                                        className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+                                                <div className="flex items-center gap-3">
+                                                    {item.product.slug && (
+                                                        <Link
+                                                            href={`/product/${item.product.slug}`}
+                                                            className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+                                                        >
+                                                            Ürüne Git <ChevronRight className="w-4 h-4" />
+                                                        </Link>
+                                                    )}
+                                                </div>
+
+                                                {/* Review Button */}
+                                                {order.status === "DELIVERED" && (
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="flex items-center gap-2 text-xs"
+                                                        onClick={() => handleOpenReviewModal({
+                                                            id: item.product.id,
+                                                            name: item.productName, // Use order item product name in case product name changed
+                                                            image: item.image || item.product.image
+                                                        })}
                                                     >
-                                                        Ürüne Git <ChevronRight className="w-4 h-4" />
-                                                    </Link>
+                                                        <MessageSquarePlus className="w-3 h-3" />
+                                                        Yorum Yap
+                                                    </Button>
                                                 )}
                                             </div>
                                         </div>
@@ -367,6 +403,20 @@ export default function OrderDetailPage() {
                     </Card>
                 </div>
             </div>
+
+            {/* Product Review Modal */}
+            {selectedReviewProduct && (
+                <ProductReviewModal
+                    isOpen={reviewModalOpen}
+                    onClose={() => setReviewModalOpen(false)}
+                    productId={selectedReviewProduct.id}
+                    productName={selectedReviewProduct.name}
+                    productImage={selectedReviewProduct.image}
+                    onReviewSubmitted={() => {
+                        // Optional: Show success toast or refresh if needed
+                    }}
+                />
+            )}
         </div>
     );
 }

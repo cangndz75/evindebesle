@@ -677,7 +677,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                                   {formatPriceTRY((item.product.originalPrice || item.product.price) * item.quantity)}
                                 </p>
                                 <p className="text-xs text-gray-500">
-                                  {item.quantity} adet x {formatPriceTRY(item.product.originalPrice || item.product.price)}
+                                  {item.quantity} adet
                                 </p>
                               </div>
                             </div>

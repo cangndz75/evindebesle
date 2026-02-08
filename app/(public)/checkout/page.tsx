@@ -35,8 +35,11 @@ export default function CheckoutPage() {
         country: "Turkey" // Default
     });
 
+    // Mobile Coupon State
     const [couponInput, setCouponInput] = useState("");
     const [couponLoading, setCouponLoading] = useState(false);
+
+    // ... existing ...
 
     // Payment Method State
     const [paymentMethod, setPaymentMethod] = useState<"CREDIT_CARD" | "TEST">("CREDIT_CARD");
@@ -62,7 +65,10 @@ export default function CheckoutPage() {
     // But keeping it flexible for guest checkout if we wanted, though user asked for forced auth/register prompt
 
     // Calculations
-    const subtotal = cart.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
+    const subtotal = cart.reduce((acc, item) => {
+        const price = item.product.originalPrice || item.product.price;
+        return acc + (price * item.quantity);
+    }, 0);
     const shippingPrice = subtotal > 1500 ? 0 : 59.90; // Example threshold
     const total = Math.max(0, subtotal + shippingPrice - discountAmount);
 
@@ -311,6 +317,33 @@ export default function CheckoutPage() {
                         </div>
                     </div>
 
+                    {/* Mobile Coupon Section */}
+                    <div className="block lg:hidden">
+                        <h2 className="text-xl font-medium mb-4">İndirim Kodu</h2>
+                        <div className="flex gap-2 mb-2">
+                            <input
+                                type="text"
+                                placeholder="İndirim kodu"
+                                value={couponInput}
+                                onChange={(e) => setCouponInput(e.target.value)}
+                                className="flex-1 border border-gray-300 rounded p-2 text-sm focus:outline-none focus:border-black"
+                            />
+                            <button
+                                onClick={handleApplyCoupon}
+                                disabled={couponLoading || !couponInput.trim()}
+                                className="bg-gray-200 text-gray-700 px-4 rounded text-sm font-medium hover:bg-gray-300 transition-colors disabled:opacity-50"
+                            >
+                                {couponLoading ? "..." : "Uygula"}
+                            </button>
+                        </div>
+                        {couponCode && (
+                            <div className="flex justify-between items-center bg-green-50 p-2 rounded border border-green-200">
+                                <span className="text-sm text-green-700 font-medium">{couponCode}</span>
+                                <button onClick={removeCoupon} className="text-xs text-red-500 hover:text-red-700">Kaldır</button>
+                            </div>
+                        )}
+                    </div>
+
                     {/* Shipping Method - Fixed/Visual for now */}
                     <div>
                         <h2 className="text-xl font-medium mb-4">Kargo Yöntemi</h2>
@@ -411,14 +444,14 @@ export default function CheckoutPage() {
                                         <p className="text-xs text-gray-500 mb-1">{item.size?.name} {item.color?.name && `• ${item.color.name}`}</p>
                                     </div>
                                     <div className="text-sm font-medium">
-                                        {(item.product.price * item.quantity).toFixed(2)} TL
+                                        {((item.product.originalPrice || item.product.price) * item.quantity).toFixed(2)} TL
                                     </div>
                                 </div>
                             ))}
                         </div>
 
-                        {/* Coupon */}
-                        <div className="flex gap-2 mb-6">
+                        {/* Coupon - Desktop Only */}
+                        <div className="hidden lg:flex gap-2 mb-6">
                             <input
                                 type="text"
                                 placeholder="İndirim kodu"
@@ -435,9 +468,9 @@ export default function CheckoutPage() {
                             </button>
                         </div>
 
-                        {/* Active Coupon Display */}
+                        {/* Active Coupon Display - Desktop Only */}
                         {couponCode && (
-                            <div className="flex justify-between items-center bg-green-50 p-2 rounded border border-green-200 mb-4">
+                            <div className="hidden lg:flex justify-between items-center bg-green-50 p-2 rounded border border-green-200 mb-4">
                                 <span className="text-sm text-green-700 font-medium">{couponCode}</span>
                                 <button onClick={removeCoupon} className="text-xs text-red-500 hover:text-red-700">Kaldır</button>
                             </div>

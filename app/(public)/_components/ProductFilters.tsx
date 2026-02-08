@@ -156,7 +156,7 @@ export default function ProductFilters({
                 <AccordionTrigger className="py-4 hover:no-underline px-0">
                   <div className="flex items-center justify-between w-full pr-4">
                     <span className="text-sm font-semibold uppercase text-[#111]">FİYAT</span>
-                    <ChevronDown className="w-4 h-4 text-[#111] transition-transform duration-200" />
+
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="pt-2 pb-4 px-0">
@@ -214,7 +214,7 @@ export default function ProductFilters({
                   <AccordionTrigger className="py-4 hover:no-underline px-0">
                     <div className="flex items-center justify-between w-full pr-4">
                       <span className="text-sm font-semibold uppercase text-[#111]">BEDEN</span>
-                      <ChevronDown className="w-4 h-4 text-[#111] transition-transform duration-200" />
+
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="pt-2 pb-4 px-0">
@@ -245,7 +245,7 @@ export default function ProductFilters({
                   <AccordionTrigger className="py-4 hover:no-underline px-0">
                     <div className="flex items-center justify-between w-full pr-4">
                       <span className="text-sm font-semibold uppercase text-[#111]">RENK</span>
-                      <ChevronDown className="w-4 h-4 text-[#111] transition-transform duration-200" />
+
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="pt-2 pb-4 px-0">
@@ -276,7 +276,7 @@ export default function ProductFilters({
                   <AccordionTrigger className="py-4 hover:no-underline px-0">
                     <div className="flex items-center justify-between w-full pr-4">
                       <span className="text-sm font-semibold uppercase text-[#111]">KUMAŞ TİPİ</span>
-                      <ChevronDown className="w-4 h-4 text-[#111] transition-transform duration-200" />
+
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="pt-2 pb-4 px-0">

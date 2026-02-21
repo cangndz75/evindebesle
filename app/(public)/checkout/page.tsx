@@ -35,11 +35,13 @@ export default function CheckoutPage() {
         country: "Turkey" // Default
     });
 
+    // Shipping settings
+    const [freeShippingThreshold, setFreeShippingThreshold] = useState(99);
+    const [shippingCost, setShippingCost] = useState(49.90);
+
     // Mobile Coupon State
     const [couponInput, setCouponInput] = useState("");
     const [couponLoading, setCouponLoading] = useState(false);
-
-    // ... existing ...
 
     // Payment Method State
     const [paymentMethod, setPaymentMethod] = useState<"CREDIT_CARD" | "TEST">("CREDIT_CARD");
@@ -61,6 +63,17 @@ export default function CheckoutPage() {
         init();
     }, [refreshCart, session, status]);
 
+    // Fetch shipping settings
+    useEffect(() => {
+        fetch("/api/company-settings")
+            .then(res => res.json())
+            .then(data => {
+                setFreeShippingThreshold(Number(data.freeShippingThreshold) || 99);
+                setShippingCost(Number(data.shippingPrice) || 49.90);
+            })
+            .catch(() => { });
+    }, []);
+
     // Handle Auth Redirect if needed (optional, effectively handled by UI state)
     // But keeping it flexible for guest checkout if we wanted, though user asked for forced auth/register prompt
 
@@ -69,7 +82,7 @@ export default function CheckoutPage() {
         const price = item.product.originalPrice || item.product.price;
         return acc + (price * item.quantity);
     }, 0);
-    const shippingPrice = subtotal > 1500 ? 0 : 59.90; // Example threshold
+    const shippingPrice = subtotal >= freeShippingThreshold ? 0 : shippingCost;
     const total = Math.max(0, subtotal + shippingPrice - discountAmount);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {

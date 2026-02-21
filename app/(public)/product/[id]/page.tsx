@@ -243,6 +243,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
     { name: product.name, url: `${BASE_URL}/product/${product.slug || product.id}` },
   ];
 
+  // Fetch company settings for FAQ
+  const settings = await prisma.companySettings.findFirst();
+  const threshold = settings?.freeShippingThreshold || 99;
+  const shippingPrice = settings?.shippingPrice || 49.90;
+
   return (
     <>
       {/* JSON-LD Structured Data */}
@@ -284,7 +289,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
           },
           {
             question: "Kargo ücreti ne kadar?",
-            answer: "199 TL üzeri alışverişlerde kargo ücretsizdir. Altındaki siparişlerde kargo bedeli 29.90 TL'dir."
+            answer: `${threshold} TL üzeri alışverişlerde kargo ücretsizdir. Altındaki siparişlerde kargo bedeli ${shippingPrice.toFixed(2)} TL'dir.`
           }
         ]}
       />

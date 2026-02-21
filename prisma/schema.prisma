@@ -478,6 +478,7 @@ model CartItem {
 model CompanySettings {
   id                    String @id @unique @default(cuid())
   freeShippingThreshold Float  @default(99.0)
+  shippingPrice         Float  @default(49.90)
 
   // Invoice/Fatura bilgileri
   companyName    String? @default("Evindebesle")

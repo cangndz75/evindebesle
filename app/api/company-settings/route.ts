@@ -35,7 +35,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { freeShippingThreshold } = body;
+    const { freeShippingThreshold, shippingPrice } = body;
 
     // İlk ayarları oluştur (yoksa)
     let settings = await prisma.companySettings.findFirst();
@@ -44,6 +44,7 @@ export async function PATCH(request: NextRequest) {
       settings = await prisma.companySettings.create({
         data: {
           freeShippingThreshold: freeShippingThreshold || 99.0,
+          shippingPrice: shippingPrice || 49.90,
         },
       });
     } else {
@@ -51,6 +52,7 @@ export async function PATCH(request: NextRequest) {
         where: { id: settings.id },
         data: {
           freeShippingThreshold: freeShippingThreshold ?? settings.freeShippingThreshold,
+          shippingPrice: shippingPrice ?? settings.shippingPrice,
         },
       });
     }

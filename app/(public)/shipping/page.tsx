@@ -1,12 +1,17 @@
 import { Truck, Clock, Package, MapPin, CreditCard, AlertCircle, CheckCircle2, HelpCircle } from "lucide-react";
 import Link from "next/link";
+import { prisma } from "@/lib/db";
 
 export const metadata = {
     title: "Kargo Politikaları | Dark Velvet",
     description: "Dark Velvet kargo süreleri, teslimat koşulları ve ücretsiz kargo bilgileri.",
 };
 
-export default function ShippingPage() {
+export default async function ShippingPage() {
+    const settings = await prisma.companySettings.findFirst();
+    const threshold = settings?.freeShippingThreshold || 99;
+    const shippingPrice = settings?.shippingPrice || 49.90;
+
     return (
         <div className="min-h-screen bg-gray-50">
             {/* Hero */}
@@ -24,7 +29,7 @@ export default function ShippingPage() {
                 {/* Öne Çıkanlar */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {[
-                        { icon: <CreditCard className="w-6 h-6" />, title: "999₺ Üzeri Ücretsiz Kargo", desc: "999₺ ve üzeri alışverişlerinizde kargo ücretsizdir." },
+                        { icon: <CreditCard className="w-6 h-6" />, title: `${threshold}₺ Üzeri Ücretsiz Kargo`, desc: `${threshold}₺ ve üzeri alışverişlerinizde kargo ücretsizdir.` },
                         { icon: <Clock className="w-6 h-6" />, title: "1-3 İş Günü Teslimat", desc: "Siparişleriniz iş günlerinde ortalama 1-3 iş günü içinde teslim edilir." },
                         { icon: <MapPin className="w-6 h-6" />, title: "Türkiye Geneli Teslimat", desc: "Türkiye'nin her yerine güvenli ve hızlı teslimat yapıyoruz." },
                     ].map((item, i) => (
@@ -57,12 +62,12 @@ export default function ShippingPage() {
                             </thead>
                             <tbody>
                                 <tr className="border-b border-gray-100">
-                                    <td className="py-3 px-4 text-gray-700">0₺ – 998₺</td>
-                                    <td className="py-3 px-4 text-gray-700">49,90₺</td>
+                                    <td className="py-3 px-4 text-gray-700">0₺ – {(threshold - 1)}₺</td>
+                                    <td className="py-3 px-4 text-gray-700">{shippingPrice.toFixed(2)}₺</td>
                                     <td className="py-3 px-4 text-gray-700">79,90₺</td>
                                 </tr>
                                 <tr className="bg-green-50">
-                                    <td className="py-3 px-4 text-gray-700 font-medium">999₺ ve üzeri</td>
+                                    <td className="py-3 px-4 text-gray-700 font-medium">{threshold}₺ ve üzeri</td>
                                     <td className="py-3 px-4 text-green-700 font-medium">Ücretsiz</td>
                                     <td className="py-3 px-4 text-gray-700">29,90₺</td>
                                 </tr>

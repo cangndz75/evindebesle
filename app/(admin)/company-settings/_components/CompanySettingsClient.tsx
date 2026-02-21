@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 
 interface CompanySettings {
   freeShippingThreshold: number;
+  shippingPrice: number;
   companyName?: string | null;
   companyAddress?: string | null;
   taxOffice?: string | null;
@@ -23,6 +24,7 @@ interface CompanySettings {
 export default function CompanySettingsClient() {
   const [settings, setSettings] = useState<CompanySettings>({
     freeShippingThreshold: 99,
+    shippingPrice: 49.90,
     companyName: "Evindebesle",
     companyAddress: "",
     taxOffice: "",
@@ -45,6 +47,7 @@ export default function CompanySettingsClient() {
           const data = await res.json();
           setSettings({
             freeShippingThreshold: data.freeShippingThreshold || 99,
+            shippingPrice: data.shippingPrice || 49.90,
             companyName: data.companyName || "Evindebesle",
             companyAddress: data.companyAddress || "",
             taxOffice: data.taxOffice || "",
@@ -132,6 +135,24 @@ export default function CompanySettingsClient() {
               onChange={(e) => handleChange("freeShippingThreshold", parseFloat(e.target.value))}
               className="max-w-xs"
               placeholder="99.00"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="shippingPrice" className="text-base font-medium">
+              Kargo Ücreti (₺)
+            </Label>
+            <p className="text-sm text-gray-600">
+              Ücretsiz kargo eşiğinin altındaki siparişlere uygulanacak kargo ücreti.
+            </p>
+            <Input
+              id="shippingPrice"
+              type="number"
+              step="0.01"
+              min="0"
+              value={settings.shippingPrice}
+              onChange={(e) => handleChange("shippingPrice", parseFloat(e.target.value))}
+              className="max-w-xs"
+              placeholder="49.90"
             />
           </div>
         </div>

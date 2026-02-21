@@ -253,6 +253,7 @@ export const useCartStore = create<CartState>((set, get) => ({
               name: product.name,
               image: product.image,
               price: product.price,
+              originalPrice: product.originalPrice,
             },
             size: size?.name,
             color: color?.name,
@@ -461,7 +462,7 @@ export const useCartStore = create<CartState>((set, get) => ({
         // or calculating it here based on current items.
 
         const currentItems = get().items;
-        const subtotal = currentItems.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
+        const subtotal = currentItems.reduce((acc, item) => acc + ((item.product.originalPrice ?? item.product.price) * item.quantity), 0);
 
         let discount = 0;
         if (data.discountType === "PERCENT") {

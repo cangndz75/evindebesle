@@ -15,7 +15,7 @@ type CartPreviewProps = {
 
 export default function CartPreview({ cartIconRef, headerBottom }: CartPreviewProps) {
   const [popup, setPopup] = useState<{
-    product: { id: string; name: string; image: string; price: number };
+    product: { id: string; name: string; image: string; price: number; originalPrice?: number | null };
     size: string;
     color: string;
   } | null>(null);
@@ -149,7 +149,7 @@ export default function CartPreview({ cartIconRef, headerBottom }: CartPreviewPr
               {popup.color && <span>{popup.color}</span>}
             </p>
             <p className="text-sm font-light text-[#111]">
-              ₺{popup.product.price.toFixed(2)}
+              ₺{(popup.product.originalPrice ?? popup.product.price).toFixed(2)}
             </p>
           </div>
         </div>

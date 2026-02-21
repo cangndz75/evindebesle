@@ -56,6 +56,7 @@ type Product = {
   name: string;
   slug?: string;
   price: number;
+  originalPrice?: number;
   image?: string;
   primaryImage?: string;
   secondaryImage?: string;
@@ -653,9 +654,20 @@ export default function MenProductsPage({
                       {product.name}
                     </h3>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm md:text-base font-light text-[#111]">
-                        {product.price.toFixed(2)} ₺
-                      </span>
+                      {product.originalPrice && product.originalPrice < product.price ? (
+                        <>
+                          <span className="text-sm md:text-base font-light text-[#111]">
+                            {product.originalPrice.toFixed(2)} ₺
+                          </span>
+                          <span className="text-sm text-[#111]/60 line-through">
+                            {product.price.toFixed(2)} ₺
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-sm md:text-base font-light text-[#111]">
+                          {(product.originalPrice ?? product.price).toFixed(2)} ₺
+                        </span>
+                      )}
                     </div>
                     {product.colors.length > 0 && (
                       <p className="text-xs text-[#111]/60 font-light mt-1">
@@ -789,6 +801,7 @@ export default function MenProductsPage({
                                               name: product.name,
                                               image: productImage,
                                               price: product.price || 0,
+                                              originalPrice: product.originalPrice,
                                             },
                                             size: sizeName || "",
                                             color: colorName || "",

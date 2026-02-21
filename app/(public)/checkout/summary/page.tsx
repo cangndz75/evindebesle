@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useCartStore } from "@/lib/stores/cartStore";
 import Link from "next/link";
 import Image from "next/image";
@@ -13,9 +13,21 @@ export default function CheckoutSummaryPage() {
     const { items, removeItem, updateQuantity } = useCartStore();
     const [coupon, setCoupon] = useState<any>(null);
     const router = useRouter();
+    const [freeShippingThreshold, setFreeShippingThreshold] = useState(99);
+    const [shippingPrice, setShippingPrice] = useState(49.90);
 
-    const subtotal = items.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
-    const shipping = subtotal >= 999 ? 0 : 25; // Example logic, sync with server
+    useEffect(() => {
+        fetch("/api/company-settings")
+            .then(res => res.json())
+            .then(data => {
+                setFreeShippingThreshold(Number(data.freeShippingThreshold) || 99);
+                setShippingPrice(Number(data.shippingPrice) || 49.90);
+            })
+            .catch(() => { });
+    }, []);
+
+    const subtotal = items.reduce((acc, item) => acc + (item.product.originalPrice ?? item.product.price) * item.quantity, 0);
+    const shipping = subtotal >= freeShippingThreshold ? 0 : shippingPrice;
     const discount = coupon ? coupon.discountAmount : 0;
     const total = subtotal + shipping - discount;
 
@@ -95,7 +107,7 @@ export default function CheckoutSummaryPage() {
                                                     +
                                                 </button>
                                             </div>
-                                            <p className="font-medium text-lg">{item.product.price * item.quantity} ₺</p>
+                                            <p className="font-medium text-lg">{(item.product.originalPrice ?? item.product.price) * item.quantity} ₺</p>
                                         </div>
                                     </div>
                                 </div>
@@ -140,9 +152,15 @@ export default function CheckoutSummaryPage() {
                                 Alışverişi Tamamla
                             </button>
 
-                            <div className="mt-4 p-3 bg-purple-50 text-purple-700 text-xs rounded border border-purple-100">
-                                Ücretsiz kargo hakkı kazanmanıza {(999 - subtotal).toFixed(2)} TL kaldı!
-                            </div>
+                            {subtotal < freeShippingThreshold ? (
+                                <div className="mt-4 p-3 bg-purple-50 text-purple-700 text-xs rounded border border-purple-100">
+                                    Ücretsiz kargo hakkı kazanmanıza {(freeShippingThreshold - subtotal).toFixed(2)} TL kaldı!
+                                </div>
+                            ) : (
+                                <div className="mt-4 p-3 bg-green-50 text-green-700 text-xs rounded border border-green-100">
+                                    ✓ Ücretsiz kargo hakkı kazandınız!
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

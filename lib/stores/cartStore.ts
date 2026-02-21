@@ -116,6 +116,7 @@ export const useCartStore = create<CartState>((set, get) => ({
     // Guest cart'ı da temizle
     if (typeof window !== "undefined") {
       localStorage.removeItem("guestCart");
+      window.dispatchEvent(new Event("cartUpdated"));
     }
   },
 
@@ -129,6 +130,7 @@ export const useCartStore = create<CartState>((set, get) => ({
     });
     if (typeof window !== "undefined") {
       localStorage.removeItem("guestCart");
+      window.dispatchEvent(new Event("cartUpdated"));
     }
   },
 

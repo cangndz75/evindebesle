@@ -177,7 +177,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
       toast.success(`Siparişiniz oluşturuldu! Sipariş No: ${result.order.orderNumber}`);
 
       // Sepeti temizle ve kapat
-      useCartStore.getState().setItems([]);
+      useCartStore.getState().clearCart();
       onClose();
 
       // Siparişlerim sayfasına yönlendir

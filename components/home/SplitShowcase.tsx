@@ -16,24 +16,24 @@ type SplitItem = {
 const splitItems: SplitItem[] = [
   {
     id: "hero",
-    title: "Roamknit Koleksiyonu",
-    subtitle: "Stil ve Konforla Rahatla",
-    href: "/collections/roamknit",
-    image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=2000&auto=format&fit=crop",
+    title: "Yeni Sezon Koleksiyonu",
+    subtitle: "Zarafet ve Modernlik",
+    href: "/collections/women",
+    image: "https://res.cloudinary.com/dlahfchej/image/upload/v1771710275/ChatGPT_Image_14_%C5%9Eub_2026_22_21_11_p3swce.png",
   },
   {
     id: "tee",
-    title: "LUX Rahat T-Shirt",
-    subtitle: "Rahat Kesimli Premium Kumaş",
-    href: "/products/lux-relaxed-tee",
-    image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=1400&auto=format&fit=crop",
+    title: "Premium Temeller",
+    subtitle: "Lüks Dokunuş, Her Gün",
+    href: "/collections/men",
+    image: "https://res.cloudinary.com/dlahfchej/image/upload/v1771709896/banner4_lwozfs.png",
   },
   {
     id: "jogger",
-    title: "Günlük Jogger Pantolon",
-    subtitle: "Günlük Kullanım İçin Modern Kesim",
-    href: "/products/everyday-jogger",
-    image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=1400&auto=format&fit=crop",
+    title: "Modern Günlük Stil",
+    subtitle: "Konforunuzu Bir Üst Seviyeye Taşıyın",
+    href: "/category/pants",
+    image: "https://res.cloudinary.com/dlahfchej/image/upload/v1771709884/banner3_wo0qk0.png",
   },
 ];
 
@@ -64,7 +64,7 @@ function StickyMobileCard({ item, index, total }: { item: SplitItem; index: numb
             src={item.image}
             alt={item.title}
             fill
-            className="object-cover object-center"
+            className={`${item.id === 'hero' ? 'object-contain' : 'object-cover'} object-center`}
             sizes="100vw"
             priority={index === 0}
           />
@@ -106,7 +106,7 @@ export default function SplitShowcase() {
                   src={item.image}
                   alt={item.title}
                   fill
-                  className="object-cover object-center transition-transform duration-500 group-active:scale-105"
+                  className={`${item.id === 'hero' ? 'object-contain' : 'object-cover'} object-center transition-transform duration-500 group-active:scale-105`}
                   sizes="85vw"
                   priority={index === 0}
                 />
@@ -134,13 +134,13 @@ export default function SplitShowcase() {
       <div className="hidden md:grid grid-cols-2 min-h-[850px] bg-white">
         <Link
           href={splitItems[0].href}
-          className="relative group overflow-hidden"
+          className="relative group overflow-hidden bg-gray-50"
         >
           <Image
             src={splitItems[0].image}
             alt={splitItems[0].title}
             fill
-            className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
+            className="object-contain object-center transition-transform duration-700 group-hover:scale-105"
             sizes="50vw"
             priority
           />

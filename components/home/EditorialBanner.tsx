@@ -9,8 +9,8 @@ export default function EditorialBanner() {
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image
-          src="https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=2000&auto=format&fit=crop"
-          alt="İyi Seyahat"
+          src="https://res.cloudinary.com/dlahfchej/image/upload/v1771709414/banner1_ntdz9i.png"
+          alt="Dark Velvet"
           fill
           className="object-cover object-center"
           sizes="100vw"
@@ -27,21 +27,21 @@ export default function EditorialBanner() {
           <div className="max-w-2xl">
             {/* Main Headline */}
             <h2 className="text-5xl md:text-6xl lg:text-7xl font-serif font-light text-white leading-tight mb-6">
-              <span className="block">İyi Seyahat</span>
-              <span className="block">AirEssentials ile</span>
+              <span className="block">Modern</span>
+              <span className="block">Konfor</span>
             </h2>
 
             {/* Sub-text */}
             <p className="text-base md:text-lg text-white/90 font-light mb-8 leading-relaxed">
-              Uçuş? Rezerve edildi. Konfor ve stil? Kolay. Paketle, check-in yap, gez—hepsini AirEssentials ile yap.
+              Günlük yaşamınızda şıklığı ve rahatlığı bir araya getirin. Dark Velvet ile her anınızda kendinizi özel hissedin.
             </p>
 
             {/* CTA Button */}
             <Link
-              href="/collections/loungewear"
-              className="inline-block px-8 py-4 border-2 border-[#8B4513] text-white text-sm md:text-base font-light tracking-wider uppercase hover:bg-[#8B4513] hover:border-[#8B4513] transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+              href="/collections/new-arrivals"
+              className="inline-block px-8 py-4 border-2 border-white text-white text-sm md:text-base font-light tracking-wider uppercase hover:bg-white hover:text-black transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
             >
-              LOUNGE GİYİM ALIŞVERİŞİ
+              KOLEKSİYONU KEŞFET
             </Link>
           </div>
         </div>

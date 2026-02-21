@@ -226,20 +226,20 @@ export const featuredCards = [
   {
     title: "İmza Kesim",
     description: "Premium kumaşlar ve görünmez dikişler ile ikinci bir cilt hissi.",
-    image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop",
-    href: "/collection/signature",
+    image: "https://res.cloudinary.com/dlahfchej/image/upload/v1771710595/fabony1120siyah_kbybai.webp",
+    href: "/women",
   },
   {
     title: "Yumuşak Esneklik",
     description: "Günlük konfor için tasarlanmış, nefes alan kumaşlar.",
-    image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop",
-    href: "/collection/soft-flex",
+    image: "https://res.cloudinary.com/dlahfchej/image/upload/v1771710580/1_org_zoom_1_1_eveulk.webp",
+    href: "/men",
   },
   {
     title: "Active Collection",
     description: "Her rutin için tasarlanmış performans odaklı parçalar.",
-    image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop",
-    href: "/collection/active",
+    image: "https://res.cloudinary.com/dlahfchej/image/upload/v1771710540/B0169289_SY_5_hlyaro.webp",
+    href: "/women",
   },
 ];
 
@@ -271,18 +271,18 @@ export const mensBrands: BrandItem[] = [
     id: "1",
     title: "Blue Sweatshirt",
     href: "/men/brands/sweatshirt",
-    image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=800&auto=format&fit=crop",
+    image: "https://res.cloudinary.com/dlahfchej/image/upload/v1771710540/B0169289_SY_5_hlyaro.webp",
   },
   {
     id: "2",
     title: "Grey Cardigan",
     href: "/men/brands/cardigan",
-    image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=800&auto=format&fit=crop",
+    image: "https://res.cloudinary.com/dlahfchej/image/upload/v1771710580/1_org_zoom_1_1_eveulk.webp",
   },
   {
     id: "3",
     title: "Green Puffer Jacket",
     href: "/men/brands/puffer",
-    image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=800&auto=format&fit=crop",
+    image: "https://res.cloudinary.com/dlahfchej/image/upload/v1771710595/fabony1120siyah_kbybai.webp",
   },
 ];

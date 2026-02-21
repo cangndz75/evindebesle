@@ -102,10 +102,10 @@ export default function TabbedProductCarousel({
             {/* Başlık */}
             <div className="text-center mb-8">
               <span className="inline-block text-xs font-medium tracking-[0.3em] text-[#111]/40 uppercase mb-3">
-                DISCOVER
+                KEŞFET
               </span>
               <h2 className="text-3xl md:text-4xl font-light text-[#111] tracking-tight">
-                Curated For You
+                Sizin İçin Seçtiklerimiz
               </h2>
             </div>
 
@@ -115,19 +115,19 @@ export default function TabbedProductCarousel({
                 value="new-arrivals"
                 className="px-4 md:px-6 py-2.5 text-xs font-medium uppercase tracking-wider rounded-full transition-all duration-300 data-[state=active]:bg-[#111] data-[state=active]:text-white data-[state=active]:shadow-md text-[#111]/60 hover:text-[#111]"
               >
-                New Arrivals
+                Yeni Gelenler
               </TabsTrigger>
               <TabsTrigger
                 value="best-sellers"
                 className="px-4 md:px-6 py-2.5 text-xs font-medium uppercase tracking-wider rounded-full transition-all duration-300 data-[state=active]:bg-[#111] data-[state=active]:text-white data-[state=active]:shadow-md text-[#111]/60 hover:text-[#111]"
               >
-                Best Sellers
+                En Çok Satanlar
               </TabsTrigger>
               <TabsTrigger
                 value="recommended"
                 className="px-4 md:px-6 py-2.5 text-xs font-medium uppercase tracking-wider rounded-full transition-all duration-300 data-[state=active]:bg-[#111] data-[state=active]:text-white data-[state=active]:shadow-md text-[#111]/60 hover:text-[#111]"
               >
-                Recommended
+                Önerilenler
               </TabsTrigger>
             </TabsList>
           </div>
@@ -139,7 +139,7 @@ export default function TabbedProductCarousel({
                 href={getViewAllLink()!}
                 className="text-xs font-medium text-[#111] hover:opacity-70 transition-opacity uppercase tracking-wider hidden sm:inline-flex items-center gap-2 group"
               >
-                VIEW ALL
+                TÜMÜNÜ GÖR
                 <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </Link>
             )}
@@ -729,7 +729,7 @@ function ProductCarouselContent({
                       {selectedProduct.badge && (
                         <div className="absolute top-3 left-3 bg-[#111] text-white text-xs px-3 py-1.5 uppercase font-light">
                           {selectedProduct.badge === "İndirim" && selectedProduct.originalPrice
-                            ? `${Math.round(((selectedProduct.originalPrice - (selectedProduct.price || 0)) / selectedProduct.originalPrice) * 100)}% OFF`
+                            ? `%${Math.round(((selectedProduct.originalPrice - (selectedProduct.price || 0)) / selectedProduct.originalPrice) * 100)} İNDİRİM`
                             : selectedProduct.badge}
                         </div>
                       )}
@@ -809,7 +809,7 @@ function ProductCarouselContent({
                     {selectedProduct.badge && (
                       <div className="absolute top-3 left-3 bg-[#111] text-white text-xs px-3 py-1.5 uppercase font-light">
                         {selectedProduct.badge === "İndirim" && selectedProduct.originalPrice
-                          ? `${Math.round(((selectedProduct.originalPrice - (selectedProduct.price || 0)) / selectedProduct.originalPrice) * 100)}% OFF`
+                          ? `%${Math.round(((selectedProduct.originalPrice - (selectedProduct.price || 0)) / selectedProduct.originalPrice) * 100)} İNDİRİM`
                           : selectedProduct.badge}
                       </div>
                     )}
@@ -1100,7 +1100,7 @@ function ProductCarouselContent({
                       : "bg-gray-300 text-gray-500 cursor-not-allowed"
                       }`}
                   >
-                    {selectedSize ? "Sepete Ekle" : "Select a Size"}
+                    {selectedSize ? "Sepete Ekle" : "Beden Seçiniz"}
                   </Button>
                 </div>
               </div>

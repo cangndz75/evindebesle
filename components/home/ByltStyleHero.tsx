@@ -9,15 +9,14 @@ export default function DarkVelvetHero() {
     <section className="relative w-full h-[70vh] md:h-[92vh] overflow-hidden bg-white">
       <div className="absolute inset-0">
         <Image
-          src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=1280&auto=format&fit=crop"
+          src="https://res.cloudinary.com/dlahfchej/image/upload/v1771711097/fahad-waseem-AdjyrNhFVPI-unsplash_axxnon.jpg"
           alt="Dark Velvet Hero"
           fill
           priority
+          quality={100}
           sizes="100vw"
           className="object-cover object-center"
         />
-        {/* Gradient overlay for better contrast */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/30 to-black/40" />
       </div>
 
       <div className="relative z-10 h-full flex items-center justify-center text-center">

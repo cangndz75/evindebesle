@@ -47,6 +47,11 @@ export async function GET(
                         discountType: true,
                         value: true,
                     }
+                },
+                user: {
+                    include: {
+                        district: true,
+                    }
                 }
             },
         });

@@ -6,15 +6,33 @@ import Link from "next/link";
 import Image from "next/image";
 import CouponInput from "@/components/checkout/CouponInput";
 import UpsellSection from "@/components/checkout/UpsellSection";
-import { Trash2 } from "lucide-react";
+import { Trash2, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function CheckoutSummaryPage() {
-    const { items, removeItem, updateQuantity } = useCartStore();
-    const [coupon, setCoupon] = useState<any>(null);
+    const {
+        items,
+        removeItem,
+        updateQuantity,
+        couponCode,
+        discountAmount,
+        removeCoupon,
+        hydrated,
+        isReady,
+        hydrate,
+        refreshCart
+    } = useCartStore();
     const router = useRouter();
     const [freeShippingThreshold, setFreeShippingThreshold] = useState(99);
     const [shippingPrice, setShippingPrice] = useState(49.90);
+
+    useEffect(() => {
+        if (!hydrated) {
+            hydrate();
+        } else {
+            refreshCart();
+        }
+    }, [hydrated, hydrate, refreshCart]);
 
     useEffect(() => {
         fetch("/api/company-settings")
@@ -28,21 +46,21 @@ export default function CheckoutSummaryPage() {
 
     const subtotal = items.reduce((acc, item) => acc + (item.product.originalPrice ?? item.product.price) * item.quantity, 0);
     const shipping = subtotal >= freeShippingThreshold ? 0 : shippingPrice;
-    const discount = coupon ? coupon.discountAmount : 0;
+    const discount = discountAmount || 0;
     const total = subtotal + shipping - discount;
 
-    const handleApplyCoupon = (couponData: any) => {
-        setCoupon(couponData);
+    const handleProceed = () => {
+        // Navigate to checkout. Store already has the coupon code.
+        router.push("/checkout");
     };
 
-    const handleProceed = () => {
-        // Navigate to checkout with coupon code if exists
-        if (coupon) {
-            router.push(`/checkout?coupon=${coupon.code}`);
-        } else {
-            router.push("/checkout");
-        }
-    };
+    if (!isReady && items.length === 0) {
+        return (
+            <div className="min-h-screen pt-32 pb-16 bg-gray-50 flex items-center justify-center">
+                <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+            </div>
+        );
+    }
 
     if (items.length === 0) {
         return (
@@ -133,7 +151,15 @@ export default function CheckoutSummaryPage() {
                                 </div>
                                 {discount > 0 && (
                                     <div className="flex justify-between text-green-600">
-                                        <span>İndirim ({coupon?.code})</span>
+                                        <div className="flex items-center gap-2">
+                                            <span>İndirim ({couponCode})</span>
+                                            <button
+                                                onClick={removeCoupon}
+                                                className="text-red-500 hover:text-red-700 text-xs px-1"
+                                            >
+                                                [Kaldır]
+                                            </button>
+                                        </div>
                                         <span>-{discount.toFixed(2)} ₺</span>
                                     </div>
                                 )}
@@ -143,7 +169,7 @@ export default function CheckoutSummaryPage() {
                                 </div>
                             </div>
 
-                            <CouponInput onCouponApplied={handleApplyCoupon} subtotal={subtotal} />
+                            <CouponInput />
 
                             <button
                                 onClick={handleProceed}

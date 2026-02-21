@@ -17,6 +17,8 @@ export type CartItem = {
     originalPrice?: number | null;
     image: string | null;
     primaryImage: string | null;
+    categoryId?: string | null;
+    gender?: string | null;
     colors: Array<{
       id: string;
       name: string;
@@ -49,6 +51,8 @@ type AddItemParams = {
     image: string | null;
     price: number;
     originalPrice?: number | null;
+    categoryId?: string | null;
+    gender?: string | null;
   };
   color?: { id: string; name: string } | null;
   size?: { id: string; name: string } | null;
@@ -220,6 +224,8 @@ export const useCartStore = create<CartState>((set, get) => ({
           originalPrice: product.originalPrice,
           image: product.image,
           primaryImage: product.image,
+          categoryId: product.categoryId,
+          gender: product.gender,
           colors: [],
           sizes: [],
         },
@@ -447,6 +453,11 @@ export const useCartStore = create<CartState>((set, get) => ({
   },
 
   applyCoupon: async (code: string) => {
+    // SADECE 1 TANE KUPON KULLANILABİLİR
+    if (get().couponCode) {
+      return { success: false, message: "Zaten bir kupon uygulanmış. Önce mevcut olanı silmelisiniz." };
+    }
+
     try {
       const res = await fetch("/api/coupons/verify", {
         method: "POST",
@@ -464,17 +475,33 @@ export const useCartStore = create<CartState>((set, get) => ({
         // or calculating it here based on current items.
 
         const currentItems = get().items;
-        const subtotal = currentItems.reduce((acc, item) => acc + ((item.product.originalPrice ?? item.product.price) * item.quantity), 0);
+
+        // Filter items that satisfy the coupon conditions
+        const eligibleItems = currentItems.filter(item => {
+          const catMatch = data.categoryId ? item.product.categoryId === data.categoryId : true;
+          const genderMatch = data.gender ? item.product.gender === data.gender : true;
+          return catMatch && genderMatch;
+        });
+
+        if (eligibleItems.length === 0) {
+          set({ couponCode: null, discountAmount: 0 });
+          return { success: false, message: "Kupon bu ürünler için geçerli değil" };
+        }
+
+        const eligibleSubtotal = eligibleItems.reduce((acc, item) =>
+          acc + ((item.product.originalPrice ?? item.product.price) * item.quantity), 0
+        );
 
         let discount = 0;
         if (data.discountType === "PERCENT") {
-          discount = (subtotal * data.value) / 100;
+          discount = (eligibleSubtotal * data.value) / 100;
         } else {
+          // Absolute amount is applied to the eligible subtotal
           discount = data.value;
         }
 
-        // Ensure discount doesn't exceed total
-        if (discount > subtotal) discount = subtotal;
+        // Ensure discount doesn't exceed eligible subtotal
+        if (discount > eligibleSubtotal) discount = eligibleSubtotal;
 
         set({
           couponCode: data.code,

@@ -41,7 +41,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { name, description, isActive, image } = body;
+    const { name, description, isActive, image, gender, showOnHome } = body;
 
     if (!name) {
       return NextResponse.json(
@@ -83,6 +83,8 @@ export async function POST(req: Request) {
         description: description || null,
         isActive: isActive !== undefined ? isActive : true,
         image: image || null,
+        gender: gender || null,
+        showOnHome: showOnHome !== undefined ? showOnHome : false,
         sortOrder: nextSortOrder,
       },
     });

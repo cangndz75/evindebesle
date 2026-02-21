@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
         isActive: true,
       },
       orderBy: {
-        name: "asc",
+        sortOrder: "asc",
       },
     });
 

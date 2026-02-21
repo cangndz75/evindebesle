@@ -396,7 +396,7 @@ type CategoryForRail = {
 async function getCategories(): Promise<CategoryForRail[]> {
   try {
     const categories = await prisma.category.findMany({
-      where: { isActive: true },
+      where: { isActive: true, showOnHome: true },
       orderBy: { sortOrder: "asc" },
       select: {
         id: true,

@@ -15,19 +15,19 @@ export async function POST(req: Request) {
 
         // "Böyle bir kupon kodu bulunmamaktadır" is the requested generic error
         if (!coupon) {
-            return NextResponse.json({ valid: false, message: "Böyle bir kupon kodu bulunmamaktadır" });
+            return NextResponse.json({ valid: false, message: "Böyle bir kupon yoktur" });
         }
 
         if (!coupon.isActive) {
-            return NextResponse.json({ valid: false, message: "Böyle bir kupon kodu bulunmamaktadır" });
+            return NextResponse.json({ valid: false, message: "Böyle bir kupon yoktur" });
         }
 
         if (coupon.expiresAt && coupon.expiresAt < new Date()) {
-            return NextResponse.json({ valid: false, message: "Böyle bir kupon kodu bulunmamaktadır" }); // Expired treated as not found/invalid per request to be vague? Or strictly "expired"? plan said "Such a coupon code does not exist"
+            return NextResponse.json({ valid: false, message: "Böyle bir kupon yoktur" });
         }
 
         if (coupon.maxUsage && coupon.usageCount >= coupon.maxUsage) {
-            return NextResponse.json({ valid: false, message: "Böyle bir kupon kodu bulunmamaktadır" });
+            return NextResponse.json({ valid: false, message: "Böyle bir kupon yoktur" });
         }
 
         return NextResponse.json({
@@ -35,7 +35,9 @@ export async function POST(req: Request) {
             code: coupon.code,
             discountType: coupon.discountType,
             value: coupon.value,
-            description: coupon.description, // e.g. "10% Welcome Discount"
+            description: coupon.description,
+            categoryId: coupon.categoryId,
+            gender: coupon.gender,
         });
 
     } catch (error) {

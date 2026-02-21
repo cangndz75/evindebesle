@@ -33,7 +33,10 @@ export type Coupon = {
   maxUsage: number | null;
   expiresAt?: string | null;
   isActive: boolean;
+  categoryId?: string | null;
+  gender?: string | null;
   createdAt: string;
+  category?: { name: string } | null;
 };
 
 type Props = {
@@ -47,6 +50,8 @@ type Props = {
     maxUsage: number | null;
     expiresAt: string | Date | null;
     isActive: boolean;
+    categoryId: string | null;
+    gender: string | null;
   }>;
   editMode?: boolean;
 };
@@ -62,9 +67,27 @@ export function CreateCouponForm({ onSaved, defaultValues, editMode }: Props) {
       ? new Date(defaultValues.expiresAt)
       : null,
     isActive: defaultValues?.isActive ?? true,
+    categoryId: defaultValues?.categoryId ?? "",
+    gender: defaultValues?.gender ?? "",
   });
 
   const [loading, setLoading] = useState(false);
+  const [categories, setCategories] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchCats = async () => {
+      try {
+        const res = await fetch("/api/categories/public");
+        if (res.ok) {
+          const data = await res.json();
+          setCategories(data);
+        }
+      } catch (err) {
+        console.error("Categories fetch error:", err);
+      }
+    };
+    fetchCats();
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -222,9 +245,53 @@ export function CreateCouponForm({ onSaved, defaultValues, editMode }: Props) {
               onSelect={(date) =>
                 setForm((prev) => ({ ...prev, expiresAt: date ?? null }))
               }
+              disabled={{ before: new Date() }}
             />
           </PopoverContent>
         </Popover>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="grid gap-2">
+          <Label>Kategori (Opsiyonel)</Label>
+          <Select
+            value={form.categoryId || "all"}
+            onValueChange={(val) =>
+              setForm((prev) => ({ ...prev, categoryId: val === "all" ? "" : val }))
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Tüm Kategoriler" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tüm Kategoriler</SelectItem>
+              {categories.map((cat) => (
+                <SelectItem key={cat.id} value={cat.id}>
+                  {cat.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="grid gap-2">
+          <Label>Cinsiyet (Opsiyonel)</Label>
+          <Select
+            value={form.gender || "UNISEX"}
+            onValueChange={(val) =>
+              setForm((prev) => ({ ...prev, gender: val }))
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Tümü" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="UNISEX">Tümü</SelectItem>
+              <SelectItem value="MALE">Erkek</SelectItem>
+              <SelectItem value="FEMALE">Kadın</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <div className="flex items-center justify-between">

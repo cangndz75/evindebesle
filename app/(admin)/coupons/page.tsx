@@ -66,7 +66,10 @@ export type Coupon = {
   maxUsage: number | null;
   expiresAt?: string | null;
   isActive: boolean;
+  categoryId?: string | null;
+  gender?: string | null;
   createdAt: string;
+  category?: { name: string } | null;
 };
 
 export default function CouponsPage() {
@@ -155,6 +158,21 @@ export default function CouponsPage() {
           {row.getValue("description") || "-"}
         </div>
       ),
+    },
+    {
+      header: "Kategori",
+      accessorKey: "category.name",
+      cell: ({ row }) => (row.original.category?.name || "Tümü"),
+    },
+    {
+      header: "Cinsiyet",
+      accessorKey: "gender",
+      cell: ({ row }) => {
+        const val = row.getValue("gender") as string;
+        if (val === "MALE") return "Erkek";
+        if (val === "FEMALE") return "Kadın";
+        return "Tümü";
+      },
     },
     {
       header: "Tip",

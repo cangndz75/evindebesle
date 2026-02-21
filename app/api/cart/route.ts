@@ -25,6 +25,8 @@ export async function GET() {
             slug: true,
             description: true,
             isActive: true,
+            categoryId: true,
+            gender: true,
           },
         },
         color: {
@@ -147,6 +149,8 @@ export async function POST(request: NextRequest) {
                 slug: true,
                 description: true,
                 isActive: true,
+                categoryId: true,
+                gender: true,
               },
             },
             color: {
@@ -190,6 +194,8 @@ export async function POST(request: NextRequest) {
                 slug: true,
                 description: true,
                 isActive: true,
+                categoryId: true,
+                gender: true,
               },
             },
             color: {
@@ -227,6 +233,8 @@ export async function POST(request: NextRequest) {
           image: product.image,
           price: product.price,
           originalPrice: product.originalPrice,
+          categoryId: product.categoryId,
+          gender: product.gender,
         },
         color: color,
         size: size,

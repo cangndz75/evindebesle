@@ -12,6 +12,8 @@ export interface GuestCartItem {
     image: string | null;
     price: number;
     originalPrice?: number | null;
+    categoryId?: string | null;
+    gender?: string | null;
   };
   color?: {
     id: string;
@@ -60,6 +62,8 @@ export function addToGuestCart(
     image: string | null;
     price: number;
     originalPrice?: number | null;
+    categoryId?: string | null;
+    gender?: string | null;
   },
   color?: { id: string; name: string } | null,
   size?: { id: string; name: string } | null

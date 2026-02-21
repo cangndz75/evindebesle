@@ -415,14 +415,14 @@ export default function CheckoutPage() {
                         </button>
 
                         {/* Separate Test Payment Button */}
-                        <button
+                        {/* <button
                             onClick={() => handleCheckout("TEST")}
                             disabled={loading}
                             className="w-full border border-gray-300 text-gray-600 py-3 rounded font-medium text-sm hover:bg-gray-50 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                         >
                             <Wallet className="w-4 h-4" />
                             {loading && paymentMethod === "TEST" ? "İşleniyor..." : "Test Siparişi Oluştur (Ödemesiz)"}
-                        </button>
+                        </button> */}
                     </div>
 
                     <div className="text-xs text-gray-400 text-center mt-4">

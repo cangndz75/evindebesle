@@ -770,7 +770,7 @@ export default function OrderDetailPage() {
                   const Icon = status.icon;
                   return (
                     <Button
-                      key={status.value}
+                      key={status.label}
                       variant={newStatus === status.value ? "default" : "outline"}
                       className={`w-full justify-start h-auto p-3 ${newStatus === status.value ? "bg-gray-900 text-white" : ""
                         }`}

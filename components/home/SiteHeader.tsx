@@ -19,6 +19,7 @@ import CartPreview from "@/components/home/CartPreview";
 import AnnouncementBanner from "@/components/home/AnnouncementBanner";
 import { useHeaderStore } from "@/lib/stores/headerStore";
 import { useCategories } from "@/hooks/useCategories";
+import { useCartStore } from "@/lib/stores/cartStore";
 
 type MenuKey = "men" | "women" | "new" | "collections" | "blog" | "about";
 
@@ -61,15 +62,43 @@ export default function SiteHeader() {
     cartCount,
     favoriteCount,
     freeShippingThreshold,
-    hydrate,
+    hydrate: hydrateHeader,
     refreshCartCount,
     refreshFavoriteCount,
   } = useHeaderStore();
 
-  // Store'u hydrate et (sadece bir kez)
+  // Cart store'dan hydration ve sync fonksiyonlarını al
+  const cartHydrated = useCartStore((state) => state.hydrated);
+  const hydrateCart = useCartStore((state) => state.hydrate);
+  const syncGuestCartToAPI = useCartStore((state) => state.syncGuestCartToAPI);
+
+  // Store'ları hydrate et
   useEffect(() => {
-    hydrate(session);
-  }, [session, hydrate]);
+    // Header store hydration
+    hydrateHeader(session);
+
+    // Cart store hydration
+    if (!cartHydrated) {
+      hydrateCart();
+    }
+  }, [session, hydrateHeader, cartHydrated, hydrateCart]);
+
+  // Login olduğunda guest cart'ı senkronize et
+  useEffect(() => {
+    if (session?.user && cartHydrated) {
+      const syncCart = async () => {
+        try {
+          await syncGuestCartToAPI();
+          // Senkronizasyon sonrası header store'daki rakamları da yenile
+          await refreshCartCount(session);
+        } catch (error) {
+          console.error("Cart sync error in header:", error);
+        }
+      };
+
+      syncCart();
+    }
+  }, [session, cartHydrated, syncGuestCartToAPI, refreshCartCount]);
 
   // Cart açma event'ini dinle
   useEffect(() => {

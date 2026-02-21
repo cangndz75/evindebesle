@@ -56,6 +56,13 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import Image from "next/image";
 
@@ -72,6 +79,8 @@ type Category = {
     products: number;
     productCategories: number;
   };
+  gender?: string | null;
+  showOnHome: boolean;
 };
 
 // Sortable Row Component
@@ -130,6 +139,8 @@ export default function CategoriesPage() {
   const [formDescription, setFormDescription] = useState("");
   const [formIsActive, setFormIsActive] = useState(true);
   const [formImage, setFormImage] = useState<string | null>(null);
+  const [formGender, setFormGender] = useState<string>("UNISEX");
+  const [formShowOnHome, setFormShowOnHome] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -166,13 +177,11 @@ export default function CategoriesPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith("image/")) {
       toast.error("Lütfen geçerli bir resim dosyası seçin");
       return;
     }
 
-    // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       toast.error("Resim boyutu 5MB'dan küçük olmalıdır");
       return;
@@ -208,6 +217,8 @@ export default function CategoriesPage() {
     setFormDescription("");
     setFormIsActive(true);
     setFormImage(null);
+    setFormGender("UNISEX");
+    setFormShowOnHome(false);
     setAddDialogOpen(true);
   };
 
@@ -217,6 +228,8 @@ export default function CategoriesPage() {
     setFormDescription(category.description || "");
     setFormIsActive(category.isActive);
     setFormImage(category.image || null);
+    setFormGender(category.gender || "UNISEX");
+    setFormShowOnHome(category.showOnHome || false);
     setEditDialogOpen(true);
   };
 
@@ -241,6 +254,8 @@ export default function CategoriesPage() {
           description: formDescription.trim() || null,
           isActive: formIsActive,
           image: formImage || null,
+          gender: formGender,
+          showOnHome: formShowOnHome,
         }),
       });
 
@@ -258,6 +273,26 @@ export default function CategoriesPage() {
       toast.error(error.message || "Kayıt sırasında bir hata oluştu");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleToggle = async (id: string, field: "isActive" | "showOnHome", value: boolean) => {
+    try {
+      const res = await fetch(`/api/admin-categories/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ [field]: value }),
+      });
+
+      if (!res.ok) throw new Error("Güncelleme başarısız");
+
+      setData((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, [field]: value } : item))
+      );
+      toast.success("Güncellendi");
+    } catch (error) {
+      console.error("Toggle error:", error);
+      toast.error("Bir hata oluştu");
     }
   };
 
@@ -286,10 +321,8 @@ export default function CategoriesPage() {
     }
   };
 
-  // Drag and drop handler
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
-
     if (!over || active.id === over.id) return;
 
     const oldIndex = data.findIndex((item) => item.id === active.id);
@@ -298,7 +331,6 @@ export default function CategoriesPage() {
     const newData = arrayMove(data, oldIndex, newIndex);
     setData(newData);
 
-    // Update sortOrder values
     const updates = newData.map((item, index) => ({
       id: item.id,
       sortOrder: index,
@@ -317,7 +349,7 @@ export default function CategoriesPage() {
     } catch (error) {
       console.error("Reorder error:", error);
       toast.error("Sıralama kaydedilemedi");
-      fetchCategories(); // Rollback
+      fetchCategories();
     } finally {
       setReordering(false);
     }
@@ -379,13 +411,31 @@ export default function CategoriesPage() {
       header: "Durum",
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
-          <span
-            className={`px-2 py-1 rounded-full text-xs font-medium ${row.getValue("isActive")
-              ? "bg-green-100 text-green-800"
-              : "bg-gray-100 text-gray-800"
-              }`}
-          >
+          <Switch
+            checked={row.getValue("isActive")}
+            onCheckedChange={(checked) =>
+              handleToggle(row.original.id, "isActive", checked)
+            }
+          />
+          <span className="text-xs font-medium">
             {row.getValue("isActive") ? "Aktif" : "Pasif"}
+          </span>
+        </div>
+      ),
+    },
+    {
+      accessorKey: "showOnHome",
+      header: "Anasayfa",
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          <Switch
+            checked={row.getValue("showOnHome")}
+            onCheckedChange={(checked) =>
+              handleToggle(row.original.id, "showOnHome", checked)
+            }
+          />
+          <span className="text-xs font-medium">
+            {row.getValue("showOnHome") ? "Evet" : "Hayır"}
           </span>
         </div>
       ),
@@ -444,84 +494,6 @@ export default function CategoriesPage() {
       </div>
     );
   }
-
-  // Form Dialog Content
-  const FormDialogContent = () => (
-    <div className="space-y-4">
-      <div>
-        <Label htmlFor="name">Kategori Adı *</Label>
-        <Input
-          id="name"
-          value={formName}
-          onChange={(e) => setFormName(e.target.value)}
-          placeholder="Kategori adı"
-          className="mt-1"
-        />
-      </div>
-      <div>
-        <Label htmlFor="description">Açıklama</Label>
-        <Textarea
-          id="description"
-          value={formDescription}
-          onChange={(e) => setFormDescription(e.target.value)}
-          placeholder="Kategori açıklaması"
-          className="mt-1"
-          rows={3}
-        />
-      </div>
-
-      {/* Image Upload */}
-      <div>
-        <Label>Kategori Görseli (Dikey)</Label>
-        <div className="mt-2">
-          {formImage ? (
-            <div className="relative w-32 h-44 rounded-lg overflow-hidden bg-gray-100 group">
-              <Image
-                src={formImage}
-                alt="Kategori görseli"
-                fill
-                className="object-cover"
-              />
-              <button
-                onClick={() => setFormImage(null)}
-                className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            </div>
-          ) : (
-            <label className="flex flex-col items-center justify-center w-32 h-44 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 transition-colors">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="hidden"
-                disabled={uploadingImage}
-              />
-              {uploadingImage ? (
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-600" />
-              ) : (
-                <>
-                  <Upload className="w-6 h-6 text-gray-400 mb-2" />
-                  <span className="text-xs text-gray-500">Resim Yükle</span>
-                </>
-              )}
-            </label>
-          )}
-          <p className="text-xs text-gray-500 mt-1">Önerilen oran: 3:4 (dikey)</p>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-2">
-        <Switch
-          id="isActive"
-          checked={formIsActive}
-          onCheckedChange={setFormIsActive}
-        />
-        <Label htmlFor="isActive">Aktif</Label>
-      </div>
-    </div>
-  );
 
   return (
     <div className="p-6 space-y-4">
@@ -622,13 +594,27 @@ export default function CategoriesPage() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <span
-                            className={`px-2 py-1 rounded-full text-xs font-medium ${category.isActive
-                                ? "bg-green-100 text-green-800"
-                                : "bg-gray-100 text-gray-800"
-                              }`}
-                          >
+                          <Switch
+                            checked={category.isActive}
+                            onCheckedChange={(checked) =>
+                              handleToggle(category.id, "isActive", checked)
+                            }
+                          />
+                          <span className="text-xs font-medium">
                             {category.isActive ? "Aktif" : "Pasif"}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Switch
+                            checked={category.showOnHome}
+                            onCheckedChange={(checked) =>
+                              handleToggle(category.id, "showOnHome", checked)
+                            }
+                          />
+                          <span className="text-xs font-medium">
+                            {category.showOnHome ? "Evet" : "Hayır"}
                           </span>
                         </div>
                       </TableCell>
@@ -665,13 +651,110 @@ export default function CategoriesPage() {
         </div>
       </div>
 
-      {/* Add Dialog */}
       <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Yeni Kategori Ekle</DialogTitle>
           </DialogHeader>
-          <FormDialogContent />
+          <div className="space-y-4 py-4">
+            <div>
+              <Label htmlFor="add-name">Kategori Adı *</Label>
+              <Input
+                id="add-name"
+                value={formName}
+                onChange={(e) => setFormName(e.target.value)}
+                placeholder="Kategori adı"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="add-description">Açıklama</Label>
+              <Textarea
+                id="add-description"
+                value={formDescription}
+                onChange={(e) => setFormDescription(e.target.value)}
+                placeholder="Kategori açıklaması"
+                className="mt-1"
+                rows={3}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="gender">Cinsiyet</Label>
+                <Select value={formGender} onValueChange={setFormGender}>
+                  <SelectTrigger id="gender" className="mt-1">
+                    <SelectValue placeholder="Seçiniz" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="MALE">Erkek</SelectItem>
+                    <SelectItem value="FEMALE">Kadın</SelectItem>
+                    <SelectItem value="UNISEX">Unisex</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex flex-col gap-2 pt-6">
+                <div className="flex items-center gap-2">
+                  <Switch
+                    id="showOnHome"
+                    checked={formShowOnHome}
+                    onCheckedChange={setFormShowOnHome}
+                  />
+                  <Label htmlFor="showOnHome">Anasayfada Göster</Label>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <Label>Kategori Görseli (Dikey)</Label>
+              <div className="mt-2">
+                {formImage ? (
+                  <div className="relative w-32 h-44 rounded-lg overflow-hidden bg-gray-100 group">
+                    <Image
+                      src={formImage}
+                      alt="Kategori görseli"
+                      fill
+                      className="object-cover"
+                    />
+                    <button
+                      onClick={() => setFormImage(null)}
+                      className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ) : (
+                  <label className="flex flex-col items-center justify-center w-32 h-44 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 transition-colors">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      disabled={uploadingImage}
+                    />
+                    {uploadingImage ? (
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-600" />
+                    ) : (
+                      <>
+                        <Upload className="w-6 h-6 text-gray-400 mb-2" />
+                        <span className="text-xs text-gray-500">Resim Yükle</span>
+                      </>
+                    )}
+                  </label>
+                )}
+                <p className="text-xs text-gray-500 mt-1">Önerilen oran: 3:4 (dikey)</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Switch
+                id="isActive"
+                checked={formIsActive}
+                onCheckedChange={setFormIsActive}
+              />
+              <Label htmlFor="isActive">Aktif</Label>
+            </div>
+          </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setAddDialogOpen(false)}>
               İptal
@@ -683,13 +766,110 @@ export default function CategoriesPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Kategori Düzenle</DialogTitle>
           </DialogHeader>
-          <FormDialogContent />
+          <div className="space-y-4 py-4">
+            <div>
+              <Label htmlFor="edit-name">Kategori Adı *</Label>
+              <Input
+                id="edit-name"
+                value={formName}
+                onChange={(e) => setFormName(e.target.value)}
+                placeholder="Kategori adı"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-description">Açıklama</Label>
+              <Textarea
+                id="edit-description"
+                value={formDescription}
+                onChange={(e) => setFormDescription(e.target.value)}
+                placeholder="Kategori açıklaması"
+                className="mt-1"
+                rows={3}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="edit-gender">Cinsiyet</Label>
+                <Select value={formGender} onValueChange={setFormGender}>
+                  <SelectTrigger id="edit-gender" className="mt-1">
+                    <SelectValue placeholder="Seçiniz" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="MALE">Erkek</SelectItem>
+                    <SelectItem value="FEMALE">Kadın</SelectItem>
+                    <SelectItem value="UNISEX">Unisex</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex flex-col gap-2 pt-6">
+                <div className="flex items-center gap-2">
+                  <Switch
+                    id="edit-showOnHome"
+                    checked={formShowOnHome}
+                    onCheckedChange={setFormShowOnHome}
+                  />
+                  <Label htmlFor="edit-showOnHome">Anasayfada Göster</Label>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <Label>Kategori Görseli (Dikey)</Label>
+              <div className="mt-2">
+                {formImage ? (
+                  <div className="relative w-32 h-44 rounded-lg overflow-hidden bg-gray-100 group">
+                    <Image
+                      src={formImage}
+                      alt="Kategori görseli"
+                      fill
+                      className="object-cover"
+                    />
+                    <button
+                      onClick={() => setFormImage(null)}
+                      className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ) : (
+                  <label className="flex flex-col items-center justify-center w-32 h-44 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 transition-colors">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      disabled={uploadingImage}
+                    />
+                    {uploadingImage ? (
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-600" />
+                    ) : (
+                      <>
+                        <Upload className="w-6 h-6 text-gray-400 mb-2" />
+                        <span className="text-xs text-gray-500">Resim Yükle</span>
+                      </>
+                    )}
+                  </label>
+                )}
+                <p className="text-xs text-gray-500 mt-1">Önerilen oran: 3:4 (dikey)</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Switch
+                id="edit-isActive"
+                checked={formIsActive}
+                onCheckedChange={setFormIsActive}
+              />
+              <Label htmlFor="edit-isActive">Aktif</Label>
+            </div>
+          </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
               İptal
@@ -701,7 +881,6 @@ export default function CategoriesPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Dialog */}
       <Dialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <DialogContent>
           <DialogHeader>

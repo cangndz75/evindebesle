@@ -27,6 +27,8 @@ export async function PATCH(
         maxUsage: body.maxUsage ? Number(body.maxUsage) : null,
         expiresAt: body.expiresAt ? new Date(body.expiresAt) : null,
         isActive: body.isActive ?? true,
+        categoryId: body.categoryId || null,
+        gender: body.gender || null,
       },
     })
 

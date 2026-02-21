@@ -18,6 +18,8 @@ export async function POST(req: NextRequest) {
     maxUsage,
     expiresAt,
     isActive,
+    categoryId,
+    gender,
   } = await req.json()
 
   if (!code || !discountType || value == null) {
@@ -37,6 +39,8 @@ export async function POST(req: NextRequest) {
         maxUsage: maxUsage ? Number(maxUsage) : null,
         expiresAt: expiresAt ? new Date(expiresAt) : null,
         isActive: isActive ?? true,
+        categoryId: categoryId || null,
+        gender: gender || null,
       },
     })
 
@@ -50,6 +54,9 @@ export async function POST(req: NextRequest) {
 export async function GET() {
   try {
     const coupons = await prisma.coupon.findMany({
+      include: {
+        category: true,
+      },
       orderBy: { createdAt: "desc" },
     })
 

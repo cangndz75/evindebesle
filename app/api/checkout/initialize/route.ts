@@ -72,6 +72,8 @@ export async function POST(req: Request) {
                 unitPrice: Number(price),
                 quantity: item.quantity,
                 totalPrice: lineTotal,
+                categoryId: variant.product.categoryId,
+                gender: variant.product.gender,
                 // variantId is internal, we don't save it to OrderItem directly but we use it for stock reservation
                 _variantId: variant.id
             });
@@ -88,14 +90,34 @@ export async function POST(req: Request) {
                 where: { code: body.couponCode }
             });
 
-            if (coupon && coupon.isActive && (!coupon.expiresAt || coupon.expiresAt > new Date())) {
+            // Strict validity check
+            const isExpired = coupon?.expiresAt && coupon.expiresAt < new Date();
+            const isMaxed = coupon?.maxUsage && coupon.usageCount >= coupon.maxUsage;
+
+            if (coupon && coupon.isActive && !isExpired && !isMaxed) {
                 couponId = coupon.id;
-                if (coupon.discountType === "PERCENT") {
-                    discount = (subtotal * coupon.value) / 100;
-                } else {
-                    discount = coupon.value;
+
+                // Filter items that satisfy the coupon conditions
+                const eligibleItems = orderItemsData.filter((item: any) => {
+                    const catMatch = coupon.categoryId ? item.categoryId === coupon.categoryId : true;
+                    const genderMatch = coupon.gender ? item.gender === coupon.gender : true;
+                    return catMatch && genderMatch;
+                });
+
+                const eligibleSubtotal = eligibleItems.reduce((acc: number, item: any) => acc + item.totalPrice, 0);
+
+                if (eligibleItems.length > 0) {
+                    if (coupon.discountType === "PERCENT") {
+                        discount = (eligibleSubtotal * coupon.value) / 100;
+                    } else {
+                        discount = coupon.value;
+                    }
                 }
-                if (discount > subtotal) discount = subtotal;
+
+                if (discount > eligibleSubtotal) discount = eligibleSubtotal;
+            } else if (body.couponCode) {
+                // If code was provided but coupon is invalid/expired/not found
+                return NextResponse.json({ error: "Böyle bir kupon yoktur" }, { status: 400 });
             }
         }
 
@@ -118,7 +140,7 @@ export async function POST(req: Request) {
                     paymentStatus: "PAID", // Lowercase enum match if needed, checks schema
                     idempotencyKey: idem,
                     items: {
-                        create: orderItemsData.map(({ _variantId, ...rest }: any) => rest)
+                        create: orderItemsData.map(({ _variantId, categoryId, gender, ...rest }: any) => rest)
                     },
                     payment: {
                         create: {
@@ -187,7 +209,7 @@ export async function POST(req: Request) {
                 status: "PENDING_PAYMENT",
                 idempotencyKey: idem,
                 items: {
-                    create: orderItemsData.map(({ _variantId, ...rest }: any) => rest)
+                    create: orderItemsData.map(({ _variantId, categoryId, gender, ...rest }: any) => rest)
                 },
                 payment: { create: { provider: "IYZICO", status: "INITIATED" } },
             },

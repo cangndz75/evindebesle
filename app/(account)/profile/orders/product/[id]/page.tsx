@@ -65,6 +65,13 @@ interface OrderDetail {
         contactPhone: string;
     } | null;
     trackingNumber: string | null;
+    user: {
+        fullAddress: string | null;
+        district: {
+            name: string;
+            city: string;
+        } | null;
+    };
     paymentMethod: string | null; // e.g. "CREDIT_CARD", "IY ZICO"
 }
 
@@ -313,10 +320,15 @@ export default function OrderDetailPage() {
                             <CardContent>
                                 {order.shippingAddress ? (
                                     <div className="text-sm text-gray-600 space-y-1">
-                                        {/* <p className="font-semibold text-gray-900">{order.shippingAddress.contactName}</p> */}
                                         <p>{order.shippingAddress.fullAddress}</p>
                                         <p>{order.shippingAddress.district?.name} / {order.shippingAddress.district?.city}</p>
-                                        {/* <p className="mt-2">{order.shippingAddress.contactPhone}</p> */}
+                                    </div>
+                                ) : order.user?.fullAddress ? (
+                                    <div className="text-sm text-gray-600 space-y-1">
+                                        <p>{order.user.fullAddress}</p>
+                                        {order.user.district && (
+                                            <p>{order.user.district.name} / {order.user.district.city}</p>
+                                        )}
                                     </div>
                                 ) : (
                                     <p className="text-sm text-gray-500">Adres bilgisi bulunamadı.</p>

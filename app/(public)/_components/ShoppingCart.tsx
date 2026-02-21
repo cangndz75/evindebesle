@@ -139,49 +139,11 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
     }
 
     try {
-      setIsCreatingOrder(true);
-
-      if (!addressesRes.ok) {
-        throw new Error("Adresler yüklenemedi");
-      }
-
-      const addresses = await addressesRes.json();
-      if (!addresses || addresses.length === 0) {
-        toast.error("Lütfen önce bir teslimat adresi ekleyin");
-        router.push("/profile/addresses");
-        onClose();
-        return;
-      }
-
-      // İlk adresi kullan (test için)
-      const shippingAddressId = addresses[0].id;
-
-      // Sipariş oluştur
-      const orderRes = await fetch("/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          shippingAddressId,
-          billingAddressId: shippingAddressId,
-          customerNote: "Test siparişi",
-          paymentMethod: "TEST",
-        }),
-      });
-
-      if (!orderRes.ok) {
-        const error = await orderRes.json();
-        throw new Error(error.error || "Sipariş oluşturulamadı");
-      }
-
-      const result = await orderRes.json();
-      toast.success(`Siparişiniz oluşturuldu! Sipariş No: ${result.order.orderNumber}`);
-
-      // Sepeti temizle ve kapat
-      useCartStore.getState().clearCart();
+      // Direct order creation via /api/orders is disabled for public users
+      // to enforce stock reservation and regular checkout flow.
+      // We redirect to the checkout summary page instead.
       onClose();
-
-      // Siparişlerim sayfasına yönlendir
-      router.push("/profile/orders");
+      router.push("/checkout/summary");
     } catch (error: any) {
       console.error("Order creation error:", error);
       // 401 hatası zaten handle edildi, diğer hatalar için mesaj göster
@@ -748,7 +710,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                     onClick={handleCreateOrder}
                     disabled={isCreatingOrder}
                   >
-                    {isCreatingOrder ? "Sipariş Oluşturuluyor..." : "Sipariş Ver"}
+                    {isCreatingOrder ? "Yönlendiriliyor..." : "Ödemeye Geç"}
                   </Button>
 
                   <p className="text-[11px] leading-4 text-gray-500">

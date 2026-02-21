@@ -3,39 +3,35 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { useCartStore } from "@/lib/stores/cartStore";
 
 interface CouponInputProps {
-    onCouponApplied: (couponData: any) => void;
-    subtotal: number;
+    onCouponApplied?: (couponData: any) => void;
 }
 
-export default function CouponInput({ onCouponApplied, subtotal }: CouponInputProps) {
+export default function CouponInput({ onCouponApplied }: CouponInputProps) {
     const [code, setCode] = useState("");
     const [loading, setLoading] = useState(false);
+    const applyCoupon = useCartStore(state => state.applyCoupon);
 
     const handleApply = async () => {
         if (!code.trim()) return;
 
         setLoading(true);
         try {
-            const res = await fetch("/api/coupons/validate", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ code: code.trim(), subtotal }),
-            });
+            const res = await applyCoupon(code.trim());
 
-            const data = await res.json();
-
-            if (!res.ok) {
-                toast.error(data.error || "Kupon uygulanamadı");
-                onCouponApplied(null);
+            if (!res.success) {
+                toast.error(res.message || "Kupon uygulanamadı");
+                if (onCouponApplied) onCouponApplied(null);
             } else {
-                toast.success("Kupon uygulandı!");
-                onCouponApplied(data);
+                toast.success(res.message || "Kupon uygulandı!");
+                if (onCouponApplied) onCouponApplied(res);
+                setCode(""); // Clear input on success
             }
         } catch (error) {
             toast.error("Bir hata oluştu");
-            onCouponApplied(null);
+            if (onCouponApplied) onCouponApplied(null);
         } finally {
             setLoading(false);
         }

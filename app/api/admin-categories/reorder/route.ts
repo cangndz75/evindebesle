@@ -31,6 +31,11 @@ export async function POST(request: NextRequest) {
 
         await prisma.$transaction(updates);
 
+        // Önbelleği temizle
+        const { revalidatePath } = await import("next/cache");
+        revalidatePath("/");
+        revalidatePath("/(public)/category/[slug]", "page");
+
         return NextResponse.json({ success: true });
     } catch (error: any) {
         console.error("Category reorder error:", error);

@@ -188,6 +188,11 @@ model Coupon {
   expiresAt    DateTime?
   isActive     Boolean      @default(true)
   createdAt    DateTime     @default(now())
+
+  categoryId   String?
+  gender       Gender?
+
+  category     Category?    @relation(fields: [categoryId], references: [id])
   orders       Order[]
   userCoupons  UserCoupon[]
 }
@@ -211,7 +216,10 @@ model Category {
   isActive    Boolean   @default(true)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  gender      Gender?
+  showOnHome  Boolean   @default(false)
   products    Product[]
+  coupons     Coupon[]
 
   @@index([slug])
   @@index([sortOrder])

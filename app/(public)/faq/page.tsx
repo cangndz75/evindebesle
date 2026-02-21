@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ChevronDown, Search, HelpCircle, Package, CreditCard, Truck, RotateCcw, User, ShoppingBag } from "lucide-react";
-import Footer from "@/components/home/FooterAccordion";
+
 
 interface FAQ {
     id: string;
@@ -116,8 +116,8 @@ export default function SSSPage() {
                         <button
                             onClick={() => setActiveCategory(null)}
                             className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${activeCategory === null
-                                    ? "bg-gray-900 text-white"
-                                    : "bg-white text-gray-600 hover:bg-gray-100"
+                                ? "bg-gray-900 text-white"
+                                : "bg-white text-gray-600 hover:bg-gray-100"
                                 }`}
                         >
                             Tümü
@@ -127,8 +127,8 @@ export default function SSSPage() {
                                 key={key}
                                 onClick={() => setActiveCategory(key)}
                                 className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${activeCategory === key
-                                        ? "bg-gray-900 text-white"
-                                        : "bg-white text-gray-600 hover:bg-gray-100"
+                                    ? "bg-gray-900 text-white"
+                                    : "bg-white text-gray-600 hover:bg-gray-100"
                                     }`}
                             >
                                 {config.icon}
@@ -200,7 +200,6 @@ export default function SSSPage() {
                 </div>
             </div>
 
-            <Footer />
         </div>
     );
 }

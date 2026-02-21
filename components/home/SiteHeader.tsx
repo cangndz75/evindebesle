@@ -40,8 +40,8 @@ const navItems = [
   { key: "women" as const, label: "KADIN", href: "/women" },
   { key: "new" as const, label: "YENİ", href: "/men/new" },
   { key: "collections" as const, label: "KOLEKSİYON", href: "/women" },
-  { key: "blog" as const, label: "BLOG", href: "/blog" },
-  { key: "about" as const, label: "HAKKIMIZDA", href: "/about" },
+  // { key: "blog" as const, label: "BLOG", href: "/blog" },
+  // { key: "about" as const, label: "HAKKIMIZDA", href: "/about" },
 ] as const;
 
 export default function SiteHeader() {
@@ -252,9 +252,7 @@ export default function SiteHeader() {
     pathname?.startsWith("/users") ||
     pathname?.startsWith("/coupons") ||
     pathname?.startsWith("/company-settings") ||
-    pathname?.startsWith("/campaigns") ||
-    pathname === "/home" ||
-    pathname === "/"
+    pathname?.startsWith("/campaigns")
   ) {
     return null;
   }

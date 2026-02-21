@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import CampaignStrip from "@/components/home/CampaignStrip";
 import ByltStyleHero from "@/components/home/ByltStyleHero";
 import ProductShowcase from "@/components/home/ProductShowcase";
-import HomeHeader from "@/components/home/HomeHeader";
+
 import CategoryShowcase from "@/components/home/CategoryShowcase";
 import HomeCategoryRail from "@/components/home/HomeCategoryRail";
 
@@ -472,7 +472,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <HomeHeader />
+
       <ByltStyleHero />
       <div className="py-4">
         <HomeCategoryRail categories={categories} />

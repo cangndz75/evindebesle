@@ -19,46 +19,27 @@ import { Truck, RotateCcw, Star, Smartphone, Map, X } from "lucide-react";
 
 const footerSections = [
   {
-    title: "Mağaza",
-    links: [
-      { label: "Hikayemiz", href: "/about" },
-      { label: "Kumaşlarımız", href: "/fabrics" },
-      { label: "Mağazalarımız", href: "/stores" },
-      { label: "Atletler & Partnerler", href: "/athletes" },
-      { label: "İlk Müdahale", href: "/first-responders" },
-      { label: "Dark Velvet+ Ödüller", href: "/rewards" },
-    ],
-  },
-  {
-    title: "Nasıl Dark Velvet",
+    title: "Müşteri Hizmetleri",
     links: [
       { label: "Sık Sorulan Sorular", href: "/faq" },
       { label: "İade & Değişim", href: "/returns" },
       { label: "İletişim", href: "/contact" },
-      { label: "Kariyer", href: "/careers" },
-      { label: "Kurumsal Satış", href: "/corporate" },
-      { label: "İçerik Üreticisi Ol", href: "/creator" },
+      { label: "Siparişimi Takip Et", href: "/track" },
     ],
   },
   {
-    title: "Destek",
+    title: "Bilgilendirme",
     links: [
       { label: "Kargo Politikaları", href: "/shipping" },
-      { label: "İade Politikası", href: "/returns-policy" },
-      { label: "Kullanım Koşulları", href: "/terms" },
       { label: "Gizlilik Politikası", href: "/privacy" },
-      { label: "Siparişimi Takip Et", href: "/track" },
-      { label: "Hediye Kartı Bakiyesi", href: "/gift-card" },
+      { label: "K.V.K.K. Aydınlatma Metni", href: "/kvkk" },
     ],
   },
   {
-    title: "Yasal",
+    title: "Kurumsal",
     links: [
-      { label: "Çerez Politikası", href: "/cookies" },
-      { label: "Erişilebilirlik Bildirimi", href: "/accessibility-statement" },
-      { label: "Sahte Ürün Bildir", href: "/report-fakes" },
-      { label: "Erişilebilirlik", href: "/accessibility" },
-      { label: "Kişisel Verilerimi Paylaşma", href: "/do-not-sell" },
+      { label: "Hakkımızda", href: "/about" },
+      { label: "Blog", href: "/blog" },
     ],
   },
 ];
@@ -198,7 +179,7 @@ export default function Footer() {
           </Accordion>
         </div>
 
-        <div className="hidden md:grid grid-cols-5 gap-12">
+        <div className="hidden md:grid grid-cols-4 gap-12">
           {footerSections.map((section, i) => (
             <div key={i}>
               <h3 className="text-xs uppercase tracking-[0.18em] font-light mb-5">
@@ -239,6 +220,18 @@ export default function Footer() {
                 Gönder
               </button>
             </form>
+            <div className="mt-4 flex flex-col gap-3 items-end">
+              <img
+                src="/logo_band_colored@2x.png"
+                alt="Ödeme yöntemleri"
+                className="h-6 w-auto object-contain"
+              />
+              <img
+                src="/iyzico_ile_ode_colored_horizontal.png"
+                alt="iyzico ile öde"
+                className="h-5 w-auto object-contain"
+              />
+            </div>
           </div>
         </div>
 
@@ -289,16 +282,24 @@ export default function Footer() {
                     </ul>
                   </div>
 
-                  {/* Destek */}
+                  {/* Müşteri Hizmetleri */}
                   <div className="space-y-4">
-                    <h5 className="text-xs uppercase tracking-[0.2em] font-medium text-black border-b border-black/10 pb-2">Yardım & Destek</h5>
+                    <h5 className="text-xs uppercase tracking-[0.2em] font-medium text-black border-b border-black/10 pb-2">Müşteri Hizmetleri</h5>
                     <ul className="space-y-3">
-                      <li><Link href="/contact" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">İletişim</Link></li>
-                      <li><Link href="/faq" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Sıkça Sorulan Sorular</Link></li>
-                      <li><Link href="/track" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Sipariş Takibi</Link></li>
+                      <li><Link href="/faq" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Sık Sorulan Sorular</Link></li>
                       <li><Link href="/returns" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">İade & Değişim</Link></li>
-                      <li><Link href="/shipping" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Kargo Bilgisi</Link></li>
-                      <li><Link href="/sizing" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Beden Rehberi</Link></li>
+                      <li><Link href="/contact" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">İletişim</Link></li>
+                      <li><Link href="/track" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Siparişimi Takip Et</Link></li>
+                    </ul>
+                  </div>
+
+                  {/* Bilgilendirme */}
+                  <div className="space-y-4">
+                    <h5 className="text-xs uppercase tracking-[0.2em] font-medium text-black border-b border-black/10 pb-2">Bilgilendirme</h5>
+                    <ul className="space-y-3">
+                      <li><Link href="/shipping" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Kargo Politikaları</Link></li>
+                      <li><Link href="/privacy" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Gizlilik Politikası</Link></li>
+                      <li><Link href="/kvkk" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">K.V.K.K. Aydınlatma Metni</Link></li>
                     </ul>
                   </div>
 
@@ -307,22 +308,7 @@ export default function Footer() {
                     <h5 className="text-xs uppercase tracking-[0.2em] font-medium text-black border-b border-black/10 pb-2">Kurumsal</h5>
                     <ul className="space-y-3">
                       <li><Link href="/about" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Hakkımızda</Link></li>
-                      <li><Link href="/about2" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Hikayemiz</Link></li>
                       <li><Link href="/blog" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Blog</Link></li>
-                      <li><Link href="/careers" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Kariyer</Link></li>
-                      <li><Link href="/stores" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Mağazalarımız</Link></li>
-                    </ul>
-                  </div>
-
-                  {/* Yasal */}
-                  <div className="space-y-4">
-                    <h5 className="text-xs uppercase tracking-[0.2em] font-medium text-black border-b border-black/10 pb-2">Yasal</h5>
-                    <ul className="space-y-3">
-                      <li><Link href="/privacy" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Gizlilik Politikası</Link></li>
-                      <li><Link href="/terms" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Kullanım Koşulları</Link></li>
-                      <li><Link href="/kvkk" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">KVKK</Link></li>
-                      <li><Link href="/cookies" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Çerez Politikası</Link></li>
-                      <li><Link href="/contract" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Mesafeli Satış Sözleşmesi</Link></li>
                     </ul>
                   </div>
 
@@ -333,8 +319,6 @@ export default function Footer() {
                       <li><a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Instagram</a></li>
                       <li><a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Facebook</a></li>
                       <li><a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">X (Twitter)</a></li>
-                      <li><a href="https://pinterest.com" target="_blank" rel="noopener noreferrer" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Pinterest</a></li>
-                      <li><a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">YouTube</a></li>
                       <li><a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">TikTok</a></li>
                     </ul>
                   </div>

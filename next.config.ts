@@ -60,6 +60,22 @@ const nextConfig: NextConfig = {
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), payment=(self)' },
           // DNS Prefetch
           { key: 'X-DNS-Prefetch-Control', value: 'on' },
+          // Content Security Policy
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self';",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://sandbox-api.iyzipay.com https://checkout.iyzipay.com;",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;",
+              "img-src 'self' blob: data: res.cloudinary.com images.unsplash.com plus.unsplash.com https://*.iyzipay.com;",
+              "font-src 'self' https://fonts.gstatic.com;",
+              "connect-src 'self' https://res.cloudinary.com https://*.iyzipay.com https://api.upstash.com;",
+              "frame-src 'self' https://sandbox-secure.iyzipay.com https://secure.iyzipay.com;",
+              "media-src 'self' https://res.cloudinary.com;",
+              "object-src 'none';",
+              "upgrade-insecure-requests;"
+            ].join(' ')
+          },
         ],
       },
       // API routes için ek güvenlik

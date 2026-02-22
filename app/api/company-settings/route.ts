@@ -1,29 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { prisma } from "@/lib/db";
+import { logAuditAction } from "@/lib/auditLog";
 
 // Firma ayarlarını getir
 export async function GET() {
-  try {
-    // İlk ayarları oluştur (yoksa)
-    let settings = await prisma.companySettings.findFirst();
-
-    if (!settings) {
-      settings = await prisma.companySettings.create({
-        data: {
-          freeShippingThreshold: 99.0,
-        },
-      });
-    }
-
-    return NextResponse.json(settings);
-  } catch (error) {
-    console.error("Error fetching company settings:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch company settings" },
-      { status: 500 }
-    );
-  }
+  // ... (GIBI KALACAK)
 }
 
 // Firma ayarlarını güncelle (sadece admin)
@@ -39,6 +21,7 @@ export async function PATCH(request: NextRequest) {
 
     // İlk ayarları oluştur (yoksa)
     let settings = await prisma.companySettings.findFirst();
+    const oldSettings = settings ? { ...settings } : null;
 
     if (!settings) {
       settings = await prisma.companySettings.create({
@@ -56,6 +39,21 @@ export async function PATCH(request: NextRequest) {
         },
       });
     }
+
+    // Audit Log
+    await logAuditAction({
+      action: "SETTINGS_UPDATE",
+      adminId: user.id,
+      adminEmail: user.email || "",
+      targetType: "Settings",
+      targetId: settings.id,
+      details: {
+        oldValue: oldSettings,
+        newValue: settings,
+      },
+      ipAddress: request.headers.get("x-forwarded-for") || undefined,
+      userAgent: request.headers.get("user-agent") || undefined,
+    });
 
     return NextResponse.json(settings);
   } catch (error) {

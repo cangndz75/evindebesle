@@ -1,6 +1,9 @@
 import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { generateVariantCode, generateProductSlug } from "@/lib/slug";
+import { getServerSession } from "next-auth";
+import { authConfig } from "@/lib/auth.config";
+import { logAuditAction } from "@/lib/auditLog";
 
 export const dynamic = "force-dynamic";
 
@@ -114,6 +117,11 @@ export async function GET(request: NextRequest) {
 
 export async function POST(req: Request) {
   try {
+    const session = await getServerSession(authConfig);
+    if (!session?.user?.isAdmin) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await req.json();
     const {
       name,
@@ -157,8 +165,6 @@ export async function POST(req: Request) {
 
     // SizeType normalization (handle "letter" -> "LETTER")
     const sizeTypeKey = sizeType ? sizeType.toUpperCase() : undefined;
-    // Note: If 'cup' is sent but not in enum, it will fail unless we add it or filter it. 
-    // Assuming enum is LETTER, NUMBER for now based on error.
     const validSizeTypes = ["LETTER", "NUMBER", "CUP"];
     const finalSizeType = validSizeTypes.includes(sizeTypeKey) ? sizeTypeKey : undefined;
 
@@ -208,16 +214,13 @@ export async function POST(req: Request) {
       }
     }
 
-
-
-    // 1. Ürünü ve doğrudan ilişkili verileri (Sizes, Tags, SizeOptions) oluştur
+    // 1. Ürünü ve doğrudan ilişkili verileri oluştur
     const product = await prisma.product.create({
       data: {
         name,
         slug: finalSlug || undefined,
         stockCode: finalStockCode || undefined,
         description: description || undefined,
-        // Frontend'den gelen detailText artık temizlenmiş ve görselleri URL'e çevrilmiş durumda
         detailText: detailText || undefined,
         price: parseFloat(price),
         originalPrice: originalPrice ? parseFloat(originalPrice) : undefined,
@@ -234,7 +237,6 @@ export async function POST(req: Request) {
         isTrackInventory: body.isTrackInventory ?? true,
         allowBackorders: body.allowBackorders ?? false,
 
-        // Bedenler (Eğer sizes varsa sizes'dan, yoksa sizeOptions'tan oluştur)
         sizes: sizes && sizes.length > 0
           ? {
             create: sizes.map((s: any) => ({
@@ -269,11 +271,10 @@ export async function POST(req: Request) {
       },
     });
 
-
-
-    // 2. ProductImage kayıtlarını toplu oluştur (Primary ve Secondary)
+    // 2. ProductImage kayıtlarını toplu oluştur
     const productImagesToCreate: any[] = [];
     let imageOrder = 0;
+
 
     if (primaryImage || image) {
       productImagesToCreate.push({
@@ -312,7 +313,6 @@ export async function POST(req: Request) {
         skipDuplicates: true,
       });
 
-      // Renk görsellerini ekle
       const createdColors = await prisma.productColor.findMany({ where: { productId: product.id } });
 
       for (const color of createdColors) {
@@ -333,7 +333,6 @@ export async function POST(req: Request) {
       }
     }
 
-    // Tüm görselleri toplu oluştur
     if (productImagesToCreate.length > 0) {
       await prisma.productImage.createMany({
         data: productImagesToCreate,
@@ -379,7 +378,6 @@ export async function POST(req: Request) {
       }
     }
 
-    // 5. Renk yoksa sadece beden bazlı varyantlar
     if ((!colors || colors.length === 0) && sizes && sizes.length > 0) {
       const createdSizes = await prisma.productSize.findMany({ where: { productId: product.id } });
       for (const size of createdSizes) {
@@ -393,7 +391,6 @@ export async function POST(req: Request) {
       }
     }
 
-    // Tüm varyantları toplu oluştur
     if (variantsToCreate.length > 0) {
       await prisma.productVariant.createMany({
         data: variantsToCreate,
@@ -401,7 +398,6 @@ export async function POST(req: Request) {
       });
     }
 
-    // 6. Kombinleri Oluştur
     if (combinations && Array.isArray(combinations) && combinations.length > 0) {
       await prisma.productCombination.createMany({
         data: combinations.map((relatedProductId: any) => ({
@@ -412,7 +408,22 @@ export async function POST(req: Request) {
       });
     }
 
-    // Sonuç Döndür
+    // Audit Log
+    await logAuditAction({
+      action: "PRODUCT_CREATE",
+      adminId: session.user.id,
+      adminEmail: session.user.email || "",
+      targetType: "Product",
+      targetId: product.id,
+      details: {
+        name: product.name,
+        price: product.price,
+        stockCode: product.stockCode,
+      },
+      ipAddress: (req as any).headers?.get("x-forwarded-for") || undefined,
+      userAgent: (req as any).headers?.get("user-agent") || undefined,
+    });
+
     const productWithRelations = await prisma.product.findUnique({
       where: { id: product.id },
       include: {

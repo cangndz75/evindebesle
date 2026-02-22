@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
+import { logAuditAction } from "@/lib/auditLog";
 
 // POST: Toplu sıralama güncellemesi
 export async function POST(request: NextRequest) {
@@ -30,6 +31,20 @@ export async function POST(request: NextRequest) {
         );
 
         await prisma.$transaction(updates);
+
+        // Audit Log
+        await logAuditAction({
+            action: "CATEGORY_UPDATE",
+            adminId: session.user.id,
+            adminEmail: session.user.email || "",
+            targetType: "Category",
+            details: {
+                operation: "REORDER",
+                itemCount: items.length,
+            },
+            ipAddress: request.headers.get("x-forwarded-for") || undefined,
+            userAgent: request.headers.get("user-agent") || undefined,
+        });
 
         // Önbelleği temizle
         const { revalidatePath } = await import("next/cache");

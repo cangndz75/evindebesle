@@ -4,6 +4,8 @@ export const dynamic = "force-dynamic";
 import { generateVariantCode, generateProductSlug } from "@/lib/slug";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
+import { logAuditAction } from "@/lib/auditLog";
+
 
 // GET: Ürün detayını getir
 export async function GET(
@@ -448,7 +450,23 @@ export async function PATCH(
       },
     });
 
+    // Audit Log
+    await logAuditAction({
+      action: "PRODUCT_UPDATE",
+      adminId: session.user.id,
+      adminEmail: session.user.email || "",
+      targetType: "Product",
+      targetId: id,
+      details: {
+        oldValue: existingProduct,
+        newValue: updatedProduct,
+      },
+      ipAddress: request.headers.get("x-forwarded-for") || undefined,
+      userAgent: request.headers.get("user-agent") || undefined,
+    });
+
     return NextResponse.json(updatedProduct);
+
   } catch (error: any) {
     console.error("Product update error:", error);
     return NextResponse.json(
@@ -501,6 +519,14 @@ export async function DELETE(
         { status: 400 }
       );
     }
+
+    // Audit Log Payload preparation
+    const auditDetails = {
+      product: product,
+      deleteAll: deleteAll,
+      colorIds: colorIds
+    };
+
 
     // Tümünü sil veya seçilen renkleri sil
     if (deleteAll) {
@@ -558,7 +584,20 @@ export async function DELETE(
       );
     }
 
+    // Audit Log
+    await logAuditAction({
+      action: "PRODUCT_DELETE",
+      adminId: session.user.id,
+      adminEmail: session.user.email || "",
+      targetType: "Product",
+      targetId: id,
+      details: auditDetails,
+      ipAddress: request.headers.get("x-forwarded-for") || undefined,
+      userAgent: request.headers.get("user-agent") || undefined,
+    });
+
     return NextResponse.json({ success: true, message: "Silme işlemi tamamlandı" });
+
   } catch (error: any) {
     console.error("Product delete error:", error);
     return NextResponse.json(

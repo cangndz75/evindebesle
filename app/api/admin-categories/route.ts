@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
+import { logAuditAction } from "@/lib/auditLog";
 
 // GET: Tüm kategorileri getir
 export async function GET(request: NextRequest) {
@@ -96,6 +97,21 @@ export async function POST(req: Request) {
         showOnHome: showOnHome !== undefined ? showOnHome : false,
         sortOrder: nextSortOrder,
       },
+    });
+
+    // Audit Log
+    await logAuditAction({
+      action: "CATEGORY_CREATE",
+      adminId: session.user.id,
+      adminEmail: session.user.email || "",
+      targetType: "Category",
+      targetId: category.id,
+      details: {
+        name: category.name,
+        slug: category.slug,
+      },
+      ipAddress: (req as any).headers?.get("x-forwarded-for") || undefined,
+      userAgent: (req as any).headers?.get("user-agent") || undefined,
     });
 
     return NextResponse.json(category);

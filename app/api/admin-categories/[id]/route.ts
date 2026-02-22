@@ -2,6 +2,8 @@ import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
+import { logAuditAction } from "@/lib/auditLog";
+
 
 // GET: Kategori detayını getir
 export async function GET(
@@ -105,10 +107,28 @@ export async function PATCH(
     if (group !== undefined) updateData.group = group || "Giyim";
     if (showOnHome !== undefined) updateData.showOnHome = showOnHome;
 
+    const oldCategory = await prisma.category.findUnique({ where: { id } });
+
     const category = await prisma.category.update({
       where: { id },
       data: updateData,
     });
+
+    // Audit Log
+    await logAuditAction({
+      action: "CATEGORY_UPDATE",
+      adminId: session.user.id,
+      adminEmail: session.user.email || "",
+      targetType: "Category",
+      targetId: id,
+      details: {
+        oldValue: oldCategory,
+        newValue: category,
+      },
+      ipAddress: request.headers.get("x-forwarded-for") || undefined,
+      userAgent: request.headers.get("user-agent") || undefined,
+    });
+
 
     return NextResponse.json(category);
   } catch (error: any) {
@@ -145,9 +165,26 @@ export async function DELETE(
       );
     }
 
+    const category = await prisma.category.findUnique({ where: { id } });
+
     await prisma.category.delete({
       where: { id },
     });
+
+    // Audit Log
+    await logAuditAction({
+      action: "CATEGORY_DELETE",
+      adminId: session.user.id,
+      adminEmail: session.user.email || "",
+      targetType: "Category",
+      targetId: id,
+      details: {
+        deletedCategory: category,
+      },
+      ipAddress: request.headers.get("x-forwarded-for") || undefined,
+      userAgent: request.headers.get("user-agent") || undefined,
+    });
+
 
     return NextResponse.json({ success: true });
   } catch (error: any) {

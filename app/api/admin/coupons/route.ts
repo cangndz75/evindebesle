@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authConfig } from "@/lib/auth.config"
 import { prisma } from "@/lib/db"
+import { logAuditAction } from "@/lib/auditLog"
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authConfig)
@@ -42,6 +43,22 @@ export async function POST(req: NextRequest) {
         categoryId: categoryId || null,
         gender: gender || null,
       },
+    })
+
+    // Audit Log
+    await logAuditAction({
+      action: "COUPON_CREATE",
+      adminId: session.user.id,
+      adminEmail: session.user.email || "",
+      targetType: "Coupon",
+      targetId: coupon.id,
+      details: {
+        code: coupon.code,
+        discountType: coupon.discountType,
+        value: coupon.value,
+      },
+      ipAddress: req.headers.get("x-forwarded-for") || undefined,
+      userAgent: req.headers.get("user-agent") || undefined,
     })
 
     return NextResponse.json(coupon)

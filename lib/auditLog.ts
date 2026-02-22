@@ -12,7 +12,11 @@ export type AuditAction =
     | "SETTINGS_UPDATE"
     | "BULK_PRICE_UPDATE"
     | "BULK_PRODUCT_IMPORT"
-    | "STOCK_UPDATE";
+    | "STOCK_UPDATE"
+    | "CATEGORY_CREATE"
+    | "CATEGORY_UPDATE"
+    | "CATEGORY_DELETE"
+    | "COUPON_DELETE";
 
 interface AuditLogData {
     action: AuditAction;

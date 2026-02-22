@@ -1,6 +1,7 @@
 "use client";
 
 import { Block } from "../../types";
+import { toast } from "sonner";
 
 interface ImageBlockProps {
     block: Block;
@@ -41,7 +42,7 @@ export default function ImageBlock({ block, onUpdate }: ImageBlockProps) {
 
                                 // Basic validation
                                 if (!file.type.startsWith("image/")) {
-                                    alert("Lütfen bir görsel dosyası seçin");
+                                    toast.error("Lütfen bir görsel dosyası seçin");
                                     return;
                                 }
 
@@ -70,7 +71,7 @@ export default function ImageBlock({ block, onUpdate }: ImageBlockProps) {
                                     });
                                 } catch (error) {
                                     console.error("Upload error:", error);
-                                    alert("Yükleme sırasında bir hata oluştu");
+                                    toast.error("Yükleme sırasında bir hata oluştu");
                                 }
                             }}
                         />

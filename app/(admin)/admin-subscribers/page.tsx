@@ -32,6 +32,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 interface Subscriber {
     id: string;
@@ -48,6 +49,8 @@ export default function AdminSubscribersPage() {
     const [search, setSearch] = useState("");
     const [page, setPage] = useState(1);
     const [total, setTotal] = useState(0);
+    const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+    const [subscriberToDelete, setSubscriberToDelete] = useState<string | null>(null);
 
     useEffect(() => {
         if (sessionStatus === "loading") return;
@@ -101,18 +104,21 @@ export default function AdminSubscribersPage() {
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm("Bu aboneyi silmek istediğinizden emin misiniz?")) {
-            return;
-        }
+        setSubscriberToDelete(id);
+        setConfirmDeleteOpen(true);
+    };
+
+    const performDelete = async () => {
+        if (!subscriberToDelete) return;
 
         try {
-            const response = await fetch(`/api/admin/subscribers?id=${id}`, {
+            const response = await fetch(`/api/admin/subscribers?id=${subscriberToDelete}`, {
                 method: "DELETE",
             });
 
             if (response.ok) {
                 toast.success("Abone silindi");
-                setSubscribers(subscribers.filter((s) => s.id !== id));
+                setSubscribers(subscribers.filter((s) => s.id !== subscriberToDelete));
                 setTotal(total - 1);
             }
         } catch (error) {
@@ -244,6 +250,14 @@ export default function AdminSubscribersPage() {
                     )}
                 </CardContent>
             </Card>
+
+            <ConfirmDialog
+                open={confirmDeleteOpen}
+                onOpenChange={setConfirmDeleteOpen}
+                onConfirm={performDelete}
+                title="Aboneyi Sil"
+                description="Bu aboneyi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
+            />
         </div>
     );
 }

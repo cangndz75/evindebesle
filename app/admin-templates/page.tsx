@@ -11,6 +11,7 @@ import { SizeNoteModal } from "@/components/admin/SizeNoteModal";
 import { SizeGuideModal } from "@/components/admin/SizeGuideModal";
 import { ModelInfoModal } from "@/components/admin/ModelInfoModal";
 import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 export default function AdminTemplatesPage() {
     const [washingInstructions, setWashingInstructions] = useState<any[]>([]);
@@ -26,6 +27,9 @@ export default function AdminTemplatesPage() {
     const [modelInfoModal, setModelInfoModal] = useState(false);
 
     const [editData, setEditData] = useState<any>(null);
+
+    const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+    const [itemToDelete, setItemToDelete] = useState<{ type: string; id: string } | null>(null);
 
     useEffect(() => {
         fetchAll();
@@ -70,7 +74,13 @@ export default function AdminTemplatesPage() {
     };
 
     const handleDelete = async (type: string, id: string) => {
-        if (!confirm("Silmek istediğinizden emin misiniz?")) return;
+        setItemToDelete({ type, id });
+        setConfirmDeleteOpen(true);
+    };
+
+    const performDelete = async () => {
+        if (!itemToDelete) return;
+        const { type, id } = itemToDelete;
 
         try {
             const endpoints: Record<string, string> = {
@@ -459,6 +469,14 @@ export default function AdminTemplatesPage() {
                 onOpenChange={(open) => { setModelInfoModal(open); if (!open) closeModal(); }}
                 onSuccess={() => { fetchModelInfo(); closeModal(); }}
                 editData={editData}
+            />
+
+            <ConfirmDialog
+                open={confirmDeleteOpen}
+                onOpenChange={setConfirmDeleteOpen}
+                onConfirm={performDelete}
+                title="Şablonu Sil"
+                description="Bu şablonu silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
             />
         </div>
     );

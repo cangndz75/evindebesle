@@ -39,6 +39,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 
@@ -69,6 +70,8 @@ export default function CampaignListPage() {
     const [campaigns, setCampaigns] = useState<Campaign[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState("all");
+    const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+    const [campaignToDelete, setCampaignToDelete] = useState<string | null>(null);
 
     useEffect(() => {
         if (sessionStatus === "loading") return;
@@ -135,18 +138,21 @@ export default function CampaignListPage() {
     };
 
     const handleDelete = async (campaignId: string) => {
-        if (!confirm("Bu kampanyayı silmek istediğinizden emin misiniz?")) {
-            return;
-        }
+        setCampaignToDelete(campaignId);
+        setConfirmDeleteOpen(true);
+    };
+
+    const performDelete = async () => {
+        if (!campaignToDelete) return;
 
         try {
-            const response = await fetch(`/api/admin/campaigns?id=${campaignId}`, {
+            const response = await fetch(`/api/admin/campaigns?id=${campaignToDelete}`, {
                 method: "DELETE",
             });
 
             if (response.ok) {
                 toast.success("Kampanya silindi");
-                setCampaigns(campaigns.filter((c) => c.id !== campaignId));
+                setCampaigns(campaigns.filter((c) => c.id !== campaignToDelete));
             }
         } catch (error) {
             console.error("Error deleting campaign:", error);
@@ -354,6 +360,14 @@ export default function CampaignListPage() {
                     )}
                 </CardContent>
             </Card>
+
+            <ConfirmDialog
+                open={confirmDeleteOpen}
+                onOpenChange={setConfirmDeleteOpen}
+                onConfirm={performDelete}
+                title="Kampanyayı Sil"
+                description="Bu kampanyayı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
+            />
         </div>
     );
 }

@@ -28,6 +28,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   DropdownMenu,
@@ -41,6 +42,7 @@ import { toast } from "sonner";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 type Order = {
   id: string;
@@ -94,6 +96,13 @@ export default function AdminOrdersPage() {
   const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
   const [paymentFilter, setPaymentFilter] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<string>("all");
+
+  const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
+  const [orderToCancel, setOrderToCancel] = useState<string | null>(null);
+  const [trackingDialogOpen, setTrackingDialogOpen] = useState(false);
+  const [trackingInput, setTrackingInput] = useState("");
+  const [orderToShip, setOrderToShip] = useState<string | null>(null);
+  const [isBulkTracking, setIsBulkTracking] = useState(false);
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -242,13 +251,7 @@ export default function AdminOrdersPage() {
             body: JSON.stringify({ status: "PREPARING" }),
           });
         } else if (action === "SHIPPED") {
-          const tracking = prompt("Kargo takip numarası girin:");
-          if (!tracking) return Promise.resolve(null);
-          return fetch(`/api/admin/orders/${orderId}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ status: "SHIPPED", trackingNumber: tracking }),
-          });
+          return null; // Handled separately via tracking dialog
         } else if (action === "CANCELLED") {
           return fetch(`/api/admin/orders/${orderId}`, {
             method: "PATCH",
@@ -258,6 +261,14 @@ export default function AdminOrdersPage() {
         }
         return Promise.resolve(null);
       });
+
+      if (action === "SHIPPED") {
+        setOrderToShip(null);
+        setIsBulkTracking(true);
+        setTrackingInput("");
+        setTrackingDialogOpen(true);
+        return;
+      }
 
       await Promise.all(promises);
       toast.success(`${selectedOrders.size} sipariş güncellendi`);
@@ -495,10 +506,10 @@ export default function AdminOrdersPage() {
                         {order.status !== "SHIPPED" && order.status !== "DELIVERED" && order.status !== "CANCELLED" && (
                           <DropdownMenuItem
                             onClick={() => {
-                              const tracking = prompt("Kargo takip numarası girin:");
-                              if (tracking) {
-                                handleStatusChange(order.id, "SHIPPED", tracking);
-                              }
+                              setOrderToShip(order.id);
+                              setIsBulkTracking(false);
+                              setTrackingInput("");
+                              setTrackingDialogOpen(true);
                             }}
                           >
                             <Truck className="w-4 h-4 mr-2" />
@@ -516,9 +527,8 @@ export default function AdminOrdersPage() {
                         {order.status !== "CANCELLED" && (
                           <DropdownMenuItem
                             onClick={() => {
-                              if (confirm("Siparişi iptal etmek istediğinize emin misiniz?")) {
-                                handleStatusChange(order.id, "CANCELLED");
-                              }
+                              setOrderToCancel(order.id);
+                              setConfirmCancelOpen(true);
                             }}
                             className="text-red-600"
                           >
@@ -643,6 +653,77 @@ export default function AdminOrdersPage() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setDetailOpen(false)}>
               Kapat
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <ConfirmDialog
+        open={confirmCancelOpen}
+        onOpenChange={setConfirmCancelOpen}
+        onConfirm={() => {
+          if (orderToCancel) {
+            handleStatusChange(orderToCancel, "CANCELLED");
+          }
+        }}
+        title="Siparişi İptal Et"
+        description="Bu siparişi iptal etmek istediğinize emin misiniz? Bu işlem geri alınamaz."
+        confirmLabel="Siparişi İptal Et"
+        cancelLabel="Vazgeç"
+      />
+
+      <Dialog open={trackingDialogOpen} onOpenChange={setTrackingDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Kargo Bilgisi</DialogTitle>
+            <DialogDescription>
+              {isBulkTracking
+                ? `${selectedOrders.size} sipariş için kargo takip numarası girin.`
+                : "Seçili sipariş için kargo takip numarası girin."}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Input
+              placeholder="Takip Numarası"
+              value={trackingInput}
+              onChange={(e) => setTrackingInput(e.target.value)}
+              autoFocus
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTrackingDialogOpen(false)}>
+              İptal
+            </Button>
+            <Button
+              disabled={!trackingInput || updatingStatus}
+              onClick={async () => {
+                if (isBulkTracking) {
+                  try {
+                    setUpdatingStatus(true);
+                    const promises = Array.from(selectedOrders).map((orderId) =>
+                      fetch(`/api/admin/orders/${orderId}`, {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ status: "SHIPPED", trackingNumber: trackingInput }),
+                      })
+                    );
+                    await Promise.all(promises);
+                    toast.success(`${selectedOrders.size} sipariş kargoya verildi`);
+                    setSelectedOrders(new Set());
+                    fetchOrders();
+                  } catch (error) {
+                    toast.error("Toplu işlem sırasında bir hata oluştu");
+                  } finally {
+                    setUpdatingStatus(false);
+                    setTrackingDialogOpen(false);
+                  }
+                } else if (orderToShip) {
+                  await handleStatusChange(orderToShip, "SHIPPED", trackingInput);
+                  setTrackingDialogOpen(false);
+                }
+              }}
+            >
+              Kaydet ve Kargola
             </Button>
           </DialogFooter>
         </DialogContent>

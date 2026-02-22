@@ -24,6 +24,7 @@ import {
 import Link from "next/link";
 import ProductReviewModal from "@/components/product/ProductReviewModal";
 import ReturnRequestModal from "@/components/returns/ReturnRequestModal";
+import { toast } from "sonner";
 
 
 
@@ -111,7 +112,7 @@ export default function OrdersPage() {
       document.body.removeChild(a);
     } catch (error) {
       console.error("Invoice download error:", error);
-      alert("Fatura indirirken bir hata oluştu. Lütfen tekrar deneyin.");
+      toast.error("Fatura indirirken bir hata oluştu. Lütfen tekrar deneyin.");
     }
   };
 

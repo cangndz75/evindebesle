@@ -45,16 +45,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Kategori adı gerekli" }, { status: 400 });
     }
 
-    const slug = name
-      .toLowerCase()
-      .replace(/ğ/g, "g")
-      .replace(/ü/g, "u")
-      .replace(/ş/g, "s")
-      .replace(/ı/g, "i")
-      .replace(/ö/g, "o")
-      .replace(/ç/g, "c")
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "");
+    const { generateSlug } = await import("@/lib/slug");
+    const slug = generateSlug(name);
 
     const category = await prisma.category.create({
       data: {

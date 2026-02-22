@@ -16,11 +16,14 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 export default function AdminBlogPage() {
     const [posts, setPosts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
+    const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+    const [postToDelete, setPostToDelete] = useState<string | null>(null);
 
     useEffect(() => {
         fetchPosts();
@@ -39,13 +42,18 @@ export default function AdminBlogPage() {
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm("Bu yazıyı silmek istediğinize emin misiniz?")) return;
+        setPostToDelete(id);
+        setConfirmDeleteOpen(true);
+    };
+
+    const performDelete = async () => {
+        if (!postToDelete) return;
 
         try {
-            const res = await fetch(`/api/admin/blog/${id}`, { method: "DELETE" });
+            const res = await fetch(`/api/admin/blog/${postToDelete}`, { method: "DELETE" });
             if (res.ok) {
                 toast.success("Yazı silindi");
-                setPosts(posts.filter((p) => p.id !== id));
+                setPosts(posts.filter((p) => p.id !== postToDelete));
             } else {
                 throw new Error();
             }
@@ -144,6 +152,14 @@ export default function AdminBlogPage() {
                     )}
                 </CardContent>
             </Card>
+
+            <ConfirmDialog
+                open={confirmDeleteOpen}
+                onOpenChange={setConfirmDeleteOpen}
+                onConfirm={performDelete}
+                title="Yazıyı Sil"
+                description="Bu blog yazısını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
+            />
         </div>
     );
 }

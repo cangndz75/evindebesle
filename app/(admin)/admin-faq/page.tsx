@@ -27,6 +27,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 interface FAQ {
     id: string;
@@ -61,6 +62,9 @@ export default function AdminFAQPage() {
         order: 0,
         isActive: true,
     });
+
+    const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+    const [faqToDelete, setFaqToDelete] = useState<string | null>(null);
 
     const fetchFaqs = async () => {
         setLoading(true);
@@ -110,10 +114,15 @@ export default function AdminFAQPage() {
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm("Bu SSS'yi silmek istediğinizden emin misiniz?")) return;
+        setFaqToDelete(id);
+        setConfirmDeleteOpen(true);
+    };
+
+    const performDelete = async () => {
+        if (!faqToDelete) return;
 
         try {
-            const res = await fetch(`/api/admin/faq?id=${id}`, { method: "DELETE" });
+            const res = await fetch(`/api/admin/faq?id=${faqToDelete}`, { method: "DELETE" });
             if (res.ok) {
                 toast.success("SSS silindi");
                 fetchFaqs();
@@ -296,6 +305,14 @@ export default function AdminFAQPage() {
                     )}
                 </CardContent>
             </Card>
+
+            <ConfirmDialog
+                open={confirmDeleteOpen}
+                onOpenChange={setConfirmDeleteOpen}
+                onConfirm={performDelete}
+                title="Soru Sil"
+                description="Bu soruyu silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
+            />
         </div>
     );
 }

@@ -64,17 +64,9 @@ export async function PATCH(
       const targetName = name !== undefined ? name : (await prisma.category.findUnique({ where: { id } }))?.name || "";
       const targetGender = gender !== undefined ? gender : (await prisma.category.findUnique({ where: { id } }))?.gender || null;
 
-      // Slug temeli oluştur (Türkçe karakter temizleme)
-      const baseSlug = targetName
-        .toLowerCase()
-        .replace(/ğ/g, "g")
-        .replace(/ü/g, "u")
-        .replace(/ş/g, "s")
-        .replace(/ı/g, "i")
-        .replace(/ö/g, "o")
-        .replace(/ç/g, "c")
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-+|-+$/g, "");
+      // Slug oluştur (lib/slug.ts kullanılarak)
+      const { generateSlug } = await import("@/lib/slug");
+      const baseSlug = generateSlug(targetName);
 
       // Cinsiyet prefix'i ekle
       let slugPrefix = "";

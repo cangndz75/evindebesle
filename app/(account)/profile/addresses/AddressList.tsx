@@ -11,6 +11,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import EditAddressForm from "./EditAddressModal";
+import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 type District = { id: string; name: string };
 type Address = {
@@ -27,6 +29,8 @@ export default function AddressList() {
   const [loading, setLoading] = useState(true);
   const [formLoading, setFormLoading] = useState(false);
   const [openEditId, setOpenEditId] = useState<string | null>(null);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [addressToDelete, setAddressToDelete] = useState<string | null>(null);
 
   const fetchAddresses = async () => {
     const res = await fetch("/api/address");
@@ -65,10 +69,24 @@ export default function AddressList() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Bu adresi silmek istediğinize emin misiniz?")) return;
+    setAddressToDelete(id);
+    setConfirmDeleteOpen(true);
+  };
 
-    await fetch(`/api/address/${id}`, { method: "DELETE" });
-    await fetchAddresses();
+  const performDelete = async () => {
+    if (!addressToDelete) return;
+
+    try {
+      const res = await fetch(`/api/address/${addressToDelete}`, { method: "DELETE" });
+      if (res.ok) {
+        toast.success("Adres silindi");
+        await fetchAddresses();
+      } else {
+        toast.error("Adres silinemedi");
+      }
+    } catch (error) {
+      toast.error("Bir hata oluştu");
+    }
   };
 
   return (
@@ -135,6 +153,13 @@ export default function AddressList() {
           Henüz bir adres eklemediniz.
         </div>
       )}
+      <ConfirmDialog
+        open={confirmDeleteOpen}
+        onOpenChange={setConfirmDeleteOpen}
+        onConfirm={performDelete}
+        title="Adresi Sil"
+        description="Bu adresi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
+      />
     </div>
   );
 }

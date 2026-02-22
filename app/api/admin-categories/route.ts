@@ -51,17 +51,9 @@ export async function POST(req: Request) {
       );
     }
 
-    // Slug temeli oluştur (Türkçe karakter temizleme)
-    const baseSlug = name
-      .toLowerCase()
-      .replace(/ğ/g, "g")
-      .replace(/ü/g, "u")
-      .replace(/ş/g, "s")
-      .replace(/ı/g, "i")
-      .replace(/ö/g, "o")
-      .replace(/ç/g, "c")
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "");
+    // Slug oluştur (lib/slug.ts kullanılarak)
+    const { generateSlug } = await import("@/lib/slug");
+    const baseSlug = generateSlug(name);
 
     // Cinsiyet prefix'i ekle
     let slugPrefix = "";

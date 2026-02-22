@@ -336,7 +336,7 @@ export function EditProductModal({
         }
       } catch (error) {
         console.error("Upload error:", error);
-        alert("Fotoğraflar yüklenirken hata oluştu");
+        toast.error("Fotoğraflar yüklenirken hata oluştu");
       } finally {
         setLoading(false);
       }
@@ -490,7 +490,7 @@ export function EditProductModal({
         onSuccess?.();
       } else {
         const error = await res.json();
-        alert("Hata: " + (error.error || "Bilinmeyen hata"));
+        toast.error("Hata: " + (error.error || "Bilinmeyen hata"));
       }
     } catch (error: any) {
       console.error("Hata:", error);
@@ -718,7 +718,7 @@ export function EditProductModal({
                             }
                           } catch (error) {
                             console.error("Upload error:", error);
-                            alert("Fotoğraflar yüklenirken hata oluştu");
+                            toast.error("Fotoğraflar yüklenirken hata oluştu");
                           } finally {
                             setLoading(false);
                             e.target.value = "";

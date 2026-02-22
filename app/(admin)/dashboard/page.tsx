@@ -7,6 +7,7 @@ import { tr } from "date-fns/locale";
 import {
   Download,
 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -599,8 +600,7 @@ export default function AdminDashboard() {
             </Button>
             <Button
               onClick={() => {
-                // TODO: API call
-                alert("Bildirim gönderildi!");
+                toast.success("Bildirim gönderildi!");
                 setNotificationModalOpen(false);
                 setNotificationMessage("");
               }}
@@ -671,8 +671,7 @@ export default function AdminDashboard() {
             </Button>
             <Button
               onClick={() => {
-                // TODO: API call
-                alert(`${reportType} raporu indiriliyor...`);
+                toast.info(`${reportType} raporu indiriliyor...`);
                 setReportModalOpen(false);
               }}
             >

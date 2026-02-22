@@ -54,14 +54,16 @@ export async function PATCH(
 
     const { id } = await params;
     const body = await request.json();
-    const { name, description, isActive, image, gender, showOnHome } = body;
+    const { name, description, isActive, image, gender, group, showOnHome } = body;
 
     const updateData: any = {};
 
-    if (name !== undefined) {
-      updateData.name = name;
-      // Slug'ı da güncelle
-      const slug = name
+    if (name !== undefined || gender !== undefined) {
+      const targetName = name !== undefined ? name : (await prisma.category.findUnique({ where: { id } }))?.name || "";
+      const targetGender = gender !== undefined ? gender : (await prisma.category.findUnique({ where: { id } }))?.gender || null;
+
+      // Slug temeli oluştur (Türkçe karakter temizleme)
+      const baseSlug = targetName
         .toLowerCase()
         .replace(/ğ/g, "g")
         .replace(/ü/g, "u")
@@ -72,25 +74,35 @@ export async function PATCH(
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/^-+|-+$/g, "");
 
+      // Cinsiyet prefix'i ekle
+      let slugPrefix = "";
+      if (targetGender === "MALE") slugPrefix = "men-";
+      else if (targetGender === "FEMALE") slugPrefix = "women-";
+      else if (targetGender === "UNISEX") slugPrefix = "unisex-";
+
+      const slug = `${slugPrefix}${baseSlug}`;
+
       // Slug unique kontrolü
       let finalSlug = slug;
       let counter = 1;
       const existing = await prisma.category.findUnique({ where: { id } });
+
       if (existing?.slug !== slug) {
         while (await prisma.category.findUnique({ where: { slug: finalSlug } })) {
           finalSlug = `${slug}-${counter}`;
           counter++;
         }
-      } else if (existing) {
-        finalSlug = existing.slug;
+        updateData.slug = finalSlug;
       }
-      updateData.slug = finalSlug;
+
+      if (name !== undefined) updateData.name = name;
+      if (gender !== undefined) updateData.gender = gender || null;
     }
 
     if (description !== undefined) updateData.description = description;
     if (isActive !== undefined) updateData.isActive = isActive;
     if (image !== undefined) updateData.image = image || null;
-    if (gender !== undefined) updateData.gender = gender || null;
+    if (group !== undefined) updateData.group = group || "Giyim";
     if (showOnHome !== undefined) updateData.showOnHome = showOnHome;
 
     const category = await prisma.category.update({

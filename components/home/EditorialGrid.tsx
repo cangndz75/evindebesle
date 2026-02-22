@@ -7,31 +7,31 @@ import Image from "next/image";
 const CARDS = [
     {
         id: 1,
-        category: "Travel",
-        title: "5 Inspiring Apps for Your Next Trip",
-        image: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1200",
-        content: "Love to travel? So do the makers of these five subscription apps. For a small monthly fee, they'll help you find the best deals on flights, hotels, and some other stuff we turn a blind eye to. Plan your perfect itinerary with intelligent recommendations based on your interests, time, and credit history.",
+        category: "Çorap",
+        title: "Gün Boyu Konfor Tarzını Tamamlayan Çoraplar",
+        image: "https://res.cloudinary.com/dlahfchej/image/upload/v1771709822/banner2_jcc5j9.png",
+        content: "Ayak sağlığınızı ön planda tutan, nefes alabilen kumaş yapısıyla gün boyu konfor sunan çorap koleksiyonumuz. Yumuşak dokusu ve şık tasarımlarıyla tarzınızı tamamlayın.",
     },
     {
         id: 2,
-        category: "How to",
-        title: "Contemplate the Meaning of Life Twice a Day",
-        image: "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=1200",
-        content: "What is life? You can't spell 'life' without 'i'. You also can't spell 'life' without 'l', 'f', and 'e'. Worth thinking about. The only way to find out more about life is to think about it. And the only way to think about it is twice daily using an app. Apps? We got 'em. Therefore we got the meaning of life.",
+        category: "İç Giyim",
+        title: "Zarafetin ve Rahatlığın Buluştuğu Siyah Body",
+        image: "https://res.cloudinary.com/dlahfchej/image/upload/v1771759838/3_org_zoom_dlegrk.webp",
+        content: "Vücudu saran esnek yapısı ve sofistike tasarımıyla öne çıkan siyah body koleksiyonumuz. Her anınıza şıklık katan, ikinci cildiniz gibi hissettiren premium kalite.",
     },
     {
         id: 3,
-        category: "Steps",
-        title: "Urban Exploration Apps for the Vertically-Inclined",
-        image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=1200",
-        content: "Scale new heights with our curated list of apps designed for modern explorers. From rooftop garden finders to historical staircase maps, your city has never looked so vertical.",
+        category: "Erkek İç Giyim",
+        title: "Sıfır Dikiş Teknolojisiyle Beyaz İçlik",
+        image: "https://res.cloudinary.com/dlahfchej/image/upload/v1771759811/format_webp_2_pc9mhe.webp",
+        content: "Sıfır dikiş teknolojisi ve antibakteriyel kumaşıyla tüm gün tazelik sunan erkek içlik koleksiyonu. Slim-fit kesimi sayesinde kıyafetlerinizin altında görünmez.",
     },
     {
         id: 4,
-        category: "Hats",
-        title: "Take Control of Your Hat Life With This Stunning New App",
-        image: "https://images.unsplash.com/photo-1534215754734-18e55d13e346?q=80&w=1200",
-        content: "Managing a multi-hat lifestyle is exhausting. This app helps you catalog your collection, track wear-frequency, and even suggests the best hat for today's weather and your social standing.",
+        category: "Korse",
+        title: "Doğal Duruş ve Özgüvenli Silüet",
+        image: "https://res.cloudinary.com/dlahfchej/image/upload/v1771759818/bloomfitkorse_vu0myy.webp",
+        content: "Yüksek bel tasarımı ve esnek kumaş yapısıyla vücudunuzu nazikçe şekillendiren korse koleksiyonumuz. Rahat kullanımı ile günlük hayatta özgüvenle hareket edin.",
     }
 ];
 
@@ -60,12 +60,12 @@ export default function EditorialGrid() {
                         viewport={{ once: true, margin: "-50px" }}
                         transition={{ duration: 0.5, ease: "easeOut" }}
                     >
-                        <motion.div className="absolute inset-0">
+                        <motion.div className={`absolute inset-0 ${card.id === 1 ? 'bg-[#f5f5f5]' : ''}`}>
                             <Image
                                 src={card.image}
                                 alt={card.title}
                                 fill
-                                className="object-cover transition-transform duration-500 group-hover:scale-105"
+                                className={`${card.id === 1 ? 'object-contain p-4' : 'object-cover object-top'} transition-transform duration-500 group-hover:scale-105`}
                             />
                             <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors" />
                         </motion.div>
@@ -114,7 +114,7 @@ export default function EditorialGrid() {
                                     src={CARDS.find(c => c.id === selectedId)?.image || ""}
                                     alt="Detail"
                                     fill
-                                    className="object-cover"
+                                    className="object-cover object-top"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-transparent" />
 

@@ -64,17 +64,19 @@ export default function About2Page() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.4, duration: 1.2 }}
-            className="mt-20 relative w-full max-w-7xl aspect-[21/9] overflow-hidden shadow-3xl shadow-black border border-white/5"
+            className="mt-20 relative w-full max-w-7xl aspect-video overflow-hidden shadow-3xl shadow-black border border-white/5"
           >
-            <Image
-              src="https://images.unsplash.com/photo-1590736704728-f472d58e3bb5?q=80&w=2000"
-              alt="Dark Velvet Atölye"
-              fill
-              className="object-cover opacity-70 scale-105"
+            <video
+              src="https://res.cloudinary.com/dlahfchej/video/upload/v1771710780/Ads%C4%B1z_tasar%C4%B1m_jfchqp.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-transparent to-transparent" />
             <div className="absolute bottom-10 left-10 md:left-20">
-              <span className="text-[10px] tracking-[0.4em] uppercase text-white/50">EST. 2024</span>
+              <span className="text-[10px] tracking-[0.4em] uppercase text-white/50">Dark Velvet</span>
             </div>
           </motion.div>
         </section>
@@ -161,11 +163,6 @@ export default function About2Page() {
                 <Link href="/products">
                   <Button size="lg" className="bg-white hover:bg-gray-200 text-black rounded-none px-16 h-16 text-sm font-bold uppercase tracking-[0.2em] transition-all hover:scale-105 active:scale-95 shadow-2xl">
                     KOLEKSİYONU KEŞFET
-                  </Button>
-                </Link>
-                <Link href="/contact">
-                  <Button variant="outline" size="lg" className="border-white/20 hover:bg-white/5 text-white rounded-none px-16 h-16 text-sm font-light uppercase tracking-[0.2em] backdrop-blur-sm transition-all">
-                    BİZE ULAŞIN
                   </Button>
                 </Link>
               </div>

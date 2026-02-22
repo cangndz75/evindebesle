@@ -217,6 +217,7 @@ model Category {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   gender      Gender?
+  group       String?   @default("Giyim") // Giyim, Aksesuar vb.
   showOnHome  Boolean   @default(false)
   products    Product[]
   coupons     Coupon[]

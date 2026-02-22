@@ -44,11 +44,10 @@ const footerSections = [
   },
 ];
 
-const benefits = [
+const staticBenefits = [
   { icon: "app", text: "Uygulamayı indir, erken erişim kazan" },
   { icon: "medal", text: "Dark Velvet Rewards ile ücretsiz iade" },
   { icon: "clock", text: "30 gün içinde kolay iade" },
-  { icon: "truck", text: "999₺ üzeri ücretsiz hızlı kargo" },
 ];
 
 // İkonlar için özel SVG'ler (resimdeki gibi minimal line art)
@@ -88,6 +87,25 @@ const TruckIcon = () => (
 
 function BenefitMarquee() {
   const ref = useRef<HTMLDivElement>(null);
+  const [benefits, setBenefits] = useState(staticBenefits);
+
+  useEffect(() => {
+    fetch("/api/company-settings")
+      .then((res) => res.json())
+      .then((data) => {
+        const threshold = data.freeShippingThreshold ?? 999;
+        setBenefits([
+          ...staticBenefits,
+          { icon: "truck", text: `${threshold}₺ üzeri ücretsiz hızlı kargo` },
+        ]);
+      })
+      .catch(() => {
+        setBenefits([
+          ...staticBenefits,
+          { icon: "truck", text: "999₺ üzeri ücretsiz hızlı kargo" },
+        ]);
+      });
+  }, []);
 
   useEffect(() => {
     if (!ref.current) return;
@@ -104,7 +122,7 @@ function BenefitMarquee() {
 
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
-  }, []);
+  }, [benefits]);
 
   const renderIcon = (iconType: string) => {
     switch (iconType) {

@@ -41,7 +41,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { name, description, isActive, image, gender, showOnHome } = body;
+    const { name, description, isActive, image, gender, group, showOnHome } = body;
 
     if (!name) {
       return NextResponse.json(
@@ -50,8 +50,8 @@ export async function POST(req: Request) {
       );
     }
 
-    // Slug oluştur
-    const slug = name
+    // Slug temeli oluştur (Türkçe karakter temizleme)
+    const baseSlug = name
       .toLowerCase()
       .replace(/ğ/g, "g")
       .replace(/ü/g, "u")
@@ -61,6 +61,14 @@ export async function POST(req: Request) {
       .replace(/ç/g, "c")
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "");
+
+    // Cinsiyet prefix'i ekle
+    let slugPrefix = "";
+    if (gender === "MALE") slugPrefix = "men-";
+    else if (gender === "FEMALE") slugPrefix = "women-";
+    else if (gender === "UNISEX") slugPrefix = "unisex-";
+
+    const slug = `${slugPrefix}${baseSlug}`;
 
     // Slug unique kontrolü
     let finalSlug = slug;
@@ -84,6 +92,7 @@ export async function POST(req: Request) {
         isActive: isActive !== undefined ? isActive : true,
         image: image || null,
         gender: gender || null,
+        group: group || "Giyim",
         showOnHome: showOnHome !== undefined ? showOnHome : false,
         sortOrder: nextSortOrder,
       },

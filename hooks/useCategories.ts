@@ -5,6 +5,8 @@ export type Category = {
     name: string;
     slug: string;
     image: string | null;
+    gender?: string | null;
+    group?: string | null;
 };
 
 export function useCategories() {

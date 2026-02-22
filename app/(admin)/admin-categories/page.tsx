@@ -80,6 +80,7 @@ type Category = {
     productCategories: number;
   };
   gender?: string | null;
+  group?: string | null;
   showOnHome: boolean;
 };
 
@@ -140,6 +141,7 @@ export default function CategoriesPage() {
   const [formIsActive, setFormIsActive] = useState(true);
   const [formImage, setFormImage] = useState<string | null>(null);
   const [formGender, setFormGender] = useState<string>("UNISEX");
+  const [formGroup, setFormGroup] = useState<string>("Giyim");
   const [formShowOnHome, setFormShowOnHome] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -218,6 +220,7 @@ export default function CategoriesPage() {
     setFormIsActive(true);
     setFormImage(null);
     setFormGender("UNISEX");
+    setFormGroup("Giyim");
     setFormShowOnHome(false);
     setAddDialogOpen(true);
   };
@@ -229,6 +232,7 @@ export default function CategoriesPage() {
     setFormIsActive(category.isActive);
     setFormImage(category.image || null);
     setFormGender(category.gender || "UNISEX");
+    setFormGroup(category.group || "Giyim");
     setFormShowOnHome(category.showOnHome || false);
     setEditDialogOpen(true);
   };
@@ -255,6 +259,7 @@ export default function CategoriesPage() {
           isActive: formIsActive,
           image: formImage || null,
           gender: formGender,
+          group: formGroup,
           showOnHome: formShowOnHome,
         }),
       });
@@ -693,15 +698,30 @@ export default function CategoriesPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="flex flex-col gap-2 pt-6">
-                <div className="flex items-center gap-2">
-                  <Switch
-                    id="showOnHome"
-                    checked={formShowOnHome}
-                    onCheckedChange={setFormShowOnHome}
-                  />
-                  <Label htmlFor="showOnHome">Anasayfada Göster</Label>
-                </div>
+              <div>
+                <Label htmlFor="group">Grup</Label>
+                <Select value={formGroup} onValueChange={setFormGroup}>
+                  <SelectTrigger id="group" className="mt-1">
+                    <SelectValue placeholder="Seçiniz" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Giyim">Giyim</SelectItem>
+                    <SelectItem value="Aksesuar">Aksesuar</SelectItem>
+                    <SelectItem value="Koleksiyon">Koleksiyon</SelectItem>
+                    <SelectItem value="Yeni">Yeni</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2 pt-2">
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="showOnHome"
+                  checked={formShowOnHome}
+                  onCheckedChange={setFormShowOnHome}
+                />
+                <Label htmlFor="showOnHome">Anasayfada Göster</Label>
               </div>
             </div>
 
@@ -808,15 +828,30 @@ export default function CategoriesPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="flex flex-col gap-2 pt-6">
-                <div className="flex items-center gap-2">
-                  <Switch
-                    id="edit-showOnHome"
-                    checked={formShowOnHome}
-                    onCheckedChange={setFormShowOnHome}
-                  />
-                  <Label htmlFor="edit-showOnHome">Anasayfada Göster</Label>
-                </div>
+              <div>
+                <Label htmlFor="edit-group">Grup</Label>
+                <Select value={formGroup} onValueChange={setFormGroup}>
+                  <SelectTrigger id="edit-group" className="mt-1">
+                    <SelectValue placeholder="Seçiniz" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Giyim">Giyim</SelectItem>
+                    <SelectItem value="Aksesuar">Aksesuar</SelectItem>
+                    <SelectItem value="Koleksiyon">Koleksiyon</SelectItem>
+                    <SelectItem value="Yeni">Yeni</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2 pt-2">
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="edit-showOnHome"
+                  checked={formShowOnHome}
+                  onCheckedChange={setFormShowOnHome}
+                />
+                <Label htmlFor="edit-showOnHome">Anasayfada Göster</Label>
               </div>
             </div>
 

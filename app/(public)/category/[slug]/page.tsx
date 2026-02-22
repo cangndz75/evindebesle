@@ -26,12 +26,13 @@ async function getCategory(slug: string) {
     });
 }
 
-async function getInitialProducts(categorySlug: string) {
+async function getInitialProducts(categorySlug: string, gender?: any) {
     try {
         const products = await prisma.product.findMany({
             where: {
                 isActive: true,
                 category: { slug: categorySlug },
+                gender: gender || undefined,
             },
             select: {
                 id: true,
@@ -128,12 +129,13 @@ async function getInitialProducts(categorySlug: string) {
     }
 }
 
-async function getPriceRange(categorySlug: string) {
+async function getPriceRange(categorySlug: string, gender?: any) {
     try {
         const result = await prisma.product.aggregate({
             where: {
                 isActive: true,
                 category: { slug: categorySlug },
+                gender: gender || undefined,
             },
             _min: { price: true },
             _max: { price: true },
@@ -176,14 +178,15 @@ export default async function CategoryPage({ params }: Props) {
     }
 
     const [initialProducts, priceRange] = await Promise.all([
-        getInitialProducts(slug),
-        getPriceRange(slug),
+        getInitialProducts(slug, category.gender || undefined),
+        getPriceRange(slug, category.gender || undefined),
     ]);
 
     return (
         <CategoryProductsPage
             categoryName={category.name}
             categorySlug={slug}
+            gender={category.gender || undefined}
             initialProducts={initialProducts}
             initialPriceRange={priceRange}
         />

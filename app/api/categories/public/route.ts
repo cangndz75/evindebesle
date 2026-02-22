@@ -12,6 +12,8 @@ export async function GET() {
                 name: true,
                 slug: true,
                 image: true,
+                gender: true,
+                group: true,
             },
         });
 

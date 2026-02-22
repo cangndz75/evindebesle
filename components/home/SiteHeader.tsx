@@ -137,128 +137,123 @@ export default function SiteHeader() {
   }, [session, refreshCartCount]);
 
   const mega = useMemo<Record<MenuKey, { left: MegaGroup[]; rightPromo: Promo }>>(
-    () => ({
-      men: {
-        left: [
-          {
-            title: "ERKEK GİYİM",
-            items: [
-              { label: "T-Shirt", href: "/category/men-tshirt" },
-              { label: "Sweatshirt", href: "/category/men-sweatshirt" },
-              { label: "Pantolon", href: "/category/men-pants" },
-              { label: "Ceket", href: "/category/men-jackets" },
-              { label: "Tümünü Gör", href: "/men" },
-            ],
+    () => {
+      const result: Record<MenuKey, { left: MegaGroup[]; rightPromo: Promo }> = {
+        men: {
+          left: [],
+          rightPromo: {
+            title: "Erkek Koleksiyonu",
+            subtitle: "Modern ve zamansız parçalar",
+            image: "https://images.unsplash.com/photo-1488161628813-04466f872be2?q=80&w=1200&auto=format&fit=crop",
+            href: "/men",
           },
-          {
-            title: "AKSESUAR",
-            items: [
-              { label: "Çanta", href: "/category/men-bags" },
-              { label: "Cüzdan", href: "/category/men-wallets" },
-              { label: "Şapka", href: "/category/men-hats" },
-            ],
-          },
-        ],
-        rightPromo: {
-          title: "Erkek Koleksiyonu",
-          subtitle: "Modern ve zamansız parçalar",
-          image: "https://images.unsplash.com/photo-1488161628813-04466f872be2?q=80&w=1200&auto=format&fit=crop",
-          href: "/men",
         },
-      },
-      women: {
-        left: [
-          {
-            title: "KADIN GİYİM",
-            items: [
-              { label: "Elbise", href: "/category/women-dresses" },
-              { label: "Bluz & Gömlek", href: "/category/women-tops" },
-              { label: "Etek", href: "/category/women-skirts" },
-              { label: "Dış Giyim", href: "/category/women-outerwear" },
-              { label: "Tümünü Gör", href: "/women" },
-            ],
+        women: {
+          left: [],
+          rightPromo: {
+            title: "Kadın Koleksiyonu",
+            subtitle: "Zarafet ve konfor bir arada",
+            image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1200&auto=format&fit=crop",
+            href: "/women",
           },
-          {
-            title: "AKSESUAR",
-            items: [
-              { label: "Takı", href: "/category/women-jewelry" },
-              { label: "Çanta Colors", href: "/category/women-bags" },
-              { label: "Şal & Atkı", href: "/category/women-scarves" },
-            ],
+        },
+        new: {
+          left: [
+            {
+              title: "YENİ GELENLER",
+              items: [
+                { label: "Bu Haftalık", href: "/category/new-this-week" },
+                { label: "En Yeniler", href: "/men/new" },
+                { label: "Trending", href: "/category/trends" },
+              ],
+            },
+          ],
+          rightPromo: {
+            title: "Yeni Sezon",
+            subtitle: "En güncel trendler",
+            image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=1200&auto=format&fit=crop",
+            href: "/men/new",
           },
-        ],
-        rightPromo: {
-          title: "Kadın Koleksiyonu",
-          subtitle: "Zarafet ve konfor bir arada",
-          image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1200&auto=format&fit=crop",
-          href: "/women",
         },
-      },
-      new: {
-        left: [
-          {
-            title: "YENİ GELENLER",
-            items: [
-              { label: "Bu Haftalık", href: "/category/new-this-week" },
-              { label: "En Yeniler", href: "/men/new" },
-              { label: "Trending", href: "/category/trends" },
-            ],
+        collections: {
+          left: [
+            {
+              title: "KOLEKSİYONLAR",
+              items: [
+                { label: "Minimalist", href: "/category/collection-minimalist" },
+                { label: "Dark Edition", href: "/category/collection-dark" },
+                { label: "Velvet Soft", href: "/category/collection-velvet" },
+              ],
+            },
+          ],
+          rightPromo: {
+            title: "Dark Collection",
+            subtitle: "Özel seri tasarımlar",
+            image: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?q=80&w=1200&auto=format&fit=crop",
+            href: "/women",
           },
-        ],
-        rightPromo: {
-          title: "Yeni Sezon",
-          subtitle: "En güncel trendler",
-          image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=1200&auto=format&fit=crop",
-          href: "/men/new",
         },
-      },
-      collections: {
-        left: [
-          {
-            title: "KOLEKSİYONLAR",
-            items: [
-              { label: "Minimalist", href: "/category/collection-minimalist" },
-              { label: "Dark Edition", href: "/category/collection-dark" },
-              { label: "Velvet Soft", href: "/category/collection-velvet" },
-            ],
+        about: {
+          left: [
+            {
+              title: "KURUMSAL",
+              items: [
+                { label: "Hakkımızda", href: "/about" },
+                { label: "İletişim", href: "/contact" },
+                { label: "Sıkça Sorulan Sorular", href: "/faq" },
+              ],
+            },
+          ],
+          rightPromo: {
+            title: "Modern Giyim",
+            subtitle: "Biz kimiz?",
+            image: "https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?q=80&w=1200&auto=format&fit=crop",
+            href: "/about",
           },
-        ],
-        rightPromo: {
-          title: "Dark Collection",
-          subtitle: "Özel seri tasarımlar",
-          image: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?q=80&w=1200&auto=format&fit=crop",
-          href: "/women",
         },
-      },
-      about: {
-        left: [
-          {
-            title: "KURUMSAL",
-            items: [
-              { label: "Hakkımızda", href: "/about" },
-              { label: "İletişim", href: "/contact" },
-              { label: "Sıkça Sorulan Sorular", href: "/faq" },
-            ],
+        blog: {
+          left: [],
+          rightPromo: {
+            title: "Fashion Blog",
+            subtitle: "Stil önerileri ve moda haberleri",
+            image: "https://images.unsplash.com/photo-1512486130939-2c4f79935e4f?q=80&w=1200&auto=format&fit=crop",
+            href: "/blog",
           },
-        ],
-        rightPromo: {
-          title: "Modern Giyim",
-          subtitle: "Biz kimiz?",
-          image: "https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?q=80&w=1200&auto=format&fit=crop",
-          href: "/about",
         },
-      },
-      blog: {
-        left: [],
-        rightPromo: {
-          title: "Fashion Blog",
-          subtitle: "Stil önerileri ve moda haberleri",
-          image: "https://images.unsplash.com/photo-1512486130939-2c4f79935e4f?q=80&w=1200&auto=format&fit=crop",
-          href: "/blog",
-        },
-      },
-    }),
-    []
+      };
+
+      // Dinamik kategorileri ekle
+      categories.forEach((cat) => {
+        const genderKey = cat.gender === "MALE" ? "men" : cat.gender === "FEMALE" ? "women" : null;
+        if (!genderKey) return;
+
+        const groupTitle = `${cat.gender === "MALE" ? "ERKEK" : "KADIN"} ${cat.group?.toUpperCase() || "GİYİM"}`;
+
+        // Bu grup zaten var mı?
+        let group = result[genderKey].left.find((g) => g.title === groupTitle);
+        if (!group) {
+          group = { title: groupTitle, items: [] };
+          result[genderKey].left.push(group);
+        }
+
+        group.items.push({
+          label: cat.name,
+          href: `/category/${cat.slug}`,
+        });
+      });
+
+      // "Tümünü Gör" linklerini her grubun sonuna ekle (isteğe bağlı)
+      // Veya ana kategoriler için ekle
+      ["men", "women"].forEach((key) => {
+        const principalGroup = result[key as MenuKey].left.find(g => g.title?.includes("GİYİM"));
+        if (principalGroup) {
+          principalGroup.items.push({ label: "Tümünü Gör", href: `/${key}` });
+        }
+      });
+
+      return result;
+    },
+    [categories]
   );
 
   const open = (key: MenuKey) => {
@@ -412,16 +407,21 @@ export default function SiteHeader() {
                                 <div key={i} className="h-4 bg-gray-100 rounded w-2/3 animate-pulse" />
                               ))}
                             </div>
-                          ) : categories.map((cat) => (
-                            <Link
-                              key={cat.id}
-                              href={`/category/${cat.slug}?gender=${mobileMenuState === "men" ? "MALE" : "FEMALE"}`}
-                              onClick={() => setMenuOpen(false)}
-                              className="block py-2 text-[#111] font-light hover:opacity-70 transition-opacity"
-                            >
-                              {cat.name}
-                            </Link>
-                          ))}
+                          ) : categories
+                            .filter(cat => {
+                              const targetGender = mobileMenuState === "men" ? "MALE" : "FEMALE";
+                              return cat.gender === targetGender || cat.gender === "UNISEX";
+                            })
+                            .map((cat) => (
+                              <Link
+                                key={cat.id}
+                                href={`/category/${cat.slug}`}
+                                onClick={() => setMenuOpen(false)}
+                                className="block py-2 text-[#111] font-light hover:opacity-70 transition-opacity"
+                              >
+                                {cat.name}
+                              </Link>
+                            ))}
                         </div>
                       </div>
                     )}

@@ -151,6 +151,7 @@ function FavoriteButton({ productId, productName }: { productId: string; product
 type CategoryProductsPageProps = {
     categoryName: string;
     categorySlug: string;
+    gender?: string;
     initialProducts?: Product[];
     initialPriceRange?: { min: number; max: number };
 };
@@ -158,6 +159,7 @@ type CategoryProductsPageProps = {
 export default function CategoryProductsPage({
     categoryName,
     categorySlug,
+    gender,
     initialProducts = [],
     initialPriceRange = { min: 0, max: 2000 },
 }: CategoryProductsPageProps) {
@@ -229,6 +231,9 @@ export default function CategoryProductsPage({
 
         const params = new URLSearchParams();
         params.append("categorySlug", categorySlug);
+        if (gender) {
+            params.append("gender", gender);
+        }
 
         if (debouncedFilters.minPrice) {
             params.append("minPrice", debouncedFilters.minPrice.toString());
@@ -250,7 +255,7 @@ export default function CategoryProductsPage({
         }
 
         return `/api/products?${params.toString()}`;
-    }, [categorySlug, debouncedFilters, initialProducts]);
+    }, [categorySlug, gender, debouncedFilters, initialProducts]);
 
     const apiUrl = buildApiUrl();
 

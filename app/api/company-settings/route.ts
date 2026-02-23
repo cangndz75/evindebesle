@@ -5,7 +5,25 @@ import { logAuditAction } from "@/lib/auditLog";
 
 // Firma ayarlarını getir
 export async function GET() {
-  // ... (GIBI KALACAK)
+  try {
+    const settings = await prisma.companySettings.findFirst();
+
+    if (!settings) {
+      // Eğer hiç ayar yoksa varsayılanları döndür
+      return NextResponse.json({
+        freeShippingThreshold: 99.0,
+        shippingPrice: 49.90,
+      });
+    }
+
+    return NextResponse.json(settings);
+  } catch (error) {
+    console.error("Error fetching company settings:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch company settings" },
+      { status: 500 }
+    );
+  }
 }
 
 // Firma ayarlarını güncelle (sadece admin)

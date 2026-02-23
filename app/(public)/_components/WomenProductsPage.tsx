@@ -2,8 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
-import { Heart, ChevronDown, ArrowUpDown } from "lucide-react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { Heart, ChevronDown, ArrowUpDown, Filter } from "lucide-react";
+import useSWR from "swr";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -21,13 +23,28 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import ProductFilters from "./ProductFilters";
-import { useMemo } from "react";
 import HoverImageSlider from "@/components/product/HoverImageSlider";
 
-type ColorOption = {
+type ProductColor = {
   name: string;
-  value: string;
-  image: string;
+  hexCode?: string;
+  images: string[];
+  variant?: {
+    id: string;
+    variantCode: string;
+    colorId: string | null;
+  };
+  id?: string;
+  variants?: any[];
+};
+
+type ProductSize = {
+  name: string;
+  stock: number;
+};
+
+type ProductTag = {
+  name: string;
 };
 
 type Product = {
@@ -37,10 +54,15 @@ type Product = {
   price: number;
   originalPrice?: number;
   image?: string;
-  hoverImage?: string;
-  colors: ColorOption[];
+  primaryImage?: string;
+  secondaryImage?: string;
+  colors: ProductColor[];
+  sizes: ProductSize[];
+  sizeOptions?: Array<{ name: string; isActive: boolean }>;
+  tags: ProductTag[];
   badge?: string;
   inColors?: number;
+  fabricType?: string;
 };
 
 type EditorialItem = {
@@ -62,79 +84,67 @@ type ProductWithGridPosition = Product & {
   _gridPosition?: GridPosition;
 };
 
-const categories = [
-  "All",
-  "Bras",
-  "Underwear",
-  "Shapewear",
-  "Sets",
-  "Loungewear",
-  "Active",
-];
-
-// Daha fazla ürün örneği ekleyelim
-const generateProduct = (id: string, name: string, price: number, originalPrice?: number, badge?: string): Product => ({
-  id,
-  name,
-  price,
-  originalPrice,
-  image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=600&auto=format&fit=crop",
-  hoverImage: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600&auto=format&fit=crop",
-  inColors: Math.floor(Math.random() * 5) + 2,
-  colors: [
-    {
-      name: "Black",
-      value: "#000000",
-      image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=600&auto=format&fit=crop",
-    },
-    {
-      name: "White",
-      value: "#FFFFFF",
-      image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600&auto=format&fit=crop",
-    },
-  ],
-  badge,
-});
-
-// Statik ürünler sadece fallback olarak kullanılacak
-const fallbackProducts: Product[] = [
-  generateProduct("w1", "Premium Dantel Sütyen", 899, undefined, "Yeni"),
-  generateProduct("w2", "Seamless Günlük Külot", 349),
-  generateProduct("w3", "Saten İpek Takım", 1299, 1599),
-  generateProduct("w4", "Transparan Dantel Body", 1499),
-  generateProduct("w5", "Lüks Dantel Sütyen", 999),
-  generateProduct("w6", "Günlük Külot 3'lü Paket", 449),
-  generateProduct("w7", "Premium Body", 1299, 1499),
-  generateProduct("w8", "Seamless Sütyen", 799),
-  generateProduct("w9", "Dantel Külot", 299),
-  generateProduct("w10", "Lüks Takım Set", 1899),
-  generateProduct("w11", "Günlük Sütyen", 599),
-  generateProduct("w12", "Premium Külot", 399),
-  generateProduct("w13", "Dantel Sütyen Set", 1199),
-  generateProduct("w14", "Seamless Body", 1099),
-  generateProduct("w15", "Lüks Külot", 349),
-  generateProduct("w16", "Premium Sütyen", 899),
-];
-
 // Favorite Button Component
-function FavoriteButton({ productId }: { productId: string }) {
+function FavoriteButton({ productId, productName }: { productId: string; productName: string }) {
   const [isFavorite, setIsFavorite] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleToggle = (e: React.MouseEvent) => {
+  // Favori durumunu kontrol et
+  useEffect(() => {
+    const checkFavorite = async () => {
+      try {
+        const res = await fetch(`/api/favorites/check?productId=${productId}`);
+        const data = await res.json();
+        setIsFavorite(data.isFavorite);
+      } catch (error) {
+        console.error("Error checking favorite:", error);
+      }
+    };
+    checkFavorite();
+  }, [productId]);
+
+  const handleToggle = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsFavorite(!isFavorite);
-    // TODO: Veritabanına bağlanacak
+    setIsLoading(true);
+    try {
+      if (isFavorite) {
+        await fetch(`/api/favorites?productId=${productId}`, {
+          method: "DELETE",
+        });
+        setIsFavorite(false);
+        toast.success(`${productName} favorilerden çıkarıldı`, {
+          position: "bottom-left",
+        });
+      } else {
+        await fetch("/api/favorites", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ productId }),
+        });
+        setIsFavorite(true);
+        toast.success(`${productName} favorilere eklendi`, {
+          position: "bottom-left",
+        });
+      }
+      window.dispatchEvent(new Event("favoriteUpdated"));
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+      toast.error("Bir hata oluştu");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <button
-      className="absolute top-3 right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center transition-all hover:scale-110 z-10"
+      className="absolute top-3 right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center transition-all hover:scale-110 z-10 disabled:opacity-50 shadow-sm"
       onClick={handleToggle}
-      aria-label="Favorilere Ekle"
+      disabled={isLoading}
+      aria-label={isFavorite ? "Favorilerden Çıkar" : "Favorilere Ekle"}
     >
       <Heart
-        className={`w-4 h-4 transition-colors ${isFavorite ? "fill-red-500 text-red-500" : "text-[#111]"
+        className={`w-4 h-4 transition-colors ${isFavorite ? "fill-[#111] text-[#111]" : "text-[#111]"
           }`}
       />
     </button>
@@ -160,40 +170,149 @@ type WomenProductsPageProps = {
   initialPriceRange?: { min: number; max: number };
 };
 
+const categories = [
+  "All",
+  "Bras",
+  "Underwear",
+  "Shapewear",
+  "Sets",
+  "Loungewear",
+  "Active",
+];
+
 export default function WomenProductsPage({
   initialProducts = [],
   initialPriceRange = { min: 0, max: 2000 },
 }: WomenProductsPageProps) {
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [hoveredColor, setHoveredColor] = useState<{ productId: string; colorImage: string } | null>(null);
-  const [selectedColor, setSelectedColor] = useState<{ productId: string; colorImage: string } | null>(null);
-  const [sortOption, setSortOption] = useState("featured");
-  const [sortDialogOpen, setSortDialogOpen] = useState(false);
+  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
     sizes: [],
     colors: [],
     fabricTypes: [],
   });
+  const [debouncedFilters, setDebouncedFilters] = useState<FilterState>(filters);
+  const [priceRange, setPriceRange] = useState(initialPriceRange);
+  const [sortOption, setSortOption] = useState("featured");
+  const [sortDialogOpen, setSortDialogOpen] = useState(false);
 
-  // Veritabanından gelen ürünleri kullan, yoksa fallback kullan
-  const products = initialProducts.length > 0 ? initialProducts : fallbackProducts;
+  const [hoveredColor, setHoveredColor] = useState<{ productId: string; colorImage: string } | null>(null);
+  const [selectedColor, setSelectedColor] = useState<{ productId: string; colorImage: string; variantCode?: string } | null>(null);
+
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Debounce filters
+  useEffect(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    debounceTimerRef.current = setTimeout(() => {
+      setDebouncedFilters(filters);
+    }, 300);
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [filters]);
+
+  const fetcher = useCallback(async (url: string) => {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Failed to fetch');
+    return res.json();
+  }, []);
+
+  const buildApiUrl = useCallback(() => {
+    const hasFilters =
+      selectedCategory !== "All" ||
+      debouncedFilters.minPrice ||
+      debouncedFilters.maxPrice ||
+      debouncedFilters.sizes.length > 0 ||
+      debouncedFilters.colors.length > 0 ||
+      debouncedFilters.fabricTypes.length > 0;
+
+    if (!hasFilters && initialProducts.length > 0) {
+      return null;
+    }
+
+    const params = new URLSearchParams();
+    params.append("gender", "FEMALE");
+    params.append("gender", "UNISEX");
+
+    if (selectedCategory !== "All") {
+      params.append("tag", selectedCategory.toLowerCase());
+    }
+
+    if (debouncedFilters.minPrice) {
+      params.append("minPrice", debouncedFilters.minPrice.toString());
+    }
+    if (debouncedFilters.maxPrice) {
+      params.append("maxPrice", debouncedFilters.maxPrice.toString());
+    }
+
+    debouncedFilters.sizes.forEach((size) => {
+      params.append("size", size);
+    });
+
+    debouncedFilters.colors.forEach((color) => {
+      params.append("color", color);
+    });
+
+    if (debouncedFilters.fabricTypes.length > 0) {
+      params.append("fabricType", debouncedFilters.fabricTypes[0]);
+    }
+
+    return `/api/products?${params.toString()}`;
+  }, [selectedCategory, debouncedFilters, initialProducts]);
+
+  const apiUrl = buildApiUrl();
+
+  const { data: fetchedProducts, isLoading: swrLoading } = useSWR<Product[]>(
+    apiUrl,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
+      dedupingInterval: 2000,
+      fallbackData: initialProducts.length > 0 && !apiUrl ? initialProducts : undefined,
+    }
+  );
+
+  useEffect(() => {
+    if (fetchedProducts) {
+      setProducts(fetchedProducts);
+    } else if (!apiUrl && initialProducts.length > 0) {
+      setProducts(initialProducts);
+    }
+  }, [fetchedProducts, apiUrl, initialProducts]);
+
+  useEffect(() => {
+    setLoading(swrLoading);
+  }, [swrLoading]);
 
   // Available options from products
   const availableOptions = useMemo(() => {
     const sizes = new Set<string>();
     const colors = new Set<string>();
-    const prices = products.map((p) => p.price);
+    const fabricTypes = new Set<string>();
 
     products.forEach((product) => {
       product.colors.forEach((color) => {
         colors.add(color.name);
       });
+      product.sizes?.forEach((size) => {
+        sizes.add(size.name);
+      });
+      if (product.fabricType) {
+        fabricTypes.add(product.fabricType);
+      }
     });
 
     return {
-      sizes: Array.from(sizes),
-      colors: Array.from(colors),
-      fabricTypes: [] as string[],
+      sizes: Array.from(sizes).sort(),
+      colors: Array.from(colors).sort(),
+      fabricTypes: Array.from(fabricTypes).sort(),
       priceRange: initialPriceRange,
     };
   }, [products, initialPriceRange]);
@@ -585,7 +704,7 @@ export default function WomenProductsPage({
                   <HoverImageSlider
                     images={[
                       activeColorImage || product.image || "/placeholder.png",
-                      product.hoverImage
+                      product.secondaryImage
                     ].filter(Boolean) as string[]}
                     alt={product.name}
                     sizes="50vw"
@@ -597,7 +716,7 @@ export default function WomenProductsPage({
                         </div>
                       ) : null
                     }
-                    favoriteButton={<FavoriteButton productId={product.id} />}
+                    favoriteButton={<FavoriteButton productId={product.id} productName={product.name} />}
                   />
                 </Link>
 
@@ -630,16 +749,17 @@ export default function WomenProductsPage({
 
                 <div className="flex items-center gap-1 mt-2 flex-wrap">
                   {product.colors.slice(0, 4).map((color, idx) => {
-                    const isActive = isColorActive && activeColorImage === color.image;
+                    const colorImg = color.images?.[0] || "";
+                    const isActive = isColorActive && activeColorImage === colorImg;
                     return (
                       <button
                         key={idx}
-                        onMouseEnter={() => handleColorInteraction(product.id, color.image)}
+                        onMouseEnter={() => handleColorInteraction(product.id, colorImg)}
                         onMouseLeave={handleColorLeave}
-                        onClick={() => handleColorInteraction(product.id, color.image)}
+                        onClick={() => handleColorInteraction(product.id, colorImg)}
                         className={`w-3 h-3 rounded-full border transition-all duration-200 flex-shrink-0 ${isActive ? "border-[#111] scale-110" : "border-gray-300"
                           }`}
-                        style={{ backgroundColor: color.value }}
+                        style={{ backgroundColor: color.hexCode || "#000000" }}
                         aria-label={`${color.name} renk seçeneği`}
                       />
                     );
@@ -700,7 +820,7 @@ export default function WomenProductsPage({
                   <HoverImageSlider
                     images={[
                       activeColorImage || product.image || "/placeholder.png",
-                      product.hoverImage
+                      product.secondaryImage
                     ].filter(Boolean) as string[]}
                     alt={product.name}
                     sizes="(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 25vw"
@@ -713,7 +833,7 @@ export default function WomenProductsPage({
                         </div>
                       ) : null
                     }
-                    favoriteButton={<FavoriteButton productId={product.id} />}
+                    favoriteButton={<FavoriteButton productId={product.id} productName={product.name} />}
                   />
                 </Link>
 
@@ -746,16 +866,17 @@ export default function WomenProductsPage({
 
                 <div className="flex items-center gap-1 mt-2">
                   {product.colors.map((color, idx) => {
-                    const isActive = isColorActive && activeColorImage === color.image;
+                    const colorImg = color.images?.[0] || "";
+                    const isActive = isColorActive && activeColorImage === colorImg;
                     return (
                       <button
                         key={idx}
-                        onMouseEnter={() => handleColorInteraction(product.id, color.image)}
+                        onMouseEnter={() => handleColorInteraction(product.id, colorImg)}
                         onMouseLeave={handleColorLeave}
-                        onClick={() => handleColorInteraction(product.id, color.image)}
+                        onClick={() => handleColorInteraction(product.id, colorImg)}
                         className={`w-3 h-3 rounded-full border transition-all duration-200 ${isActive ? "border-[#111]" : "border-gray-300"
                           }`}
-                        style={{ backgroundColor: color.value }}
+                        style={{ backgroundColor: color.hexCode || "#000000" }}
                         aria-label={`${color.name} renk seçeneği`}
                       />
                     );

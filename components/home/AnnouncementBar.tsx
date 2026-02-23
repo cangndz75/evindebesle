@@ -1,12 +1,19 @@
 "use client";
 
+import { useHeaderStore } from "@/lib/stores/headerStore";
+
 export default function AnnouncementBar() {
+  const { freeShippingThreshold } = useHeaderStore();
+
+  // Format threshold as round number, fallback to 999 if for some reason it's 0 or null
+  const threshold = Math.round(freeShippingThreshold || 999);
+
   return (
     <div className="w-full bg-black text-white text-xs md:text-sm py-2.5">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         <div className="flex items-center justify-center">
           <span className="font-light tracking-wide">
-            ÜCRETSİZ KARGO 999₺+
+            ÜCRETSİZ KARGO {threshold}₺+
           </span>
         </div>
       </div>

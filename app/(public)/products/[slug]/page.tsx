@@ -30,7 +30,7 @@ export default async function ProductSlugPage({
     notFound();
   }
 
-  const product = await prisma.product.findUnique({
+  let product = await prisma.product.findUnique({
     where: { slug },
     include: {
       colors: {
@@ -79,6 +79,59 @@ export default async function ProductSlugPage({
       modelInfo: true,
     },
   });
+
+  // Slug ile bulamazsa id ile dene (eski ürünler için fallback)
+  if (!product) {
+    product = await prisma.product.findUnique({
+      where: { id: slug }, // slug parametresi aslında id olabilir
+      include: {
+        colors: {
+          include: {
+            variants: true,
+          },
+        },
+        sizes: true,
+        sizeOptions: true,
+        tags: true,
+        variants: {
+          include: {
+            color: true,
+            size: true,
+          },
+        },
+        reviews: {
+          where: { isApproved: true },
+          include: {
+            color: {
+              select: {
+                id: true,
+                name: true,
+                hexCode: true,
+              },
+            },
+          },
+          orderBy: { createdAt: "desc" },
+        },
+        combinations: {
+          include: {
+            relatedProduct: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+                price: true,
+              },
+            },
+          },
+        },
+        washingInstruction: true,
+        deliveryInfo: true,
+        sizeNote: true,
+        sizeGuide: true,
+        modelInfo: true,
+      },
+    });
+  }
 
   if (!product) {
     notFound();

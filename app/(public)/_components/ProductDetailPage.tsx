@@ -165,6 +165,9 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
       // Ödeme sayfasına yönlendir (eğer istenirse)
       if (options?.redirectToPayment) {
         window.location.href = "/payment";
+      } else {
+        // Normal sepete eklemede /cart sayfasına yönlendir
+        window.location.href = "/cart";
       }
     } catch (error) {
       console.error("Error adding to cart:", error);

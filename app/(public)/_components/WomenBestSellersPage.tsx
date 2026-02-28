@@ -29,6 +29,7 @@ type Product = {
   colors: ColorOption[];
   badge?: string;
   inColors?: number;
+  slug?: string;
 };
 
 // Favorite Button Component
@@ -48,10 +49,9 @@ function FavoriteButton({ productId }: { productId: string }) {
       onClick={handleToggle}
       aria-label="Favorilere Ekle"
     >
-      <Heart 
-        className={`w-4 h-4 transition-colors ${
-          isFavorite ? "fill-red-500 text-red-500" : "text-[#111]"
-        }`} 
+      <Heart
+        className={`w-4 h-4 transition-colors ${isFavorite ? "fill-red-500 text-red-500" : "text-[#111]"
+          }`}
       />
     </button>
   );
@@ -74,7 +74,7 @@ export default function WomenBestSellersPage() {
       const colorString = typeof colorValue === 'string' ? colorValue : colorValue.value;
       const colorImage = typeof colorValue === 'string' ? p.image : (colorValue.image || p.image);
       const colorName = typeof colorValue === 'string' ? `Renk ${idx + 1}` : colorValue.name;
-      
+
       return {
         name: colorName,
         value: colorString,
@@ -83,6 +83,7 @@ export default function WomenBestSellersPage() {
     }),
     badge: p.badge,
     inColors: p.colors?.length,
+    slug: p.slug,
   }));
 
   const handleColorInteraction = (productId: string, colorImage: string) => {
@@ -177,14 +178,14 @@ export default function WomenBestSellersPage() {
             const activeColorImage = hoveredColor?.productId === product.id
               ? hoveredColor.colorImage
               : selectedColor?.productId === product.id
-              ? selectedColor.colorImage
-              : null;
+                ? selectedColor.colorImage
+                : null;
 
             const currentImage = activeColorImage || product.image;
 
             return (
               <div key={product.id} className="group">
-                <Link href={`/product/${product.id}`} className="block">
+                <Link href={product.slug ? `/products/${product.slug}` : `/product/${product.id}`} className="block">
                   <div className="relative aspect-[3/4] mb-4 overflow-hidden bg-gray-100">
                     <Image
                       src={currentImage}
@@ -249,9 +250,8 @@ export default function WomenBestSellersPage() {
                         onMouseEnter={() => handleColorInteraction(product.id, color.image)}
                         onMouseLeave={handleColorLeave}
                         onClick={() => handleColorInteraction(product.id, color.image)}
-                        className={`w-4 h-4 rounded-full border transition-all duration-200 hover:scale-110 ${
-                          isActive ? "border-[#111] scale-110" : "border-gray-300"
-                        }`}
+                        className={`w-4 h-4 rounded-full border transition-all duration-200 hover:scale-110 ${isActive ? "border-[#111] scale-110" : "border-gray-300"
+                          }`}
                         style={{ backgroundColor: color.value }}
                         aria-label={`${color.name} renk seçeneği`}
                       />

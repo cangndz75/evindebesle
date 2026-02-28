@@ -28,6 +28,7 @@ type Product = {
   colors: ColorOption[];
   badge?: string;
   inColors?: number;
+  slug?: string;
 };
 
 const categories = [
@@ -182,11 +183,10 @@ export default function ProductListingPage() {
             <button
               key={category}
               onClick={() => setSelectedCategory(category)}
-              className={`px-4 py-2 text-sm font-light uppercase tracking-wide transition-colors ${
-                selectedCategory === category
+              className={`px-4 py-2 text-sm font-light uppercase tracking-wide transition-colors ${selectedCategory === category
                   ? "bg-[#111] text-white"
                   : "bg-white text-[#111] border border-[#111] hover:bg-[#111] hover:text-white"
-              }`}
+                }`}
             >
               {category}
             </button>
@@ -246,14 +246,14 @@ export default function ProductListingPage() {
             const activeColorImage = hoveredColor?.productId === product.id
               ? hoveredColor.colorImage
               : selectedColor?.productId === product.id
-              ? selectedColor.colorImage
-              : null;
+                ? selectedColor.colorImage
+                : null;
 
             const currentImage = activeColorImage || product.image;
 
             return (
               <div key={product.id} className="group">
-                <Link href={`/product/${product.id}`} className="block">
+                <Link href={product.slug ? `/products/${product.slug}` : `/product/${product.id}`} className="block">
                   <div className="relative aspect-[3/4] mb-4 overflow-hidden bg-gray-100">
                     {/* Main Image */}
                     <Image
@@ -333,9 +333,8 @@ export default function ProductListingPage() {
                         onMouseEnter={() => handleColorInteraction(product.id, color.image)}
                         onMouseLeave={handleColorLeave}
                         onClick={() => handleColorInteraction(product.id, color.image)}
-                        className={`w-4 h-4 rounded-full border transition-all duration-200 hover:scale-110 ${
-                          isActive ? "border-[#111] scale-110" : "border-gray-300"
-                        }`}
+                        className={`w-4 h-4 rounded-full border transition-all duration-200 hover:scale-110 ${isActive ? "border-[#111] scale-110" : "border-gray-300"
+                          }`}
                         style={{ backgroundColor: color.value }}
                         aria-label={`${color.name} renk seçeneği`}
                       />

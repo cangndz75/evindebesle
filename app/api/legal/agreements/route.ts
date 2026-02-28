@@ -92,7 +92,7 @@ function preInfoTemplate(data: any) {
     tax: "Yakacık VD | VKN: 3021119045 • MERSİS: 0302111904500001",
     address: "Uptwins Blok, Orta, Yalnız Selvi Cd. No: 5AB, 34880 Kartal/İstanbul",
     phone: "+90 216 519 26 00",
-    email: "info@evindebesle.com",
+    email: "info@dark-velvet.com",
     website: "evindebesle.com",
   };
 
@@ -150,7 +150,7 @@ function distanceSalesTemplate(data: any) {
     tax: "Yakacık VD | VKN: 3021119045 • MERSİS: 0302111904500001",
     address: "Uptwins Blok, Orta, Yalnız Selvi Cd. No: 5AB, 34880 Kartal/İstanbul",
     phone: "+90 216 519 26 00",
-    email: "info@evindebesle.com",
+    email: "info@dark-velvet.com",
   };
   const s = { ...sellerDefaults, ...(seller || {}) };
 

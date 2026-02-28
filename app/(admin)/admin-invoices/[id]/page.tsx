@@ -97,7 +97,7 @@ export default function InvoiceDetailPage() {
     const companyName = invoice.companyDetails?.companyName || "EVİNDEBESLE E-TİC.";
     const companyAddress = invoice.companyDetails?.companyAddress || "Merkez Mah. Örnek Cad. No:1 İstanbul";
     const companyPhone = invoice.companyDetails?.phone || "+90 212 111 22 33";
-    const companyEmail = invoice.companyDetails?.email || "info@evindebesle.com";
+    const companyEmail = invoice.companyDetails?.email || "info@dark-velvet.com";
     const taxOffice = invoice.companyDetails?.taxOffice || "Marmara Kurumlar";
     const taxNumber = invoice.companyDetails?.taxNumber || "1234567890";
     const mersisNo = "0388023942900019"; // Example

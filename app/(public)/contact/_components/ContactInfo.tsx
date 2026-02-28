@@ -48,8 +48,8 @@ export default function ContactInfo() {
         <div className="space-y-2">
           <h4 className="font-semibold text-black">Kurumsal E-posta</h4>
           <p className="text-sm">
-            <a href="mailto:info@evindebesle.com" className="underline">
-              info@evindebesle.com
+            <a href="mailto:info@dark-velvet.com" className="underline">
+              info@dark-velvet.com
             </a>
           </p>
         </div>

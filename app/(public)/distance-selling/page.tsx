@@ -30,7 +30,7 @@ export default function DistanceSellingPage() {
               <br />
               <strong>Telefon:</strong> +90 216 519 26 00
               <br />
-              <strong>E-posta:</strong> info@evindebesle.com
+              <strong>E-posta:</strong> info@dark-velvet.com
               <br />
               <strong>Web Sitesi:</strong>{" "}
               <a
@@ -105,7 +105,7 @@ export default function DistanceSellingPage() {
               <br />
               <strong>Hizmet Ücreti:</strong> [Hizmet Ücreti] TL (KDV Dahil)
               <br />
-              <strong>Ödeme Şekli:</strong> Kredi Kartı / Banka Kartı 
+              <strong>Ödeme Şekli:</strong> Kredi Kartı / Banka Kartı
               <br />
               <strong>Hizmetin Sağlanacağı Adres:</strong> [Alıcının Adresi]
               <br />
@@ -199,7 +199,7 @@ export default function DistanceSellingPage() {
               veya dönemde yapılması gereken hizmetler” kapsamındadır.
               <br />
               6.3. Cayma hakkının kullanılması için Alıcı, 14 günlük süre içinde
-              Satıcı’ya yazılı olarak (e-posta: info@evindebesle.com) bildirimde
+              Satıcı’ya yazılı olarak (e-posta: info@dark-velvet.com) bildirimde
               bulunmalıdır.
               <br />
               6.4. Cayma hakkının kullanılması durumunda, Alıcı’nın ödediği

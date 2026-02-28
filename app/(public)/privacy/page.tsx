@@ -78,10 +78,10 @@ export default function GizlilikPage() {
             tarafları öğrenme ve zararın giderilmesini isteme hakkına
             sahipsiniz. Tüm taleplerinizi{" "}
             <a
-              href="mailto:info@evindebesle.com"
+              href="mailto:info@dark-velvet.com"
               className="underline text-blue-600"
             >
-              info@evindebesle.com
+              info@dark-velvet.com
             </a>{" "}
             adresine yazılı olarak iletebilirsiniz.
           </p>

@@ -198,7 +198,7 @@ export default function CompanySettingsClient() {
                 type="email"
                 value={settings.email || ""}
                 onChange={(e) => handleChange("email", e.target.value)}
-                placeholder="info@evindebesle.com"
+                placeholder="info@dark-velvet.com"
               />
             </div>
 

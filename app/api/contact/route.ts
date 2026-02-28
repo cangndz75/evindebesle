@@ -9,8 +9,8 @@ export async function POST(req: Request) {
   const htmlContent = generateContactEmailHtml({ name, email, phone, message })
 
   await resend.emails.send({
-    from: "EvindeBesle <info@evindebesle.com>",
-    to: ["info@evindebesle.com", "evindebesle34@gmail.com"],
+    from: "EvindeBesle <info@dark-velvet.com>",
+    to: ["info@dark-velvet.com", "evindebesle34@gmail.com"],
     subject: "Yeni İletişim Formu Mesajı",
     html: htmlContent,
   })

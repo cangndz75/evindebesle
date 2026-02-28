@@ -71,10 +71,10 @@ export default function TeslimatVeIadePage() {
           <p className="mb-6">
             Teslimat veya iade işlemleriyle ilgili tüm taleplerinizi{" "}
             <a
-              href="mailto:info@evindebesle.com"
+              href="mailto:info@dark-velvet.com"
               className="underline text-blue-600"
             >
-              info@evindebesle.com
+              info@dark-velvet.com
             </a>{" "}
             adresine iletebilirsiniz.
           </p>

@@ -208,7 +208,7 @@ async function processActiveFlows() {
                     const html = step.template.bodyJson; // Needs parsing/rendering logic ideally
 
                     await resend.emails.send({
-                        from: "Evinde Besle <info@evindebesle.com>",
+                        from: "Evinde Besle <info@dark-velvet.com>",
                         to: flow.user.email,
                         subject: step.template.subject,
                         html: html || "<p>Hello</p>",

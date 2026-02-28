@@ -77,6 +77,11 @@ export default async function ProductSlugPage({
       sizeNote: true,
       sizeGuide: true,
       modelInfo: true,
+      productImages: {
+        orderBy: {
+          order: "asc",
+        },
+      },
     },
   });
 
@@ -129,6 +134,11 @@ export default async function ProductSlugPage({
         sizeNote: true,
         sizeGuide: true,
         modelInfo: true,
+        productImages: {
+          orderBy: {
+            order: "asc",
+          },
+        },
       },
     });
   }
@@ -183,41 +193,46 @@ export default async function ProductSlugPage({
     originalPrice: product.originalPrice || undefined,
     description: product.description || "",
     images: (() => {
-      // Renk images'ı parse et (eğer string ise)
-      let colorImages: string[] = [];
+      const allImageUrls = new Set<string>();
+
+      // 1. Renk bazlı images'ı ekle (JSON string veya array)
       if (selectedColor?.images) {
+        let parsed: string[] = [];
         if (typeof selectedColor.images === 'string') {
           try {
-            colorImages = JSON.parse(selectedColor.images);
+            parsed = JSON.parse(selectedColor.images);
           } catch {
-            colorImages = [selectedColor.images];
+            parsed = [selectedColor.images];
           }
         } else if (Array.isArray(selectedColor.images)) {
-          colorImages = selectedColor.images;
+          parsed = selectedColor.images;
         }
+        parsed.forEach(url => url && allImageUrls.add(url));
       }
 
-      // Debug: Server-side console'da görünecek
-      console.log('[ProductSlugPage] Selected color:', selectedColor?.name);
-      console.log('[ProductSlugPage] Color images (raw):', selectedColor?.images);
-      console.log('[ProductSlugPage] Color images (parsed):', colorImages);
-      console.log('[ProductSlugPage] Product primaryImage:', product.primaryImage);
-      console.log('[ProductSlugPage] Product image:', product.image);
+      // 2. ProductImage tablosundan bu renge ait olanları veya genel olanları (colorId null) ekle
+      if (product.productImages) {
+        product.productImages.forEach((img: any) => {
+          // Eğer bu renk seçiliyse, o rengin resimlerini VEYA genel resimleri ekle
+          if (!img.colorId || img.colorId === selectedColor?.id) {
+            if (img.url) allImageUrls.add(img.url);
+          }
+        });
+      }
 
-      if (colorImages.length > 0) {
-        console.log('[ProductSlugPage] Using color images');
-        return colorImages.map((img: string) => ({ url: img, badge: undefined }));
-      }
-      if (product.primaryImage) {
-        console.log('[ProductSlugPage] Using primaryImage');
-        return [{ url: product.primaryImage, badge: undefined }];
-      }
-      if (product.image) {
-        console.log('[ProductSlugPage] Using image');
-        return [{ url: product.image, badge: undefined }];
-      }
-      console.log('[ProductSlugPage] No images found');
-      return [];
+      // 3. Legacy alanları fallback olarak ekle
+      if (product.primaryImage) allImageUrls.add(product.primaryImage);
+      if (product.image) allImageUrls.add(product.image);
+
+      const finalImages = Array.from(allImageUrls).map(url => ({
+        url,
+        badge: undefined
+      }));
+
+      // Debug
+      console.log('[ProductSlugPage] Final Images Count:', finalImages.length);
+
+      return finalImages;
     })(),
     colors: product.colors.map((c: any) => {
       // images'ı parse et (eğer string ise)

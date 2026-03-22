@@ -713,7 +713,8 @@ export default function CategoryProductsPage({
                                                                                 );
                                                                             }
 
-                                                                            window.dispatchEvent(new Event("cartUpdated"));
+                                                                            const cartModule = await import("@/lib/stores/cartStore");
+                                                                            await cartModule.useCartStore.getState().refreshCart();
 
                                                                             // Renk bilgisini al
                                                                             const selectedColorObj = product.colors?.find((c: any) => c.id === currentColorId) || product.colors?.[0];

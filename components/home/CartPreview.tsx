@@ -107,7 +107,7 @@ export default function CartPreview({ cartIconRef, headerBottom }: CartPreviewPr
   return (
     <div
       ref={popupRef}
-      className="fixed bg-white rounded-lg shadow-2xl z-[9999] border border-black/10 animate-in slide-in-from-top-2 duration-200 w-[95%] max-w-[420px] left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:right-5 top-24 md:top-20"
+      className="fixed bg-white rounded-lg shadow-2xl z-[9999] border border-black/10 animate-in slide-in-from-top-2 duration-200 w-[95%] max-w-[420px] left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:right-5 top-16 md:top-4"
     >
       <div className="p-5">
         {/* Header with Close Button */}

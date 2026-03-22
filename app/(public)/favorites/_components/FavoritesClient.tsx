@@ -285,7 +285,8 @@ export default function FavoritesClient({
                                         })
                                       );
 
-                                      window.dispatchEvent(new Event("cartUpdated"));
+                                      const cartModule = await import("@/lib/stores/cartStore");
+                                      await cartModule.useCartStore.getState().refreshCart();
 
                                     } else {
                                       const error = await res.json();

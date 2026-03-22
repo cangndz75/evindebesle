@@ -39,6 +39,7 @@ interface ProductDetailPageProps {
     sizeNote?: { id: string; title: string; content: string } | null;
     sizeGuide?: { id: string; title: string; imageUrl?: string; content?: any } | null;
     modelInfo?: { id: string; title: string; height: string; size: string; gender?: string } | null;
+    combinations?: { id: string; name: string; slug: string; price: number; originalPrice?: number; image?: string }[];
   };
   hasOrdered?: boolean;
 }
@@ -1238,7 +1239,9 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
       />
 
       {/* Takımı Tamamla Bölümü */}
-      <CompleteTheSetSection />
+      {product.combinations && product.combinations.length > 0 && (
+        <CompleteTheSetSection products={product.combinations} />
+      )}
 
       {/* Son Görüntülenenler */}
       <RecentlyViewedSection currentProductId={product.id} />
@@ -1248,7 +1251,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
         open={sizeGuideOpen}
         onOpenChange={setSizeGuideOpen}
         sizeGuide={
-          product.sizeGuide || {
+          (product.sizeGuide?.content as any) || {
             productName: product.name,
             measurements: [],
           }
@@ -1259,37 +1262,10 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
 }
 
 // Takımı Tamamla Bölümü
-function CompleteTheSetSection() {
+function CompleteTheSetSection({ products }: { products: { id: string; name: string; slug: string; price: number; originalPrice?: number; image?: string }[] }) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(true);
-
-  const setProducts = [
-    {
-      id: "1",
-      name: "Dantel Külot",
-      price: 449,
-      image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=500&auto=format&fit=crop",
-    },
-    {
-      id: "2",
-      name: "Dantel Tanga",
-      price: 399,
-      image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=500&auto=format&fit=crop",
-    },
-    {
-      id: "3",
-      name: "Dantel Body",
-      price: 899,
-      image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=500&auto=format&fit=crop",
-    },
-    {
-      id: "4",
-      name: "Dantel Gecelik",
-      price: 1299,
-      image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=500&auto=format&fit=crop",
-    },
-  ];
 
   const checkScroll = () => {
     if (!scrollContainerRef.current) return;
@@ -1324,19 +1300,28 @@ function CompleteTheSetSection() {
           className="flex gap-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-4"
           style={{ scrollBehavior: "smooth" }}
         >
-          {setProducts.map((item) => (
-            <Link key={item.id} href={`/product/${item.id}`} className="flex-shrink-0 w-64 md:w-72 snap-start group">
+          {products.map((item) => (
+            <Link key={item.id} href={`/products/${item.slug}`} className="flex-shrink-0 w-64 md:w-72 snap-start group">
               <div className="relative aspect-[3/4] mb-4 overflow-hidden bg-gray-100">
-                <Image
-                  src={item.image}
-                  alt={item.name}
-                  fill
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  sizes="(max-width: 768px) 256px, 288px"
-                />
+                {item.image ? (
+                  <Image
+                    src={item.image}
+                    alt={item.name}
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    sizes="(max-width: 768px) 256px, 288px"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-400">Görsel Yok</div>
+                )}
               </div>
-              <h3 className="text-sm font-light text-black mb-1">{item.name}</h3>
-              <p className="text-sm font-light text-black">{item.price} ₺</p>
+              <h3 className="text-sm font-light text-black mb-1 line-clamp-2">{item.name}</h3>
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-medium text-black">{item.price} ₺</p>
+                {item.originalPrice && item.originalPrice > item.price && (
+                  <span className="text-xs text-gray-400 line-through">{item.originalPrice} ₺</span>
+                )}
+              </div>
             </Link>
           ))}
         </div>

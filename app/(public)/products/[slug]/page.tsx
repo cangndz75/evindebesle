@@ -72,6 +72,8 @@ export default async function ProductSlugPage({
               name: true,
               image: true,
               price: true,
+              originalPrice: true,
+              slug: true,
             },
           },
         },
@@ -129,6 +131,8 @@ export default async function ProductSlugPage({
                 name: true,
                 image: true,
                 price: true,
+                originalPrice: true,
+                slug: true,
               },
             },
           },
@@ -312,6 +316,14 @@ export default async function ProductSlugPage({
     washing: "",
     delivery: "2-3 iş günü içinde teslimat",
     sizeNotes: "",
+    combinations: product.combinations.map((c: any) => ({
+      id: c.relatedProduct.id,
+      name: c.relatedProduct.name,
+      price: c.relatedProduct.price,
+      originalPrice: c.relatedProduct.originalPrice || undefined,
+      image: c.relatedProduct.image || undefined,
+      slug: c.relatedProduct.slug || c.relatedProduct.id,
+    })),
   };
 
   return <ProductDetailPage product={formattedProduct} hasOrdered={hasOrdered} />;

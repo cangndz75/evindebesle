@@ -165,24 +165,21 @@ type ActiveFilter = {
   value: string;
 };
 
+type CategoryBasic = {
+  name: string;
+  slug: string;
+};
+
 type WomenProductsPageProps = {
   initialProducts?: Product[];
   initialPriceRange?: { min: number; max: number };
+  initialCategories?: CategoryBasic[];
 };
-
-const categories = [
-  "All",
-  "Bras",
-  "Underwear",
-  "Shapewear",
-  "Sets",
-  "Loungewear",
-  "Active",
-];
 
 export default function WomenProductsPage({
   initialProducts = [],
   initialPriceRange = { min: 0, max: 2000 },
+  initialCategories = [],
 }: WomenProductsPageProps) {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [products, setProducts] = useState<Product[]>(initialProducts);
@@ -331,7 +328,7 @@ export default function WomenProductsPage({
 
     // Döngüsel pattern oluştur
     while (productIndex < productItems.length) {
-      // Pattern 1: Büyük sol (2x2) + Sağda 2 ürün dikey
+      // Pattern 1: Büyük sol (2x2) + Sağda 4 ürün (2x2)
       if (productIndex < productItems.length) {
         items.push({
           ...productItems[productIndex],
@@ -345,32 +342,22 @@ export default function WomenProductsPage({
         productIndex++;
       }
 
-      // Sağ üst ürün
-      if (productIndex < productItems.length) {
-        items.push({
-          ...productItems[productIndex],
-          _gridPosition: {
-            type: 'small',
-            row: currentRow,
-            col: 3,
-            span: { row: 1, col: 1 }
+      // Sağ 4 küçük ürün
+      for (let c = 3; c <= 4; c++) {
+        for (let r = 0; r <= 1; r++) {
+          if (productIndex < productItems.length) {
+            items.push({
+              ...productItems[productIndex],
+              _gridPosition: {
+                type: 'small',
+                row: currentRow + r,
+                col: c,
+                span: { row: 1, col: 1 }
+              }
+            });
+            productIndex++;
           }
-        });
-        productIndex++;
-      }
-
-      // Sağ alt ürün
-      if (productIndex < productItems.length) {
-        items.push({
-          ...productItems[productIndex],
-          _gridPosition: {
-            type: 'small',
-            row: currentRow + 1,
-            col: 3,
-            span: { row: 1, col: 1 }
-          }
-        });
-        productIndex++;
+        }
       }
 
       currentRow += 2; // 2 satır kullandık
@@ -390,33 +377,22 @@ export default function WomenProductsPage({
       }
       currentRow += 1; // 1 satır kullandık
 
-      // Pattern 3: Solda 2 ürün dikey + Büyük sağ (2x2)
-      // Sol üst
-      if (productIndex < productItems.length) {
-        items.push({
-          ...productItems[productIndex],
-          _gridPosition: {
-            type: 'small',
-            row: currentRow,
-            col: 1,
-            span: { row: 1, col: 1 }
+      // Pattern 3: Solda 4 ürün (2x2 dikey+yatay grid) + Büyük sağ (2x2)
+      for (let c = 1; c <= 2; c++) {
+        for (let r = 0; r <= 1; r++) {
+          if (productIndex < productItems.length) {
+            items.push({
+              ...productItems[productIndex],
+              _gridPosition: {
+                type: 'small',
+                row: currentRow + r,
+                col: c,
+                span: { row: 1, col: 1 }
+              }
+            });
+            productIndex++;
           }
-        });
-        productIndex++;
-      }
-
-      // Sol alt
-      if (productIndex < productItems.length) {
-        items.push({
-          ...productItems[productIndex],
-          _gridPosition: {
-            type: 'small',
-            row: currentRow + 1,
-            col: 1,
-            span: { row: 1, col: 1 }
-          }
-        });
-        productIndex++;
+        }
       }
 
       // Büyük sağ (2x2)
@@ -543,16 +519,26 @@ export default function WomenProductsPage({
 
         {/* Category Filters */}
         <div className="flex gap-2 mb-6 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4 md:mx-0 md:px-0">
-          {categories.map((category) => (
+          <button
+            onClick={() => setSelectedCategory("All")}
+            className={`px-3 md:px-4 py-2 text-xs md:text-sm font-light uppercase tracking-wide transition-colors whitespace-nowrap flex-shrink-0 ${
+              selectedCategory === "All"
+                ? "bg-[#111] text-white"
+                : "bg-white text-[#111] border border-[#111] hover:bg-[#111] hover:text-white"
+            }`}
+          >
+            TÜMÜ
+          </button>
+          {initialCategories.map((category) => (
             <button
-              key={category}
-              onClick={() => setSelectedCategory(category)}
-              className={`px-3 md:px-4 py-2 text-xs md:text-sm font-light uppercase tracking-wide transition-colors whitespace-nowrap flex-shrink-0 ${selectedCategory === category
+              key={category.slug}
+              onClick={() => setSelectedCategory(category.slug)}
+              className={`px-3 md:px-4 py-2 text-xs md:text-sm font-light uppercase tracking-wide transition-colors whitespace-nowrap flex-shrink-0 ${selectedCategory === category.slug
                 ? "bg-[#111] text-white"
                 : "bg-white text-[#111] border border-[#111] hover:bg-[#111] hover:text-white"
                 }`}
             >
-              {category}
+              {category.name}
             </button>
           ))}
         </div>

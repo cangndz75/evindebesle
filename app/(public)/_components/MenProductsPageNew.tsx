@@ -82,6 +82,17 @@ type ActiveFilter = {
   value: string;
 };
 
+type CategoryBasic = {
+  name: string;
+  slug: string;
+};
+
+type MenProductsPageProps = {
+  initialProducts?: Product[];
+  initialPriceRange?: { min: number; max: number };
+  initialCategories?: CategoryBasic[];
+};
+
 const categories = [
   "All",
   "Underwear",
@@ -159,14 +170,10 @@ function FavoriteButton({ productId, productName }: { productId: string; product
   );
 }
 
-type MenProductsPageProps = {
-  initialProducts?: Product[];
-  initialPriceRange?: { min: number; max: number };
-};
-
 export default function MenProductsPage({
   initialProducts = [],
   initialPriceRange = { min: 0, max: 2000 },
+  initialCategories = [],
 }: MenProductsPageProps = {}) {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [products, setProducts] = useState<Product[]>(initialProducts);
@@ -432,16 +439,26 @@ export default function MenProductsPage({
 
         {/* Category Filters */}
         <div className="flex gap-2 mb-6 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4 md:mx-0 md:px-0">
-          {categories.map((category) => (
+          <button
+            onClick={() => setSelectedCategory("All")}
+            className={`px-4 py-2 text-sm font-light uppercase tracking-wide transition-colors whitespace-nowrap flex-shrink-0 ${
+              selectedCategory === "All"
+                ? "bg-[#111] text-white"
+                : "bg-white text-[#111] border border-[#111] hover:bg-[#111] hover:text-white"
+            }`}
+          >
+            TÜMÜ
+          </button>
+          {initialCategories.map((category) => (
             <button
-              key={category}
-              onClick={() => setSelectedCategory(category)}
-              className={`px-4 py-2 text-sm font-light uppercase tracking-wide transition-colors whitespace-nowrap flex-shrink-0 ${selectedCategory === category
+              key={category.slug}
+              onClick={() => setSelectedCategory(category.slug)}
+              className={`px-4 py-2 text-sm font-light uppercase tracking-wide transition-colors whitespace-nowrap flex-shrink-0 ${selectedCategory === category.slug
                 ? "bg-[#111] text-white"
                 : "bg-white text-[#111] border border-[#111] hover:bg-[#111] hover:text-white"
                 }`}
             >
-              {category}
+              {category.name}
             </button>
           ))}
         </div>
@@ -584,8 +601,19 @@ export default function MenProductsPage({
             Ürün bulunamadı
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-            {products.map((product) => {
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            {products.map((product, index) => {
+              const pos = index % 18;
+              let gridClass = "col-span-1";
+              
+              if (pos === 0) {
+                gridClass = "col-span-1 md:col-span-2 md:row-span-2";
+              } else if (pos === 11) {
+                gridClass = "col-span-1 md:col-span-2 md:row-span-2";
+              } else {
+                gridClass = "col-span-1";
+              }
+
               // İlk açılışta ana renk (ilk renk) göster
               const defaultColor = product.colors?.[0];
 
@@ -633,7 +661,7 @@ export default function MenProductsPage({
               const finalUrl = variant ? `${productUrl}?variant=${variant}` : productUrl;
 
               return (
-                <div key={product.id} className="group relative overflow-hidden">
+                <div key={`${product.id}-${index}`} className={`group relative overflow-hidden ${gridClass}`}>
                   <Link href={finalUrl} prefetch={true} className="block">
                     <HoverImageSlider
                       images={

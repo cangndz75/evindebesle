@@ -187,11 +187,29 @@ async function getPriceRange() {
   }
 }
 
+async function getCategories() {
+  try {
+    const categories = await prisma.category.findMany({
+      where: {
+        isActive: true,
+        gender: { in: ["FEMALE", "UNISEX"] }
+      },
+      orderBy: { sortOrder: "asc" },
+      select: { name: true, slug: true }
+    });
+    return categories;
+  } catch (error) {
+    console.error("Error fetching categories:", error);
+    return [];
+  }
+}
+
 export default async function WomenPage() {
   // Paralel olarak tüm verileri çek
-  const [initialProducts, priceRange] = await Promise.all([
+  const [initialProducts, priceRange, categories] = await Promise.all([
     getInitialProducts(),
     getPriceRange(),
+    getCategories()
   ]);
 
   // Format products for schema
@@ -216,6 +234,7 @@ export default async function WomenPage() {
       <WomenProductsPage
         initialProducts={initialProducts}
         initialPriceRange={priceRange}
+        initialCategories={categories}
       />
     </>
   );

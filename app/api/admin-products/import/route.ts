@@ -7,109 +7,137 @@ import * as XLSX from "xlsx";
 
 export const dynamic = "force-dynamic";
 
-// Excel kolon adları → alan mapping
+// ─── Kolon eşlemeleri ────────────────────────────────────────────────────────
 const COL = {
-  BARCODE: "Barkod",
-  MODEL_CODE: "Model Kodu",
-  COLOR: "Ürün Rengi",
-  SIZE: "Beden",
-  GENDER: "Cinsiyet",
-  STOCK: "Ürün Stok Adedi",
-  WEIGHT: "Desi",
-  IMAGE1: "Görsel 1",
-  IMAGE2: "Görsel 2",
-  IMAGE3: "Görsel 3",
-  IMAGE4: "Görsel 4",
-  IMAGE5: "Görsel 5",
-  IMAGE6: "Görsel 6",
-  IMAGE7: "Görsel 7",
-  IMAGE8: "Görsel 8",
-  BRAND: "Marka",
-  CATEGORY: "Kategori İsmi",
-  SUPPLIER_CODE: "Tedarikçi Stok Kodu",
-  NAME: "Ürün Adı",
-  DESCRIPTION: "Ürün Açıklaması",
-  ORIGINAL_PRICE: "Piyasa Satış Fiyatı (KDV Dahil)",
-  PRICE: "idyol'da Satılacak Fiyat (KDV Dahil)",
+  PARTNER_ID:     "Partner ID",
+  BARCODE:        "Barkod",
+  COMMISSION:     "Komisyon Oranı",
+  MODEL_CODE:     "Model Kodu",
+  COLOR:          "Ürün Rengi",
+  SIZE:           "Beden",
+  DIMENSION:      "Boyut/Ebat",
+  GENDER:         "Cinsiyet",
+  BRAND:          "Marka",
+  CATEGORY:       "Kategori İsmi",
+  SUPPLIER_CODE:  "Tedarikçi Stok Kodu",
+  NAME:           "Ürün Adı",
+  DESCRIPTION:    "Ürün Açıklaması",
+  MARKET_PRICE:   "Piyasa Satış Fiyatı (KDV Dahil)",
+  SALE_PRICE:     "Trendyol'da Satılacak Fiyat",
+  BUYBOX_PRICE:   "BuyBox Fiyatı",
+  STOCK:          "Ürün Stok Adedi",
+  VAT_RATE:       "KDV Oranı",
+  OTV_RATE:       "ÖTV Oranı",
+  SHIPMENT_TYPE:  "Sevkiyat Tipi",
+  IMAGE1:         "Görsel 1",
+  IMAGE2:         "Görsel 2",
+  IMAGE3:         "Görsel 3",
+  IMAGE4:         "Görsel 4",
+  IMAGE5:         "Görsel 5",
+  IMAGE6:         "Görsel 6",
+  IMAGE7:         "Görsel 7",
+  IMAGE8:         "Görsel 8",
+  TRENDYOL_LINK:  "Trendyol Linki",
 };
 
-function normalizeGender(val: string | undefined): "FEMALE" | "MALE" | "UNISEX" | undefined {
-  if (!val) return undefined;
-  const v = val.toLowerCase().trim();
-  if (v.includes("kadın") || v.includes("kız") || v.includes("female")) return "FEMALE";
-  if (v.includes("erkek") || v.includes("male")) return "MALE";
-  if (v.includes("unisex") || v.includes("uni̇sex")) return "UNISEX";
-  return undefined;
+// ─── Yardımcı fonksiyonlar ───────────────────────────────────────────────────
+function str(row: any, key: string): string {
+  const v = row[key];
+  if (v === undefined || v === null) return "";
+  return String(v).trim();
 }
 
-function cleanImageUrl(url: string | undefined): string | null {
-  if (!url) return null;
-  const trimmed = String(url).trim();
-  if (!trimmed.startsWith("http")) return null;
-  return trimmed;
-}
-
-function getString(row: any, key: string): string {
-  const val = row[key];
-  if (val === undefined || val === null) return "";
-  return String(val).trim();
-}
-
-function getNumber(row: any, key: string): number {
-  const val = row[key];
-  if (val === undefined || val === null || val === "") return 0;
-  const n = parseFloat(String(val).replace(",", "."));
+function num(row: any, key: string): number {
+  const v = row[key];
+  if (v === undefined || v === null || v === "") return 0;
+  const n = parseFloat(String(v).replace(",", "."));
   return isNaN(n) ? 0 : n;
 }
 
+function cleanUrl(url: string | undefined): string | null {
+  if (!url) return null;
+  const t = String(url).trim();
+  return t.startsWith("http") ? t : null;
+}
+
+function normalizeGender(val: string): "FEMALE" | "MALE" | "UNISEX" | undefined {
+  const v = val.toLowerCase();
+  if (v.includes("kadın") || v.includes("kız") || v.includes("female")) return "FEMALE";
+  if (v.includes("erkek") || v.includes("male")) return "MALE";
+  if (v.includes("unisex")) return "UNISEX";
+  return undefined;
+}
+
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/ğ/g, "g").replace(/ü/g, "u").replace(/ş/g, "s")
+    .replace(/ı/g, "i").replace(/ö/g, "o").replace(/ç/g, "c")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+// ─── Excel satır tipi ────────────────────────────────────────────────────────
 interface ExcelRow {
   barcode: string;
   modelCode: string;
   color: string;
   size: string;
+  dimension: string;
   gender: string;
   stock: number;
-  weight: number;
+  commissionRate: number;
+  vatRate: number;
+  otvRate: number;
   images: string[];
   brand: string;
   category: string;
   supplierCode: string;
   name: string;
   description: string;
-  originalPrice: number;
-  price: number;
+  marketPrice: number;
+  salePrice: number;
+  buyBoxPrice: number;
+  shipmentType: string;
+  trendyolLink: string;
 }
 
 function parseRows(data: any[]): ExcelRow[] {
   return data.map((row) => ({
-    barcode: getString(row, COL.BARCODE),
-    modelCode: getString(row, COL.MODEL_CODE),
-    color: getString(row, COL.COLOR),
-    size: getString(row, COL.SIZE),
-    gender: getString(row, COL.GENDER),
-    stock: getNumber(row, COL.STOCK),
-    weight: getNumber(row, COL.WEIGHT),
+    barcode:        str(row, COL.BARCODE),
+    modelCode:      str(row, COL.MODEL_CODE),
+    color:          str(row, COL.COLOR),
+    size:           str(row, COL.SIZE),
+    dimension:      str(row, COL.DIMENSION),
+    gender:         str(row, COL.GENDER),
+    stock:          Math.round(num(row, COL.STOCK)),
+    commissionRate: num(row, COL.COMMISSION),
+    vatRate:        num(row, COL.VAT_RATE),
+    otvRate:        num(row, COL.OTV_RATE),
     images: [
       COL.IMAGE1, COL.IMAGE2, COL.IMAGE3, COL.IMAGE4,
       COL.IMAGE5, COL.IMAGE6, COL.IMAGE7, COL.IMAGE8,
-    ]
-      .map((k) => cleanImageUrl(row[k]))
-      .filter((u): u is string => u !== null),
-    brand: getString(row, COL.BRAND),
-    category: getString(row, COL.CATEGORY),
-    supplierCode: getString(row, COL.SUPPLIER_CODE),
-    name: getString(row, COL.NAME),
-    description: getString(row, COL.DESCRIPTION),
-    originalPrice: getNumber(row, COL.ORIGINAL_PRICE),
-    price: getNumber(row, COL.PRICE),
+    ].map((k) => cleanUrl(row[k])).filter((u): u is string => u !== null),
+    brand:          str(row, COL.BRAND),
+    category:       str(row, COL.CATEGORY),
+    supplierCode:   str(row, COL.SUPPLIER_CODE),
+    name:           str(row, COL.NAME),
+    description:    str(row, COL.DESCRIPTION),
+    marketPrice:    num(row, COL.MARKET_PRICE),
+    salePrice:      num(row, COL.SALE_PRICE),
+    buyBoxPrice:    num(row, COL.BUYBOX_PRICE),
+    shipmentType:   str(row, COL.SHIPMENT_TYPE),
+    trendyolLink:   str(row, COL.TRENDYOL_LINK),
   }));
 }
 
-// stockCode ile ürünlere göre satırları grupla
-function groupByModelCode(rows: ExcelRow[]) {
+// Gruplama: modelCode → yoksa name+brand+category
+function groupRows(rows: ExcelRow[]): Map<string, ExcelRow[]> {
   const map = new Map<string, ExcelRow[]>();
   for (const row of rows) {
-    const key = row.modelCode || row.supplierCode || row.barcode;
+    const key = row.modelCode
+      || [row.name, row.brand, row.category].filter(Boolean).join("|")
+      || row.barcode;
     if (!key) continue;
     if (!map.has(key)) map.set(key, []);
     map.get(key)!.push(row);
@@ -117,6 +145,7 @@ function groupByModelCode(rows: ExcelRow[]) {
   return map;
 }
 
+// ─── POST — Ana import ───────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authConfig);
@@ -126,189 +155,275 @@ export async function POST(req: NextRequest) {
 
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
-    if (!file) {
-      return NextResponse.json({ error: "Dosya bulunamadı" }, { status: 400 });
-    }
+    if (!file) return NextResponse.json({ error: "Dosya bulunamadı" }, { status: 400 });
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const workbook = XLSX.read(buffer, { type: "buffer" });
-    const sheetName = workbook.SheetNames[0];
-    const worksheet = workbook.Sheets[sheetName];
-    const rawData: any[] = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+    const wb = XLSX.read(buffer, { type: "buffer" });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const rawData: any[] = XLSX.utils.sheet_to_json(ws, { defval: "" });
 
-    if (rawData.length === 0) {
-      return NextResponse.json({ error: "Excel dosyası boş" }, { status: 400 });
-    }
+    if (!rawData.length) return NextResponse.json({ error: "Excel dosyası boş" }, { status: 400 });
 
     const rows = parseRows(rawData);
-    const groups = groupByModelCode(rows);
+    const groups = groupRows(rows);
 
     // Kategori önbelleği
-    const categoryCache = new Map<string, string | null>();
+    const catCache = new Map<string, string>();
+    let createdCategories = 0;
+
     async function getCategoryId(name: string): Promise<string | null> {
       if (!name) return null;
-      if (categoryCache.has(name)) return categoryCache.get(name)!;
-      const cat = await prisma.category.findFirst({
+      const key = name.toLowerCase().trim();
+      if (catCache.has(key)) return catCache.get(key)!;
+      let cat = await prisma.category.findFirst({
         where: { name: { equals: name, mode: "insensitive" } },
         select: { id: true },
       });
-      categoryCache.set(name, cat?.id ?? null);
-      return cat?.id ?? null;
+      if (!cat) {
+        const slug = slugify(name);
+        const existingSlug = await prisma.category.findUnique({ where: { slug } });
+        cat = await prisma.category.create({
+          data: {
+            name: name.trim(),
+            slug: existingSlug ? `${slug}-${Date.now()}` : slug,
+            isActive: true,
+          },
+          select: { id: true },
+        });
+        createdCategories++;
+      }
+      catCache.set(key, cat.id);
+      return cat.id;
     }
 
-    let created = 0;
-    let updated = 0;
-    let skipped = 0;
-    const errors: { modelCode: string; error: string }[] = [];
+    let createdProducts = 0;
+    let updatedProducts = 0;
+    let createdVariants = 0;
+    let updatedVariants = 0;
+    const errors: { group: string; error: string }[] = [];
 
-    for (const [modelCode, groupRows] of groups) {
+    for (const [groupKey, groupRows] of groups) {
       try {
         const first = groupRows[0];
-        const stockCode = first.supplierCode || modelCode;
-        const productName = first.name || modelCode;
-        if (!productName) { skipped++; continue; }
+        const productName = first.name || groupKey;
+        if (!productName) continue;
 
-        const price = first.price || first.originalPrice || 0;
-        if (price === 0) { skipped++; continue; }
-
+        const salePrice = first.salePrice || first.marketPrice || 0;
         const categoryId = await getCategoryId(first.category);
         const gender = normalizeGender(first.gender);
 
-        // Mevcut ürün kontrolü
-        let existingProduct = await prisma.product.findFirst({
+        // Ürünü bul veya oluştur (stockCode = modelCode || supplierCode || barcode)
+        const stockCode = first.modelCode || first.supplierCode || first.barcode || groupKey;
+
+        let product = await prisma.product.findFirst({
           where: { stockCode },
-          include: {
-            colors: true,
-            sizes: true,
-            variants: true,
-            productImages: true,
-          },
+          select: { id: true },
         });
 
-        if (!existingProduct) {
-          // Slug oluştur
+        if (!product) {
           let slug = generateProductSlug(productName, first.category || null, first.color || null);
-          const slugExists = await prisma.product.findFirst({ where: { slug } });
-          if (slugExists) slug = `${slug}-${Date.now()}`;
+          const existingSlug = await prisma.product.findFirst({ where: { slug } });
+          if (existingSlug) slug = `${slug}-${Date.now()}`;
 
-          existingProduct = await prisma.product.create({
+          product = await prisma.product.create({
             data: {
               name: productName,
               slug,
               stockCode,
-              barcode: first.barcode || undefined,
-              description: first.description || undefined,
-              price,
-              originalPrice: first.originalPrice || undefined,
+              modelCode: first.modelCode || null,
+              description: first.description || null,
+              price: salePrice,
+              originalPrice: first.marketPrice || null,
               gender,
+              brand: first.brand || null,
+              categoryId,
+              isActive: true,
+              shipmentType: first.shipmentType || null,
+              trendyolLink: first.trendyolLink || null,
+              primaryImage: first.images[0] || null,
+              secondaryImage: first.images[1] || null,
+              image: first.images[0] || null,
+            },
+            select: { id: true },
+          });
+          createdProducts++;
+        } else {
+          // Ürünü güncelle
+          await prisma.product.update({
+            where: { id: product.id },
+            data: {
+              name: productName,
+              modelCode: first.modelCode || undefined,
+              description: first.description || undefined,
+              price: salePrice || undefined,
+              originalPrice: first.marketPrice || undefined,
+              gender: gender || undefined,
               brand: first.brand || undefined,
               categoryId: categoryId || undefined,
-              weight: first.weight || undefined,
-              isActive: true,
-              image: first.images[0] || undefined,
+              shipmentType: first.shipmentType || undefined,
+              trendyolLink: first.trendyolLink || undefined,
               primaryImage: first.images[0] || undefined,
-              secondaryImage: first.images[1] || undefined,
-            },
-            include: {
-              colors: true,
-              sizes: true,
-              variants: true,
-              productImages: true,
+              image: first.images[0] || undefined,
             },
           });
-          created++;
-        } else {
-          updated++;
+          updatedProducts++;
         }
 
-        const productId = existingProduct.id;
+        const productId = product.id;
 
-        // Her satır → renk + beden kombinasyonu
-        for (const row of groupRows) {
-          if (!row.color && !row.size) continue;
-
-          // Renk
-          let colorRecord = existingProduct.colors.find(
-            (c: any) => c.name.toLowerCase() === row.color.toLowerCase()
-          );
-          if (!colorRecord && row.color) {
-            colorRecord = await prisma.productColor.create({
+        // Görselleri yaz (primary + secondary ayrımı)
+        for (let i = 0; i < first.images.length; i++) {
+          const url = first.images[i];
+          const exists = await prisma.productImage.findFirst({
+            where: { productId, url },
+            select: { id: true },
+          });
+          if (!exists) {
+            await prisma.productImage.create({
               data: {
                 productId,
-                name: row.color,
-                images: row.images.length > 0 ? JSON.stringify(row.images) : null,
+                url,
+                order: i,
+                isPrimary: i === 0,
+                isSecondary: i > 0,
+                alt: productName,
               },
             });
-            // Görseller
-            for (let i = 0; i < row.images.length; i++) {
-              await prisma.productImage.create({
-                data: {
-                  productId,
-                  colorId: colorRecord.id,
-                  url: row.images[i],
-                  order: i,
-                  isPrimary: i === 0,
-                  isSecondary: i === 1,
-                  alt: `${productName} - ${row.color}`,
-                },
+          }
+        }
+
+        // Renk haritası (lowercase → db id)
+        const colorMap = new Map<string, string>();
+        const existingColors = await prisma.productColor.findMany({
+          where: { productId },
+          select: { id: true, name: true },
+        });
+        for (const c of existingColors) colorMap.set(c.name.trim().toLowerCase(), c.id);
+
+        // Beden haritası
+        const sizeMap = new Map<string, string>();
+        const existingSizes = await prisma.productSize.findMany({
+          where: { productId },
+          select: { id: true, name: true },
+        });
+        for (const s of existingSizes) sizeMap.set(s.name.trim().toLowerCase(), s.id);
+
+        // Her satır → bağımsız varyant
+        for (const row of groupRows) {
+          try {
+            // Renk upsert
+            let colorId: string | null = null;
+            if (row.color) {
+              const ck = row.color.trim().toLowerCase();
+              if (!colorMap.has(ck)) {
+                const newColor = await prisma.productColor.create({
+                  data: { productId, name: row.color.trim() },
+                  select: { id: true },
+                });
+                colorMap.set(ck, newColor.id);
+              }
+              colorId = colorMap.get(ck)!;
+            }
+
+            // Beden upsert
+            let sizeId: string | null = null;
+            if (row.size) {
+              const sk = row.size.trim().toLowerCase();
+              if (!sizeMap.has(sk)) {
+                const newSize = await prisma.productSize.create({
+                  data: { productId, name: row.size.trim(), stock: row.stock },
+                  select: { id: true },
+                });
+                sizeMap.set(sk, newSize.id);
+              } else {
+                // Stoğu güncelle
+                await prisma.productSize.update({
+                  where: { id: sizeMap.get(sk)! },
+                  data: { stock: row.stock },
+                });
+              }
+              sizeId = sizeMap.get(sk)!;
+            }
+
+            // Varyant bul veya oluştur
+            // Önce barkod ile ara, yoksa productId+colorId+sizeId+dimension ile
+            let existingVariant: { id: string } | null = null;
+            if (row.barcode) {
+              existingVariant = await prisma.productVariant.findFirst({
+                where: { productId, barcode: row.barcode },
+                select: { id: true },
               });
             }
-          }
+            if (!existingVariant) {
+              existingVariant = await prisma.productVariant.findFirst({
+                where: {
+                  productId,
+                  colorId: colorId || null,
+                  sizeId: sizeId || null,
+                  dimension: row.dimension || null,
+                },
+                select: { id: true },
+              });
+            }
 
-          // Beden
-          let sizeRecord = existingProduct.sizes.find(
-            (s: any) => s.name.toLowerCase() === row.size.toLowerCase()
-          );
-          if (!sizeRecord && row.size) {
-            sizeRecord = await prisma.productSize.create({
-              data: {
-                productId,
-                name: row.size,
-                stock: row.stock,
-              },
-            });
-          } else if (sizeRecord && row.size) {
-            // Stoğu güncelle
-            await prisma.productSize.update({
-              where: { id: sizeRecord.id },
-              data: { stock: { increment: row.stock } },
-            });
-          }
+            const variantData = {
+              barcode: row.barcode || null,
+              dimension: row.dimension || null,
+              supplierCode: row.supplierCode || null,
+              stock: row.stock,
+              price: row.salePrice || row.marketPrice || null,
+              marketPrice: row.marketPrice || null,
+              salePrice: row.salePrice || null,
+              buyBoxPrice: row.buyBoxPrice || null,
+              commissionRate: row.commissionRate || null,
+              vatRate: row.vatRate || null,
+              otvRate: row.otvRate || null,
+              colorId,
+              sizeId,
+            };
 
-          // Varyant
-          if (colorRecord && sizeRecord) {
-            const variantExists = existingProduct.variants.find(
-              (v: any) => v.colorId === colorRecord!.id && v.sizeId === sizeRecord!.id
-            );
-            if (!variantExists) {
+            if (existingVariant) {
+              await prisma.productVariant.update({
+                where: { id: existingVariant.id },
+                data: variantData,
+              });
+              updatedVariants++;
+            } else {
               await prisma.productVariant.create({
                 data: {
+                  ...variantData,
                   productId,
-                  colorId: colorRecord.id,
-                  sizeId: sizeRecord.id,
                   variantCode: generateVariantCode(),
-                  stock: row.stock,
                 },
               });
+              createdVariants++;
             }
+          } catch (rowErr: any) {
+            errors.push({ group: groupKey, error: `Satır (${row.barcode || row.size}): ${rowErr.message}` });
           }
         }
-      } catch (err: any) {
-        errors.push({ modelCode, error: err.message });
+      } catch (groupErr: any) {
+        errors.push({ group: groupKey, error: groupErr.message });
       }
     }
 
-    return NextResponse.json({ created, updated, skipped, errors, total: groups.size });
+    return NextResponse.json({
+      totalRows: rows.length,
+      totalGroups: groups.size,
+      createdProducts,
+      updatedProducts,
+      createdVariants,
+      updatedVariants,
+      createdCategories,
+      errors,
+    });
   } catch (error: any) {
-    console.error("Excel import error:", error);
-    return NextResponse.json(
-      { error: error.message || "Import sırasında bir hata oluştu" },
-      { status: 500 }
-    );
+    console.error("Import error:", error);
+    return NextResponse.json({ error: error.message || "Import hatası" }, { status: 500 });
   }
 }
 
-// Preview endpoint - dosyayı parse et, ilk 30 satırı döndür
+// ─── PUT — Önizleme ──────────────────────────────────────────────────────────
 export async function PUT(req: NextRequest) {
   try {
     const session = await getServerSession(authConfig);
@@ -318,36 +433,38 @@ export async function PUT(req: NextRequest) {
 
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
-    if (!file) {
-      return NextResponse.json({ error: "Dosya bulunamadı" }, { status: 400 });
-    }
+    if (!file) return NextResponse.json({ error: "Dosya bulunamadı" }, { status: 400 });
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const workbook = XLSX.read(buffer, { type: "buffer" });
-    const sheetName = workbook.SheetNames[0];
-    const worksheet = workbook.Sheets[sheetName];
-    const rawData: any[] = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+    const wb = XLSX.read(buffer, { type: "buffer" });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const rawData: any[] = XLSX.utils.sheet_to_json(ws, { defval: "" });
 
     const rows = parseRows(rawData);
-    const groups = groupByModelCode(rows);
+    const groups = groupRows(rows);
 
     const preview = Array.from(groups.entries())
       .slice(0, 30)
-      .map(([modelCode, groupRows]) => ({
-        modelCode,
-        name: groupRows[0].name || modelCode,
-        brand: groupRows[0].brand,
-        category: groupRows[0].category,
-        price: groupRows[0].price,
-        originalPrice: groupRows[0].originalPrice,
-        gender: normalizeGender(groupRows[0].gender),
-        variants: groupRows.map((r) => ({
+      .map(([groupKey, gRows]) => ({
+        groupKey,
+        name: gRows[0].name || groupKey,
+        brand: gRows[0].brand,
+        category: gRows[0].category,
+        gender: normalizeGender(gRows[0].gender),
+        salePrice: gRows[0].salePrice,
+        marketPrice: gRows[0].marketPrice,
+        shipmentType: gRows[0].shipmentType,
+        trendyolLink: gRows[0].trendyolLink,
+        imageCount: gRows[0].images.length,
+        variantCount: gRows.length,
+        variants: gRows.slice(0, 5).map((r) => ({
+          barcode: r.barcode,
           color: r.color,
           size: r.size,
+          dimension: r.dimension,
           stock: r.stock,
-          barcode: r.barcode,
+          salePrice: r.salePrice,
         })),
-        imageCount: groupRows[0].images.length,
       }));
 
     return NextResponse.json({

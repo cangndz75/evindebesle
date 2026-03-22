@@ -251,6 +251,9 @@ model Product {
   weight               Float?
   isTrackInventory     Boolean              @default(true) // Stok takibi yapılsın mı?
   allowBackorders      Boolean              @default(false) // Stok yokken satışa izin verilsin mi?
+  shipmentType         String?
+  trendyolLink         String?
+  modelCode            String?
 
   cartItems            CartItem[]
   orderItems           OrderItem[]
@@ -343,6 +346,15 @@ model ProductVariant {
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   sizeId         String?
+  barcode        String?
+  dimension      String?
+  supplierCode   String?
+  marketPrice    Decimal?
+  salePrice      Decimal?
+  buyBoxPrice    Decimal?
+  commissionRate Decimal?
+  vatRate        Decimal?
+  otvRate        Decimal?
   productImages  ProductImage[]
   color          ProductColor?   @relation(fields: [colorId], references: [id])
   product        Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
@@ -350,10 +362,11 @@ model ProductVariant {
   stockMovements StockMovement[]
   stockAlerts    StockAlert[]
 
-  @@unique([productId, colorId, sizeId])
   @@index([productId])
   @@index([colorId])
   @@index([sizeId])
+  @@index([barcode])
+  @@index([productId, colorId, sizeId])
 }
 
 model ProductSize {

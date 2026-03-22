@@ -27,8 +27,9 @@ interface ProductDetailPageProps {
     fabric?: string;
     care?: string;
     washing?: string;
-    delivery?: string;
     sizeNotes?: string;
+    shipmentType?: string;
+    trendyolLink?: string;
     gender?: "MALE" | "FEMALE" | "UNISEX";
     reviews?: { id: string; userName: string; rating: number; comment: string; createdAt: Date; colorId?: string; colorName?: string }[];
     category?: string;
@@ -730,31 +731,56 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
               <h1 className="text-3xl md:text-4xl font-serif font-light text-black">
                 {product.name}
               </h1>
-              <button
-                onClick={toggleFavorite}
-                disabled={isLoadingFavorite}
-                className="ml-4 hover:opacity-70 transition-opacity"
-                aria-label={isFavorite ? "Favorilerden çıkar" : "Favorilere ekle"}
-              >
-                <Heart className={`w-6 h-6 ${isFavorite ? "fill-red-500 text-red-500" : "text-black"}`} />
-              </button>
+              <div className="flex items-center gap-4">
+                 {product.trendyolLink && (
+                  <a
+                    href={product.trendyolLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 border border-orange-500 text-orange-500 hover:bg-orange-50 px-4 py-2 rounded-full text-sm font-medium transition-colors"
+                  >
+                    Trendyol'da Gör
+                  </a>
+                 )}
+                <button
+                  onClick={toggleFavorite}
+                  disabled={isLoadingFavorite}
+                  className="hover:opacity-70 transition-opacity flex-shrink-0"
+                  aria-label={isFavorite ? "Favorilerden çıkar" : "Favorilere ekle"}
+                >
+                  <Heart className={`w-6 h-6 ${isFavorite ? "fill-red-500 text-red-500" : "text-black"}`} />
+                </button>
+              </div>
             </div>
 
             {/* Fiyat */}
-            <div className="mb-4">
-              {product.originalPrice && product.originalPrice < product.price ? (
-                <>
+            <div className="mb-4 flex flex-col items-start gap-1">
+              <div className="flex items-center">
+                {product.originalPrice && product.originalPrice < product.price ? (
+                  <>
+                    <span className="text-2xl md:text-3xl font-light text-black">
+                      {product.originalPrice} ₺
+                    </span>
+                    <span className="text-lg line-through ml-3 text-gray-400">
+                      {product.price} ₺
+                    </span>
+                  </>
+                ) : (
                   <span className="text-2xl md:text-3xl font-light text-black">
-                    {product.originalPrice} ₺
+                    {product.originalPrice ? product.originalPrice : product.price} ₺
                   </span>
-                  <span className="text-lg line-through ml-3 text-gray-400">
-                    {product.price} ₺
-                  </span>
-                </>
-              ) : (
-                <span className="text-2xl md:text-3xl font-light text-black">
-                  {product.originalPrice ? product.originalPrice : product.price} ₺
-                </span>
+                )}
+              </div>
+              {/* Mobil Trendyol Linki */}
+              {product.trendyolLink && (
+                <a
+                  href={product.trendyolLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="md:hidden mt-2 inline-flex items-center gap-2 border border-orange-500 text-orange-500 hover:bg-orange-50 px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
+                >
+                  Trendyol'da Gör
+                </a>
               )}
             </div>
 
@@ -1041,7 +1067,14 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
             )}
           </div>
 
-          {/* Kumaş ve Bakım */}
+            {product.shipmentType && (
+              <div className="bg-gray-50 p-4 border-l-2 border-black mb-8 flex items-center justify-between">
+                <span className="text-sm font-medium text-black">Kargo & Teslimat</span>
+                <span className="text-sm font-light text-gray-700">{product.shipmentType}</span>
+              </div>
+            )}
+
+            {/* Kumaş ve Bakım */}
           <div className="border-b border-gray-200">
             <button
               onClick={() => toggleSection("fabric")}
@@ -1102,11 +1135,63 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
               <div className="pb-6">
                 <div
                   className="text-sm text-gray-700 font-light prose prose-sm max-w-none"
-                  dangerouslySetInnerHTML={{ __html: product.deliveryInfo?.content || product.delivery || "" }}
+                  dangerouslySetInnerHTML={{ __html: product.deliveryInfo?.content || (product as any).delivery || "" }}
                 />
               </div>
             )}
           </div>
+
+          {/* Varyant Detayları */}
+          {product.variants && product.variants.length > 0 && (
+            <div className="border-b border-gray-200">
+              <button
+                onClick={() => toggleSection("variants")}
+                className="w-full flex items-center justify-between py-6 text-left"
+              >
+                <h3 className="text-base font-light text-black">Varyant Beden Bilgileri</h3>
+                {expandedSections.variants ? (
+                  <Minus className="w-5 h-5 text-gray-400" />
+                ) : (
+                  <Plus className="w-5 h-5 text-gray-400" />
+                )}
+              </button>
+              {expandedSections.variants && (
+                <div className="pb-6 overflow-x-auto">
+                  <table className="w-full text-sm text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-gray-200 text-gray-500 font-light">
+                        <th className="py-2 px-3">Barkod</th>
+                        <th className="py-2 px-3">Beden</th>
+                        <th className="py-2 px-3 border-l border-gray-200">Stok</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {product.variants
+                        .filter(v => v.colorId === product.colors?.[selectedColor]?.id)
+                        .map((v: any, idx) => (
+                        <tr key={idx} className="border-b border-gray-100 last:border-0 hover:bg-gray-50">
+                          <td className="py-2 px-3 font-medium text-gray-900">{v.variantCode}</td>
+                          <td className="py-2 px-3 text-gray-700">
+                            {(() => {
+                               const sz = product.sizes?.find((s: any) => typeof s === 'object' && s.id === v.sizeId);
+                               return (sz && typeof sz === 'object') ? sz.name : "-";
+                            })()}
+                          </td>
+                          <td className="py-2 px-3 border-l border-gray-200 text-gray-700">
+                            {v.stock > 0 ? (
+                                <span className="text-green-600 font-medium">{v.stock} Adet</span>
+                              ) : (
+                                <span className="text-red-500">Tükendi</span>
+                              )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Beden Notları */}
           <div className="border-b border-gray-200">

@@ -64,6 +64,9 @@ type Product = {
     sizeId: string | null;
     stock: number;
     price: number | null;
+    marketPrice: number | null;
+    salePrice: number | null;
+    buyBoxPrice: number | null;
     color: { name: string } | null;
     size: { name: string } | null;
   }>;
@@ -356,6 +359,9 @@ export default function ProductDetailPage() {
                           <th className="text-left p-3">Beden</th>
                           <th className="text-left p-3">Stok</th>
                           <th className="text-left p-3">Fiyat</th>
+                          <th className="text-left p-3">Satış (Sale)</th>
+                          <th className="text-left p-3">Piyasa (Market)</th>
+                          <th className="text-left p-3">BuyBox</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -387,6 +393,27 @@ export default function ProductDetailPage() {
                             <td className="p-3">
                               {variant.price ? (
                                 <span>{variant.price.toFixed(2)} ₺</span>
+                              ) : (
+                                <span className="text-gray-400">-</span>
+                              )}
+                            </td>
+                            <td className="p-3">
+                              {variant.salePrice ? (
+                                <span>{variant.salePrice.toFixed(2)} ₺</span>
+                              ) : (
+                                <span className="text-gray-400">-</span>
+                              )}
+                            </td>
+                            <td className="p-3">
+                              {variant.marketPrice ? (
+                                <span>{variant.marketPrice.toFixed(2)} ₺</span>
+                              ) : (
+                                <span className="text-gray-400">-</span>
+                              )}
+                            </td>
+                            <td className="p-3">
+                              {variant.buyBoxPrice ? (
+                                <span>{variant.buyBoxPrice.toFixed(2)} ₺</span>
                               ) : (
                                 <span className="text-gray-400">-</span>
                               )}

@@ -72,7 +72,7 @@ export default function VerifyClient() {
     <div className="grid md:grid-cols-2 min-h-screen">
       <div
         className="hidden md:block bg-muted bg-cover bg-center"
-        style={{ backgroundImage: "url('/7.png')" }}
+        style={{ backgroundImage: "url('https://images.pexels.com/photos/6331237/pexels-photo-6331237.jpeg')" }}
       />
 
       <div className="flex flex-col justify-center items-center px-6">

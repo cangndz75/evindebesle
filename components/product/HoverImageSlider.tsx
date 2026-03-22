@@ -96,13 +96,13 @@ export default function HoverImageSlider({
 
             {/* Alt kısımda resim sayısını gösteren dot indicator'lar */}
             {imageCount > 1 && (
-                <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1 z-10">
+                <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-1.5 z-10">
                     {validImages.map((_, idx) => (
                         <div
                             key={idx}
-                            className={`w-1.5 h-1.5 rounded-full transition-all duration-200 ${idx === activeIndex
-                                    ? "bg-white scale-125"
-                                    : "bg-white/50"
+                            className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${idx === activeIndex
+                                    ? "bg-black scale-110"
+                                    : "bg-black/20"
                                 }`}
                         />
                     ))}

@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { generateVariantCode, generateProductSlug } from "@/lib/slug";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
@@ -446,6 +447,13 @@ export async function POST(req: Request) {
       },
     });
 
+    revalidatePath("/home");
+    revalidatePath("/men");
+    revalidatePath("/women");
+    revalidatePath("/new-arrivals");
+    if (productWithRelations?.slug) {
+      revalidatePath(`/products/${productWithRelations.slug}`);
+    }
     return NextResponse.json(productWithRelations);
   } catch (error: any) {
     console.error("Product creation error:", error);

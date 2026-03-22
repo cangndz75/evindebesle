@@ -27,67 +27,64 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: route.priority,
     }));
 
-    // 2) Dynamic Categories
-    const categories = await prisma.category.findMany({
-        where: { isActive: true },
-        select: { slug: true, updatedAt: true },
-    });
-    const categoryRoutes = categories.map((cat: any) => ({
-        url: `${BASE_URL}/category/${cat.slug}`,
-        lastModified: cat.updatedAt,
-        changeFrequency: "weekly" as const,
-        priority: 0.8,
-    }));
+    try {
+        // 2) Dynamic Categories
+        const categories = await prisma.category.findMany({
+            where: { isActive: true },
+            select: { slug: true, updatedAt: true },
+            take: 100, // Limit for build stability
+        });
+        const categoryRoutes = categories.map((cat: any) => ({
+            url: `${BASE_URL}/category/${cat.slug}`,
+            lastModified: cat.updatedAt,
+            changeFrequency: "weekly" as const,
+            priority: 0.8,
+        }));
 
-    // 3) Dynamic Products with Images
-    const products = await prisma.product.findMany({
-        where: { isActive: true },
-        select: {
-            slug: true,
-            id: true,
-            updatedAt: true,
-            primaryImage: true,
-            secondaryImage: true,
-            orderItems: {
-                select: { id: true },
-                take: 1
-            }
-        },
-    });
+        // 3) Dynamic Products with Images
+        const products = await prisma.product.findMany({
+            where: { isActive: true },
+            select: {
+                slug: true,
+                id: true,
+                updatedAt: true,
+                primaryImage: true,
+                secondaryImage: true,
+                orderItems: {
+                    select: { id: true },
+                    take: 1
+                }
+            },
+            take: 500, // Safe limit for free tier compute quota
+        });
 
-    const productRoutes = products.map((prod: any) => {
-        const images: { loc: string }[] = [];
-        if (prod.primaryImage) {
-            images.push({ loc: prod.primaryImage });
-        }
-        if (prod.secondaryImage && prod.secondaryImage !== prod.primaryImage) {
-            images.push({ loc: prod.secondaryImage });
-        }
+        const productRoutes = products.map((prod: any) => {
+            const hasSales = prod.orderItems && prod.orderItems.length > 0;
+            return {
+                url: `${BASE_URL}/product/${prod.slug || prod.id}`,
+                lastModified: prod.updatedAt,
+                changeFrequency: "daily" as const,
+                priority: hasSales ? 1.0 : 0.9,
+            };
+        });
 
-        // Higher priority for products with sales
-        const hasSales = prod.orderItems && prod.orderItems.length > 0;
+        // 4) Dynamic Blog Posts
+        const posts = await prisma.blogPost.findMany({
+            where: { isPublished: true },
+            select: { slug: true, updatedAt: true },
+            take: 50,
+        });
+        const blogRoutes = posts.map((post: any) => ({
+            url: `${BASE_URL}/blog/${post.slug}`,
+            lastModified: post.updatedAt,
+            changeFrequency: "weekly" as const,
+            priority: 0.6,
+        }));
 
-        return {
-            url: `${BASE_URL}/product/${prod.slug || prod.id}`,
-            lastModified: prod.updatedAt,
-            changeFrequency: "daily" as const,
-            priority: hasSales ? 1.0 : 0.9,
-            // Note: Next.js sitemap doesn't support images directly in MetadataRoute.Sitemap
-            // But we can add them in a custom sitemap.xml if needed
-        };
-    });
-
-    // 4) Dynamic Blog Posts
-    const posts = await prisma.blogPost.findMany({
-        where: { isPublished: true },
-        select: { slug: true, updatedAt: true },
-    });
-    const blogRoutes = posts.map((post: any) => ({
-        url: `${BASE_URL}/blog/${post.slug}`,
-        lastModified: post.updatedAt,
-        changeFrequency: "weekly" as const,
-        priority: 0.6,
-    }));
-
-    return [...staticRoutes, ...categoryRoutes, ...productRoutes, ...blogRoutes];
+        return [...staticRoutes, ...categoryRoutes, ...productRoutes, ...blogRoutes];
+    } catch (error) {
+        console.error("Sitemap generation database error (likely quota exceeded):", error);
+        // Fallback to static routes so the build doesn't fail
+        return staticRoutes;
+    }
 }

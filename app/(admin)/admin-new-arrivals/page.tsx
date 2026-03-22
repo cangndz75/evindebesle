@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Search, Plus, Trash2, ArrowUp, ArrowDown } from "lucide-react";
+import { Search, Plus, Trash2, ArrowUp, ArrowDown, Check } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type ProductBasics = {
   id: string;
@@ -30,26 +31,52 @@ export default function AdminNewArrivalsPage() {
   const [searchResults, setSearchResults] = useState<ProductBasics[]>([]);
   
   const [newArrivalItems, setNewArrivalItems] = useState<NewArrivalItem[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("all");
+  const [selectedGender, setSelectedGender] = useState<string>("all");
   const [loading, setLoading] = useState(false);
+  const [searching, setSearching] = useState(false);
 
+  // Debounced Search & Filter
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (search.length >= 2) {
-        fetchProducts(search).then(setSearchResults);
+      if (search.length >= 2 || selectedCategoryId !== "all" || selectedGender !== "all") {
+        setSearching(true);
+        fetchProducts(search, selectedCategoryId, selectedGender)
+          .then(setSearchResults)
+          .finally(() => setSearching(false));
       } else {
         setSearchResults([]);
       }
     }, 400);
     return () => clearTimeout(timer);
-  }, [search]);
+  }, [search, selectedCategoryId, selectedGender]);
 
   useEffect(() => {
+    fetchCategories();
     fetchNewArrivalItems();
   }, []);
 
-  const fetchProducts = async (q: string) => {
+  const fetchCategories = async () => {
     try {
-      const res = await fetch(`/api/admin-products?search=${encodeURIComponent(q)}`);
+      const res = await fetch("/api/admin-categories");
+      if (res.ok) {
+        const data = await res.json();
+        setCategories(data);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const fetchProducts = async (q: string, catId: string, gen: string) => {
+    try {
+      let url = `/api/admin-products?limit=20`;
+      if (q) url += `&search=${encodeURIComponent(q)}`;
+      if (catId !== "all") url += `&categoryId=${catId}`;
+      if (gen !== "all") url += `&gender=${gen.toUpperCase()}`;
+      
+      const res = await fetch(url);
       if (res.ok) {
         return await res.json();
       }
@@ -88,8 +115,7 @@ export default function AdminNewArrivalsPage() {
 
       if (res.ok) {
         toast.success("Listeye eklendi!");
-        setSearch("");
-        setSearchResults([]);
+        // Arama ve sonuçları SI-FIR-LA-MI-YO-RUZ
         fetchNewArrivalItems();
       } else {
         const err = await res.json();
@@ -175,7 +201,7 @@ export default function AdminNewArrivalsPage() {
             <CardDescription>İsme veya stok koduna göre arama yapabilirsiniz</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex gap-2 mb-4">
+            <div className="space-y-4">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -185,39 +211,81 @@ export default function AdminNewArrivalsPage() {
                   onChange={(e) => setSearch(e.target.value)}
                 />
               </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <Select value={selectedGender} onValueChange={setSelectedGender}>
+                  <SelectTrigger className="text-xs h-9">
+                    <SelectValue placeholder="Cinsiyet" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tüm Cinsiyetler</SelectItem>
+                    <SelectItem value="male">Erkek</SelectItem>
+                    <SelectItem value="female">Kadın</SelectItem>
+                    <SelectItem value="unisex">Unisex</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={selectedCategoryId} onValueChange={setSelectedCategoryId}>
+                  <SelectTrigger className="text-xs h-9">
+                    <SelectValue placeholder="Kategori" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tüm Kategoriler</SelectItem>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
-            {search.length >= 2 && searchResults.length === 0 && (
-              <div className="text-center py-4 text-sm text-gray-500">Ürün bulunamadı</div>
+            {(search.length >= 2 || selectedCategoryId !== "all" || selectedGender !== "all") && searchResults.length === 0 && !searching && (
+              <div className="text-center py-8 text-sm text-gray-400 font-light italic">
+                Sonuç bulunamadı
+              </div>
             )}
 
-            <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
-              {searchResults.map((product) => (
-                <div
-                  key={product.id}
-                  className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <img 
-                      src={getProductImage(product)} 
-                      alt={product.name}
-                      className="w-10 h-10 object-cover rounded shadow-sm"
-                    />
-                    <div>
-                      <p className="font-medium text-sm">{product.name}</p>
-                      <p className="text-xs text-muted-foreground">{product.stockCode}</p>
-                    </div>
-                  </div>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => handleAdd(product)}
-                    disabled={newArrivalItems.some(item => item.productId === product.id)}
+            {searching && (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900 mx-auto"></div>
+              </div>
+            )}
+
+            <div className="space-y-2 mt-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+              {searchResults.map((product) => {
+                const isAdded = newArrivalItems.some(item => item.productId === product.id);
+                return (
+                  <div
+                    key={product.id}
+                    className={`flex items-center justify-between p-3 border rounded-lg transition-all duration-200 ${isAdded ? 'bg-green-50/50 border-green-100 opacity-80' : 'hover:bg-gray-50'}`}
                   >
-                    <Plus className="w-4 h-4 mr-1" /> Ekle
-                  </Button>
-                </div>
-              ))}
+                    <div className="flex items-center gap-3 overflow-hidden">
+                      <img 
+                        src={getProductImage(product)} 
+                        alt={product.name}
+                        className="w-10 h-10 object-cover rounded shadow-sm border"
+                      />
+                      <div className="overflow-hidden">
+                        <p className="font-medium text-sm truncate">{product.name}</p>
+                        <p className="text-xs text-muted-foreground">{product.stockCode}</p>
+                      </div>
+                    </div>
+                    <Button 
+                      size="sm" 
+                      variant={isAdded ? "ghost" : "outline"}
+                      onClick={() => handleAdd(product)}
+                      disabled={isAdded}
+                      className={isAdded ? "text-green-600 font-medium" : ""}
+                    >
+                      {isAdded ? (
+                        <><Check className="w-4 h-4 mr-1" /> Eklendi</>
+                      ) : (
+                        <><Plus className="w-4 h-4 mr-1" /> Ekle</>
+                      )}
+                    </Button>
+                  </div>
+                );
+              })}
             </div>
           </CardContent>
         </Card>

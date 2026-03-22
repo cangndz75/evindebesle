@@ -40,8 +40,8 @@ import type { Product } from "@/lib/homeData";
 import TabbedProductCarousel from "@/components/home/TabbedProductCarousel";
 import { prisma } from "@/lib/db";
 
-// Performans için ISR - 5 dakikada bir yenilenir
-export const revalidate = 300;
+// Performans için ISR - revalidatePath ile tetiklenir
+export const revalidate = 3600;
 
 // Helper: JSON string'i array'e çevir
 function parseImages(images: string | null): string[] {

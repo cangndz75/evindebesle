@@ -18,6 +18,8 @@ export const metadata = {
   description: "Özel koleksiyonlarımızı keşfedin.",
 };
 
+export const revalidate = 3600;
+
 async function getCollections() {
   try {
     const items = await prisma.collection.findMany({

@@ -292,6 +292,8 @@ model Product {
   tabbedCarouselItems  TabbedCarouselProduct[]
   collectionItems      CollectionProduct[]
   newArrivalItem       NewArrival?
+  lookConfiguration    LookConfiguration? @relation("MainProductLook")
+  lookItems            LookItem[]
 
   @@index([categoryId])
 }
@@ -1442,5 +1444,37 @@ model NewArrival {
   order     Int      @default(0)
   createdAt DateTime @default(now())
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+// --- Takımı Tamamla (Complete the Look / Combinations) ---
+
+model LookConfiguration {
+  id                String     @id @default(cuid())
+  mainProductId     String     @unique
+  title             String?    @default("Takımı Tamamla")
+  priority          Int        @default(0) // 0: Normal, 1: Yüksek
+  isVisible         Boolean    @default(true)
+  showAllAddButton  Boolean    @default(true)
+  showTotalPrice    Boolean    @default(true)
+  showDiscountBadge Boolean    @default(false)
+  status            String     @default("DRAFT") // DRAFT, PUBLISHED
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  
+  mainProduct       Product    @relation("MainProductLook", fields: [mainProductId], references: [id], onDelete: Cascade)
+  items             LookItem[]
+}
+
+model LookItem {
+  id                  String            @id @default(cuid())
+  lookConfigurationId String
+  productId           String
+  order               Int               @default(0)
+  createdAt           DateTime          @default(now())
+  
+  lookConfiguration   LookConfiguration @relation(fields: [lookConfigurationId], references: [id], onDelete: Cascade)
+  product             Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([lookConfigurationId, productId])
 }
 

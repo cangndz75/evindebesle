@@ -7,7 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Search, Plus, Trash2, ArrowUp, ArrowDown, Edit } from "lucide-react";
+import { Search, Plus, Trash2, ArrowUp, ArrowDown, Edit, Check } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type ProductBasics = {
   id: string;
@@ -60,23 +61,43 @@ export default function AdminCollectionsPage() {
   const [search, setSearch] = useState("");
   const [searchResults, setSearchResults] = useState<ProductBasics[]>([]);
   const [collectionItems, setCollectionItems] = useState<CollectionProductItem[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("all");
+  const [selectedGender, setSelectedGender] = useState<string>("all");
   const [itemsLoading, setItemsLoading] = useState(false);
+  const [searching, setSearching] = useState(false);
 
-  // Debounced Search
+  // Debounced Search & Filter
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (search.length >= 2) {
-        fetchProducts(search).then(setSearchResults);
+      if (search.length >= 2 || selectedCategoryId !== "all" || selectedGender !== "all") {
+        setSearching(true);
+        fetchProducts(search, selectedCategoryId, selectedGender)
+          .then(setSearchResults)
+          .finally(() => setSearching(false));
       } else {
         setSearchResults([]);
       }
     }, 400);
     return () => clearTimeout(timer);
-  }, [search]);
+  }, [search, selectedCategoryId, selectedGender]);
 
   useEffect(() => {
+    fetchCategories();
     fetchCollections();
   }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const res = await fetch("/api/admin-categories");
+      if (res.ok) {
+        const data = await res.json();
+        setCategories(data);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   useEffect(() => {
     if (selectedCollection) {
@@ -112,9 +133,14 @@ export default function AdminCollectionsPage() {
     }
   };
 
-  const fetchProducts = async (q: string) => {
+  const fetchProducts = async (q: string, catId: string, gen: string) => {
     try {
-      const res = await fetch(`/api/admin-products?search=${encodeURIComponent(q)}`);
+      let url = `/api/admin-products?limit=20`;
+      if (q) url += `&search=${encodeURIComponent(q)}`;
+      if (catId !== "all") url += `&categoryId=${catId}`;
+      if (gen !== "all") url += `&gender=${gen.toUpperCase()}`;
+      
+      const res = await fetch(url);
       if (res.ok) {
         return await res.json();
       }
@@ -197,8 +223,7 @@ export default function AdminCollectionsPage() {
 
       if (res.ok) {
         toast.success("Koleksiyona eklendi!");
-        setSearch("");
-        setSearchResults([]);
+        // Arama ve sonuçları SI-FIR-LA-MI-YO-RUZ
         fetchCollectionItems(selectedCollection.id);
         fetchCollections(); // Count güncellemesi için
       } else {
@@ -373,27 +398,79 @@ export default function AdminCollectionsPage() {
                        <CardContent>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                              <div className="space-y-4">
-                               <div className="relative">
-                                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                 <Input placeholder="Koleksiyonas eklenecek ürün ara..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
-                               </div>
-                               <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
-                                 {searchResults.map((product) => (
-                                   <div key={product.id} className="flex items-center justify-between p-2 border rounded-lg hover:bg-gray-50">
-                                     <div className="flex items-center gap-2">
-                                       <img src={getProductImage(product)} alt={product.name} className="w-8 h-8 object-cover rounded shadow-sm" />
-                                       <div>
-                                         <p className="font-medium text-xs">{product.name}</p>
-                                         <p className="text-[10px] text-muted-foreground">{product.stockCode}</p>
-                                       </div>
-                                     </div>
-                                     <Button size="sm" variant="outline" className="h-7 px-2" onClick={() => handleAddProduct(product)} disabled={collectionItems.some(item => item.productId === product.id)}>
-                                       <Plus className="w-3 h-3" />
-                                     </Button>
-                                   </div>
-                                 ))}
-                               </div>
-                             </div>
+                                <div className="space-y-3">
+                                  <div className="relative">
+                                    <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                                    <Input placeholder="Ürün ara..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+                                  </div>
+                                  
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <Select value={selectedGender} onValueChange={setSelectedGender}>
+                                      <SelectTrigger className="text-[10px] h-8">
+                                        <SelectValue placeholder="Cinsiyet" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="all">Tüm Cins.</SelectItem>
+                                        <SelectItem value="male">Erkek</SelectItem>
+                                        <SelectItem value="female">Kadın</SelectItem>
+                                        <SelectItem value="unisex">Unisex</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+
+                                    <Select value={selectedCategoryId} onValueChange={setSelectedCategoryId}>
+                                      <SelectTrigger className="text-[10px] h-8">
+                                        <SelectValue placeholder="Kategori" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="all">Tüm Kat.</SelectItem>
+                                        {categories.map((cat) => (
+                                          <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                </div>
+
+                                {(search.length >= 2 || selectedCategoryId !== "all" || selectedGender !== "all") && searchResults.length === 0 && !searching && (
+                                  <div className="text-center py-4 text-[11px] text-gray-400 italic">Sonuç yok</div>
+                                )}
+
+                                {searching && (
+                                  <div className="text-center py-4">
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 mx-auto"></div>
+                                  </div>
+                                )}
+
+                                <div className="space-y-2 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
+                                  {searchResults.map((product) => {
+                                    const isAdded = collectionItems.some(item => item.productId === product.id);
+                                    return (
+                                      <div key={product.id} className={`flex items-center justify-between p-2 border rounded-lg transition-all ${isAdded ? 'bg-green-50/50 border-green-100 opacity-80' : 'hover:bg-gray-50'}`}>
+                                        <div className="flex items-center gap-2 overflow-hidden">
+                                          <img src={getProductImage(product)} alt={product.name} className="w-8 h-8 object-cover rounded shadow-sm border" />
+                                          <div className="overflow-hidden">
+                                            <p className="font-medium text-[11px] truncate">{product.name}</p>
+                                            <p className="text-[9px] text-muted-foreground">{product.stockCode}</p>
+                                          </div>
+                                        </div>
+                                        <Button 
+                                          size="sm" 
+                                          variant={isAdded ? "ghost" : "outline"} 
+                                          className="h-7 px-2" 
+                                          onClick={() => handleAddProduct(product)} 
+                                          disabled={isAdded}
+                                        >
+                                          {isAdded ? (
+                                            <Check className="w-3 h-3 text-green-600" />
+                                          ) : (
+                                            <Plus className="w-3 h-3" />
+                                          )}
+                                        </Button>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
 
                              <div className="border rounded-lg overflow-x-auto">
                                 <Table>

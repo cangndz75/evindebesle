@@ -4,12 +4,13 @@ import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ChevronRight, Heart, ShoppingBag, Info, Plus, Minus, ChevronLeft } from "lucide-react";
+import { ChevronRight, Heart, ShoppingBag, Info, Plus, Minus, ChevronLeft, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import ProductReviews from "./ProductReviews";
 import SizeGuideModal from "./SizeGuideModal";
 import { addToRecentlyViewed, getRecentlyViewed } from "@/lib/recently-viewed";
 import { useCartStore } from "@/lib/stores/cartStore";
+import { Button } from "@/components/ui/button";
 
 interface ProductDetailPageProps {
   product?: {
@@ -39,7 +40,8 @@ interface ProductDetailPageProps {
     sizeNote?: { id: string; title: string; content: string } | null;
     sizeGuide?: { id: string; title: string; imageUrl?: string; content?: any } | null;
     modelInfo?: { id: string; title: string; height: string; size: string; gender?: string } | null;
-    combinations?: { id: string; name: string; slug: string; price: number; originalPrice?: number; image?: string }[];
+    lookConfiguration?: any;
+    parentLookConfigs?: any[];
   };
   hasOrdered?: boolean;
 }
@@ -1238,9 +1240,14 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
         hasOrdered={hasOrdered}
       />
 
-      {/* Takımı Tamamla Bölümü */}
-      {product.combinations && product.combinations.length > 0 && (
-        <CompleteTheSetSection products={product.combinations} />
+      {/* Takımı Tamamla Bölümü (Look Configuration) */}
+      {product.lookConfiguration && product.lookConfiguration.items && product.lookConfiguration.items.length > 0 && (
+        <LookConfigurationSection config={product.lookConfiguration} />
+      )}
+ 
+      {/* Bu Ürünün Bir Parçası Olduğu Kombin (Parent Look) */}
+      {product.parentLookConfigs && product.parentLookConfigs.length > 0 && (
+        <ParentLookConfigsSection configs={product.parentLookConfigs} />
       )}
 
       {/* Son Görüntülenenler */}
@@ -1261,88 +1268,125 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
   );
 }
 
-// Takımı Tamamla Bölümü
-function CompleteTheSetSection({ products }: { products: { id: string; name: string; slug: string; price: number; originalPrice?: number; image?: string }[] }) {
+// Takımı Tamamla Bölümü (Yeni Look Configuration)
+function LookConfigurationSection({ config }: { config: any }) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(true);
-
+ 
+  if (!config.isVisible) return null;
+ 
   const checkScroll = () => {
     if (!scrollContainerRef.current) return;
     const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
     setCanScrollPrev(scrollLeft > 0);
     setCanScrollNext(scrollLeft < scrollWidth - clientWidth - 10);
   };
-
+ 
   const scrollPrev = () => {
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollBy({ left: -280, behavior: "smooth" });
       setTimeout(checkScroll, 300);
     }
   };
-
+ 
   const scrollNext = () => {
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollBy({ left: 280, behavior: "smooth" });
       setTimeout(checkScroll, 300);
     }
   };
-
+ 
   return (
-    <section className="max-w-7xl mx-auto px-4 md:px-8 py-16">
-      <h2 className="text-2xl md:text-3xl font-serif font-light text-black text-center mb-12">
-        Takımı Tamamla
-      </h2>
+    <section className="max-w-7xl mx-auto px-4 md:px-8 py-16 border-t border-gray-100">
+      <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
+        <div className="space-y-4">
+          <span className="text-[10px] tracking-[0.4em] uppercase font-bold text-black/40">Kombininizi Tamamlayın</span>
+          <h2 className="text-3xl md:text-4xl font-serif font-light text-black">
+            {config.title || "Takımı Tamamla"}
+          </h2>
+        </div>
+        {config.showAllAddButton && (
+          <Button variant="outline" className="rounded-full px-8 h-12 border-black text-black font-bold uppercase text-[10px] tracking-[0.2em] hover:bg-black hover:text-white transition-all hidden md:flex">
+            Tüm Parçaları İncele
+          </Button>
+        )}
+      </div>
+ 
       <div className="relative">
         <div
           ref={scrollContainerRef}
           onScroll={checkScroll}
-          className="flex gap-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-4"
-          style={{ scrollBehavior: "smooth" }}
+          className="flex gap-6 overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-8"
         >
-          {products.map((item) => (
-            <Link key={item.id} href={`/products/${item.slug}`} className="flex-shrink-0 w-64 md:w-72 snap-start group">
-              <div className="relative aspect-[3/4] mb-4 overflow-hidden bg-gray-100">
-                {item.image ? (
-                  <Image
-                    src={item.image}
-                    alt={item.name}
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    sizes="(max-width: 768px) 256px, 288px"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-400">Görsel Yok</div>
-                )}
+          {config.items.map((item: any) => (
+            <Link 
+              key={item.id} 
+              href={`/products/${item.product.slug}`} 
+              className="flex-shrink-0 w-64 md:w-72 snap-start group"
+            >
+              <div className="relative aspect-[3/4] mb-6 overflow-hidden bg-gray-50 group-hover:shadow-xl transition-all duration-700">
+                {config.showDiscountBadge && <div className="absolute top-4 left-4 bg-black text-white text-[10px] px-2 py-1 uppercase z-10">İndirim</div>}
+                <Image
+                  src={item.product.primaryImage || item.product.image || "/placeholder.jpg"}
+                  alt={item.product.name}
+                  fill
+                  className="object-cover transition-transform duration-1000 group-hover:scale-110"
+                  sizes="(max-width: 768px) 256px, 288px"
+                />
+                
+                {/* Hover Quick View Overlay */}
+                <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
+                  <span className="text-white text-[10px] font-bold tracking-[0.3em] uppercase border-b border-white pb-1">İncele</span>
+                </div>
               </div>
-              <h3 className="text-sm font-light text-black mb-1 line-clamp-2">{item.name}</h3>
-              <div className="flex items-center gap-2">
-                <p className="text-sm font-medium text-black">{item.price} ₺</p>
-                {item.originalPrice && item.originalPrice > item.price && (
-                  <span className="text-xs text-gray-400 line-through">{item.originalPrice} ₺</span>
+              
+              <div className="space-y-1">
+                <h3 className="text-xs font-light text-black/60 uppercase tracking-widest truncate group-hover:text-black transition-colors">
+                  {item.product.name}
+                </h3>
+                {config.showTotalPrice && (
+                  <div className="flex items-baseline gap-3">
+                    <span className="text-sm font-medium">{item.product.price.toLocaleString('tr-TR')} ₺</span>
+                    {item.product.originalPrice && item.product.originalPrice > item.product.price && (
+                      <span className="text-[11px] text-black/30 line-through">
+                        {item.product.originalPrice.toLocaleString('tr-TR')} ₺
+                      </span>
+                    )}
+                  </div>
                 )}
               </div>
             </Link>
           ))}
         </div>
+ 
         {/* Navigation Buttons */}
-        <button
-          onClick={scrollPrev}
-          disabled={!canScrollPrev}
-          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 md:-translate-x-4 bg-white border border-gray-300 p-2 md:p-3 hover:bg-gray-50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111] focus-visible:ring-offset-2 shadow-lg z-10"
-          aria-label="Önceki"
-        >
-          <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
-        </button>
-        <button
-          onClick={scrollNext}
-          disabled={!canScrollNext}
-          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 md:translate-x-4 bg-white border border-gray-300 p-2 md:p-3 hover:bg-gray-50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111] focus-visible:ring-offset-2 shadow-lg z-10"
-          aria-label="Sonraki"
-        >
-          <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
-        </button>
+        {config.items.length > 4 && (
+          <>
+            <button
+              onClick={scrollPrev}
+              disabled={!canScrollPrev}
+              className="absolute left-0 top-1/3 -translate-y-1/2 -translate-x-2 md:-translate-x-4 bg-white border border-gray-100 p-3 hover:bg-black hover:text-white transition-all duration-300 disabled:opacity-0 shadow-xl z-20 rounded-full"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <button
+              onClick={scrollNext}
+              disabled={!canScrollNext}
+              className="absolute right-0 top-1/3 -translate-y-1/2 translate-x-2 md:translate-x-4 bg-white border border-gray-100 p-3 hover:bg-black hover:text-white transition-all duration-300 disabled:opacity-0 shadow-xl z-20 rounded-full"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </>
+        )}
       </div>
+      {config.showAllAddButton && (
+        <div className="mt-8 flex md:hidden">
+          <Button variant="outline" className="w-full rounded-full h-14 border-black text-black font-bold uppercase text-xs tracking-widest">
+            Tüm Parçaları İncele
+          </Button>
+        </div>
+      )}
     </section>
   );
 }
@@ -1499,6 +1543,59 @@ function RecentlyViewedSection({ currentProductId }: { currentProductId?: string
             <p className="text-sm font-light text-black">{product.price} ₺</p>
           </Link>
         ))}
+      </div>
+    </section>
+  );
+}
+ 
+// Bu Ürünün Bir Parçası Olduğu Kombin (Parent Look)
+function ParentLookConfigsSection({ configs }: { configs: any[] }) {
+  return (
+    <section className="max-w-7xl mx-auto px-4 md:px-8 py-16 border-t border-gray-100 bg-gray-50/30">
+      <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
+        <div className="space-y-4">
+          <span className="text-[10px] tracking-[0.4em] uppercase font-bold text-black/40">Kombin Parçası</span>
+          <h2 className="text-3xl md:text-4xl font-serif font-light text-black">
+             Bu Ürünün Bir Parçası Olduğu Stil
+          </h2>
+          <p className="text-sm text-gray-500 font-light">
+            Bu ürün aşağıdaki ana kombinasyonun bir parçasıdır. Tüm kombini inceleyebilirsiniz.
+          </p>
+        </div>
+      </div>
+ 
+      <div className="flex flex-wrap gap-10">
+        {configs.filter(c => c.isVisible).map((config, idx) => {
+          if (!config.mainProduct) return null;
+          const p = config.mainProduct;
+          return (
+            <Link 
+              key={idx} 
+              href={`/products/${p.slug}`} 
+              className="group flex flex-col md:flex-row items-center gap-8 bg-white p-8 rounded-[40px] shadow-sm hover:shadow-xl transition-all duration-700 ring-1 ring-black/5"
+            >
+              <div className="relative w-48 h-64 overflow-hidden rounded-[30px]">
+                <Image
+                  src={p.primaryImage || p.image || "/placeholder.jpg"}
+                  alt={p.name}
+                  fill
+                  className="object-cover transition-transform duration-1000 group-hover:scale-110"
+                />
+              </div>
+              <div className="flex flex-col gap-4 text-center md:text-left">
+                <div className="space-y-1">
+                  <span className="text-[10px] font-bold text-orange-500 uppercase tracking-widest">{config.title || "Kombin Ana Ürünü"}</span>
+                  <h3 className="text-2xl font-serif font-light text-black group-hover:text-black/70 transition-colors">{p.name}</h3>
+                </div>
+                <div className="flex items-baseline gap-3 justify-center md:justify-start">
+                  <span className="text-lg font-medium">{p.price.toLocaleString('tr-TR')} ₺</span>
+                  <ArrowRight className="w-5 h-5 text-black/20 group-hover:translate-x-2 transition-transform" />
+                </div>
+                <Button className="mt-2 bg-black text-white rounded-full px-8 h-12 uppercase text-[10px] tracking-widest">Kombini Gör</Button>
+              </div>
+            </Link>
+          );
+        })}
       </div>
     </section>
   );

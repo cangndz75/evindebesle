@@ -622,15 +622,11 @@ export default function CategoryProductsPage({
                                                 {product.colors.length} renk seçeneği
                                             </p>
                                         )}
-                                    </div>
-
-                                    {/* Hover'da Hızlı Ekle Bölümü - Altından animasyonlu çıkar */}
-                                    <div className="absolute bottom-0 left-0 right-0 bg-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out border-t border-gray-200 shadow-lg z-20 overflow-hidden">
-                                        <div className="p-4">
-                                            <p className="text-xs font-light text-[#111] mb-3 text-center">Hızlı ekle</p>
+                                        {/* Hover'da Hızlı Ekle Bölümü (Görsel 5 Tasarımı) */}
+                                        <div className="mt-4 pt-4 border-t border-gray-100 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden md:block">
+                                            <p className="text-[10px] tracking-[0.2em] font-light text-[#111]/40 uppercase mb-3 text-center">Hızlı ekle</p>
                                             <div className="flex flex-wrap gap-2 justify-center">
                                                 {(() => {
-                                                    // Önce sizes'ı kontrol et, yoksa sizeOptions'ı kullan
                                                     const availableSizes = product.sizes && product.sizes.length > 0
                                                         ? product.sizes
                                                         : product.sizeOptions && product.sizeOptions.length > 0
@@ -638,12 +634,9 @@ export default function CategoryProductsPage({
                                                             : [];
 
                                                     if (availableSizes.length === 0) {
-                                                        return (
-                                                            <p className="text-xs text-gray-500">Beden seçeneği bulunmuyor</p>
-                                                        );
+                                                        return <p className="text-[10px] text-gray-400">Beden seçeneği yok</p>;
                                                     }
 
-                                                    // Seçili renge göre variant stok kontrolü
                                                     const currentColorId = displayColorObj?.id || product.colors?.[0]?.id;
 
                                                     return availableSizes.map((size, sizeIdx) => {
@@ -653,7 +646,6 @@ export default function CategoryProductsPage({
                                                             ? (size as any).id
                                                             : null;
 
-                                                        // Variant stok kontrolü (seçili renge göre)
                                                         let variantStock = 0;
                                                         if (currentColorId && displayColorObj?.variants) {
                                                             const variant = displayColorObj.variants.find((v: any) =>
@@ -671,14 +663,10 @@ export default function CategoryProductsPage({
                                                                 onClick={async (e) => {
                                                                     e.preventDefault();
                                                                     e.stopPropagation();
-
                                                                     if (isOutOfStock) {
-                                                                        toast.error("Bu beden stokta yok", {
-                                                                            position: "bottom-left",
-                                                                        });
+                                                                        toast.error("Stokta yok");
                                                                         return;
                                                                     }
-
                                                                     try {
                                                                         const res = await fetch("/api/cart", {
                                                                             method: "POST",
@@ -690,92 +678,54 @@ export default function CategoryProductsPage({
                                                                                 quantity: 1,
                                                                             }),
                                                                         });
-
                                                                         if (res.ok) {
                                                                             const result = await res.json();
-
-                                                                            // Giriş yapmamış kullanıcı için localStorage'a kaydet
                                                                             if (!result.userId && result.product) {
                                                                                 const { addToGuestCart } = await import("@/lib/cart-utils");
-                                                                                addToGuestCart(
-                                                                                    product.id,
-                                                                                    currentColorId || null,
-                                                                                    sizeId || null,
-                                                                                    1,
-                                                                                    {
-                                                                                        id: result.product.id,
-                                                                                        name: result.product.name || product.name,
-                                                                                        image: result.product.image || product.image,
-                                                                                        price: result.product.price || product.price || 0,
-                                                                                    },
-                                                                                    result.color || null,
-                                                                                    result.size || null
-                                                                                );
+                                                                                addToGuestCart(product.id, currentColorId || null, sizeId || null, 1, {
+                                                                                    id: result.product.id,
+                                                                                    name: result.product.name || product.name,
+                                                                                    image: result.product.image || product.image,
+                                                                                    price: result.product.price || product.price || 0,
+                                                                                });
                                                                             }
-
                                                                             const cartModule = await import("@/lib/stores/cartStore");
                                                                             await cartModule.useCartStore.getState().refreshCart();
+                                                                            toast.success(`${product.name} (${sizeName}) sepete eklendi`);
 
-                                                                            // Renk bilgisini al
-                                                                            const selectedColorObj = product.colors?.find((c: any) => c.id === currentColorId) || product.colors?.[0];
-                                                                            let colorName = "";
-                                                                            let productImage = "";
-
-                                                                            if (selectedColorObj) {
-                                                                                colorName = selectedColorObj.name || "";
-                                                                                // images string olabilir (JSON)
-                                                                                if (typeof selectedColorObj.images === 'string') {
-                                                                                    try {
-                                                                                        const parsed = JSON.parse(selectedColorObj.images);
-                                                                                        productImage = parsed[0] || selectedColorObj.images;
-                                                                                    } catch {
-                                                                                        productImage = selectedColorObj.images;
-                                                                                    }
-                                                                                } else if (Array.isArray(selectedColorObj.images) && selectedColorObj.images.length > 0) {
-                                                                                    productImage = selectedColorObj.images[0];
-                                                                                }
-                                                                            }
-
-                                                                            // Fallback: product image
-                                                                            if (!productImage) {
-                                                                                productImage = product.image || product.primaryImage || "";
-                                                                            }
-
-                                                                            // Pop-up için event gönder
+                                                                            // Pop-up event
                                                                             window.dispatchEvent(
                                                                                 new CustomEvent("itemAddedToCart", {
                                                                                     detail: {
                                                                                         product: {
                                                                                             id: product.id,
                                                                                             name: product.name,
-                                                                                            image: productImage,
+                                                                                            image: currentImage,
                                                                                             price: product.price || 0,
                                                                                         },
                                                                                         size: sizeName || "",
-                                                                                        color: colorName || "",
+                                                                                        color: displayColorObj?.name || "",
                                                                                     },
                                                                                 })
                                                                             );
                                                                         } else {
-                                                                            const error = await res.json();
-                                                                            toast.error(error.error || "Sepete eklenirken bir hata oluştu", {
-                                                                                position: "bottom-left",
-                                                                            });
+                                                                            const errorData = await res.json();
+                                                                            toast.error(errorData.error || "Hata oluştu");
                                                                         }
                                                                     } catch (error) {
-                                                                        console.error("Add to cart error:", error);
-                                                                        toast.error("Bir hata oluştu");
+                                                                        toast.error("Hata oluştu");
                                                                     }
                                                                 }}
-                                                                className={`min-w-[32px] h-8 px-2 text-xs font-light border transition-colors ${isOutOfStock
-                                                                    ? "text-gray-300 border-gray-200 cursor-not-allowed"
-                                                                    : "text-[#111] border-[#111] hover:bg-[#111] hover:text-white"
+                                                                disabled={isOutOfStock}
+                                                                className={`w-10 h-10 flex items-center justify-center text-[11px] font-light border transition-all duration-300 ${isOutOfStock
+                                                                    ? "border-gray-100 text-gray-300 cursor-not-allowed bg-white"
+                                                                    : "border-gray-200 text-[#111] hover:bg-black hover:text-white hover:border-black bg-white"
                                                                     }`}
                                                             >
                                                                 {sizeName}
                                                             </button>
                                                         );
-                                                    })
+                                                    });
                                                 })()}
                                             </div>
                                         </div>

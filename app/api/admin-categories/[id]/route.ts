@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { logAuditAction } from "@/lib/auditLog";
@@ -122,6 +123,9 @@ export async function PATCH(
     });
 
 
+    revalidatePath("/home");
+    revalidatePath("/men");
+    revalidatePath("/women");
     return NextResponse.json(category);
   } catch (error: any) {
     console.error("Category update error:", error);
@@ -178,6 +182,9 @@ export async function DELETE(
     });
 
 
+    revalidatePath("/home");
+    revalidatePath("/men");
+    revalidatePath("/women");
     return NextResponse.json({ success: true });
   } catch (error: any) {
     console.error("Category deletion error:", error);

@@ -79,7 +79,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="tr" className="overflow-x-hidden">
+    <html lang="tr" className="overflow-x-hidden" suppressHydrationWarning>
       <head>
         {/* Preconnect for faster external resource loading */}
         <link rel="preconnect" href="https://res.cloudinary.com" />

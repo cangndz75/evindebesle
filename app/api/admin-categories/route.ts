@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { logAuditAction } from "@/lib/auditLog";
@@ -106,6 +107,9 @@ export async function POST(req: Request) {
       userAgent: (req as any).headers?.get("user-agent") || undefined,
     });
 
+    revalidatePath("/home");
+    revalidatePath("/men");
+    revalidatePath("/women");
     return NextResponse.json(category);
   } catch (error: any) {
     console.error("Category creation error:", error);

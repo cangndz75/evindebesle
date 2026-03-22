@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 export const dynamic = "force-dynamic";
 import { generateVariantCode, generateProductSlug } from "@/lib/slug";
 import { getServerSession } from "next-auth";
@@ -465,6 +466,14 @@ export async function PATCH(
       userAgent: request.headers.get("user-agent") || undefined,
     });
 
+    revalidatePath("/home");
+    revalidatePath("/men");
+    revalidatePath("/women");
+    revalidatePath("/new-arrivals");
+    revalidatePath("/collections");
+    if (updatedProduct?.slug) {
+      revalidatePath(`/products/${updatedProduct.slug}`);
+    }
     return NextResponse.json(updatedProduct);
 
   } catch (error: any) {
@@ -596,6 +605,11 @@ export async function DELETE(
       userAgent: request.headers.get("user-agent") || undefined,
     });
 
+    revalidatePath("/home");
+    revalidatePath("/men");
+    revalidatePath("/women");
+    revalidatePath("/new-arrivals");
+    revalidatePath("/collections");
     return NextResponse.json({ success: true, message: "Silme işlemi tamamlandı" });
 
   } catch (error: any) {

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 
@@ -37,6 +38,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Geçersiz tip" }, { status: 400 });
     }
 
+    // Revalidate affected products and common pages
+    revalidatePath("/home");
+    revalidatePath("/men");
+    revalidatePath("/women");
+    // Since we don't have slugs here easily, revalidating layouts or specific paths is harder, 
+    // but usually these are shown in product details.
+    
     return NextResponse.json({ success: true, count: result.count });
   } catch (error) {
     console.error("[TEMPLATES_BULK_POST]", error);

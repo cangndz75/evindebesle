@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
@@ -78,6 +79,8 @@ export async function POST(request: Request) {
       }
     });
 
+    revalidatePath("/home");
+    revalidatePath("/new-arrivals");
     return NextResponse.json(item);
   } catch (error) {
     console.error("Error adding to new arrivals:", error);
@@ -111,6 +114,8 @@ export async function DELETE(request: Request) {
       });
     }
 
+    revalidatePath("/home");
+    revalidatePath("/new-arrivals");
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error removing from new arrivals:", error);
@@ -139,6 +144,8 @@ export async function PUT(request: Request) {
        });
     }
 
+    revalidatePath("/home");
+    revalidatePath("/new-arrivals");
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error reordering new arrival items:", error);

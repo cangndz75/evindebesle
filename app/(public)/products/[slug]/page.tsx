@@ -88,6 +88,45 @@ export default async function ProductSlugPage({
           order: "asc",
         },
       },
+      lookConfiguration: {
+        include: {
+          items: {
+            include: {
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  image: true,
+                  primaryImage: true,
+                  price: true,
+                  originalPrice: true,
+                  slug: true,
+                }
+              }
+            },
+            orderBy: { order: "asc" }
+          }
+        }
+      },
+      lookItems: {
+        include: {
+          lookConfiguration: {
+            include: {
+              mainProduct: {
+                select: {
+                  id: true,
+                  name: true,
+                  image: true,
+                  primaryImage: true,
+                  price: true,
+                  originalPrice: true,
+                  slug: true,
+                }
+              }
+            }
+          }
+        }
+      }
     },
   });
 
@@ -147,6 +186,45 @@ export default async function ProductSlugPage({
             order: "asc",
           },
         },
+        lookConfiguration: {
+          include: {
+            items: {
+              include: {
+                product: {
+                  select: {
+                    id: true,
+                    name: true,
+                    image: true,
+                    primaryImage: true,
+                    price: true,
+                    originalPrice: true,
+                    slug: true,
+                  }
+                }
+              },
+              orderBy: { order: "asc" }
+            }
+          }
+        },
+        lookItems: {
+          include: {
+            lookConfiguration: {
+              include: {
+                mainProduct: {
+                  select: {
+                    id: true,
+                    name: true,
+                    image: true,
+                    primaryImage: true,
+                    price: true,
+                    originalPrice: true,
+                    slug: true,
+                  }
+                }
+              }
+            }
+          }
+        }
       },
     });
   }
@@ -324,6 +402,11 @@ export default async function ProductSlugPage({
       image: c.relatedProduct.image || undefined,
       slug: c.relatedProduct.slug || c.relatedProduct.id,
     })),
+    lookConfiguration: product.lookConfiguration || undefined,
+    parentLookConfigs: (product as any).lookItems?.map((li: any) => ({
+      ...li.lookConfiguration,
+      mainProduct: li.lookConfiguration?.mainProduct
+    })) || []
   };
 
   return <ProductDetailPage product={formattedProduct} hasOrdered={hasOrdered} />;

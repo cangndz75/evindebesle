@@ -19,6 +19,7 @@ import CartPreview from "@/components/home/CartPreview";
 import AnnouncementBanner from "@/components/home/AnnouncementBanner";
 import { useHeaderStore } from "@/lib/stores/headerStore";
 import { useCategories } from "@/hooks/useCategories";
+import { useCollections } from "@/hooks/useCollections";
 import { useCartStore } from "@/lib/stores/cartStore";
 
 type MenuKey = "men" | "women" | "new" | "collections" | "blog" | "about";
@@ -39,8 +40,8 @@ type Promo = {
 const navItems = [
   { key: "men" as const, label: "ERKEK", href: "/men" },
   { key: "women" as const, label: "KADIN", href: "/women" },
-  { key: "new" as const, label: "YENİ", href: "/men/new" },
-  { key: "collections" as const, label: "KOLEKSİYON", href: "/women" },
+  { key: "new" as const, label: "YENİ", href: "/new-arrivals" },
+  { key: "collections" as const, label: "KOLEKSİYON", href: "/collections" },
   // { key: "blog" as const, label: "BLOG", href: "/blog" },
   // { key: "about" as const, label: "HAKKIMIZDA", href: "/about" },
 ] as const;
@@ -51,7 +52,8 @@ export default function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [openMenu, setOpenMenu] = useState<MenuKey | null>(null);
   const [mobileMenuState, setMobileMenuState] = useState<"main" | "men" | "women">("main");
-  const { categories, loading } = useCategories();
+  const { categories, loading: categoriesLoading } = useCategories();
+  const { collections, loading: collectionsLoading } = useCollections();
   const [cartOpen, setCartOpen] = useState(false);
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const closeTimer = useRef<number | null>(null);
@@ -136,11 +138,28 @@ export default function SiteHeader() {
     };
   }, [session, refreshCartCount]);
 
-  const mega = useMemo<Record<MenuKey, { left: MegaGroup[]; rightPromo: Promo }>>(
+  const mega = useMemo<Record<MenuKey, { left: MegaGroup[]; rightPromo: Promo | null }>>(
     () => {
-      const result: Record<MenuKey, { left: MegaGroup[]; rightPromo: Promo }> = {
+      const result: Record<MenuKey, { left: MegaGroup[]; rightPromo: Promo | null }> = {
         men: {
-          left: [],
+          left: [
+            {
+              title: "YENİ GELENLER",
+              items: [
+                { label: "Bu Haftalık", href: "/new-arrivals" },
+                { label: "En Yeniler", href: "/new-arrivals" },
+                { label: "Trending", href: "/new-arrivals" },
+              ],
+            },
+            {
+              title: "KATEGORİLER",
+              items: categoriesLoading 
+                ? [{ label: "Yükleniyor...", href: "#" }]
+                : categories
+                    .filter(c => c.gender === "MALE" || c.gender === "UNISEX")
+                    .map(c => ({ label: c.name, href: `/category/${c.slug}` })),
+            },
+          ],
           rightPromo: {
             title: "Erkek Koleksiyonu",
             subtitle: "Modern ve zamansız parçalar",
@@ -149,48 +168,53 @@ export default function SiteHeader() {
           },
         },
         women: {
-          left: [],
-          rightPromo: {
-            title: "Kadın Koleksiyonu",
-            subtitle: "Zarafet ve konfor bir arada",
-            image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1200&auto=format&fit=crop",
-            href: "/women",
-          },
-        },
-        new: {
           left: [
             {
               title: "YENİ GELENLER",
               items: [
-                { label: "Bu Haftalık", href: "/category/new-this-week" },
-                { label: "En Yeniler", href: "/men/new" },
-                { label: "Trending", href: "/category/trends" },
+                { label: "Bu Haftalık", href: "/new-arrivals" },
+                { label: "En Yeniler", href: "/new-arrivals" },
+                { label: "Trending", href: "/new-arrivals" },
               ],
+            },
+            {
+              title: "KATEGORİLER",
+              items: categoriesLoading 
+                ? [{ label: "Yükleniyor...", href: "#" }]
+                : categories
+                    .filter(c => c.gender === "FEMALE" || c.gender === "UNISEX")
+                    .map(c => ({ label: c.name, href: `/category/${c.slug}` })),
             },
           ],
           rightPromo: {
-            title: "Yeni Sezon",
-            subtitle: "En güncel trendler",
-            image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=1200&auto=format&fit=crop",
-            href: "/men/new",
+            title: "Kadın Koleksiyonu",
+            subtitle: "Zarafet ve stil",
+            image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1200&auto=format&fit=crop",
+            href: "/women",
           },
+        },
+        new: { 
+          left: [],
+          rightPromo: null
         },
         collections: {
           left: [
             {
               title: "KOLEKSİYONLAR",
-              items: [
-                { label: "Minimalist", href: "/category/collection-minimalist" },
-                { label: "Dark Edition", href: "/category/collection-dark" },
-                { label: "Velvet Soft", href: "/category/collection-velvet" },
-              ],
+              items: collections.length > 0
+                ? collections.map(c => ({ label: c.title, href: `/collections/${c.slug}` }))
+                : [
+                  { label: "Minimalist", href: "/collections/minimalist" },
+                  { label: "Dark Edition", href: "/collections/dark" },
+                  { label: "Velvet Soft", href: "/collections/velvet" },
+                ],
             },
           ],
           rightPromo: {
             title: "Dark Collection",
             subtitle: "Özel seri tasarımlar",
             image: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?q=80&w=1200&auto=format&fit=crop",
-            href: "/women",
+            href: "/collections",
           },
         },
         about: {
@@ -222,30 +246,9 @@ export default function SiteHeader() {
         },
       };
 
-      // Dinamik kategorileri ekle
-      categories.forEach((cat) => {
-        const genderKey = cat.gender === "MALE" ? "men" : cat.gender === "FEMALE" ? "women" : null;
-        if (!genderKey) return;
-
-        const groupTitle = `${cat.gender === "MALE" ? "ERKEK" : "KADIN"} ${cat.group?.toUpperCase() || "GİYİM"}`;
-
-        // Bu grup zaten var mı?
-        let group = result[genderKey].left.find((g) => g.title === groupTitle);
-        if (!group) {
-          group = { title: groupTitle, items: [] };
-          result[genderKey].left.push(group);
-        }
-
-        group.items.push({
-          label: cat.name,
-          href: `/category/${cat.slug}`,
-        });
-      });
-
-      // "Tümünü Gör" linklerini her grubun sonuna ekle (isteğe bağlı)
-      // Veya ana kategoriler için ekle
+      // "Tümünü Gör" linklerini ekle
       ["men", "women"].forEach((key) => {
-        const principalGroup = result[key as MenuKey].left.find(g => g.title?.includes("GİYİM"));
+        const principalGroup = result[key as MenuKey].left.find(g => g.title === "KATEGORİLER");
         if (principalGroup) {
           principalGroup.items.push({ label: "Tümünü Gör", href: `/${key}` });
         }
@@ -253,7 +256,7 @@ export default function SiteHeader() {
 
       return result;
     },
-    [categories]
+    [categories, categoriesLoading, collections]
   );
 
   const open = (key: MenuKey) => {
@@ -321,17 +324,28 @@ export default function SiteHeader() {
                 {navItems.map((item) => (
                   <div
                     key={item.key}
-                    className="relative"
-                    onMouseEnter={() => open(item.key)}
+                    className="relative h-full flex items-center"
+                    onMouseEnter={() => (item.key !== "new" && item.key !== "men" && item.key !== "women") && open(item.key)}
                     onMouseLeave={scheduleClose}
                   >
-                    <Link
-                      href={item.href}
-                      prefetch={true}
-                      className="text-xs md:text-sm font-light hover:opacity-70 transition-all uppercase text-[#111]"
-                    >
-                      {item.label}
-                    </Link>
+                    {item.key === "new" ? (
+                      <Link
+                        href={item.href}
+                        prefetch={true}
+                        className="text-xs md:text-sm font-light hover:opacity-70 transition-all uppercase text-[#111]"
+                        onClick={() => setOpenMenu(null)}
+                      >
+                        {item.label}
+                      </Link>
+                    ) : (
+                      <Link
+                        href={item.href}
+                        prefetch={true}
+                        className="text-xs md:text-sm font-light hover:opacity-70 transition-all uppercase text-[#111]"
+                      >
+                        {item.label}
+                      </Link>
+                    )}
                   </div>
                 ))}
               </div>
@@ -401,7 +415,7 @@ export default function SiteHeader() {
 
                         <div className="space-y-1">
                           <p className="text-xs text-[#111]/40 uppercase tracking-widest font-medium mb-3">Kategoriler</p>
-                          {loading ? (
+                          {categoriesLoading ? (
                             <div className="space-y-3">
                               {[1, 2, 3, 4].map(i => (
                                 <div key={i} className="h-4 bg-gray-100 rounded w-2/3 animate-pulse" />
@@ -568,59 +582,66 @@ export default function SiteHeader() {
         </nav>
 
         {/* Desktop Mega Menu */}
-        {openMenu && (
+        {openMenu && mega[openMenu] && (
           <div
             className="hidden md:block absolute left-0 right-0 top-full z-50 bg-white border-t border-black/10 shadow-lg"
             onMouseEnter={keepOpen}
             onMouseLeave={scheduleClose}
           >
-            <div className="max-w-7xl mx-auto px-4 md:px-8 py-6">
-              <div className="grid grid-cols-12 gap-6">
-                <div className="col-span-10">
-                  <div className="grid grid-cols-3 gap-6">
-                    {mega[openMenu].left.map((group, idx) => (
-                      <div key={`${openMenu}-${idx}`}>
-                        {group.title && (
-                          <div className="text-[11px] tracking-[0.22em] uppercase mb-3 text-black/70">
-                            {group.title}
-                          </div>
-                        )}
-                        <ul className="space-y-2">
-                          {group.items.map((it, itemIdx) => (
-                            <li key={`${it.href}-${itemIdx}`}>
-                              <Link
-                                href={it.href}
-                                className="block text-[#111] text-sm font-light hover:opacity-70 transition-opacity"
-                              >
-                                {it.label}
-                              </Link>
-                            </li>
-                          ))}
-                        </ul>
+            <div className="max-w-5xl mx-auto px-8 py-8">
+              <div className="flex">
+                {/* Sol Taraf: Link Grupları */}
+                <div className="flex-1 grid grid-cols-2 lg:grid-cols-3 gap-8">
+                  {mega[openMenu].left.map((group, gIdx) => (
+                    <div key={gIdx} className="space-y-6">
+                      {group.title && (
+                        <p className="text-[10px] tracking-[0.4em] uppercase font-bold text-black/40">
+                          {group.title}
+                        </p>
+                      )}
+                      <div className="space-y-4">
+                        {group.items.map((link, lIdx) => (
+                          <Link
+                            key={lIdx}
+                            href={link.href}
+                            className="block text-sm font-light text-black/70 hover:text-black hover:translate-x-1 transition-all duration-300"
+                            onClick={() => setOpenMenu(null)}
+                          >
+                            {link.label}
+                          </Link>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="col-span-2">
-                  <Link href={mega[openMenu].rightPromo.href} className="group block">
-                    <div className="relative aspect-[3/4] overflow-hidden bg-gray-100 mb-2">
-                      <Image
-                        src={mega[openMenu].rightPromo.image}
-                        alt={mega[openMenu].rightPromo.title}
-                        fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-105"
-                        sizes="200px"
-                        unoptimized
-                      />
                     </div>
-                    <h3 className="text-xs font-light text-[#111] mb-0.5">
-                      {mega[openMenu].rightPromo.title}
-                    </h3>
-                    <p className="text-[10px] text-[#111]/60 font-light">
-                      {mega[openMenu].rightPromo.subtitle}
-                    </p>
-                  </Link>
+                  ))}
                 </div>
+
+                {/* Sağ Taraf: Promo */}
+                {mega[openMenu].rightPromo && (
+                  <div className="w-[260px] bg-gray-50 border-l border-gray-100 pl-8 flex flex-col justify-center">
+                    <Link href={mega[openMenu].rightPromo!.href} className="group block" onClick={() => setOpenMenu(null)}>
+                      <div className="relative group/promo overflow-hidden aspect-[3/4] mb-6">
+                        <Image
+                          src={mega[openMenu].rightPromo!.image}
+                          alt={mega[openMenu].rightPromo!.title}
+                          fill
+                          className="object-cover transition-transform duration-1000 group-hover/promo:scale-105"
+                          sizes="400px"
+                          unoptimized
+                        />
+                        <div className="absolute inset-0 bg-black/5" />
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-[10px] tracking-[0.4em] uppercase font-bold text-black/30">Öne Çıkan</p>
+                        <h4 className="text-xl font-serif font-light">{mega[openMenu].rightPromo!.title}</h4>
+                        <span
+                          className="inline-flex text-[11px] font-bold tracking-[0.2em] uppercase border-b border-black pb-1 hover:border-black/30 transition-colors"
+                        >
+                          Keşfet
+                        </span>
+                      </div>
+                    </Link>
+                  </div>
+                )}
               </div>
             </div>
           </div>

@@ -850,6 +850,97 @@ export default function WomenProductsPage({
                   )}
                 </div>
 
+                {/* Hover'da Hızlı Ekle Bölümü (Görsel 5 Tasarımı) */}
+                <div className="mt-4 pt-4 border-t border-gray-100 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden md:block">
+                  <p className="text-[10px] tracking-[0.2em] font-light text-[#111]/40 uppercase mb-3 text-center">Hızlı ekle</p>
+                  <div className="flex flex-wrap gap-2 justify-center">
+                    {(() => {
+                      const availableSizes = product.sizes && product.sizes.length > 0
+                        ? product.sizes
+                        : product.sizeOptions && product.sizeOptions.length > 0
+                          ? product.sizeOptions.map(so => ({ name: so.name, stock: 0 }))
+                          : [];
+
+                      if (availableSizes.length === 0) {
+                        return <p className="text-[10px] text-gray-400">Beden seçeneği yok</p>;
+                      }
+
+                      const currentColor = product.colors.find(c => c.images?.[0] === activeColorImage) || product.colors[0];
+                      const currentColorId = currentColor?.id;
+
+                      return availableSizes.map((size, sizeIdx) => {
+                        const sizeName = typeof size === 'string' ? size : size.name;
+                        const sizeStock = typeof size === 'object' ? size.stock : 0;
+                        const sizeId = (size as any).id || null;
+
+                        let variantStock = 0;
+                        if (currentColorId && (currentColor as any).variants) {
+                          const variant = (currentColor as any).variants.find((v: any) =>
+                            v.sizeId === sizeId
+                          );
+                          variantStock = variant?.stock || 0;
+                        }
+
+                        const finalStock = variantStock > 0 ? variantStock : sizeStock;
+                        const isOutOfStock = finalStock <= 0;
+
+                        return (
+                          <button
+                            key={sizeIdx}
+                            onClick={async (e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              if (isOutOfStock) {
+                                toast.error("Stokta yok");
+                                return;
+                              }
+                              try {
+                                const res = await fetch("/api/cart", {
+                                  method: "POST",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({
+                                    productId: product.id,
+                                    colorId: currentColorId || null,
+                                    sizeId: sizeId || null,
+                                    quantity: 1,
+                                  }),
+                                });
+                                if (res.ok) {
+                                  const result = await res.json();
+                                  if (!result.userId && result.product) {
+                                    const { addToGuestCart } = await import("@/lib/cart-utils");
+                                    addToGuestCart(product.id, currentColorId || null, sizeId || null, 1, {
+                                      id: result.product.id,
+                                      name: result.product.name || product.name,
+                                      image: result.product.image || product.image,
+                                      price: result.product.price || product.price || 0,
+                                    });
+                                  }
+                                  const cartModule = await import("@/lib/stores/cartStore");
+                                  await cartModule.useCartStore.getState().refreshCart();
+                                  toast.success(`${product.name} (${sizeName}) sepete eklendi`);
+                                } else {
+                                  const errorData = await res.json();
+                                  toast.error(errorData.error || "Hata oluştu");
+                                }
+                              } catch (error) {
+                                toast.error("Hata oluştu");
+                              }
+                            }}
+                            disabled={isOutOfStock}
+                            className={`w-10 h-10 flex items-center justify-center text-[11px] font-light border transition-all duration-300 ${isOutOfStock
+                                ? "border-gray-100 text-gray-300 cursor-not-allowed bg-white"
+                                : "border-gray-200 text-[#111] hover:bg-black hover:text-white hover:border-black bg-white"
+                              }`}
+                          >
+                            {sizeName}
+                          </button>
+                        );
+                      });
+                    })()}
+                  </div>
+                </div>
+
                 <div className="flex items-center gap-1 mt-2">
                   {product.colors.map((color, idx) => {
                     const colorImg = color.images?.[0] || "";

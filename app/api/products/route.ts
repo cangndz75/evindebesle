@@ -17,6 +17,8 @@ export async function GET(request: NextRequest) {
   const fabricType = searchParams.get("fabricType");
   const categoryId = searchParams.get("categoryId");
   const categorySlug = searchParams.get("categorySlug");
+  const newArrivalsOnly = searchParams.get("newArrivals") === "true";
+  const sort = searchParams.get("sort"); // date-new, date-old, price-low, price-high, featured
 
   const isActive = searchParams.get("isActive") !== "false"; // Default true
   const take = searchParams.get("take"); // Limit results
@@ -24,6 +26,12 @@ export async function GET(request: NextRequest) {
   const where: any = {
     isActive,
   };
+
+  if (newArrivalsOnly) {
+    where.newArrivalItem = {
+      isNot: null,
+    };
+  }
 
   // Gender filter
   if (genders.length > 0) {
@@ -93,6 +101,17 @@ export async function GET(request: NextRequest) {
     };
   }
 
+  let orderBy: any = { createdAt: "desc" };
+  if (sort === "price-low") {
+    orderBy = { price: "asc" };
+  } else if (sort === "price-high") {
+    orderBy = { price: "desc" };
+  } else if (sort === "date-old") {
+    orderBy = { createdAt: "asc" };
+  } else if (sort === "date-new") {
+    orderBy = { createdAt: "desc" };
+  }
+
   const products = await prisma.product.findMany({
     where,
     take: take ? parseInt(take) : undefined,
@@ -153,7 +172,7 @@ export async function GET(request: NextRequest) {
         },
       },
     },
-    orderBy: { createdAt: "desc" },
+    orderBy,
   });
 
   // Parse color images JSON strings

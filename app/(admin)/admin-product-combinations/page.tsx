@@ -1,329 +1,150 @@
 "use client";
-
+ 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Search, Plus, Trash2, ArrowRight } from "lucide-react";
-
-type ProductBasics = {
-  id: string;
-  name: string;
-  image?: string;
-  price: number;
-  stockCode?: string;
-};
-
-export default function AdminProductCombinationsPage() {
+import { Layout, Plus, Edit2, Trash2, ExternalLink, Package, Eye, EyeOff, MoreVertical } from "lucide-react";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+ 
+export default function AdminLooksListPage() {
   const router = useRouter();
-
-  const [mainSearch, setMainSearch] = useState("");
-  const [mainResults, setMainResults] = useState<ProductBasics[]>([]);
-  const [selectedMainProduct, setSelectedMainProduct] = useState<ProductBasics | null>(null);
-
-  const [relatedSearch, setRelatedSearch] = useState("");
-  const [relatedResults, setRelatedResults] = useState<ProductBasics[]>([]);
-
-  const [combinations, setCombinations] = useState<any[]>([]);
-  const [loadingCombos, setLoadingCombos] = useState(false);
-
-  // Debounced Main Search
+  const [looks, setLooks] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+ 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (mainSearch.length >= 2) {
-        fetchProducts(mainSearch).then(setMainResults);
-      } else {
-        setMainResults([]);
-      }
-    }, 400);
-    return () => clearTimeout(timer);
-  }, [mainSearch]);
-
-  // Debounced Related Search
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (relatedSearch.length >= 2) {
-        fetchProducts(relatedSearch).then(setRelatedResults);
-      } else {
-        setRelatedResults([]);
-      }
-    }, 400);
-    return () => clearTimeout(timer);
-  }, [relatedSearch]);
-
-  const fetchProducts = async (q: string) => {
+    fetchLooks();
+  }, []);
+ 
+  const fetchLooks = async () => {
+    setLoading(true);
     try {
-      const res = await fetch(`/api/admin-products?search=${encodeURIComponent(q)}`);
+      const res = await fetch("/api/admin-look-configs");
       if (res.ok) {
-        return await res.json();
-      }
-      return [];
-    } catch (e) {
-      console.error(e);
-      return [];
-    }
-  };
-
-  const fetchCombinations = async (productId: string) => {
-    setLoadingCombos(true);
-    try {
-      const res = await fetch(`/api/admin-product-combinations?productId=${productId}`);
-      if (res.ok) {
-        const data = await res.json();
-        setCombinations(data);
-      } else {
-        setCombinations([]);
+        setLooks(await res.json());
       }
     } catch (e) {
-      console.error(e);
-      toast.error("Kombinler yüklenemedi");
+      toast.error("Kombinler yüklenemedi.");
     } finally {
-      setLoadingCombos(false);
+      setLoading(false);
     }
   };
-
-  const handleSelectMainProduct = (p: ProductBasics) => {
-    setSelectedMainProduct(p);
-    setMainSearch("");
-    setMainResults([]);
-    fetchCombinations(p.id);
-  };
-
-  const clearMainProduct = () => {
-    setSelectedMainProduct(null);
-    setCombinations([]);
-    setRelatedSearch("");
-    setRelatedResults([]);
-  };
-
-  const handleAddCombination = async (related: ProductBasics) => {
-    if (!selectedMainProduct) return;
+ 
+  const handleDelete = async (id: string) => {
+    if (!confirm("Bu kombinasyonu silmek istediğinize emin misiniz?")) return;
+    
     try {
-      const res = await fetch("/api/admin-product-combinations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          productId: selectedMainProduct.id,
-          relatedProductId: related.id,
-        }),
-      });
-
+      const res = await fetch(`/api/admin-look-configs?id=${id}`, { method: "DELETE" });
       if (res.ok) {
-        toast.success("Kombin eklendi!");
-        fetchCombinations(selectedMainProduct.id);
+        toast.success("Kombinasyon silindi.");
+        fetchLooks();
       } else {
-        const err = await res.json();
-        toast.error(err.error || "Hata oluştu");
+        toast.error("Silinemedi.");
       }
     } catch (e) {
-      toast.error("Bir hata oluştu");
+      toast.error("Bir hata oluştu.");
     }
   };
-
-  const handleRemoveCombination = async (relatedProductId: string) => {
-    if (!selectedMainProduct) return;
-    try {
-      const res = await fetch(
-        `/api/admin-product-combinations?productId=${selectedMainProduct.id}&relatedProductId=${relatedProductId}`,
-        { method: "DELETE" }
-      );
-      if (res.ok) {
-        toast.success("Kombin silindi!");
-        fetchCombinations(selectedMainProduct.id);
-      } else {
-        toast.error("Silinemedi");
-      }
-    } catch (e) {
-      toast.error("Bir hata oluştu");
-    }
-  };
-
+ 
   return (
-    <div className="space-y-6 lg:p-6 p-4">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Ürün Kombinleri (Takımı Tamamla)</h1>
-        <p className="text-muted-foreground mt-2">
-          Müşterilere "Takımı Tamamla" kısmında gösterilmek üzere ana ürüne kombin ürünler ekleyin.
-        </p>
+    <div className="max-w-7xl mx-auto p-4 md:p-10 space-y-10">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-white p-8 rounded-[32px] shadow-sm border border-gray-100">
+        <div className="flex items-center gap-6">
+          <div className="p-4 bg-black rounded-2xl">
+            <Layout className="h-8 w-8 text-white" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Kombinasyon Yönetimi</h1>
+            <p className="text-gray-500 mt-1">Mağazadaki tüm "Takımı Tamamla" setlerini yönetin</p>
+          </div>
+        </div>
+        <Button onClick={() => router.push("/admin-product-combinations/new")} className="rounded-full px-8 h-12 bg-black hover:bg-black/90 font-bold shadow-lg flex items-center gap-2">
+          <Plus className="w-5 h-5" /> Yeni Kombinasyon
+        </Button>
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Sol Kolon: Ana Ürün Seçimi */}
-        <Card className="flex flex-col">
-          <CardHeader>
-            <CardTitle>1. Ana Ürün Seçin</CardTitle>
-            <CardDescription>Hangi ürünün detay sayfasında kombinleri göstermek istiyorsunuz?</CardDescription>
-          </CardHeader>
-          <CardContent className="flex-1 flex flex-col gap-4">
-            {!selectedMainProduct ? (
-              <div className="relative">
-                <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Ürün adı veya kodu ile ara..."
-                  value={mainSearch}
-                  onChange={(e) => setMainSearch(e.target.value)}
-                  className="pl-9"
-                />
-                {mainResults.length > 0 && (
-                  <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-auto">
-                    {mainResults.map((p) => (
-                      <div
-                        key={p.id}
-                        onClick={() => handleSelectMainProduct(p)}
-                        className="flex items-center gap-3 p-2 hover:bg-gray-100 cursor-pointer border-b last:border-0"
-                      >
-                        {p.image ? (
-                          <img src={p.image} className="w-10 h-10 object-cover rounded" alt={p.name} />
-                        ) : (
-                          <div className="w-10 h-10 bg-gray-200 rounded flex items-center justify-center text-xs">Yok</div>
-                        )}
-                        <div>
-                          <p className="text-sm font-medium">{p.name}</p>
-                          <p className="text-xs text-muted-foreground">{p.stockCode || "Kod yok"} - {p.price.toFixed(2)} ₺</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="flex items-center justify-between p-4 border rounded-lg bg-slate-50">
-                <div className="flex items-center gap-4">
-                  {selectedMainProduct.image ? (
-                    <img src={selectedMainProduct.image} className="w-16 h-16 object-cover rounded shadow-sm" alt="Main" />
-                  ) : (
-                    <div className="w-16 h-16 bg-gray-200 rounded shadow-sm"></div>
-                  )}
-                  <div>
-                    <h3 className="font-semibold text-lg">{selectedMainProduct.name}</h3>
-                    <p className="text-muted-foreground text-sm">{selectedMainProduct.stockCode || "Kod Yok"}</p>
-                  </div>
-                </div>
-                <Button variant="outline" size="sm" onClick={clearMainProduct}>
-                  Değiştir
-                </Button>
-              </div>
-            )}
-          </CardContent>
+ 
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3].map(i => <Card key={i} className="h-48 animate-pulse bg-gray-50 rounded-3xl border-none shadow-sm" />)}
+        </div>
+      ) : looks.length === 0 ? (
+        <Card className="border-none shadow-sm rounded-[40px] p-20 text-center bg-gray-50/50">
+          <Package className="w-16 h-16 mx-auto mb-6 text-gray-200" />
+          <h3 className="text-xl font-bold text-gray-900">Henüz kombinasyon yok</h3>
+          <p className="text-gray-400 mt-2 mb-8">Ürün detay sayfalarında öneride bulunmak için ilk kombinasyonu oluşturun.</p>
+          <Button onClick={() => router.push("/admin-product-combinations/new")} variant="outline" className="border-2 border-black rounded-full px-10 h-12 font-bold hover:bg-black hover:text-white transition-all">
+            Hemen Oluştur
+          </Button>
         </Card>
-
-        {/* Sağ Kolon: Kombin Ekleme */}
-        <Card className={`flex flex-col transition-opacity duration-200 ${!selectedMainProduct ? 'opacity-50 pointer-events-none' : ''}`}>
-          <CardHeader>
-            <CardTitle>2. Kombin Ürünleri Ekle</CardTitle>
-            <CardDescription>Ana ürünle birlikte gösterilecek ürünleri seçin.</CardDescription>
-          </CardHeader>
-          <CardContent className="flex-1 flex flex-col gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Kombin edilecek ürünü ara..."
-                value={relatedSearch}
-                onChange={(e) => setRelatedSearch(e.target.value)}
-                className="pl-9"
-              />
-              {relatedResults.length > 0 && (
-                <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-auto">
-                  {relatedResults.map((p) => {
-                    // Prevent showing already added or self
-                    if (p.id === selectedMainProduct?.id) return null;
-                    const isAlreadyAdded = combinations.some((c) => c.relatedProductId === p.id);
-                    if (isAlreadyAdded) return null;
-
-                    return (
-                      <div
-                        key={p.id}
-                        className="flex items-center justify-between p-2 hover:bg-gray-100 border-b last:border-0"
-                      >
-                        <div className="flex items-center gap-3">
-                          {p.image ? (
-                            <img src={p.image} className="w-10 h-10 object-cover rounded" alt={p.name} />
-                          ) : (
-                            <div className="w-10 h-10 bg-gray-200 rounded flex items-center justify-center text-xs">Yok</div>
-                          )}
-                          <div>
-                            <p className="text-sm font-medium">{p.name}</p>
-                            <p className="text-xs text-muted-foreground">{p.stockCode || "Kod yok"}</p>
-                          </div>
-                        </div>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => {
-                            handleAddCombination(p);
-                            setRelatedSearch("");
-                            setRelatedResults([]);
-                          }}
-                        >
-                          <Plus className="w-4 h-4" /> Ekle
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {looks.map((look) => (
+            <Card key={look.id} className="group border-none shadow-xl hover:shadow-2xl transition-all duration-500 rounded-[40px] overflow-hidden bg-white ring-1 ring-gray-100">
+              <div className="relative aspect-[4/5] overflow-hidden bg-gray-100">
+                 <img 
+                   src={look.mainProduct?.primaryImage || look.mainProduct?.image || "https://via.placeholder.com/400x500"} 
+                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                   alt={look.mainProduct?.name}
+                 />
+                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent p-6 flex flex-col justify-end">
+                    <div className="flex items-center justify-between mb-4">
+                       <Badge className={`${look.status === 'PUBLISHED' ? 'bg-green-500' : 'bg-gray-500'} text-white rounded-full px-3 py-1 font-bold text-[10px] tracking-widest uppercase`}>
+                         {look.status === 'PUBLISHED' ? 'Yayında' : 'Taslak'}
+                       </Badge>
+                       {!look.isVisible && <Badge variant="destructive" className="rounded-full flex items-center gap-1 font-black text-[10px] uppercase tracking-widest"><EyeOff className="w-3 h-3" /> Gizli</Badge>}
+                    </div>
+                    <h3 className="text-white text-xl font-bold line-clamp-2 leading-tight drop-shadow-md">{look.mainProduct?.name}</h3>
+                    <p className="text-white/60 text-xs mt-2 flex items-center gap-2">
+                       <Package className="w-3 h-3" /> {look.items?.length || 0} Tamamlayıcı Ürün
+                    </p>
+                 </div>
+                 
+                 <div className="absolute top-4 right-4 z-20">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="icon" className="w-10 h-10 rounded-full bg-white/90 backdrop-blur border-none shadow-xl hover:bg-white transition-all">
+                          <MoreVertical className="h-5 w-5 text-black" />
                         </Button>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Eklenmiş Kombinler Tablosu */}
-      {selectedMainProduct && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Mevcut Kombinler ({combinations.length})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loadingCombos ? (
-              <p className="text-sm text-muted-foreground">Yükleniyor...</p>
-            ) : combinations.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Bu ürüne henüz kombin eklenmemiş.</p>
-            ) : (
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-16">Görsel</TableHead>
-                      <TableHead>Ürün</TableHead>
-                      <TableHead>Fiyat</TableHead>
-                      <TableHead className="text-right">İşlem</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {combinations.map((combo) => (
-                      <TableRow key={combo.id}>
-                        <TableCell>
-                          {combo.relatedProduct.image ? (
-                            <img src={combo.relatedProduct.image} className="w-12 h-12 object-cover rounded" />
-                          ) : (
-                            <div className="w-12 h-12 bg-gray-200 rounded"></div>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <p className="font-medium">{combo.relatedProduct.name}</p>
-                          <p className="text-xs text-muted-foreground">{combo.relatedProduct.stockCode}</p>
-                        </TableCell>
-                        <TableCell>{combo.relatedProduct.price.toFixed(2)} ₺</TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            variant="destructive"
-                            size="icon"
-                            onClick={() => handleRemoveCombination(combo.relatedProductId)}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="rounded-2xl border-none shadow-2xl p-2 min-w-[160px]">
+                        <DropdownMenuItem onClick={() => router.push(`/admin-product-combinations/edit/${look.id}`)} className="rounded-xl flex items-center gap-3 py-3 cursor-pointer">
+                          <Edit2 className="w-4 h-4" /> Düzenle
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => window.open(`/products/${look.mainProduct?.slug}`, '_blank')} className="rounded-xl flex items-center gap-3 py-3 cursor-pointer">
+                          <ExternalLink className="w-4 h-4" /> Sayfaya Git
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleDelete(look.id)} className="rounded-xl flex items-center gap-3 py-3 text-red-500 focus:text-red-500 focus:bg-red-50 cursor-pointer">
+                          <Trash2 className="w-4 h-4" /> Sil
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                 </div>
               </div>
-            )}
-          </CardContent>
-        </Card>
+              <CardContent className="p-6">
+                 <div className="flex justify-between items-center bg-gray-50 p-4 rounded-3xl border border-gray-100">
+                    <div className="text-center flex-1 border-r border-gray-200">
+                       <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">Öncelik</p>
+                       <p className="font-black text-sm">{look.priority || 0}</p>
+                    </div>
+                    <div className="text-center flex-1">
+                       <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">Başlık</p>
+                       <p className="font-bold text-[11px] truncate px-2">{look.title || "Yok"}</p>
+                    </div>
+                 </div>
+                 <Button onClick={() => router.push(`/admin-product-combinations/edit/${look.id}`)} className="w-full mt-6 rounded-2xl h-12 bg-black text-white hover:bg-gray-800 font-bold transition-all shadow-lg hover:translate-y-[-2px]">
+                   Düzenlemeyi Aç
+                 </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       )}
     </div>
   );

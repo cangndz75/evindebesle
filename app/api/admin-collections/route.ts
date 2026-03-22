@@ -1,14 +1,11 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 
 export async function GET(request: Request) {
   try {
-    const session = await getServerSession(authConfig);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
 
     const collections = await prisma.collection.findMany({
       orderBy: { createdAt: "desc" },
@@ -57,6 +54,7 @@ export async function POST(request: Request) {
       }
     });
 
+    revalidatePath("/collections");
     return NextResponse.json(collection);
   } catch (error) {
     console.error("Error creating collection:", error);
@@ -95,6 +93,7 @@ export async function PUT(request: Request) {
       }
     });
 
+    revalidatePath("/collections");
     return NextResponse.json(collection);
   } catch (error) {
     console.error("Error updating collection:", error);
@@ -120,6 +119,7 @@ export async function DELETE(request: Request) {
       where: { id }
     });
 
+    revalidatePath("/collections");
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting collection:", error);

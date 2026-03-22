@@ -696,174 +696,104 @@ export default function MenProductsPage({
                     )}
                   </div>
 
-                  {/* Hover'da Hızlı Ekle Bölümü - Altından animasyonlu çıkar */}
-                  <div className="absolute bottom-0 left-0 right-0 bg-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out border-t border-gray-200 shadow-lg z-20 overflow-hidden">
-                    <div className="p-4">
-                      <p className="text-xs font-light text-[#111] mb-3 text-center">Hızlı ekle</p>
-                      <div className="flex flex-wrap gap-2 justify-center">
-                        {(() => {
-                          // Önce sizes'ı kontrol et, yoksa sizeOptions'ı kullan
-                          const availableSizes = product.sizes && product.sizes.length > 0
-                            ? product.sizes
-                            : product.sizeOptions && product.sizeOptions.length > 0
-                              ? product.sizeOptions.map(so => ({ name: so.name, stock: 0, id: undefined }))
-                              : [];
+                  {/* Hover'da Hızlı Ekle Bölümü (Görsel 5 Tasarımı) */}
+                  <div className="mt-4 pt-4 border-t border-gray-100 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <p className="text-[10px] tracking-[0.2em] font-light text-[#111]/40 uppercase mb-3 text-center">Hızlı ekle</p>
+                    <div className="flex flex-wrap gap-2 justify-center">
+                      {(() => {
+                        const availableSizes = product.sizes && product.sizes.length > 0
+                          ? product.sizes
+                          : product.sizeOptions && product.sizeOptions.length > 0
+                            ? product.sizeOptions.map(so => ({ name: so.name, stock: 0, id: undefined }))
+                            : [];
 
-                          if (availableSizes.length === 0) {
-                            return (
-                              <p className="text-xs text-gray-500">Beden seçeneği bulunmuyor</p>
+                        if (availableSizes.length === 0) {
+                          return <p className="text-[10px] text-gray-400">Beden seçeneği yok</p>;
+                        }
+
+                        const currentColorId = displayColorObj?.id || product.colors?.[0]?.id;
+
+                        return availableSizes.map((size, sizeIdx) => {
+                          const sizeName = typeof size === 'string' ? size : size.name;
+                          const sizeStock = typeof size === 'object' ? size.stock : 0;
+                          const sizeId = typeof size === 'object' && (size as any).id
+                            ? (size as any).id
+                            : null;
+
+                          let variantStock = 0;
+                          if (currentColorId && displayColorObj?.variants) {
+                            const variant = displayColorObj.variants.find((v: any) =>
+                              v.colorId === currentColorId && v.sizeId === sizeId
                             );
+                            variantStock = variant?.stock || 0;
                           }
 
-                          // Seçili renge göre variant stok kontrolü
-                          const currentColorId = displayColorObj?.id || product.colors?.[0]?.id;
+                          const finalStock = variantStock > 0 ? variantStock : sizeStock;
+                          const isOutOfStock = finalStock <= 0;
 
-                          return availableSizes.map((size, sizeIdx) => {
-                            const sizeName = typeof size === 'string' ? size : size.name;
-                            const sizeStock = typeof size === 'object' ? size.stock : 0;
-                            const sizeId = typeof size === 'object' && (size as any).id
-                              ? (size as any).id
-                              : null;
-
-                            // Variant stok kontrolü (seçili renge göre)
-                            let variantStock = 0;
-                            if (currentColorId && displayColorObj?.variants) {
-                              const variant = displayColorObj.variants.find((v: any) =>
-                                v.colorId === currentColorId && v.sizeId === sizeId
-                              );
-                              variantStock = variant?.stock || 0;
-                            }
-
-                            const finalStock = variantStock > 0 ? variantStock : sizeStock;
-                            const isOutOfStock = finalStock <= 0;
-
-                            return (
-                              <button
-                                key={sizeIdx}
-                                onClick={async (e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-
-                                  if (isOutOfStock) {
-                                    toast.error("Bu beden stokta yok", {
-                                      position: "bottom-left",
-                                    });
-                                    return;
-                                  }
-
-                                  try {
-                                    const res = await fetch("/api/cart", {
-                                      method: "POST",
-                                      headers: { "Content-Type": "application/json" },
-                                      body: JSON.stringify({
-                                        productId: product.id,
-                                        colorId: currentColorId || null,
-                                        sizeId: sizeId || null,
-                                        quantity: 1,
-                                      }),
-                                    });
-
-                                    if (res.ok) {
+                          return (
+                            <button
+                              key={sizeIdx}
+                              onClick={async (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                if (isOutOfStock) {
+                                  toast.error("Stokta yok");
+                                  return;
+                                }
+                                try {
+                                  const res = await fetch("/api/cart", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({
+                                      productId: product.id,
+                                      colorId: currentColorId || null,
+                                      sizeId: sizeId || null,
+                                      quantity: 1,
+                                    }),
+                                  });
+                                  if (res.ok) {
                                       const result = await res.json();
-
-                                      // Giriş yapmamış kullanıcı için localStorage'a kaydet
                                       if (!result.userId && result.product) {
-                                        const { addToGuestCart } = await import("@/lib/cart-utils");
-                                        addToGuestCart(
-                                          product.id,
-                                          currentColorId || null,
-                                          sizeId || null,
-                                          1,
-                                          {
-                                            id: result.product.id,
-                                            name: result.product.name || product.name,
-                                            image: result.product.image || product.image,
-                                            price: result.product.price || product.price || 0,
-                                          },
-                                          result.color || null,
-                                          result.size || null
-                                        );
+                                          const { addToGuestCart } = await import("@/lib/cart-utils");
+                                          addToGuestCart(product.id, currentColorId || null, sizeId || null, 1, {
+                                              id: result.product.id,
+                                              name: result.product.name || product.name,
+                                              image: result.product.image || product.image,
+                                              price: result.product.price || product.price || 0,
+                                          });
                                       }
-
                                       const cartModule = await import("@/lib/stores/cartStore");
                                       await cartModule.useCartStore.getState().refreshCart();
-
-                                      // Renk bilgisini al
-                                      const selectedColorObj = product.colors?.find((c: any) => c.id === currentColorId) || product.colors?.[0];
-                                      let colorName = "";
-                                      let productImage = "";
-
-                                      if (selectedColorObj) {
-                                        colorName = selectedColorObj.name || "";
-                                        // images string olabilir (JSON)
-                                        if (typeof selectedColorObj.images === 'string') {
-                                          try {
-                                            const parsed = JSON.parse(selectedColorObj.images);
-                                            productImage = parsed[0] || selectedColorObj.images;
-                                          } catch {
-                                            productImage = selectedColorObj.images;
-                                          }
-                                        } else if (Array.isArray(selectedColorObj.images) && selectedColorObj.images.length > 0) {
-                                          productImage = selectedColorObj.images[0];
-                                        }
-                                      }
-
-                                      // Fallback: product image
-                                      if (!productImage) {
-                                        productImage = product.image || product.primaryImage || "";
-                                      }
-
-                                      // Pop-up için event gönder
-                                      window.dispatchEvent(
-                                        new CustomEvent("itemAddedToCart", {
-                                          detail: {
-                                            product: {
-                                              id: product.id,
-                                              name: product.name,
-                                              image: productImage,
-                                              price: product.price || 0,
-                                              originalPrice: product.originalPrice,
-                                            },
-                                            size: sizeName || "",
-                                            color: colorName || "",
-                                          },
-                                        })
-                                      );
-                                    } else {
-                                      const error = await res.json();
-                                      toast.error(error.error || "Sepete eklenirken bir hata oluştu", {
-                                        position: "bottom-left",
-                                      });
-                                    }
-                                  } catch (error) {
-                                    console.error("Error adding to cart:", error);
-                                    toast.error("Sepete eklenirken bir hata oluştu", {
-                                      position: "bottom-left",
-                                    });
+                                      toast.success(`${product.name} (${sizeName}) sepete eklendi`);
+                                  } else {
+                                      const errorData = await res.json();
+                                      toast.error(errorData.error || "Hata oluştu");
                                   }
-                                }}
-                                disabled={isOutOfStock}
-                                className={`px-3 py-1.5 text-xs font-light border transition-all ${isOutOfStock
-                                  ? "border-gray-200 text-gray-400 line-through cursor-not-allowed bg-white"
-                                  : "border-gray-300 hover:border-[#111] hover:bg-[#111] hover:text-white bg-white text-[#111]"
-                                  }`}
-                              >
-                                {sizeName}
-                              </button>
-                            );
-                          });
-                        })()}
-                      </div>
+                                } catch (error) {
+                                  toast.error("Hata oluştu");
+                                }
+                              }}
+                              disabled={isOutOfStock}
+                              className={`w-10 h-10 flex items-center justify-center text-[11px] font-light border transition-all duration-300 ${
+                                isOutOfStock 
+                                  ? "border-gray-100 text-gray-300 cursor-not-allowed bg-white" 
+                                  : "border-gray-200 text-[#111] hover:bg-black hover:text-white hover:border-black bg-white"
+                              }`}
+                            >
+                              {sizeName}
+                            </button>
+                          );
+                        });
+                      })()}
                     </div>
                   </div>
 
                   {product.colors.length > 0 && (
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 mt-4">
                       {product.colors.map((color, idx) => {
                         const isSelected = selectedColor?.productId === product.id &&
                           product.colors.find(c => Array.isArray(c.images) && c.images.length > 0 && c.images[0] === selectedColor.colorImage)?.name === color.name;
-                        const isHovered = hoveredColor?.productId === product.id &&
-                          product.colors.find(c => Array.isArray(c.images) && c.images.length > 0 && c.images[0] === hoveredColor.colorImage)?.name === color.name;
                         return (
                           <Tooltip key={idx}>
                             <TooltipTrigger asChild>
@@ -878,8 +808,7 @@ export default function MenProductsPage({
                                   : "border-gray-300"
                                   }`}
                                 style={{
-                                  backgroundColor:
-                                    color.hexCode || "#ccc",
+                                  backgroundColor: color.hexCode || "#ccc",
                                 }}
                                 aria-label={`${color.name} renk seçeneği`}
                               />

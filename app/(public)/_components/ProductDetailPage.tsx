@@ -1386,9 +1386,11 @@ function RecentlyViewedSection({ currentProductId }: { currentProductId?: string
             image: p.image || p.primaryImage || null,
           }));
 
-        // API'den de veri çekmeyi dene (giriş yapmış kullanıcılar için)
+        // API'den de veri çekmeyi dene (giriş yapmış kullanıcılar için veya guest için DB validasyonu)
         try {
-          const res = await fetch("/api/products/recent-views");
+          const productIds = localFormatted.map((p: any) => p.productId).filter(Boolean).join(",");
+          const url = productIds ? `/api/products/recent-views?ids=${productIds}` : "/api/products/recent-views";
+          const res = await fetch(url);
           if (res.ok) {
             const data = await res.json();
             const apiProducts = Array.isArray(data?.products) ? data.products : [];
@@ -1405,6 +1407,8 @@ function RecentlyViewedSection({ currentProductId }: { currentProductId?: string
                 image: p.primaryImage || p.image || null,
               }));
 
+            const apiProductIds = new Set(apiFormatted.map((p: any) => p.productId));
+
             // API ve localStorage ürünlerini birleştir
             // Aynı ürün varsa API'den geleni önceliklendir (daha güncel)
             type ProductItem = {
@@ -1417,9 +1421,11 @@ function RecentlyViewedSection({ currentProductId }: { currentProductId?: string
             };
             const productMap = new Map<string, ProductItem>();
 
-            // Önce localStorage ürünlerini ekle
+            // Önce localStorage ürünlerini EĞER API'de geçerliyse (silinmemişse) ekle
             localFormatted.forEach((p: ProductItem) => {
-              productMap.set(p.productId, p);
+              if (apiProductIds.has(p.productId)) {
+                productMap.set(p.productId, p);
+              }
             });
 
             // Sonra API ürünlerini ekle (aynı ürün varsa üzerine yaz)

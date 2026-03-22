@@ -93,15 +93,7 @@ type MenProductsPageProps = {
   initialCategories?: CategoryBasic[];
 };
 
-const categories = [
-  "All",
-  "Underwear",
-  "T-Shirts",
-  "Tanks",
-  "Shorts",
-  "Sets",
-  "Active",
-];
+
 
 function FavoriteButton({ productId, productName }: { productId: string; productName: string }) {
   const [isFavorite, setIsFavorite] = useState(false);
@@ -248,7 +240,7 @@ export default function MenProductsPage({
     params.append("gender", "UNISEX");
 
     if (selectedCategory !== "All") {
-      params.append("tag", selectedCategory.toLowerCase());
+      params.append("categorySlug", selectedCategory);
     }
 
     if (debouncedFilters.minPrice) {

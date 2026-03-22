@@ -134,253 +134,70 @@ function formatProduct(product: any, type: "new-arrivals" | "best-sellers" | "fe
   };
 }
 
-async function getNewArrivals(gender?: "MALE" | "FEMALE"): Promise<Product[]> {
+async function getTabbedProducts(tabName: string): Promise<Product[]> {
   try {
-    const products = await prisma.product.findMany({
-      where: {
-        isActive: true,
-        ...(gender && { gender: gender as "MALE" | "FEMALE" }),
-        tags: {
-          some: {
-            name: {
-              in: ["yeni ürün", "yeni", "yeni gelenler", "new", "new arrival"],
-            },
-          },
-        },
-      },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        price: true,
-        originalPrice: true,
-        image: true,
-        primaryImage: true,
-        secondaryImage: true,
-        colors: {
-          take: 1,
-          select: {
-            id: true,
-            images: true,
-            variants: {
+    const items = await prisma.tabbedCarouselProduct.findMany({
+      where: { tab: tabName },
+      orderBy: { order: "asc" },
+      include: {
+        product: {
+          include: {
+            colors: {
+              take: 1,
               select: {
                 id: true,
-                variantCode: true,
-                colorId: true,
-                sizeId: true,
-                stock: true,
-                price: true,
-              },
+                name: true,
+                hexCode: true,
+                images: true,
+                variants: {
+                  select: { id: true, variantCode: true, colorId: true, sizeId: true, stock: true, price: true }
+                }
+              }
             },
-          },
-        },
-        sizes: {
-          select: {
-            id: true,
-            name: true,
-            stock: true,
-          },
-        },
-        sizeOptions: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-      take: 8,
+            sizes: { select: { id: true, name: true, stock: true } },
+            sizeOptions: { select: { id: true, name: true } },
+            _count: { select: { orderItems: true } }
+          }
+        }
+      }
     });
 
-    return products.map((p: any) => formatProduct(p, "new-arrivals"));
+    return items.map((item: any) => formatProduct(item.product, "featured"));
   } catch (error) {
-    console.error("Error fetching new arrivals:", error);
+    console.error(`Error fetching ${tabName} products:`, error);
     return [];
   }
 }
 
-async function getBestSellers(gender?: "MALE" | "FEMALE"): Promise<Product[]> {
+async function getShowcaseProducts(): Promise<Product[]> {
   try {
-    const products = await prisma.product.findMany({
-      where: {
-        isActive: true,
-        ...(gender && { gender: gender as "MALE" | "FEMALE" }),
-        OR: [
-          {
-            tags: {
-              some: {
-                name: {
-                  in: ["çok satan", "best seller", "bestseller", "en çok satan"],
-                },
-              },
-            },
-          },
-          {
-            orderItems: {
-              some: {},
-            },
-          },
-        ],
-      },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        price: true,
-        originalPrice: true,
-        image: true,
-        primaryImage: true,
-        secondaryImage: true,
-        createdAt: true,
-        colors: {
-          take: 1,
-          select: {
-            id: true,
-            images: true,
-            variants: {
+    const items = await prisma.showcase.findMany({
+      orderBy: { order: "asc" },
+      include: {
+        product: {
+          include: {
+            colors: {
+              take: 1,
               select: {
                 id: true,
-                variantCode: true,
-                colorId: true,
-                sizeId: true,
-                stock: true,
-                price: true,
-              },
+                name: true,
+                hexCode: true,
+                images: true,
+                variants: {
+                  select: { id: true, variantCode: true, colorId: true, sizeId: true, stock: true, price: true }
+                }
+              }
             },
-          },
-        },
-        sizes: {
-          select: {
-            id: true,
-            name: true,
-            stock: true,
-          },
-        },
-        sizeOptions: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        _count: {
-          select: {
-            orderItems: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-      take: 8,
-    });
-
-    // Sipariş sayısına göre sırala
-    products.sort((a: any, b: any) => {
-      const aCount = a._count.orderItems;
-      const bCount = b._count.orderItems;
-      if (bCount !== aCount) {
-        return bCount - aCount;
+            sizes: { select: { id: true, name: true, stock: true } },
+            sizeOptions: { select: { id: true, name: true } },
+            _count: { select: { orderItems: true } }
+          }
+        }
       }
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
-
-    return products.map((p: any) => formatProduct(p, "best-sellers"));
+    return items.map((item: any) => formatProduct(item.product, "featured"));
   } catch (error) {
-    console.error("Error fetching best sellers:", error);
-    return [];
-  }
-}
-
-async function getFeaturedProducts(): Promise<Product[]> {
-  try {
-    const products = await prisma.product.findMany({
-      where: {
-        isActive: true,
-        OR: [
-          {
-            tags: {
-              some: {
-                name: {
-                  in: ["öne çıkan", "featured", "trend", "popüler"],
-                },
-              },
-            },
-          },
-          {
-            orderItems: {
-              some: {},
-            },
-          },
-        ],
-      },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        price: true,
-        originalPrice: true,
-        image: true,
-        primaryImage: true,
-        secondaryImage: true,
-        createdAt: true,
-        colors: {
-          select: {
-            id: true,
-            name: true,
-            hexCode: true,
-            images: true,
-            variants: {
-              select: {
-                id: true,
-                variantCode: true,
-                colorId: true,
-                sizeId: true,
-                stock: true,
-                price: true,
-              },
-            },
-          },
-        },
-        sizes: {
-          select: {
-            id: true,
-            name: true,
-            stock: true,
-          },
-        },
-        sizeOptions: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        _count: {
-          select: {
-            orderItems: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-      take: 8,
-    });
-
-    // Sipariş sayısına göre sırala
-    products.sort((a: any, b: any) => {
-      const aCount = a._count.orderItems;
-      const bCount = b._count.orderItems;
-      if (bCount !== aCount) {
-        return bCount - aCount;
-      }
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    });
-
-    return products.map((p: any) => formatProduct(p, "featured"));
-  } catch (error) {
-    console.error("Error fetching featured products:", error);
+    console.error("Error fetching showcase products:", error);
     return [];
   }
 }
@@ -460,14 +277,12 @@ export const metadata: Metadata = {
 
 export default async function HomePage() {
   // Paralel olarak tüm verileri çek (performans için)
-  const [newArrivals, newArrivalsWomen, newArrivalsMen, bestSellersWomen, bestSellersMen, featuredProducts, categories] = await Promise.all([
-    getNewArrivals(), // Tüm yeni gelenler
-    getNewArrivals("FEMALE"), // Kadın yeni gelenler
-    getNewArrivals("MALE"), // Erkek yeni gelenler
-    getBestSellers("FEMALE"),
-    getBestSellers("MALE"),
-    getFeaturedProducts(), // Öne çıkan ürünler (ProductShowcase için)
-    getCategories(), // Kategoriler
+  const [newArrivalsTab, bestSellersTab, recommendedTab, showcaseProducts, categories] = await Promise.all([
+    getTabbedProducts("new-arrivals"),
+    getTabbedProducts("best-sellers"),
+    getTabbedProducts("recommended"),
+    getShowcaseProducts(),
+    getCategories(),
   ]);
 
   return (
@@ -480,7 +295,7 @@ export default async function HomePage() {
       <div className="py-4">
         <EditorialBanner />
       </div>
-      <ProductShowcase products={featuredProducts} />
+      <ProductShowcase products={showcaseProducts} />
       {/* <CategoryShowcase 
         categories={[
           { label: "SWEATSHIRT", href: "/sweatshirt" },
@@ -488,14 +303,14 @@ export default async function HomePage() {
           { label: "UNDERWEAR", href: "/underwear" },
           { label: "SOCKS", href: "/socks" },
         ]}
-        products={featuredProducts.slice(0, 4)}
+        products={showcaseProducts.slice(0, 4)}
       /> */}
       {/* <CollectionCarousel /> */}
       <SplitShowcase />
       <TabbedProductCarousel
-        newArrivals={newArrivals}
-        bestSellers={[...bestSellersWomen, ...bestSellersMen]}
-        recommended={newArrivals}
+        newArrivals={newArrivalsTab}
+        bestSellers={bestSellersTab}
+        recommended={recommendedTab}
       />
       {/* <TwoUpEditorialTiles /> */}
       {/* <CategoryRail /> */}

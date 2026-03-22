@@ -83,6 +83,16 @@ const navSections = [
         icon: <List className="w-5 h-5" />,
       },
       {
+        label: "Ürün Şablonları",
+        href: "/admin-product-templates",
+        icon: <FileText className="w-5 h-5" />,
+      },
+      {
+        label: "Ürün Kombinleri",
+        href: "/admin-product-combinations",
+        icon: <Package className="w-5 h-5" />,
+      },
+      {
         label: "Excel Import",
         href: "/admin-products/import",
         icon: <Upload className="w-5 h-5" />,
@@ -111,6 +121,31 @@ const navSections = [
         label: "Bülten Aboneleri",
         href: "/admin-subscribers",
         icon: <Users className="w-5 h-5" />,
+      },
+    ],
+  },
+  {
+    title: "ANA SAYFA & UI YÖNETİMİ",
+    links: [
+      {
+        label: "Ana Sayfa Vitrin",
+        href: "/admin-product-showcase",
+        icon: <Package className="w-5 h-5" />,
+      },
+      {
+        label: "Sekmeli Kaydırıcılar",
+        href: "/admin-tabbed-carousel",
+        icon: <List className="w-5 h-5" />,
+      },
+      {
+        label: "Koleksiyonlar",
+        href: "/admin-collections",
+        icon: <Package className="w-5 h-5" />,
+      },
+      {
+        label: "Yeni Gelenler Modülü",
+        href: "/admin-new-arrivals",
+        icon: <List className="w-5 h-5" />,
       },
     ],
   },

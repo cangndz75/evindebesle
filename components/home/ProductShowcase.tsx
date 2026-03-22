@@ -2,10 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { useCartStore } from "@/lib/stores/cartStore";
 import type { Product, ColorOption } from "@/lib/homeData";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 // Base64 görselleri tespit et ve filtrele (performans için)
 const isBase64Image = (url: string | undefined | null): boolean => {
@@ -27,6 +29,31 @@ interface ProductShowcaseProps {
 
 export default function ProductShowcase({ products = [] }: ProductShowcaseProps) {
   const addItemOptimistic = useCartStore((state) => state.addItemOptimistic);
+
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [canScrollPrev, setCanScrollPrev] = useState(false);
+  const [canScrollNext, setCanScrollNext] = useState(true);
+
+  const checkScroll = () => {
+    if (!scrollContainerRef.current) return;
+    const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+    setCanScrollPrev(scrollLeft > 0);
+    setCanScrollNext(scrollLeft < scrollWidth - clientWidth - 10);
+  };
+
+  const scrollPrev = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: -320, behavior: "smooth" });
+      setTimeout(checkScroll, 300);
+    }
+  };
+
+  const scrollNext = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: 320, behavior: "smooth" });
+      setTimeout(checkScroll, 300);
+    }
+  };
 
   // Her ürün için seçili renk ve beden state'i
   const [selectedOptions, setSelectedOptions] = useState<Record<string, {
@@ -284,14 +311,44 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
   };
 
   return (
-    <section className="w-full bg-white py-12 md:py-20">
-      <div className="w-full max-w-7xl mx-auto px-4 md:px-8">
+    <section className="w-full bg-white py-12 md:py-20 relative">
+      <div className="w-full px-4 md:px-8 max-w-[1400px] mx-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl md:text-2xl font-semibold tracking-tight uppercase">Öne Çıkanlar</h2>
+          {products.length > 0 && (
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                className="rounded-full h-10 w-10 border-gray-200"
+                onClick={scrollPrev}
+                disabled={!canScrollPrev}
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="rounded-full h-10 w-10 border-gray-200"
+                onClick={scrollNext}
+                disabled={!canScrollNext}
+              >
+                <ChevronRight className="h-5 w-5" />
+              </Button>
+            </div>
+          )}
+        </div>
+
         {products.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-[#111]/60 font-light">Henüz ürün bulunmuyor.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 justify-start">
+          <div 
+            ref={scrollContainerRef}
+            onScroll={checkScroll}
+            className="flex gap-4 md:gap-6 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-4"
+          >
             {products.map((product) => {
               const normalizedColors = normalizeColors(product.colors);
               const sizes = getAvailableSizes(product);
@@ -312,7 +369,7 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
               return (
                 <div
                   key={product.id}
-                  className="group flex flex-col bg-white"
+                  className="group flex flex-col bg-white snap-start w-[85vw] sm:w-[50vw] md:w-[calc(33.333%-16px)] lg:w-[calc(25%-18px)] flex-shrink-0"
                 >
                   {/* Ürün Görseli - Tıklanabilir */}
                   <Link href={productUrl} className="relative w-full aspect-[3/4] overflow-hidden bg-gray-100 mb-4 group">

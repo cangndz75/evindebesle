@@ -238,7 +238,7 @@ export default function WomenProductsPage({
     params.append("gender", "UNISEX");
 
     if (selectedCategory !== "All") {
-      params.append("tag", selectedCategory.toLowerCase());
+      params.append("categorySlug", selectedCategory);
     }
 
     if (debouncedFilters.minPrice) {

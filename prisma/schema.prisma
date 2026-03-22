@@ -288,6 +288,11 @@ model Product {
   sizeGuide          SizeGuide?          @relation(fields: [sizeGuideId], references: [id])
   modelInfo          ModelInfo?          @relation(fields: [modelInfoId], references: [id])
 
+  showcaseItem         Showcase?
+  tabbedCarouselItems  TabbedCarouselProduct[]
+  collectionItems      CollectionProduct[]
+  newArrivalItem       NewArrival?
+
   @@index([categoryId])
 }
 
@@ -1382,3 +1387,60 @@ model HeatmapClick {
   @@index([timestamp])
   @@index([sessionId])
 }
+
+// --- Yeni Eklenen Modeller (Showcase, Carousel, Collections, New Arrivals) ---
+
+model Showcase {
+  id        String   @id @default(cuid())
+  productId String   @unique 
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model TabbedCarouselProduct {
+  id        String   @id @default(cuid())
+  tab       String   // "new-arrivals", "best-sellers", "recommended" vb.
+  productId String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([tab, productId])
+}
+
+model Collection {
+  id          String   @id @default(cuid())
+  title       String
+  description String?  @db.Text
+  slug        String   @unique
+  image1      String?
+  image2      String?
+  image3      String?
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  products    CollectionProduct[]
+}
+
+model CollectionProduct {
+  id           String     @id @default(cuid())
+  collectionId String
+  productId    String
+  order        Int        @default(0)
+  createdAt    DateTime   @default(now())
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  product      Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([collectionId, productId])
+}
+
+model NewArrival {
+  id        String   @id @default(cuid())
+  productId String   @unique
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+

@@ -27,6 +27,7 @@ import {
   Mail,
   Users,
   Loader2,
+  Upload,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePathname } from "next/navigation";
@@ -80,6 +81,11 @@ const navSections = [
         label: "Kategoriler",
         href: "/admin-categories",
         icon: <List className="w-5 h-5" />,
+      },
+      {
+        label: "Excel Import",
+        href: "/admin-products/import",
+        icon: <Upload className="w-5 h-5" />,
       },
     ],
   },

@@ -4,16 +4,20 @@ import ProductDetailPage from "../../_components/ProductDetailPage";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 
 export async function generateStaticParams() {
-  const products = await prisma.product.findMany({
-    where: { isActive: true, slug: { not: null } },
-    select: { slug: true },
-  });
+  try {
+    const products = await prisma.product.findMany({
+      where: { isActive: true, slug: { not: null } },
+      select: { slug: true },
+    });
 
-  return products
-    .filter((p: any) => p.slug)
-    .map((product: any) => ({
-      slug: product.slug!,
-    }));
+    return products
+      .filter((p: any) => p.slug)
+      .map((product: any) => ({
+        slug: product.slug!,
+      }));
+  } catch {
+    return [];
+  }
 }
 
 export default async function ProductSlugPage({

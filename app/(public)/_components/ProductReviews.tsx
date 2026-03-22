@@ -29,7 +29,7 @@ type Review = {
 };
 
 // Tarih formatlama fonksiyonu
-function formatDate(date: Date): string {
+function formatDate(date: Date | string): string {
   const now = new Date();
   const reviewDate = new Date(date);
   const diffTime = Math.abs(now.getTime() - reviewDate.getTime());
@@ -55,7 +55,7 @@ interface ProductReviewsProps {
   productName?: string;
   productImage?: string | null;
   selectedColorId?: string;
-  reviews?: { id: string; userName: string; rating: number; comment: string; createdAt: Date; colorId?: string; colorName?: string }[];
+  reviews?: { id: string; userName: string; rating: number; comment: string; createdAt: Date | string; colorId?: string; colorName?: string }[];
   hasOrdered?: boolean; // Kullanıcı bu ürünü sipariş verdi mi?
 }
 

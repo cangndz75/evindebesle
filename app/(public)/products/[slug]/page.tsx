@@ -302,7 +302,7 @@ export default async function ProductSlugPage({
       userName: r.userName || "Misafir",
       rating: r.rating,
       comment: r.comment || "",
-      createdAt: r.createdAt,
+      createdAt: r.createdAt.toISOString(),
       colorId: r.colorId || undefined,
       colorName: r.color?.name,
     })),

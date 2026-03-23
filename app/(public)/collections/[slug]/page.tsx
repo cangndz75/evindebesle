@@ -5,12 +5,13 @@ import Link from "next/link";
 import { Metadata } from "next";
 
 interface CollectionPageProps {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
 export async function generateMetadata({ params }: CollectionPageProps): Promise<Metadata> {
+  const { slug } = await params;
   const collection = await prisma.collection.findUnique({
-    where: { slug: params.slug }
+    where: { slug }
   });
 
   return {
@@ -20,8 +21,9 @@ export async function generateMetadata({ params }: CollectionPageProps): Promise
 }
 
 export default async function CollectionDetailPage({ params }: CollectionPageProps) {
+  const { slug } = await params;
   const collection = await prisma.collection.findUnique({
-    where: { slug: params.slug },
+    where: { slug },
     include: {
       products: {
         include: {

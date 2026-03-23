@@ -3,6 +3,8 @@ import { prisma } from "@/lib/db";
 import ProductDetailPage from "../../_components/ProductDetailPage";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 
+export const dynamic = "force-dynamic";
+
 export async function generateStaticParams() {
   try {
     const products = await prisma.product.findMany({

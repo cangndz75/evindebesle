@@ -4,6 +4,7 @@ import CategoryProductsPage from "../../_components/CategoryProductsPage";
 import { Metadata } from "next";
 
 export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 type Props = {
     params: Promise<{ slug: string }>;

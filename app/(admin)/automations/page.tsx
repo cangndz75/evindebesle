@@ -2,6 +2,8 @@ import { prisma } from "@/lib/db";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
+export const dynamic = "force-dynamic";
+
 export default async function AutomationsPage() {
     const automations = await prisma.automation.findMany({
         include: { _count: { select: { userFlows: true } } }

@@ -10,6 +10,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://evindebesle.com";
 
 // ISR: Her 1 saatte bir yeniden oluştur
 export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 
 interface ProductPageProps {
   params: Promise<{ id: string }>;

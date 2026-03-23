@@ -2,6 +2,8 @@ import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
 import SharedFavoritesClient from "./_components/SharedFavoritesClient";
 
+export const dynamic = "force-dynamic";
+
 export default async function SharedFavoritesPage({
   searchParams,
 }: {

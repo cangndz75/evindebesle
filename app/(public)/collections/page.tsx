@@ -19,6 +19,7 @@ export const metadata = {
 };
 
 export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 
 async function getCollections() {
   try {

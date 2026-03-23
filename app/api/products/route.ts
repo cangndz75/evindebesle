@@ -33,6 +33,17 @@ export async function GET(request: NextRequest) {
     };
   }
 
+  const inCollections = searchParams.get("inCollections") === "true";
+  if (inCollections) {
+    where.collectionItems = {
+      some: {
+        collection: {
+          isActive: true
+        }
+      }
+    };
+  }
+
   // Gender filter
   if (genders.length > 0) {
     where.gender = { in: genders };

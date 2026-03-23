@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Search, Plus, Trash2, ArrowUp, ArrowDown, Edit, Check } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { uploadFileToCloudinary } from "@/lib/cloudinary";
+import Image from "next/image";
 
 type ProductBasics = {
   id: string;
@@ -66,6 +68,12 @@ export default function AdminCollectionsPage() {
   const [selectedGender, setSelectedGender] = useState<string>("all");
   const [itemsLoading, setItemsLoading] = useState(false);
   const [searching, setSearching] = useState(false);
+
+  const [uploading, setUploading] = useState<Record<string, boolean>>({
+    image1: false,
+    image2: false,
+    image3: false,
+  });
 
   // Debounced Search & Filter
   useEffect(() => {
@@ -297,6 +305,26 @@ export default function AdminCollectionsPage() {
     return "https://via.placeholder.com/50";
   };
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: "image1" | "image2" | "image3") => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(prev => ({ ...prev, [field]: true }));
+    try {
+      const url = await uploadFileToCloudinary(file);
+      if (url) {
+        setFormData(prev => ({ ...prev, [field]: url }));
+        toast.success("Görsel yüklendi!");
+      } else {
+        toast.error("Görsel yüklenemedi");
+      }
+    } catch (error) {
+      toast.error("Yükleme sırasında hata oluştu");
+    } finally {
+      setUploading(prev => ({ ...prev, [field]: false }));
+    }
+  };
+
   return (
     <div className="space-y-6 lg:p-6 p-4">
       <div>
@@ -372,18 +400,116 @@ export default function AdminCollectionsPage() {
                           <label className="text-sm font-medium">Açıklama</label>
                           <Textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} placeholder="Koleksiyon detayları..." rows={3} />
                        </div>
-                       <div className="grid grid-cols-3 gap-4">
+                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                          {/* Görsel 1 */}
                           <div className="space-y-2">
                              <label className="text-sm font-medium">Ana Görsel (Dikdörtgen)</label>
-                             <Input value={formData.image1} onChange={e => setFormData({...formData, image1: e.target.value})} placeholder="URL..." />
+                             <div className="space-y-2">
+                                {formData.image1 && (
+                                   <div className="relative aspect-video w-full overflow-hidden rounded-md border bg-gray-50">
+                                      <Image src={formData.image1} alt="Preview 1" fill className="object-cover" />
+                                   </div>
+                                )}
+                                <div className="flex gap-2">
+                                   <Input 
+                                      value={formData.image1} 
+                                      onChange={e => setFormData({...formData, image1: e.target.value})} 
+                                      placeholder="URL veya dosya seçin..." 
+                                      className="flex-1"
+                                   />
+                                   <div className="relative">
+                                      <input
+                                         type="file"
+                                         id="upload-image1"
+                                         className="hidden"
+                                         accept="image/*"
+                                         onChange={(e) => handleFileUpload(e, "image1")}
+                                      />
+                                      <Button 
+                                         variant="outline" 
+                                         size="sm"
+                                         disabled={uploading.image1}
+                                         onClick={() => document.getElementById("upload-image1")?.click()}
+                                      >
+                                         {uploading.image1 ? "..." : "Yükle"}
+                                      </Button>
+                                   </div>
+                                </div>
+                             </div>
                           </div>
+
+                          {/* Görsel 2 */}
                           <div className="space-y-2">
-                             <label className="text-sm font-medium">İkincil Görsel 1 (Küçük Kare)</label>
-                             <Input value={formData.image2} onChange={e => setFormData({...formData, image2: e.target.value})} placeholder="URL..." />
+                             <label className="text-sm font-medium">İkincil Görsel 1 (Kare)</label>
+                             <div className="space-y-2">
+                                {formData.image2 && (
+                                   <div className="relative aspect-square w-full overflow-hidden rounded-md border bg-gray-50">
+                                      <Image src={formData.image2} alt="Preview 2" fill className="object-cover" />
+                                   </div>
+                                )}
+                                <div className="flex gap-2">
+                                   <Input 
+                                      value={formData.image2} 
+                                      onChange={e => setFormData({...formData, image2: e.target.value})} 
+                                      placeholder="URL veya dosya seçin..." 
+                                      className="flex-1"
+                                   />
+                                   <div className="relative">
+                                      <input
+                                         type="file"
+                                         id="upload-image2"
+                                         className="hidden"
+                                         accept="image/*"
+                                         onChange={(e) => handleFileUpload(e, "image2")}
+                                      />
+                                      <Button 
+                                         variant="outline" 
+                                         size="sm"
+                                         disabled={uploading.image2}
+                                         onClick={() => document.getElementById("upload-image2")?.click()}
+                                      >
+                                         {uploading.image2 ? "..." : "Yükle"}
+                                      </Button>
+                                   </div>
+                                </div>
+                             </div>
                           </div>
+
+                          {/* Görsel 3 */}
                           <div className="space-y-2">
-                             <label className="text-sm font-medium">İkincil Görsel 2 (Küçük Kare)</label>
-                             <Input value={formData.image3} onChange={e => setFormData({...formData, image3: e.target.value})} placeholder="URL..." />
+                             <label className="text-sm font-medium">İkincil Görsel 2 (Kare)</label>
+                             <div className="space-y-2">
+                                {formData.image3 && (
+                                   <div className="relative aspect-square w-full overflow-hidden rounded-md border bg-gray-50">
+                                      <Image src={formData.image3} alt="Preview 3" fill className="object-cover" />
+                                   </div>
+                                )}
+                                <div className="flex gap-2">
+                                   <Input 
+                                      value={formData.image3} 
+                                      onChange={e => setFormData({...formData, image3: e.target.value})} 
+                                      placeholder="URL veya dosya seçin..." 
+                                      className="flex-1"
+                                   />
+                                   <div className="relative">
+                                      <input
+                                         type="file"
+                                         id="upload-image3"
+                                         className="hidden"
+                                         accept="image/*"
+                                         onChange={(e) => handleFileUpload(e, "image3")}
+                                      />
+                                      <Button 
+                                         variant="outline" 
+                                         size="sm"
+                                         disabled={uploading.image3}
+                                         onClick={() => document.getElementById("upload-image3")?.click()}
+                                      >
+                                         {uploading.image3 ? "..." : "Yükle"}
+                                      </Button>
+                                   </div>
+                                </div>
+                             </div>
                           </div>
                        </div>
                        <Button onClick={handleCreateOrUpdateCollection} className="w-full mt-4">KAYDET</Button>

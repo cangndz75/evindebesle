@@ -1,4 +1,4 @@
-import dynamic from "next/dynamic";
+import nextDynamic from "next/dynamic";
 import { Suspense } from "react";
 import CampaignStrip from "@/components/home/CampaignStrip";
 import ByltStyleHero from "@/components/home/ByltStyleHero";
@@ -8,31 +8,31 @@ import CategoryShowcase from "@/components/home/CategoryShowcase";
 import HomeCategoryRail from "@/components/home/HomeCategoryRail";
 
 // Lazy load büyük componentler
-const EditorialBanner = dynamic(() => import("@/components/home/EditorialBanner"), {
+const EditorialBanner = nextDynamic(() => import("@/components/home/EditorialBanner"), {
   loading: () => <div className="h-64 bg-gray-100 animate-pulse" />,
 });
-const CollectionCarousel = dynamic(() => import("@/components/home/CollectionCarousel"), {
+const CollectionCarousel = nextDynamic(() => import("@/components/home/CollectionCarousel"), {
   loading: () => <div className="h-96 bg-gray-100 animate-pulse" />,
 });
-const BrandShowcase = dynamic(() => import("@/components/home/BrandShowcase"), {
+const BrandShowcase = nextDynamic(() => import("@/components/home/BrandShowcase"), {
   loading: () => <div className="h-64 bg-gray-100 animate-pulse" />,
 });
-const SplitShowcase = dynamic(() => import("@/components/home/SplitShowcase"), {
+const SplitShowcase = nextDynamic(() => import("@/components/home/SplitShowcase"), {
   loading: () => <div className="h-96 bg-gray-100 animate-pulse" />,
 });
-const FeaturedCardsRow = dynamic(() => import("@/components/home/FeaturedCardsRow"), {
+const FeaturedCardsRow = nextDynamic(() => import("@/components/home/FeaturedCardsRow"), {
   loading: () => <div className="h-64 bg-gray-100 animate-pulse" />,
 });
-const ProductCarousel = dynamic(() => import("@/components/home/ProductCarousel"), {
+const ProductCarousel = nextDynamic(() => import("@/components/home/ProductCarousel"), {
   loading: () => <div className="h-96 bg-gray-100 animate-pulse" />,
 });
-const EditorialTiles = dynamic(() => import("@/components/home/EditorialTiles"), {
+const EditorialTiles = nextDynamic(() => import("@/components/home/EditorialTiles"), {
   loading: () => <div className="h-64 bg-gray-100 animate-pulse" />,
 });
-const TabbedBestSellers = dynamic(() => import("@/components/home/TabbedBestSellers"), {
+const TabbedBestSellers = nextDynamic(() => import("@/components/home/TabbedBestSellers"), {
   loading: () => <div className="h-96 bg-gray-100 animate-pulse" />,
 });
-const NewsletterSignup = dynamic(() => import("@/components/home/NewsletterSignup"), {
+const NewsletterSignup = nextDynamic(() => import("@/components/home/NewsletterSignup"), {
   loading: () => <div className="h-32 bg-gray-100 animate-pulse" />,
 });
 import { womensBrands, mensBrands } from "@/lib/homeData";
@@ -42,6 +42,7 @@ import { prisma } from "@/lib/db";
 
 // Performans için ISR - revalidatePath ile tetiklenir
 export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 
 // Helper: JSON string'i array'e çevir
 function parseImages(images: string | null): string[] {

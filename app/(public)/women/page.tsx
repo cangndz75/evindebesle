@@ -50,6 +50,7 @@ export const metadata: Metadata = {
 
 // ISR - 5 dakikada bir yenilenir
 export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 // Helper: JSON string'i array'e çevir
 function parseImages(images: string | null): string[] {

@@ -7,8 +7,15 @@ export const metadata = {
     description: "Dark Velvet kargo süreleri, teslimat koşulları ve ücretsiz kargo bilgileri.",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function ShippingPage() {
-    const settings = await prisma.companySettings.findFirst();
+    let settings = null;
+    try {
+        settings = await prisma.companySettings.findFirst();
+    } catch (error) {
+        console.error("Error fetching shipping settings:", error);
+    }
     const threshold = settings?.freeShippingThreshold || 99;
     const shippingPrice = settings?.shippingPrice || 49.90;
 

@@ -27,8 +27,8 @@ function normalizeConnectionString(connStr: string): string {
 
 const normalized = normalizeConnectionString(connectionString)
 const pool = new Pool({ connectionString: normalized })
-const adapter = new PrismaPg(pool)
-const prisma = new PrismaClient({ adapter })
+const adapter = new PrismaPg(pool as any)
+const prisma = new PrismaClient({ adapter } as any)
 
 async function main() {
     const fields = [

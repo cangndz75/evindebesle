@@ -664,7 +664,7 @@ export default function MenProductsPage({
                       alt={product.name}
                       sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                       className="mb-4"
-                      badge={null}
+                      badge={product.originalPrice && product.originalPrice > product.price ? "İndirim" : null}
                       favoriteButton={<FavoriteButton productId={product.id} productName={product.name} />}
                     />
                   </Link>
@@ -674,18 +674,18 @@ export default function MenProductsPage({
                       {product.name}
                     </h3>
                     <div className="flex items-center gap-2">
-                      {product.originalPrice && product.originalPrice < product.price ? (
+                      {product.originalPrice && product.originalPrice > product.price ? (
                         <>
                           <span className="text-sm md:text-base font-light text-[#111]">
-                            {product.originalPrice.toFixed(2)} ₺
+                            {product.price.toFixed(2)} ₺
                           </span>
                           <span className="text-sm text-[#111]/60 line-through">
-                            {product.price.toFixed(2)} ₺
+                            {product.originalPrice.toFixed(2)} ₺
                           </span>
                         </>
                       ) : (
                         <span className="text-sm md:text-base font-light text-[#111]">
-                          {(product.originalPrice ?? product.price).toFixed(2)} ₺
+                          {product.price.toFixed(2)} ₺
                         </span>
                       )}
                     </div>

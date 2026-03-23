@@ -82,6 +82,8 @@ type Category = {
   gender?: string | null;
   group?: string | null;
   showOnHome: boolean;
+  showOnMen: boolean;
+  showOnWomen: boolean;
 };
 
 // Sortable Row Component
@@ -143,6 +145,8 @@ export default function CategoriesPage() {
   const [formGender, setFormGender] = useState<string>("UNISEX");
   const [formGroup, setFormGroup] = useState<string>("Giyim");
   const [formShowOnHome, setFormShowOnHome] = useState(false);
+  const [formShowOnMen, setFormShowOnMen] = useState(false);
+  const [formShowOnWomen, setFormShowOnWomen] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -222,6 +226,8 @@ export default function CategoriesPage() {
     setFormGender("UNISEX");
     setFormGroup("Giyim");
     setFormShowOnHome(false);
+    setFormShowOnMen(false);
+    setFormShowOnWomen(false);
     setAddDialogOpen(true);
   };
 
@@ -234,6 +240,8 @@ export default function CategoriesPage() {
     setFormGender(category.gender || "UNISEX");
     setFormGroup(category.group || "Giyim");
     setFormShowOnHome(category.showOnHome || false);
+    setFormShowOnMen(category.showOnMen || false);
+    setFormShowOnWomen(category.showOnWomen || false);
     setEditDialogOpen(true);
   };
 
@@ -261,6 +269,8 @@ export default function CategoriesPage() {
           gender: formGender,
           group: formGroup,
           showOnHome: formShowOnHome,
+          showOnMen: formShowOnMen,
+          showOnWomen: formShowOnWomen,
         }),
       });
 
@@ -281,7 +291,7 @@ export default function CategoriesPage() {
     }
   };
 
-  const handleToggle = async (id: string, field: "isActive" | "showOnHome", value: boolean) => {
+  const handleToggle = async (id: string, field: "isActive" | "showOnHome" | "showOnMen" | "showOnWomen", value: boolean) => {
     try {
       const res = await fetch(`/api/admin-categories/${id}`, {
         method: "PATCH",
@@ -441,6 +451,40 @@ export default function CategoriesPage() {
           />
           <span className="text-xs font-medium">
             {row.getValue("showOnHome") ? "Evet" : "Hayır"}
+          </span>
+        </div>
+      ),
+    },
+    {
+      accessorKey: "showOnMen",
+      header: "Erkek Sayfası",
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          <Switch
+            checked={row.getValue("showOnMen")}
+            onCheckedChange={(checked) =>
+              handleToggle(row.original.id, "showOnMen", checked)
+            }
+          />
+          <span className="text-xs font-medium">
+            {row.getValue("showOnMen") ? "Evet" : "Hayır"}
+          </span>
+        </div>
+      ),
+    },
+    {
+      accessorKey: "showOnWomen",
+      header: "Kadın Sayfası",
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          <Switch
+            checked={row.getValue("showOnWomen")}
+            onCheckedChange={(checked) =>
+              handleToggle(row.original.id, "showOnWomen", checked)
+            }
+          />
+          <span className="text-xs font-medium">
+            {row.getValue("showOnWomen") ? "Evet" : "Hayır"}
           </span>
         </div>
       ),
@@ -625,6 +669,32 @@ export default function CategoriesPage() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
+                          <Switch
+                            checked={category.showOnMen}
+                            onCheckedChange={(checked) =>
+                              handleToggle(category.id, "showOnMen", checked)
+                            }
+                          />
+                          <span className="text-xs font-medium">
+                            {category.showOnMen ? "Evet" : "Hayır"}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Switch
+                            checked={category.showOnWomen}
+                            onCheckedChange={(checked) =>
+                              handleToggle(category.id, "showOnWomen", checked)
+                            }
+                          />
+                          <span className="text-xs font-medium">
+                            {category.showOnWomen ? "Evet" : "Hayır"}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
                           <Button
                             variant="ghost"
                             size="icon"
@@ -714,7 +784,7 @@ export default function CategoriesPage() {
               </div>
             </div>
 
-            <div className="flex flex-col gap-2 pt-2">
+            <div className="grid grid-cols-2 gap-4 pt-2">
               <div className="flex items-center gap-2">
                 <Switch
                   id="showOnHome"
@@ -722,6 +792,33 @@ export default function CategoriesPage() {
                   onCheckedChange={setFormShowOnHome}
                 />
                 <Label htmlFor="showOnHome">Anasayfada Göster</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="isActive"
+                  checked={formIsActive}
+                  onCheckedChange={setFormIsActive}
+                />
+                <Label htmlFor="isActive">Kategori Aktif</Label>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="showOnMen"
+                  checked={formShowOnMen}
+                  onCheckedChange={setFormShowOnMen}
+                />
+                <Label htmlFor="showOnMen">Erkek Sayfasında Göster</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="showOnWomen"
+                  checked={formShowOnWomen}
+                  onCheckedChange={setFormShowOnWomen}
+                />
+                <Label htmlFor="showOnWomen">Kadın Sayfasında Göster</Label>
               </div>
             </div>
 

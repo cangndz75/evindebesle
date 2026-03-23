@@ -79,7 +79,7 @@ export default function CheckoutPage() {
 
     // Calculations
     const subtotal = cart.reduce((acc, item) => {
-        const price = item.product.originalPrice || item.product.price;
+        const price = item.product.price;
         return acc + (price * item.quantity);
     }, 0);
     const shippingPrice = subtotal >= freeShippingThreshold ? 0 : shippingCost;
@@ -459,8 +459,13 @@ export default function CheckoutPage() {
                                         <h3 className="text-sm font-medium leading-tight mb-1">{item.product.name}</h3>
                                         <p className="text-xs text-gray-500 mb-1">{item.size?.name} {item.color?.name && `• ${item.color.name}`}</p>
                                     </div>
-                                    <div className="text-sm font-medium">
-                                        {((item.product.originalPrice || item.product.price) * item.quantity).toFixed(2)} TL
+                                    <div className="text-sm font-medium flex flex-col items-end">
+                                        <span>{(item.product.price * item.quantity).toFixed(2)} TL</span>
+                                        {item.product.originalPrice && item.product.originalPrice > item.product.price && (
+                                            <span className="text-[10px] text-gray-400 line-through">
+                                                {(item.product.originalPrice * item.quantity).toFixed(2)} TL
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
                             ))}

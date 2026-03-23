@@ -219,6 +219,8 @@ model Category {
   gender      Gender?
   group       String?   @default("Giyim") // Giyim, Aksesuar vb.
   showOnHome  Boolean   @default(false)
+  showOnMen   Boolean   @default(false)
+  showOnWomen Boolean   @default(false)
   products    Product[]
   coupons     Coupon[]
 

@@ -268,11 +268,15 @@ export default function MenProductsPage() {
                         unoptimized
                       />
                     )}
-                    {product.badge && (
+                    {product.originalPrice && product.originalPrice > product.price ? (
+                      <div className="absolute top-3 left-3 bg-[#111] text-white text-[10px] px-2 py-1 uppercase font-light">
+                        İndirim
+                      </div>
+                    ) : product.badge ? (
                       <div className="absolute top-3 left-3 bg-[#111] text-white text-[10px] px-2 py-1 uppercase font-light">
                         {product.badge}
                       </div>
-                    )}
+                    ) : null}
                     <FavoriteButton productId={product.id} />
                   </div>
                 </Link>
@@ -282,7 +286,7 @@ export default function MenProductsPage() {
                     {product.name}
                   </h3>
                   <div className="flex items-center gap-2">
-                    {product.originalPrice ? (
+                    {product.originalPrice && product.originalPrice > product.price ? (
                       <>
                         <span className="text-sm md:text-base font-light text-[#111]">
                           {product.price} ₺

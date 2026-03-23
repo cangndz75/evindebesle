@@ -696,7 +696,11 @@ export default function WomenProductsPage({
                     sizes="50vw"
                     className="mb-3"
                     badge={
-                      product.badge ? (
+                      product.originalPrice && product.originalPrice > product.price ? (
+                        <div className="absolute top-3 left-3 bg-[#111] text-white uppercase font-light text-[10px] px-2 py-1 z-10">
+                          İndirim
+                        </div>
+                      ) : product.badge ? (
                         <div className="absolute top-3 left-3 bg-[#111] text-white uppercase font-light text-[10px] px-2 py-1 z-10">
                           {product.badge}
                         </div>
@@ -711,18 +715,18 @@ export default function WomenProductsPage({
                     {product.name}
                   </h3>
                   <div className="flex flex-col gap-0.5">
-                    {product.originalPrice && product.originalPrice < product.price ? (
+                    {product.originalPrice && product.originalPrice > product.price ? (
                       <>
                         <span className="font-light text-[#111] text-xs">
-                          {product.originalPrice} ₺
+                          {product.price} ₺
                         </span>
                         <span className="text-[#111]/60 line-through text-[10px]">
-                          {product.price} ₺
+                          {product.originalPrice} ₺
                         </span>
                       </>
                     ) : (
                       <span className="font-light text-[#111] text-xs">
-                        {product.originalPrice ? product.originalPrice : product.price} ₺
+                        {product.price} ₺
                       </span>
                     )}
                   </div>
@@ -828,18 +832,18 @@ export default function WomenProductsPage({
                     {product.name}
                   </h3>
                   <div className="flex flex-col">
-                    {product.originalPrice && product.originalPrice < product.price ? (
+                    {product.originalPrice && product.originalPrice > product.price ? (
                       <>
                         <span className="font-light text-[#111] text-xs md:text-sm">
-                          {product.originalPrice} ₺
+                          {product.price} ₺
                         </span>
                         <span className="text-[#111]/60 line-through text-xs">
-                          {product.price} ₺
+                          {product.originalPrice} ₺
                         </span>
                       </>
                     ) : (
                       <span className="font-light text-[#111] text-xs md:text-sm">
-                        {product.originalPrice ? product.originalPrice : product.price} ₺
+                        {product.price} ₺
                       </span>
                     )}
                   </div>

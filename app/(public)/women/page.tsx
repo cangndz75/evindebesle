@@ -148,7 +148,7 @@ async function getInitialProducts() {
         originalPrice: p.originalPrice ?? undefined,
         image: primaryImg ?? undefined,
         hoverImage: secondaryImg ?? undefined,
-        badge: isNew ? "Yeni" : (p.originalPrice ? "İndirim" : undefined),
+        badge: isNew ? "Yeni" : (p.originalPrice && p.originalPrice > p.price ? "İndirim" : undefined),
         colors: p.colors.map((c: any) => {
           const cImages = parseImages(c.images);
           return {
@@ -193,6 +193,7 @@ async function getCategories() {
     const categories = await prisma.category.findMany({
       where: {
         isActive: true,
+        showOnWomen: true,
         gender: { in: ["FEMALE", "UNISEX"] }
       },
       orderBy: { sortOrder: "asc" },

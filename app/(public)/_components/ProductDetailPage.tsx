@@ -759,18 +759,18 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
             {/* Fiyat */}
             <div className="mb-4 flex flex-col items-start gap-1">
               <div className="flex items-center">
-                {product.originalPrice && product.originalPrice < product.price ? (
+                {product.originalPrice && product.originalPrice > product.price ? (
                   <>
                     <span className="text-2xl md:text-3xl font-light text-black">
-                      {product.originalPrice} ₺
+                      {product.price} ₺
                     </span>
                     <span className="text-lg line-through ml-3 text-gray-400">
-                      {product.price} ₺
+                      {product.originalPrice} ₺
                     </span>
                   </>
                 ) : (
                   <span className="text-2xl md:text-3xl font-light text-black">
-                    {product.originalPrice ? product.originalPrice : product.price} ₺
+                    {product.price} ₺
                   </span>
                 )}
               </div>

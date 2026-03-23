@@ -43,7 +43,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { name, description, isActive, image, gender, group, showOnHome } = body;
+    const { name, description, isActive, image, gender, group, showOnHome, showOnMen, showOnWomen } = body;
 
     if (!name) {
       return NextResponse.json(
@@ -88,6 +88,8 @@ export async function POST(req: Request) {
         gender: gender || null,
         group: group || "Giyim",
         showOnHome: showOnHome !== undefined ? showOnHome : false,
+        showOnMen: showOnMen !== undefined ? showOnMen : false,
+        showOnWomen: showOnWomen !== undefined ? showOnWomen : false,
         sortOrder: nextSortOrder,
       },
     });

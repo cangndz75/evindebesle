@@ -57,7 +57,7 @@ export async function PATCH(
 
     const { id } = await params;
     const body = await request.json();
-    const { name, description, isActive, image, gender, group, showOnHome } = body;
+    const { name, description, isActive, image, gender, group, showOnHome, showOnMen, showOnWomen } = body;
 
     const updateData: any = {};
 
@@ -99,6 +99,8 @@ export async function PATCH(
     if (image !== undefined) updateData.image = image || null;
     if (group !== undefined) updateData.group = group || "Giyim";
     if (showOnHome !== undefined) updateData.showOnHome = showOnHome;
+    if (showOnMen !== undefined) updateData.showOnMen = showOnMen;
+    if (showOnWomen !== undefined) updateData.showOnWomen = showOnWomen;
 
     const oldCategory = await prisma.category.findUnique({ where: { id } });
 

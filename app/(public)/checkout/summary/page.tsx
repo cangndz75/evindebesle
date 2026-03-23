@@ -44,7 +44,7 @@ export default function CheckoutSummaryPage() {
             .catch(() => { });
     }, []);
 
-    const subtotal = items.reduce((acc, item) => acc + (item.product.originalPrice ?? item.product.price) * item.quantity, 0);
+    const subtotal = items.reduce((acc, item) => acc + (item.product.price) * item.quantity, 0);
     const shipping = subtotal >= freeShippingThreshold ? 0 : shippingPrice;
     const discount = discountAmount || 0;
     const total = subtotal + shipping - discount;
@@ -125,7 +125,14 @@ export default function CheckoutSummaryPage() {
                                                     +
                                                 </button>
                                             </div>
-                                            <p className="font-medium text-lg">{(item.product.originalPrice ?? item.product.price) * item.quantity} ₺</p>
+                                            <div className="flex flex-col items-end">
+                                                <p className="font-medium text-lg">{(item.product.price) * item.quantity} ₺</p>
+                                                {item.product.originalPrice && item.product.originalPrice > item.product.price && (
+                                                    <p className="text-sm text-gray-400 line-through">
+                                                        {item.product.originalPrice * item.quantity} ₺
+                                                    </p>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

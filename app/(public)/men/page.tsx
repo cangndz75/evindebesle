@@ -139,6 +139,7 @@ async function getInitialProducts() {
       secondaryImage: p.secondaryImage ?? undefined,
       gender: p.gender ?? undefined,
       fabricType: p.fabricType ?? undefined,
+      badge: (p.createdAt && (new Date().getTime() - new Date(p.createdAt).getTime() < 7 * 24 * 60 * 60 * 1000)) ? "Yeni" : (p.originalPrice && p.originalPrice > p.price ? "İndirim" : undefined),
       colors: p.colors.map((c: any) => ({
         id: c.id,
         name: c.name,
@@ -192,6 +193,7 @@ async function getCategories() {
     const categories = await prisma.category.findMany({
       where: {
         isActive: true,
+        showOnMen: true,
         gender: { in: ["MALE", "UNISEX"] }
       },
       orderBy: { sortOrder: "asc" },

@@ -131,6 +131,7 @@ export async function GET(request: NextRequest) {
       name: true,
       slug: true,
       price: true,
+      originalPrice: true,
       image: true,
       primaryImage: true,
       secondaryImage: true,

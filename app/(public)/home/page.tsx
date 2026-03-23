@@ -90,7 +90,7 @@ function formatProduct(product: any, type: "new-arrivals" | "best-sellers" | "fe
       originalPrice: product.originalPrice || undefined,
       image: mainImage,
       hoverImage: hoverImage !== mainImage ? hoverImage : undefined,
-      badge: product.originalPrice ? "İndirim" : "Yeni",
+      badge: (product.originalPrice && product.originalPrice > product.price) ? "İndirim" : "Yeni",
       colors: product.colors.map((c: any) => {
         const images = parseImages(c.images);
         return {
@@ -119,7 +119,7 @@ function formatProduct(product: any, type: "new-arrivals" | "best-sellers" | "fe
     originalPrice: product.originalPrice || undefined,
     image: mainImage,
     hoverImage: hoverImage !== mainImage ? hoverImage : undefined,
-    badge: product.originalPrice ? "İndirim" : "Yeni",
+    badge: (product.originalPrice && product.originalPrice > product.price) ? "İndirim" : "Yeni",
     colors: product.colors.map((c: any) => {
       const images = parseImages(c.images);
       return images[0] || "";

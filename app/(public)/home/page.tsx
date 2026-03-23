@@ -290,12 +290,10 @@ export default async function HomePage() {
     <>
 
       <ByltStyleHero />
-      <div className="py-4">
+      {/* <div className="py-4">
         <HomeCategoryRail categories={categories} />
-      </div>
-      <div className="py-4">
-        <EditorialBanner />
-      </div>
+      </div> */}
+      <EditorialBanner />
       <ProductShowcase products={showcaseProducts} />
       {/* <CategoryShowcase 
         categories={[

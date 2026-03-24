@@ -123,7 +123,7 @@ export default function NewArrivalsPage() {
 
     return (
         <div className="min-h-screen bg-white">
-            <div className="max-w-7xl mx-auto px-4 md:px-8 py-12 pt-32">
+            <div className="max-w-7xl mx-auto px-4 md:px-8 py-12 pt-20 md:pt-24">
                 <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
                     <div>
                         <h1 className="text-3xl md:text-5xl font-light text-[#111] mb-4 uppercase tracking-tight">YENİ GELENLER</h1>
@@ -175,6 +175,9 @@ export default function NewArrivalsPage() {
                 ) : (
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-12 md:gap-x-8 md:gap-y-16">
                         {products.map((product) => {
+                            const totalStock = product.sizes?.reduce((sum, s) => sum + (s.stock || 0), 0) || 0;
+                            const isOutOfStock = totalStock === 0;
+
                             const activeColorImage = hoveredColor?.productId === product.id 
                                 ? hoveredColor.colorImage 
                                 : product.colors?.[0]?.images?.[0] || product.primaryImage || product.image || "/placeholder.jpg";
@@ -182,7 +185,7 @@ export default function NewArrivalsPage() {
                             const displayColorObj = product.colors?.find(c => c.images?.[0] === activeColorImage) || product.colors?.[0];
 
                             return (
-                                <div key={product.id} className="group">
+                                <div key={product.id} className={`group ${isOutOfStock ? "opacity-75" : ""}`}>
                                     <Link href={`/products/${product.slug || product.id}`} className="block relative">
                                         <HoverImageSlider
                                             images={
@@ -194,15 +197,16 @@ export default function NewArrivalsPage() {
                                             sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                                             className="mb-4"
                                             aspectRatio="portrait"
+                                            isOutOfStock={isOutOfStock}
                                             favoriteButton={<FavoriteButton productId={product.id} productName={product.name} />}
                                         />
                                     </Link>
 
-                                    <div className="space-y-1 mb-2">
+                                    <div className="space-y-1 mb-2 text-center">
                                         <h3 className="text-xs md:text-sm font-light text-[#111] uppercase tracking-wide truncate">
                                             {product.name}
                                         </h3>
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center justify-center gap-2">
                                             <span className="text-sm font-light text-[#111]">
                                                 {product.price.toFixed(2)} ₺
                                             </span>
@@ -214,83 +218,9 @@ export default function NewArrivalsPage() {
                                         </div>
                                     </div>
 
-                                    {/* Hızlı Ekle (Görsel 5) */}
-                                    <div className="mt-4 pt-4 border-t border-gray-100 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden md:block">
-                                        <p className="text-[10px] tracking-[0.2em] font-light text-[#111]/40 uppercase mb-3 text-center">Hızlı ekle</p>
-                                        <div className="flex flex-wrap gap-2 justify-center">
-                                            {(() => {
-                                                const availableSizes = product.sizes && product.sizes.length > 0
-                                                    ? product.sizes
-                                                    : product.sizeOptions && product.sizeOptions.length > 0
-                                                        ? product.sizeOptions.map(so => ({ name: so.name, stock: 0, id: (so as any).id }))
-                                                        : [];
-
-                                                if (availableSizes.length === 0) return <p className="text-[10px] text-gray-400">Beden yok</p>;
-
-                                                const currentColorId = displayColorObj?.id;
-
-                                                return availableSizes.map((size, sIdx) => {
-                                                    const sizeName = typeof size === 'string' ? size : size.name;
-                                                    const sizeId = (size as any).id || null;
-                                                    
-                                                    let variantStock = 0;
-                                                    if (currentColorId && displayColorObj?.variants) {
-                                                        const variant = displayColorObj.variants.find((v: any) => v.sizeId === sizeId);
-                                                        variantStock = variant?.stock || 0;
-                                                    }
-                                                    const isOutOfStock = variantStock <= 0 && size.stock <= 0;
-
-                                                    return (
-                                                        <button
-                                                            key={sIdx}
-                                                            disabled={isOutOfStock}
-                                                            onClick={async (e) => {
-                                                                e.preventDefault();
-                                                                e.stopPropagation();
-                                                                if (isOutOfStock) return;
-                                                                try {
-                                                                    const res = await fetch("/api/cart", {
-                                                                        method: "POST",
-                                                                        headers: { "Content-Type": "application/json" },
-                                                                        body: JSON.stringify({
-                                                                            productId: product.id,
-                                                                            colorId: currentColorId || null,
-                                                                            sizeId: sizeId || null,
-                                                                            quantity: 1,
-                                                                        }),
-                                                                    });
-                                                                    if (res.ok) {
-                                                                        const result = await res.json();
-                                                                        if (!result.userId && result.product) {
-                                                                            const { addToGuestCart } = await import("@/lib/cart-utils");
-                                                                            addToGuestCart(product.id, currentColorId || null, sizeId || null, 1, {
-                                                                                id: result.product.id,
-                                                                                name: result.product.name,
-                                                                                image: result.product.image,
-                                                                                price: result.product.price,
-                                                                            });
-                                                                        }
-                                                                        const cartStore = await import("@/lib/stores/cartStore");
-                                                                        cartStore.useCartStore.getState().refreshCart();
-                                                                        toast.success(`${product.name} sepete eklendi`);
-                                                                    }
-                                                                } catch { toast.error("Hata oluştu"); }
-                                                            }}
-                                                            className={`w-9 h-9 flex items-center justify-center text-[10px] font-light border transition-all ${isOutOfStock 
-                                                                ? "text-gray-300 border-gray-100 cursor-not-allowed" 
-                                                                : "border-gray-200 text-[#111] hover:bg-black hover:text-white hover:border-black"}`}
-                                                        >
-                                                            {sizeName}
-                                                        </button>
-                                                    );
-                                                });
-                                            })()}
-                                        </div>
-                                    </div>
-
                                     {/* Renk Seçenekleri */}
-                                    <div className="flex items-center gap-1.5 mt-4">
-                                        {product.colors.map((color, idx) => (
+                                    <div className="flex items-center justify-center gap-1.5 mt-2">
+                                        {Array.from(new Map(product.colors.filter(c => c.images?.[0]).map(c => [c.hexCode || c.name, c])).values()).map((color, idx) => (
                                             <button
                                                 key={idx}
                                                 onMouseEnter={() => setHoveredColor({ productId: product.id, colorImage: color.images?.[0] || "" })}
@@ -299,6 +229,115 @@ export default function NewArrivalsPage() {
                                                 style={{ backgroundColor: color.hexCode || "#000" }}
                                             />
                                         ))}
+                                    </div>
+
+                                    {/* Hızlı Ekle (Görsel 5) */}
+                                    <div className="hidden md:grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-all duration-300 ease-in-out opacity-0 group-hover:opacity-100">
+                                        <div className="overflow-hidden">
+                                            <div className="mt-4 pt-4 border-t border-gray-100">
+                                                <p className="text-[10px] tracking-[0.2em] font-light text-[#111]/40 uppercase mb-3 text-center">Hızlı ekle</p>
+                                                <div className="flex flex-wrap gap-2 justify-center">
+                                                    {(() => {
+                                                        const availableSizes = product.sizes && product.sizes.length > 0
+                                                            ? product.sizes
+                                                            : product.sizeOptions && product.sizeOptions.length > 0
+                                                                ? product.sizeOptions.map((so: any) => ({ name: so.name, stock: 0, id: so.id }))
+                                                                : [];
+
+                                                        if (availableSizes.length === 0) return <p className="text-[10px] text-gray-400">Beden yok</p>;
+
+                                                        const currentColorId = displayColorObj?.id;
+                                                        const SIZE_ORDER = ["XXXS", "XXS", "XS", "S", "M", "L", "XL", "XXL", "2XL", "XXXL", "3XL", "XXXXL", "4XL"];
+
+                                                        const inStockSizes = availableSizes.map((size: any) => {
+                                                            const sizeName = typeof size === 'string' ? size : size.name;
+                                                            const sizeStock = typeof size === 'object' ? size.stock || 0 : 0;
+                                                            const sizeId = typeof size === 'object' && size.id ? size.id : null;
+                                                            
+                                                            let variantStock = 0;
+                                                            if (currentColorId && displayColorObj?.variants) {
+                                                                const variant = displayColorObj.variants.find((v: any) => v.sizeId === sizeId);
+                                                                variantStock = variant?.stock || 0;
+                                                            }
+                                                            const finalStock = variantStock > 0 ? variantStock : sizeStock;
+                                                            return { size, sizeName, sizeId, finalStock };
+                                                        }).filter(item => item.finalStock > 0).sort((a, b) => {
+                                                            const orderA = SIZE_ORDER.indexOf(a.sizeName.toUpperCase());
+                                                            const orderB = SIZE_ORDER.indexOf(b.sizeName.toUpperCase());
+                                                            if (orderA !== -1 && orderB !== -1) return orderA - orderB;
+                                                            if (orderA !== -1) return -1;
+                                                            if (orderB !== -1) return 1;
+                                                            return a.sizeName.localeCompare(b.sizeName);
+                                                        });
+
+                                                        if (inStockSizes.length === 0) return <p className="text-[10px] text-gray-400">Tükendi</p>;
+
+                                                        return inStockSizes.map(({ size, sizeName, sizeId, finalStock }, sIdx) => {
+                                                            const isOutOfStock = false;
+
+                                                            return (
+                                                                <button
+                                                                    key={sIdx}
+                                                                    disabled={isOutOfStock}
+                                                                    onClick={async (e) => {
+                                                                        e.preventDefault();
+                                                                        e.stopPropagation();
+                                                                        if (isOutOfStock) return;
+                                                                        try {
+                                                                            const res = await fetch("/api/cart", {
+                                                                                method: "POST",
+                                                                                headers: { "Content-Type": "application/json" },
+                                                                                body: JSON.stringify({
+                                                                                    productId: product.id,
+                                                                                    colorId: currentColorId || null,
+                                                                                    sizeId: sizeId || null,
+                                                                                    quantity: 1,
+                                                                                }),
+                                                                            });
+                                                                            if (res.ok) {
+                                                                                const result = await res.json();
+                                                                                if (!result.userId && result.product) {
+                                                                                    const { addToGuestCart } = await import("@/lib/cart-utils");
+                                                                                    addToGuestCart(product.id, currentColorId || null, sizeId || null, 1, {
+                                                                                        id: result.product.id,
+                                                                                        name: result.product.name,
+                                                                                        image: result.product.image,
+                                                                                        price: result.product.price,
+                                                                                    });
+                                                                                }
+                                                                                const cartStore = await import("@/lib/stores/cartStore");
+                                                                                cartStore.useCartStore.getState().refreshCart();
+                                                                                
+                                                                                // Pop-up event
+                                                                                window.dispatchEvent(
+                                                                                    new CustomEvent("itemAddedToCart", {
+                                                                                        detail: {
+                                                                                            product: {
+                                                                                                id: product.id,
+                                                                                                name: product.name,
+                                                                                                image: activeColorImage,
+                                                                                                price: product.price || 0,
+                                                                                            },
+                                                                                            size: sizeName || "",
+                                                                                            color: displayColorObj?.name || "",
+                                                                                        },
+                                                                                    })
+                                                                                );
+                                                                            }
+                                                                        } catch { toast.error("Hata oluştu"); }
+                                                                    }}
+                                                                    className={`w-9 h-9 flex items-center justify-center text-[10px] font-light border transition-all ${isOutOfStock 
+                                                                        ? "text-gray-300 border-gray-100 cursor-not-allowed" 
+                                                                        : "border-gray-200 text-[#111] hover:bg-black hover:text-white hover:border-black"}`}
+                                                                >
+                                                                    {sizeName}
+                                                                </button>
+                                                            );
+                                                        });
+                                                    })()}
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             );

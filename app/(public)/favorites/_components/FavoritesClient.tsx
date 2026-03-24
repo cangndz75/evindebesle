@@ -194,149 +194,22 @@ export default function FavoritesClient({
                       </button>
                     </div>
                   </Link>
-
-                  {/* Hover'da Hızlı Ekle Bölümü - Altından animasyonlu çıkar */}
-                  <div className="absolute bottom-0 left-0 right-0 bg-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out border-t border-gray-200 shadow-lg z-20 overflow-hidden">
-                    <div className="p-4">
-                      <p className="text-xs font-light text-[#111] mb-3 text-center">Hızlı ekle</p>
-                      <div className="flex flex-wrap gap-2 justify-center">
-                        {(() => {
-                          // Önce sizes'ı kontrol et, yoksa sizeOptions'ı kullan
-                          const availableSizes = product.sizes && product.sizes.length > 0
-                            ? product.sizes
-                            : product.sizeOptions && product.sizeOptions.length > 0
-                              ? product.sizeOptions.map(so => ({ name: so.name, stock: 0, id: undefined }))
-                              : [];
-
-                          if (availableSizes.length === 0) {
-                            return (
-                              <p className="text-xs text-gray-500">Beden seçeneği bulunmuyor</p>
-                            );
-                          }
-
-                          // Seçili renge göre variant stok kontrolü
-                          const currentColorId = product.colors?.[0]?.id;
-
-                          return availableSizes.map((size, sizeIdx) => {
-                            const sizeName = typeof size === 'string' ? size : size.name;
-                            const sizeStock = typeof size === 'object' ? size.stock : 0;
-                            const sizeId = typeof size === 'object' && (size as any).id
-                              ? (size as any).id
-                              : null;
-
-                            // Variant stok kontrolü (seçili renge göre)
-                            let variantStock = 0;
-                            if (currentColorId && product.colors?.[0]?.variants) {
-                              const variant = product.colors[0].variants.find((v: any) =>
-                                v.colorId === currentColorId && v.sizeId === sizeId
-                              );
-                              variantStock = variant?.stock || 0;
-                            }
-
-                            const finalStock = variantStock > 0 ? variantStock : sizeStock;
-                            const isOutOfStock = finalStock <= 0;
-
-                            return (
-                              <button
-                                key={sizeIdx}
-                                onClick={async (e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-
-                                  if (isOutOfStock) {
-                                    toast.error("Bu beden stokta yok", {
-                                      position: "bottom-left",
-                                    });
-                                    return;
-                                  }
-
-                                  try {
-                                    const res = await fetch("/api/cart", {
-                                      method: "POST",
-                                      headers: { "Content-Type": "application/json" },
-                                      body: JSON.stringify({
-                                        productId: product.id,
-                                        colorId: currentColorId || null,
-                                        sizeId: sizeId || null,
-                                        quantity: 1,
-                                      }),
-                                    });
-
-                                    if (res.ok) {
-                                      // Sepete eklendi event'ini dispatch et
-                                      const productImage =
-                                        product.colors?.[0]?.images?.[0] ||
-                                        product.primaryImage ||
-                                        product.image ||
-                                        "/placeholder.jpg";
-
-                                      window.dispatchEvent(
-                                        new CustomEvent("itemAddedToCart", {
-                                          detail: {
-                                            product: {
-                                              id: product.id,
-                                              name: product.name,
-                                              image: productImage,
-                                              price: product.price,
-                                            },
-                                            size: sizeName,
-                                            color: product.colors?.[0]?.name || "",
-                                          },
-                                        })
-                                      );
-
-                                      const cartModule = await import("@/lib/stores/cartStore");
-                                      await cartModule.useCartStore.getState().refreshCart();
-
-                                    } else {
-                                      const error = await res.json();
-                                      toast.error(error.error || "Sepete eklenirken bir hata oluştu", {
-                                        position: "bottom-left",
-                                      });
-                                    }
-                                  } catch (error) {
-                                    console.error("Error adding to cart:", error);
-                                    toast.error("Sepete eklenirken bir hata oluştu", {
-                                      position: "bottom-left",
-                                    });
-                                  }
-                                }}
-                                disabled={isOutOfStock}
-                                className={`px-3 py-1.5 text-xs font-light border transition-all ${isOutOfStock
-                                  ? "border-gray-200 text-gray-400 line-through cursor-not-allowed bg-white"
-                                  : "border-gray-300 hover:border-[#111] hover:bg-[#111] hover:text-white bg-white text-[#111]"
-                                  }`}
-                              >
-                                {sizeName}
-                              </button>
-                            );
-                          });
-                        })()}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mb-2 group-hover:opacity-0 transition-opacity duration-300">
+                  <div className="mb-2 text-center">
                     <h3 className="text-sm md:text-base font-light text-[#111] mb-1">
                       {product.name}
                     </h3>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-center gap-2">
                       <span className="text-sm md:text-base font-light text-[#111]">
                         {product.price.toFixed(2)} ₺
                       </span>
                     </div>
-                    {product.colors && product.colors.length > 0 && (
-                      <p className="text-xs text-[#111]/60 font-light mt-1">
-                        {product.colors.length} renk seçeneği
-                      </p>
-                    )}
                   </div>
 
-                  {/* Renk seçenekleri */}
+                  {/* Renk Seçenekleri */}
                   {product.colors && product.colors.length > 0 && (
-                    <div className="flex items-center gap-1.5 mb-3 group-hover:opacity-0 transition-opacity duration-300">
-                      {product.colors.map((color, idx) => (
-                        <button
+                    <div className="flex items-center justify-center gap-1.5 mb-2">
+                      {Array.from(new Map(product.colors.filter((c: any) => c.images?.[0]).map((c: any) => [c.hexCode || c.name, c])).values()).map((color: any, idx: number) => (
+                        <div
                           key={idx}
                           className="w-4 h-4 rounded-full border border-gray-300 transition-all duration-200 hover:scale-110"
                           style={{
@@ -347,6 +220,144 @@ export default function FavoritesClient({
                       ))}
                     </div>
                   )}
+
+                  {/* Hover'da Hızlı Ekle Bölümü - Collapsible Grid */}
+                  <div className="hidden md:grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-all duration-300 ease-in-out opacity-0 group-hover:opacity-100">
+                    <div className="overflow-hidden">
+                      <div className="mt-4 pt-4 border-t border-gray-100 px-4 pb-4">
+                        <p className="text-[10px] tracking-[0.2em] font-light text-[#111]/40 uppercase mb-3 text-center">Hızlı ekle</p>
+                        <div className="flex flex-wrap gap-2 justify-center">
+                          {(() => {
+                            // Önce sizes'ı kontrol et, yoksa sizeOptions'ı kullan
+                            const availableSizes = product.sizes && product.sizes.length > 0
+                              ? product.sizes
+                              : product.sizeOptions && product.sizeOptions.length > 0
+                                ? product.sizeOptions.map((so: any) => ({ name: so.name, stock: 0, id: so.id }))
+                                : [];
+
+                            if (availableSizes.length === 0) {
+                              return (
+                                <p className="text-xs text-gray-500">Beden seçeneği bulunmuyor</p>
+                              );
+                            }
+
+                            // Seçili renge göre variant stok kontrolü
+                            const currentColorId = product.colors?.[0]?.id;
+                            const SIZE_ORDER = ["XXXS", "XXS", "XS", "S", "M", "L", "XL", "XXL", "2XL", "XXXL", "3XL", "XXXXL", "4XL"];
+
+                            const inStockSizes = availableSizes.map((size: any) => {
+                              const sizeName = typeof size === 'string' ? size : size.name;
+                              const sizeStock = typeof size === 'object' ? size.stock : 0;
+                              const sizeId = typeof size === 'object' && size.id ? size.id : null;
+
+                              // Variant stok kontrolü (seçili renge göre)
+                              let variantStock = 0;
+                              if (currentColorId && product.colors?.[0]?.variants) {
+                                const variant = product.colors[0].variants.find((v: any) =>
+                                  v.colorId === currentColorId && v.sizeId === sizeId
+                                );
+                                variantStock = variant?.stock || 0;
+                              }
+
+                              const finalStock = variantStock > 0 ? variantStock : sizeStock;
+                              return { size, sizeName, sizeId, finalStock };
+                            }).filter((item: any) => item.finalStock > 0).sort((a: any, b: any) => {
+                              const orderA = SIZE_ORDER.indexOf(a.sizeName.toUpperCase());
+                              const orderB = SIZE_ORDER.indexOf(b.sizeName.toUpperCase());
+                              if (orderA !== -1 && orderB !== -1) return orderA - orderB;
+                              if (orderA !== -1) return -1;
+                              if (orderB !== -1) return 1;
+                              return a.sizeName.localeCompare(b.sizeName);
+                            });
+
+                            if (inStockSizes.length === 0) {
+                              return <p className="text-[10px] text-gray-400">Tükendi</p>;
+                            }
+
+                            return inStockSizes.map(({ size, sizeName, sizeId, finalStock }: any, sizeIdx: number) => {
+                              const isOutOfStock = false;
+
+                              return (
+                                <button
+                                  key={sizeIdx}
+                                  onClick={async (e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+
+                                    if (isOutOfStock) {
+                                      toast.error("Bu beden stokta yok", {
+                                        position: "bottom-left",
+                                      });
+                                      return;
+                                    }
+
+                                    try {
+                                      const res = await fetch("/api/cart", {
+                                        method: "POST",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({
+                                          productId: product.id,
+                                          colorId: currentColorId || null,
+                                          sizeId: sizeId || null,
+                                          quantity: 1,
+                                        }),
+                                      });
+
+                                      if (res.ok) {
+                                        // Sepete eklendi event'ini dispatch et
+                                        const productImage =
+                                          product.colors?.[0]?.images?.[0] ||
+                                          product.primaryImage ||
+                                          product.image ||
+                                          "/placeholder.jpg";
+
+                                        window.dispatchEvent(
+                                          new CustomEvent("itemAddedToCart", {
+                                            detail: {
+                                              product: {
+                                                id: product.id,
+                                                name: product.name,
+                                                image: productImage,
+                                                price: product.price,
+                                              },
+                                              size: sizeName,
+                                              color: product.colors?.[0]?.name || "",
+                                            },
+                                          })
+                                        );
+
+                                        const cartModule = await import("@/lib/stores/cartStore");
+                                        await cartModule.useCartStore.getState().refreshCart();
+
+                                      } else {
+                                        const error = await res.json();
+                                        toast.error(error.error || "Sepete eklenirken bir hata oluştu", {
+                                          position: "bottom-left",
+                                        });
+                                      }
+                                    } catch (error) {
+                                      console.error("Error adding to cart:", error);
+                                      toast.error("Sepete eklenirken bir hata oluştu", {
+                                        position: "bottom-left",
+                                      });
+                                    }
+                                  }}
+                                  disabled={isOutOfStock}
+                                  className={`px-3 py-1.5 text-xs font-light border transition-all ${
+                                    isOutOfStock
+                                      ? "border-gray-200 text-gray-400 line-through cursor-not-allowed bg-white"
+                                      : "border-gray-300 hover:border-[#111] hover:bg-[#111] hover:text-white bg-white text-[#111]"
+                                    }`}
+                                >
+                                  {sizeName}
+                                </button>
+                              );
+                            });
+                          })()}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               );
             })}

@@ -60,7 +60,20 @@ export default function UpsellSection() {
                 colorId: null,
                 sizeId: null,
             });
-            toast.success("Ürün sepete eklendi");
+            window.dispatchEvent(
+                new CustomEvent("itemAddedToCart", {
+                    detail: {
+                        product: {
+                            id: product.id,
+                            name: product.name,
+                            image: product.image || "",
+                            price: product.price || 0,
+                        },
+                        size: "",
+                        color: "",
+                    },
+                })
+            );
         } catch (error) {
             toast.error("Ürün eklenirken hata oluştu");
         } finally {

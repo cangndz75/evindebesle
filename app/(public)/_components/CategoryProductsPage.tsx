@@ -592,8 +592,12 @@ export default function CategoryProductsPage({
                                 : product.colors?.[0]?.variant?.variantCode;
                             const finalUrl = variant ? `${productUrl}?variant=${variant}` : productUrl;
 
+                            // Stok durumu kontrolü
+                            const totalStock = product.sizes?.reduce((sum, s) => sum + (s.stock || 0), 0) || 0;
+                            const isOutOfStock = totalStock === 0;
+
                             return (
-                                <div key={product.id} className="group relative overflow-hidden">
+                                <div key={product.id} className={`group relative overflow-hidden ${isOutOfStock ? "opacity-75" : ""}`}>
                                     <Link href={finalUrl} prefetch={true} className="block">
                                         <HoverImageSlider
                                             images={
@@ -606,20 +610,21 @@ export default function CategoryProductsPage({
                                             className="mb-4"
                                             badge={product.originalPrice && product.originalPrice > product.price ? "İndirim" : null}
                                             favoriteButton={<FavoriteButton productId={product.id} productName={product.name} />}
+                                            isOutOfStock={isOutOfStock}
                                         />
                                     </Link>
 
-                                    <div className="mb-2">
+                                    <div className="mt-4 text-center">
                                         <h3 className="text-sm md:text-base font-light text-[#111] mb-1">
                                             {product.name}
                                         </h3>
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center justify-center gap-2">
                                             {product.originalPrice && product.originalPrice > product.price ? (
                                                 <>
                                                     <span className="text-sm md:text-base font-light text-[#111]">
                                                         {product.price.toFixed(2)} ₺
                                                     </span>
-                                                    <span className="text-xs md:text-sm text-[#111]/60 line-through">
+                                                    <span className="text-sm text-[#111]/60 line-through">
                                                         {product.originalPrice.toFixed(2)} ₺
                                                     </span>
                                                 </>
@@ -629,34 +634,71 @@ export default function CategoryProductsPage({
                                                 </span>
                                             )}
                                         </div>
-                                        {product.colors.length > 0 && (
-                                            <p className="text-xs text-[#111]/60 font-light mt-1">
-                                                {product.colors.length} renk seçeneği
-                                            </p>
-                                        )}
-                                        {/* Hover'da Hızlı Ekle Bölümü (Görsel 5 Tasarımı) */}
-                                        <div className="mt-4 pt-4 border-t border-gray-100 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden md:block">
-                                            <p className="text-[10px] tracking-[0.2em] font-light text-[#111]/40 uppercase mb-3 text-center">Hızlı ekle</p>
-                                            <div className="flex flex-wrap gap-2 justify-center">
-                                                {(() => {
-                                                    const availableSizes = product.sizes && product.sizes.length > 0
-                                                        ? product.sizes
-                                                        : product.sizeOptions && product.sizeOptions.length > 0
-                                                            ? product.sizeOptions.map(so => ({ name: so.name, stock: 0, id: undefined }))
-                                                            : [];
+                                    </div>
+
+                                    {/* Renk Seçenekleri */}
+                                    {product.colors.length > 0 && (
+                                        <div className="flex items-center justify-center gap-1.5 mt-2">
+                                            {Array.from(new Map(product.colors.filter((c: any) => c.images?.[0]).map((c: any) => [c.hexCode || c.name, c])).values()).map((color: any, idx: number) => {
+                                                const isSelected = selectedColor?.productId === product.id &&
+                                                    product.colors.find((c: any) => Array.isArray(c.images) && c.images.length > 0 && c.images[0] === selectedColor.colorImage)?.name === color.name;
+                                                return (
+                                                    <button
+                                                        key={idx}
+                                                        onMouseEnter={() =>
+                                                            setHoveredColor({
+                                                                productId: product.id,
+                                                                colorImage: (Array.isArray(color.images) && color.images.length > 0 ? color.images[0] : null) || currentImage
+                                                            })
+                                                        }
+                                                        onMouseLeave={() => setHoveredColor(null)}
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            setSelectedColor({
+                                                                productId: product.id,
+                                                                colorImage: (Array.isArray(color.images) && color.images.length > 0 ? color.images[0] : null) || currentImage,
+                                                                variantCode: color.variant?.variantCode
+                                                            });
+                                                        }}
+                                                        className={`w-4 h-4 rounded-full border transition-all duration-200 hover:scale-110 ${isSelected
+                                                            ? "border-[#111] scale-110"
+                                                            : "border-gray-300"
+                                                            }`}
+                                                        style={{
+                                                            backgroundColor: color.hexCode || "#ccc",
+                                                        }}
+                                                        aria-label={`${color.name} renk seçeneği`}
+                                                    />
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+
+                                    {/* Hover'da Hızlı Ekle Bölümü (Görsel 5 Tasarımı) */}
+                                    <div className="hidden md:grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-all duration-300 ease-in-out opacity-0 group-hover:opacity-100">
+                                        <div className="overflow-hidden">
+                                            <div className="mt-4 pt-4 border-t border-gray-100">
+                                                <p className="text-[10px] tracking-[0.2em] font-light text-[#111]/40 uppercase mb-3 text-center">Hızlı ekle</p>
+                                                <div className="flex flex-wrap gap-2 justify-center">
+                                                    {(() => {
+                                                        const availableSizes = product.sizes && product.sizes.length > 0
+                                                            ? product.sizes
+                                                            : product.sizeOptions && product.sizeOptions.length > 0
+                                                                ? product.sizeOptions.map((so: any) => ({ name: so.name, stock: 0, id: so.id }))
+                                                                : [];
 
                                                     if (availableSizes.length === 0) {
                                                         return <p className="text-[10px] text-gray-400">Beden seçeneği yok</p>;
                                                     }
 
                                                     const currentColorId = displayColorObj?.id || product.colors?.[0]?.id;
+                                                    const SIZE_ORDER = ["XXXS", "XXS", "XS", "S", "M", "L", "XL", "XXL", "2XL", "XXXL", "3XL", "XXXXL", "4XL"];
 
-                                                    return availableSizes.map((size, sizeIdx) => {
+                                                    const inStockSizes = availableSizes.map((size: any) => {
                                                         const sizeName = typeof size === 'string' ? size : size.name;
                                                         const sizeStock = typeof size === 'object' ? size.stock : 0;
-                                                        const sizeId = typeof size === 'object' && (size as any).id
-                                                            ? (size as any).id
-                                                            : null;
+                                                        const sizeId = typeof size === 'object' && size.id ? size.id : null;
 
                                                         let variantStock = 0;
                                                         if (currentColorId && displayColorObj?.variants) {
@@ -667,7 +709,22 @@ export default function CategoryProductsPage({
                                                         }
 
                                                         const finalStock = variantStock > 0 ? variantStock : sizeStock;
-                                                        const isOutOfStock = finalStock <= 0;
+                                                        return { size, sizeName, sizeId, finalStock };
+                                                    }).filter(item => item.finalStock > 0).sort((a, b) => {
+                                                        const orderA = SIZE_ORDER.indexOf(a.sizeName.toUpperCase());
+                                                        const orderB = SIZE_ORDER.indexOf(b.sizeName.toUpperCase());
+                                                        if (orderA !== -1 && orderB !== -1) return orderA - orderB;
+                                                        if (orderA !== -1) return -1;
+                                                        if (orderB !== -1) return 1;
+                                                        return a.sizeName.localeCompare(b.sizeName);
+                                                    });
+
+                                                    if (inStockSizes.length === 0) {
+                                                        return <p className="text-[10px] text-gray-400">Tükendi</p>;
+                                                    }
+
+                                                    return inStockSizes.map(({ size, sizeName, sizeId, finalStock }, sizeIdx) => {
+                                                        const isOutOfStock = false;
 
                                                         return (
                                                             <button
@@ -703,7 +760,6 @@ export default function CategoryProductsPage({
                                                                             }
                                                                             const cartModule = await import("@/lib/stores/cartStore");
                                                                             await cartModule.useCartStore.getState().refreshCart();
-                                                                            toast.success(`${product.name} (${sizeName}) sepete eklendi`);
 
                                                                             // Pop-up event
                                                                             window.dispatchEvent(
@@ -743,8 +799,9 @@ export default function CategoryProductsPage({
                                         </div>
                                     </div>
                                 </div>
-                            );
-                        })}
+                            </div>
+                        );
+                    })}
                     </div>
                 )}
             </div>

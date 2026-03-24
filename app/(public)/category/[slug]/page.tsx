@@ -34,6 +34,7 @@ async function getInitialProducts(categorySlug: string, gender?: any) {
                 isActive: true,
                 category: { slug: categorySlug },
                 gender: gender || undefined,
+                price: { gt: 0 },
             },
             select: {
                 id: true,

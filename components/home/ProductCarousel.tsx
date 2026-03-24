@@ -118,48 +118,47 @@ export default function ProductCarousel({ title, products, viewAllLink }: Produc
                         </div>
                       )}
                     </div>
-                    <h3 className="text-sm font-light text-[#111] mb-1 uppercase pl-2 md:pl-4">
-                      {product.title}
-                    </h3>
-                    <p className="text-base font-light text-[#111] mb-1 pl-2 md:pl-4">
-                      {product.price.toFixed(2)} ₺
-                    </p>
+                    <div className="text-center mt-4">
+                      <h3 className="text-sm font-light text-[#111] mb-1 uppercase px-2">
+                        {product.title}
+                      </h3>
+                      <p className="text-base font-light text-[#111] mb-1">
+                        {product.price.toFixed(2)} ₺
+                      </p>
+                    </div>
+
                     {product.colors && product.colors.length > 0 && (
-                      <>
-                        <p className="text-xs text-[#111]/60 font-light mb-2 pl-2 md:pl-4">
-                          {product.colors.length} renk seçeneği
-                        </p>
-                        <div className="flex gap-1.5 pl-2 md:pl-4">
-                          {product.colors.slice(0, 4).map((color, idx) => {
-                            const colorValue = typeof color === 'string' ? color : color.value;
+                      <div className="flex justify-center gap-1.5 mt-2">
+                          {product.colors.slice(0, 4).map((color: any, idx: number) => {
+                            const colorValue = typeof color === 'string' ? color : color.value || color.hexCode;
                             return (
                               <div
                                 key={idx}
-                                className="w-4 h-4 rounded-full border border-gray-300"
+                                className="w-3 h-3 rounded-full border border-gray-300"
                                 style={{ backgroundColor: colorValue }}
                                 aria-label={`Renk seçeneği ${idx + 1}`}
                               />
                             );
                           })}
                           {product.colors.length > 4 && (
-                            <span className="text-xs text-[#111]/60 font-light">
+                            <span className="text-[10px] text-[#111]/60 font-light">
                               +{product.colors.length - 4}
                             </span>
                           )}
-                        </div>
-                      </>
+                      </div>
                     )}
 
-                    {/* Hızlı Ekle Bölümü - Her zaman görünür */}
-                    <div className="mt-2 pl-2 md:pl-4">
-                      <div className="border border-gray-200 rounded-sm p-4 bg-white">
-                        <p className="text-xs font-light text-[#111] mb-3 text-center">Hızlı ekle</p>
-                        <div className="flex flex-wrap gap-2 justify-center">
+                    {/* Hızlı Ekle Bölümü - Hover'da açılır */}
+                    <div className="hidden md:grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-all duration-300 ease-in-out opacity-0 group-hover:opacity-100">
+                      <div className="overflow-hidden">
+                        <div className="mt-4 pt-4 border-t border-gray-100 px-4">
+                          <p className="text-[10px] tracking-[0.2em] font-light text-[#111]/40 uppercase mb-3 text-center">Hızlı ekle</p>
+                          <div className="flex flex-wrap gap-2 justify-center">
                           {(() => {
                             const availableSizes = product.sizes && product.sizes.length > 0
                               ? product.sizes
                               : product.sizeOptions && product.sizeOptions.length > 0
-                              ? product.sizeOptions.map(so => ({ name: so.name, stock: 0, id: so.id }))
+                              ? product.sizeOptions.map((so: any) => ({ name: so.name, stock: 0, id: so.id }))
                               : [];
                             
                             if (availableSizes.length === 0) {
@@ -169,8 +168,9 @@ export default function ProductCarousel({ title, products, viewAllLink }: Produc
                             }
 
                             const currentColorId = product.colorId;
+                            const SIZE_ORDER = ["XXXS", "XXS", "XS", "S", "M", "L", "XL", "XXL", "2XL", "XXXL", "3XL", "XXXXL", "4XL"];
                             
-                            return availableSizes.map((size, sizeIdx) => {
+                            const inStockSizes = availableSizes.map((size: any) => {
                               const sizeName = typeof size === 'string' ? size : size.name;
                               const sizeStock = typeof size === 'object' ? size.stock : 0;
                               const sizeId = typeof size === 'object' && size.id ? size.id : null;
@@ -184,7 +184,22 @@ export default function ProductCarousel({ title, products, viewAllLink }: Produc
                               }
                               
                               const finalStock = variantStock > 0 ? variantStock : sizeStock;
-                              const isOutOfStock = finalStock <= 0;
+                              return { size, sizeName, sizeId, finalStock };
+                            }).filter(item => item.finalStock > 0).sort((a, b) => {
+                              const orderA = SIZE_ORDER.indexOf(a.sizeName.toUpperCase());
+                              const orderB = SIZE_ORDER.indexOf(b.sizeName.toUpperCase());
+                              if (orderA !== -1 && orderB !== -1) return orderA - orderB;
+                              if (orderA !== -1) return -1;
+                              if (orderB !== -1) return 1;
+                              return a.sizeName.localeCompare(b.sizeName);
+                            });
+
+                            if (inStockSizes.length === 0) {
+                              return <p className="text-[10px] text-gray-400">Tükendi</p>;
+                            }
+
+                            return inStockSizes.map(({ size, sizeName, sizeId, finalStock }, sizeIdx) => {
+                              const isOutOfStock = false;
                               
                               return (
                                 <button
@@ -235,6 +250,20 @@ export default function ProductCarousel({ title, products, viewAllLink }: Produc
                                         }
                                         
                                         window.dispatchEvent(new Event("cartUpdated"));
+                                        window.dispatchEvent(
+                                          new CustomEvent("itemAddedToCart", {
+                                            detail: {
+                                              product: {
+                                                id: product.id,
+                                                name: product.title,
+                                                image: product.image,
+                                                price: product.price || 0,
+                                              },
+                                              size: sizeName || "",
+                                              color: "", // Home data'da renk ismi yok, boş bırakılabilir
+                                            },
+                                          })
+                                        );
                                       } else {
                                         const error = await res.json();
                                         toast.error(error.error || "Sepete eklenirken bir hata oluştu", {
@@ -260,9 +289,10 @@ export default function ProductCarousel({ title, products, viewAllLink }: Produc
                               );
                             });
                           })()}
-                        </div>
+                         </div>
                       </div>
                     </div>
+                  </div>
                   </Link>
                 </div>
               ))}

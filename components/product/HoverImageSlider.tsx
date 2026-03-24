@@ -13,6 +13,7 @@ interface HoverImageSliderProps {
     badge?: React.ReactNode;
     favoriteButton?: React.ReactNode;
     onImageChange?: (index: number) => void;
+    isOutOfStock?: boolean;
 }
 
 export default function HoverImageSlider({
@@ -25,6 +26,7 @@ export default function HoverImageSlider({
     badge,
     favoriteButton,
     onImageChange,
+    isOutOfStock = false,
 }: HoverImageSliderProps) {
     const [activeIndex, setActiveIndex] = useState(0);
 
@@ -80,7 +82,7 @@ export default function HoverImageSlider({
                     alt={idx === 0 ? alt : `${alt} - ${idx + 1}`}
                     fill
                     className={`object-cover transition-opacity duration-200 ${idx === activeIndex ? "opacity-100" : "opacity-0"
-                        }`}
+                        } ${isOutOfStock ? "opacity-40 grayscale-[20%]" : ""}`}
                     sizes={sizes}
                     loading={priority && idx === 0 ? "eager" : "lazy"}
                     quality={85}
@@ -93,6 +95,15 @@ export default function HoverImageSlider({
 
             {/* Favorite Button */}
             {favoriteButton}
+
+            {/* Stokta Yok Label */}
+            {isOutOfStock && (
+                <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
+                    <div className="bg-white/90 text-black px-4 py-2 text-xs font-bold tracking-widest uppercase">
+                        STOKTA YOK
+                    </div>
+                </div>
+            )}
 
             {/* Alt kısımda resim sayısını gösteren dot indicator'lar */}
             {imageCount > 1 && (

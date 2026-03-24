@@ -675,6 +675,8 @@ export default function WomenProductsPage({
         {/* Mobil Grid */}
         <div className="grid grid-cols-2 gap-4 md:hidden">
           {products.map((product) => {
+            const totalStock = product.sizes?.reduce((sum, s) => sum + (s.stock || 0), 0) || 0;
+            const isOutOfStock = totalStock === 0;
             const isColorActive = hoveredColor?.productId === product.id || selectedColor?.productId === product.id;
             const activeColorImage = hoveredColor?.productId === product.id
               ? hoveredColor.colorImage
@@ -682,10 +684,8 @@ export default function WomenProductsPage({
                 ? selectedColor.colorImage
                 : null;
 
-            const currentImage = activeColorImage || product.image || "/placeholder.png";
-
             return (
-              <div key={product.id} className="group">
+              <div key={product.id} className={`group ${isOutOfStock ? "opacity-75" : ""}`}>
                 <Link href={product.slug ? `/products/${product.slug}` : `/product/${product.id}`} className="block">
                   <HoverImageSlider
                     images={[
@@ -695,6 +695,7 @@ export default function WomenProductsPage({
                     alt={product.name}
                     sizes="50vw"
                     className="mb-3"
+                    isOutOfStock={isOutOfStock}
                     badge={
                       product.originalPrice && product.originalPrice > product.price ? (
                         <div className="absolute top-3 left-3 bg-[#111] text-white uppercase font-light text-[10px] px-2 py-1 z-10">
@@ -804,8 +805,11 @@ export default function WomenProductsPage({
             const isLarge = gridPos && (gridPos.span.row > 1 || gridPos.span.col > 1);
             const aspectClass = isLarge ? "aspect-square" : "aspect-[3/4]";
 
+            const totalStock = product.sizes?.reduce((sum, s) => sum + (s.stock || 0), 0) || 0;
+            const isOutOfStock = totalStock === 0;
+
             return (
-              <div key={product.id} className="group" style={gridStyle}>
+              <div key={product.id} className={`group ${isOutOfStock ? "opacity-75" : ""}`} style={gridStyle}>
                 <Link href={product.slug ? `/products/${product.slug}` : `/product/${product.id}`} className="block">
                   <HoverImageSlider
                     images={[
@@ -816,6 +820,7 @@ export default function WomenProductsPage({
                     sizes="(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 25vw"
                     className="mb-3"
                     aspectRatio={isLarge ? "square" : "portrait"}
+                    isOutOfStock={isOutOfStock}
                     badge={
                       product.badge ? (
                         <div className="absolute top-3 left-3 bg-[#111] text-white uppercase font-light text-[10px] px-2 py-1 z-10">
@@ -827,11 +832,11 @@ export default function WomenProductsPage({
                   />
                 </Link>
 
-                <div className="space-y-1">
+                <div className="space-y-1 text-center">
                   <h3 className="font-light text-[#111] text-xs md:text-sm">
                     {product.name}
                   </h3>
-                  <div className="flex flex-col">
+                  <div className="flex items-center justify-center gap-1.5 flex-wrap">
                     {product.originalPrice && product.originalPrice > product.price ? (
                       <>
                         <span className="font-light text-[#111] text-xs md:text-sm">
@@ -847,22 +852,39 @@ export default function WomenProductsPage({
                       </span>
                     )}
                   </div>
-                  {product.inColors && (
-                    <p className="text-[#111]/60 font-light text-[10px] md:text-xs mt-0.5">
-                      {product.inColors} renk
-                    </p>
-                  )}
+                </div>
+
+                {/* Renk Seçenekleri */}
+                <div className="flex items-center justify-center gap-1 mt-2">
+                  {Array.from(new Map(product.colors.filter((c: any) => c.images?.[0]).map((c: any) => [c.hexCode || c.name, c])).values()).map((color: any, idx) => {
+                    const colorImg = color.images?.[0] || "";
+                    const isActive = isColorActive && activeColorImage === colorImg;
+                    return (
+                      <button
+                        key={idx}
+                        onMouseEnter={() => handleColorInteraction(product.id, colorImg)}
+                        onMouseLeave={handleColorLeave}
+                        onClick={() => handleColorInteraction(product.id, colorImg)}
+                        className={`w-3 h-3 rounded-full border transition-all duration-200 ${isActive ? "border-[#111]" : "border-gray-300"
+                          }`}
+                        style={{ backgroundColor: color.hexCode || "#000000" }}
+                        aria-label={`${color.name} renk seçeneği`}
+                      />
+                    );
+                  })}
                 </div>
 
                 {/* Hover'da Hızlı Ekle Bölümü (Görsel 5 Tasarımı) */}
-                <div className="mt-4 pt-4 border-t border-gray-100 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden md:block">
-                  <p className="text-[10px] tracking-[0.2em] font-light text-[#111]/40 uppercase mb-3 text-center">Hızlı ekle</p>
-                  <div className="flex flex-wrap gap-2 justify-center">
+                <div className="hidden md:grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-all duration-300 ease-in-out opacity-0 group-hover:opacity-100">
+                  <div className="overflow-hidden">
+                    <div className="mt-4 pt-4 border-t border-gray-100">
+                      <p className="text-[10px] tracking-[0.2em] font-light text-[#111]/40 uppercase mb-3 text-center">Hızlı ekle</p>
+                      <div className="flex flex-wrap gap-2 justify-center">
                     {(() => {
                       const availableSizes = product.sizes && product.sizes.length > 0
                         ? product.sizes
                         : product.sizeOptions && product.sizeOptions.length > 0
-                          ? product.sizeOptions.map(so => ({ name: so.name, stock: 0 }))
+                          ? product.sizeOptions.map((so: any) => ({ name: so.name, stock: 0, id: so.id }))
                           : [];
 
                       if (availableSizes.length === 0) {
@@ -871,11 +893,12 @@ export default function WomenProductsPage({
 
                       const currentColor = product.colors.find(c => c.images?.[0] === activeColorImage) || product.colors[0];
                       const currentColorId = currentColor?.id;
+                      const SIZE_ORDER = ["XXXS", "XXS", "XS", "S", "M", "L", "XL", "XXL", "2XL", "XXXL", "3XL", "XXXXL", "4XL"];
 
-                      return availableSizes.map((size, sizeIdx) => {
+                      const inStockSizes = availableSizes.map((size: any) => {
                         const sizeName = typeof size === 'string' ? size : size.name;
                         const sizeStock = typeof size === 'object' ? size.stock : 0;
-                        const sizeId = (size as any).id || null;
+                        const sizeId = typeof size === 'object' && size.id ? size.id : null;
 
                         let variantStock = 0;
                         if (currentColorId && (currentColor as any).variants) {
@@ -886,7 +909,22 @@ export default function WomenProductsPage({
                         }
 
                         const finalStock = variantStock > 0 ? variantStock : sizeStock;
-                        const isOutOfStock = finalStock <= 0;
+                        return { size, sizeName, sizeId, finalStock };
+                      }).filter(item => item.finalStock > 0).sort((a, b) => {
+                        const orderA = SIZE_ORDER.indexOf(a.sizeName.toUpperCase());
+                        const orderB = SIZE_ORDER.indexOf(b.sizeName.toUpperCase());
+                        if (orderA !== -1 && orderB !== -1) return orderA - orderB;
+                        if (orderA !== -1) return -1;
+                        if (orderB !== -1) return 1;
+                        return a.sizeName.localeCompare(b.sizeName);
+                      });
+
+                      if (inStockSizes.length === 0) {
+                        return <p className="text-[10px] text-gray-400">Tükendi</p>;
+                      }
+
+                      return inStockSizes.map(({ size, sizeName, sizeId, finalStock }, sizeIdx) => {
+                        const isOutOfStock = false;
 
                         return (
                           <button
@@ -922,7 +960,20 @@ export default function WomenProductsPage({
                                   }
                                   const cartModule = await import("@/lib/stores/cartStore");
                                   await cartModule.useCartStore.getState().refreshCart();
-                                  toast.success(`${product.name} (${sizeName}) sepete eklendi`);
+                                    window.dispatchEvent(
+                                      new CustomEvent("itemAddedToCart", {
+                                        detail: {
+                                          product: {
+                                            id: product.id,
+                                            name: product.name,
+                                            image: currentColor?.images?.[0] || product.image || "/placeholder.jpg",
+                                            price: product.price,
+                                          },
+                                          size: sizeName,
+                                          color: currentColor?.name || "",
+                                        },
+                                      })
+                                    );
                                 } else {
                                   const errorData = await res.json();
                                   toast.error(errorData.error || "Hata oluştu");
@@ -944,28 +995,11 @@ export default function WomenProductsPage({
                     })()}
                   </div>
                 </div>
-
-                <div className="flex items-center gap-1 mt-2">
-                  {product.colors.map((color, idx) => {
-                    const colorImg = color.images?.[0] || "";
-                    const isActive = isColorActive && activeColorImage === colorImg;
-                    return (
-                      <button
-                        key={idx}
-                        onMouseEnter={() => handleColorInteraction(product.id, colorImg)}
-                        onMouseLeave={handleColorLeave}
-                        onClick={() => handleColorInteraction(product.id, colorImg)}
-                        className={`w-3 h-3 rounded-full border transition-all duration-200 ${isActive ? "border-[#111]" : "border-gray-300"
-                          }`}
-                        style={{ backgroundColor: color.hexCode || "#000000" }}
-                        aria-label={`${color.name} renk seçeneği`}
-                      />
-                    );
-                  })}
-                </div>
               </div>
-            );
-          })}
+            </div>
+          </div>
+        );
+      })}
         </div>
       </div>
     </div>

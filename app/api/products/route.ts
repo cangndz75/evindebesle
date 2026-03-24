@@ -25,6 +25,7 @@ export async function GET(request: NextRequest) {
 
   const where: any = {
     isActive,
+    price: { gt: 0 }
   };
 
   if (newArrivalsOnly) {

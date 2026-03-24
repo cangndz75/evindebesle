@@ -170,8 +170,22 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
       if (options?.redirectToPayment) {
         window.location.href = "/payment";
       } else {
-        // Normal sepete eklemede /cart sayfasına yönlendir
-        window.location.href = "/cart";
+        // Sepete eklendi event'ini dispatch et
+        window.dispatchEvent(
+          new CustomEvent("itemAddedToCart", {
+            detail: {
+              product: {
+                id: product.id,
+                name: product.name,
+                image: firstImage,
+                price: product.price || 0,
+                originalPrice: product.originalPrice,
+              },
+              size: selectedSizeName || "",
+              color: selectedColorName || "",
+            },
+          })
+        );
       }
     } catch (error) {
       console.error("Error adding to cart:", error);

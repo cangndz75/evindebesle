@@ -71,6 +71,7 @@ async function getInitialProducts() {
         gender: {
           in: ["FEMALE", "UNISEX"],
         },
+        price: { gt: 0 },
       },
       select: {
         id: true,
@@ -193,8 +194,12 @@ async function getCategories() {
     const categories = await prisma.category.findMany({
       where: {
         isActive: true,
-        showOnWomen: true,
-        gender: { in: ["FEMALE", "UNISEX"] }
+        products: {
+          some: {
+            isActive: true,
+            gender: { in: ["FEMALE", "UNISEX"] }
+          }
+        }
       },
       orderBy: { sortOrder: "asc" },
       select: { name: true, slug: true }

@@ -589,7 +589,6 @@ export default function WomenProductsPage({
           ))}
         </div>
         )}
-
         {/* Filter and Sort */}
         <div className="flex items-center justify-between mb-6 md:mb-8 gap-2 md:gap-4">
           {/* Filtre Butonu - Sol */}
@@ -758,128 +757,6 @@ export default function WomenProductsPage({
                     }
                     favoriteButton={<FavoriteButton productId={product.id} productName={product.name} />}
                   />
-
-                  {!isOutOfStock && (
-                  <div className="hidden md:block absolute bottom-3 left-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div className="bg-white/95 backdrop-blur-sm border border-gray-200 p-3">
-                      <p className="text-[10px] tracking-[0.2em] font-light text-[#111]/40 uppercase mb-3 text-center">Hızlı ekle</p>
-                      <div className="flex flex-wrap gap-2 justify-center">
-                    {(() => {
-                      const availableSizes = product.sizes && product.sizes.length > 0
-                        ? product.sizes
-                        : product.sizeOptions && product.sizeOptions.length > 0
-                          ? product.sizeOptions.map((so: any) => ({ name: so.name, stock: 0, id: so.id }))
-                          : [];
-
-                      if (availableSizes.length === 0) {
-                        return <p className="text-[10px] text-gray-400">Beden seçeneği yok</p>;
-                      }
-
-                      const currentColor = product.colors.find(c => c.images?.[0] === activeColorImage) || product.colors[0];
-                      const currentColorId = currentColor?.id;
-                      const SIZE_ORDER = ["XXXS", "XXS", "XS", "S", "M", "L", "XL", "XXL", "2XL", "XXXL", "3XL", "XXXXL", "4XL"];
-
-                      const inStockSizes = availableSizes.map((size: any) => {
-                        const sizeName = typeof size === 'string' ? size : size.name;
-                        const sizeStock = typeof size === 'object' ? size.stock : 0;
-                        const sizeId = typeof size === 'object' && size.id ? size.id : null;
-
-                        let variantStock = 0;
-                        if (currentColorId && (currentColor as any).variants) {
-                          const variant = (currentColor as any).variants.find((v: any) =>
-                            v.sizeId === sizeId
-                          );
-                          variantStock = variant?.stock || 0;
-                        }
-
-                        const finalStock = variantStock > 0 ? variantStock : sizeStock;
-                        return { size, sizeName, sizeId, finalStock };
-                      }).filter(item => item.finalStock > 0).sort((a, b) => {
-                        const orderA = SIZE_ORDER.indexOf(a.sizeName.toUpperCase());
-                        const orderB = SIZE_ORDER.indexOf(b.sizeName.toUpperCase());
-                        if (orderA !== -1 && orderB !== -1) return orderA - orderB;
-                        if (orderA !== -1) return -1;
-                        if (orderB !== -1) return 1;
-                        return a.sizeName.localeCompare(b.sizeName);
-                      });
-
-                      if (inStockSizes.length === 0) {
-                        return <p className="text-[10px] text-gray-400">Tükendi</p>;
-                      }
-
-                      return inStockSizes.map(({ size, sizeName, sizeId, finalStock }, sizeIdx) => {
-                        const isOutOfStock = false;
-
-                        return (
-                          <button
-                            key={sizeIdx}
-                            onClick={async (e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              if (isOutOfStock) {
-                                toast.error("Stokta yok");
-                                return;
-                              }
-                              try {
-                                const res = await fetch("/api/cart", {
-                                  method: "POST",
-                                  headers: { "Content-Type": "application/json" },
-                                  body: JSON.stringify({
-                                    productId: product.id,
-                                    colorId: currentColorId || null,
-                                    sizeId: sizeId || null,
-                                    quantity: 1,
-                                  }),
-                                });
-                                if (res.ok) {
-                                  const result = await res.json();
-                                  if (!result.userId && result.product) {
-                                    const { addToGuestCart } = await import("@/lib/cart-utils");
-                                    addToGuestCart(product.id, currentColorId || null, sizeId || null, 1, {
-                                      id: result.product.id,
-                                      name: result.product.name || product.name,
-                                      image: result.product.image || product.image,
-                                      price: result.product.price || product.price || 0,
-                                    });
-                                  }
-                                  const cartModule = await import("@/lib/stores/cartStore");
-                                  await cartModule.useCartStore.getState().refreshCart();
-                                    window.dispatchEvent(
-                                      new CustomEvent("itemAddedToCart", {
-                                        detail: {
-                                          product: {
-                                            id: product.id,
-                                            name: product.name,
-                                            image: currentColor?.images?.[0] || product.image || "/placeholder.jpg",
-                                            price: product.price,
-                                          },
-                                          size: sizeName,
-                                          color: currentColor?.name || "",
-                                        },
-                                      })
-                                    );
-                                } else {
-                                  const errorData = await res.json();
-                                  toast.error(errorData.error || "Hata oluştu");
-                                }
-                              } catch (error) {
-                                toast.error("Hata oluştu");
-                              }
-                            }}
-                            disabled={isOutOfStock}
-                            className={`w-10 h-10 flex items-center justify-center text-[11px] font-light border transition-all duration-300 ${isOutOfStock
-                                ? "border-gray-100 text-gray-300 cursor-not-allowed bg-white"
-                                : "border-gray-200 text-[#111] hover:bg-black hover:text-white hover:border-black bg-white"
-                              }`}
-                          >
-                            {sizeName}
-                          </button>
-                        );
-                      });
-                    })()}
-                  </div>
-                </div>
-                )}
                 </Link>
 
                 <div className="space-y-1">
@@ -932,10 +809,10 @@ export default function WomenProductsPage({
                     </span>
                   )}
                 </div>
+                </div>
+                    );
+                  })}
               </div>
-            );
-          })}
-        </div>
 
         {/* Desktop Grid - Döngüsel pattern düzeni */}
         <div className="hidden md:grid md:grid-cols-4 gap-6 auto-rows-fr">
@@ -1044,11 +921,9 @@ export default function WomenProductsPage({
                     );
                   })}
                 </div>
-
-            </div>
-          </div>
-        );
-      })}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

@@ -844,7 +844,7 @@ export default function MenProductsPage({
                           })()}
                         </div>
                       </div>
-                    </div>
+                    </div> 
                     )}
                   </Link>
 

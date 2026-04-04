@@ -72,6 +72,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.redirect(`${TAMI.APP_BASE_URL}/payment/3ds-result?sid=${ps.id}&status=ok&appointmentId=${appointment.id}`);
   } catch (e: any) {
-    return NextResponse.json({ error: e?.message || "callback error" }, { status: 500 });
+    return NextResponse.json({ error: "CALLBACK_EXCEPTION" }, { status: 500 });
   }
 }

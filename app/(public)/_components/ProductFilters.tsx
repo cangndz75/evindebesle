@@ -21,6 +21,68 @@ import {
 } from "@/components/ui/accordion";
 import { Slider } from "@/components/ui/slider";
 
+const COLOR_NAME_TO_HEX: Record<string, string> = {
+  siyah: "#111111",
+  black: "#111111",
+  beyaz: "#F8F9FA",
+  white: "#F8F9FA",
+  gri: "#9CA3AF",
+  gray: "#9CA3AF",
+  grey: "#9CA3AF",
+  antrasit: "#374151",
+  lacivert: "#1E3A8A",
+  navy: "#1E3A8A",
+  mavi: "#2563EB",
+  blue: "#2563EB",
+  kirmizi: "#B91C1C",
+  kırmızı: "#B91C1C",
+  red: "#B91C1C",
+  bordo: "#7F1D1D",
+  pembe: "#EC4899",
+  pink: "#EC4899",
+  mor: "#7C3AED",
+  purple: "#7C3AED",
+  yesil: "#166534",
+  yeşil: "#166534",
+  green: "#166534",
+  sari: "#EAB308",
+  sarı: "#EAB308",
+  yellow: "#EAB308",
+  turuncu: "#EA580C",
+  orange: "#EA580C",
+  kahverengi: "#7C4A2D",
+  brown: "#7C4A2D",
+  bej: "#C9B79C",
+  beige: "#C9B79C",
+  krem: "#E8DFC8",
+  nude: "#D6B29A",
+};
+
+function normalizeColorName(name: string): string {
+  return name
+    .trim()
+    .toLocaleLowerCase("tr-TR")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function getColorSwatchStyle(name: string, hexCode?: string) {
+  if (hexCode && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(hexCode.trim())) {
+    return { backgroundColor: hexCode.trim() };
+  }
+
+  const normalized = normalizeColorName(name);
+  if (normalized.includes("cok renk") || normalized.includes("çok renk") || normalized.includes("multicolor")) {
+    return {
+      backgroundImage:
+        "conic-gradient(#ef4444, #f59e0b, #10b981, #3b82f6, #8b5cf6, #ef4444)",
+    };
+  }
+
+  const mapped = COLOR_NAME_TO_HEX[normalized];
+  return { backgroundColor: mapped || "#D1D5DB" };
+}
+
 type FilterState = {
   minPrice?: number;
   maxPrice?: number;
@@ -35,9 +97,14 @@ type ActiveFilter = {
   value: string;
 };
 
+type ColorOption = {
+  name: string;
+  hexCode?: string;
+};
+
 type ProductFiltersProps = {
   availableSizes: string[];
-  availableColors: string[];
+  availableColors: ColorOption[];
   availableFabricTypes: string[];
   priceRange: { min: number; max: number };
   filters: FilterState;
@@ -45,6 +112,8 @@ type ProductFiltersProps = {
   activeFilters: ActiveFilter[];
   onRemoveFilter: (filter: ActiveFilter) => void;
   onClearFilters: () => void;
+  resultCount: number;
+  isLoading?: boolean;
 };
 
 export default function ProductFilters({
@@ -57,6 +126,8 @@ export default function ProductFilters({
   activeFilters,
   onRemoveFilter,
   onClearFilters,
+  resultCount,
+  isLoading = false,
 }: ProductFiltersProps) {
   const [open, setOpen] = useState(false); // Butona tıklayınca açılsın
   const [localFilters, setLocalFilters] = useState<FilterState>(filters);
@@ -150,7 +221,11 @@ export default function ProductFilters({
           </SheetHeader>
 
           <div className="px-6 py-4">
-            <Accordion type="multiple" className="w-full space-y-0">
+            <Accordion
+              type="multiple"
+              defaultValue={["price", "size", "color", "fabric"]}
+              className="w-full space-y-0"
+            >
               {/* Price Filter */}
               <AccordionItem value="price" className="border-b border-gray-200">
                 <AccordionTrigger className="py-4 hover:no-underline px-0">
@@ -249,21 +324,21 @@ export default function ProductFilters({
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="pt-2 pb-4 px-0">
-                    <div className="space-y-2">
+                    <div className="grid grid-cols-6 gap-3">
                       {availableColors.map((color) => (
-                        <div key={color} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`color-${color}`}
-                            checked={localFilters.colors?.includes(color) || false}
-                            onCheckedChange={() => toggleArrayFilter("colors", color)}
-                          />
-                          <Label
-                            htmlFor={`color-${color}`}
-                            className="text-sm cursor-pointer font-normal capitalize"
-                          >
-                            {color}
-                          </Label>
-                        </div>
+                        <button
+                          key={color.name}
+                          type="button"
+                          onClick={() => toggleArrayFilter("colors", color.name)}
+                          className={`w-8 h-8 rounded-full border transition-all ${
+                            localFilters.colors?.includes(color.name)
+                              ? "border-[#111] ring-1 ring-[#111]"
+                              : "border-gray-300"
+                          }`}
+                          style={getColorSwatchStyle(color.name, color.hexCode)}
+                          aria-label={color.name}
+                          title={color.name}
+                        />
                       ))}
                     </div>
                   </AccordionContent>
@@ -308,7 +383,7 @@ export default function ProductFilters({
                 onClick={applyFilters}
                 className="w-full bg-[#111] text-white hover:bg-[#333] h-12 text-sm font-semibold uppercase tracking-wide"
               >
-                Filtrele
+                {isLoading ? "Ürünler Yükleniyor..." : `${resultCount} Ürünü Göster`}
               </Button>
             </div>
           </div>

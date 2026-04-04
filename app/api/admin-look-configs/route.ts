@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
+import { jsonNoStore, requireAdmin } from "@/lib/api/policy";
 
 export async function GET(req: Request) {
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
+
   const { searchParams } = new URL(req.url);
   const mainProductId = searchParams.get("mainProductId");
   const id = searchParams.get("id");
@@ -33,7 +37,7 @@ export async function GET(req: Request) {
           }
         }
       });
-      return NextResponse.json(config);
+      return jsonNoStore(config);
     }
 
     if (mainProductId) {
@@ -58,7 +62,7 @@ export async function GET(req: Request) {
           }
         }
       });
-      return NextResponse.json(config);
+      return jsonNoStore(config);
     }
 
     const configs = await prisma.lookConfiguration.findMany({
@@ -69,13 +73,16 @@ export async function GET(req: Request) {
         _count: { select: { items: true } }
       }
     });
-    return NextResponse.json(configs);
+    return jsonNoStore(configs);
   } catch (error) {
-    return NextResponse.json({ error: "Veriler alınamadı" }, { status: 500 });
+    return jsonNoStore({ error: "Veriler alınamadı" }, { status: 500 });
   }
 }
 
 export async function POST(req: Request) {
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
+
   try {
     const body = await req.json();
     const { 
@@ -135,28 +142,30 @@ export async function POST(req: Request) {
     revalidatePath("/(public)/products/[slug]", "page");
     revalidatePath("/home");
 
-    return NextResponse.json(config);
+    return jsonNoStore(config);
   } catch (error: any) {
     console.error("Look Config Error details:", error);
-    const errorMessage = error instanceof Error ? error.message : "Bilinmeyen bir hata oluştu";
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    return jsonNoStore({ error: "LOOK_CONFIG_EXCEPTION" }, { status: 500 });
   }
 }
 
 export async function DELETE(req: Request) {
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
+
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
 
   try {
-    if (!id) return NextResponse.json({ error: "ID gerekli" }, { status: 400 });
+    if (!id) return jsonNoStore({ error: "ID gerekli" }, { status: 400 });
 
     await prisma.lookConfiguration.delete({
       where: { id }
     });
 
     revalidatePath("/home");
-    return NextResponse.json({ success: true });
+    return jsonNoStore({ success: true });
   } catch (error) {
-    return NextResponse.json({ error: "Silinemedi" }, { status: 500 });
+    return jsonNoStore({ error: "Silinemedi" }, { status: 500 });
   }
 }

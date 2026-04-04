@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { jsonNoStore, requireAdmin } from '@/lib/api/policy';
 
 // GET: Cohort analysis
 export async function GET(req: NextRequest) {
+    const admin = await requireAdmin();
+    if (!admin.ok) return admin.response;
+
     try {
         const { searchParams } = new URL(req.url);
         const cohortBy = searchParams.get('cohortBy') || 'registration_date'; // registration_date, first_purchase_date
@@ -123,7 +127,7 @@ export async function GET(req: NextRequest) {
             matrix.push(row);
         }
 
-        return NextResponse.json({
+        return jsonNoStore({
             cohortBy,
             metric,
             period,
@@ -131,7 +135,7 @@ export async function GET(req: NextRequest) {
         }, { status: 200 });
     } catch (error) {
         console.error('Error generating cohort analysis:', error);
-        return NextResponse.json(
+        return jsonNoStore(
             { error: 'Failed to generate cohort analysis' },
             { status: 500 }
         );

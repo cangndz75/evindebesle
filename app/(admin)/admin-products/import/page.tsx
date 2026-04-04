@@ -47,8 +47,8 @@ export default function ProductImportPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = useCallback(async (f: File) => {
-    if (!f.name.endsWith(".xlsx") && !f.name.endsWith(".xls")) {
-      toast.error("Lütfen bir Excel dosyası (.xlsx veya .xls) seçin");
+    if (!f.name.endsWith(".xlsx")) {
+      toast.error("Lütfen bir Excel dosyası (.xlsx) seçin");
       return;
     }
     setFile(f);
@@ -121,7 +121,7 @@ export default function ProductImportPage() {
       {/* Bilgi kutusu */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800 space-y-1">
         <p className="font-semibold">Desteklenen Format</p>
-        <p>• Trendyol ürün listesi formatı (.xlsx veya .xls)</p>
+        <p>• Trendyol ürün listesi formatı (.xlsx)</p>
         <p>• Aynı Model Koduna sahip satırlar tek ürün olarak gruplandırılır</p>
         <p>• Daha önce import edilmiş ürünler (aynı stok kodu) güncellenir</p>
       </div>
@@ -142,11 +142,11 @@ export default function ProductImportPage() {
           <Upload className="w-12 h-12 mx-auto text-gray-400 mb-4" />
           <p className="text-lg font-medium text-gray-700">Excel dosyasını buraya sürükleyin</p>
           <p className="text-sm text-gray-500 mt-1">veya tıklayın ve seçin</p>
-          <p className="text-xs text-gray-400 mt-3">.xlsx, .xls</p>
+          <p className="text-xs text-gray-400 mt-3">.xlsx</p>
           <input
             ref={fileInputRef}
             type="file"
-            accept=".xlsx,.xls"
+            accept=".xlsx"
             className="hidden"
             onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }}
           />

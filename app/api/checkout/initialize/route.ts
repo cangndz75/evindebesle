@@ -18,7 +18,6 @@ export async function POST(req: Request) {
         if (existing?.payment?.token) {
             return NextResponse.json({
                 orderId: existing.id,
-                token: existing.payment.token,
                 status: existing.status,
                 checkoutFormContent: existing.payment.rawResult ? (existing.payment.rawResult as any).checkoutFormContent : undefined,
                 paymentPageUrl: existing.payment.rawResult ? (existing.payment.rawResult as any).paymentPageUrl : undefined,
@@ -333,13 +332,12 @@ export async function POST(req: Request) {
 
         return NextResponse.json({
             orderId: order.id,
-            token: initRes.token,
             checkoutFormContent: initRes.checkoutFormContent,
             paymentPageUrl: initRes.paymentPageUrl,
         });
 
     } catch (error: any) {
         console.error("Checkout Init Error:", error);
-        return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
+        return NextResponse.json({ error: "CHECKOUT_INIT_EXCEPTION" }, { status: 500 });
     }
 }

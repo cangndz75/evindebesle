@@ -34,3 +34,37 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Security Testing (AI + Next.js + SAST/DAST)
+
+This repository includes baseline automated security checks focused on AI-assisted coding risks and App Router data flow risks.
+
+Run all static checks locally:
+
+```bash
+npm run security:all
+```
+
+Run dynamic smoke checks against a running app:
+
+```bash
+# terminal 1
+npm run dev
+
+# terminal 2
+set APP_BASE_URL=http://localhost:3000 && npm run security:dast
+```
+
+Available commands:
+
+- `npm run security:deps`: dependency vulnerability gate (fails on High/Critical)
+- `npm run security:ai`: AI integrity scan (prompt injection validation gaps, hallucinated imports, suspicious patterns)
+- `npm run security:next`: Next.js data flow checks (Server Actions auth, payload leak patterns, cache poisoning warnings)
+- `npm run security:sast`: SAST + privacy/auth governance scan (hardcoded secrets, XSS/SQL risk patterns, zombie session/MFA checks)
+- `npm run security:dast`: DAST smoke checks (unauthorized access, CSRF smoke, CORS wildcard+credentials)
+- `npm run security:contracts`: defense-in-depth contracts (server-only guards, DTO usage, unauthorized and sensitive field checks)
+
+CI automation:
+
+- `.github/workflows/security.yml`: runs static scans and DAST smoke checks on PR/push
+- `.github/dependabot.yml`: weekly dependency and GitHub Actions update PRs

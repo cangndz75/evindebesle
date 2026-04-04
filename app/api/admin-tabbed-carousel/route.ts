@@ -1,16 +1,13 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
-import { getServerSession } from "next-auth";
-import { authConfig } from "@/lib/auth.config";
+import { jsonNoStore, requireAdmin } from "@/lib/api/policy";
 
 export async function GET(request: Request) {
-  try {
-    const session = await getServerSession(authConfig);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
 
+  try {
     const { searchParams } = new URL(request.url);
     const tabOption = searchParams.get("tab") || "new-arrivals";
 
@@ -34,30 +31,28 @@ export async function GET(request: Request) {
       }
     });
 
-    return NextResponse.json(items);
+    return jsonNoStore(items);
   } catch (error) {
     console.error("Error fetching tab items:", error);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    return jsonNoStore({ error: "Server error" }, { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
-  try {
-    const session = await getServerSession(authConfig);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
 
+  try {
     const body = await request.json();
     const { productId, tab, order } = body;
 
     if (!productId || !tab) {
-      return NextResponse.json({ error: "Product ID ve Tab gerekli" }, { status: 400 });
+      return jsonNoStore({ error: "Product ID ve Tab gerekli" }, { status: 400 });
     }
 
     const count = await prisma.tabbedCarouselProduct.count({ where: { tab } });
     if (count >= 15) {
-      return NextResponse.json({ error: "Bu sekmeye en fazla 15 ürün eklenebilir." }, { status: 400 });
+      return jsonNoStore({ error: "Bu sekmeye en fazla 15 ürün eklenebilir." }, { status: 400 });
     }
 
     const existing = await prisma.tabbedCarouselProduct.findUnique({
@@ -65,7 +60,7 @@ export async function POST(request: Request) {
     });
 
     if (existing) {
-      return NextResponse.json({ error: "Bu ürün zaten bu sekmede!" }, { status: 400 });
+      return jsonNoStore({ error: "Bu ürün zaten bu sekmede!" }, { status: 400 });
     }
 
     const item = await prisma.tabbedCarouselProduct.create({
@@ -77,26 +72,24 @@ export async function POST(request: Request) {
     });
 
     revalidatePath("/home");
-    return NextResponse.json(item);
+    return jsonNoStore(item);
   } catch (error) {
     console.error("Error adding to tab:", error);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    return jsonNoStore({ error: "Server error" }, { status: 500 });
   }
 }
 
 export async function DELETE(request: Request) {
-  try {
-    const session = await getServerSession(authConfig);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
 
+  try {
     const { searchParams } = new URL(request.url);
     const productId = searchParams.get("productId");
     const tab = searchParams.get("tab");
 
     if (!productId || !tab) {
-      return NextResponse.json({ error: "Gerekli parametreler eksik" }, { status: 400 });
+      return jsonNoStore({ error: "Gerekli parametreler eksik" }, { status: 400 });
     }
 
     await prisma.tabbedCarouselProduct.delete({
@@ -113,25 +106,23 @@ export async function DELETE(request: Request) {
     }
 
     revalidatePath("/home");
-    return NextResponse.json({ success: true });
+    return jsonNoStore({ success: true });
   } catch (error) {
     console.error("Error removing from tab:", error);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    return jsonNoStore({ error: "Server error" }, { status: 500 });
   }
 }
 
 export async function PUT(request: Request) {
-  try {
-    const session = await getServerSession(authConfig);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
 
+  try {
     const body = await request.json();
     const { items, tab } = body; 
 
     if (!Array.isArray(items) || !tab) {
-      return NextResponse.json({ error: "Geçersiz liste veya tab." }, { status: 400 });
+      return jsonNoStore({ error: "Geçersiz liste veya tab." }, { status: 400 });
     }
 
     for (const item of items) {
@@ -142,9 +133,9 @@ export async function PUT(request: Request) {
     }
 
     revalidatePath("/home");
-    return NextResponse.json({ success: true });
+    return jsonNoStore({ success: true });
   } catch (error) {
     console.error("Error reordering tab items:", error);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    return jsonNoStore({ error: "Server error" }, { status: 500 });
   }
 }

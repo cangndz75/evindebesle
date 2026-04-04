@@ -1,3 +1,5 @@
+import "server-only";
+
 import { getServerSession } from "next-auth"
 import { prisma } from "../db"
 import { authConfig } from "../auth.config"

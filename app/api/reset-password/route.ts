@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
   })
 
   if (!resetToken || resetToken.expiresAt < new Date()) {
-    return NextResponse.json({ error: "Token geçersiz veya süresi dolmuş." }, { status: 400 })
+    return NextResponse.json({ error: "Geçersiz veya süresi dolmuş bağlantı." }, { status: 400 })
   }
 
   const hashedPassword = await bcrypt.hash(password, 10)

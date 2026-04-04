@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
+import { jsonNoStore } from "@/lib/api/policy";
+import { toOrderDetailDTO } from "@/lib/api/dto/order";
+
+export const dynamic = "force-dynamic";
 
 export async function GET(
     request: NextRequest,
@@ -11,7 +15,7 @@ export async function GET(
         const user = await getCurrentUser();
 
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return jsonNoStore({ error: "Unauthorized" }, { status: 401 });
         }
 
         const order = await prisma.order.findUnique({
@@ -49,28 +53,34 @@ export async function GET(
                     }
                 },
                 user: {
-                    include: {
+                    select: {
+                        fullAddress: true,
                         district: true,
-                    }
+                    },
+                },
+                payment: {
+                    select: {
+                        provider: true,
+                    },
                 }
             },
         });
 
         if (!order) {
-            return NextResponse.json({ error: "Order not found" }, { status: 404 });
+            return jsonNoStore({ error: "Order not found" }, { status: 404 });
         }
 
         // Security check: Only allow users to view their own orders (unless admin)
         if (order.userId !== user.id && !user.isAdmin) {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+            return jsonNoStore({ error: "Forbidden" }, { status: 403 });
         }
 
-        return NextResponse.json(order);
+        return jsonNoStore(toOrderDetailDTO(order));
 
     } catch (error) {
         console.error("Order detail fetch error:", error);
-        return NextResponse.json(
-            { error: "Internal Server Error" },
+        return jsonNoStore(
+            { error: "ORDER_DETAIL_FETCH_EXCEPTION" },
             { status: 500 }
         );
     }

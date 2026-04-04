@@ -3,13 +3,17 @@ import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
+import { jsonNoStore } from "@/lib/api/policy";
+import { toOrderListDTO } from "@/lib/api/dto/order";
+
+export const dynamic = "force-dynamic";
 
 // GENERIC ORDER FETCH
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authConfig);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return jsonNoStore({ error: "Unauthorized" }, { status: 401 });
     }
 
     const orders = await prisma.order.findMany({
@@ -29,10 +33,10 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json(orders);
+    return jsonNoStore(orders.map(toOrderListDTO));
   } catch (error: any) {
     console.error("Orders fetch error:", error);
-    return NextResponse.json({ error: "Siparişler yüklenirken hata" }, { status: 500 });
+    return jsonNoStore({ error: "ORDERS_FETCH_EXCEPTION" }, { status: 500 });
   }
 }
 
@@ -43,7 +47,7 @@ export async function POST(request: NextRequest) {
 
   const session = await getServerSession(authConfig);
   if (!session?.user?.isAdmin) {
-    return NextResponse.json(
+    return jsonNoStore(
       { error: "Direct order creation is disabled. Please use the checkout flow." },
       { status: 403 }
     );
@@ -51,7 +55,7 @@ export async function POST(request: NextRequest) {
 
   // If admin really needs to create order, they should probably go through a similar flow or we implement reserveStockTx here too.
   // For now, returning 403 is the safest fix for the High Risk issue.
-  return NextResponse.json(
+  return jsonNoStore(
     { error: "Endpoint deprecated for direct calling. Use /api/checkout/initialize" },
     { status: 400 }
   );

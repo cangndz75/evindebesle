@@ -1,0 +1,87 @@
+name: Security Checks
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Dependency audit (High/Critical fail)
+        run: npm run security:deps
+
+      - name: AI integrity scan (prompt injection + hallucination/backdoor)
+        run: npm run security:ai
+
+      - name: Next.js dataflow scan (Server Actions/RSC/Cache)
+        run: npm run security:next
+
+      - name: SAST + privacy/auth scan
+        run: npm run security:sast
+
+      - name: Security contracts (static)
+        run: npm run security:contracts
+
+      - name: Semgrep SAST
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: >-
+            p/owasp-top-ten
+            p/secrets
+            p/javascript
+            p/typescript
+
+  dast_smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: security
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build app
+        run: npm run build
+
+      - name: Start app
+        run: npm run start &
+
+      - name: Wait for app
+        run: npx wait-on http://localhost:3000
+
+      - name: DAST smoke checks
+        env:
+          APP_BASE_URL: http://localhost:3000
+        run: npm run security:dast
+
+      - name: Security contracts (dynamic)
+        env:
+          APP_BASE_URL: http://localhost:3000
+        run: npm run security:contracts

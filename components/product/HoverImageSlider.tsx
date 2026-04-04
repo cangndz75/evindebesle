@@ -81,8 +81,13 @@ export default function HoverImageSlider({
                     src={img}
                     alt={idx === 0 ? alt : `${alt} - ${idx + 1}`}
                     fill
-                    className={`object-cover transition-opacity duration-200 ${idx === activeIndex ? "opacity-100" : "opacity-0"
-                        } ${isOutOfStock ? "opacity-40 grayscale-[20%]" : ""}`}
+                    className={`object-cover transition-opacity duration-200 ${
+                        idx === activeIndex
+                            ? isOutOfStock
+                                ? "opacity-40 grayscale-[20%]"
+                                : "opacity-100"
+                            : "opacity-0"
+                    }`}
                     sizes={sizes}
                     loading={priority && idx === 0 ? "eager" : "lazy"}
                     quality={85}

@@ -3,6 +3,10 @@ import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import puppeteer from "puppeteer";
 import { renderInvoiceHTML } from "@/lib/invoice/renderInvoiceHTML";
+import { toInvoiceDTO } from "@/lib/api/dto/order";
+import { jsonNoStore } from "@/lib/api/policy";
+
+export const dynamic = "force-dynamic";
 
 export async function GET(
     request: NextRequest,
@@ -13,7 +17,7 @@ export async function GET(
         const user = await getCurrentUser();
 
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return jsonNoStore({ error: "Unauthorized" }, { status: 401 });
         }
 
         // Sipariş bilgilerini getir
@@ -22,12 +26,16 @@ export async function GET(
             include: {
                 items: {
                     include: {
-                        product: true,
-                        color: true,
-                        size: true,
+                        color: { select: { name: true } },
+                        size: { select: { name: true } },
                     },
                 },
-                user: true,
+                user: {
+                    select: {
+                        name: true,
+                        email: true,
+                    },
+                },
                 shippingAddress: {
                     include: {
                         district: true,
@@ -38,22 +46,21 @@ export async function GET(
                         district: true,
                     },
                 },
-                coupon: true,
             },
         });
 
         if (!order) {
-            return NextResponse.json({ error: "Order not found" }, { status: 404 });
+            return jsonNoStore({ error: "Order not found" }, { status: 404 });
         }
 
         // Yetki kontrolü: Sadece sipariş sahibi veya admin
         if (order.userId !== user.id && !user.isAdmin) {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+            return jsonNoStore({ error: "Forbidden" }, { status: 403 });
         }
 
         // Sadece ödeme yapılmış siparişler için fatura
         if (order.paymentStatus !== "PAID" && order.paymentStatus !== "SUCCEEDED") {
-            return NextResponse.json(
+            return jsonNoStore(
                 { error: "Invoice only available for paid orders" },
                 { status: 400 }
             );
@@ -64,7 +71,7 @@ export async function GET(
 
         // HTML render et
         const html = renderInvoiceHTML({
-            order,
+            order: toInvoiceDTO(order),
             company: companySettings || {
                 companyName: "Evindebesle",
                 companyAddress: "",
@@ -127,18 +134,10 @@ export async function GET(
             throw puppeteerError; // Re-throw to be caught by outer catch
         }
     } catch (error: any) {
-        console.error("Invoice generation error details:", {
-            message: error.message,
-            stack: error.stack,
-            name: error.name
-        });
+        console.error("Invoice generation error", { name: error?.name });
 
-        return NextResponse.json(
-            {
-                error: "Failed to generate invoice",
-                details: error.message,
-                stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-            },
+        return jsonNoStore(
+            { error: "INVOICE_GENERATION_EXCEPTION" },
             { status: 500 }
         );
     }

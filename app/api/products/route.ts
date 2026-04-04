@@ -205,6 +205,17 @@ export async function GET(request: NextRequest) {
     return { ...product, colors };
   });
 
+  // Stokta olmayanları listenin en altına taşı
+  parsedProducts.sort((a: any, b: any) => {
+    const totalStockA = a.colors.reduce((sum: number, c: any) => 
+      sum + (c.variants?.reduce((vs: number, v: any) => vs + (v.stock || 0), 0) || 0), 0);
+    const totalStockB = b.colors.reduce((sum: number, c: any) => 
+      sum + (c.variants?.reduce((vs: number, v: any) => vs + (v.stock || 0), 0) || 0), 0);
+    const inStockA = totalStockA > 0 ? 1 : 0;
+    const inStockB = totalStockB > 0 ? 1 : 0;
+    return inStockB - inStockA; // Stokta olanlar önce
+  });
+
   const response = NextResponse.json(parsedProducts);
 
   // Cache headers

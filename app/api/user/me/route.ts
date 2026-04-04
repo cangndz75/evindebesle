@@ -2,17 +2,22 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { prisma } from "@/lib/db";
+import { jsonNoStore } from "@/lib/api/policy";
+
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   const session = await getServerSession(authConfig);
-  
-  // Session yoksa 200 döndür, böylece console'da 401 hatası görünmez
-  // Bu normal bir durum (kullanıcı giriş yapmamış olabilir)
+
   if (!session?.user?.id) {
-    return NextResponse.json({ 
-      user: null, 
-      primaryAddress: null 
-    }, { status: 200 });
+    return jsonNoStore(
+      {
+        error: "Unauthenticated",
+        user: null,
+        primaryAddress: null,
+      },
+      { status: 401 }
+    );
   }
 
   // Temel kullanıcı + birincil adresi birlikte döndür
@@ -36,7 +41,7 @@ export async function GET() {
     }),
   ]);
 
-  return NextResponse.json({
+  return jsonNoStore({
     user,
     primaryAddress: primaryAddress ?? null,
   });

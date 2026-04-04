@@ -68,18 +68,14 @@ export async function POST(req: NextRequest) {
     const securityHash = await generateSecurityHashV2(tamiBodyBase);
     const tamiBody = { ...tamiBodyBase, securityHash };
 
-    console.log("[TAMI AUTH] signed payload =", tamiBodyBase);
-    console.log("[TAMI AUTH] request body =", tamiBody);
-
     const headers = Object.fromEntries(tamiHeaders(correlationId));
-    console.log("[TAMI HEADERS] Sent Headers =", headers);
     const res = await fetch(`${TAMI.BASE_URL}/payment/auth`, {
       method: "POST",
       headers,
       body: JSON.stringify(tamiBody),
     });
     const data = await res.json().catch(() => ({}));
-    console.log("[TAMI AUTH] response =", data);
+    console.log("[TAMI AUTH] response status", res.status, "for order", orderId);
 
     if (!res.ok || data?.success === false || !data?.threeDSHtmlContent) {
       await prisma.paymentSession.update({
@@ -91,7 +87,7 @@ export async function POST(req: NextRequest) {
           orderId,
         },
       });
-      return NextResponse.json({ error: "TAMI_AUTH_FAILED", detail: data }, { status: 400 });
+      return NextResponse.json({ error: "TAMI_AUTH_FAILED" }, { status: 400 });
     }
 
     const html = Buffer.from(data.threeDSHtmlContent, "base64").toString("utf8");
@@ -109,6 +105,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ sessionId: ps.id, orderId });
   } catch (e: any) {
     console.error("[TAMI AUTH] exception", e);
-    return NextResponse.json({ error: "AUTH_EXCEPTION", detail: String(e?.message ?? e) }, { status: 500 });
+    return NextResponse.json({ error: "AUTH_EXCEPTION" }, { status: 500 });
   }
 }

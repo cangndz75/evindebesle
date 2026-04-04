@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { jsonNoStore, requireAdmin } from '@/lib/api/policy';
 
 type RouteContext = {
     params: Promise<{
@@ -12,6 +13,9 @@ export async function GET(
     req: NextRequest,
     context: RouteContext
 ) {
+    const admin = await requireAdmin();
+    if (!admin.ok) return admin.response;
+
     try {
         const { id } = await context.params;
         const { searchParams } = new URL(req.url);
@@ -28,7 +32,7 @@ export async function GET(
         });
 
         if (!funnel) {
-            return NextResponse.json(
+            return jsonNoStore(
                 { error: 'Funnel not found' },
                 { status: 404 }
             );
@@ -58,7 +62,7 @@ export async function GET(
         // Analyze funnel - count users who completed each step
         const analysis = await analyzeFunnel(funnel.steps, startDate, now);
 
-        return NextResponse.json({
+        return jsonNoStore({
             funnel: {
                 id: funnel.id,
                 name: funnel.name,
@@ -71,7 +75,7 @@ export async function GET(
         }, { status: 200 });
     } catch (error) {
         console.error('Error analyzing funnel:', error);
-        return NextResponse.json(
+        return jsonNoStore(
             { error: 'Failed to analyze funnel' },
             { status: 500 }
         );
@@ -138,6 +142,9 @@ export async function DELETE(
     req: NextRequest,
     context: RouteContext
 ) {
+    const admin = await requireAdmin();
+    if (!admin.ok) return admin.response;
+
     try {
         const { id } = await context.params;
 
@@ -145,10 +152,10 @@ export async function DELETE(
             where: { id },
         });
 
-        return NextResponse.json({ success: true }, { status: 200 });
+        return jsonNoStore({ success: true }, { status: 200 });
     } catch (error) {
         console.error('Error deleting funnel:', error);
-        return NextResponse.json(
+        return jsonNoStore(
             { error: 'Failed to delete funnel' },
             { status: 500 }
         );

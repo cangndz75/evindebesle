@@ -93,7 +93,7 @@ async function getInitialProducts(categorySlug: string, gender?: any) {
             take: 100,
         });
 
-        return products.map((p: any) => ({
+        const mapped = products.map((p: any) => ({
             id: p.id,
             name: p.name,
             slug: p.slug ?? undefined,
@@ -125,6 +125,19 @@ async function getInitialProducts(categorySlug: string, gender?: any) {
             })),
             tags: p.tags.map((t: any) => ({ name: t.name })),
         }));
+
+        // Stokta olmayanları listenin en altına taşı
+        mapped.sort((a: any, b: any) => {
+            const totalStockA = a.colors.reduce((sum: number, c: any) =>
+                sum + (c.variants?.reduce((vs: number, v: any) => vs + (v.stock || 0), 0) || 0), 0);
+            const totalStockB = b.colors.reduce((sum: number, c: any) =>
+                sum + (c.variants?.reduce((vs: number, v: any) => vs + (v.stock || 0), 0) || 0), 0);
+            const inStockA = totalStockA > 0 ? 1 : 0;
+            const inStockB = totalStockB > 0 ? 1 : 0;
+            return inStockB - inStockA;
+        });
+
+        return mapped;
     } catch (error) {
         console.error("Error fetching products:", error);
         return [];

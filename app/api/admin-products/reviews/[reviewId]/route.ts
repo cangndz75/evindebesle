@@ -1,11 +1,15 @@
 import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
+import { jsonNoStore, requireAdmin } from "@/lib/api/policy";
 
 // Yorumu güncelle (onaylama/reddetme)
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ reviewId: string }> }
 ) {
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
+
   try {
     const { reviewId } = await params;
     const body = await request.json();
@@ -20,11 +24,11 @@ export async function PATCH(
       },
     });
 
-    return NextResponse.json(updated);
+    return jsonNoStore(updated);
   } catch (error: any) {
     console.error("Review update error:", error);
-    return NextResponse.json(
-      { error: error.message || "Yorum güncellenirken bir hata oluştu" },
+    return jsonNoStore(
+      { error: "REVIEW_UPDATE_EXCEPTION" },
       { status: 500 }
     );
   }
@@ -35,6 +39,9 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ reviewId: string }> }
 ) {
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
+
   try {
     const { reviewId } = await params;
 
@@ -42,11 +49,11 @@ export async function DELETE(
       where: { id: reviewId },
     });
 
-    return NextResponse.json({ success: true });
+    return jsonNoStore({ success: true });
   } catch (error: any) {
     console.error("Review delete error:", error);
-    return NextResponse.json(
-      { error: error.message || "Yorum silinirken bir hata oluştu" },
+    return jsonNoStore(
+      { error: "REVIEW_DELETE_EXCEPTION" },
       { status: 500 }
     );
   }

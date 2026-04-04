@@ -1,0 +1,6 @@
+{
+  "files.associations": {
+    "**/schema_backup.prisma": "plaintext",
+    "**/schema_before_fix.prisma": "plaintext"
+  }
+}

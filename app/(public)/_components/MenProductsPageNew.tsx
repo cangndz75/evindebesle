@@ -87,10 +87,28 @@ type CategoryBasic = {
   slug: string;
 };
 
+function normalizeColorName(name: string): string {
+  return name
+    .trim()
+    .toLocaleLowerCase("tr-TR")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+type BaseQuery = {
+  tag?: string;
+  newArrivals?: boolean;
+  categorySlug?: string;
+};
+
 type MenProductsPageProps = {
   initialProducts?: Product[];
   initialPriceRange?: { min: number; max: number };
   initialCategories?: CategoryBasic[];
+  pageTitle?: string;
+  breadcrumbCurrent?: string;
+  baseQuery?: BaseQuery;
+  hideCategoryFilters?: boolean;
 };
 
 
@@ -166,6 +184,10 @@ export default function MenProductsPage({
   initialProducts = [],
   initialPriceRange = { min: 0, max: 2000 },
   initialCategories = [],
+  pageTitle = "Erkek",
+  breadcrumbCurrent = "Erkek",
+  baseQuery,
+  hideCategoryFilters = false,
 }: MenProductsPageProps = {}) {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [products, setProducts] = useState<Product[]>(initialProducts);
@@ -223,7 +245,9 @@ export default function MenProductsPage({
 
   // Build API URL with filters (debounced filters kullan)
   const buildApiUrl = useCallback(() => {
+    const hasBaseQuery = Boolean(baseQuery?.tag || baseQuery?.newArrivals || baseQuery?.categorySlug);
     const hasFilters =
+      hasBaseQuery ||
       selectedCategory !== "All" ||
       debouncedFilters.minPrice ||
       debouncedFilters.maxPrice ||
@@ -238,6 +262,18 @@ export default function MenProductsPage({
     const params = new URLSearchParams();
     params.append("gender", "MALE");
     params.append("gender", "UNISEX");
+
+    if (baseQuery?.tag) {
+      params.append("tag", baseQuery.tag);
+    }
+
+    if (baseQuery?.newArrivals) {
+      params.append("newArrivals", "true");
+    }
+
+    if (baseQuery?.categorySlug) {
+      params.append("categorySlug", baseQuery.categorySlug);
+    }
 
     if (selectedCategory !== "All") {
       params.append("categorySlug", selectedCategory);
@@ -262,8 +298,10 @@ export default function MenProductsPage({
       params.append("fabricType", debouncedFilters.fabricTypes[0]);
     }
 
+    params.append("sort", sortOption);
+
     return `/api/products?${params.toString()}`;
-  }, [selectedCategory, debouncedFilters, initialProducts]);
+  }, [selectedCategory, debouncedFilters, initialProducts, sortOption, baseQuery]);
 
   const apiUrl = buildApiUrl();
 
@@ -296,14 +334,22 @@ export default function MenProductsPage({
   // Extract available options from products
   const availableOptions = useMemo(() => {
     const sizes = new Set<string>();
-    const colors = new Set<string>();
+    const colors = new Map<string, { name: string; hexCode?: string }>();
     const fabricTypes = new Set<string>();
     let minPrice = Infinity;
     let maxPrice = 0;
 
     products.forEach((product) => {
       product.sizes.forEach((s) => sizes.add(s.name));
-      product.colors.forEach((c) => colors.add(c.name));
+      product.colors.forEach((c) => {
+        const normalized = normalizeColorName(c.name);
+        if (!colors.has(normalized)) {
+          colors.set(normalized, {
+            name: c.name.trim(),
+            hexCode: c.hexCode,
+          });
+        }
+      });
       if (product.fabricType) {
         fabricTypes.add(product.fabricType);
       }
@@ -313,7 +359,8 @@ export default function MenProductsPage({
 
     return {
       sizes: Array.from(sizes).sort(),
-      colors: Array.from(colors).sort(),
+      colors: Array.from(colors.values())
+        .sort((a, b) => a.name.localeCompare(b.name)),
       fabricTypes: Array.from(fabricTypes).sort(),
       priceRange: {
         min: minPrice === Infinity ? 0 : Math.floor(minPrice),
@@ -421,15 +468,16 @@ export default function MenProductsPage({
             Ana Sayfa
           </Link>
           <span className="text-sm text-[#111]/60 font-light mx-2">/</span>
-          <span className="text-sm text-[#111] font-light">Erkek</span>
+          <span className="text-sm text-[#111] font-light">{breadcrumbCurrent}</span>
         </nav>
 
         {/* Title */}
         <h1 className="text-3xl md:text-4xl lg:text-5xl font-light text-[#111] mb-6">
-          Erkek
+          {pageTitle}
         </h1>
 
         {/* Category Filters */}
+        {!hideCategoryFilters && (
         <div className="flex gap-2 mb-6 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4 md:mx-0 md:px-0">
           <button
             onClick={() => setSelectedCategory("All")}
@@ -454,6 +502,7 @@ export default function MenProductsPage({
             </button>
           ))}
         </div>
+        )}
 
         {/* Filter and Sort */}
         <div className="flex items-center justify-between mb-8 gap-4">
@@ -469,6 +518,8 @@ export default function MenProductsPage({
               activeFilters={activeFilters}
               onRemoveFilter={handleRemoveFilter}
               onClearFilters={handleClearFilters}
+              resultCount={products.length}
+              isLoading={loading}
             />
           </div>
 
@@ -658,7 +709,7 @@ export default function MenProductsPage({
 
               return (
                 <div key={`${product.id}-${index}`} className={`group relative overflow-hidden ${gridClass} ${isOutOfStock ? "opacity-75" : ""}`}>
-                  <Link href={finalUrl} prefetch={true} className="block">
+                  <Link href={finalUrl} prefetch={true} className="block relative">
                     <HoverImageSlider
                       images={
                         displayColorObj?.images && Array.isArray(displayColorObj.images) && displayColorObj.images.length > 0
@@ -672,68 +723,10 @@ export default function MenProductsPage({
                       favoriteButton={<FavoriteButton productId={product.id} productName={product.name} />}
                       isOutOfStock={isOutOfStock}
                     />
-                  </Link>
 
-                  <div className="mb-2 text-center">
-                    <h3 className="text-sm md:text-base font-light text-[#111] mb-1">
-                      {product.name}
-                    </h3>
-                    <div className="flex items-center justify-center gap-2">
-                      {product.originalPrice && product.originalPrice > product.price ? (
-                        <>
-                          <span className="text-sm md:text-base font-light text-[#111]">
-                            {product.price.toFixed(2)} ₺
-                          </span>
-                          <span className="text-sm text-[#111]/60 line-through">
-                            {product.originalPrice.toFixed(2)} ₺
-                          </span>
-                        </>
-                      ) : (
-                        <span className="text-sm md:text-base font-light text-[#111]">
-                          {product.price.toFixed(2)} ₺
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Renk Seçenekleri */}
-                  {product.colors.length > 0 && (
-                    <div className="flex items-center justify-center gap-1.5 mt-2">
-                      {Array.from(new Map(product.colors.filter((c: any) => c.images?.[0]).map((c: any) => [c.hexCode || c.name, c])).values()).map((color: any, idx) => {
-                        const isSelected = selectedColor?.productId === product.id &&
-                          product.colors.find((c: any) => Array.isArray(c.images) && c.images.length > 0 && c.images[0] === selectedColor.colorImage)?.name === color.name;
-                        return (
-                          <Tooltip key={idx}>
-                            <TooltipTrigger asChild>
-                              <button
-                                onMouseEnter={() =>
-                                  handleColorHover(product.id, (Array.isArray(color.images) && color.images.length > 0 ? color.images[0] : null) || currentImage)
-                                }
-                                onMouseLeave={handleColorLeave}
-                                onClick={(e) => handleColorClick(product.id, color, e)}
-                                className={`w-4 h-4 rounded-full border transition-all duration-200 hover:scale-110 ${isSelected
-                                  ? "border-[#111] scale-110"
-                                  : "border-gray-300"
-                                  }`}
-                                style={{
-                                  backgroundColor: color.hexCode || "#ccc",
-                                }}
-                                aria-label={`${color.name} renk seçeneği`}
-                              />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p className="capitalize">{color.name}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  {/* Hover'da Hızlı Ekle Bölümü (Görsel 5 Tasarımı) */}
-                  <div className="hidden md:grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-all duration-300 ease-in-out opacity-0 group-hover:opacity-100">
-                    <div className="overflow-hidden">
-                      <div className="mt-4 pt-4 border-t border-gray-100">
+                    {!isOutOfStock && (
+                    <div className="hidden md:block absolute bottom-4 left-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <div className="bg-white/95 backdrop-blur-sm border border-gray-200 p-3">
                         <p className="text-[10px] tracking-[0.2em] font-light text-[#111]/40 uppercase mb-3 text-center">Hızlı ekle</p>
                         <div className="flex flex-wrap gap-2 justify-center">
                           {(() => {
@@ -852,7 +845,65 @@ export default function MenProductsPage({
                         </div>
                       </div>
                     </div>
+                    )}
+                  </Link>
+
+                  <div className="mb-2 text-center">
+                    <h3 className="text-sm md:text-base font-light text-[#111] mb-1">
+                      {product.name}
+                    </h3>
+                    <div className="flex items-center justify-center gap-2">
+                      {product.originalPrice && product.originalPrice > product.price ? (
+                        <>
+                          <span className="text-sm md:text-base font-light text-[#111]">
+                            {product.price.toFixed(2)} ₺
+                          </span>
+                          <span className="text-sm text-[#111]/60 line-through">
+                            {product.originalPrice.toFixed(2)} ₺
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-sm md:text-base font-light text-[#111]">
+                          {product.price.toFixed(2)} ₺
+                        </span>
+                      )}
+                    </div>
                   </div>
+
+                  {/* Renk Seçenekleri */}
+                  {product.colors.length > 0 && (
+                    <div className="flex items-center justify-center gap-1.5 mt-2">
+                      {Array.from(new Map(product.colors.filter((c: any) => c.images?.[0]).map((c: any) => [c.hexCode || c.name, c])).values()).map((color: any, idx) => {
+                        const isSelected = selectedColor?.productId === product.id &&
+                          product.colors.find((c: any) => Array.isArray(c.images) && c.images.length > 0 && c.images[0] === selectedColor.colorImage)?.name === color.name;
+                        return (
+                          <Tooltip key={idx}>
+                            <TooltipTrigger asChild>
+                              <button
+                                onMouseEnter={() =>
+                                  handleColorHover(product.id, (Array.isArray(color.images) && color.images.length > 0 ? color.images[0] : null) || currentImage)
+                                }
+                                onMouseLeave={handleColorLeave}
+                                onClick={(e) => handleColorClick(product.id, color, e)}
+                                className={`w-4 h-4 rounded-full border transition-all duration-200 hover:scale-110 ${isSelected
+                                  ? "border-[#111] scale-110"
+                                  : "border-gray-300"
+                                  }`}
+                                style={{
+                                  backgroundColor: color.hexCode || "#ccc",
+                                }}
+                                aria-label={`${color.name} renk seçeneği`}
+                              />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="capitalize">{color.name}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        );
+                      })}
+                    </div>
+                  )}
+
                 </div>
               );
             })}

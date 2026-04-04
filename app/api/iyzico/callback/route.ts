@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
         }
 
         if (!token) {
-            return NextResponse.json({ error: "Missing token" }, { status: 400 });
+            return NextResponse.json({ error: "MISSING_REQUIRED_PARAM" }, { status: 400 });
         }
 
         const payment = await prisma.paymentAttempt.findUnique({
@@ -97,6 +97,6 @@ export async function POST(req: NextRequest) {
 
     } catch (error: any) {
         console.error("Iyzico Callback error:", error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: "CALLBACK_EXCEPTION" }, { status: 500 });
     }
 }

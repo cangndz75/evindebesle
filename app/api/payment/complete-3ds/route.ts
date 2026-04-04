@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
     }
     if (ps.status !== "AUTH_OK") {
       return NextResponse.json(
-        { error: "INVALID_STATUS", current: ps.status },
+        { error: "INVALID_STATUS" },
         { status: 400 }
       );
     }
@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
         },
       });
       return NextResponse.json(
-        { error: "CAPTURE_FAILED", detail: data },
+        { error: "CAPTURE_FAILED" },
         { status: 400 }
       );
     }
@@ -83,12 +83,10 @@ export async function POST(req: NextRequest) {
       success: true,
       appointmentId: appointment.id,
       orderId: ps.orderId,
-      bankAuthCode: data?.bankAuthCode,
-      bankReferenceNumber: data?.bankReferenceNumber,
     });
   } catch (err: any) {
     return NextResponse.json(
-      { error: "COMPLETE_EXCEPTION", detail: String(err?.message ?? err) },
+      { error: "COMPLETE_EXCEPTION" },
       { status: 500 }
     );
   }

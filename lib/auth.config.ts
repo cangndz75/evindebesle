@@ -1,3 +1,5 @@
+import "server-only";
+
 import CredentialsProvider from "next-auth/providers/credentials";
 import type { AuthOptions } from "next-auth";
 import { prisma } from "@/lib/db";
@@ -48,6 +50,8 @@ export const authConfig: AuthOptions = {
   ],
   session: {
     strategy: "jwt",
+    maxAge: 60 * 60 * 24 * 7,
+    updateAge: 60 * 60 * 12,
   },
   callbacks: {
     async session({ session, token }: { session: any; token: any }) {

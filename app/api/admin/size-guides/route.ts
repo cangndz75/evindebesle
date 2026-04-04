@@ -1,17 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { jsonNoStore, requireAdmin } from "@/lib/api/policy";
 
 export async function GET() {
+    const admin = await requireAdmin();
+    if (!admin.ok) return admin.response;
+
     try {
         const sizeGuides = await prisma.sizeGuide.findMany({
             where: { isActive: true },
             orderBy: { createdAt: "desc" },
         });
 
-        return NextResponse.json(sizeGuides);
+        return jsonNoStore(sizeGuides);
     } catch (error) {
         console.error("Error fetching size guides:", error);
-        return NextResponse.json(
+        return jsonNoStore(
             { error: "Failed to fetch size guides" },
             { status: 500 }
         );
@@ -19,12 +23,15 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+    const admin = await requireAdmin();
+    if (!admin.ok) return admin.response;
+
     try {
         const body = await request.json();
         const { title, imageUrl, content } = body;
 
         if (!title) {
-            return NextResponse.json(
+            return jsonNoStore(
                 { error: "Title is required" },
                 { status: 400 }
             );
@@ -39,10 +46,10 @@ export async function POST(request: NextRequest) {
             },
         });
 
-        return NextResponse.json(sizeGuide, { status: 201 });
+        return jsonNoStore(sizeGuide, { status: 201 });
     } catch (error) {
         console.error("Error creating size guide:", error);
-        return NextResponse.json(
+        return jsonNoStore(
             { error: "Failed to create size guide" },
             { status: 500 }
         );

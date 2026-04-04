@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { generateVariantCode, generateProductSlug } from "@/lib/slug";
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 
 export const dynamic = "force-dynamic";
 
@@ -102,6 +102,55 @@ interface ExcelRow {
   trendyolLink: string;
 }
 
+function normalizeCellValue(value: unknown): string {
+  if (value === undefined || value === null) return "";
+  if (typeof value === "object") {
+    if (Array.isArray(value)) return value.map((v) => normalizeCellValue(v)).join(" ").trim();
+    const richText = (value as any).richText;
+    if (Array.isArray(richText)) return richText.map((r: any) => r?.text || "").join("").trim();
+    const text = (value as any).text;
+    if (typeof text === "string") return text.trim();
+    const result = (value as any).result;
+    if (result !== undefined && result !== null) return String(result).trim();
+  }
+  return String(value).trim();
+}
+
+async function readExcelRowsFromBuffer(buffer: Buffer): Promise<any[]> {
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.load(buffer);
+  const worksheet = workbook.worksheets[0];
+
+  if (!worksheet) return [];
+
+  const headerRow = worksheet.getRow(1);
+  const headers: string[] = [];
+
+  headerRow.eachCell((cell, colNumber) => {
+    headers[colNumber] = normalizeCellValue(cell.value);
+  });
+
+  const rows: any[] = [];
+  for (let rowNumber = 2; rowNumber <= worksheet.rowCount; rowNumber++) {
+    const row = worksheet.getRow(rowNumber);
+    const out: Record<string, string> = {};
+    let hasAnyValue = false;
+
+    for (let colNumber = 1; colNumber < headers.length; colNumber++) {
+      const header = headers[colNumber];
+      if (!header) continue;
+
+      const cellValue = normalizeCellValue(row.getCell(colNumber).value);
+      if (cellValue !== "") hasAnyValue = true;
+      out[header] = cellValue;
+    }
+
+    if (hasAnyValue) rows.push(out);
+  }
+
+  return rows;
+}
+
 function parseRows(data: any[]): ExcelRow[] {
   return data.map((row) => ({
     barcode:        str(row, COL.BARCODE),
@@ -158,9 +207,7 @@ export async function POST(req: NextRequest) {
     if (!file) return NextResponse.json({ error: "Dosya bulunamadı" }, { status: 400 });
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const wb = XLSX.read(buffer, { type: "buffer" });
-    const ws = wb.Sheets[wb.SheetNames[0]];
-    const rawData: any[] = XLSX.utils.sheet_to_json(ws, { defval: "" });
+    const rawData = await readExcelRowsFromBuffer(buffer);
 
     if (!rawData.length) return NextResponse.json({ error: "Excel dosyası boş" }, { status: 400 });
 
@@ -436,9 +483,7 @@ export async function PUT(req: NextRequest) {
     if (!file) return NextResponse.json({ error: "Dosya bulunamadı" }, { status: 400 });
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const wb = XLSX.read(buffer, { type: "buffer" });
-    const ws = wb.Sheets[wb.SheetNames[0]];
-    const rawData: any[] = XLSX.utils.sheet_to_json(ws, { defval: "" });
+    const rawData = await readExcelRowsFromBuffer(buffer);
 
     const rows = parseRows(rawData);
     const groups = groupRows(rows);

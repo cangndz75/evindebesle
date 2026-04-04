@@ -1,16 +1,13 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
-import { getServerSession } from "next-auth";
-import { authConfig } from "@/lib/auth.config";
+import { jsonNoStore, requireAdmin } from "@/lib/api/policy";
 
 export async function GET(request: Request) {
-  try {
-    const session = await getServerSession(authConfig);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
 
+  try {
     const { searchParams } = new URL(request.url);
     const productId = searchParams.get("productId");
 
@@ -20,7 +17,7 @@ export async function GET(request: Request) {
         where: { productId },
         include: { product: true }
       });
-      return NextResponse.json(item || null);
+      return jsonNoStore(item || null);
     }
 
     // Tüm showcase listesini sıralı şekilde getir
@@ -43,31 +40,29 @@ export async function GET(request: Request) {
       }
     });
 
-    return NextResponse.json(items);
+    return jsonNoStore(items);
   } catch (error) {
     console.error("Error fetching showcase items:", error);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    return jsonNoStore({ error: "Server error" }, { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
-  try {
-    const session = await getServerSession(authConfig);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
 
+  try {
     const body = await request.json();
     const { productId, order } = body;
 
     if (!productId) {
-      return NextResponse.json({ error: "Product ID gerekli" }, { status: 400 });
+      return jsonNoStore({ error: "Product ID gerekli" }, { status: 400 });
     }
 
     // Mevcut sayıyı al
     const count = await prisma.showcase.count();
     if (count >= 8) {
-      return NextResponse.json({ error: "Vitrine en fazla 8 ürün eklenebilir." }, { status: 400 });
+      return jsonNoStore({ error: "Vitrine en fazla 8 ürün eklenebilir." }, { status: 400 });
     }
 
     // Ürün zaten var mı kontrol et
@@ -76,7 +71,7 @@ export async function POST(request: Request) {
     });
 
     if (existing) {
-      return NextResponse.json({ error: "Bu ürün zaten vitrinde!" }, { status: 400 });
+      return jsonNoStore({ error: "Bu ürün zaten vitrinde!" }, { status: 400 });
     }
 
     const item = await prisma.showcase.create({
@@ -87,25 +82,23 @@ export async function POST(request: Request) {
     });
 
     revalidatePath("/home");
-    return NextResponse.json(item);
+    return jsonNoStore(item);
   } catch (error) {
     console.error("Error adding to showcase:", error);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    return jsonNoStore({ error: "Server error" }, { status: 500 });
   }
 }
 
 export async function DELETE(request: Request) {
-  try {
-    const session = await getServerSession(authConfig);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
 
+  try {
     const { searchParams } = new URL(request.url);
     const productId = searchParams.get("productId");
 
     if (!productId) {
-      return NextResponse.json({ error: "Product ID gerekli" }, { status: 400 });
+      return jsonNoStore({ error: "Product ID gerekli" }, { status: 400 });
     }
 
     await prisma.showcase.delete({
@@ -122,25 +115,23 @@ export async function DELETE(request: Request) {
     }
 
     revalidatePath("/home");
-    return NextResponse.json({ success: true });
+    return jsonNoStore({ success: true });
   } catch (error) {
     console.error("Error removing from showcase:", error);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    return jsonNoStore({ error: "Server error" }, { status: 500 });
   }
 }
 
 export async function PUT(request: Request) {
-  try {
-    const session = await getServerSession(authConfig);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
 
+  try {
     const body = await request.json();
     const { items } = body; // [{ id: string, order: number }]
 
     if (!Array.isArray(items)) {
-      return NextResponse.json({ error: "Geçersiz liste numarası." }, { status: 400 });
+      return jsonNoStore({ error: "Geçersiz liste numarası." }, { status: 400 });
     }
 
     // Toplu update
@@ -152,9 +143,9 @@ export async function PUT(request: Request) {
     }
 
     revalidatePath("/home");
-    return NextResponse.json({ success: true });
+    return jsonNoStore({ success: true });
   } catch (error) {
     console.error("Error reordering showcase items:", error);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    return jsonNoStore({ error: "Server error" }, { status: 500 });
   }
 }

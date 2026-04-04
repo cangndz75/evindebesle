@@ -16,7 +16,6 @@ export async function GET(req: NextRequest) {
         id: true,
         status: true,
         success: true,
-        error: true,
         mdStatus: true,
         orderId: true,
         paymentId: true,
@@ -29,7 +28,20 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
-    return NextResponse.json(ps, { status: 200 });
+    const safeErrorCode =
+      ps.status === "CAPTURE_FAIL"
+        ? "PAYMENT_CAPTURE_FAILED"
+        : ps.status === "FAILED"
+          ? "PAYMENT_FAILED"
+          : null;
+
+    return NextResponse.json(
+      {
+        ...ps,
+        error: safeErrorCode,
+      },
+      { status: 200 }
+    );
   } catch (err) {
     console.error("[API][payment/session] error", err);
     return NextResponse.json(

@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronRight, Heart, ShoppingBag, Info, Plus, Minus, ChevronLeft, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import ProductReviews from "./ProductReviews";
+import { sanitizeHtmlForRender } from "@/lib/security/sanitizeHtml";
 import SizeGuideModal from "./SizeGuideModal";
 import { addToRecentlyViewed, getRecentlyViewed } from "@/lib/recently-viewed";
 import { useCartStore } from "@/lib/stores/cartStore";
@@ -1129,7 +1130,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
               <div className="pb-6">
                 <div
                   className="text-sm text-gray-700 font-light prose prose-sm max-w-none"
-                  dangerouslySetInnerHTML={{ __html: product.washingInstruction?.content || product.washing || "" }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtmlForRender(product.washingInstruction?.content || product.washing || "") }}
                 />
               </div>
             )}
@@ -1152,7 +1153,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
               <div className="pb-6">
                 <div
                   className="text-sm text-gray-700 font-light prose prose-sm max-w-none"
-                  dangerouslySetInnerHTML={{ __html: product.deliveryInfo?.content || (product as any).delivery || "" }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtmlForRender(product.deliveryInfo?.content || (product as any).delivery || "") }}
                 />
               </div>
             )}
@@ -1227,7 +1228,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
               <div className="pb-6">
                 <div
                   className="text-sm text-gray-700 font-light prose prose-sm max-w-none"
-                  dangerouslySetInnerHTML={{ __html: product.sizeNote?.content || product.sizeNotes || "" }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtmlForRender(product.sizeNote?.content || product.sizeNotes || "") }}
                 />
               </div>
             )}

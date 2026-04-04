@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
-import { getServerSession } from "next-auth";
-import { authConfig } from "@/lib/auth.config";
+import { jsonNoStore, requireAdmin } from "@/lib/api/policy";
 
 export async function GET(request: Request) {
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
+
   try {
 
     const collections = await prisma.collection.findMany({
@@ -14,29 +16,27 @@ export async function GET(request: Request) {
       }
     });
 
-    return NextResponse.json(collections);
+    return jsonNoStore(collections);
   } catch (error) {
     console.error("Error fetching collections:", error);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    return jsonNoStore({ error: "Server error" }, { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
-  try {
-    const session = await getServerSession(authConfig);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
 
+  try {
     const { title, slug, description, image1, image2, image3, isActive } = await request.json();
 
     if (!title || !slug) {
-      return NextResponse.json({ error: "Title ve Slug zorunludur" }, { status: 400 });
+      return jsonNoStore({ error: "Title ve Slug zorunludur" }, { status: 400 });
     }
 
     const existing = await prisma.collection.findUnique({ where: { slug } });
     if (existing) {
-       return NextResponse.json({ error: "Bu slug (URL adresi) zaten kullanılıyor" }, { status: 400 });
+       return jsonNoStore({ error: "Bu slug (URL adresi) zaten kullanılıyor" }, { status: 400 });
     }
 
     const count = await prisma.collection.count();
@@ -55,29 +55,27 @@ export async function POST(request: Request) {
     });
 
     revalidatePath("/collections");
-    return NextResponse.json(collection);
+    return jsonNoStore(collection);
   } catch (error) {
     console.error("Error creating collection:", error);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    return jsonNoStore({ error: "Server error" }, { status: 500 });
   }
 }
 
 export async function PUT(request: Request) {
-  try {
-    const session = await getServerSession(authConfig);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
 
+  try {
     const { id, title, slug, description, image1, image2, image3, isActive } = await request.json();
 
     if (!id || !title || !slug) {
-      return NextResponse.json({ error: "Eksik parametreler" }, { status: 400 });
+      return jsonNoStore({ error: "Eksik parametreler" }, { status: 400 });
     }
 
     const existing = await prisma.collection.findFirst({ where: { slug, id: { not: id } } });
     if (existing) {
-       return NextResponse.json({ error: "Bu slug (URL adresi) başka bir koleksiyonda kullanılıyor" }, { status: 400 });
+       return jsonNoStore({ error: "Bu slug (URL adresi) başka bir koleksiyonda kullanılıyor" }, { status: 400 });
     }
 
     const collection = await prisma.collection.update({
@@ -94,25 +92,23 @@ export async function PUT(request: Request) {
     });
 
     revalidatePath("/collections");
-    return NextResponse.json(collection);
+    return jsonNoStore(collection);
   } catch (error) {
     console.error("Error updating collection:", error);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    return jsonNoStore({ error: "Server error" }, { status: 500 });
   }
 }
 
 export async function DELETE(request: Request) {
-  try {
-    const session = await getServerSession(authConfig);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
 
+  try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
 
     if (!id) {
-      return NextResponse.json({ error: "ID gerekli" }, { status: 400 });
+      return jsonNoStore({ error: "ID gerekli" }, { status: 400 });
     }
 
     await prisma.collection.delete({
@@ -120,9 +116,9 @@ export async function DELETE(request: Request) {
     });
 
     revalidatePath("/collections");
-    return NextResponse.json({ success: true });
+    return jsonNoStore({ success: true });
   } catch (error) {
     console.error("Error deleting collection:", error);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    return jsonNoStore({ error: "Server error" }, { status: 500 });
   }
 }

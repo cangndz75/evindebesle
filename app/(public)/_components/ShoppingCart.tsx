@@ -45,8 +45,8 @@ function SectionTitle({
   subtitle?: string;
 }) {
   return (
-    <div className="space-y-1">
-      <p className="text-sm font-medium tracking-wide text-black">{title}</p>
+    <div className="space-y-0.5">
+      <p className="text-sm font-semibold text-gray-800">{title}</p>
       {subtitle ? <p className="text-xs text-gray-500">{subtitle}</p> : null}
     </div>
   );
@@ -71,22 +71,22 @@ function ProductTile({
     <Link
       href={productUrl}
       onClick={onClick}
-      className="group block w-[150px] shrink-0"
+      className="group block w-[112px] shrink-0"
       aria-label={product.name}
     >
-      <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-gray-100 ring-1 ring-black/5">
+      <div className="relative aspect-[3/4] overflow-hidden rounded-md bg-[#f5f5f5] ring-1 ring-black/5">
         <Image
           src={productImage}
           alt={product.name}
           fill
           className="object-cover transition-transform duration-300 group-hover:scale-[1.04]"
-          sizes="160px"
+          sizes="112px"
           unoptimized
         />
       </div>
-      <div className="mt-3 space-y-1">
-        <p className="line-clamp-2 text-xs font-light text-gray-900">{product.name}</p>
-        <p className="text-xs font-medium text-black">{formatPriceTRY(product.price)}</p>
+      <div className="mt-2 space-y-0.5">
+        <p className="line-clamp-2 text-[12px] leading-4 font-medium text-[#222]">{product.name}</p>
+        <p className="text-[12px] font-semibold text-[#1a1a1a]">{formatPriceTRY(product.price)}</p>
       </div>
     </Link>
   );
@@ -169,23 +169,12 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
 
   const loadRecommendedProducts = async (items: CartItem[]) => {
     try {
-      // Sepette ürün varsa önce kombin/related dene
-      if (items.length > 0) {
-        const productIds = items.map((i) => i.productId);
-        const res = await fetch(`/api/products/recommended?productIds=${productIds.join(",")}`);
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data) && data.length > 0) {
-            setRecommendedProducts(data);
-            return;
-          }
-        }
-      }
-      // fallback: çok satan / genel liste
-      const res2 = await fetch("/api/products?take=12");
-      if (res2.ok) {
-        const data2 = await res2.json();
-        setRecommendedProducts(Array.isArray(data2) ? data2 : []);
+      const productIds = items.map((i) => i.productId);
+      // API artık cinsiyet+kategori bazlı akıllı fallback yapıyor
+      const res = await fetch(`/api/products/recommended?productIds=${productIds.join(",")}`);
+      if (res.ok) {
+        const data = await res.json();
+        setRecommendedProducts(Array.isArray(data) ? data : []);
       }
     } catch (error) {
       console.error("Error loading recommended products:", error);
@@ -277,9 +266,8 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
     }
   };
 
-  // Önceki ürün ID'lerini takip et (sadece ürün eklendi/silindiğinde öneri yükle)
-  const prevProductIdsRef = useRef<string>("");
-  const hasLoadedRecommendedRef = useRef(false);
+  // Son öneri isteğinin anahtarı (gereksiz tekrar fetch'i engelle)
+  const lastRecommendedKeyRef = useRef<string>("");
 
   // Sepet açıldığında cart'ı hydrate et ve company settings yükle
   useEffect(() => {
@@ -289,12 +277,22 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
         hydrate();
       }
       loadCompanySettings();
-    } else {
-      // Drawer kapandığında resetle
-      hasLoadedRecommendedRef.current = false;
-      prevProductIdsRef.current = "";
     }
   }, [isOpen, hydrated, hydrate]);
+
+  // Sepet değiştiğinde önerileri arka planda preload et
+  useEffect(() => {
+    if (!cartItems.length) {
+      lastRecommendedKeyRef.current = "";
+      return;
+    }
+
+    const key = cartItems.map((item) => item.productId).sort().join(",");
+    if (key === lastRecommendedKeyRef.current) return;
+
+    lastRecommendedKeyRef.current = key;
+    loadRecommendedProducts(cartItems);
+  }, [cartItems]);
 
   // Tab değiştiğinde lazy load yap
   useEffect(() => {
@@ -302,16 +300,11 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
 
     if (activeTab === "recent") {
       loadRecentlyViewed();
-    } else if (activeTab === "recommended" && !hasLoadedRecommendedRef.current) {
-      // Recommended tab'ına ilk kez basıldığında yükle
-      const currentProductIds = cartItems.map(item => item.productId).sort().join(",");
-      if (currentProductIds !== prevProductIdsRef.current) {
-        prevProductIdsRef.current = currentProductIds;
-        loadRecommendedProducts(cartItems);
-        hasLoadedRecommendedRef.current = true;
-      }
+    } else if (activeTab === "recommended" && cartItems.length === 0 && recommendedProducts.length === 0) {
+      // Empty cart senaryosunda öneri tab'ını ilk açışta yükle
+      loadRecommendedProducts([]);
     }
-  }, [isOpen, activeTab, cartItems]);
+  }, [isOpen, activeTab, cartItems, recommendedProducts.length]);
 
   // Event listener: recentlyViewedUpdated event'i için
   useEffect(() => {
@@ -402,14 +395,13 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
         if (!open) onClose();
       }}
     >
-      {/* Daha "elit" görünüm: hafif geniş, padding ve tipografi */}
-      <SheetContent side="right" className="w-full sm:max-w-lg p-0 gap-0 z-[100]">
+      <SheetContent side="right" className="w-full sm:max-w-md p-0 gap-0 z-[100] bg-white">
         <div className="flex h-full flex-col">
           {/* Header */}
-          <SheetHeader className="px-6 py-5 border-b border-black/5 flex-shrink-0">
+          <SheetHeader className="px-5 py-4 border-b border-gray-200 bg-white flex-shrink-0">
             <div className="flex items-end justify-between gap-3">
               <div className="space-y-1">
-                <SheetTitle className="text-xl font-normal tracking-tight text-black">
+                <SheetTitle className="text-base font-semibold tracking-wide uppercase text-gray-800">
                   Sepetim
                 </SheetTitle>
                 <p className="text-xs text-gray-500">
@@ -421,7 +413,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
           </SheetHeader>
 
           {/* Body */}
-          <div className="flex-1 overflow-y-auto px-6 py-6">
+          <div className="flex-1 overflow-y-auto px-5 py-4 bg-white">
             {/* Empty Cart Skeleton - Sadece isReady değilse göster */}
             {!isReady && cartItems.length === 0 ? (
               <div className="space-y-4 py-4">
@@ -441,15 +433,15 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
               <>
                 {/* FREE SHIPPING BAR (only meaningful when cart has items) */}
                 {cartItems.length > 0 ? (
-                  <div className="mb-6 rounded-2xl border border-black/5 bg-white p-4 shadow-[0_1px_0_rgba(0,0,0,0.03)]">
-                    <div className="flex items-start gap-3">
-                      <div className="mt-0.5 rounded-xl bg-black/5 p-2">
+                  <div className="mb-4 rounded-lg border border-gray-200 bg-gray-50 p-3">
+                    <div className="flex items-start gap-2.5">
+                      <div className="mt-0.5 rounded-md bg-white p-1.5 border border-gray-200">
                         <ShoppingBag className="h-4 w-4 text-black" />
                       </div>
-                      <div className="flex-1 space-y-2">
-                        <p className="text-sm text-gray-800">
+                      <div className="flex-1 space-y-1.5">
+                        <p className="text-sm text-gray-700 leading-5">
                           {qualifiesForFreeShipping ? (
-                            <span className="font-medium text-black">
+                            <span className="font-semibold text-black">
                               Ücretsiz kargo için yeterli tutara ulaştınız.
                             </span>
                           ) : (
@@ -482,7 +474,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                 {/* EMPTY STATE (2. görsel hissi) */}
                 {cartItems.length === 0 ? (
                   <div className="pb-4">
-                    <div className="rounded-3xl border border-black/5 bg-white px-6 py-10 text-center shadow-[0_1px_0_rgba(0,0,0,0.03)]">
+                    <div className="rounded-xl border border-black/10 bg-white px-6 py-10 text-center">
                       <p className="text-xl font-semibold tracking-tight text-black">
                         Sepetiniz Boş
                       </p>
@@ -499,7 +491,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                     </div>
 
                     {/* Tabs + Slider */}
-                    <div className="mt-10">
+                    <div className="mt-8">
                       <div className="flex items-center justify-between gap-4">
                         <div className="flex items-center gap-8 border-b border-black/10 w-full">
                           <button
@@ -546,10 +538,10 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                         </div>
                       </div>
 
-                      <div className="relative mt-6">
+                      <div className="relative mt-4">
                         <div
                           ref={emptySliderRef}
-                          className="flex gap-4 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                          className="flex gap-3 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                         >
                           {activeList.slice(0, 10).map((p) => (
                             <ProductTile key={p.id} product={p} onClick={onClose} />
@@ -567,17 +559,17 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
 
                 {/* FILLED CART (1. görselin modern/elit versiyonu) */}
                 {cartItems.length > 0 ? (
-                  <div className="space-y-4 pb-24">
+                  <div className="space-y-0 pb-24">
                     {cartItems.map((item) => (
                       <div
                         key={item.id}
-                        className="rounded-3xl border border-black/5 bg-white p-4 shadow-[0_1px_0_rgba(0,0,0,0.03)]"
+                        className="border-b border-gray-200 py-4"
                       >
                         <div className="flex gap-4">
                           <Link
                             href={getProductUrl(item)}
                             onClick={onClose}
-                            className="relative h-28 w-20 shrink-0 overflow-hidden rounded-2xl bg-gray-100 ring-1 ring-black/5"
+                            className="relative h-24 w-16 shrink-0 overflow-hidden rounded bg-gray-50"
                           >
                             <Image
                               src={getProductImage(item)}
@@ -595,7 +587,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                                 <Link
                                   href={getProductUrl(item)}
                                   onClick={onClose}
-                                  className="block text-sm font-medium text-black hover:underline"
+                                  className="block text-sm font-medium text-gray-900 hover:underline"
                                   title={item.product.name}
                                 >
                                   {item.product.name}
@@ -616,24 +608,23 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                             </div>
 
                             <div className="mt-4 flex items-center justify-between gap-3">
-                              {/* Quantity stepper (daha elit) */}
-                              <div className="inline-flex items-center rounded-full border border-black/10 bg-white">
+                              <div className="inline-flex items-center rounded-md border border-gray-300 bg-white">
                                 <button
                                   type="button"
                                   onClick={() => updateQuantity(item.id, item.quantity - 1)}
                                   disabled={item.quantity <= 1}
-                                  className="h-9 w-10 grid place-items-center rounded-full text-black hover:bg-black/5 disabled:opacity-40 disabled:hover:bg-transparent"
+                                  className="h-8 w-8 grid place-items-center text-black hover:bg-black/5 disabled:opacity-40 disabled:hover:bg-transparent"
                                   aria-label="Miktarı azalt"
                                 >
                                   <Minus className="h-4 w-4" />
                                 </button>
-                                <span className="min-w-[44px] text-center text-sm font-medium text-black">
+                                <span className="min-w-[30px] text-center text-sm font-medium text-black">
                                   {item.quantity}
                                 </span>
                                 <button
                                   type="button"
                                   onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                  className="h-9 w-10 grid place-items-center rounded-full text-black hover:bg-black/5"
+                                  className="h-8 w-8 grid place-items-center text-black hover:bg-black/5"
                                   aria-label="Miktarı artır"
                                 >
                                   <Plus className="h-4 w-4" />
@@ -641,10 +632,10 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                               </div>
 
                               <div className="text-right">
-                                <p className="text-sm font-semibold text-black">
+                                <p className="text-base font-semibold text-gray-900">
                                   {formatPriceTRY((item.product.originalPrice || item.product.price) * item.quantity)}
                                 </p>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-gray-500 mt-0.5">
                                   {item.quantity} adet
                                 </p>
                               </div>
@@ -655,36 +646,36 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                     ))}
 
                     {recommendedProducts.length > 0 ? (
-                      <div className="pt-6">
+                      <div className="pt-5 border-t border-gray-200">
                         <div className="flex items-center justify-between">
                           <SectionTitle
                             title="Bunları da beğenebilirsiniz"
-                            subtitle="Görünümünüzü tamamlamak için özenle seçilmiş ürünler"
+                            subtitle="Kombininizi tamamlayın"
                           />
-                          <div className="hidden sm:flex items-center gap-2">
+                          <div className="flex items-center gap-2">
                             <button
                               type="button"
                               onClick={() => scrollSlider(filledRecommendedRef, "left")}
-                              className="h-9 w-9 rounded-full border border-black/10 hover:border-black/20 hover:bg-black/5 grid place-items-center"
+                              className="h-7 w-7 rounded-full border border-gray-300 bg-white hover:bg-gray-50 grid place-items-center"
                               aria-label="Sola kaydır"
                             >
-                              <ChevronLeft className="h-4 w-4" />
+                              <ChevronLeft className="h-3.5 w-3.5" />
                             </button>
                             <button
                               type="button"
                               onClick={() => scrollSlider(filledRecommendedRef, "right")}
-                              className="h-9 w-9 rounded-full border border-black/10 hover:border-black/20 hover:bg-black/5 grid place-items-center"
+                              className="h-7 w-7 rounded-full border border-gray-300 bg-white hover:bg-gray-50 grid place-items-center"
                               aria-label="Sağa kaydır"
                             >
-                              <ChevronRight className="h-4 w-4" />
+                              <ChevronRight className="h-3.5 w-3.5" />
                             </button>
                           </div>
                         </div>
 
-                        <div className="relative mt-5">
+                        <div className="relative mt-3">
                           <div
                             ref={filledRecommendedRef}
-                            className="flex gap-4 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                            className="flex gap-3 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                           >
                             {recommendedProducts.slice(0, 12).map((p) => (
                               <ProductTile key={p.id} product={p} onClick={onClose} />
@@ -701,26 +692,26 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
 
           {/* Sticky Footer (elit checkout bar) */}
           {cartItems.length > 0 ? (
-            <div className="sticky bottom-0 border-t border-black/5 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
-              <div className="px-6 py-4">
+            <div className="sticky bottom-0 border-t border-gray-200 bg-white">
+              <div className="px-4 py-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm text-gray-600">Ara Toplam</p>
-                  <p className="text-lg font-semibold tracking-tight text-black">
+                  <p className="text-sm uppercase tracking-wide text-gray-500">Ara Toplam</p>
+                  <p className="text-xl font-semibold text-gray-900">
                     {formatPriceTRY(totalPrice)}
                   </p>
                 </div>
 
                 <div className="mt-3 grid grid-cols-1 gap-3">
                   <Button
-                    className="w-full h-12 rounded-2xl bg-black text-white hover:bg-black/90"
+                    className="w-full h-12 rounded-full bg-black text-white hover:bg-black/90 tracking-wide text-sm"
                     onClick={handleCreateOrder}
                     disabled={isCreatingOrder}
                   >
-                    {isCreatingOrder ? "Yönlendiriliyor..." : "Ödemeye Geç"}
+                    {isCreatingOrder ? "Yönlendiriliyor..." : "ÖDEMEYE GEÇ"}
                   </Button>
 
-                  <p className="text-[11px] leading-4 text-gray-500">
-                    Vergiler ve kargo ödeme sırasında hesaplanır.
+                  <p className="text-[11px] leading-4 text-gray-400 text-center">
+                    KDV dahildir · Kargo ücreti ödeme adımında hesaplanır
                   </p>
                 </div>
               </div>

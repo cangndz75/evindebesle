@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ChevronDown, Search, HelpCircle, Package, CreditCard, Truck, RotateCcw, User, ShoppingBag } from "lucide-react";
+import { sanitizeHtmlForRender } from "@/lib/security/sanitizeHtml";
 
 
 interface FAQ {
@@ -170,7 +171,7 @@ export default function SSSPage() {
                                     </button>
                                     {expandedIds.has(faq.id) && (
                                         <div className="px-5 pb-5 pt-0 text-gray-600 leading-relaxed border-t border-gray-100">
-                                            <div className="pt-4" dangerouslySetInnerHTML={{ __html: faq.answer }} />
+                                            <div className="pt-4" dangerouslySetInnerHTML={{ __html: sanitizeHtmlForRender(faq.answer) }} />
                                         </div>
                                     )}
                                 </div>

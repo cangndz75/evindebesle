@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { iyzico, iyzicoCall } from "@/lib/iyzico";
 import { commitReservationToSaleTx } from "@/lib/stock";
 import { finalizePayment } from "@/lib/services/payment";
+import { redactForLog } from "@/lib/security/log";
 // import { createAdminNotification } from "@/lib/admin-notification"; // Removed as it's now internal to finalizePayment
 
 /**
@@ -21,11 +22,12 @@ export async function POST(req: NextRequest) {
 
         if (iyziEventType !== "PAYMENT_RESULT") {
             // We only care about payment results for now
+            console.log("Webhook ignored event", redactForLog({ iyziEventType, status }));
             return NextResponse.json({ status: "ignored" });
         }
 
         if (!token) {
-            return NextResponse.json({ error: "Missing token" }, { status: 400 });
+            return NextResponse.json({ error: "MISSING_REQUIRED_PARAM" }, { status: 400 });
         }
 
         const payment = await prisma.paymentAttempt.findUnique({
@@ -34,7 +36,7 @@ export async function POST(req: NextRequest) {
         });
 
         if (!payment) {
-            console.error(`Webhook Error: Payment attempt with token ${token} not found.`);
+            console.error("Webhook Error: Payment attempt not found.");
             return NextResponse.json({ error: "Payment not found" }, { status: 404 });
         }
 
@@ -79,6 +81,6 @@ export async function POST(req: NextRequest) {
 
     } catch (error: any) {
         console.error("Iyzico Webhook error:", error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: "WEBHOOK_EXCEPTION" }, { status: 500 });
     }
 }

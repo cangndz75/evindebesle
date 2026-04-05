@@ -504,7 +504,7 @@ export default function MenProductsPage({
         <div className="flex gap-2 mb-6 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4 md:mx-0 md:px-0">
           <button
             onClick={() => setSelectedCategory("All")}
-            className={`px-4 py-2 text-sm font-light uppercase tracking-wide transition-colors whitespace-nowrap flex-shrink-0 ${
+            className={`px-4 py-2 text-sm font-light uppercase tracking-wide transition-colors whitespace-nowrap shrink-0 ${
               selectedCategory === "All"
                 ? "bg-[#111] text-white"
                 : "bg-white text-[#111] border border-[#111] hover:bg-[#111] hover:text-white"
@@ -516,7 +516,7 @@ export default function MenProductsPage({
             <button
               key={category.slug}
               onClick={() => setSelectedCategory(category.slug)}
-              className={`px-4 py-2 text-sm font-light uppercase tracking-wide transition-colors whitespace-nowrap flex-shrink-0 ${selectedCategory === category.slug
+              className={`px-4 py-2 text-sm font-light uppercase tracking-wide transition-colors whitespace-nowrap shrink-0 ${selectedCategory === category.slug
                 ? "bg-[#111] text-white"
                 : "bg-white text-[#111] border border-[#111] hover:bg-[#111] hover:text-white"
                 }`}

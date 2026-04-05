@@ -646,7 +646,7 @@ export default function WomenProductsPage({
                 if (cachedAll) setProducts(cachedAll);
               }
             }}
-            className={`px-3 md:px-4 py-2 text-xs md:text-sm font-light uppercase tracking-wide transition-colors whitespace-nowrap flex-shrink-0 ${
+            className={`px-3 md:px-4 py-2 text-xs md:text-sm font-light uppercase tracking-wide transition-colors whitespace-nowrap shrink-0 ${
               selectedCategory === "All"
                 ? "bg-[#111] text-white"
                 : "bg-white text-[#111] border border-[#111] hover:bg-[#111] hover:text-white"
@@ -661,7 +661,7 @@ export default function WomenProductsPage({
               onMouseEnter={() => {
                 void prefetchCategoryData(category.slug);
               }}
-              className={`px-3 md:px-4 py-2 text-xs md:text-sm font-light uppercase tracking-wide transition-colors whitespace-nowrap flex-shrink-0 ${selectedCategory === category.slug
+              className={`px-3 md:px-4 py-2 text-xs md:text-sm font-light uppercase tracking-wide transition-colors whitespace-nowrap shrink-0 ${selectedCategory === category.slug
                 ? "bg-[#111] text-white"
                 : "bg-white text-[#111] border border-[#111] hover:bg-[#111] hover:text-white"
                 }`}
@@ -843,7 +843,7 @@ export default function WomenProductsPage({
                 </Link>
 
                 <div className="space-y-1">
-                  <h3 className="font-light text-[#111] text-xs line-clamp-2 min-h-[2.5rem]">
+                  <h3 className="font-light text-[#111] text-xs line-clamp-2 min-h-10">
                     {product.name}
                   </h3>
                   <div className="flex flex-col gap-0.5">
@@ -879,7 +879,7 @@ export default function WomenProductsPage({
                         onMouseEnter={() => handleColorInteraction(product.id, colorImg)}
                         onMouseLeave={handleColorLeave}
                         onClick={() => handleColorInteraction(product.id, colorImg)}
-                        className={`w-3 h-3 rounded-full border transition-all duration-200 flex-shrink-0 ${isActive ? "border-[#111] scale-110" : "border-gray-300"
+                        className={`w-3 h-3 rounded-full border transition-all duration-200 shrink-0 ${isActive ? "border-[#111] scale-110" : "border-gray-300"
                           }`}
                         style={{ backgroundColor: color.hexCode || "#000000" }}
                         aria-label={`${color.name} renk seçeneği`}

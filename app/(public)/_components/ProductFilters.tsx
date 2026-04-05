@@ -223,7 +223,7 @@ export default function ProductFilters({
             <span>Filtrele</span>
           </button>
         </SheetTrigger>
-        <SheetContent side="left" className="w-[400px] overflow-y-auto p-0">
+        <SheetContent side="left" className="w-100 overflow-y-auto p-0">
           <SheetHeader className="px-6 pt-6 pb-4 border-b">
             <SheetTitle className="text-left font-bold text-[#111]">Filtreler</SheetTitle>
           </SheetHeader>

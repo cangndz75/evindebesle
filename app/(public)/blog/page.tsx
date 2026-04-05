@@ -37,7 +37,7 @@ function PaginationSkeleton() {
 
 function BlogMobileHeader() {
   return (
-    <div className="md:hidden rounded-xl bg-gradient-to-r from-primary/5 to-transparent">
+    <div className="md:hidden rounded-xl bg-linear-to-r from-primary/5 to-transparent">
       <div className="px-4 pt-4 pb-3">
         <nav className="flex items-center gap-1 text-xs">
           <Home className="w-4 h-4" />

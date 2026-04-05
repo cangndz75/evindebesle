@@ -202,7 +202,7 @@ export default function ProductListingPage() {
                 FILTER
               </button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+            <SheetContent side="right" className="w-75 sm:w-100">
               <SheetHeader>
                 <SheetTitle>Filters</SheetTitle>
               </SheetHeader>
@@ -254,7 +254,7 @@ export default function ProductListingPage() {
             return (
               <div key={product.id} className="group">
                 <Link href={product.slug ? `/products/${product.slug}` : `/product/${product.id}`} className="block">
-                  <div className="relative aspect-[3/4] mb-4 overflow-hidden bg-gray-100">
+                  <div className="relative aspect-3/4 mb-4 overflow-hidden bg-gray-100">
                     
                     <Image
                       src={currentImage}

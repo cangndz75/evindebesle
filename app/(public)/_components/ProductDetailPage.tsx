@@ -579,7 +579,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
   };
 
   return (
-    <div className="w-full min-h-screen bg-white pt-[5px] md:pt-[20px]">
+    <div className="w-full min-h-screen bg-white pt-1.25 md:pt-5">
       
       <div className="max-w-7xl mx-auto px-4 md:px-8 pt-6 pb-4">
         <nav className="flex items-center gap-2 text-sm font-light text-gray-500">
@@ -617,7 +617,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
           
-          <div className="flex flex-col lg:flex-row gap-4 lg:max-w-[600px]">
+          <div className="flex flex-col lg:flex-row gap-4 lg:max-w-150">
             
             <div className="flex lg:flex-col gap-2 order-2 lg:order-1 relative">
               {getCurrentColorImages().length > 0 ? (
@@ -642,7 +642,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                         <button
                           key={actualIdx}
                           onClick={() => setSelectedImage(actualIdx)}
-                          className={`relative w-16 h-20 lg:w-20 lg:h-24 flex-shrink-0 overflow-hidden border-2 transition-all ${selectedImage === actualIdx
+                          className={`relative w-16 h-20 lg:w-20 lg:h-24 shrink-0 overflow-hidden border-2 transition-all ${selectedImage === actualIdx
                             ? "border-black"
                             : "border-transparent hover:border-gray-300"
                             }`}
@@ -682,7 +682,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
             <div className="order-1 lg:order-2 flex-1 min-w-0 relative">
               <div
                 ref={imageContainerRef}
-                className="relative w-full aspect-[3/4] group overflow-hidden"
+                className="relative w-full aspect-3/4 group overflow-hidden"
                 onTouchStart={handleTouchStart}
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
@@ -778,7 +778,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                 <button
                   onClick={toggleFavorite}
                   disabled={isLoadingFavorite}
-                  className="hover:opacity-70 transition-opacity flex-shrink-0"
+                  className="hover:opacity-70 transition-opacity shrink-0"
                   aria-label={isFavorite ? "Favorilerden çıkar" : "Favorilere ekle"}
                 >
                   <Heart className={`w-6 h-6 ${isFavorite ? "fill-red-500 text-red-500" : "text-black"}`} />
@@ -1024,7 +1024,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
             
             <div className="flex items-center gap-4 mb-8">
               
-              <div className="flex items-center border border-gray-300 h-[56px]">
+              <div className="flex items-center border border-gray-300 h-14">
                 <button
                   onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
                   className="px-4 h-full text-black hover:bg-gray-100 transition-colors font-light flex items-center justify-center disabled:opacity-50"
@@ -1032,7 +1032,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                 >
                   <Minus className="w-4 h-4" />
                 </button>
-                <span className="px-6 h-full text-sm font-light text-black border-x border-gray-300 min-w-[60px] text-center flex items-center justify-center">
+                <span className="px-6 h-full text-sm font-light text-black border-x border-gray-300 min-w-15 text-center flex items-center justify-center">
                   {quantity}
                 </span>
                 <button
@@ -1047,7 +1047,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
               <button
                 onClick={() => addToCart()}
                 disabled={!selectedSize || getVariantStock(selectedSize) <= 0}
-                className="flex-1 bg-[#111] text-white hover:bg-[#333] uppercase tracking-wider text-sm font-semibold h-[56px] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="flex-1 bg-[#111] text-white hover:bg-[#333] uppercase tracking-wider text-sm font-semibold h-14 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 Sepete Ekle
               </button>
@@ -1344,9 +1344,9 @@ function LookConfigurationSection({ config }: { config: any }) {
             <Link 
               key={item.id} 
               href={`/products/${item.product.slug}`} 
-              className="flex-shrink-0 w-64 md:w-72 snap-start group"
+              className="shrink-0 w-64 md:w-72 snap-start group"
             >
-              <div className="relative aspect-[3/4] mb-6 overflow-hidden bg-gray-50 group-hover:shadow-xl transition-all duration-700">
+              <div className="relative aspect-3/4 mb-6 overflow-hidden bg-gray-50 group-hover:shadow-xl transition-all duration-700">
                 {config.showDiscountBadge && <div className="absolute top-4 left-4 bg-black text-white text-[10px] px-2 py-1 uppercase z-10">İndirim</div>}
                 <Image
                   src={item.product.primaryImage || item.product.image || "/placeholder.jpg"}
@@ -1527,9 +1527,9 @@ function RecentlyViewedSection({ currentProductId }: { currentProductId?: string
           <Link
             key={product.id}
             href={product.slug ? `/products/${product.slug}` : `/product/${product.productId}`}
-            className="flex-shrink-0 w-48 group"
+            className="shrink-0 w-48 group"
           >
-            <div className="relative aspect-[3/4] mb-4 overflow-hidden bg-gray-100">
+            <div className="relative aspect-3/4 mb-4 overflow-hidden bg-gray-100">
               {product.image ? (
                 <Image
                   src={product.image}

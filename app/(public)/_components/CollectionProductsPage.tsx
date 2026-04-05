@@ -338,7 +338,7 @@ export default function CollectionProductsPage({
           <div className="flex items-center gap-4">
             <span className="text-xs md:text-sm text-[#111]/60 font-light">{products.length} ürün</span>
             <Select value={sortOption} onValueChange={setSortOption}>
-              <SelectTrigger className="w-[180px] border-none bg-transparent text-sm font-light focus:ring-0">
+              <SelectTrigger className="w-45 border-none bg-transparent text-sm font-light focus:ring-0">
                 <SelectValue placeholder="Sırala" />
               </SelectTrigger>
               <SelectContent>

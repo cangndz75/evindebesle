@@ -329,7 +329,7 @@ export default function CartPage() {
         try {
             const res = await fetch(`/api/products/${product.id}`);
             if (!res.ok) {
-                toast.error("Urun bilgisi yuklenemedi");
+                toast.error("Ürün bilgisi yüklenemedi");
                 setQuickProductDetails(null);
                 return;
             }
@@ -366,7 +366,7 @@ export default function CartPage() {
             const firstAvailableSize = details.sizes.find((size) => getSizeStockForColor(details, initialColorId, size.id) > 0);
             setQuickSelectedSizeId(firstAvailableSize?.id || null);
         } catch {
-            toast.error("Urun bilgisi yuklenemedi");
+            toast.error("Ürün bilgisi yüklenemedi");
             setQuickProductDetails(null);
         } finally {
             setQuickLoading(false);
@@ -404,10 +404,10 @@ export default function CartPage() {
                 color: selectedColor ? { id: selectedColor.id, name: selectedColor.name } : null,
                 size: selectedSize ? { id: selectedSize.id, name: selectedSize.name } : null,
             });
-            toast.success("Urun sepete eklendi");
+            toast.success("Ürün sepete eklendi");
             setQuickModalOpen(false);
         } catch {
-            toast.error("Sepete eklenirken bir hata olustu");
+            toast.error("Sepete eklenirken bir hata oluştu");
         } finally {
             setQuickSubmitting(false);
         }
@@ -892,7 +892,7 @@ export default function CartPage() {
 
             <Dialog open={quickModalOpen} onOpenChange={setQuickModalOpen}>
                 <DialogContent className="max-w-[92vw] sm:max-w-245 p-0 overflow-hidden border border-[#e9e9e9] rounded-2xl">
-                    <DialogTitle className="sr-only">Urun Detayi</DialogTitle>
+                    <DialogTitle className="sr-only">Ürün Detayı</DialogTitle>
                     <div className="grid grid-cols-1 md:grid-cols-[1.05fr_1fr] bg-white">
                         <div className="relative min-h-85 md:min-h-155 bg-[#f4f1ed]">
                             {(() => {
@@ -902,7 +902,7 @@ export default function CartPage() {
                                     <>
                                         <Image
                                             src={image}
-                                            alt={quickProductDetails?.name || quickProduct?.name || "Urun"}
+                                            alt={quickProductDetails?.name || quickProduct?.name || "Ürün"}
                                             fill
                                             className="object-cover"
                                             sizes="(max-width: 768px) 100vw, 48vw"
@@ -1050,7 +1050,7 @@ export default function CartPage() {
                                     </div>
                                 </div>
                             ) : (
-                                <div className="py-10 text-sm text-[#777]">Urun bilgisi bulunamadi.</div>
+                                <div className="py-10 text-sm text-[#777]">Ürün bilgisi bulunamadı.</div>
                             )}
                         </div>
                     </div>

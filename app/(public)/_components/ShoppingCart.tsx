@@ -425,7 +425,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
       setQuickSelectedSizeId(firstAvailableSize?.id || null);
       setQuickModalOpen(true);
     } catch {
-      toast.error("Urun bilgisi yuklenemedi");
+      toast.error("Ürün bilgisi yuklenemedi");
       setQuickProductDetails(null);
       setQuickModalOpen(false);
     } finally {
@@ -456,7 +456,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
         size: initialSize ? { id: initialSize.id, name: initialSize.name } : null,
       });
 
-      toast.success("Urun sepete eklendi");
+      toast.success("Ürün sepete eklendi");
     } catch {
       toast.error("Sepete eklenirken bir hata olustu");
     }
@@ -493,7 +493,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
         color: selectedColor ? { id: selectedColor.id, name: selectedColor.name } : null,
         size: selectedSize ? { id: selectedSize.id, name: selectedSize.name } : null,
       });
-      toast.success("Urun sepete eklendi");
+      toast.success("Ürün sepete eklendi");
       setQuickModalOpen(false);
     } catch {
       toast.error("Sepete eklenirken bir hata olustu");
@@ -1072,7 +1072,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
 
       <Dialog open={quickModalOpen} onOpenChange={setQuickModalOpen}>
         <DialogContent className="max-w-[92vw] sm:max-w-230 p-0 overflow-hidden border border-[#e9e9e9] rounded-2xl">
-          <DialogTitle className="sr-only">Urun Detayi</DialogTitle>
+          <DialogTitle className="sr-only">Ürün Detayı</DialogTitle>
           <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr] bg-white">
             <div className="relative min-h-80 md:min-h-140 bg-[#f4f1ed]">
               {(() => {
@@ -1082,7 +1082,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                   <>
                     <Image
                       src={image}
-                      alt={quickProductDetails?.name || quickProduct?.name || "Urun"}
+                      alt={quickProductDetails?.name || quickProduct?.name || "Ürün"}
                       fill
                       className="object-cover"
                       sizes="(max-width: 768px) 100vw, 45vw"

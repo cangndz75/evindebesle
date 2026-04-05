@@ -254,7 +254,7 @@ export default async function ProgrammaticLandingPage({ params }: Props) {
 
       <h1 className="text-2xl font-semibold tracking-tight text-neutral-900 md:text-3xl">{pageTitle}</h1>
       <p className="mt-2 text-sm text-neutral-600">
-        {data.products.length} urun bulundu. Filtrelenmis sayfa her saat otomatik guncellenir.
+        {data.products.length} ürün bulundu. Filtrelenmiş sayfa her saat otomatik güncellenir.
       </p>
 
       <div className="mt-6 rounded-lg border border-neutral-200 bg-neutral-50 p-4">

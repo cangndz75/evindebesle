@@ -296,7 +296,7 @@ export default function AdminNewArrivalsPage() {
 
             {searchResults.length > ITEMS_PER_PAGE && (
               <div className="flex items-center justify-between gap-3 mt-4">
-                <p className="text-xs text-muted-foreground">Toplam {searchResults.length} urun • Sayfa {currentPage}/{totalPages}</p>
+                <p className="text-xs text-muted-foreground">Toplam {searchResults.length} ürün • Sayfa {currentPage}/{totalPages}</p>
                 <div className="flex items-center gap-2">
                   <Button
                     type="button"

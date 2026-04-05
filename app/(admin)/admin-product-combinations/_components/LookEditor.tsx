@@ -295,7 +295,7 @@ export default function LookEditor({ initialData }: LookEditorProps) {
 
                   {searchResults.length > ITEMS_PER_PAGE && (
                     <div className="flex items-center justify-between gap-4 pt-2">
-                      <p className="text-sm text-gray-500 font-medium">Toplam {searchResults.length} urun • Sayfa {currentPage}/{totalPages}</p>
+                      <p className="text-sm text-gray-500 font-medium">Toplam {searchResults.length} ürün • Sayfa {currentPage}/{totalPages}</p>
                       <div className="flex items-center gap-2">
                         <Button
                           type="button"
@@ -398,7 +398,7 @@ export default function LookEditor({ initialData }: LookEditorProps) {
 
                   {searchResults.length > ITEMS_PER_PAGE && (
                     <div className="flex items-center justify-between gap-4 pt-2">
-                      <p className="text-sm text-gray-500 font-medium">Toplam {searchResults.length} urun • Sayfa {currentPage}/{totalPages}</p>
+                      <p className="text-sm text-gray-500 font-medium">Toplam {searchResults.length} ürün • Sayfa {currentPage}/{totalPages}</p>
                       <div className="flex items-center gap-2">
                         <Button
                           type="button"

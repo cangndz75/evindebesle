@@ -647,7 +647,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                         >
                           <Image
                             src={imageUrl}
-                            alt={`Dark Velvet ${product.name} ${selectedColorLabel} urun gorseli ${actualIdx + 1}`.trim()}
+                            alt={`Dark Velvet ${product.name} ${selectedColorLabel} ürün görseli ${actualIdx + 1}`.trim()}
                             fill
                             className="object-cover"
                             sizes="80px"

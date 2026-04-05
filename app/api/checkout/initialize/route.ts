@@ -89,15 +89,15 @@ export async function POST(req: Request) {
             let variant = await prisma.productVariant.findFirst({
                 where: {
                     productId: item.productId,
-                    colorId: item.colorId || null,
-                    sizeId: item.sizeId || null,
+                    ...(item.colorId ? { colorId: item.colorId } : {}),
+                    ...(item.sizeId ? { sizeId: item.sizeId } : {}),
                 },
                 include: {
                     product: true,
                 }
             });
 
-            if (!variant) {
+            if (!variant && item.productId && !item.colorId && !item.sizeId) {
                 variant = await prisma.productVariant.findUnique({
                     where: { id: item.productId },
                     include: {
@@ -106,16 +106,32 @@ export async function POST(req: Request) {
                 });
             }
 
-            if (!variant && (item.colorId || item.sizeId)) {
+            if (!variant && (item.colorName || item.sizeName)) {
                 variant = await prisma.productVariant.findFirst({
                     where: {
                         productId: item.productId,
-                        ...(item.colorId ? { colorId: item.colorId } : {}),
-                        ...(item.sizeId ? { sizeId: item.sizeId } : {}),
+                        ...(item.colorName
+                            ? {
+                                color: {
+                                    is: {
+                                        name: item.colorName,
+                                    },
+                                },
+                            }
+                            : {}),
+                        ...(item.sizeName
+                            ? {
+                                size: {
+                                    is: {
+                                        name: item.sizeName,
+                                    },
+                                },
+                            }
+                            : {}),
                     },
                     include: {
                         product: true,
-                    }
+                    },
                 });
             }
 

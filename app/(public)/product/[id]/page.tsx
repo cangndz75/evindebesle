@@ -221,14 +221,33 @@ export default async function ProductPage({ params, skipRedirect }: ProductPageP
     ...product.productImages.map((img: { url: string }) => ({ url: img.url, badge: undefined })),
   ];
 
-  const colors = product.colors.map((c: { name: string; hexCode: string | null; description?: string; productImages: { url: string }[] }) => ({
+  const colors = product.colors.map((c: { id: string; name: string; hexCode: string | null; description?: string; productImages: { url: string }[] }) => ({
+    id: c.id,
     name: c.name,
     value: resolveSwatchHex({ name: c.name, hexCode: c.hexCode }),
     description: c.description || "",
     images: c.productImages.map((img: { url: string }) => img.url),
   }));
 
-  const sizes = product.sizes.map((s: { name: string }) => s.name);
+  const sizes = product.sizes.map((s: { id: string; name: string; stock: number }) => ({
+    id: s.id,
+    name: s.name,
+    stock: s.stock,
+  }));
+
+  const sizeOptions = product.sizeOptions.map((so: { id: string; name: string }) => ({
+    id: so.id,
+    name: so.name,
+  }));
+
+  const variants = product.variants
+    .filter((v: { colorId: string | null }) => v.colorId !== null)
+    .map((v: { colorId: string | null; sizeId: string | null; stock: number; variantCode: string }) => ({
+      colorId: v.colorId!,
+      sizeId: v.sizeId,
+      stock: v.stock,
+      variantCode: v.variantCode,
+    }));
 
   const categoryName = product.category?.name || "Ürünler";
   const categorySlug = product.category?.slug || "";
@@ -252,6 +271,8 @@ export default async function ProductPage({ params, skipRedirect }: ProductPageP
     }],
     colors,
     sizes,
+    sizeOptions,
+    variants,
     details: product.detailText ? [product.detailText] : [],
     fabric: product.fabricType || "",
     care: "",

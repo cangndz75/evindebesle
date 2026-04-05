@@ -123,6 +123,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (product.sizes.length > 0 && !sizeId) {
+      return NextResponse.json(
+        { error: "Lütfen beden seçimi yapın." },
+        { status: 400 }
+      );
+    }
+
+    if (product.colors.length > 0 && !colorId) {
+      return NextResponse.json(
+        { error: "Lütfen renk seçimi yapın." },
+        { status: 400 }
+      );
+    }
+
     const color = colorId
       ? await prisma.productColor.findUnique({
         where: { id: colorId },

@@ -14,7 +14,7 @@ const initialDraft: CampaignDraft = {
   status: "draft",
   subject: "",
   preheader: "",
-  fromName: "Evinde Besle",
+  fromName: "Dark Velvet",
   fromEmail: "info@dark-velvet.com",
   replyTo: "info@dark-velvet.com",
   blocks: [],

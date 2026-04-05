@@ -126,7 +126,7 @@ export default function AbandonedCartsPage() {
             status: "draft",
             subject: "Sepetinizde ürün unuttunuz!",
             preheader: "Beğendiğiniz ürünler sizi bekliyor",
-            fromName: "Evinde Besle",
+            fromName: "Dark Velvet",
             fromEmail: "info@dark-velvet.com",
             replyTo: "info@dark-velvet.com",
             recipientEmail: email,
@@ -206,7 +206,7 @@ export default function AbandonedCartsPage() {
                     id: "footer-1",
                     type: "footer",
                     content: {
-                        text: "© 2026 Evinde Besle. Tüm hakları saklıdır.",
+                        text: "© 2026 Dark Velvet. Tüm hakları saklıdır.",
                         socialHidden: true,
                         siteLink: "https://evindebesle.com",
                         address: "İstanbul, Türkiye"

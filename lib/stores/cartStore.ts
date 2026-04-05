@@ -1,5 +1,5 @@
 ﻿import { create } from "zustand";
-import { getGuestCart, addToGuestCart, saveGuestCart, removeFromGuestCart } from "@/lib/cart-utils";
+import { getGuestCart, addToGuestCart, saveGuestCart } from "@/lib/cart-utils";
 
 export type CartItem = {
   id: string;
@@ -267,6 +267,11 @@ export const useCartStore = create<CartState>((set, get) => ({
       if (res.ok) {
         await get().refreshCart();
       } else if (res.status === 401) {
+        const syncedGuestCart = getGuestCart();
+        set({ items: formatGuestCart(syncedGuestCart), hydrated: true, isReady: true });
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("cartUpdated"));
+        }
       } else {
         set({ items: prevItems });
         if (typeof window !== "undefined") {
@@ -369,7 +374,22 @@ export const useCartStore = create<CartState>((set, get) => ({
 
     if (currentItem?.isGuest) {
       try {
-        removeFromGuestCart(itemId);
+        const guestCart = getGuestCart();
+        let nextGuestCart = guestCart.filter((item) => item.id !== itemId);
+
+        if (nextGuestCart.length === guestCart.length) {
+          nextGuestCart = guestCart.filter(
+            (item) =>
+              !(
+                item.productId === currentItem.productId &&
+                item.colorId === currentItem.colorId &&
+                item.sizeId === currentItem.sizeId
+              )
+          );
+        }
+
+        saveGuestCart(nextGuestCart);
+        set({ items: formatGuestCart(nextGuestCart) });
         if (typeof window !== "undefined") {
           window.dispatchEvent(new Event("cartUpdated"));
         }
@@ -389,7 +409,22 @@ export const useCartStore = create<CartState>((set, get) => ({
         }
       } else if (res.status === 401) {
         try {
-          removeFromGuestCart(itemId);
+          const guestCart = getGuestCart();
+          let nextGuestCart = guestCart.filter((item) => item.id !== itemId);
+
+          if (nextGuestCart.length === guestCart.length && currentItem) {
+            nextGuestCart = guestCart.filter(
+              (item) =>
+                !(
+                  item.productId === currentItem.productId &&
+                  item.colorId === currentItem.colorId &&
+                  item.sizeId === currentItem.sizeId
+                )
+            );
+          }
+
+          saveGuestCart(nextGuestCart);
+          set({ items: formatGuestCart(nextGuestCart) });
           if (typeof window !== "undefined") {
             window.dispatchEvent(new Event("cartUpdated"));
           }

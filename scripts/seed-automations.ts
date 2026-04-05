@@ -21,7 +21,7 @@ async function main() {
                                 create: {
                                     name: "Welcome Email",
                                     subject: "Aramıza Hoşgeldin! ğŸ‘‹",
-                                    bodyJson: "<h1>Hoşgeldin!</h1><p>Evinde Besle ailesine katıldığın için teşekkürler.</p>"
+                                    bodyJson: "<h1>Hoşgeldin!</h1><p>Dark Velvet ailesine katıldığın için teşekkürler.</p>"
                                 }
                             }
                         },

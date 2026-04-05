@@ -27,8 +27,10 @@ type NewArrivalItem = {
 };
 
 export default function AdminNewArrivalsPage() {
+  const ITEMS_PER_PAGE = 20;
   const [search, setSearch] = useState("");
   const [searchResults, setSearchResults] = useState<ProductBasics[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
   
   const [newArrivalItems, setNewArrivalItems] = useState<NewArrivalItem[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
@@ -39,16 +41,16 @@ export default function AdminNewArrivalsPage() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (search.length >= 2 || selectedCategoryId !== "all" || selectedGender !== "all") {
-        setSearching(true);
-        fetchProducts(search, selectedCategoryId, selectedGender)
-          .then(setSearchResults)
-          .finally(() => setSearching(false));
-      } else {
-        setSearchResults([]);
-      }
+      setSearching(true);
+      fetchProducts(search, selectedCategoryId, selectedGender)
+        .then(setSearchResults)
+        .finally(() => setSearching(false));
     }, 400);
     return () => clearTimeout(timer);
+  }, [search, selectedCategoryId, selectedGender]);
+
+  useEffect(() => {
+    setCurrentPage(1);
   }, [search, selectedCategoryId, selectedGender]);
 
   useEffect(() => {
@@ -70,14 +72,17 @@ export default function AdminNewArrivalsPage() {
 
   const fetchProducts = async (q: string, catId: string, gen: string) => {
     try {
-      let url = `/api/admin-products?limit=20`;
-      if (q) url += `&search=${encodeURIComponent(q)}`;
-      if (catId !== "all") url += `&categoryId=${catId}`;
-      if (gen !== "all") url += `&gender=${gen.toUpperCase()}`;
+      const params = new URLSearchParams();
+      if (q) params.append("search", q);
+      if (catId !== "all") params.append("categoryId", catId);
+      if (gen !== "all") params.append("gender", gen.toUpperCase());
+      const qs = params.toString();
+      const url = qs ? `/api/admin-products?${qs}` : `/api/admin-products`;
       
       const res = await fetch(url);
       if (res.ok) {
-        return await res.json();
+        const data = await res.json();
+        return Array.isArray(data) ? data : (Array.isArray(data?.products) ? data.products : []);
       }
       return [];
     } catch (e) {
@@ -183,6 +188,9 @@ export default function AdminNewArrivalsPage() {
     return "https://via.placeholder.com/50";
   };
 
+  const totalPages = Math.max(1, Math.ceil(searchResults.length / ITEMS_PER_PAGE));
+  const paginatedSearchResults = searchResults.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
   return (
     <div className="space-y-6 lg:p-6 p-4">
       <div>
@@ -237,7 +245,7 @@ export default function AdminNewArrivalsPage() {
               </div>
             </div>
 
-            {(search.length >= 2 || selectedCategoryId !== "all" || selectedGender !== "all") && searchResults.length === 0 && !searching && (
+            {searchResults.length === 0 && !searching && (
               <div className="text-center py-8 text-sm text-gray-400 font-light italic">
                 Sonuç bulunamadı
               </div>
@@ -250,7 +258,7 @@ export default function AdminNewArrivalsPage() {
             )}
 
             <div className="space-y-2 mt-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-              {searchResults.map((product) => {
+              {paginatedSearchResults.map((product) => {
                 const isAdded = newArrivalItems.some(item => item.productId === product.id);
                 return (
                   <div
@@ -285,6 +293,31 @@ export default function AdminNewArrivalsPage() {
                 );
               })}
             </div>
+
+            {searchResults.length > ITEMS_PER_PAGE && (
+              <div className="flex items-center justify-between gap-3 mt-4">
+                <p className="text-xs text-muted-foreground">Toplam {searchResults.length} urun • Sayfa {currentPage}/{totalPages}</p>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    Onceki
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    Sonraki
+                  </Button>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 

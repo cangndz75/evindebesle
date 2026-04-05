@@ -45,7 +45,7 @@ export default function AdminMobileMenu({ name }: { name?: string }) {
           <SheetHeader>
             <SheetTitle className="flex items-center gap-2 text-lg">
               <PawPrint className="w-5 h-5 text-violet-700" />
-              Evinde Besle
+              Dark Velvet
             </SheetTitle>
           </SheetHeader>
 

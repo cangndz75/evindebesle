@@ -15,6 +15,7 @@ type User = {
 
 export default function ProfileDetails() {
   const [user, setUser] = useState<User | null>(null);
+  const [initialUser, setInitialUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
 
@@ -22,8 +23,17 @@ export default function ProfileDetails() {
     const fetchUser = async () => {
       try {
         const res = await fetch("/api/user/me");
+        if (!res.ok) throw new Error("Kullanici bilgileri alinamadi");
         const data = await res.json();
-        setUser(data);
+        const source = data?.user ?? data;
+        const mappedUser: User = {
+          name: source?.name ?? "",
+          email: source?.email ?? "",
+          phone: source?.phone ?? "",
+        };
+
+        setUser(mappedUser);
+        setInitialUser(mappedUser);
       } catch {
         toast.error("Kullanıcı bilgileri alınamadı");
       } finally {
@@ -34,16 +44,59 @@ export default function ProfileDetails() {
   }, []);
 
   const updateUser = async () => {
-    setUpdating(true);
-    const res = await fetch("/api/user/update", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(user),
-    });
-    setUpdating(false);
+    if (!user) return;
 
-    if (res.ok) toast.success("Profil güncellendi");
-    else toast.error("Bir hata oluştu");
+    const normalizedName = user.name.trim();
+    const normalizedPhone = user.phone.trim();
+
+    if (!normalizedName) {
+      toast.error("Ad soyad boş olamaz");
+      return;
+    }
+
+    if (
+      initialUser &&
+      normalizedName === (initialUser.name || "").trim() &&
+      normalizedPhone === (initialUser.phone || "").trim()
+    ) {
+      toast.info("Değişiklik bulunamadı");
+      return;
+    }
+
+    setUpdating(true);
+    try {
+      const payload = {
+        name: normalizedName,
+        phone: normalizedPhone,
+      };
+
+      const res = await fetch("/api/user/update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const responseData = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        toast.error(responseData?.error || "Bir hata oluştu");
+        return;
+      }
+
+      const updatedUser: User = {
+        name: responseData?.user?.name ?? payload.name,
+        email: responseData?.user?.email ?? user.email,
+        phone: responseData?.user?.phone ?? payload.phone,
+      };
+
+      setUser(updatedUser);
+      setInitialUser(updatedUser);
+      toast.success("Profil güncellendi");
+    } catch {
+      toast.error("Bir hata oluştu");
+    } finally {
+      setUpdating(false);
+    }
   };
 
   if (loading || !user) {

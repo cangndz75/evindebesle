@@ -68,7 +68,7 @@ export async function generateMetadata({
 
   if (!product) {
     return {
-      title: "Ürün Bulunamadı | Evinde Besle",
+      title: "Ürün Bulunamadı | Dark Velvet",
       description: "Aradığınız ürün bulunamadı.",
     };
   }
@@ -77,7 +77,7 @@ export async function generateMetadata({
 
   const description = product.description
     ? product.description.slice(0, 160)
-    : `${product.name} - ${categoryName} kategorisinde. Evinde Besle'de uygun fiyatlarla.`;
+    : `${product.name} - ${categoryName} kategorisinde. Dark Velvet'de uygun fiyatlarla.`;
 
   const images = product.primaryImage
     ? [product.primaryImage]
@@ -86,7 +86,7 @@ export async function generateMetadata({
       : [];
 
   return {
-    title: `${product.name} | Evinde Besle`,
+    title: `${product.name} | Dark Velvet`,
     description,
     keywords: [
       product.name,
@@ -100,7 +100,7 @@ export async function generateMetadata({
       title: product.name,
       description,
       url: `${BASE_URL}/product/${product.slug || product.id}`,
-      siteName: "Evinde Besle",
+      siteName: "Dark Velvet",
       images: images.map((url: string) => ({
         url,
         width: 800,

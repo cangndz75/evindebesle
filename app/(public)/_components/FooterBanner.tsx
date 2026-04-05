@@ -7,7 +7,7 @@ export default function FooterBanner() {
         <div className="flex items-center justify-center md:justify-start gap-6 w-full md:w-auto">
           <img
             src="https://res.cloudinary.com/dlahfchej/image/upload/v1752619387/13_lmksmp.png"
-            alt="Evinde Besle"
+            alt="Dark Velvet"
             className="w-32 md:w-40"
             width={160}
             height={40}

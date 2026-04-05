@@ -1,6 +1,6 @@
 "use client";
  
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Search, Plus, Trash2, ArrowRight, ArrowLeft, Check, Layout, Settings, Eye, ChevronUp, ChevronDown } from "lucide-react";
+import { Search, Plus, Trash2, ArrowRight, ArrowLeft, Check, Layout, Settings, Eye, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
  
 type ProductBasics = {
@@ -27,13 +27,17 @@ interface LookEditorProps {
  
 export default function LookEditor({ initialData }: LookEditorProps) {
   const router = useRouter();
+  const ITEMS_PER_PAGE = 20;
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [selectedCategoryId, setSelectedCategoryId] = useState("all");
   const [categories, setCategories] = useState<any[]>([]);
   const [searchResults, setSearchResults] = useState<ProductBasics[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
   const [searching, setSearching] = useState(false);
+  const categoryScrollRefStep1 = useRef<HTMLDivElement | null>(null);
+  const categoryScrollRefStep2 = useRef<HTMLDivElement | null>(null);
  
   const [mainProduct, setMainProduct] = useState<ProductBasics | null>(null);
   const [lookItems, setLookItems] = useState<ProductBasics[]>([]);
@@ -73,12 +77,16 @@ export default function LookEditor({ initialData }: LookEditorProps) {
  
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (search.length > 2 || selectedCategoryId !== "all") {
+      if (step !== 3) {
         performSearch();
       }
     }, 500);
     return () => clearTimeout(timer);
-  }, [search, selectedCategoryId]);
+  }, [search, selectedCategoryId, step]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, selectedCategoryId, step]);
  
   const performSearch = async () => {
     setSearching(true);
@@ -89,7 +97,14 @@ export default function LookEditor({ initialData }: LookEditorProps) {
       
       const res = await fetch(`/api/admin-products?${params.toString()}`);
       const data = await res.json();
-      setSearchResults(data.products || []);
+      const products = Array.isArray(data) ? data : (Array.isArray(data?.products) ? data.products : []);
+
+      setSearchResults(
+        products.filter((p: ProductBasics) => {
+          if (step === 2 && mainProduct) return p.id !== mainProduct.id;
+          return true;
+        })
+      );
     } finally {
       setSearching(false);
     }
@@ -156,6 +171,16 @@ export default function LookEditor({ initialData }: LookEditorProps) {
   const getProductImage = (p: ProductBasics) => {
     return p.primaryImage || p.image || "https://via.placeholder.com/150";
   };
+
+  const handleCategoryScroll = (target: "step1" | "step2", direction: "left" | "right") => {
+    const ref = target === "step1" ? categoryScrollRefStep1.current : categoryScrollRefStep2.current;
+    if (!ref) return;
+    const amount = 260;
+    ref.scrollBy({ left: direction === "left" ? -amount : amount, behavior: "smooth" });
+  };
+
+  const totalPages = Math.max(1, Math.ceil(searchResults.length / ITEMS_PER_PAGE));
+  const paginatedResults = searchResults.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
  
   return (
     <div className="max-w-7xl mx-auto space-y-10 pb-20">
@@ -223,17 +248,37 @@ export default function LookEditor({ initialData }: LookEditorProps) {
                     />
                   </div>
  
-                  <div className="flex gap-2 pb-2 justify-center overflow-x-auto no-scrollbar">
-                      <Button variant={selectedCategoryId === 'all' ? 'default' : 'outline'} size="sm" className="rounded-full px-6 h-10 font-bold" onClick={() => setSelectedCategoryId('all')}>Tümü</Button>
-                      {categories.map(cat => (
-                        <Button key={cat.id} variant={selectedCategoryId === cat.id ? 'default' : 'outline'} size="sm" className="rounded-full px-6 h-10 font-bold" onClick={() => setSelectedCategoryId(cat.id)}>{cat.name}</Button>
-                      ))}
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="rounded-full shrink-0"
+                      onClick={() => handleCategoryScroll("step1", "left")}
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </Button>
+                    <div ref={categoryScrollRefStep1} className="w-full flex gap-2 pb-2 overflow-x-auto no-scrollbar whitespace-nowrap">
+                        <Button variant={selectedCategoryId === 'all' ? 'default' : 'outline'} size="sm" className="rounded-full px-6 h-10 font-bold shrink-0" onClick={() => setSelectedCategoryId('all')}>Tümü</Button>
+                        {categories.map(cat => (
+                          <Button key={cat.id} variant={selectedCategoryId === cat.id ? 'default' : 'outline'} size="sm" className="rounded-full px-6 h-10 font-bold shrink-0" onClick={() => setSelectedCategoryId(cat.id)}>{cat.name}</Button>
+                        ))}
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="rounded-full shrink-0"
+                      onClick={() => handleCategoryScroll("step1", "right")}
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
                   </div>
  
                   {searching && <div className="text-center py-20 animate-pulse text-gray-300 font-black tracking-widest uppercase">Aranıyor...</div>}
  
                   <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
-                    {searchResults.map(p => (
+                    {paginatedResults.map(p => (
                       <div 
                         key={p.id} 
                         className={`group relative bg-white border rounded-3xl p-4 transition-all duration-500 hover:shadow-2xl cursor-pointer overflow-hidden ${mainProduct?.id === p.id ? 'border-black ring-1 ring-black shadow-xl ring-offset-4' : 'border-gray-100 hover:border-black/20'}`}
@@ -247,6 +292,31 @@ export default function LookEditor({ initialData }: LookEditorProps) {
                       </div>
                     ))}
                   </div>
+
+                  {searchResults.length > ITEMS_PER_PAGE && (
+                    <div className="flex items-center justify-between gap-4 pt-2">
+                      <p className="text-sm text-gray-500 font-medium">Toplam {searchResults.length} urun • Sayfa {currentPage}/{totalPages}</p>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="rounded-full px-5"
+                          onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                          disabled={currentPage === 1}
+                        >
+                          Onceki
+                        </Button>
+                        <Button
+                          type="button"
+                          className="rounded-full px-5 bg-black hover:bg-black/90"
+                          onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                          disabled={currentPage === totalPages}
+                        >
+                          Sonraki
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
              </Card>
            )}
@@ -276,17 +346,37 @@ export default function LookEditor({ initialData }: LookEditorProps) {
                      />
                    </div>
  
-                   <div className="flex gap-2 pb-2 overflow-x-auto no-scrollbar">
-                      <Button variant={selectedCategoryId === 'all' ? 'default' : 'outline'} size="sm" className="rounded-full px-6 h-10 font-bold" onClick={() => setSelectedCategoryId('all')}>Tümü</Button>
-                      {categories.map(cat => (
-                        <Button key={cat.id} variant={selectedCategoryId === cat.id ? 'default' : 'outline'} size="sm" className="rounded-full px-6 h-10 font-bold" onClick={() => setSelectedCategoryId(cat.id)}>{cat.name}</Button>
-                      ))}
+                   <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="rounded-full shrink-0"
+                        onClick={() => handleCategoryScroll("step2", "left")}
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </Button>
+                      <div ref={categoryScrollRefStep2} className="w-full flex gap-2 pb-2 overflow-x-auto no-scrollbar whitespace-nowrap">
+                        <Button variant={selectedCategoryId === 'all' ? 'default' : 'outline'} size="sm" className="rounded-full px-6 h-10 font-bold shrink-0" onClick={() => setSelectedCategoryId('all')}>Tümü</Button>
+                        {categories.map(cat => (
+                          <Button key={cat.id} variant={selectedCategoryId === cat.id ? 'default' : 'outline'} size="sm" className="rounded-full px-6 h-10 font-bold shrink-0" onClick={() => setSelectedCategoryId(cat.id)}>{cat.name}</Button>
+                        ))}
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="rounded-full shrink-0"
+                        onClick={() => handleCategoryScroll("step2", "right")}
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </Button>
                    </div>
  
                    {searching && <div className="text-center py-20 animate-pulse text-gray-300 font-black tracking-widest uppercase">Aranıyor...</div>}
  
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-                    {searchResults.map(p => (
+                    {paginatedResults.map(p => (
                       <div 
                         key={p.id} 
                         className={`group relative bg-white border rounded-3xl p-4 transition-all duration-500 hover:shadow-2xl cursor-pointer overflow-hidden ${lookItems.some(i => i.id === p.id) ? 'border-black ring-1 ring-black bg-gray-50/50' : 'border-gray-100'}`}
@@ -305,6 +395,31 @@ export default function LookEditor({ initialData }: LookEditorProps) {
                       </div>
                     ))}
                   </div>
+
+                  {searchResults.length > ITEMS_PER_PAGE && (
+                    <div className="flex items-center justify-between gap-4 pt-2">
+                      <p className="text-sm text-gray-500 font-medium">Toplam {searchResults.length} urun • Sayfa {currentPage}/{totalPages}</p>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="rounded-full px-5"
+                          onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                          disabled={currentPage === 1}
+                        >
+                          Onceki
+                        </Button>
+                        <Button
+                          type="button"
+                          className="rounded-full px-5 bg-black hover:bg-black/90"
+                          onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                          disabled={currentPage === totalPages}
+                        >
+                          Sonraki
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
              </Card>
            )}

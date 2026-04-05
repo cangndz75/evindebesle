@@ -9,13 +9,25 @@ export async function POST(req: Request) {
 
   const body = await req.json()
 
-  await prisma.user.update({
+  const name = typeof body?.name === "string" ? body.name.trim() : ""
+  const phone = typeof body?.phone === "string" ? body.phone.trim() : ""
+
+  if (!name) {
+    return NextResponse.json({ error: "Ad soyad zorunludur" }, { status: 400 })
+  }
+
+  const updatedUser = await prisma.user.update({
     where: { id: session.user.id },
     data: {
-      name: body.name,
-      phone: body.phone,
+      name,
+      phone,
+    },
+    select: {
+      name: true,
+      email: true,
+      phone: true,
     },
   })
 
-  return NextResponse.json({ success: true })
+  return NextResponse.json({ success: true, user: updatedUser })
 }

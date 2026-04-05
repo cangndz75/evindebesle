@@ -59,7 +59,7 @@ export async function GET(req: NextRequest) {
             `;
 
             const { error } = await resend.emails.send({
-                from: "Evinde Besle <newsletter@evindebesle.com>",
+                from: "Dark Velvet <newsletter@evindebesle.com>",
                 to: order.email!,
                 subject: "Sepetinizde Size Özel Bir Teklif Var!",
                 html: emailContent,

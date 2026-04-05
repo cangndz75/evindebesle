@@ -161,7 +161,7 @@ async function validateImportedProductsColorConsistency(productIds: string[]) {
     if (!COLOR_TOKENS.has(firstWord)) continue;
 
     const badColors = product.colors
-      .map((c) => normalizeColorToken(c.name))
+      .map((c: { name: string }) => normalizeColorToken(c.name))
       .filter((colorName) => colorName && colorName !== firstWord);
 
     if (badColors.length > 0) {

@@ -132,6 +132,7 @@ export default async function BlogHomePage({
 
   const start = (pageNum - 1) * PAGE_SIZE;
   const pageItems = uniqueSorted.slice(start, start + PAGE_SIZE);
+  const hasActiveFilters = Boolean(tag || category || q);
 
   const baseUrl =
     process.env.NEXT_PUBLIC_SITE_URL || "https://www.evindebesle.com";
@@ -181,9 +182,23 @@ export default async function BlogHomePage({
         <div className="mt-4 grid grid-cols-1 lg:grid-cols-12 gap-8">
           <div className="lg:col-span-8 space-y-10">
             {pageItems.length === 0 ? (
-              <div className="rounded-xl border p-6 text-sm text-muted-foreground">
-                Aramanızla eşleşen yazı bulunamadı. Filtreleri temizleyip
-                yeniden deneyin.
+              <div className="rounded-xl border p-6">
+                {hasActiveFilters ? (
+                  <p className="text-sm text-muted-foreground">
+                    Aramanızla eşleşen yazı bulunamadı. Filtreleri temizleyip
+                    yeniden deneyin.
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    <p className="text-base font-medium text-foreground">
+                      Henüz blog yazısı yayınlanmadı.
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Çok yakında burada stil ve moda içeriklerini
+                      görebileceksiniz.
+                    </p>
+                  </div>
+                )}
               </div>
             ) : (
               pageItems.map((post: any) => (

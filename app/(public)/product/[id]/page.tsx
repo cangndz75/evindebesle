@@ -1,11 +1,13 @@
 import { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { cache } from "react";
+import Link from "next/link";
 import ProductDetailPage from "../../_components/ProductDetailPage";
 import ProductSchema from "@/components/seo/ProductSchema";
 import BreadcrumbJsonLd from "@/components/seo/BreadcrumbJsonLd";
 import FAQPageSchema from "@/components/seo/FAQPageSchema";
+import { buildProductAbsoluteUrl, buildProductPath } from "@/lib/seo/productPath";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://evindebesle.com";
 
@@ -13,7 +15,38 @@ export const revalidate = 3600;
 
 interface ProductPageProps {
   params: Promise<{ id: string }>;
+  skipRedirect?: boolean;
 }
+
+const getCanonicalProduct = cache(async (idOrSlug: string) => {
+  const productBySlug = await prisma.product.findUnique({
+    where: { slug: idOrSlug },
+    select: {
+      id: true,
+      slug: true,
+      gender: true,
+      category: {
+        select: { slug: true },
+      },
+      isActive: true,
+    },
+  });
+
+  if (productBySlug) return productBySlug;
+
+  return prisma.product.findUnique({
+    where: { id: idOrSlug },
+    select: {
+      id: true,
+      slug: true,
+      gender: true,
+      category: {
+        select: { slug: true },
+      },
+      isActive: true,
+    },
+  });
+});
 
 const getProduct = cache(async (idOrSlug: string) => {
   const include = {
@@ -85,8 +118,17 @@ export async function generateMetadata({
       ? [product.productImages[0].url]
       : [];
 
+  const canonicalUrl = buildProductAbsoluteUrl(BASE_URL, {
+    id: product.id,
+    slug: product.slug,
+    gender: product.gender,
+    categorySlug: product.category?.slug,
+  });
+
+  const dynamicOgImage = `${BASE_URL}/product/${product.slug || product.id}/opengraph-image`;
+
   return {
-    title: `${product.name} | Dark Velvet`,
+    title: `${product.name} - Dark Velvet | Ozel Tasarim ${categoryName}`,
     description,
     keywords: [
       product.name,
@@ -99,14 +141,22 @@ export async function generateMetadata({
     openGraph: {
       title: product.name,
       description,
-      url: `${BASE_URL}/product/${product.slug || product.id}`,
+      url: canonicalUrl,
       siteName: "Dark Velvet",
-      images: images.map((url: string) => ({
-        url,
-        width: 800,
-        height: 800,
-        alt: product.name,
-      })),
+      images: [
+        {
+          url: dynamicOgImage,
+          width: 1200,
+          height: 630,
+          alt: `${product.name} - Dark Velvet`,
+        },
+        ...images.map((url: string) => ({
+          url,
+          width: 800,
+          height: 800,
+          alt: product.name,
+        })),
+      ],
       type: "website",
       locale: "tr_TR",
     },
@@ -114,10 +164,10 @@ export async function generateMetadata({
       card: "summary_large_image",
       title: product.name,
       description,
-      images,
+      images: [dynamicOgImage, ...images],
     },
     alternates: {
-      canonical: `${BASE_URL}/product/${product.slug || product.id}`,
+      canonical: canonicalUrl,
     },
     robots: {
       index: product.isActive,
@@ -126,8 +176,26 @@ export async function generateMetadata({
   };
 }
 
-export default async function ProductPage({ params }: ProductPageProps) {
+export default async function ProductPage({ params, skipRedirect }: ProductPageProps) {
   const { id } = await params;
+
+  if (!skipRedirect) {
+    const canonicalProduct = await getCanonicalProduct(id);
+
+    if (!canonicalProduct || !canonicalProduct.isActive) {
+      notFound();
+    }
+
+    const canonicalPath = buildProductPath({
+      id: canonicalProduct.id,
+      slug: canonicalProduct.slug,
+      gender: canonicalProduct.gender,
+      categorySlug: canonicalProduct.category?.slug,
+    });
+
+    permanentRedirect(canonicalPath);
+  }
+
   const product = await getProduct(id);
 
   if (!product || !product.isActive) {
@@ -159,6 +227,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   const categoryName = product.category?.name || "Ürünler";
   const categorySlug = product.category?.slug || "";
+
+  const canonicalUrl = buildProductAbsoluteUrl(BASE_URL, {
+    id: product.id,
+    slug: product.slug,
+    gender: product.gender,
+    categorySlug,
+  });
 
   const productData = {
     id: product.id,
@@ -194,16 +269,36 @@ export default async function ProductPage({ params }: ProductPageProps) {
   };
 
   const breadcrumbItems = [
-    { name: "Ana Sayfa", url: `${BASE_URL}/home` },
+    { name: "Ana Sayfa", url: `${BASE_URL}` },
     ...(categorySlug
       ? [{ name: categoryName, url: `${BASE_URL}/category/${categorySlug}` }]
       : []),
-    { name: product.name, url: `${BASE_URL}/product/${product.slug || product.id}` },
+    { name: product.name, url: canonicalUrl },
   ];
 
   const settings = await prisma.companySettings.findFirst();
   const threshold = settings?.freeShippingThreshold || 99;
   const shippingPrice = settings?.shippingPrice || 49.90;
+
+  const relatedProducts = await prisma.product.findMany({
+    where: {
+      isActive: true,
+      categoryId: product.categoryId || undefined,
+      id: { not: product.id },
+    },
+    select: {
+      id: true,
+      slug: true,
+      name: true,
+      price: true,
+      gender: true,
+      category: {
+        select: { slug: true },
+      },
+    },
+    orderBy: { updatedAt: "desc" },
+    take: 8,
+  });
 
   return (
     <>
@@ -219,7 +314,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
           originalPrice: product.originalPrice || undefined,
           currency: "TRY",
           inStock,
-          url: `${BASE_URL}/product/${product.slug || product.id}`,
+          url: canonicalUrl,
           rating: avgRating,
           reviewCount: product.reviews.length,
           color: product.colors?.[0]?.name,
@@ -227,6 +322,16 @@ export default async function ProductPage({ params }: ProductPageProps) {
           material: product.fabricType || undefined,
           gender: product.gender || undefined,
           category: product.category?.name || undefined,
+          shippingPrice,
+          freeShippingThreshold: threshold,
+          returnWindowDays: 14,
+          returnPolicyUrl: `${BASE_URL}/contract`,
+          reviews: product.reviews.map((review: { userName: string | null; rating: number; comment: string | null; createdAt: Date }) => ({
+            authorName: review.userName || null,
+            rating: review.rating,
+            comment: review.comment || null,
+            createdAt: review.createdAt,
+          })),
         }}
       />
       <BreadcrumbJsonLd items={breadcrumbItems} />
@@ -253,6 +358,30 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
       
       <ProductDetailPage product={productData} />
+
+      {relatedProducts.length > 0 && (
+        <section className="mx-auto w-full max-w-7xl px-4 pb-10 md:px-6">
+          <h2 className="mb-4 text-xl font-semibold text-neutral-900">Benzer Urunler</h2>
+          <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {relatedProducts.map((relatedProduct: { id: string; slug: string | null; name: string; price: number; gender: string | null; category: { slug: string } | null }) => (
+              <li key={relatedProduct.id} className="rounded-lg border bg-white p-4">
+                <Link
+                  href={buildProductPath({
+                    id: relatedProduct.id,
+                    slug: relatedProduct.slug,
+                    gender: relatedProduct.gender,
+                    categorySlug: relatedProduct.category?.slug,
+                  })}
+                  className="block text-sm font-medium text-neutral-900 hover:underline"
+                >
+                  {relatedProduct.name}
+                </Link>
+                <p className="mt-1 text-sm text-neutral-600">{relatedProduct.price.toFixed(2)} TL</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </>
   );
 }

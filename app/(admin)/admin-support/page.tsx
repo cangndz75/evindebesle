@@ -91,7 +91,7 @@ export default function AdminSupportPage() {
                     <div className="flex flex-col md:flex-row gap-4 justify-between">
                         <CardTitle>Talepler</CardTitle>
                         <div className="flex items-center gap-2">
-                            <div className="w-[200px]">
+                            <div className="w-50">
                                 <Select value={statusFilter} onValueChange={setStatusFilter}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Durum Filtrele" />

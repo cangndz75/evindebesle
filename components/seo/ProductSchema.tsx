@@ -17,10 +17,26 @@ interface ProductSchemaProps {
         material?: string;
         gender?: string;
         category?: string;
+        shippingPrice?: number;
+        freeShippingThreshold?: number;
+        returnWindowDays?: number;
+        returnPolicyUrl?: string;
+        reviews?: {
+            authorName?: string | null;
+            rating: number;
+            comment?: string | null;
+            createdAt?: string | Date;
+        }[];
     };
 }
 
 export default function ProductSchema({ product }: ProductSchemaProps) {
+    const hasAggregateRating =
+        typeof product.rating === "number" &&
+        product.rating > 0 &&
+        typeof product.reviewCount === "number" &&
+        product.reviewCount > 0;
+
     const schema = {
         "@context": "https://schema.org",
         "@type": "Product",
@@ -60,6 +76,11 @@ export default function ProductSchema({ product }: ProductSchemaProps) {
             },
             shippingDetails: {
                 "@type": "OfferShippingDetails",
+                shippingRate: {
+                    "@type": "MonetaryAmount",
+                    value: typeof product.shippingPrice === "number" ? product.shippingPrice : 49.9,
+                    currency: product.currency,
+                },
                 shippingDestination: {
                     "@type": "DefinedRegion",
                     addressCountry: "TR"
@@ -84,17 +105,61 @@ export default function ProductSchema({ product }: ProductSchemaProps) {
                         unitCode: "DAY"
                     }
                 }
-            }
+            },
+            hasMerchantReturnPolicy: {
+                "@type": "MerchantReturnPolicy",
+                applicableCountry: "TR",
+                returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+                merchantReturnDays: product.returnWindowDays || 14,
+                returnMethod: "https://schema.org/ReturnByMail",
+                returnFees: "https://schema.org/FreeReturn",
+                ...(product.returnPolicyUrl ? { url: product.returnPolicyUrl } : {}),
+            },
+            ...(typeof product.freeShippingThreshold === "number"
+                ? {
+                    eligibleTransactionVolume: {
+                        "@type": "PriceSpecification",
+                        priceCurrency: product.currency,
+                        minPrice: product.freeShippingThreshold,
+                    },
+                }
+                : {}),
         },
-        ...(product.rating &&
-            product.reviewCount && {
+        ...(hasAggregateRating && {
             aggregateRating: {
                 "@type": "AggregateRating",
-                ratingValue: product.rating.toFixed(1),
-                reviewCount: product.reviewCount,
+                ratingValue: product.rating!.toFixed(1),
+                reviewCount: product.reviewCount!,
                 bestRating: "5",
                 worstRating: "1",
             },
+        }),
+        ...(product.reviews && product.reviews.length > 0 && {
+            review: product.reviews.map((review) => ({
+                "@type": "Review",
+                ...(review.authorName
+                    ? {
+                        author: {
+                            "@type": "Person",
+                            name: review.authorName,
+                        },
+                    }
+                    : {}),
+                ...(review.comment ? { reviewBody: review.comment } : {}),
+                reviewRating: {
+                    "@type": "Rating",
+                    ratingValue: review.rating,
+                    bestRating: "5",
+                    worstRating: "1",
+                },
+                ...(review.createdAt
+                    ? {
+                        datePublished: new Date(review.createdAt)
+                            .toISOString()
+                            .split("T")[0],
+                    }
+                    : {}),
+            })),
         }),
     };
 

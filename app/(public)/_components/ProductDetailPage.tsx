@@ -97,6 +97,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
   const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
   const [liveStock, setLiveStock] = useState<number | null>(null);
   const [isSticky, setIsSticky] = useState(false);
+  const selectedColorLabel = product.colors?.[selectedColor]?.name || "";
 
 
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
@@ -648,7 +649,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                         >
                           <Image
                             src={imageUrl}
-                            alt={`${product.name} görsel ${actualIdx + 1}`}
+                            alt={`Dark Velvet ${product.name} ${selectedColorLabel} urun gorseli ${actualIdx + 1}`.trim()}
                             fill
                             className="object-cover"
                             sizes="80px"
@@ -703,7 +704,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                     <>
                       <Image
                         src={imageUrl}
-                        alt={product.name}
+                        alt={`Dark Velvet ${product.name} ${selectedColorLabel}`.trim()}
                         fill
                         className="object-cover"
                         sizes="(max-width: 1024px) 100vw, 50vw"
@@ -889,7 +890,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                         {colorImage ? (
                           <Image
                             src={colorImage}
-                            alt={color.name}
+                            alt={`Dark Velvet ${product.name} ${color.name} renk secenegi`}
                             fill
                             className="object-cover"
                             sizes="64px"
@@ -1349,7 +1350,7 @@ function LookConfigurationSection({ config }: { config: any }) {
                 {config.showDiscountBadge && <div className="absolute top-4 left-4 bg-black text-white text-[10px] px-2 py-1 uppercase z-10">İndirim</div>}
                 <Image
                   src={item.product.primaryImage || item.product.image || "/placeholder.jpg"}
-                  alt={item.product.name}
+                  alt={`Dark Velvet ${item.product.name}`}
                   fill
                   className="object-cover transition-transform duration-1000 group-hover:scale-110"
                   sizes="(max-width: 768px) 256px, 288px"
@@ -1532,7 +1533,7 @@ function RecentlyViewedSection({ currentProductId }: { currentProductId?: string
               {product.image ? (
                 <Image
                   src={product.image}
-                  alt={product.name}
+                  alt={`Dark Velvet ${product.name}`}
                   fill
                   className="object-cover transition-transform duration-500 group-hover:scale-105"
                   sizes="192px"
@@ -1580,7 +1581,7 @@ function ParentLookConfigsSection({ configs }: { configs: any[] }) {
               <div className="relative w-48 h-64 overflow-hidden rounded-[30px]">
                 <Image
                   src={p.primaryImage || p.image || "/placeholder.jpg"}
-                  alt={p.name}
+                  alt={`Dark Velvet ${p.name}`}
                   fill
                   className="object-cover transition-transform duration-1000 group-hover:scale-110"
                 />

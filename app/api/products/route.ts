@@ -14,7 +14,7 @@ type CachedFilterResponse = {
 const filterResponseCache = new Map<string, CachedFilterResponse>();
 
 function getFilterCacheKey(searchParams: URLSearchParams) {
-  return searchParams.toString();
+  return `v2:${searchParams.toString()}`;
 }
 
 function getCachedFilterResponse(key: string) {
@@ -120,13 +120,37 @@ export async function GET(request: NextRequest) {
   }
 
   if (sizes.length > 0) {
-    where.sizes = {
-      some: {
-        name: {
-          in: sizes,
+    where.OR = [
+      {
+        sizes: {
+          some: {
+            name: {
+              in: sizes,
+            },
+            stock: {
+              gt: 0,
+            },
+          },
         },
       },
-    };
+      {
+        variants: {
+          some: {
+            isActive: true,
+            stock: {
+              gt: 0,
+            },
+            size: {
+              is: {
+                name: {
+                  in: sizes,
+                },
+              },
+            },
+          },
+        },
+      },
+    ];
   }
 
   if (colors.length > 0) {

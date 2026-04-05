@@ -47,6 +47,17 @@ const nextConfig: NextConfig = {
   },
   serverExternalPackages: ["iyzipay"],
 
+  async rewrites() {
+    return {
+      afterFiles: [
+        {
+          source: "/:colorSlug-:fabricSlug-:categorySlug",
+          destination: "/kesfet/:categorySlug/:colorSlug/:fabricSlug",
+        },
+      ],
+    };
+  },
+
   async headers() {
     return [
       {

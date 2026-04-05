@@ -113,7 +113,7 @@ export default function AnalyticsFilters({
                 onChange={(e) =>
                     updateFilter("page", e.target.value || undefined)
                 }
-                className="px-3 py-2 border rounded-md text-sm w-[200px]"
+                className="px-3 py-2 border rounded-md text-sm w-50"
             />
 
             

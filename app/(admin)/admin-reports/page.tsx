@@ -81,7 +81,7 @@ export default function ReportsPage() {
           <p className="text-sm text-gray-600 mt-1">İş performansınızı analiz edin</p>
         </div>
         <Select value={dateRange} onValueChange={setDateRange}>
-          <SelectTrigger className="w-full md:w-[200px]">
+          <SelectTrigger className="w-full md:w-50">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

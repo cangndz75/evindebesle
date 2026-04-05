@@ -155,7 +155,7 @@ export default function KPIStrip({ data }: KPIStripProps) {
                         <div
                             key={index}
                             className={`
-              relative w-[200px] p-4 rounded-xl border border-gray-100 bg-white
+                            relative w-50 p-4 rounded-xl border border-gray-100 bg-white
               hover:shadow-lg hover:border-gray-200 transition-all duration-200
               flex flex-col justify-between group
             `}

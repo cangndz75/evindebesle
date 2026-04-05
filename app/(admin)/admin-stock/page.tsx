@@ -192,7 +192,7 @@ export default function StockManagementPage() {
           className="flex-1"
         />
         <Select value={filter} onValueChange={(v: any) => setFilter(v)}>
-          <SelectTrigger className="w-full md:w-[200px]">
+          <SelectTrigger className="w-full md:w-50">
             <SelectValue placeholder="Filtrele" />
           </SelectTrigger>
           <SelectContent>

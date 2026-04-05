@@ -162,10 +162,12 @@ async function getInitialProducts() {
           variants: c.variants,
         })),
         sizes: p.sizes.map((s: any) => ({
+          id: s.id,
           name: s.name,
           stock: s.stock,
         })),
         sizeOptions: p.sizeOptions?.map((so: any) => ({
+          id: so.id,
           name: so.name,
           isActive: so.isActive,
         })),

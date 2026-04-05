@@ -11,7 +11,7 @@ export default function WebSiteSchema() {
             "@type": "SearchAction",
             target: {
                 "@type": "EntryPoint",
-                urlTemplate: `${BASE_URL}/products?search={search_term_string}`
+                urlTemplate: `${BASE_URL}/api/search?q={search_term_string}`
             },
             "query-input": "required name=search_term_string"
         },

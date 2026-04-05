@@ -8,6 +8,7 @@ export const dynamic = "force-dynamic";
 
 type Props = {
     params: Promise<{ slug: string }>;
+    searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
 
 function parseImages(images: string | null): string[] {
@@ -115,10 +116,12 @@ async function getInitialProducts(categorySlug: string, gender?: any) {
                 variants: c.variants,
             })),
             sizes: p.sizes.map((s: any) => ({
+                id: s.id,
                 name: s.name,
                 stock: s.stock,
             })),
             sizeOptions: p.sizeOptions?.map((so: any) => ({
+                id: so.id,
                 name: so.name,
                 isActive: so.isActive,
             })),
@@ -163,8 +166,9 @@ async function getPriceRange(categorySlug: string, gender?: any) {
     }
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
     const { slug } = await params;
+    const query = (await searchParams) || {};
     const category = await getCategory(slug);
 
     if (!category) {
@@ -173,12 +177,48 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         };
     }
 
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://darkvelvet.com";
+    const canonicalBase = `${baseUrl}/category/${slug}`;
+
+    const queryKeys = Object.keys(query).filter((key) => {
+        const value = query[key];
+        if (Array.isArray(value)) return value.length > 0;
+        return value != null && value !== "";
+    });
+
+    const isCleanCategoryPage = queryKeys.length === 0;
+    const isSingleColorFacet =
+        queryKeys.length === 1 &&
+        queryKeys[0] === "color" &&
+        (() => {
+            const colorValue = query.color;
+            if (Array.isArray(colorValue)) return colorValue.length === 1 && Boolean(colorValue[0]);
+            return Boolean(colorValue);
+        })();
+
+    const allowIndex = isCleanCategoryPage || isSingleColorFacet;
+
+    const canonical = isSingleColorFacet
+        ? `${canonicalBase}?color=${encodeURIComponent(Array.isArray(query.color) ? query.color[0] : query.color as string)}`
+        : canonicalBase;
+
     return {
         title: `${category.name} - Dark Velvet`,
         description: category.description || `${category.name} kategorisindeki ürünleri keşfedin.`,
         alternates: {
-            canonical: `${process.env.NEXT_PUBLIC_BASE_URL || "https://darkvelvet.com"}/category/${slug}`
-        }
+            canonical
+        },
+        robots: {
+            index: allowIndex,
+            follow: true,
+        },
+        openGraph: {
+            type: "website",
+            url: canonical,
+            title: `${category.name} - Dark Velvet`,
+            description: category.description || `${category.name} kategorisindeki ürünleri keşfedin.`,
+            siteName: "Dark Velvet",
+        },
     };
 }
 
@@ -190,16 +230,20 @@ export default async function CategoryPage({ params }: Props) {
         notFound();
     }
 
+    const effectiveGenderFilter = category.gender && category.gender !== "UNISEX"
+        ? category.gender
+        : undefined;
+
     const [initialProducts, priceRange] = await Promise.all([
-        getInitialProducts(slug, category.gender || undefined),
-        getPriceRange(slug, category.gender || undefined),
+        getInitialProducts(slug, effectiveGenderFilter),
+        getPriceRange(slug, effectiveGenderFilter),
     ]);
 
     return (
         <CategoryProductsPage
             categoryName={category.name}
             categorySlug={slug}
-            gender={category.gender || undefined}
+            gender={effectiveGenderFilter}
             initialProducts={initialProducts}
             initialPriceRange={priceRange}
         />

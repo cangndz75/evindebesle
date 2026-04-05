@@ -540,7 +540,7 @@ export default function MenProductsPage({
             <div className="hidden md:flex items-center gap-2">
               <span className="text-sm text-[#111] font-light">Sırala:</span>
               <Select value={sortOption} onValueChange={setSortOption}>
-                <SelectTrigger className="w-[200px] border-none bg-transparent text-sm font-light text-[#111] focus:ring-0 focus:ring-offset-0">
+                <SelectTrigger className="w-50 border-none bg-transparent text-sm font-light text-[#111] focus:ring-0 focus:ring-offset-0">
                   <SelectValue>
                     {sortOption === "featured" && "Öne çıkan"}
                     {sortOption === "bestseller" && "En çok satan"}

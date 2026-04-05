@@ -38,6 +38,7 @@ type ProductColor = {
 };
 
 type ProductSize = {
+    id?: string;
     name: string;
     stock: number;
 };
@@ -65,7 +66,7 @@ type Product = {
     fabricType?: string;
     colors: (ProductColor & { variant?: ProductVariant; id?: string; variants?: any[] })[];
     sizes: ProductSize[];
-    sizeOptions?: Array<{ name: string; isActive: boolean }>;
+    sizeOptions?: Array<{ id?: string; name: string; isActive: boolean }>;
     tags: ProductTag[];
 };
 
@@ -90,6 +91,14 @@ type ActiveFilter = {
     label: string;
     value: string;
 };
+
+function arraysEqual(a: string[], b: string[]) {
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i += 1) {
+        if (a[i] !== b[i]) return false;
+    }
+    return true;
+}
 
 function normalizeColorKey(value: string): string {
     return value.trim().toLocaleLowerCase("tr-TR");
@@ -219,15 +228,32 @@ export default function CategoryProductsPage({
         const parsedMin = minPriceRaw ? Number(minPriceRaw) : undefined;
         const parsedMax = maxPriceRaw ? Number(maxPriceRaw) : undefined;
 
-        setFilters({
+        const nextFilters: FilterState = {
             sizes,
             colors,
             fabricTypes,
             minPrice: Number.isFinite(parsedMin) ? parsedMin : undefined,
             maxPrice: Number.isFinite(parsedMax) ? parsedMax : undefined,
+        };
+
+        setFilters((prev) => {
+            if (
+                prev.minPrice === nextFilters.minPrice &&
+                prev.maxPrice === nextFilters.maxPrice &&
+                arraysEqual(prev.sizes, nextFilters.sizes) &&
+                arraysEqual(prev.colors, nextFilters.colors) &&
+                arraysEqual(prev.fabricTypes, nextFilters.fabricTypes)
+            ) {
+                return prev;
+            }
+
+            return nextFilters;
         });
 
-        if (sortRaw) setSortOption(sortRaw);
+        setSortOption((prev) => {
+            const nextSort = sortRaw || "featured";
+            return prev === nextSort ? prev : nextSort;
+        });
     }, [searchParams]);
 
     useEffect(() => {
@@ -331,9 +357,13 @@ export default function CategoryProductsPage({
         if (sortOption && sortOption !== "featured") params.set("sort", sortOption);
 
         const query = params.toString();
+        const currentQuery = searchParams.toString();
+        if (query === currentQuery) {
+            return;
+        }
         const nextUrl = query ? `${pathname}?${query}` : pathname;
         router.replace(nextUrl, { scroll: false });
-    }, [debouncedFilters, sortOption, pathname, router]);
+    }, [debouncedFilters, sortOption, pathname, router, searchParams]);
 
     const availableOptions = useMemo(() => {
         const sizes = new Set<string>();
@@ -499,7 +529,7 @@ export default function CategoryProductsPage({
                         <div className="hidden md:flex items-center gap-2">
                             <span className="text-sm text-[#111] font-light">Sırala:</span>
                             <Select value={sortOption} onValueChange={setSortOption}>
-                                <SelectTrigger className="w-[200px] border-none bg-transparent text-sm font-light text-[#111] focus:ring-0 focus:ring-offset-0">
+                                <SelectTrigger className="w-50 border-none bg-transparent text-sm font-light text-[#111] focus:ring-0 focus:ring-offset-0">
                                     <SelectValue>
                                         {sortOption === "featured" && "Öne çıkan"}
                                         {sortOption === "bestseller" && "En çok satan"}
@@ -659,6 +689,117 @@ export default function CategoryProductsPage({
                                             favoriteButton={<FavoriteButton productId={product.id} productName={product.name} />}
                                             isOutOfStock={isOutOfStock}
                                         />
+
+                                        {!isOutOfStock && (
+                                            <div className="hidden md:block absolute bottom-4 left-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                                <div className="bg-white/95 backdrop-blur-sm border border-gray-200 p-3">
+                                                    <p className="text-[10px] tracking-[0.2em] font-light text-[#111]/40 uppercase mb-3 text-center">Hızlı ekle</p>
+                                                    <div className="flex flex-wrap gap-2 justify-center">
+                                                        {(() => {
+                                                            const availableSizes = product.sizes && product.sizes.length > 0
+                                                                ? product.sizes
+                                                                : product.sizeOptions && product.sizeOptions.length > 0
+                                                                    ? product.sizeOptions.map((so: any) => ({ name: so.name, stock: 0, id: so.id }))
+                                                                    : [];
+
+                                                            if (availableSizes.length === 0) {
+                                                                return <p className="text-[10px] text-gray-400">Beden seçeneği yok</p>;
+                                                            }
+
+                                                            const currentColorId = displayColorObj?.id || product.colors?.[0]?.id;
+                                                            const SIZE_ORDER = ["XXXS", "XXS", "XS", "S", "M", "L", "XL", "XXL", "2XL", "XXXL", "3XL", "XXXXL", "4XL"];
+
+                                                            const inStockSizes = availableSizes.map((size: any) => {
+                                                                const sizeName = typeof size === 'string' ? size : size.name;
+                                                                const sizeStock = typeof size === 'object' ? size.stock : 0;
+                                                                const sizeId = typeof size === 'object' && size.id ? size.id : null;
+
+                                                                let variantStock = 0;
+                                                                if (currentColorId && displayColorObj?.variants) {
+                                                                    const variant = displayColorObj.variants.find((v: any) =>
+                                                                        v.colorId === currentColorId && v.sizeId === sizeId
+                                                                    );
+                                                                    variantStock = variant?.stock || 0;
+                                                                }
+
+                                                                const finalStock = variantStock > 0 ? variantStock : sizeStock;
+                                                                return { sizeName, sizeId, finalStock };
+                                                            }).filter((item: any) => item.finalStock > 0).sort((a: any, b: any) => {
+                                                                const orderA = SIZE_ORDER.indexOf(a.sizeName.toUpperCase());
+                                                                const orderB = SIZE_ORDER.indexOf(b.sizeName.toUpperCase());
+                                                                if (orderA !== -1 && orderB !== -1) return orderA - orderB;
+                                                                if (orderA !== -1) return -1;
+                                                                if (orderB !== -1) return 1;
+                                                                return a.sizeName.localeCompare(b.sizeName);
+                                                            });
+
+                                                            if (inStockSizes.length === 0) {
+                                                                return <p className="text-[10px] text-gray-400">Tükendi</p>;
+                                                            }
+
+                                                            return inStockSizes.map(({ sizeName, sizeId }: any, sizeIdx: number) => (
+                                                                <button
+                                                                    key={sizeIdx}
+                                                                    onClick={async (e) => {
+                                                                        e.preventDefault();
+                                                                        e.stopPropagation();
+                                                                        try {
+                                                                            const res = await fetch("/api/cart", {
+                                                                                method: "POST",
+                                                                                headers: { "Content-Type": "application/json" },
+                                                                                body: JSON.stringify({
+                                                                                    productId: product.id,
+                                                                                    colorId: currentColorId || null,
+                                                                                    sizeId: sizeId || null,
+                                                                                    quantity: 1,
+                                                                                }),
+                                                                            });
+
+                                                                            if (res.ok) {
+                                                                                const result = await res.json();
+                                                                                if (!result.userId && result.product) {
+                                                                                    const { addToGuestCart } = await import("@/lib/cart-utils");
+                                                                                    addToGuestCart(product.id, currentColorId || null, sizeId || null, 1, {
+                                                                                        id: result.product.id,
+                                                                                        name: result.product.name || product.name,
+                                                                                        image: result.product.image || product.image,
+                                                                                        price: result.product.price || product.price || 0,
+                                                                                    });
+                                                                                }
+                                                                                const cartModule = await import("@/lib/stores/cartStore");
+                                                                                await cartModule.useCartStore.getState().refreshCart();
+                                                                                window.dispatchEvent(
+                                                                                    new CustomEvent("itemAddedToCart", {
+                                                                                        detail: {
+                                                                                            product: {
+                                                                                                id: product.id,
+                                                                                                name: product.name,
+                                                                                                image: displayColorObj?.images?.[0] || product.primaryImage || product.image || "/placeholder.jpg",
+                                                                                                price: product.price,
+                                                                                            },
+                                                                                            size: sizeName,
+                                                                                            color: displayColorObj?.name || "",
+                                                                                        },
+                                                                                    })
+                                                                                );
+                                                                            } else {
+                                                                                const errorData = await res.json();
+                                                                                toast.error(errorData.error || "Hata oluştu");
+                                                                            }
+                                                                        } catch {
+                                                                            toast.error("Hata oluştu");
+                                                                        }
+                                                                    }}
+                                                                    className="w-10 h-10 flex items-center justify-center text-[11px] font-light border transition-all duration-300 border-gray-200 text-[#111] hover:bg-black hover:text-white hover:border-black bg-white"
+                                                                >
+                                                                    {sizeName}
+                                                                </button>
+                                                            ));
+                                                        })()}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
                                     </Link>
 
                                     <div className="mt-4 text-center">

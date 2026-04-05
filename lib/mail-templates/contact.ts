@@ -15,7 +15,7 @@ export const generateContactEmailHtml = (form: {
       <div style="white-space: pre-wrap; border-left: 4px solid #ccc; padding-left: 10px; margin-top: 5px;">${form.message}</div>
 
       <hr style="margin: 24px 0" />
-      <p style="font-size: 13px; color: #999;">Bu mesaj evindebesle.com iletişim formu üzerinden gönderildi.</p>
+      <p style="font-size: 13px; color: #999;">Bu mesaj dark-velvet.com iletişim formu üzerinden gönderildi.</p>
     </div>
   `
 }

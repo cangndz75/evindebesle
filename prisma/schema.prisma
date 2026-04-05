@@ -522,7 +522,7 @@ model CompanySettings {
   freeShippingThreshold Float  @default(99.0)
   shippingPrice         Float  @default(49.90)
 
-  companyName    String? @default("Evindebesle")
+  companyName    String? @default("Dark Velvet")
   companyAddress String?
   taxOffice      String? // Vergi dairesi
   taxNumber      String? // Vergi numarası

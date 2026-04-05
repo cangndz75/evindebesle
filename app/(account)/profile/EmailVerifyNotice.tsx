@@ -12,7 +12,7 @@ export default function EmailVerifyNotice() {
 
   useEffect(() => {
     fetch("/api/user/me").then(res => res.json()).then(data => {
-      setNeedsVerification(!data.emailVerified)
+      setNeedsVerification(!data?.user?.emailVerified)
     })
   }, [])
 

@@ -31,7 +31,7 @@ export function generateInvoiceHtml({
 
   return `
     <html><body>
-    <h2>EvindeBesle - E-Arşiv Fatura</h2>
+    <h2>Dark Velvet - E-Arşiv Fatura</h2>
     <p>Müşteri: ${user.name} (${user.email})</p>
     <p>Fatura No: ${invoiceNo}</p>
     <p>ETTN: ${ettn}</p>

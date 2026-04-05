@@ -137,7 +137,7 @@ export default function AbandonedCartsPage() {
                     id: "header-1",
                     type: "header",
                     content: {
-                        logoUrl: "https://evindebesle.com/images/logo.png",
+                        logoUrl: "https://dark-velvet.com/images/logo.png",
                         align: "center",
                         backgroundColor: "#ffffff",
                         padding: "20px"
@@ -161,9 +161,9 @@ export default function AbandonedCartsPage() {
                     id: "product-1",
                     type: "image", // Using image block for simplicity as product block might be complex
                     content: {
-                        imageUrl: cart.items[0].product.image || "https://evindebesle.com/images/placeholder.png",
+                        imageUrl: cart.items[0].product.image || "https://dark-velvet.com/images/placeholder.png",
                         altText: cart.items[0].product.name,
-                        linkUrl: `https://evindebesle.com/product/${cart.items[0].product.id}`,
+                        linkUrl: `https://dark-velvet.com/product/${cart.items[0].product.id}`,
                         align: "center",
                         width: "300px" // Reasonable width for product image
                     },
@@ -189,7 +189,7 @@ export default function AbandonedCartsPage() {
                     type: "cta",
                     content: {
                         text: "Sepeti Tamamla",
-                        url: "https://evindebesle.com/cart",
+                        url: "https://dark-velvet.com/cart",
                         align: "center",
                         backgroundColor: "#000000",
                         textColor: "#ffffff",
@@ -208,7 +208,7 @@ export default function AbandonedCartsPage() {
                     content: {
                         text: "© 2026 Dark Velvet. Tüm hakları saklıdır.",
                         socialHidden: true,
-                        siteLink: "https://evindebesle.com",
+                        siteLink: "https://dark-velvet.com",
                         address: "İstanbul, Türkiye"
                     },
                     style: {

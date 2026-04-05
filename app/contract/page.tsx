@@ -16,7 +16,7 @@ export default function MembershipAgreementPage() {
 
           <h2 className="text-lg font-semibold mt-6 mb-2">1. Taraflar</h2>
           <p className="mb-4">
-            Evindebesle Üyelik Sözleşmesi (“Sözleşme”), www.evindebesle.com
+            Dark Velvet Üyelik Sözleşmesi (“Sözleşme”), dark-velvet.com
             (“Site”) internet sitesinin sahibi ve işleticisi ile bu Site’ye üye
             olan kişi (“Üye”) arasında akdedilmiştir.
           </p>
@@ -25,7 +25,7 @@ export default function MembershipAgreementPage() {
             2. Sözleşmenin Konusu
           </h2>
           <p className="mb-4">
-            Bu Sözleşme’nin konusu, Üye’nin evindebesle.com üzerinden sunulan
+            Bu Sözleşme’nin konusu, Üye’nin dark-velvet.com üzerinden sunulan
             hizmetlerden hangi koşullarla yararlanabileceğini düzenlemektir.
           </p>
 
@@ -52,7 +52,7 @@ export default function MembershipAgreementPage() {
               sonlandırabilir.
             </li>
             <li>
-              İçeriklerin telif hakları EvindeBesle’ye aittir, izinsiz
+              İçeriklerin telif hakları Dark Velvet’ye aittir, izinsiz
               kullanılamaz.
             </li>
           </ul>

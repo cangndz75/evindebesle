@@ -72,7 +72,7 @@ export default function ForgotPasswordClient() {
         >
           ←
         </button>
-        <span className="text-sm font-semibold">EvindeBesle</span>
+        <span className="text-sm font-semibold">Dark Velvet</span>
       </div>
 
       <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl p-10 space-y-6 text-center">

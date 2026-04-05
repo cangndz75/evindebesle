@@ -34,10 +34,10 @@ export default function DistanceSellingPage() {
               <br />
               <strong>Web Sitesi:</strong>{" "}
               <a
-                href="https://www.evindebesle.com"
+                href="https://dark-velvet.com"
                 className="text-blue-600 hover:underline"
               >
-                www.evindebesle.com
+                dark-velvet.com
               </a>
             </p>
             <h3 className="text-xl font-medium mb-2 mt-4">1.2. Alıcı</h3>
@@ -62,10 +62,10 @@ export default function DistanceSellingPage() {
             <p>
               İşbu Sözleşme, Alıcı’nın, Satıcı’ya ait{" "}
               <a
-                href="https://www.evindebesle.com"
+                href="https://dark-velvet.com"
                 className="text-blue-600 hover:underline"
               >
-                www.evindebesle.com
+                dark-velvet.com
               </a>{" "}
               internet sitesi üzerinden elektronik ortamda satın aldığı, aşağıda
               nitelikleri ve satış fiyatı belirtilen evcil hayvan bakım
@@ -83,10 +83,10 @@ export default function DistanceSellingPage() {
             <p>
               Hizmetin türü, kapsamı, süresi, ücreti ve ödeme şekli,{" "}
               <a
-                href="https://www.evindebesle.com"
+                href="https://dark-velvet.com"
                 className="text-blue-600 hover:underline"
               >
-                www.evindebesle.com
+                dark-velvet.com
               </a>{" "}
               internet sitesinde yer aldığı şekliyle ve Alıcı tarafından sipariş
               esnasında onaylanan şekilde aşağıda belirtilmiştir:

@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
-import { signIn } from "next-auth/react";
 
 export default function RegisterForm() {
   const router = useRouter();
@@ -40,11 +39,19 @@ export default function RegisterForm() {
         });
 
         if (!otpRes.ok) {
+          sessionStorage.setItem(
+            "pendingRegisterAuth",
+            JSON.stringify({ email, password })
+          );
           toast.error("Kayıt tamamlandı, kod gönderilemedi. Doğrulama ekranından tekrar gönderebilirsiniz.");
           router.push(`/verify?email=${email}`);
           return;
         }
 
+        sessionStorage.setItem(
+          "pendingRegisterAuth",
+          JSON.stringify({ email, password })
+        );
         toast.success("Kayıt başarılı! Kod gönderildi.");
         router.push(`/verify?email=${email}`);
       } catch {

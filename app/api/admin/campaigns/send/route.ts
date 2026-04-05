@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { resend } from "@/lib/resend";
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No recipients found" }, { status: 400 });
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://evindebesle.com";
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://dark-velvet.com";
 
     let sentCount = 0;
     const errors: string[] = [];

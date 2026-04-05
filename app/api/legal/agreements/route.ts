@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 type LineItem = { description: string; quantity: number; unitPrice: number; subtotal?: number };
 type Discount = { label: string; amount: number };
@@ -89,7 +89,7 @@ function preInfoTemplate(data: any) {
     address: "Uptwins Blok, Orta, Yalnız Selvi Cd. No: 5AB, 34880 Kartal/İstanbul",
     phone: "+90 216 519 26 00",
     email: "info@dark-velvet.com",
-    website: "evindebesle.com",
+    website: "dark-velvet.com",
   };
 
   const s = { ...sellerDefaults, ...(seller || {}) };
@@ -113,7 +113,7 @@ function preInfoTemplate(data: any) {
   Telefon: ${safe(s.phone)} — Eâ€‘posta: ${safe(s.email)}</p>
 
   <p><u>PLATFORM</u><br/>
-  ${safe(platform?.title || "Evindebesle")} — ${safe(platform?.address || "evindebesle.com")}</p>
+  ${safe(platform?.title || "Dark Velvet")} — ${safe(platform?.address || "dark-velvet.com")}</p>
 
   <p><b>3. Ürün/Hizmet Bilgileri</b></p>
   ${orderTableHtml}

@@ -9,7 +9,7 @@ import BreadcrumbJsonLd from "@/components/seo/BreadcrumbJsonLd";
 import FAQPageSchema from "@/components/seo/FAQPageSchema";
 import { buildProductAbsoluteUrl, buildProductPath } from "@/lib/seo/productPath";
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://evindebesle.com";
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://dark-velvet.com";
 
 export const revalidate = 3600;
 

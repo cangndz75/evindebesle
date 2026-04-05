@@ -10,7 +10,7 @@ export const generateResetPasswordEmailHtml = ({
     <table align="center" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:auto;background-color:white;">
       <tr>
         <td style="padding:24px 32px;text-align:left;">
-          <h1 style="margin:0;color:#000;font-size:24px;">EvindeBesle</h1>
+          <h1 style="margin:0;color:#000;font-size:24px;">Dark Velvet</h1>
         </td>
         <td style="padding:24px 32px;text-align:right;font-size:12px;color:#666;">
           "Dostça Hizmet"
@@ -53,8 +53,8 @@ export const generateResetPasswordEmailHtml = ({
       </tr>
       <tr>
         <td colspan="2" style="padding:16px 32px;font-size:11px;color:#999;text-align:center;">
-          © ${new Date().getFullYear()} EvindeBesle. Tüm hakları saklıdır.<br />
-          Bu e-posta evindebesle.com üzerinden gönderilmiştir.
+          © ${new Date().getFullYear()} Dark Velvet. Tüm hakları saklıdır.<br />
+          Bu e-posta dark-velvet.com üzerinden gönderilmiştir.
         </td>
       </tr>
     </table>

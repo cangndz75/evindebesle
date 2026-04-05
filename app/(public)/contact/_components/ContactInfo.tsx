@@ -57,8 +57,8 @@ export default function ContactInfo() {
         <div className="space-y-2">
           <h4 className="font-semibold text-black">Web Sitesi</h4>
           <p className="text-sm">
-            <a href="https://evindebesle.com" className="underline">
-              evindebesle.com
+            <a href="https://dark-velvet.com" className="underline">
+              dark-velvet.com
             </a>
           </p>
         </div>

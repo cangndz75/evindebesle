@@ -68,7 +68,7 @@ export async function GET(
         const html = renderInvoiceHTML({
             order: toInvoiceDTO(order),
             company: companySettings || {
-                companyName: "Evindebesle",
+                companyName: "Dark Velvet",
                 companyAddress: "",
                 taxOffice: "",
                 taxNumber: "",

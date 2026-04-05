@@ -15,7 +15,7 @@ export default function GizlilikPage() {
           </div>
 
           <p className="mb-6">
-            <strong>evindebesle.com</strong> olarak kişisel verilerinizin
+            <strong>dark-velvet.com</strong> olarak kişisel verilerinizin
             gizliliğine ve güvenliğine önem veriyoruz. Bu Gizlilik Sözleşmesi,
             tarafımıza ilettiğiniz kişisel verilerin nasıl toplandığını,
             kullanıldığını, saklandığını ve korunduğunu açıklamaktadır.

@@ -52,7 +52,7 @@ export async function POST(req: Request) {
     });
 
     await resend.emails.send({
-      from: "Dark Velvet <noreply@evindebesle.com>",
+      from: "Dark Velvet <noreply@dark-velvet.com>",
       to: normalizedEmail,
       subject: "Doğrulama Kodunuz",
       html: htmlContent,

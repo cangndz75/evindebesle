@@ -25,7 +25,7 @@ export default function CompanySettingsClient() {
   const [settings, setSettings] = useState<CompanySettings>({
     freeShippingThreshold: 99,
     shippingPrice: 49.90,
-    companyName: "Evindebesle",
+    companyName: "Dark Velvet",
     companyAddress: "",
     taxOffice: "",
     taxNumber: "",
@@ -47,7 +47,7 @@ export default function CompanySettingsClient() {
           setSettings({
             freeShippingThreshold: data.freeShippingThreshold || 99,
             shippingPrice: data.shippingPrice || 49.90,
-            companyName: data.companyName || "Evindebesle",
+            companyName: data.companyName || "Dark Velvet",
             companyAddress: data.companyAddress || "",
             taxOffice: data.taxOffice || "",
             taxNumber: data.taxNumber || "",
@@ -172,7 +172,7 @@ export default function CompanySettingsClient() {
                 id="companyName"
                 value={settings.companyName || ""}
                 onChange={(e) => handleChange("companyName", e.target.value)}
-                placeholder="Evindebesle"
+                placeholder="Dark Velvet"
               />
             </div>
 
@@ -208,7 +208,7 @@ export default function CompanySettingsClient() {
                 type="url"
                 value={settings.website || ""}
                 onChange={(e) => handleChange("website", e.target.value)}
-                placeholder="www.evindebesle.com"
+                placeholder="dark-velvet.com"
               />
             </div>
 

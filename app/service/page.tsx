@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { TruckIcon } from "lucide-react";
 import Navbar from "@/app/(public)/_components/Navbar";
@@ -16,7 +16,7 @@ export default function TeslimatVeIadePage() {
 
           <h2 className="text-lg font-semibold mb-4">Teslimat Koşulları</h2>
           <p className="mb-6">
-            <strong>evindebesle.com</strong> üzerinden alınan ürünler,
+            <strong>dark-velvet.com</strong> üzerinden alınan ürünler,
             sipariş sırasında belirtilen teslimat süreleri içerisinde
             adrese uygun şekilde ulaştırılır. Tüm
             ürünlerde kullanıcıların seçtiği beden ve renk

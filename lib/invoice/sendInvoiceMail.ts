@@ -10,8 +10,8 @@ export async function sendInvoiceMail({
   fileUrl: string;
 }) {
   await resend.emails.send({
-    from: "fatura@evindebesle.com",
-    to: [to, "admin@evindebesle.com"],
+    from: "fatura@dark-velvet.com",
+    to: [to, "info@dark-velvet.com"],
     subject: "Faturanız Hazır",
     html: `
       <p>Merhaba ${name},</p>

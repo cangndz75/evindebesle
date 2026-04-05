@@ -1,4 +1,4 @@
-﻿import { Suspense } from "react";
+import { Suspense } from "react";
 import { Home } from "lucide-react";
 import { Metadata } from "next";
 import Script from "next/script";
@@ -59,7 +59,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const sp = (await searchParams) ?? {};
   const baseUrl =
-    process.env.NEXT_PUBLIC_SITE_URL || "https://www.evindebesle.com";
+    process.env.NEXT_PUBLIC_SITE_URL || "https://dark-velvet.com";
   const canonicalUrl = `${baseUrl}/blog`;
 
   const tag = one(sp.tag)?.trim();
@@ -135,7 +135,7 @@ export default async function BlogHomePage({
   const hasActiveFilters = Boolean(tag || category || q);
 
   const baseUrl =
-    process.env.NEXT_PUBLIC_SITE_URL || "https://www.evindebesle.com";
+    process.env.NEXT_PUBLIC_SITE_URL || "https://dark-velvet.com";
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "Blog",

@@ -22,8 +22,8 @@ export async function createAdminNotification({
 
   try {
     await resend.emails.send({
-      from: "noreply@evindebesle.com",
-      to: "evindebesle34@gmail.com",
+      from: "noreply@dark-velvet.com",
+      to: "info@dark-velvet.com",
       subject: `[${displayTitle}] Yeni Bildirim`,
       html: `<div style="font-family: sans-serif; line-height: 1.5;">
         <h2>${displayTitle}</h2>

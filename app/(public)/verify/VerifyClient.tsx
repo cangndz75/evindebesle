@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { signIn } from "next-auth/react";
 
 export default function VerifyClient() {
   const router = useRouter();
@@ -45,8 +46,37 @@ export default function VerifyClient() {
       });
 
       if (res.ok) {
+        let autoLoginDone = false;
+        const pendingAuthRaw = sessionStorage.getItem("pendingRegisterAuth");
+
+        if (pendingAuthRaw) {
+          try {
+            const pendingAuth = JSON.parse(pendingAuthRaw) as {
+              email?: string;
+              password?: string;
+            };
+
+            if (pendingAuth.email && pendingAuth.password && pendingAuth.email === email) {
+              const signInResult = await signIn("credentials", {
+                redirect: false,
+                email: pendingAuth.email,
+                password: pendingAuth.password,
+              });
+
+              if (!signInResult?.error) {
+                autoLoginDone = true;
+              }
+            }
+          } catch {
+          }
+        }
+
+        sessionStorage.removeItem("pendingRegisterAuth");
         toast.success("Doğrulama başarılı.");
-        router.push("/");
+        if (!autoLoginDone) {
+          toast.info("Doğrulama tamamlandı. Oturum açmak için giriş yapabilirsiniz.");
+        }
+        window.location.href = "/";
       } else {
         toast.error("Kod geçersiz veya süresi dolmuş.");
       }

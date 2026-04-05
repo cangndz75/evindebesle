@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server"
+import { NextResponse } from "next/server"
 import { rateLimit } from "@/lib/rateLimit";
 import { prisma } from "@/lib/db"
 import { resend } from "@/lib/resend"
@@ -41,7 +41,7 @@ export async function POST(req: Request) {
   const resetUrl = `${process.env.FRONTEND_BASE_URL}/reset-password?token=${token}`
 
   await resend.emails.send({
-    from: "EvindeBesle <noreply@evindebesle.com>",
+    from: "Dark Velvet <noreply@dark-velvet.com>",
     to: [user.email],
     subject: "Şifre Sıfırlama Talebi",
     html: generateResetPasswordEmailHtml({

@@ -120,11 +120,19 @@ export default function AuthTabs() {
         });
 
         if (!otpRes.ok) {
+          sessionStorage.setItem(
+            "pendingRegisterAuth",
+            JSON.stringify({ email: registerEmail, password: registerPassword })
+          );
           toast.error("Kayıt tamamlandı, kod gönderilemedi. Doğrulama ekranından tekrar gönderebilirsiniz.");
           router.push(`/verify?email=${registerEmail}`);
           return;
         }
 
+        sessionStorage.setItem(
+          "pendingRegisterAuth",
+          JSON.stringify({ email: registerEmail, password: registerPassword })
+        );
         toast.success("Kayıt başarılı! Kod gönderildi.");
         router.push(`/verify?email=${registerEmail}`);
       } catch {

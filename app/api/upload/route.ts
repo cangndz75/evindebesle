@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 import { v2 as cloudinary } from "cloudinary";
 import { getServerSession } from "next-auth";
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
     const res = await new Promise<{ secure_url: string }>((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
-          folder: "evindebesle",
+          folder: "darkvelvet",
           resource_type: "auto",
           quality: "auto:good",
           fetch_format: "auto",

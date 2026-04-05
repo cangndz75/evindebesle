@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { resend } from "@/lib/resend";
 
@@ -59,7 +59,7 @@ export async function GET(req: NextRequest) {
             `;
 
             const { error } = await resend.emails.send({
-                from: "Dark Velvet <newsletter@evindebesle.com>",
+                from: "Dark Velvet <newsletter@dark-velvet.com>",
                 to: order.email!,
                 subject: "Sepetinizde Size Özel Bir Teklif Var!",
                 html: emailContent,

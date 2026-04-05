@@ -12,7 +12,7 @@ import ShareButtons from "./_components/ShareButton";
 
 import { getAllPosts, getPostBySlug, getRelatedPosts } from "@/lib/blogData";
 
-const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.evindebesle.com";
+const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://dark-velvet.com";
 
 export async function generateStaticParams(): Promise<Array<{ slug: string }>> {
   const posts = await getAllPosts();

@@ -132,7 +132,7 @@ export default function InvoiceDetailPage() {
                         <div className="mt-2">
                             <p>Tel: {companyPhone}</p>
                             <p>E-Posta: {companyEmail}</p>
-                            <p>Web Sitesi: https://www.evindebesle.com</p>
+                            <p>Web Sitesi: https://dark-velvet.com</p>
                         </div>
                         <div className="mt-2 text-gray-700">
                             <p>Vergi Dairesi: {taxOffice}</p>

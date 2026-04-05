@@ -1,4 +1,4 @@
-﻿interface InvoiceData {
+interface InvoiceData {
     order: any;
     company: {
         companyName?: string | null;
@@ -232,11 +232,11 @@ export function renderInvoiceHTML({ order, company }: InvoiceData): string {
       <div class="logo">
         ${company.logoUrl
             ? `<img src="${company.logoUrl}" alt="${company.companyName || "Logo"}" />`
-            : `<h1>${company.companyName || "Evindebesle"}</h1>`
+            : `<h1>${company.companyName || "Dark Velvet"}</h1>`
         }
       </div>
       <div class="company-info">
-        <h1>${company.companyName || "Evindebesle"}</h1>
+        <h1>${company.companyName || "Dark Velvet"}</h1>
         ${company.companyAddress ? `<p>${company.companyAddress}</p>` : ""}
         ${company.taxOffice ? `<p>Vergi Dairesi: ${company.taxOffice}</p>` : ""}
         ${company.taxNumber ? `<p>Vergi No: ${company.taxNumber}</p>` : ""}

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { X, Plus, Minus, ChevronDown } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -109,6 +109,7 @@ type ProductFiltersProps = {
   priceRange: { min: number; max: number };
   filters: FilterState;
   onFiltersChange: (filters: FilterState) => void;
+  onApplyFilters?: (filters: FilterState) => void;
   activeFilters: ActiveFilter[];
   onRemoveFilter: (filter: ActiveFilter) => void;
   onClearFilters: () => void;
@@ -123,6 +124,7 @@ export default function ProductFilters({
   priceRange,
   filters,
   onFiltersChange,
+  onApplyFilters,
   activeFilters,
   onRemoveFilter,
   onClearFilters,
@@ -130,14 +132,22 @@ export default function ProductFilters({
   isLoading = false,
 }: ProductFiltersProps) {
   const [open, setOpen] = useState(false);
+  const [draftFilters, setDraftFilters] = useState<FilterState>(filters);
+
+  useEffect(() => {
+    if (!open) {
+      setDraftFilters(filters);
+    }
+  }, [filters, open]);
 
   const updateFilter = (key: keyof FilterState, value: any) => {
-    const newFilters = { ...filters, [key]: value };
+    const newFilters = { ...draftFilters, [key]: value };
+    setDraftFilters(newFilters);
     onFiltersChange(newFilters);
   };
 
   const toggleArrayFilter = (key: "sizes" | "colors" | "fabricTypes", value: string) => {
-    const current = filters[key] || [];
+    const current = draftFilters[key] || [];
     const newArray = current.includes(value)
       ? current.filter((v) => v !== value)
       : [...current, value];
@@ -145,6 +155,10 @@ export default function ProductFilters({
   };
 
   const applyFilters = () => {
+    onApplyFilters?.(draftFilters);
+    if (!onApplyFilters) {
+      onFiltersChange(draftFilters);
+    }
     setOpen(false);
   };
 
@@ -154,6 +168,7 @@ export default function ProductFilters({
       colors: [],
       fabricTypes: [],
     };
+    setDraftFilters(emptyFilters);
     onFiltersChange(emptyFilters);
     onClearFilters();
   };
@@ -235,7 +250,7 @@ export default function ProductFilters({
                         <Input
                           type="number"
                           placeholder="0"
-                          value={filters.minPrice || ""}
+                          value={draftFilters.minPrice || ""}
                           onChange={(e) =>
                             updateFilter("minPrice", e.target.value ? parseFloat(e.target.value) : undefined)
                           }
@@ -247,7 +262,7 @@ export default function ProductFilters({
                         <Input
                           type="number"
                           placeholder="2000"
-                          value={filters.maxPrice || ""}
+                          value={draftFilters.maxPrice || ""}
                           onChange={(e) =>
                             updateFilter("maxPrice", e.target.value ? parseFloat(e.target.value) : undefined)
                           }
@@ -258,8 +273,8 @@ export default function ProductFilters({
                     <div className="px-2 pt-2">
                       <Slider
                         value={[
-                          filters.minPrice || priceRange.min,
-                          filters.maxPrice || priceRange.max,
+                          draftFilters.minPrice || priceRange.min,
+                          draftFilters.maxPrice || priceRange.max,
                         ]}
                         min={priceRange.min}
                         max={priceRange.max}
@@ -291,7 +306,7 @@ export default function ProductFilters({
                         <div key={size} className="flex items-center space-x-2">
                           <Checkbox
                             id={`size-${size}`}
-                            checked={filters.sizes?.includes(size) || false}
+                            checked={draftFilters.sizes?.includes(size) || false}
                             onCheckedChange={() => toggleArrayFilter("sizes", size)}
                           />
                           <Label
@@ -324,7 +339,7 @@ export default function ProductFilters({
                           type="button"
                           onClick={() => toggleArrayFilter("colors", color.name)}
                           className={`w-8 h-8 rounded-full border transition-all ${
-                            filters.colors?.includes(color.name)
+                            draftFilters.colors?.includes(color.name)
                               ? "border-[#111] ring-1 ring-[#111]"
                               : "border-gray-300"
                           }`}
@@ -353,7 +368,7 @@ export default function ProductFilters({
                         <div key={fabric} className="flex items-center space-x-2">
                           <Checkbox
                             id={`fabric-${fabric}`}
-                            checked={filters.fabricTypes?.includes(fabric) || false}
+                            checked={draftFilters.fabricTypes?.includes(fabric) || false}
                             onCheckedChange={() => toggleArrayFilter("fabricTypes", fabric)}
                           />
                           <Label
@@ -374,9 +389,11 @@ export default function ProductFilters({
             <div className="pt-6 mt-4 border-t">
               <Button
                 onClick={applyFilters}
+                disabled={isLoading}
                 className="w-full bg-[#111] text-white hover:bg-[#333] h-12 text-sm font-semibold uppercase tracking-wide"
               >
-                {isLoading ? "Ürünler Yükleniyor..." : `${resultCount} Ürünü Göster`}
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                <span>{`${resultCount} Ürünü Göster`}</span>
               </Button>
             </div>
           </div>

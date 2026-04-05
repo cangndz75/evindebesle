@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Heart, ChevronDown, ShoppingBag, Filter, ArrowUpDown } from "lucide-react";
 import { toast } from "sonner";
 import useSWR from "swr";
@@ -196,7 +196,7 @@ export default function CategoryProductsPage({
         colors: [],
         fabricTypes: [],
     });
-    const [debouncedFilters, setDebouncedFilters] = useState<FilterState>(filters);
+    const [pendingFilters, setPendingFilters] = useState<FilterState>(filters);
     const [priceRange, setPriceRange] = useState(initialPriceRange);
     const [sortOption, setSortOption] = useState("featured");
     const [sortDialogOpen, setSortDialogOpen] = useState(false);
@@ -209,8 +209,6 @@ export default function CategoryProductsPage({
         colorImage: string;
         variantCode?: string;
     } | null>(null);
-    const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-
     useEffect(() => {
         if (initialPriceRange.min !== 0 || initialPriceRange.max !== 2000) {
             setPriceRange(initialPriceRange);
@@ -250,27 +248,25 @@ export default function CategoryProductsPage({
             return nextFilters;
         });
 
+        setPendingFilters((prev) => {
+            if (
+                prev.minPrice === nextFilters.minPrice &&
+                prev.maxPrice === nextFilters.maxPrice &&
+                arraysEqual(prev.sizes, nextFilters.sizes) &&
+                arraysEqual(prev.colors, nextFilters.colors) &&
+                arraysEqual(prev.fabricTypes, nextFilters.fabricTypes)
+            ) {
+                return prev;
+            }
+
+            return nextFilters;
+        });
+
         setSortOption((prev) => {
             const nextSort = sortRaw || "featured";
             return prev === nextSort ? prev : nextSort;
         });
     }, [searchParams]);
-
-    useEffect(() => {
-        if (debounceTimerRef.current) {
-            clearTimeout(debounceTimerRef.current);
-        }
-
-        debounceTimerRef.current = setTimeout(() => {
-            setDebouncedFilters(filters);
-        }, 300);
-
-        return () => {
-            if (debounceTimerRef.current) {
-                clearTimeout(debounceTimerRef.current);
-            }
-        };
-    }, [filters]);
 
     const fetcher = useCallback(async (url: string) => {
         const res = await fetch(url);
@@ -281,11 +277,11 @@ export default function CategoryProductsPage({
     const buildApiUrl = useCallback(() => {
         const hasFilters =
             sortOption !== "featured" ||
-            debouncedFilters.minPrice ||
-            debouncedFilters.maxPrice ||
-            debouncedFilters.sizes.length > 0 ||
-            debouncedFilters.colors.length > 0 ||
-            debouncedFilters.fabricTypes.length > 0;
+            filters.minPrice ||
+            filters.maxPrice ||
+            filters.sizes.length > 0 ||
+            filters.colors.length > 0 ||
+            filters.fabricTypes.length > 0;
 
         if (!hasFilters && initialProducts.length > 0) {
             return null; // Use initial products
@@ -297,29 +293,29 @@ export default function CategoryProductsPage({
             params.append("gender", gender);
         }
 
-        if (debouncedFilters.minPrice) {
-            params.append("minPrice", debouncedFilters.minPrice.toString());
+        if (filters.minPrice) {
+            params.append("minPrice", filters.minPrice.toString());
         }
-        if (debouncedFilters.maxPrice) {
-            params.append("maxPrice", debouncedFilters.maxPrice.toString());
+        if (filters.maxPrice) {
+            params.append("maxPrice", filters.maxPrice.toString());
         }
 
-        debouncedFilters.sizes.forEach((size) => {
+        filters.sizes.forEach((size) => {
             params.append("size", size);
         });
 
-        debouncedFilters.colors.forEach((color) => {
+        filters.colors.forEach((color) => {
             params.append("color", color);
         });
 
-        if (debouncedFilters.fabricTypes.length > 0) {
-            params.append("fabricType", debouncedFilters.fabricTypes[0]);
+        if (filters.fabricTypes.length > 0) {
+            params.append("fabricType", filters.fabricTypes[0]);
         }
 
         params.append("sort", sortOption);
 
         return `/api/products?${params.toString()}`;
-    }, [categorySlug, gender, debouncedFilters, initialProducts, sortOption]);
+    }, [categorySlug, gender, filters, initialProducts, sortOption]);
 
     const apiUrl = buildApiUrl();
 
@@ -349,11 +345,11 @@ export default function CategoryProductsPage({
     useEffect(() => {
         const params = new URLSearchParams();
 
-        if (debouncedFilters.minPrice != null) params.set("minPrice", String(debouncedFilters.minPrice));
-        if (debouncedFilters.maxPrice != null) params.set("maxPrice", String(debouncedFilters.maxPrice));
-        debouncedFilters.sizes.forEach((size) => params.append("size", size));
-        debouncedFilters.colors.forEach((color) => params.append("color", color));
-        debouncedFilters.fabricTypes.forEach((fabricType) => params.append("fabricType", fabricType));
+        if (filters.minPrice != null) params.set("minPrice", String(filters.minPrice));
+        if (filters.maxPrice != null) params.set("maxPrice", String(filters.maxPrice));
+        filters.sizes.forEach((size) => params.append("size", size));
+        filters.colors.forEach((color) => params.append("color", color));
+        filters.fabricTypes.forEach((fabricType) => params.append("fabricType", fabricType));
         if (sortOption && sortOption !== "featured") params.set("sort", sortOption);
 
         const query = params.toString();
@@ -363,7 +359,7 @@ export default function CategoryProductsPage({
         }
         const nextUrl = query ? `${pathname}?${query}` : pathname;
         router.replace(nextUrl, { scroll: false });
-    }, [debouncedFilters, sortOption, pathname, router, searchParams]);
+    }, [filters, sortOption, pathname, router, searchParams]);
 
     const availableOptions = useMemo(() => {
         const sizes = new Set<string>();
@@ -372,7 +368,9 @@ export default function CategoryProductsPage({
         let minPrice = Infinity;
         let maxPrice = 0;
 
-        products.forEach((product) => {
+        const optionsSource = initialProducts.length > 0 ? initialProducts : products;
+
+        optionsSource.forEach((product) => {
             product.sizes.forEach((s) => sizes.add(s.name));
             product.colors.forEach((c) => {
                 const key = normalizeColorKey(c.name);
@@ -399,7 +397,40 @@ export default function CategoryProductsPage({
                 max: maxPrice === 0 ? 2000 : Math.ceil(maxPrice),
             },
         };
-    }, [products]);
+    }, [initialProducts, products]);
+
+    const previewResultCount = useMemo(() => {
+        const selectedSizes = new Set(pendingFilters.sizes);
+        const selectedColors = new Set(pendingFilters.colors.map((value) => normalizeColorKey(value)));
+        const selectedFabrics = new Set(pendingFilters.fabricTypes);
+
+        return products.filter((product) => {
+            if (pendingFilters.minPrice != null && product.price < pendingFilters.minPrice) {
+                return false;
+            }
+            if (pendingFilters.maxPrice != null && product.price > pendingFilters.maxPrice) {
+                return false;
+            }
+            if (selectedSizes.size > 0) {
+                const hasSize = product.sizes.some((size) => selectedSizes.has(size.name));
+                if (!hasSize) {
+                    return false;
+                }
+            }
+            if (selectedColors.size > 0) {
+                const hasColor = product.colors.some((color) => selectedColors.has(normalizeColorKey(color.name)));
+                if (!hasColor) {
+                    return false;
+                }
+            }
+            if (selectedFabrics.size > 0) {
+                if (!product.fabricType || !selectedFabrics.has(product.fabricType)) {
+                    return false;
+                }
+            }
+            return true;
+        }).length;
+    }, [products, pendingFilters]);
 
     const activeFilters = useMemo<ActiveFilter[]>(() => {
         const result: ActiveFilter[] = [];
@@ -434,7 +465,12 @@ export default function CategoryProductsPage({
     }, [filters]);
 
     const handleFiltersChange = (newFilters: FilterState) => {
-        setFilters(newFilters);
+        setPendingFilters(newFilters);
+    };
+
+    const handleApplyFilters = (nextFilters: FilterState) => {
+        setFilters(nextFilters);
+        setPendingFilters(nextFilters);
     };
 
     const handleRemoveFilter = (filter: ActiveFilter) => {
@@ -459,16 +495,19 @@ export default function CategoryProductsPage({
         }
 
         setFilters(newFilters);
+        setPendingFilters(newFilters);
     };
 
     const handleClearFilters = () => {
-        setFilters({
+        const clearedFilters: FilterState = {
             sizes: [],
             colors: [],
             fabricTypes: [],
             minPrice: undefined,
             maxPrice: undefined,
-        });
+        };
+        setFilters(clearedFilters);
+        setPendingFilters(clearedFilters);
     };
 
     return (
@@ -500,12 +539,13 @@ export default function CategoryProductsPage({
                             availableColors={availableOptions.colors}
                             availableFabricTypes={availableOptions.fabricTypes}
                             priceRange={priceRange}
-                            filters={filters}
+                            filters={pendingFilters}
                             onFiltersChange={handleFiltersChange}
+                            onApplyFilters={handleApplyFilters}
                             activeFilters={activeFilters}
                             onRemoveFilter={handleRemoveFilter}
                             onClearFilters={handleClearFilters}
-                            resultCount={products.length}
+                            resultCount={previewResultCount}
                             isLoading={loading}
                         />
                     </div>

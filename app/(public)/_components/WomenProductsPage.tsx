@@ -218,7 +218,7 @@ export default function WomenProductsPage({
     colors: [],
     fabricTypes: [],
   });
-  const [debouncedFilters, setDebouncedFilters] = useState<FilterState>(filters);
+  const [pendingFilters, setPendingFilters] = useState<FilterState>(filters);
   const [priceRange, setPriceRange] = useState(initialPriceRange);
   const [sortOption, setSortOption] = useState("featured");
   const [sortDialogOpen, setSortDialogOpen] = useState(false);
@@ -226,7 +226,6 @@ export default function WomenProductsPage({
   const [hoveredColor, setHoveredColor] = useState<{ productId: string; colorImage: string } | null>(null);
   const [selectedColor, setSelectedColor] = useState<{ productId: string; colorImage: string; variantCode?: string } | null>(null);
 
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const prefetchedCategoryDataRef = useRef<Record<string, Product[]>>({});
 
   const hasActiveFilters =
@@ -237,20 +236,6 @@ export default function WomenProductsPage({
     filters.fabricTypes.length > 0;
 
   const isSimpleCategoryBrowsing = !baseQuery?.tag && !baseQuery?.newArrivals && !baseQuery?.categorySlug && !hasActiveFilters;
-
-  useEffect(() => {
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
-    debounceTimerRef.current = setTimeout(() => {
-      setDebouncedFilters(filters);
-    }, 300);
-    return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-    };
-  }, [filters]);
 
   const fetcher = useCallback(async (url: string) => {
     const res = await fetch(url);
@@ -307,11 +292,11 @@ export default function WomenProductsPage({
       hasBaseQuery ||
       selectedCategory !== "All" ||
       sortOption !== "featured" ||
-      debouncedFilters.minPrice ||
-      debouncedFilters.maxPrice ||
-      debouncedFilters.sizes.length > 0 ||
-      debouncedFilters.colors.length > 0 ||
-      debouncedFilters.fabricTypes.length > 0;
+      filters.minPrice ||
+      filters.maxPrice ||
+      filters.sizes.length > 0 ||
+      filters.colors.length > 0 ||
+      filters.fabricTypes.length > 0;
 
     if (!hasFilters && initialProducts.length > 0) {
       return null;
@@ -337,29 +322,29 @@ export default function WomenProductsPage({
       params.append("categorySlug", selectedCategory);
     }
 
-    if (debouncedFilters.minPrice) {
-      params.append("minPrice", debouncedFilters.minPrice.toString());
+    if (filters.minPrice) {
+      params.append("minPrice", filters.minPrice.toString());
     }
-    if (debouncedFilters.maxPrice) {
-      params.append("maxPrice", debouncedFilters.maxPrice.toString());
+    if (filters.maxPrice) {
+      params.append("maxPrice", filters.maxPrice.toString());
     }
 
-    debouncedFilters.sizes.forEach((size) => {
+    filters.sizes.forEach((size) => {
       params.append("size", size);
     });
 
-    debouncedFilters.colors.forEach((color) => {
+    filters.colors.forEach((color) => {
       params.append("color", color);
     });
 
-    if (debouncedFilters.fabricTypes.length > 0) {
-      params.append("fabricType", debouncedFilters.fabricTypes[0]);
+    if (filters.fabricTypes.length > 0) {
+      params.append("fabricType", filters.fabricTypes[0]);
     }
 
     params.append("sort", sortOption);
 
     return `/api/products?${params.toString()}`;
-  }, [selectedCategory, debouncedFilters, initialProducts, sortOption, baseQuery]);
+  }, [selectedCategory, filters, initialProducts, sortOption, baseQuery]);
 
   const apiUrl = buildApiUrl();
 
@@ -391,7 +376,9 @@ export default function WomenProductsPage({
     const colors = new Map<string, { name: string; hexCode?: string }>();
     const fabricTypes = new Set<string>();
 
-    products.forEach((product) => {
+    const optionsSource = initialProducts.length > 0 ? initialProducts : products;
+
+    optionsSource.forEach((product) => {
       product.colors.forEach((color) => {
         const normalized = normalizeColorName(color.name);
         if (!colors.has(normalized)) {
@@ -416,7 +403,40 @@ export default function WomenProductsPage({
       fabricTypes: Array.from(fabricTypes).sort(),
       priceRange: initialPriceRange,
     };
-  }, [products, initialPriceRange]);
+  }, [initialProducts, products, initialPriceRange]);
+
+  const previewResultCount = useMemo(() => {
+    const selectedSizes = new Set(pendingFilters.sizes);
+    const selectedColors = new Set(pendingFilters.colors.map((value) => normalizeColorName(value)));
+    const selectedFabrics = new Set(pendingFilters.fabricTypes);
+
+    return products.filter((product) => {
+      if (pendingFilters.minPrice != null && product.price < pendingFilters.minPrice) {
+        return false;
+      }
+      if (pendingFilters.maxPrice != null && product.price > pendingFilters.maxPrice) {
+        return false;
+      }
+      if (selectedSizes.size > 0) {
+        const hasSize = product.sizes.some((size) => selectedSizes.has(size.name));
+        if (!hasSize) {
+          return false;
+        }
+      }
+      if (selectedColors.size > 0) {
+        const hasColor = product.colors.some((color) => selectedColors.has(normalizeColorName(color.name)));
+        if (!hasColor) {
+          return false;
+        }
+      }
+      if (selectedFabrics.size > 0) {
+        if (!product.fabricType || !selectedFabrics.has(product.fabricType)) {
+          return false;
+        }
+      }
+      return true;
+    }).length;
+  }, [products, pendingFilters]);
 
   const gridItems: ProductWithGridPosition[] = useMemo(() => {
     const productItems = [...products];
@@ -548,7 +568,12 @@ export default function WomenProductsPage({
   }, [filters]);
 
   const handleFiltersChange = (newFilters: FilterState) => {
-    setFilters(newFilters);
+    setPendingFilters(newFilters);
+  };
+
+  const handleApplyFilters = (nextFilters: FilterState) => {
+    setFilters(nextFilters);
+    setPendingFilters(nextFilters);
   };
 
   const handleRemoveFilter = (filter: ActiveFilter) => {
@@ -571,14 +596,17 @@ export default function WomenProductsPage({
         break;
     }
     setFilters(newFilters);
+    setPendingFilters(newFilters);
   };
 
   const handleClearFilters = () => {
-    setFilters({
+    const clearedFilters: FilterState = {
       sizes: [],
       colors: [],
       fabricTypes: [],
-    });
+    };
+    setFilters(clearedFilters);
+    setPendingFilters(clearedFilters);
   };
 
   const handleColorInteraction = (productId: string, colorImage: string) => {
@@ -652,12 +680,13 @@ export default function WomenProductsPage({
               availableColors={availableOptions.colors}
               availableFabricTypes={availableOptions.fabricTypes}
               priceRange={availableOptions.priceRange}
-              filters={filters}
+              filters={pendingFilters}
               onFiltersChange={handleFiltersChange}
+              onApplyFilters={handleApplyFilters}
               activeFilters={activeFilters}
               onRemoveFilter={handleRemoveFilter}
               onClearFilters={handleClearFilters}
-              resultCount={products.length}
+              resultCount={previewResultCount}
               isLoading={loading}
             />
           </div>
@@ -863,9 +892,9 @@ export default function WomenProductsPage({
                     </span>
                   )}
                 </div>
-                </div>
-                    );
-                  })}
+              </div>
+            );
+          })}
               </div>
 
         
@@ -906,8 +935,8 @@ export default function WomenProductsPage({
             const isOutOfStock = totalStock === 0;
 
             return (
-              <div key={product.id} className={`group ${isOutOfStock ? "opacity-75" : ""}`} style={gridStyle}>
-                <Link href={product.slug ? `/products/${product.slug}` : `/product/${product.id}`} className="block">
+              <div key={product.id} className={`group relative overflow-hidden ${isOutOfStock ? "opacity-75" : ""}`} style={gridStyle}>
+                <Link href={product.slug ? `/products/${product.slug}` : `/product/${product.id}`} className="block relative">
                   <HoverImageSlider
                     images={[
                       activeColorImage || product.image || "/placeholder.png",

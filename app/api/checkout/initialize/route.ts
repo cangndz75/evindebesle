@@ -21,6 +21,26 @@ export async function POST(req: Request) {
         const idem = normalizeIdempotencyKey(req.headers.get("Idempotency-Key"));
         const body = await req.json();
 
+        const normalizedPhone = String(body?.billingAddress?.phone || "").replace(/\D/g, "");
+        const phoneIsValid = normalizedPhone.startsWith("0")
+            ? normalizedPhone.length === 11
+            : normalizedPhone.length === 10;
+        const normalizedZipCode = String(body?.billingAddress?.zipCode || "").replace(/\D/g, "");
+
+        if (!phoneIsValid) {
+            return NextResponse.json(
+                { error: "Telefon numarası geçersiz. 0 ile başlıyorsa 11, başlamıyorsa 10 hane olmalıdır." },
+                { status: 400 }
+            );
+        }
+
+        if (normalizedZipCode.length > 0 && normalizedZipCode.length !== 5) {
+            return NextResponse.json(
+                { error: "Posta kodu girildiyse 5 hane olmalıdır." },
+                { status: 400 }
+            );
+        }
+
         if (body.userId) {
             try {
                 await persistRedisCartToDatabase(body.userId);
@@ -47,7 +67,7 @@ export async function POST(req: Request) {
         let subtotal = 0;
 
         for (const item of body.items) {
-            const variant = await prisma.productVariant.findFirst({
+            let variant = await prisma.productVariant.findFirst({
                 where: {
                     productId: item.productId,
                     colorId: item.colorId || null,
@@ -61,7 +81,35 @@ export async function POST(req: Request) {
             });
 
             if (!variant) {
-                return NextResponse.json({ error: `Ürün varyantı bulunamadı: ${item.productId}` }, { status: 400 });
+                variant = await prisma.productVariant.findUnique({
+                    where: { id: item.productId },
+                    include: {
+                        product: {
+                            include: { category: true }
+                        }
+                    }
+                });
+            }
+
+            if (!variant && (item.colorId || item.sizeId)) {
+                variant = await prisma.productVariant.findFirst({
+                    where: {
+                        productId: item.productId,
+                        ...(item.colorId ? { colorId: item.colorId } : {}),
+                        ...(item.sizeId ? { sizeId: item.sizeId } : {}),
+                    },
+                    include: {
+                        product: {
+                            include: { category: true }
+                        }
+                    }
+                });
+            }
+
+            if (!variant) {
+                return NextResponse.json({
+                    error: `Ürün varyantı bulunamadı: ${item.productId}. Sepetinizi güncelleyip tekrar deneyin.`
+                }, { status: 400 });
             }
 
             if (variant.product.isTrackInventory && !variant.product.allowBackorders) {
@@ -78,7 +126,7 @@ export async function POST(req: Request) {
             subtotal += lineTotal;
 
             orderItemsData.push({
-                productId: item.productId,
+                productId: variant.productId,
                 colorId: item.colorId || null,
                 sizeId: item.sizeId || null,
                 productName: variant.product.name,

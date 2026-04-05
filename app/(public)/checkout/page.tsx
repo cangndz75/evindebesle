@@ -77,7 +77,21 @@ export default function CheckoutPage() {
     const total = Math.max(0, subtotal + shippingPrice - discountAmount);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+
+        if (name === "phone") {
+            const digitsOnly = value.replace(/\D/g, "").slice(0, 11);
+            setFormData({ ...formData, phone: digitsOnly });
+            return;
+        }
+
+        if (name === "zipCode") {
+            const digitsOnly = value.replace(/\D/g, "").slice(0, 5);
+            setFormData({ ...formData, zipCode: digitsOnly });
+            return;
+        }
+
+        setFormData({ ...formData, [name]: value });
     };
 
     const handleApplyCoupon = async () => {
@@ -103,6 +117,22 @@ export default function CheckoutPage() {
 
         if (!formData.email || !formData.firstName || !formData.lastName || !formData.addressLine1 || !formData.city || !formData.phone) {
             toast.error("Lütfen tüm zorunlu alanları doldurunuz.");
+            return;
+        }
+
+        const normalizedPhone = formData.phone.replace(/\D/g, "");
+        const phoneIsValid = normalizedPhone.startsWith("0")
+            ? normalizedPhone.length === 11
+            : normalizedPhone.length === 10;
+
+        if (!phoneIsValid) {
+            toast.error("Telefon numarası 0 ile başlıyorsa 11 hane, başlamıyorsa 10 hane olmalıdır.");
+            return;
+        }
+
+        const normalizedZipCode = formData.zipCode.replace(/\D/g, "");
+        if (normalizedZipCode.length > 0 && normalizedZipCode.length !== 5) {
+            toast.error("Posta kodu girildiyse 5 hane olmalıdır.");
             return;
         }
 
@@ -304,6 +334,9 @@ export default function CheckoutPage() {
                                     placeholder="Posta Kodu"
                                     value={formData.zipCode}
                                     onChange={handleChange}
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
+                                    maxLength={5}
                                     className="w-full border border-gray-300 rounded p-3 focus:outline-none focus:border-black col-span-2"
                                 />
                             </div>
@@ -313,6 +346,9 @@ export default function CheckoutPage() {
                                 placeholder="Telefon"
                                 value={formData.phone}
                                 onChange={handleChange}
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                maxLength={11}
                                 className="w-full border border-gray-300 rounded p-3 focus:outline-none focus:border-black"
                             />
                         </div>
@@ -385,7 +421,7 @@ export default function CheckoutPage() {
                                     </p>
 
                                     
-                                    <div id="iyzico-checkout-form" className="min-h-[10px]"></div>
+                                    <div id="iyzico-checkout-form" className="min-h-2.5"></div>
                                 </div>
                             )}
                         </div>
@@ -416,10 +452,10 @@ export default function CheckoutPage() {
                         <h2 className="text-xl font-medium mb-6">Sipariş Özeti</h2>
 
                         
-                        <div className="space-y-4 mb-6 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                        <div className="space-y-4 mb-6 max-h-100 overflow-y-auto pr-2 custom-scrollbar">
                             {cart.map((item) => (
                                 <div key={item.id} className="flex gap-4">
-                                    <div className="relative w-16 h-20 bg-gray-200 rounded overflow-hidden flex-shrink-0">
+                                    <div className="relative w-16 h-20 bg-gray-200 rounded overflow-hidden shrink-0">
                                         {item.product.image ? (
                                             <Image
                                                 src={item.product.image}

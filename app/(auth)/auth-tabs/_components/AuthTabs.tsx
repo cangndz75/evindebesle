@@ -239,7 +239,7 @@ export default function AuthTabs() {
           ) : (
             <div className="space-y-6">
               <h2 className="text-xl font-bold text-[#111] uppercase tracking-wide mb-6">
-                Yeni Müşteriler
+                Yeni Bir Hesap Oluşturun
               </h2>
 
               <form

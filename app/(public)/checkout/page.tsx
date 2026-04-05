@@ -268,6 +268,13 @@ export default function CheckoutPage() {
                         </div>
                         <input
                             type="email"
+                            name="email"
+                            placeholder="E-posta adresi"
+                            value={formData.email}
+                            onChange={handleChange}
+                            className="w-full border border-gray-300 rounded p-3 focus:outline-none focus:border-black transition-colors"
+                        />
+                        <div className="mt-2 flex items-center gap-2">
                             <input
                                 type="checkbox"
                                 id="newsletter"
@@ -275,13 +282,6 @@ export default function CheckoutPage() {
                                 checked={newsletterConsent}
                                 onChange={(e) => setNewsletterConsent(e.target.checked)}
                             />
-                            placeholder="E-posta adresi"
-                            value={formData.email}
-                            onChange={handleChange}
-                            className="w-full border border-gray-300 rounded p-3 focus:outline-none focus:border-black transition-colors"
-                        />
-                        <div className="mt-2 flex items-center gap-2">
-                            <input type="checkbox" id="newsletter" className="rounded border-gray-300" />
                             <label htmlFor="newsletter" className="text-sm text-gray-600">Kampanyalardan ve fırsatlardan haberdar olmak istiyorum</label>
                         </div>
                     </div>

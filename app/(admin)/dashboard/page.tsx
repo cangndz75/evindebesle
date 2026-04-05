@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
@@ -370,7 +370,7 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-8 p-6 bg-gradient-to-br from-gray-50 via-white to-gray-50 min-h-screen">
 
-      {/* ğŸŸ¥ 1.1 KPI ŞERİDİ (YENİ) */}
+      
       {kpiData && stats ? (
         <KPIStrip
           data={{
@@ -419,13 +419,13 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* ğŸŸ¦ A) SMART ACTION BAR (ÜST KISIM) */}
+      
       <SmartActionBar actions={smartActions} />
 
 
-      {/* ğŸŸ© B) OPERASYON + İÇGÖRÜ (ANA GÖVDE) */}
+      
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* 1ï¸âƒ£ Sipariş Operasyon Alanı (SOL PANEL - Kompakt) */}
+        
         <div className="lg:col-span-2 space-y-6">
           {loading ? (
             <Card className="border-0 shadow-sm bg-white/50 backdrop-blur-sm">
@@ -444,7 +444,7 @@ export default function AdminDashboard() {
             />
           )}
 
-          {/* Stok & Ürün Sağlığı (Alt kısım) */}
+          
           {loading ? (
             <Card className="border-0 shadow-sm bg-white/50 backdrop-blur-sm">
               <CardContent className="p-12">
@@ -463,7 +463,7 @@ export default function AdminDashboard() {
           )}
         </div>
 
-        {/* 2ï¸âƒ£ Action Inbox (SAĞ PANEL) */}
+        
         <div>
           {loading ? (
             <Card className="border-0 shadow-sm bg-white/50 backdrop-blur-sm">
@@ -481,7 +481,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* ğŸŸ¨ C) BUSINESS SNAPSHOT (ALT KISIM - SEKMELİ) */}
+      
       <Card className="border-0 shadow-sm bg-white/50 backdrop-blur-sm">
         <CardHeader className="pb-4 border-b border-gray-100">
           <div className="flex gap-2 p-1 bg-gray-100 rounded-lg">
@@ -508,7 +508,7 @@ export default function AdminDashboard() {
         <CardContent className="p-6">
           {activeTab === "ops" ? (
             <div className="space-y-6">
-              {/* Ops içeriği - şu an boş, ileride eklenebilir */}
+              
               <div className="text-center py-12">
                 <p className="text-sm text-gray-500">Operasyon detayları burada gösterilecek</p>
               </div>
@@ -557,7 +557,7 @@ export default function AdminDashboard() {
         </CardContent>
       </Card>
 
-      {/* Bildirim Gönder Modal */}
+      
       <Dialog open={notificationModalOpen} onOpenChange={setNotificationModalOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -608,7 +608,7 @@ export default function AdminDashboard() {
         </DialogContent>
       </Dialog>
 
-      {/* Rapor İndir Modal */}
+      
       <Dialog open={reportModalOpen} onOpenChange={setReportModalOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>

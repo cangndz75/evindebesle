@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useCallback, useEffect } from "react";
 import BlockInspector from "./BlockInspector";
@@ -146,7 +146,7 @@ export default function CampaignComposerPage() {
 
   return (
     <div className="flex flex-col bg-gray-50 h-full w-full">
-      {/* A) ÜST BAR: Kampanya Meta */}
+      
       <div className="flex-shrink-0">
         <CampaignMetaBar
           draft={draft}
@@ -158,9 +158,9 @@ export default function CampaignComposerPage() {
         />
       </div>
 
-      {/* B) ORTA ALAN: Editör + Preview */}
+      
       <div className="flex-1 flex overflow-hidden" style={{ minHeight: 0 }}>
-        {/* Sol: Editör */}
+        
         <div className="flex-1 flex flex-col border-r border-gray-200 bg-white" style={{ minWidth: 0 }}>
           <EditorTabs
             draft={draft}
@@ -174,7 +174,7 @@ export default function CampaignComposerPage() {
           />
         </div>
 
-        {/* Sağ: Sidebar (Preview veya Inspector) */}
+        
         <div className="w-[360px] border-l border-gray-200 bg-gray-50 overflow-y-auto flex-shrink-0 transition-all duration-300">
           {selectedBlock ? (
             <div className="h-full flex flex-col">
@@ -206,7 +206,7 @@ export default function CampaignComposerPage() {
         </div>
       </div>
 
-      {/* C) ALT BAR: Gönderim ve Test */}
+      
       <div className="flex-shrink-0">
         <SendBar
           draft={draft}

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { useCartStore } from "@/lib/stores/cartStore";
@@ -78,7 +78,7 @@ export default function CheckoutSummaryPage() {
                 <h1 className="text-2xl md:text-3xl font-serif font-light mb-8">Sepetim ({items.length})</h1>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Cart Items */}
+                    
                     <div className="lg:col-span-2 space-y-4">
                         <div className="bg-white rounded-lg p-6 shadow-sm">
                             {items.map((item) => (
@@ -138,11 +138,11 @@ export default function CheckoutSummaryPage() {
                             ))}
                         </div>
 
-                        {/* Upsell Section */}
+                        
                         <UpsellSection />
                     </div>
 
-                    {/* Summary Sidebar */}
+                    
                     <div className="lg:col-span-1">
                         <div className="bg-white p-6 rounded-lg shadow-sm sticky top-24">
                             <h2 className="text-lg font-semibold mb-4">Sipariş Özeti</h2>

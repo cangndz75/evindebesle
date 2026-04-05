@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
@@ -103,7 +103,7 @@ export default function CartPreview({ cartIconRef, headerBottom }: CartPreviewPr
       className="fixed bg-white rounded-lg shadow-2xl z-[9999] border border-black/10 animate-in slide-in-from-top-2 duration-200 w-[95%] max-w-[420px] left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:right-5 top-16 md:top-4"
     >
       <div className="p-5">
-        {/* Header with Close Button */}
+        
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-[#111]">Sepete Eklendi</h3>
           <button
@@ -120,7 +120,7 @@ export default function CartPreview({ cartIconRef, headerBottom }: CartPreviewPr
           </button>
         </div>
 
-        {/* Product Info */}
+        
         <div className="flex gap-4 mb-5">
           <div className="relative w-24 h-24 bg-gray-50 flex-shrink-0 rounded">
             <Image
@@ -147,7 +147,7 @@ export default function CartPreview({ cartIconRef, headerBottom }: CartPreviewPr
           </div>
         </div>
 
-        {/* Buttons */}
+        
         <div className="flex flex-col gap-2.5">
           <button
             onClick={() => {

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
@@ -208,7 +208,7 @@ export default function AdminTabbedCarouselPage() {
         </TabsList>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-          {/* Ürün Arama */}
+          
           <Card>
             <CardHeader>
               <CardTitle>Ürün Ara ve Ekle</CardTitle>
@@ -304,7 +304,7 @@ export default function AdminTabbedCarouselPage() {
             </CardContent>
           </Card>
 
-          {/* Mevcut Liste */}
+          
           <Card>
             <CardHeader>
                <CardTitle className="flex justify-between items-center">

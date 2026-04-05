@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -102,7 +102,7 @@ export default function InvoiceDetailPage() {
 
     return (
         <div className="min-h-screen bg-gray-50 p-4 md:p-8 print:p-0 print:bg-white text-[11px] leading-tight font-sans text-black">
-            {/* Header - Hidden in Print */}
+            
             <div className="max-w-[210mm] mx-auto mb-6 flex items-center justify-between print:hidden">
                 <div className="flex items-center gap-4">
                     <Button variant="outline" size="icon" onClick={() => router.back()}>
@@ -118,12 +118,12 @@ export default function InvoiceDetailPage() {
                 </div>
             </div>
 
-            {/* A4 Invoice Paper */}
+            
             <div className="max-w-[210mm] min-h-[297mm] mx-auto bg-white shadow-lg p-8 print:shadow-none print:p-8 print:w-full print:max-w-none relative">
 
-                {/* 1. Header Section */}
+                
                 <div className="flex justify-between items-start mb-6">
-                    {/* Left: Company Details */}
+                    
                     <div className="w-1/2 pr-4">
                         <h2 className="font-bold text-sm mb-1 uppercase">{companyName}</h2>
                         <div className="text-gray-700 whitespace-pre-line">
@@ -141,7 +141,7 @@ export default function InvoiceDetailPage() {
                         </div>
                     </div>
 
-                    {/* Right: Logo & Signature */}
+                    
                     <div className="w-1/2 flex flex-col items-end text-right">
                         <div className="flex items-center justify-end gap-2 mb-2">
                             {logoUrl ? (
@@ -151,17 +151,17 @@ export default function InvoiceDetailPage() {
                             )}
                         </div>
                         <div className="flex flex-col items-center">
-                            {/* Signature Image Placeholder */}
-                            {/* <img src="/signature.png" className="h-10 w-auto mb-1 opacity-50" /> */}
+                            
+                            
                             <span className="font-bold text-sm">e-Arşiv Fatura</span>
                         </div>
 
-                        {/* Page Number */}
+                        
                         <div className="absolute top-8 right-8 text-xs text-gray-500">
                             Sayfa 1 / 1
                         </div>
 
-                        {/* QR Code */}
+                        
                         <div className="mt-4 mr-2">
                             <QRCodeCanvas
                                 value={`https://gib.gov.tr/fatura/${invoice.invoiceNumber}`}
@@ -172,9 +172,9 @@ export default function InvoiceDetailPage() {
                     </div>
                 </div>
 
-                {/* 2. Customer & Invoice Meta Data Grid */}
+                
                 <div className="flex gap-4 mb-6">
-                    {/* Customer Info (SAYIN Block) */}
+                    
                     <div className="w-1/2">
                         <div className="mb-2">
                             <span className="font-bold underline">SAYIN</span>
@@ -185,7 +185,7 @@ export default function InvoiceDetailPage() {
                             <p>{invoice.customerDetails?.address?.district?.name} / {invoice.customerDetails?.address?.district?.city}</p>
                             <p className="mt-2">E-Posta: {invoice.customerDetails?.email}</p>
                             <p>Tel: {invoice.customerDetails?.phone}</p>
-                            {/* Only show tax details if entered */}
+                            
                             {invoice.customerDetails?.taxNumber && (
                                 <>
                                     <p>Vergi Dairesi: {invoice.customerDetails?.taxOffice || "-"}</p>
@@ -195,7 +195,7 @@ export default function InvoiceDetailPage() {
                         </div>
                     </div>
 
-                    {/* Invoice Metadata */}
+                    
                     <div className="w-1/2 pl-8">
                         <table className="w-full text-xs">
                             <tbody>
@@ -236,13 +236,13 @@ export default function InvoiceDetailPage() {
                     </div>
                 </div>
 
-                {/* ETTN Line */}
+                
                 <div className="border-t border-gray-200 py-1 text-xs">
                     <span className="font-bold mr-2">ETTN:</span>
                     <span className="font-mono">{ETTN}</span>
                 </div>
 
-                {/* Note (Dispatch List) */}
+                
                 <div className="my-2 text-xs">
                     <p className="font-bold mb-1">İrsaliye Listesi</p>
                     <div className="border border-gray-300 p-1 inline-block">
@@ -250,7 +250,7 @@ export default function InvoiceDetailPage() {
                     </div>
                 </div>
 
-                {/* 3. Items Table */}
+                
                 <div className="mt-4 mb-2">
                     <table className="w-full border-collapse text-[10px]">
                         <thead>
@@ -291,14 +291,14 @@ export default function InvoiceDetailPage() {
                     </table>
                 </div>
 
-                {/* 4. Totals & Footer Grid */}
+                
                 <div className="flex gap-4 mt-2">
-                    {/* Left Footer: Barcode, Text Amount, Notes */}
+                    
                     <div className="w-2/3 pr-4 flex flex-col justify-between">
                         <div>
-                            {/* Barcode Placeholder */}
+                            
                             <div className="h-12 w-64 bg-black mb-1 pattern-lines">
-                                {/* Use a barcode lib or an image/font in real app */}
+                                
                                 <div className="w-full h-full bg-repeating-linear-gradient-90 from-black to-white" style={{ background: "repeating-linear-gradient(90deg, black 0px, black 2px, white 2px, white 4px)" }}></div>
                             </div>
                             <p className="font-mono text-[10px] mb-4">{invoice.id}</p>
@@ -315,7 +315,7 @@ export default function InvoiceDetailPage() {
                             </div>
                         </div>
 
-                        {/* Bank Info */}
+                        
                         <div className="mt-4 text-[9px] flex gap-8">
                             <div>
                                 <span className="font-bold underline block mb-1">BANKA BİLGİLERİ</span>
@@ -329,7 +329,7 @@ export default function InvoiceDetailPage() {
                         </div>
                     </div>
 
-                    {/* Right Footer: Totals */}
+                    
                     <div className="w-1/3">
                         <table className="w-full text-xs border border-gray-300">
                             <tbody>
@@ -345,7 +345,7 @@ export default function InvoiceDetailPage() {
                                     <td className="p-1 border-b border-gray-300">Hesaplanan KDV (%20):</td>
                                     <td className="p-1 text-right font-bold border-b border-gray-300 border-l">{invoice.taxAmount.toFixed(2)} TRY</td>
                                 </tr>
-                                {/* Add shipping or discounts if needed */}
+                                
                                 {invoice.shippingCost > 0 && (
                                     <tr>
                                         <td className="p-1 border-b border-gray-300">Kargo:</td>
@@ -365,7 +365,7 @@ export default function InvoiceDetailPage() {
                     </div>
                 </div>
 
-                {/* Bottom Footer Info Table */}
+                
                 <div className="mt-8 border-t border-b border-gray-300 py-1 text-[10px]">
                     <div className="grid grid-cols-4 gap-2 font-bold text-center uppercase">
                         <div>Ödeme Şekli</div>
@@ -401,7 +401,7 @@ export default function InvoiceDetailPage() {
 
             </div>
 
-            {/* Print Styles */}
+            
             <style jsx global>{`
                 @media print {
                     @page {

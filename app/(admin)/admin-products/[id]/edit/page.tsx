@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
@@ -650,7 +650,7 @@ export default function EditProductPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header - Sticky */}
+      
       <div className="sticky top-0 z-50 bg-white border-b border-gray-200 px-6 py-4 shadow-sm">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
           <div className="flex items-center gap-4">
@@ -686,12 +686,12 @@ export default function EditProductPage() {
 
       <div className="p-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
-          {/* Sol Taraf - Önizleme */}
+          
           <div className="space-y-6">
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <h2 className="text-lg font-semibold mb-4">Ürün Önizlemesi</h2>
 
-              {/* Fotoğraf Yükleme Alanı */}
+              
               <div
                 className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors ${dragActive
                   ? "border-black bg-gray-50"
@@ -740,7 +740,7 @@ export default function EditProductPage() {
                 </div>
               </div>
 
-              {/* Yüklenen Görseller Grid */}
+              
               {uploadedImages.length > 0 && (
                 <div className="mt-6">
                   <Label className="text-sm font-medium mb-3 block">Yüklenen Görseller</Label>
@@ -764,7 +764,7 @@ export default function EditProductPage() {
                     ))}
                   </div>
 
-                  {/* Ana ve Hover Görsel Seçimi - Yüklenen görsellerin altında */}
+                  
                   <div className="mt-6 space-y-4 pt-6 border-t border-gray-200">
                     <div>
                       <Label className="text-sm font-medium mb-3 block">Ana Görsel</Label>
@@ -887,7 +887,7 @@ export default function EditProductPage() {
                 </div>
               )}
 
-              {/* Ürün Bilgileri Önizleme */}
+              
               {name && (
                 <div className="mt-6 pt-6 border-t border-gray-200">
                   <h3 className="font-semibold text-lg mb-2">{name}</h3>
@@ -906,9 +906,9 @@ export default function EditProductPage() {
             </div>
           </div>
 
-          {/* Sağ Taraf - Form */}
+          
           <div className="lg:col-span-2 space-y-6">
-            {/* Ürün Bilgileri */}
+            
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <h2 className="text-lg font-semibold mb-4">Ürün Bilgileri</h2>
               <div className="space-y-4">
@@ -1014,7 +1014,7 @@ export default function EditProductPage() {
               </div>
             </div>
 
-            {/* Ana Ürün Rengi */}
+            
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <h2 className="text-lg font-semibold mb-4">Ana Ürün Rengi</h2>
 
@@ -1063,11 +1063,11 @@ export default function EditProductPage() {
               )}
             </div>
 
-            {/* Beden Seçimi */}
+            
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <h2 className="text-lg font-semibold mb-4">Beden</h2>
 
-              {/* Beden Tipi Seçimi */}
+              
               <div className="mb-4">
                 <Label className="text-sm font-medium mb-3 block">Beden Tipi</Label>
                 <RadioGroup value={sizeType} onValueChange={(v: any) => {
@@ -1092,7 +1092,7 @@ export default function EditProductPage() {
                 </RadioGroup>
               </div>
 
-              {/* Beden Seçimi - Harf */}
+              
               {sizeType === "LETTER" && (
                 <div className="flex flex-wrap gap-3">
                   {letterSizes.map((size) => (
@@ -1134,7 +1134,7 @@ export default function EditProductPage() {
                 </div>
               )}
 
-              {/* Beden Seçimi - Sayı */}
+              
               {sizeType === "NUMBER" && (
                 <div className="space-y-3">
                   <div className="flex flex-wrap gap-3">
@@ -1178,7 +1178,7 @@ export default function EditProductPage() {
                 </div>
               )}
 
-              {/* Beden Seçimi - Beden (80B, 85C vb) */}
+              
               {sizeType === "CUP" && (
                 <div className="space-y-3">
                   <div className="flex gap-2">
@@ -1235,11 +1235,11 @@ export default function EditProductPage() {
               )}
             </div>
 
-            {/* Renk Seçimi */}
+            
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <h2 className="text-lg font-semibold mb-4">Renk</h2>
 
-              {/* Yeni Renk Ekleme */}
+              
               <div className="flex gap-2 mb-4">
                 <Input
                   placeholder="Renk adı"
@@ -1263,7 +1263,7 @@ export default function EditProductPage() {
                 </Button>
               </div>
 
-              {/* Renk Listesi */}
+              
               <div className="space-y-4">
                 {colors.map((color, index) => (
                   <div
@@ -1300,7 +1300,7 @@ export default function EditProductPage() {
                       </div>
                     </div>
 
-                    {/* Renge özel görseller */}
+                    
                     {selectedColor === index && (
                       <div className="mt-3 pt-3 border-t border-gray-200">
                         <Label className="text-sm font-medium mb-2 block">
@@ -1370,7 +1370,7 @@ export default function EditProductPage() {
                           )}
                         </div>
 
-                        {/* Renge özel fiyatlandırma */}
+                        
                         <div className="mt-4 pt-4 border-t border-gray-200">
                           <Label className="text-sm font-medium mb-3 block">
                             Fiyatlandırma
@@ -1441,7 +1441,7 @@ export default function EditProductPage() {
                           </div>
                         </div>
 
-                        {/* Renge özel beden seçimi */}
+                        
                         <div className="mt-4 pt-4 border-t border-gray-200">
                           <Label className="text-sm font-medium mb-3 block">
                             Bu Renk İçin Bedenler
@@ -1450,7 +1450,7 @@ export default function EditProductPage() {
                             Üstte seçilen bedenler otomatik gelir. İsterseniz bu renk için farklı bedenler seçebilirsiniz.
                           </div>
 
-                          {/* Beden Tipi Seçimi */}
+                          
                           <div className="mb-3">
                             <Label className="text-xs font-medium mb-2 block">Beden Tipi</Label>
                             <RadioGroup
@@ -1478,7 +1478,7 @@ export default function EditProductPage() {
                             </RadioGroup>
                           </div>
 
-                          {/* Beden Seçimi - Harf */}
+                          
                           {sizeType === "LETTER" && (
                             <div className="flex flex-wrap gap-2 mb-3">
                               {letterSizes.map((size) => (
@@ -1521,7 +1521,7 @@ export default function EditProductPage() {
                             </div>
                           )}
 
-                          {/* Beden Seçimi - Sayı */}
+                          
                           {sizeType === "NUMBER" && (
                             <div className="flex flex-wrap gap-2 mb-3">
                               {numberSizes.map((size) => (
@@ -1564,7 +1564,7 @@ export default function EditProductPage() {
                             </div>
                           )}
 
-                          {/* Beden Seçimi - Beden (80B, 85C vb) */}
+                          
                           {sizeType === "CUP" && (
                             <div className="space-y-2 mb-3">
                               <div className="flex gap-2">
@@ -1643,7 +1643,7 @@ export default function EditProductPage() {
                             </div>
                           )}
 
-                          {/* Renge özel stok yönetimi */}
+                          
                           {color.sizes && color.sizes.length > 0 && (
                             <div className="mt-4 pt-4 border-t border-gray-200">
                               <Label className="text-sm font-medium mb-3 block">
@@ -1677,7 +1677,7 @@ export default function EditProductPage() {
               </div>
             </div>
 
-            {/* Pricing Details */}
+            
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <h2 className="text-lg font-semibold mb-4">Fiyatlandırma</h2>
               <div className="space-y-4">
@@ -1713,7 +1713,7 @@ export default function EditProductPage() {
               </div>
             </div>
 
-            {/* Etiketler */}
+            
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <h2 className="text-lg font-semibold mb-4">Etiketler</h2>
               <div className="space-y-4">
@@ -1738,7 +1738,7 @@ export default function EditProductPage() {
                   </div>
                 </div>
 
-                {/* Etiket Önerileri */}
+                
                 <div>
                   <Label className="text-sm text-gray-600 mb-2 block">Önerilen Etiketler</Label>
                   <div className="flex flex-wrap gap-2">
@@ -1759,7 +1759,7 @@ export default function EditProductPage() {
                   </div>
                 </div>
 
-                {/* Eklenen Etiketler */}
+                
                 {tags.length > 0 && (
                   <div>
                     <Label className="text-sm text-gray-600 mb-2 block">Eklenen Etiketler</Label>
@@ -1785,7 +1785,7 @@ export default function EditProductPage() {
               </div>
             </div>
 
-            {/* Ürün Kombinleri */}
+            
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <h2 className="text-lg font-semibold mb-4">Ürün Kombinleri</h2>
               <div className="space-y-4">
@@ -1825,7 +1825,7 @@ export default function EditProductPage() {
                   </div>
                 </div>
 
-                {/* Eklenen Kombinler */}
+                
                 {combinations.length > 0 && (
                   <div>
                     <Label className="text-sm text-gray-600 mb-2 block">Eklenen Ürünler</Label>
@@ -1868,7 +1868,7 @@ export default function EditProductPage() {
               </div>
             </div>
 
-            {/* Ürün Detay Şablonları */}
+            
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <h2 className="text-lg font-semibold mb-4">Ürün Detay Şablonları</h2>
               <div className="space-y-4">
@@ -2009,7 +2009,7 @@ export default function EditProductPage() {
               </div>
             </div>
 
-            {/* Modals */}
+            
             <WashingInstructionModal
               open={washingModalOpen}
               onOpenChange={setWashingModalOpen}

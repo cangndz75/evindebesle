@@ -9,7 +9,7 @@ export const metadata = {
 export default function ReturnsPage() {
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Hero */}
+            
             <div className="bg-gradient-to-br from-gray-900 to-gray-800 text-white py-16 px-4">
                 <div className="max-w-4xl mx-auto text-center">
                     <div className="inline-flex items-center justify-center w-16 h-16 bg-white/10 rounded-full mb-6">
@@ -21,7 +21,7 @@ export default function ReturnsPage() {
             </div>
 
             <div className="max-w-4xl mx-auto px-4 py-12 space-y-10">
-                {/* Öne Çıkanlar */}
+                
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {[
                         { icon: <Clock className="w-6 h-6" />, title: "14 Gün İade Hakkı", desc: "Ürünü teslim aldığınız tarihten itibaren 14 gün içinde iade edebilirsiniz." },
@@ -38,7 +38,7 @@ export default function ReturnsPage() {
                     ))}
                 </div>
 
-                {/* İade Süreci */}
+                
                 <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
                     <div className="flex items-center gap-3 mb-6">
                         <div className="p-2 rounded-lg bg-blue-100 text-blue-700">
@@ -67,7 +67,7 @@ export default function ReturnsPage() {
                     </div>
                 </section>
 
-                {/* İade Koşulları */}
+                
                 <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
                     <div className="flex items-center gap-3 mb-6">
                         <div className="p-2 rounded-lg bg-green-100 text-green-700">
@@ -92,7 +92,7 @@ export default function ReturnsPage() {
                     </ul>
                 </section>
 
-                {/* İade Edilemeyecek Ürünler */}
+                
                 <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
                     <div className="flex items-center gap-3 mb-6">
                         <div className="p-2 rounded-lg bg-red-100 text-red-700">
@@ -116,7 +116,7 @@ export default function ReturnsPage() {
                     </ul>
                 </section>
 
-                {/* Değişim Bilgisi */}
+                
                 <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
                     <div className="flex items-center gap-3 mb-6">
                         <div className="p-2 rounded-lg bg-purple-100 text-purple-700">
@@ -134,7 +134,7 @@ export default function ReturnsPage() {
                     </p>
                 </section>
 
-                {/* Destek CTA */}
+                
                 <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-8 text-center">
                     <h3 className="text-lg font-bold text-gray-900 mb-2">Yardıma mı ihtiyacınız var?</h3>
                     <p className="text-gray-600 mb-4">İade ve değişim süreçlerinizle ilgili destek ekibimize ulaşabilirsiniz.</p>

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import Image from "next/image";
@@ -245,7 +245,7 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
       aria-label="Arama"
       className="fixed inset-0 z-[100] bg-white flex flex-col"
     >
-      {/* Top Search Bar */}
+      
       <div className="bg-black text-white px-4 md:px-8 py-6 flex-shrink-0">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center gap-4">
@@ -269,7 +269,7 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
             </button>
           </div>
 
-          {/* Suggestions */}
+          
           {suggestions.length > 0 && searchQuery.length >= 2 && (
             <div className="mt-4 flex items-center gap-2 flex-wrap">
               <span className="text-sm text-white/70">Öneriler:</span>
@@ -287,10 +287,10 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
         </div>
       </div>
 
-      {/* Main Content */}
+      
       <div className="flex-1 overflow-y-auto bg-gray-50 overscroll-contain">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
-          {/* Category Badge */}
+          
           {detectedCategory && (
             <div className="mb-6">
               <span className="inline-block px-4 py-2 bg-black text-white text-sm uppercase tracking-wide">
@@ -299,7 +299,7 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
             </div>
           )}
 
-          {/* Collections Section */}
+          
           {filteredCollections.length > 0 && (
             <div className="mb-8">
               <div className="flex items-center justify-between mb-4">
@@ -339,7 +339,7 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
             </div>
           )}
 
-          {/* Products Section */}
+          
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-light uppercase tracking-wide">
               {loading ? (
@@ -367,14 +367,14 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
             </div>
           </div>
 
-          {/* Filters and Products Grid */}
+          
           <div className="flex gap-6">
-            {/* Filters Sidebar */}
+            
             <div className="hidden md:block w-56 flex-shrink-0">
               <div className="bg-white p-4 border border-gray-200">
                 <h3 className="text-xs font-light uppercase tracking-wide mb-4">FİLTRELER</h3>
                 <div className="space-y-4">
-                  {/* Category Filter */}
+                  
                   <div>
                     <button
                       onClick={() => setOpenFilters(prev => ({ ...prev, category: !prev.category }))}
@@ -414,7 +414,7 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
                     )}
                   </div>
 
-                  {/* Size Filter */}
+                  
                   <div>
                     <button
                       onClick={() => setOpenFilters(prev => ({ ...prev, size: !prev.size }))}
@@ -449,7 +449,7 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
                     )}
                   </div>
 
-                  {/* Color Filter */}
+                  
                   <div>
                     <button
                       onClick={() => setOpenFilters(prev => ({ ...prev, color: !prev.color }))}
@@ -495,7 +495,7 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
                     )}
                   </div>
 
-                  {/* Price Filter */}
+                  
                   <div>
                     <button
                       onClick={() => setOpenFilters(prev => ({ ...prev, price: !prev.price }))}
@@ -537,7 +537,7 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
               </div>
             </div>
 
-            {/* Products Grid */}
+            
             <div className="flex-1">
               {filteredProducts.length > 0 ? (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
@@ -582,7 +582,7 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
                         >
                           <Heart className="w-4 h-4" />
                         </button>
-                        {/* Arrow Button - Bottom Right */}
+                        
                         <div className="absolute bottom-3 right-3 w-8 h-8 bg-black rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
                           <ChevronRight className="w-4 h-4 text-white" />
                         </div>

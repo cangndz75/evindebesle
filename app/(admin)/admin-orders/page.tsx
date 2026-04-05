@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
@@ -292,7 +292,7 @@ export default function AdminOrdersPage() {
         <h1 className="text-2xl md:text-3xl font-bold">Tüm Siparişler</h1>
       </div>
 
-      {/* Tab View */}
+      
       <div className="flex gap-2 p-1 bg-gray-100 rounded-lg">
         {tabs.map((tab) => (
           <button
@@ -314,7 +314,7 @@ export default function AdminOrdersPage() {
         ))}
       </div>
 
-      {/* Filtreler ve Toplu İşlemler */}
+      
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
         <div className="flex flex-col md:flex-row gap-4 flex-1">
           <Input
@@ -380,7 +380,7 @@ export default function AdminOrdersPage() {
         )}
       </div>
 
-      {/* Tablo */}
+      
       {loading ? (
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
@@ -540,7 +540,7 @@ export default function AdminOrdersPage() {
         </div>
       )}
 
-      {/* Sipariş Detay Modal */}
+      
       <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -548,7 +548,7 @@ export default function AdminOrdersPage() {
           </DialogHeader>
           {selectedOrder && (
             <div className="space-y-6">
-              {/* Müşteri Bilgileri */}
+              
               <div>
                 <h3 className="font-semibold mb-2">Müşteri Bilgileri</h3>
                 <div className="bg-gray-50 p-4 rounded-lg">
@@ -557,7 +557,7 @@ export default function AdminOrdersPage() {
                 </div>
               </div>
 
-              {/* Teslimat Adresi */}
+              
               {selectedOrder.shippingAddress && (
                 <div>
                   <h3 className="font-semibold mb-2">Teslimat Adresi</h3>
@@ -568,7 +568,7 @@ export default function AdminOrdersPage() {
                 </div>
               )}
 
-              {/* Ürünler */}
+              
               <div>
                 <h3 className="font-semibold mb-2">Ürünler</h3>
                 <div className="space-y-2">
@@ -599,7 +599,7 @@ export default function AdminOrdersPage() {
                 </div>
               </div>
 
-              {/* Fiyat Özeti */}
+              
               <div>
                 <h3 className="font-semibold mb-2">Fiyat Özeti</h3>
                 <div className="bg-gray-50 p-4 rounded-lg space-y-2">
@@ -624,7 +624,7 @@ export default function AdminOrdersPage() {
                 </div>
               </div>
 
-              {/* Durum Bilgileri */}
+              
               <div className="flex gap-4">
                 <div>
                   <h3 className="font-semibold mb-2">Sipariş Durumu</h3>

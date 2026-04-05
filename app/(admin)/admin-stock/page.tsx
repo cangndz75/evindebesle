@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState, Fragment } from "react";
 import { useRouter } from "next/navigation";
@@ -149,7 +149,7 @@ export default function StockManagementPage() {
         </div>
       </div>
 
-      {/* Özet Kartlar */}
+      
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-3">
@@ -183,7 +183,7 @@ export default function StockManagementPage() {
         </Card>
       </div>
 
-      {/* Filtreler */}
+      
       <div className="flex flex-col md:flex-row gap-4">
         <Input
           placeholder="Ürün adı, renk veya stok kodu..."
@@ -203,7 +203,7 @@ export default function StockManagementPage() {
         </Select>
       </div>
 
-      {/* Liste */}
+      
       {loading ? (
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
@@ -297,7 +297,7 @@ export default function StockManagementPage() {
                           </TableCell>
                         </TableRow>
 
-                        {/* Expanded details (Accordion) */}
+                        
                         {isExpanded && (
                           <TableRow className="bg-muted/30 hover:bg-muted/30">
                             <TableCell colSpan={7}>

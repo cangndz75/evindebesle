@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -266,7 +266,7 @@ export default function OrderDetailPage() {
 
   return (
     <div className="space-y-6 p-6 bg-gray-50 min-h-screen">
-      {/* Header */}
+      
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => router.back()}>
@@ -308,9 +308,9 @@ export default function OrderDetailPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Sol Kolon */}
+        
         <div className="lg:col-span-2 space-y-6">
-          {/* Risk Analizi */}
+          
           {order.riskScore !== undefined && order.riskScore > 50 && (
             <Card className="border-red-200 bg-red-50">
               <CardHeader className="pb-2">
@@ -331,7 +331,7 @@ export default function OrderDetailPage() {
             </Card>
           )}
 
-          {/* Sipariş ve Ödeme Durumu */}
+          
           <Card>
             <CardHeader>
               <CardTitle>Sipariş ve Ödeme Durumu</CardTitle>
@@ -354,7 +354,7 @@ export default function OrderDetailPage() {
             </CardContent>
           </Card>
 
-          {/* Ürünler */}
+          
           <Card>
             <CardHeader>
               <CardTitle>Ürünler</CardTitle>
@@ -396,14 +396,14 @@ export default function OrderDetailPage() {
             </CardContent>
           </Card>
 
-          {/* Durum Timeline */}
+          
           <Card>
             <CardHeader>
               <CardTitle>Durum Timeline</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {/* Created */}
+                
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
                     <CheckCircle className="w-4 h-4 text-green-600" />
@@ -416,7 +416,7 @@ export default function OrderDetailPage() {
                   </div>
                 </div>
 
-                {/* Paid */}
+                
                 {order.paymentStatus === "PAID" && (
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
@@ -433,7 +433,7 @@ export default function OrderDetailPage() {
                   </div>
                 )}
 
-                {/* Preparing */}
+                
                 {(order.status === "PREPARING" || order.status === "SHIPPED" || order.status === "DELIVERED") && (
                   <div className="flex items-start gap-3">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${order.status === "PREPARING" ? "bg-blue-100" : "bg-green-100"
@@ -450,7 +450,7 @@ export default function OrderDetailPage() {
                   </div>
                 )}
 
-                {/* Shipped */}
+                
                 {(order.status === "SHIPPED" || order.status === "DELIVERED") && (
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
@@ -470,7 +470,7 @@ export default function OrderDetailPage() {
                   </div>
                 )}
 
-                {/* Delivered */}
+                
                 {order.status === "DELIVERED" && (
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
@@ -487,7 +487,7 @@ export default function OrderDetailPage() {
                   </div>
                 )}
 
-                {/* Cancelled */}
+                
                 {order.status === "CANCELLED" && (
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
@@ -502,7 +502,7 @@ export default function OrderDetailPage() {
             </CardContent>
           </Card>
 
-          {/* Notlar */}
+          
           <Card>
             <CardHeader>
               <CardTitle>Notlar</CardTitle>
@@ -526,7 +526,7 @@ export default function OrderDetailPage() {
             </CardContent>
           </Card>
 
-          {/* İşlem Geçmişi (Audit Logs) */}
+          
           <Card>
             <CardHeader>
               <CardTitle>İşlem Geçmişi</CardTitle>
@@ -550,7 +550,7 @@ export default function OrderDetailPage() {
                           </span>
                         </div>
                         <div className="mt-1">
-                          {/* Basic diff display */}
+                          
                           {log.action === "UPDATE" && log.newValue && typeof log.newValue === 'object' && (
                             <div className="text-xs text-gray-600 space-y-1">
                               {(log.newValue as any).status && (
@@ -574,9 +574,9 @@ export default function OrderDetailPage() {
           </Card>
         </div>
 
-        {/* Sağ Kolon */}
+        
         <div className="space-y-6">
-          {/* Sipariş Özeti */}
+          
           <Card>
             <CardHeader>
               <CardTitle>Sipariş Özeti</CardTitle>
@@ -607,7 +607,7 @@ export default function OrderDetailPage() {
             </CardContent>
           </Card>
 
-          {/* Müşteri */}
+          
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -654,7 +654,7 @@ export default function OrderDetailPage() {
             </CardContent>
           </Card>
 
-          {/* Teslimat Adresi */}
+          
           {order.shippingAddress && (
             <Card>
               <CardHeader>
@@ -686,7 +686,7 @@ export default function OrderDetailPage() {
             </Card>
           )}
 
-          {/* Kargo Bilgileri */}
+          
           {(order.status === "SHIPPED" || order.status === "DELIVERED") && order.trackingNumber && (
             <Card>
               <CardHeader>
@@ -714,7 +714,7 @@ export default function OrderDetailPage() {
             </Card>
           )}
 
-          {/* Ödeme Detayları */}
+          
           {order.paymentStatus === "PAID" && (
             <Card>
               <CardHeader>
@@ -747,7 +747,7 @@ export default function OrderDetailPage() {
         </div>
       </div>
 
-      {/* Durum Güncelle Modal */}
+      
       <Dialog open={statusModalOpen} onOpenChange={setStatusModalOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>

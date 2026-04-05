@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -184,7 +184,7 @@ export default function ProductDetailPage() {
 
   return (
     <div className="space-y-6 p-6 bg-gray-50 min-h-screen">
-      {/* Header */}
+      
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => router.back()}>
@@ -217,7 +217,7 @@ export default function ProductDetailPage() {
           <TabsTrigger value="related">İlişkili Ürünler</TabsTrigger>
         </TabsList>
 
-        {/* Genel Bilgiler */}
+        
         <TabsContent value="general" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
@@ -253,7 +253,7 @@ export default function ProductDetailPage() {
                 </CardContent>
               </Card>
 
-              {/* Kalite Uyarıları */}
+              
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -335,7 +335,7 @@ export default function ProductDetailPage() {
           </div>
         </TabsContent>
 
-        {/* Varyantlar */}
+        
         <TabsContent value="variants" className="space-y-6">
           <Card>
             <CardHeader>
@@ -427,7 +427,7 @@ export default function ProductDetailPage() {
           </Card>
         </TabsContent>
 
-        {/* SEO */}
+        
         <TabsContent value="seo" className="space-y-6">
           <Card>
             <CardHeader>
@@ -482,7 +482,7 @@ export default function ProductDetailPage() {
           </Card>
         </TabsContent>
 
-        {/* İlişkili Ürünler */}
+        
         <TabsContent value="related" className="space-y-6">
           <Card>
             <CardHeader>

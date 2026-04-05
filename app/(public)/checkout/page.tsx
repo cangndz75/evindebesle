@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { useCartStore } from "@/lib/stores/cartStore";
@@ -214,10 +214,10 @@ export default function CheckoutPage() {
         <div className="container mx-auto px-4 md:px-8 py-8 md:py-12">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
 
-                {/* LEFT COLUMN - Forms */}
+                
                 <div className="lg:col-span-7 space-y-10">
 
-                    {/* Contact Info */}
+                    
                     <div>
                         <div className="flex items-center justify-between mb-4">
                             <h2 className="text-xl font-medium">İletişim</h2>
@@ -241,7 +241,7 @@ export default function CheckoutPage() {
                         </div>
                     </div>
 
-                    {/* Delivery Address */}
+                    
                     <div>
                         <h2 className="text-xl font-medium mb-4">Teslimat Adresi</h2>
                         <div className="space-y-4">
@@ -318,7 +318,7 @@ export default function CheckoutPage() {
                         </div>
                     </div>
 
-                    {/* Mobile Coupon Section */}
+                    
                     <div className="block lg:hidden">
                         <h2 className="text-xl font-medium mb-4">İndirim Kodu</h2>
                         <div className="flex gap-2 mb-2">
@@ -345,7 +345,7 @@ export default function CheckoutPage() {
                         )}
                     </div>
 
-                    {/* Shipping Method - Fixed/Visual for now */}
+                    
                     <div>
                         <h2 className="text-xl font-medium mb-4">Kargo Yöntemi</h2>
                         <div className="border border-gray-200 rounded p-4 flex justify-between items-center bg-gray-50">
@@ -354,13 +354,13 @@ export default function CheckoutPage() {
                         </div>
                     </div>
 
-                    {/* Payment Method */}
+                    
                     <div>
                         <h2 className="text-xl font-medium mb-2">Ödeme</h2>
                         <p className="text-sm text-gray-500 mb-4">Tüm işlemler şifreli ve güvenlidir.</p>
 
                         <div className="border border-gray-200 rounded overflow-hidden">
-                            {/* Option 1: Credit Card */}
+                            
                             <div className={`p-4 border-b border-gray-200 flex items-center gap-3 cursor-pointer ${paymentMethod === "CREDIT_CARD" ? "bg-gray-50" : "bg-white"}`}
                                 onClick={() => setPaymentMethod("CREDIT_CARD")}
                             >
@@ -369,14 +369,14 @@ export default function CheckoutPage() {
                                 </div>
                                 <span className="flex-1 font-medium">Kredi / Banka Kartı</span>
                                 <div className="flex gap-1">
-                                    {/* Simple visual placeholders for card icons */}
+                                    
                                     {["visa", "mastercard"].map(brand => (
                                         <div key={brand} className="w-8 h-5 bg-gray-200 rounded text-[8px] flex items-center justify-center uppercase text-gray-500">{brand}</div>
                                     ))}
                                 </div>
                             </div>
 
-                            {/* Credit Card Content - Only one shown as "redirect" info or form container */}
+                            
                             {paymentMethod === "CREDIT_CARD" && (
                                 <div className="p-6 bg-gray-50 border-b border-gray-200 text-center">
                                     <CreditCard className="w-12 h-12 mx-auto text-gray-400 mb-2" />
@@ -384,7 +384,7 @@ export default function CheckoutPage() {
                                         Güvenli ödeme sayfasına yönlendirileceksiniz.
                                     </p>
 
-                                    {/* Container for Iyzico Form */}
+                                    
                                     <div id="iyzico-checkout-form" className="min-h-[10px]"></div>
                                 </div>
                             )}
@@ -400,15 +400,8 @@ export default function CheckoutPage() {
                             {loading && paymentMethod === "CREDIT_CARD" ? "İşleniyor..." : `Ödemeyi Tamamla • ${total.toFixed(2)} TL`}
                         </button>
 
-                        {/* Separate Test Payment Button */}
-                        {/* <button
-                            onClick={() => handleCheckout("TEST")}
-                            disabled={loading}
-                            className="w-full border border-gray-300 text-gray-600 py-3 rounded font-medium text-sm hover:bg-gray-50 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-                        >
-                            <Wallet className="w-4 h-4" />
-                            {loading && paymentMethod === "TEST" ? "İşleniyor..." : "Test Siparişi Oluştur (Ödemesiz)"}
-                        </button> */}
+                        
+                        
                     </div>
 
                     <div className="text-xs text-gray-400 text-center mt-4">
@@ -417,12 +410,12 @@ export default function CheckoutPage() {
 
                 </div>
 
-                {/* RIGHT COLUMN - Summary */}
+                
                 <div className="lg:col-span-5">
                     <div className="bg-gray-50 p-6 rounded-lg sticky top-24">
                         <h2 className="text-xl font-medium mb-6">Sipariş Özeti</h2>
 
-                        {/* Items */}
+                        
                         <div className="space-y-4 mb-6 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                             {cart.map((item) => (
                                 <div key={item.id} className="flex gap-4">
@@ -457,7 +450,7 @@ export default function CheckoutPage() {
                             ))}
                         </div>
 
-                        {/* Coupon - Desktop Only */}
+                        
                         <div className="hidden lg:flex gap-2 mb-6">
                             <input
                                 type="text"
@@ -475,7 +468,7 @@ export default function CheckoutPage() {
                             </button>
                         </div>
 
-                        {/* Active Coupon Display - Desktop Only */}
+                        
                         {couponCode && (
                             <div className="hidden lg:flex justify-between items-center bg-green-50 p-2 rounded border border-green-200 mb-4">
                                 <span className="text-sm text-green-700 font-medium">{couponCode}</span>
@@ -483,7 +476,7 @@ export default function CheckoutPage() {
                             </div>
                         )}
 
-                        {/* Totals */}
+                        
                         <div className="space-y-2 text-sm border-t border-gray-200 pt-4">
                             <div className="flex justify-between">
                                 <span className="text-gray-600">Ara Toplam</span>

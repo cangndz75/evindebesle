@@ -59,7 +59,7 @@ export function TransactionDetailModal({
 
                 <ScrollArea className="flex-1 p-6">
                     <div className="grid gap-6 md:grid-cols-2">
-                        {/* Customer Info */}
+                        
                         <div className="space-y-4">
                             <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
                                 <User className="h-4 w-4" />
@@ -72,7 +72,7 @@ export function TransactionDetailModal({
                             </div>
                         </div>
 
-                        {/* Payment Info */}
+                        
                         <div className="space-y-4">
                             <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
                                 <CreditCard className="h-4 w-4" />
@@ -96,7 +96,7 @@ export function TransactionDetailModal({
                             </div>
                         </div>
 
-                        {/* Shipping Address */}
+                        
                         <div className="space-y-4">
                             <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
                                 <MapPin className="h-4 w-4" />
@@ -110,7 +110,7 @@ export function TransactionDetailModal({
                                             {transaction.shippingAddress.fullAddress}
                                         </div>
                                         <div className="text-muted-foreground mt-1">
-                                            {transaction.shippingAddress.districtId} {/* Assuming district name is joined or resolved, otherwise might need update */}
+                                            {transaction.shippingAddress.districtId} 
                                         </div>
                                     </>
                                 ) : (
@@ -119,7 +119,7 @@ export function TransactionDetailModal({
                             </div>
                         </div>
 
-                        {/* Billing Address */}
+                        
                         <div className="space-y-4">
                             <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
                                 <MapPin className="h-4 w-4" />
@@ -142,7 +142,7 @@ export function TransactionDetailModal({
 
                     <Separator className="my-6" />
 
-                    {/* Order Items */}
+                    
                     <div className="space-y-4">
                         <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
                             <Package className="h-4 w-4" />

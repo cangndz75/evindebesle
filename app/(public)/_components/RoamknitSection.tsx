@@ -7,7 +7,7 @@ export default function RoamknitSection() {
     <section className="w-full bg-[#f5f1eb] py-12 md:py-20">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         <div className="grid md:grid-cols-3 gap-6 md:gap-8">
-          {/* Sol - Model */}
+          
           <div className="md:col-span-2 relative h-[500px] md:h-[600px] overflow-hidden group">
             <Image
               src="https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=1000&auto=format&fit=crop"
@@ -18,7 +18,7 @@ export default function RoamknitSection() {
             />
           </div>
 
-          {/* Sağ - Üst Panel */}
+          
           <div className="space-y-6 md:space-y-8">
             <div className="relative h-[240px] md:h-[290px] overflow-hidden group">
               <Image
@@ -42,7 +42,7 @@ export default function RoamknitSection() {
               </div>
             </div>
 
-            {/* Alt Panel - Boş */}
+            
             <div className="h-[240px] md:h-[290px] bg-[#f5f1eb]" />
           </div>
         </div>

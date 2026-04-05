@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useRef, useState } from "react";
 import Image from "next/image";
@@ -58,7 +58,7 @@ export default function ProductCarousel({ title, products, viewAllLink }: Produc
         </div>
 
         <div className="relative">
-          {/* Carousel Container */}
+          
           <div className="overflow-hidden">
             <div
               ref={scrollContainerRef}
@@ -148,7 +148,7 @@ export default function ProductCarousel({ title, products, viewAllLink }: Produc
                       </div>
                     )}
 
-                    {/* Hızlı Ekle Bölümü - Hover'da açılır */}
+                    
                     <div className="hidden md:grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-all duration-300 ease-in-out opacity-0 group-hover:opacity-100">
                       <div className="overflow-hidden">
                         <div className="mt-4 pt-4 border-t border-gray-100 px-4">
@@ -298,7 +298,7 @@ export default function ProductCarousel({ title, products, viewAllLink }: Produc
             </div>
           </div>
 
-          {/* Navigation Arrows */}
+          
           <button
             onClick={scrollPrev}
             disabled={!canScrollPrev}

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { Send, Mail, Calendar, Users } from "lucide-react";
@@ -136,9 +136,9 @@ export default function SendBar({ draft, onUpdate }: SendBarProps) {
     <>
       <div className="border-t border-gray-200 bg-white">
         <div className="px-8 py-5 space-y-4">
-          {/* Üst Satır: Test, Segment, Zamanlama, Gönder */}
+          
           <div className="flex items-center justify-between gap-6">
-            {/* Sol: Test Gönder */}
+            
             <div className="flex items-center gap-3">
               <Mail className="w-5 h-5 text-gray-500" />
               <div className="flex items-center gap-2">
@@ -160,7 +160,7 @@ export default function SendBar({ draft, onUpdate }: SendBarProps) {
               </div>
             </div>
 
-            {/* Orta: Segment veya Alıcı ve Zamanlama */}
+            
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <Users className="w-5 h-5 text-gray-500" />
@@ -212,7 +212,7 @@ export default function SendBar({ draft, onUpdate }: SendBarProps) {
               </div>
             </div>
 
-            {/* Sağ: Gönder Butonu */}
+            
             <div>
               <Button
                 onClick={() => setShowSendModal(true)}
@@ -226,7 +226,7 @@ export default function SendBar({ draft, onUpdate }: SendBarProps) {
             </div>
           </div>
 
-          {/* Validation Warnings */}
+          
           {validation.warnings.length > 0 && (
             <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
               <strong className="font-semibold">Uyarılar:</strong>
@@ -251,7 +251,7 @@ export default function SendBar({ draft, onUpdate }: SendBarProps) {
         </div>
       </div>
 
-      {/* Send Modal */}
+      
       <Dialog open={showSendModal} onOpenChange={setShowSendModal}>
         <DialogContent>
           <DialogHeader>

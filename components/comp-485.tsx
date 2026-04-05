@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useEffect, useId, useMemo, useRef, useState } from "react"
 import {
@@ -311,10 +311,10 @@ export default function Component() {
 
   return (
     <div className="space-y-4">
-      {/* Filters */}
+      
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          {/* Filter by name or email */}
+          
           <div className="relative">
             <Input
               id={`${id}-input`}
@@ -351,7 +351,7 @@ export default function Component() {
               </button>
             )}
           </div>
-          {/* Filter by status */}
+          
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline">
@@ -398,7 +398,7 @@ export default function Component() {
               </div>
             </PopoverContent>
           </Popover>
-          {/* Toggle columns visibility */}
+          
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline">
@@ -434,7 +434,7 @@ export default function Component() {
           </DropdownMenu>
         </div>
         <div className="flex items-center gap-3">
-          {/* Delete button */}
+          
           {table.getSelectedRowModel().rows.length > 0 && (
             <AlertDialog>
               <AlertDialogTrigger asChild>
@@ -481,7 +481,7 @@ export default function Component() {
               </AlertDialogContent>
             </AlertDialog>
           )}
-          {/* Add user button */}
+          
           <Button className="ml-auto" variant="outline">
             <PlusIcon
               className="-ms-1 opacity-60"
@@ -493,7 +493,7 @@ export default function Component() {
         </div>
       </div>
 
-      {/* Table */}
+      
       <div className="bg-background overflow-hidden rounded-md border">
         <Table className="table-fixed">
           <TableHeader>
@@ -588,9 +588,9 @@ export default function Component() {
         </Table>
       </div>
 
-      {/* Pagination */}
+      
       <div className="flex items-center justify-between gap-8">
-        {/* Results per page */}
+        
         <div className="flex items-center gap-3">
           <Label htmlFor={id} className="max-sm:sr-only">
             Rows per page
@@ -613,7 +613,7 @@ export default function Component() {
             </SelectContent>
           </Select>
         </div>
-        {/* Page number information */}
+        
         <div className="text-muted-foreground flex grow justify-end text-sm whitespace-nowrap">
           <p
             className="text-muted-foreground text-sm whitespace-nowrap"
@@ -641,11 +641,11 @@ export default function Component() {
           </p>
         </div>
 
-        {/* Pagination buttons */}
+        
         <div>
           <Pagination>
             <PaginationContent>
-              {/* First page button */}
+              
               <PaginationItem>
                 <Button
                   size="icon"
@@ -658,7 +658,7 @@ export default function Component() {
                   <ChevronFirstIcon size={16} aria-hidden="true" />
                 </Button>
               </PaginationItem>
-              {/* Previous page button */}
+              
               <PaginationItem>
                 <Button
                   size="icon"
@@ -671,7 +671,7 @@ export default function Component() {
                   <ChevronLeftIcon size={16} aria-hidden="true" />
                 </Button>
               </PaginationItem>
-              {/* Next page button */}
+              
               <PaginationItem>
                 <Button
                   size="icon"
@@ -684,7 +684,7 @@ export default function Component() {
                   <ChevronRightIcon size={16} aria-hidden="true" />
                 </Button>
               </PaginationItem>
-              {/* Last page button */}
+              
               <PaginationItem>
                 <Button
                   size="icon"

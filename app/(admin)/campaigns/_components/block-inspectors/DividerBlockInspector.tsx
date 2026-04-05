@@ -29,7 +29,7 @@ export default function DividerBlockInspector({
 
     return (
         <div className="space-y-4">
-            {/* Çizgi Rengi */}
+            
             <div>
                 <Label className="text-xs font-medium text-gray-700">Çizgi Rengi</Label>
                 <Input
@@ -40,7 +40,7 @@ export default function DividerBlockInspector({
                 />
             </div>
 
-            {/* Çizgi Kalınlığı */}
+            
             <div>
                 <Label className="text-xs font-medium text-gray-700">
                     Çizgi Kalınlığı: {block.style.lineWidth || 1}px
@@ -55,7 +55,7 @@ export default function DividerBlockInspector({
                 />
             </div>
 
-            {/* Çizgi Stili */}
+            
             <div>
                 <Label className="text-xs font-medium text-gray-700">Çizgi Stili</Label>
                 <Select
@@ -73,7 +73,7 @@ export default function DividerBlockInspector({
                 </Select>
             </div>
 
-            {/* Genişlik */}
+            
             <div>
                 <Label className="text-xs font-medium text-gray-700">
                     Genişlik: {block.style.widthPercent || 100}%
@@ -88,7 +88,7 @@ export default function DividerBlockInspector({
                 />
             </div>
 
-            {/* Dikey Boşluk */}
+            
             <div>
                 <Label className="text-xs font-medium text-gray-700">
                     Dikey Boşluk: {block.style.paddingY || 24}px
@@ -103,7 +103,7 @@ export default function DividerBlockInspector({
                 />
             </div>
 
-            {/* Arka Plan Rengi */}
+            
             <div>
                 <Label className="text-xs font-medium text-gray-700">
                     Arka Plan Rengi

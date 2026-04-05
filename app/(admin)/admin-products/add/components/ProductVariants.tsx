@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -113,7 +113,7 @@ export function ProductVariants({
 
             {isVariable && (
                 <div className="space-y-8 animate-in fade-in slide-in-from-top-4 duration-300">
-                    {/* 2. Add Colors */}
+                    
                     <div>
                         <Label className="mb-2 block font-semibold text-gray-700">Diğer Renkleri Ekle</Label>
                         <div className="flex gap-2">
@@ -129,7 +129,7 @@ export function ProductVariants({
                         </div>
                     </div>
 
-                    {/* 3. Color Accordions */}
+                    
                     <div className="space-y-4">
                         {colors.map((color, colorIndex) => (
                             <VariantItem
@@ -183,7 +183,7 @@ const VariantItem = React.memo(({
 }: VariantItemProps) => {
     return (
         <div className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
-            {/* Header */}
+            
             <div
                 className="flex items-center justify-between p-4 bg-gray-50 cursor-pointer select-none"
                 onClick={() => updateColor(index, { isOpen: !color.isOpen })}
@@ -208,10 +208,10 @@ const VariantItem = React.memo(({
                 </div>
             </div>
 
-            {/* Body */}
+            
             {color.isOpen && (
                 <div className="p-4 border-t border-gray-100 space-y-6">
-                    {/* Color Config */}
+                    
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <Label className="text-xs mb-1.5 block">Görünen İsim</Label>
@@ -243,7 +243,7 @@ const VariantItem = React.memo(({
                         </div>
                     </div>
 
-                    {/* Price Override */}
+                    
                     <div className="bg-gray-50 border border-gray-100 rounded p-3">
                         <div className="flex items-center space-x-2 mb-3">
                             <Checkbox
@@ -282,13 +282,13 @@ const VariantItem = React.memo(({
                         )}
                     </div>
 
-                    {/* Images */}
+                    
                     <div>
                         <div className="flex items-center justify-between mb-2">
                             <Label className="text-sm font-medium">Varyant Görselleri</Label>
                             <div className="relative">
                                 <LinkButtonOnClick />
-                                {/* Hacky way to handle upload button click without ref mess in map */}
+                                
                                 <Button
                                     type="button"
                                     variant="outline"
@@ -330,7 +330,7 @@ const VariantItem = React.memo(({
                         </div>
                     </div>
 
-                    {/* Stock Matrix */}
+                    
                     <div>
                         <Label className="text-sm font-medium mb-3 block">Stok Seviyeleri ve Bedenler</Label>
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">

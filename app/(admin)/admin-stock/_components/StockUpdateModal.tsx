@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import {
@@ -142,7 +142,7 @@ export default function StockUpdateModal({
                     <div className="text-center p-4">Ürün yüklenemedi</div>
                 ) : (
                     <div className="space-y-6 py-4">
-                        {/* If product has colors, group by Color */}
+                        
                         {product.colors.length > 0 ? (
                             product.colors.map(color => (
                                 <div key={color.id} className="border rounded-lg p-4 bg-gray-50">

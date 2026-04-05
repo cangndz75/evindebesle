@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -573,7 +573,7 @@ export default function ProductsPage() {
 
   return (
     <div className="space-y-4 p-4 md:p-6">
-      {/* Header - Mobilde daha kompakt */}
+      
       <div className="flex flex-col gap-3">
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
@@ -623,7 +623,7 @@ export default function ProductsPage() {
               </SheetHeader>
               
               <div className="mt-6 space-y-6 pb-6">
-                {/* Sıralama */}
+                
                 <div>
                   <h3 className="text-sm font-semibold mb-3">Sıralama</h3>
                   <div className="grid grid-cols-2 gap-2">
@@ -658,7 +658,7 @@ export default function ProductsPage() {
                   </div>
                 </div>
 
-                {/* Kategori (Cinsiyet) */}
+                
                 <div>
                   <h3 className="text-sm font-semibold mb-3">Kategori</h3>
                   <div className="grid grid-cols-2 gap-2">
@@ -686,7 +686,7 @@ export default function ProductsPage() {
                   </div>
                 </div>
 
-                {/* Beden Tipi */}
+                
                 <div>
                   <h3 className="text-sm font-semibold mb-3">Beden Tipi</h3>
                   <div className="grid grid-cols-2 gap-2">
@@ -707,7 +707,7 @@ export default function ProductsPage() {
                   </div>
                 </div>
 
-                {/* Stok Aralığı */}
+                
                 <div>
                   <h3 className="text-sm font-semibold mb-3">Stok Aralığı</h3>
                   <div className="flex items-center gap-2">
@@ -730,7 +730,7 @@ export default function ProductsPage() {
                 </div>
               </div>
 
-              {/* Footer Buttons */}
+              
               <div className="sticky bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 flex gap-2 mt-6">
                 <Button
                   variant="outline"
@@ -750,7 +750,7 @@ export default function ProductsPage() {
           </Sheet>
         </div>
 
-        {/* Stok Durumu Filtreleri */}
+        
         <div className="flex items-center gap-2 overflow-x-auto pb-2">
           <Button
             variant={stockStatus === "all" ? "default" : "outline"}
@@ -796,7 +796,7 @@ export default function ProductsPage() {
         </div>
       </div>
 
-      {/* Desktop: Table View */}
+      
       <div className="hidden md:block rounded-md border overflow-x-auto">
         <Table>
           <TableHeader>
@@ -848,7 +848,7 @@ export default function ProductsPage() {
         </Table>
       </div>
 
-      {/* Mobile: Card View */}
+      
       <div className="md:hidden space-y-3">
         {loading ? (
           [...Array(5)].map((_, i) => (
@@ -865,9 +865,9 @@ export default function ProductsPage() {
             return (
               <Card key={product.id} className="border border-gray-200 overflow-hidden">
                 <CardContent className="p-0">
-                  {/* Ana Bilgiler */}
+                  
                   <div className="p-4 flex gap-3">
-                    {/* Görsel */}
+                    
                     <div className="flex-shrink-0">
                       {product.image ? (
                         <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100">
@@ -884,7 +884,7 @@ export default function ProductsPage() {
                       )}
                     </div>
 
-                    {/* Ürün Bilgileri */}
+                    
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1 min-w-0">
@@ -922,7 +922,7 @@ export default function ProductsPage() {
                         )}
                       </div>
 
-                      {/* Hızlı Bilgiler */}
+                      
                       <div className="mt-2 flex items-center gap-2 flex-wrap">
                         {product.gender && (
                           <Badge variant="outline" className="text-xs">
@@ -948,7 +948,7 @@ export default function ProductsPage() {
                     </div>
                   </div>
 
-                  {/* Detaylar Butonu ve İşlemler */}
+                  
                   <div className="border-t border-gray-200 px-4 py-2 flex items-center justify-between bg-gray-50">
                     <Button
                       variant="ghost"
@@ -1045,7 +1045,7 @@ export default function ProductsPage() {
                     </div>
                   </div>
 
-                  {/* Genişletilmiş Detaylar */}
+                  
                   {isExpanded && (
                     <div className="border-t border-gray-200 p-4 space-y-3 bg-white">
                       {product.stockCode && (

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
@@ -295,17 +295,87 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
     return 0;
   };
 
+  const ALPHA_SIZE_ORDER = [
+    "XXXXS",
+    "XXXS",
+    "XXS",
+    "XS",
+    "S",
+    "M",
+    "L",
+    "XL",
+    "XXL",
+    "XXXL",
+    "XXXXL",
+    "XXXXXL",
+  ];
+
+  const normalizeAlphaSize = (value: string): string => {
+    const compact = value.replace(/\s+/g, "").toUpperCase();
+    const xlMatch = compact.match(/^(\d)XL$/);
+    if (xlMatch) {
+      const xCount = Number(xlMatch[1]);
+      if (xCount >= 1 && xCount <= 6) {
+        return `${"X".repeat(xCount)}L`;
+      }
+    }
+    return compact;
+  };
+
+  const compareSizeNames = (aRaw: string, bRaw: string): number => {
+    const a = aRaw.trim();
+    const b = bRaw.trim();
+
+    const aCup = a.toUpperCase().match(/^(\d+)\s*([A-Z]+)$/);
+    const bCup = b.toUpperCase().match(/^(\d+)\s*([A-Z]+)$/);
+    if (aCup && bCup) {
+      if (aCup[2] !== bCup[2]) {
+        return aCup[2].localeCompare(bCup[2], "tr", { sensitivity: "base" });
+      }
+      return Number(aCup[1]) - Number(bCup[1]);
+    }
+
+    const aAlpha = normalizeAlphaSize(a);
+    const bAlpha = normalizeAlphaSize(b);
+    const aAlphaIndex = ALPHA_SIZE_ORDER.indexOf(aAlpha);
+    const bAlphaIndex = ALPHA_SIZE_ORDER.indexOf(bAlpha);
+    if (aAlphaIndex !== -1 && bAlphaIndex !== -1) {
+      return aAlphaIndex - bAlphaIndex;
+    }
+
+    const aNum = Number(a);
+    const bNum = Number(b);
+    const aIsNum = !Number.isNaN(aNum) && /^\d+(\.\d+)?$/.test(a);
+    const bIsNum = !Number.isNaN(bNum) && /^\d+(\.\d+)?$/.test(b);
+    if (aIsNum && bIsNum) {
+      return aNum - bNum;
+    }
+
+    if (aAlphaIndex !== -1) return -1;
+    if (bAlphaIndex !== -1) return 1;
+    if (aCup) return -1;
+    if (bCup) return 1;
+    if (aIsNum) return -1;
+    if (bIsNum) return 1;
+
+    return a.localeCompare(b, "tr", { numeric: true, sensitivity: "base" });
+  };
+
   const getAvailableSizesForColor = (): string[] | Array<{ id?: string; name: string; stock?: number }> => {
     if (Array.isArray(product.sizes) && product.sizes.length > 0 && typeof product.sizes[0] === "string") {
-      return product.sizes as string[];
+      return [...(product.sizes as string[])].sort(compareSizeNames);
     }
 
     if (Array.isArray(product.sizes) && product.sizes.length > 0 && typeof product.sizes[0] === "object") {
-      return product.sizes as Array<{ id?: string; name: string; stock: number }>;
+      return [...(product.sizes as Array<{ id?: string; name: string; stock: number }>)].sort((a, b) =>
+        compareSizeNames(a.name, b.name)
+      );
     }
 
     if (Array.isArray(product.sizeOptions) && product.sizeOptions.length > 0) {
-      return product.sizeOptions as Array<{ id?: string; name: string; stock?: number }>;
+      return [...(product.sizeOptions as Array<{ id?: string; name: string; stock?: number }>)].sort((a, b) =>
+        compareSizeNames(a.name, b.name)
+      );
     }
 
     return [];
@@ -348,18 +418,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
 
   useEffect(() => {
     if (!selectedSize) {
-      const availableSizes = (() => {
-        if (Array.isArray(product.sizes) && product.sizes.length > 0 && typeof product.sizes[0] === "string") {
-          return product.sizes as string[];
-        }
-        if (Array.isArray(product.sizes) && product.sizes.length > 0 && typeof product.sizes[0] === "object") {
-          return product.sizes as Array<{ id?: string; name: string; stock: number }>;
-        }
-        if (Array.isArray(product.sizeOptions) && product.sizeOptions.length > 0) {
-          return product.sizeOptions as Array<{ id?: string; name: string; stock?: number }>;
-        }
-        return [];
-      })();
+      const availableSizes = getAvailableSizesForColor();
 
       for (const sizeObj of availableSizes) {
         const sizeName = typeof sizeObj === 'string' ? sizeObj : sizeObj.name;
@@ -520,10 +579,10 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
 
   return (
     <div className="w-full min-h-screen bg-white pt-[5px] md:pt-[20px]">
-      {/* Breadcrumb */}
+      
       <div className="max-w-7xl mx-auto px-4 md:px-8 pt-6 pb-4">
         <nav className="flex items-center gap-2 text-sm font-light text-gray-500">
-          {/* Gender-based breadcrumb */}
+          
           {product.gender && (
             <>
               <Link
@@ -536,7 +595,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
             </>
           )}
 
-          {/* Category breadcrumb */}
+          
           {product.category && product.categorySlug && (
             <>
               <Link
@@ -553,16 +612,16 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
         </nav>
       </div>
 
-      {/* Main Product Section */}
+      
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-          {/* Sol: Görseller */}
+          
           <div className="flex flex-col lg:flex-row gap-4 lg:max-w-[600px]">
-            {/* Thumbnail'ler - Scrollable */}
+            
             <div className="flex lg:flex-col gap-2 order-2 lg:order-1 relative">
               {getCurrentColorImages().length > 0 ? (
                 <>
-                  {/* Scroll Up Button - Sadece 4'ten fazla thumbnail varsa */}
+                  
                   {getCurrentColorImages().length > 4 && (
                     <button
                       onClick={() => setThumbnailScrollIndex(Math.max(0, thumbnailScrollIndex - 1))}
@@ -599,7 +658,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                     })}
                   </div>
 
-                  {/* Scroll Down Button - Sadece 4'ten fazla thumbnail varsa */}
+                  
                   {getCurrentColorImages().length > 4 && (
                     <button
                       onClick={() => setThumbnailScrollIndex(Math.min(getCurrentColorImages().length - 4, thumbnailScrollIndex + 1))}
@@ -618,7 +677,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
               )}
             </div>
 
-            {/* Ana Görsel */}
+            
             <div className="order-1 lg:order-2 flex-1 min-w-0 relative">
               <div
                 ref={imageContainerRef}
@@ -651,13 +710,13 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                         priority
                       />
 
-                      {/* Badge */}
+                      
                       {imageBadge && (
                         <div className="absolute top-3 left-3 bg-white text-black text-[10px] px-2 py-1 uppercase font-light">
                           {imageBadge}
                         </div>
                       )}
-                      {/* Heart Icon - Mobile only */}
+                      
                       <button
                         onClick={(e) => {
                           e.preventDefault();
@@ -671,7 +730,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                     </>
                   );
                 })()}
-                {/* Mobile Navigation Buttons */}
+                
                 <button
                   onClick={() => {
                     const currentColorImages = getCurrentColorImages();
@@ -697,9 +756,9 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
             </div>
           </div>
 
-          {/* Sağ: Ürün Bilgileri */}
+          
           <div className="flex flex-col justify-start pt-8 lg:pt-0">
-            {/* Başlık - Hidden on mobile, shown on desktop */}
+            
             <div className="hidden md:flex items-center justify-between mb-4">
               <h1 className="text-3xl md:text-4xl font-serif font-light text-black">
                 {product.name}
@@ -726,7 +785,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
               </div>
             </div>
 
-            {/* Fiyat */}
+            
             <div className="mb-4 flex flex-col items-start gap-1">
               <div className="flex items-center">
                 {product.originalPrice && product.originalPrice > product.price ? (
@@ -744,7 +803,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                   </span>
                 )}
               </div>
-              {/* Mobil Trendyol Linki */}
+              
               {product.trendyolLink && (
                 <a
                   href={product.trendyolLink}
@@ -757,7 +816,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
               )}
             </div>
 
-            {/* Rating ve Yorum Sayısı */}
+            
             {product.reviews && product.reviews.length > 0 && (() => {
               const averageRating = product.reviews.reduce((sum, r) => sum + r.rating, 0) / product.reviews.length;
               const reviewCount = product.reviews.length;
@@ -781,12 +840,12 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
               );
             })()}
 
-            {/* Açıklama */}
+            
             <p className="text-base text-gray-700 font-light leading-relaxed mb-8 max-w-lg">
               {product.colors?.[selectedColor]?.description || product.description}
             </p>
 
-            {/* Renk Seçimi - Hidden on mobile, shown on desktop */}
+            
             <div className="hidden md:block mb-8">
               <p className="text-sm font-light text-black mb-3">
                 Renk: <span className="font-normal">{product.colors?.[selectedColor]?.name || "Renk seçilmedi"}</span>
@@ -842,7 +901,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                           />
                         )}
                       </button>
-                      {/* Tooltip - Renk adı */}
+                      
                       <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black text-white text-xs font-light whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
                         {color.name}
                         <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-black"></div>
@@ -853,7 +912,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
               </div>
             </div>
 
-            {/* Beden Seçimi - Hem Mobil Hem Desktop */}
+            
             <div className="mb-8">
               <div className="mb-4">
                 <p className="text-sm font-light text-black mb-3">
@@ -895,8 +954,8 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                 </div>
               </div>
 
-              {/* Model Bilgisi ve Linkler */}
-              {/* Model Bilgisi ve Linkler */}
+              
+              
               <div className="mb-6">
                 {product.modelInfo && (
                   <p className="text-xs text-gray-600 font-light mb-2">
@@ -920,7 +979,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
               </div>
             </div>
 
-            {/* Stok Durumu ve Bildirim */}
+            
             {(() => {
 
               if (selectedSize) {
@@ -961,9 +1020,9 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
               return null;
             })()}
 
-            {/* Adet ve Sepete Ekle */}
+            
             <div className="flex items-center gap-4 mb-8">
-              {/* Adet Seçici */}
+              
               <div className="flex items-center border border-gray-300 h-[56px]">
                 <button
                   onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
@@ -983,7 +1042,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                 </button>
               </div>
 
-              {/* Sepete Ekle Butonu */}
+              
               <button
                 onClick={() => addToCart()}
                 disabled={!selectedSize || getVariantStock(selectedSize) <= 0}
@@ -999,10 +1058,10 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
 
 
 
-      {/* Accordion Detaylar */}
+      
       <div className="max-w-4xl mx-auto px-4 md:px-8 py-12 border-t border-gray-200">
         <div className="space-y-0">
-          {/* Ürün Detayı */}
+          
           <div className="border-b border-gray-200">
             <button
               onClick={() => toggleSection("details")}
@@ -1039,7 +1098,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
               </div>
             )}
 
-            {/* Kumaş ve Bakım */}
+            
           <div className="border-b border-gray-200">
             <button
               onClick={() => toggleSection("fabric")}
@@ -1060,7 +1119,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
             )}
           </div>
 
-          {/* Yıkama Talimatları */}
+          
           <div className="border-b border-gray-200">
             <button
               onClick={() => toggleSection("washing")}
@@ -1083,7 +1142,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
             )}
           </div>
 
-          {/* Teslimat ve İade */}
+          
           <div className="border-b border-gray-200">
             <button
               onClick={() => toggleSection("delivery")}
@@ -1106,7 +1165,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
             )}
           </div>
 
-          {/* Varyant Detayları */}
+          
           {product.variants && product.variants.length > 0 && (
             <div className="border-b border-gray-200">
               <button
@@ -1158,7 +1217,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
             </div>
           )}
 
-          {/* Beden Notları */}
+          
           <div className="border-b border-gray-200">
             <button
               onClick={() => toggleSection("sizeNotes")}
@@ -1183,7 +1242,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
         </div>
       </div >
 
-      {/* Yorumlar Bölümü */}
+      
       < ProductReviews
         productId={product.id}
         productName={product.name}
@@ -1202,20 +1261,20 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
         hasOrdered={hasOrdered}
       />
 
-      {/* Takımı Tamamla Bölümü (Look Configuration) */}
+      
       {product.lookConfiguration && product.lookConfiguration.items && product.lookConfiguration.items.length > 0 && (
         <LookConfigurationSection config={product.lookConfiguration} />
       )}
  
-      {/* Bu Ürünün Bir Parçası Olduğu Kombin (Parent Look) */}
+      
       {product.parentLookConfigs && product.parentLookConfigs.length > 0 && (
         <ParentLookConfigsSection configs={product.parentLookConfigs} />
       )}
 
-      {/* Son Görüntülenenler */}
+      
       <RecentlyViewedSection currentProductId={product.id} />
 
-      {/* Beden Rehberi Modal */}
+      
       <SizeGuideModal
         open={sizeGuideOpen}
         onOpenChange={setSizeGuideOpen}
@@ -1296,7 +1355,7 @@ function LookConfigurationSection({ config }: { config: any }) {
                   sizes="(max-width: 768px) 256px, 288px"
                 />
                 
-                {/* Hover Quick View Overlay */}
+                
                 <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
                   <span className="text-white text-[10px] font-bold tracking-[0.3em] uppercase border-b border-white pb-1">İncele</span>
                 </div>
@@ -1321,7 +1380,7 @@ function LookConfigurationSection({ config }: { config: any }) {
           ))}
         </div>
  
-        {/* Navigation Buttons */}
+        
         {config.items.length > 4 && (
           <>
             <button

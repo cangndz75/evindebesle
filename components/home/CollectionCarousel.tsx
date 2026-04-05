@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -133,7 +133,7 @@ export default function CollectionCarousel() {
   return (
     <section className="w-full bg-white py-16 md:py-24">
       <div className="w-full px-4 md:px-6">
-        {/* Header */}
+        
         <div className="mb-12 text-center">
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-light text-[#111] mb-3">
             ZAMANSIZ İKONLAR
@@ -143,9 +143,9 @@ export default function CollectionCarousel() {
           </p>
         </div>
 
-        {/* Carousel Container */}
+        
         <div className="relative w-full overflow-hidden">
-          {/* Scroll Container */}
+          
           <div
             ref={scrollContainerRef}
             onMouseDown={handleMouseDown}
@@ -201,7 +201,7 @@ export default function CollectionCarousel() {
             ))}
           </div>
 
-          {/* Navigation Buttons */}
+          
           <button
             onClick={scrollPrev}
             disabled={!canScrollPrev}

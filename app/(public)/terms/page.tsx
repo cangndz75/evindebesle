@@ -8,7 +8,7 @@ export const metadata = {
 export default function TermsPage() {
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Hero */}
+            
             <div className="bg-gradient-to-br from-gray-900 to-gray-800 text-white py-16 px-4">
                 <div className="max-w-4xl mx-auto text-center">
                     <div className="inline-flex items-center justify-center w-16 h-16 bg-white/10 rounded-full mb-6">
@@ -20,7 +20,7 @@ export default function TermsPage() {
             </div>
 
             <div className="max-w-4xl mx-auto px-4 py-12 space-y-10">
-                {/* Giriş */}
+                
                 <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
                     <div className="flex items-center gap-3 mb-4">
                         <div className="p-2 rounded-lg bg-indigo-100 text-indigo-700">
@@ -33,7 +33,7 @@ export default function TermsPage() {
                     </p>
                 </section>
 
-                {/* Üyelik ve Hesap */}
+                
                 <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
                     <div className="flex items-center gap-3 mb-4">
                         <div className="p-2 rounded-lg bg-blue-100 text-blue-700">
@@ -56,7 +56,7 @@ export default function TermsPage() {
                     </ul>
                 </section>
 
-                {/* Ürün ve Fiyatlandırma */}
+                
                 <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
                     <div className="flex items-center gap-3 mb-4">
                         <div className="p-2 rounded-lg bg-green-100 text-green-700">
@@ -77,7 +77,7 @@ export default function TermsPage() {
                     </div>
                 </section>
 
-                {/* Fikri Mülkiyet */}
+                
                 <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
                     <div className="flex items-center gap-3 mb-4">
                         <div className="p-2 rounded-lg bg-purple-100 text-purple-700">
@@ -90,7 +90,7 @@ export default function TermsPage() {
                     </p>
                 </section>
 
-                {/* Sorumluluk Sınırlandırması */}
+                
                 <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
                     <div className="flex items-center gap-3 mb-4">
                         <div className="p-2 rounded-lg bg-red-100 text-red-700">
@@ -103,7 +103,7 @@ export default function TermsPage() {
                     </p>
                 </section>
 
-                {/* Kapanış ve Tarih */}
+                
                 <section className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-8 text-center">
                     <div className="inline-flex items-center gap-2 text-gray-500 mb-4">
                         <Clock className="w-4 h-4" />

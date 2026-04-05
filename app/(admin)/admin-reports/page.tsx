@@ -93,7 +93,7 @@ export default function ReportsPage() {
         </Select>
       </div>
 
-      {/* Özet Kartlar */}
+      
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map((i) => (
@@ -149,9 +149,9 @@ export default function ReportsPage() {
         </div>
       ) : null}
 
-      {/* Grafikler */}
+      
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Gelir Trendi */}
+        
         <Card>
           <CardHeader>
             <CardTitle>Gelir Trendi</CardTitle>
@@ -172,7 +172,7 @@ export default function ReportsPage() {
           </CardContent>
         </Card>
 
-        {/* Sipariş Trendi */}
+        
         <Card>
           <CardHeader>
             <CardTitle>Sipariş Trendi</CardTitle>
@@ -194,7 +194,7 @@ export default function ReportsPage() {
         </Card>
       </div>
 
-      {/* Kategori Kırılımı */}
+      
       <Card>
         <CardHeader>
           <CardTitle>Kategori Kırılımı</CardTitle>
@@ -244,7 +244,7 @@ export default function ReportsPage() {
         </CardContent>
       </Card>
 
-      {/* En Çok Satan Ürünler */}
+      
       <Card>
         <CardHeader>
           <CardTitle>En Çok Satan Ürünler</CardTitle>

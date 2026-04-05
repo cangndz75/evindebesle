@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -86,7 +86,7 @@ function StickyMobileCard({ item, index, total }: { item: SplitItem; index: numb
 export default function SplitShowcase() {
   return (
     <section className="w-full bg-white py-0">
-      {/* Mobile: Horizontal Swipeable Carousel */}
+      
       <div className="md:hidden">
         <div
           className="flex gap-4 overflow-x-auto snap-x snap-mandatory px-4 py-8 scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
@@ -97,7 +97,7 @@ export default function SplitShowcase() {
               href={item.href}
               className="flex-shrink-0 w-[85vw] snap-center group"
             >
-              {/* Görsel Kart */}
+              
               <div className="relative aspect-[3/4] overflow-hidden rounded-lg bg-gray-100">
                 <Image
                   src={item.image}
@@ -110,7 +110,7 @@ export default function SplitShowcase() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
               </div>
 
-              {/* Yazılar - Altta */}
+              
               <div className="mt-4 text-center">
                 <h3 className="text-xl font-light text-[#111] mb-1">
                   {item.title}
@@ -127,7 +127,7 @@ export default function SplitShowcase() {
         </div>
       </div>
 
-      {/* Desktop: Original layout */}
+      
       <div className="hidden md:grid grid-cols-2 min-h-[850px] bg-white">
         <Link
           href={splitItems[0].href}

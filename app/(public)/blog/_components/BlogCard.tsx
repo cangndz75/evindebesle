@@ -27,7 +27,7 @@ export default function BlogCard({ post }: { post: BlogPost }) {
           })}
         </p>
 
-        {/* Başlık */}
+        
         <h2 className="font-extrabold leading-tight">
           <Link
             href={`/blog/${post.slug}`}

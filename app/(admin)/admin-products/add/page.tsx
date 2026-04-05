@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
@@ -238,7 +238,7 @@ export default function AddProductPage() {
   return (
     <div className="min-h-screen bg-gray-50/50 pb-20">
       <FormProvider {...methods}>
-        {/* Header */}
+        
         <header className="sticky top-0 z-30 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shadow-sm">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-gray-500 hover:text-gray-900">
@@ -266,14 +266,14 @@ export default function AddProductPage() {
           </div>
         </header>
 
-        {/* Main Content */}
+        
         <main className="max-w-[1600px] mx-auto p-6 md:p-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
-            {/* LEFT COLUMN - FORM COMPONENTS */}
+            
             <div className="lg:col-span-8 space-y-8">
 
-              {/* 1. Basic Info */}
+              
               <ProductInfo
                 name={watch("name")}
                 setName={(val) => setValue("name", val)}
@@ -284,7 +284,7 @@ export default function AddProductPage() {
               />
               {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
 
-              {/* 2. Media */}
+              
               <ProductMedia
                 uploadedImages={watch("uploadedImages") || []}
                 primaryImage={watch("primaryImage") || ""}
@@ -299,7 +299,7 @@ export default function AddProductPage() {
                 }}
               />
 
-              {/* 3. Pricing */}
+              
               <ProductPricingInventory
                 price={String(watch("price"))} setPrice={(val) => setValue("price", Number(val))}
                 originalPrice={String(watch("originalPrice") || "")} setOriginalPrice={(val) => setValue("originalPrice", Number(val))}
@@ -312,7 +312,7 @@ export default function AddProductPage() {
               />
               {errors.price && <p className="text-red-500 text-sm">{errors.price.message}</p>}
 
-              {/* 3.5. Size Stock (Simple Product) */}
+              
               <ProductSizeStock
                 sizeType={watch("sizeType")} setSizeType={(val) => setValue("sizeType", val)}
                 mainStock={watch("simpleStock") || {}} setMainStock={(val) => setValue("simpleStock", val)}
@@ -322,7 +322,7 @@ export default function AddProductPage() {
                 isTrackInventory={watch("isTrackInventory")}
               />
 
-              {/* 4. Variants */}
+              
               <ProductVariants
                 isVariable={watch("isVariable")} setIsVariable={(val) => setValue("isVariable", val)}
                 sizeType={watch("sizeType")} setSizeType={(val) => setValue("sizeType", val)}
@@ -360,7 +360,7 @@ export default function AddProductPage() {
 
             </div>
 
-            {/* RIGHT COLUMN */}
+            
             <div className="lg:col-span-4 space-y-8">
               <div className="sticky top-24 space-y-8">
                 <ProductSidebar

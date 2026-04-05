@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -185,7 +185,7 @@ export default function OrdersPage() {
           </TabsTrigger>
         </TabsList>
 
-        {/* Ürün Siparişleri */}
+        
         <TabsContent value="products" className="space-y-4">
           {loadingOrders ? (
             <div className="space-y-4">
@@ -234,7 +234,7 @@ export default function OrdersPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {/* Ürünler */}
+                      
                       <div className="space-y-3">
                         {order.items.map((item) => (
                           <div
@@ -290,7 +290,7 @@ export default function OrdersPage() {
                                 </Link>
                               )}
 
-                              {/* Sipariş teslim edildiyse yorum yap butonu göster */}
+                              
                               {order.status === "DELIVERED" && (
                                 <Button
                                   variant="outline"
@@ -311,7 +311,7 @@ export default function OrdersPage() {
                         ))}
                       </div>
 
-                      {/* Kargo Bilgisi */}
+                      
                       {order.trackingNumber && (
                         <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
                           <Truck className="w-5 h-5 text-blue-600" />
@@ -322,7 +322,7 @@ export default function OrdersPage() {
                         </div>
                       )}
 
-                      {/* Teslimat Adresi */}
+                      
                       {order.shippingAddress && (
                         <div className="text-sm text-gray-600">
                           <p className="font-medium mb-1">Teslimat Adresi:</p>
@@ -332,9 +332,9 @@ export default function OrdersPage() {
                         </div>
                       )}
 
-                      {/* Detay ve Fatura Butonları */}
+                      
                       <div className="flex flex-wrap justify-end gap-2 pt-2 border-t">
-                        {/* İade Talep Et - Sadece teslim edilmiş siparişler için */}
+                        
                         {order.status === "DELIVERED" && (
                           <Button
                             variant="outline"
@@ -346,7 +346,7 @@ export default function OrdersPage() {
                           </Button>
                         )}
 
-                        {/* Fatura İndir - Sadece ödeme yapılmış siparişler için */}
+                        
                         {(order.paymentStatus === "PAID" || order.paymentStatus === "SUCCEEDED") && (
                           <Button
                             variant="outline"
@@ -376,7 +376,7 @@ export default function OrdersPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Product Review Modal */}
+      
       {selectedReviewProduct && (
         <ProductReviewModal
           isOpen={reviewModalOpen}
@@ -389,7 +389,7 @@ export default function OrdersPage() {
         />
       )}
 
-      {/* Return Request Modal */}
+      
       <ReturnRequestModal
         isOpen={returnModalOpen}
         onClose={() => setReturnModalOpen(false)}

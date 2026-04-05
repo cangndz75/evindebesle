@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
@@ -211,12 +211,12 @@ export default function HomeHeader() {
 
     return (
         <>
-            {/* Announcement Banner - Scrolls away */}
+            
             <div className="w-full bg-black text-white text-[11px] tracking-[0.18em] uppercase text-center h-9 flex items-center justify-center">
                 ÜCRETSİZ KARGO {freeShippingThreshold ? `${Math.round(freeShippingThreshold)}₺+` : "999₺+"}
             </div>
 
-            {/* Fixed Navbar - Sticks to top on scroll */}
+            
             <header
                 className={`w-full bg-white border-b border-black/10 transition-all duration-300 ${isScrolled ? "fixed top-0 left-0 right-0 z-[100] shadow-sm" : "relative"
                     }`}
@@ -224,9 +224,9 @@ export default function HomeHeader() {
             >
                 <nav className="w-full px-4 md:px-8">
                     <div className="relative flex items-center justify-between h-16 md:h-20">
-                        {/* Sol: Menü */}
+                        
                         <div className="flex items-center gap-3 md:gap-4 lg:gap-6">
-                            {/* Desktop Navigation */}
+                            
                             <div className="hidden md:flex items-center gap-3 md:gap-4 lg:gap-6">
                                 {navItems.map((item) => (
                                     <div
@@ -246,7 +246,7 @@ export default function HomeHeader() {
                                 ))}
                             </div>
 
-                            {/* Mobile Menu */}
+                            
                             <Sheet open={menuOpen} onOpenChange={(open) => {
                                 setMenuOpen(open);
                                 if (!open) setMobileMenuState("main");
@@ -375,7 +375,7 @@ export default function HomeHeader() {
                                             <span>Sepet</span>
                                         </button>
 
-                                        {/* Login/Logout Button - Centered at Bottom */}
+                                        
                                         <div className="pt-4 border-t">
                                             {session?.user ? (
                                                 <button
@@ -402,7 +402,7 @@ export default function HomeHeader() {
                                 </SheetContent>
                             </Sheet>
 
-                            {/* Mobile Logo */}
+                            
                             <Link href="/home" className="md:hidden ml-3" aria-label="Ana Sayfa">
                                 <span className="text-xl font-serif font-light tracking-wider text-[#111] whitespace-nowrap">
                                     DARK VELVET
@@ -410,7 +410,7 @@ export default function HomeHeader() {
                             </Link>
                         </div>
 
-                        {/* Orta: Logo - Desktop */}
+                        
                         <Link
                             href="/home"
                             className="hidden md:block absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2"
@@ -421,7 +421,7 @@ export default function HomeHeader() {
                             </span>
                         </Link>
 
-                        {/* Sağ: İkonlar */}
+                        
                         <div className="flex items-center gap-4 md:gap-6">
                             <button
                                 onClick={() => setSearchModalOpen(true)}
@@ -466,7 +466,7 @@ export default function HomeHeader() {
                     </div>
                 </nav>
 
-                {/* Desktop Mega Menu */}
+                
                 {openMenu && (
                     <div
                         className="hidden md:block absolute left-0 right-0 top-full z-50 bg-white border-t border-black/10 shadow-lg"
@@ -525,17 +525,17 @@ export default function HomeHeader() {
                     </div>
                 )}
 
-                {/* Search Modal */}
+                
                 <SearchModal isOpen={searchModalOpen} onClose={() => setSearchModalOpen(false)} />
 
-                {/* Cart Preview Popup */}
+                
                 <CartPreview cartIconRef={cartIconRef} headerBottom={isScrolled ? 80 : 116} />
             </header>
 
-            {/* Spacer when navbar is fixed - includes banner height */}
+            
             {isScrolled && <div className="h-[100px] md:h-[116px]" />}
 
-            {/* Shopping Cart Sidebar */}
+            
             <ShoppingCart isOpen={cartOpen} onClose={() => setCartOpen(false)} />
         </>
     );

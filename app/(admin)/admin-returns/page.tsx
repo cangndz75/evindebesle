@@ -203,7 +203,7 @@ export default function AdminReturnsPage() {
                 </CardContent>
             </Card>
 
-            {/* İade Detay Modal */}
+            
             <Dialog open={modalOpen} onOpenChange={setModalOpen}>
                 <DialogContent className="max-w-2xl">
                     <DialogHeader>

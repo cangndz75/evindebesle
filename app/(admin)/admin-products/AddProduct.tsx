@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import {
   Dialog,
@@ -558,7 +558,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
               </p>
             </div>
 
-            {/* Ana Renk */}
+            
             <div className="border-t border-gray-200 pt-5 md:pt-4 mt-5 md:mt-4">
               <Label className="text-base md:text-base font-semibold mb-4 md:mb-3 block">Ana Renk</Label>
               {!primaryColor ? (
@@ -1147,14 +1147,14 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
           </TabsContent>
 
           <TabsContent value="stock" className="space-y-5 md:space-y-4 mt-4 md:mt-4 flex-1 overflow-y-auto px-4 md:px-0 pb-4 md:pb-0">
-            {/* Ana Ürün Stok ve Fiyat */}
+            
             <div className="space-y-4 border-b border-gray-200 pb-4">
               <div>
                 <Label className="text-lg font-semibold">Ana Ürün</Label>
                 <p className="text-sm text-muted-foreground mb-4">Ana ürün için genel stok ve fiyat ayarları</p>
               </div>
 
-              {/* Ana Ürün Fiyat */}
+              
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Fiyat (Ana Ürün)</Label>
@@ -1168,7 +1168,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                 </div>
               </div>
 
-              {/* Ana Ürün Beden Stokları */}
+              
               {sizeType && selectedSizeOptions.length > 0 && (
                 <div>
                   <Label>Beden Stokları (Ana Ürün)</Label>
@@ -1208,14 +1208,14 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
               )}
             </div>
 
-            {/* Ana Renk Stok ve Fiyat */}
+            
             {primaryColor && (
               <div className="space-y-4 border-b pb-4">
                 <div>
                   <Label className="text-lg font-semibold">Ana Renk: {primaryColor.name}</Label>
                 </div>
 
-                {/* Ana Renk Fiyat */}
+                
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label>Fiyat ({primaryColor.name})</Label>
@@ -1234,7 +1234,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                   </div>
                 </div>
 
-                {/* Ana Renk Beden Stokları */}
+                
                 {sizeType && selectedSizeOptions.length > 0 && (
                   <div>
                     <Label>Beden Stokları ({primaryColor.name})</Label>
@@ -1269,14 +1269,14 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
               </div>
             )}
 
-            {/* Diğer Renkler Stok ve Fiyat */}
+            
             {colors.map((color, colorIndex) => (
               <div key={colorIndex} className="space-y-4 border-b pb-4">
                 <div>
                   <Label className="text-lg font-semibold">Renk: {color.name}</Label>
                 </div>
 
-                {/* Renk Fiyat */}
+                
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label>Fiyat ({color.name})</Label>
@@ -1297,7 +1297,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                   </div>
                 </div>
 
-                {/* Renk Beden Stokları */}
+                
                 {sizeType && selectedSizeOptions.length > 0 && (
                   <div>
                     <Label>Beden Stokları ({color.name})</Label>

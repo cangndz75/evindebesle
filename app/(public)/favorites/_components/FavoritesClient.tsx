@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
@@ -121,7 +121,7 @@ export default function FavoritesClient({
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 md:py-6">
-        {/* Header */}
+        
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-light text-[#111]">
             Favorilerim
@@ -142,7 +142,7 @@ export default function FavoritesClient({
           </Tooltip>
         </div>
 
-        {/* Favorites Grid */}
+        
         {favoritesList.length === 0 ? (
           <div className="text-center py-12 text-[#111]/60">
             <p className="text-lg mb-4">Henüz favori ürününüz yok</p>
@@ -203,7 +203,7 @@ export default function FavoritesClient({
                     </div>
                   </div>
 
-                  {/* Renk Seçenekleri */}
+                  
                   {product.colors && product.colors.length > 0 && (
                     <div className="flex items-center justify-center gap-1.5 mb-2">
                       {Array.from(new Map(product.colors.filter((c: any) => c.images?.[0]).map((c: any) => [c.hexCode || c.name, c])).values()).map((color: any, idx: number) => (
@@ -219,7 +219,7 @@ export default function FavoritesClient({
                     </div>
                   )}
 
-                  {/* Hover'da Hızlı Ekle Bölümü - Collapsible Grid */}
+                  
                   <div className="hidden md:grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-all duration-300 ease-in-out opacity-0 group-hover:opacity-100">
                     <div className="overflow-hidden">
                       <div className="mt-4 pt-4 border-t border-gray-100 px-4 pb-4">
@@ -358,7 +358,7 @@ export default function FavoritesClient({
           </div>
         )}
 
-        {/* Takımı Tamamla Section */}
+        
         {completeTheSet.length > 0 && (
           <div className="mt-16">
             <h2 className="text-2xl md:text-3xl font-light text-[#111] mb-8 text-center">

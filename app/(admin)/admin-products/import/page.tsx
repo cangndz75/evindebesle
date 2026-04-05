@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useRef, useCallback } from "react";
 import { Upload, FileSpreadsheet, X, CheckCircle, AlertCircle, Loader2, Package } from "lucide-react";
@@ -106,7 +106,7 @@ export default function ProductImportPage() {
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6">
-      {/* Başlık */}
+      
       <div className="flex items-center gap-3">
         <FileSpreadsheet className="w-7 h-7 text-green-600" />
         <div>
@@ -117,7 +117,7 @@ export default function ProductImportPage() {
         </div>
       </div>
 
-      {/* Bilgi kutusu */}
+      
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800 space-y-1">
         <p className="font-semibold">Desteklenen Format</p>
         <p>• Trendyol ürün listesi formatı (.xlsx)</p>
@@ -125,7 +125,7 @@ export default function ProductImportPage() {
         <p>• Daha önce import edilmiş ürünler (aynı stok kodu) güncellenir</p>
       </div>
 
-      {/* Dosya Yükleme Alanı */}
+      
       {!file && (
         <div
           onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
@@ -152,7 +152,7 @@ export default function ProductImportPage() {
         </div>
       )}
 
-      {/* Dosya seçildi */}
+      
       {file && (
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -168,7 +168,7 @@ export default function ProductImportPage() {
         </div>
       )}
 
-      {/* Preview yükleniyor */}
+      
       {previewing && (
         <div className="flex items-center gap-3 text-gray-600">
           <Loader2 className="w-5 h-5 animate-spin" />
@@ -176,7 +176,7 @@ export default function ProductImportPage() {
         </div>
       )}
 
-      {/* Preview Sonuçları */}
+      
       {previewData && !importResult && (
         <div className="space-y-4">
           <div className="grid grid-cols-3 gap-4">
@@ -196,7 +196,7 @@ export default function ProductImportPage() {
             </div>
           </div>
 
-          {/* Preview Tablo */}
+          
           <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
             <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
               <h2 className="font-semibold text-gray-900">
@@ -257,7 +257,7 @@ export default function ProductImportPage() {
             </div>
           </div>
 
-          {/* Import Butonu */}
+          
           <div className="flex gap-3">
             <button
               onClick={handleImport}
@@ -282,7 +282,7 @@ export default function ProductImportPage() {
         </div>
       )}
 
-      {/* Import Sonuç */}
+      
       {importResult && (
         <div className="space-y-4">
           <div className="grid grid-cols-4 gap-4">

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -156,7 +156,7 @@ export default function MenProductsPage() {
   return (
     <div className="min-h-screen bg-white pt-[65px] md:pt-[81px]">
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
-        {/* Breadcrumb */}
+        
         <nav className="mb-4">
           <Link href="/" className="text-sm text-[#111]/60 font-light hover:text-[#111]">
             Ana Sayfa
@@ -165,12 +165,12 @@ export default function MenProductsPage() {
           <span className="text-sm text-[#111] font-light">Erkek</span>
         </nav>
 
-        {/* Title */}
+        
         <h1 className="text-3xl md:text-4xl lg:text-5xl font-light text-[#111] mb-6">
           Erkek
         </h1>
 
-        {/* Category Filters */}
+        
         <div className="flex flex-wrap gap-2 mb-6">
           {categories.map((category) => (
             <button
@@ -187,7 +187,7 @@ export default function MenProductsPage() {
           ))}
         </div>
 
-        {/* Filter and Sort */}
+        
         <div className="flex items-center justify-between mb-8">
           <Sheet>
             <SheetTrigger asChild>
@@ -232,7 +232,7 @@ export default function MenProductsPage() {
           </div>
         </div>
 
-        {/* Product Grid */}
+        
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
           {products.map((product) => {
             const isColorActive = hoveredColor?.productId === product.id || selectedColor?.productId === product.id;

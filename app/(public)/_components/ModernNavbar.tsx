@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -48,7 +48,7 @@ export default function ModernNavbar() {
     <nav className="w-full bg-white/95 backdrop-blur-sm border-b border-gray-100">
       <div className="max-w-7xl mx-auto pl-4 md:pl-8 pr-0">
         <div className="relative flex items-center justify-between h-16 md:h-20">
-          {/* Sol: Menü */}
+          
           <div className="flex items-center gap-4 md:gap-6 flex-shrink-0">
             <Link
               href="/men"
@@ -134,7 +134,7 @@ export default function ModernNavbar() {
             </Sheet>
           </div>
 
-          {/* Orta: Logo - Absolute positioned for perfect centering */}
+          
           <Link
             href="/home"
             className="absolute left-1/2 -translate-x-1/2"
@@ -144,7 +144,7 @@ export default function ModernNavbar() {
             </span>
           </Link>
 
-          {/* Sağ: İkonlar */}
+          
           <div className="flex items-center gap-4 md:gap-6 flex-shrink-0 ml-auto pr-4 md:pr-8">
             <button
               className="text-black hover:opacity-70 transition-opacity"
@@ -187,7 +187,7 @@ export default function ModernNavbar() {
         </div>
       </div>
 
-      {/* Shopping Cart Sidebar */}
+      
       <ShoppingCart isOpen={cartOpen} onClose={() => setCartOpen(false)} />
     </nav>
   );

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -54,7 +54,7 @@ export default function CategoryShowcase({
               href={item.href}
               className={`group block relative ${!isLast ? 'border-r border-gray-200' : ''}`}
             >
-              {/* Product/Category Image */}
+              
               <div className="relative w-full aspect-square overflow-hidden bg-white">
                 <Image
                   src={itemImage}

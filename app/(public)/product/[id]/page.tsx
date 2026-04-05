@@ -1,4 +1,4 @@
-﻿import { Metadata } from "next";
+import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { cache } from "react";
@@ -207,7 +207,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   return (
     <>
-      {/* JSON-LD Structured Data */}
+      
       <ProductSchema
         product={{
           name: product.name,
@@ -251,7 +251,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
         ]}
       />
 
-      {/* Ürün Detay Sayfası */}
+      
       <ProductDetailPage product={productData} />
     </>
   );

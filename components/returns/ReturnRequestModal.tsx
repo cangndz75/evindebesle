@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import {
@@ -164,7 +164,7 @@ export default function ReturnRequestModal({
                     </DialogDescription>
                 </DialogHeader>
 
-                {/* Progress Steps */}
+                
                 <div className="flex items-center justify-center gap-2 py-4">
                     {[1, 2, 3].map((s) => (
                         <div key={s} className="flex items-center">
@@ -192,7 +192,7 @@ export default function ReturnRequestModal({
                     ))}
                 </div>
 
-                {/* Step 1: Select Items */}
+                
                 {step === 1 && (
                     <div className="space-y-4">
                         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
@@ -254,7 +254,7 @@ export default function ReturnRequestModal({
                                                 </Badge>
                                             </div>
 
-                                            {/* Quantity and Reason (if selected) */}
+                                            
                                             {isSelected && (
                                                 <div className="mt-3 space-y-2 pt-3 border-t">
                                                     <div className="flex items-center gap-2">
@@ -303,7 +303,7 @@ export default function ReturnRequestModal({
                     </div>
                 )}
 
-                {/* Step 2: General Reason & Description */}
+                
                 {step === 2 && (
                     <div className="space-y-4">
                         <div>
@@ -333,7 +333,7 @@ export default function ReturnRequestModal({
                     </div>
                 )}
 
-                {/* Step 3: Summary & Confirm */}
+                
                 {step === 3 && (
                     <div className="space-y-4">
                         <div className="bg-gray-50 rounded-lg p-4 space-y-3">

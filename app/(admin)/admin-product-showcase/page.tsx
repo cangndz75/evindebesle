@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
@@ -197,7 +197,7 @@ export default function AdminShowcasePage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Ürün Arama */}
+        
         <Card>
           <CardHeader>
             <CardTitle>Ürün Ara ve Ekle</CardTitle>
@@ -293,7 +293,7 @@ export default function AdminShowcasePage() {
           </CardContent>
         </Card>
 
-        {/* Vitrin Listesi */}
+        
         <Card>
           <CardHeader>
              <CardTitle className="flex justify-between items-center">

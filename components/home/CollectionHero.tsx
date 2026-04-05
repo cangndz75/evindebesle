@@ -9,7 +9,7 @@ export default function CollectionHero() {
     <section className="w-full bg-white py-16 md:py-24">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
-          {/* Sol - Görsel */}
+          
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -29,7 +29,7 @@ export default function CollectionHero() {
             />
           </motion.div>
 
-          {/* Sağ - İçerik */}
+          
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             whileInView={{ opacity: 1, x: 0 }}

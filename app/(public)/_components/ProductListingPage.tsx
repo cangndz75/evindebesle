@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -163,7 +163,7 @@ export default function ProductListingPage() {
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
-        {/* Breadcrumb */}
+        
         <nav className="mb-4">
           <Link href="/" className="text-sm text-[#111]/60 font-light hover:text-[#111]">
             All products
@@ -172,12 +172,12 @@ export default function ProductListingPage() {
           <span className="text-sm text-[#111] font-light">Travel bags</span>
         </nav>
 
-        {/* Title */}
+        
         <h1 className="text-3xl md:text-4xl lg:text-5xl font-light text-[#111] mb-6">
           Travel bags
         </h1>
 
-        {/* Category Filters */}
+        
         <div className="flex flex-wrap gap-2 mb-6">
           {categories.map((category) => (
             <button
@@ -193,7 +193,7 @@ export default function ProductListingPage() {
           ))}
         </div>
 
-        {/* Filter and Sort */}
+        
         <div className="flex items-center justify-between mb-8">
           <Sheet>
             <SheetTrigger asChild>
@@ -207,7 +207,7 @@ export default function ProductListingPage() {
                 <SheetTitle>Filters</SheetTitle>
               </SheetHeader>
               <div className="mt-8 space-y-6">
-                {/* Filter content will go here */}
+                
                 <div>
                   <h3 className="text-sm font-light uppercase mb-4">COLOR</h3>
                   <div className="grid grid-cols-4 gap-3">
@@ -239,7 +239,7 @@ export default function ProductListingPage() {
           </div>
         </div>
 
-        {/* Product Grid */}
+        
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
           {products.map((product) => {
             const isColorActive = hoveredColor?.productId === product.id || selectedColor?.productId === product.id;
@@ -255,7 +255,7 @@ export default function ProductListingPage() {
               <div key={product.id} className="group">
                 <Link href={product.slug ? `/products/${product.slug}` : `/product/${product.id}`} className="block">
                   <div className="relative aspect-[3/4] mb-4 overflow-hidden bg-gray-100">
-                    {/* Main Image */}
+                    
                     <Image
                       src={currentImage}
                       alt={product.name}
@@ -264,7 +264,7 @@ export default function ProductListingPage() {
                       sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                       unoptimized
                     />
-                    {/* Hover Image */}
+                    
                     {!isColorActive && product.hoverImage && (
                       <Image
                         src={product.hoverImage}
@@ -275,13 +275,13 @@ export default function ProductListingPage() {
                         unoptimized
                       />
                     )}
-                    {/* Badge */}
+                    
                     {product.badge && (
                       <div className="absolute top-3 right-3 bg-[#111] text-white text-[10px] px-2 py-1 uppercase font-light">
                         {product.badge}
                       </div>
                     )}
-                    {/* Heart Icon */}
+                    
                     <button
                       className="absolute bottom-3 right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-100"
                       onClick={(e) => {
@@ -294,7 +294,7 @@ export default function ProductListingPage() {
                   </div>
                 </Link>
 
-                {/* Product Info */}
+                
                 <div className="mb-2">
                   <h3 className="text-sm md:text-base font-light text-[#111] mb-1">
                     {product.name}
@@ -322,7 +322,7 @@ export default function ProductListingPage() {
                   )}
                 </div>
 
-                {/* Color Options */}
+                
                 <div className="flex items-center gap-1.5">
                   {product.colors.map((color, idx) => {
                     const isActive = isColorActive && activeColorImage === color.image;

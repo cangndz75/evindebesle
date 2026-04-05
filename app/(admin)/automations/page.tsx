@@ -1,4 +1,4 @@
-﻿import { prisma } from "@/lib/db";
+import { prisma } from "@/lib/db";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -31,7 +31,7 @@ export default async function AutomationsPage() {
         <div className="p-8 space-y-6">
             <div className="flex justify-between items-center">
                 <h1 className="text-2xl font-bold">Otomasyonlar</h1>
-                {/* <Button>Yeni Otomasyon</Button> */}
+                
             </div>
 
             <div className="grid gap-6">

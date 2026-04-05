@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -134,13 +134,13 @@ export default function AuthTabs() {
 
   return (
     <div className="h-screen w-full flex flex-col lg:flex-row overflow-hidden bg-white">
-      {/* Mobil: Üstte Banner */}
+      
 
 
-      {/* Sol Taraf - Login/Register Form */}
+      
       <div className="w-full lg:w-1/2 flex items-center justify-center bg-white px-6 sm:px-8 md:px-12 py-8 overflow-y-auto">
         <div className="w-full max-w-md py-4">
-          {/* Tablar */}
+          
           <div className="flex mb-8 gap-2">
             <button
               className={`flex-1 py-3 text-sm font-semibold uppercase tracking-wider transition border-b-2 ${tab === "login"
@@ -323,7 +323,7 @@ export default function AuthTabs() {
         </div>
       </div>
 
-      {/* Sağ Taraf - Promosyon Banner */}
+      
       <div
         className="hidden lg:flex lg:w-1/2 relative items-center justify-center px-12 overflow-hidden bg-cover bg-center"
         style={{
@@ -350,7 +350,7 @@ export default function AuthTabs() {
         </div>
       </div>
 
-      {/* Mobil Footer (Sadece küçük ekranda) */}
+      
       <AuthFooter />
     </div>
   );

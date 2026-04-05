@@ -48,7 +48,7 @@ export function ProductPricingInventory({
         <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
             <h2 className="text-lg font-semibold mb-4 text-gray-900">Fiyatlandırma ve Stok</h2>
 
-            {/* Pricing Grid */}
+            
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <div>
                     <Label htmlFor="price" className="text-gray-700 font-medium">
@@ -104,7 +104,7 @@ export function ProductPricingInventory({
                 </div>
             </div>
 
-            {/* Inventory Header */}
+            
             <div className="flex items-center justify-between mb-4 border-t pt-6">
                 <h3 className="text-base font-semibold text-gray-900">Stok Yönetimi</h3>
                 <div className="flex items-center gap-2">
@@ -119,7 +119,7 @@ export function ProductPricingInventory({
                 </div>
             </div>
 
-            {/* Inventory Actions */}
+            
             {isTrackInventory && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                     <div>
@@ -156,7 +156,7 @@ export function ProductPricingInventory({
 
 
 
-            {/* Backorders */}
+            
             <div className="flex items-center gap-2 mb-6">
                 <Checkbox
                     id="backorders"
@@ -168,7 +168,7 @@ export function ProductPricingInventory({
                 </Label>
             </div>
 
-            {/* Tax */}
+            
             <div className="flex items-center gap-2 border-t pt-6">
                 <Checkbox
                     id="taxable"

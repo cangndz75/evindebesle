@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -42,7 +42,7 @@ export default function ProfilePage() {
 
   return (
     <div className="w-full">
-      {/* Başlık */}
+      
       <div className="mb-8">
         <h1 className="text-3xl font-light tracking-tight text-black mb-2">
           Kişisel Bilgilerim
@@ -52,7 +52,7 @@ export default function ProfilePage() {
         </p>
       </div>
 
-      {/* Tab Navigation */}
+      
       <div className="flex items-center gap-1 border-b border-gray-200 mb-8">
         <button
           onClick={() => setActiveTab("profile")}
@@ -82,12 +82,12 @@ export default function ProfilePage() {
         </button>
       </div>
 
-      {/* Email Verification Notice */}
+      
       <div className="mb-8">
         <EmailVerifyNotice />
       </div>
 
-      {/* Content */}
+      
       <div className="max-w-2xl">
         {activeTab === "profile" && (
           <div className="space-y-8">
@@ -104,7 +104,7 @@ export default function ProfilePage() {
           </div>
         )}
 
-        {/* Delete Account */}
+        
         <div className="mt-12 pt-8 border-t border-gray-200">
           <div className="space-y-2">
             <h3 className="text-sm font-medium text-black">Hesap İşlemleri</h3>

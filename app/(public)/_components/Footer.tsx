@@ -28,8 +28,8 @@ export default function Footer() {
           </p>
         </div>
 
-        {/* Sağ blok */}
-        {/* Sağ blok */}
+        
+        
         <div className="flex flex-col justify-between items-start md:items-end">
           <div className="space-y-2 text-[15px] md:text-right">
             <Link href="/kvkk" className="block hover:underline">

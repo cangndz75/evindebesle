@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { X, Plus, Minus, ChevronDown } from "lucide-react";
@@ -166,7 +166,7 @@ export default function ProductFilters({
 
   return (
     <div className="space-y-4">
-      {/* Active Filters */}
+      
       {activeFilters.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">
           {activeFilters.map((filter, idx) => (
@@ -194,21 +194,21 @@ export default function ProductFilters({
         </div>
       )}
 
-      {/* Filter Button */}
+      
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>
           <button className="flex items-center gap-2 px-4 py-2 text-sm font-light text-[#111] border border-[#111] bg-white hover:bg-[#111] hover:text-white transition-colors">
-            {/* Filter Icon - 3 lines with arrows on middle line */}
+            
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              {/* Top line (long) */}
+              
               <path d="M2 4H14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-              {/* Middle line (shorter with arrows) */}
+              
               <path d="M4 8H12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-              {/* Left arrow */}
+              
               <path d="M3 7L4 8L3 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-              {/* Right arrow */}
+              
               <path d="M13 7L12 8L13 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-              {/* Bottom line (long) */}
+              
               <path d="M2 12H14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
             <span>Filtrele</span>
@@ -225,7 +225,7 @@ export default function ProductFilters({
               defaultValue={["price", "size", "color", "fabric"]}
               className="w-full space-y-0"
             >
-              {/* Price Filter */}
+              
               <AccordionItem value="price" className="border-b border-gray-200">
                 <AccordionTrigger className="py-4 hover:no-underline px-0">
                   <div className="flex items-center justify-between w-full pr-4">
@@ -282,7 +282,7 @@ export default function ProductFilters({
                 </AccordionContent>
               </AccordionItem>
 
-              {/* Size Filter */}
+              
               {availableSizes.length > 0 && (
                 <AccordionItem value="size" className="border-b border-gray-200">
                   <AccordionTrigger className="py-4 hover:no-underline px-0">
@@ -313,7 +313,7 @@ export default function ProductFilters({
                 </AccordionItem>
               )}
 
-              {/* Color Filter */}
+              
               {availableColors.length > 0 && (
                 <AccordionItem value="color" className="border-b border-gray-200">
                   <AccordionTrigger className="py-4 hover:no-underline px-0">
@@ -344,7 +344,7 @@ export default function ProductFilters({
                 </AccordionItem>
               )}
 
-              {/* Fabric Type Filter */}
+              
               {availableFabricTypes.length > 0 && (
                 <AccordionItem value="fabric" className="border-b border-gray-200">
                   <AccordionTrigger className="py-4 hover:no-underline px-0">
@@ -376,7 +376,7 @@ export default function ProductFilters({
               )}
             </Accordion>
 
-            {/* Apply Button */}
+            
             <div className="pt-6 mt-4 border-t">
               <Button
                 onClick={applyFilters}

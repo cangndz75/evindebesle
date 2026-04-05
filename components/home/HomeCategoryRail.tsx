@@ -33,7 +33,7 @@ export default function HomeCategoryRail({ categories }: HomeCategoryRailProps) 
     return (
         <section className="w-full bg-white relative z-[1]">
             <div className="relative">
-                {/* Sol Ok - Desktop */}
+                
                 <button
                     onClick={() => scroll("left")}
                     className="absolute left-2 top-1/2 -translate-y-1/2 z-10 hidden md:flex items-center justify-center w-10 h-10 bg-white/90 backdrop-blur rounded-full shadow-md hover:bg-white transition-colors"
@@ -42,7 +42,7 @@ export default function HomeCategoryRail({ categories }: HomeCategoryRailProps) 
                     <ChevronLeft className="w-5 h-5 text-gray-800" />
                 </button>
 
-                {/* Kategori Slider */}
+                
                 <div
                     ref={scrollRef}
                     className="flex gap-0 overflow-x-auto scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
@@ -53,7 +53,7 @@ export default function HomeCategoryRail({ categories }: HomeCategoryRailProps) 
                             href={`/category/${category.slug}`}
                             className="group flex-shrink-0 w-[85vw] sm:w-[45vw] md:w-[calc(100vw/4)] lg:w-[calc(100vw/5)] xl:w-[calc(100vw/6)] relative"
                         >
-                            {/* Dikey resim container */}
+                            
                             <div className="relative aspect-[3/4] overflow-hidden bg-gray-100">
                                 {category.image ? (
                                     <Image
@@ -71,10 +71,10 @@ export default function HomeCategoryRail({ categories }: HomeCategoryRailProps) 
                                     </div>
                                 )}
 
-                                {/* Overlay gradient */}
+                                
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-80" />
 
-                                {/* Kategori adı - Alt kısımda */}
+                                
                                 <div className="absolute bottom-0 left-0 right-0 p-4">
                                     <h3 className="text-white text-sm md:text-base font-light tracking-wide uppercase text-center">
                                         {category.name}
@@ -85,7 +85,7 @@ export default function HomeCategoryRail({ categories }: HomeCategoryRailProps) 
                     ))}
                 </div>
 
-                {/* Sağ Ok - Desktop */}
+                
                 <button
                     onClick={() => scroll("right")}
                     className="absolute right-2 top-1/2 -translate-y-1/2 z-10 hidden md:flex items-center justify-center w-10 h-10 bg-white/90 backdrop-blur rounded-full shadow-md hover:bg-white transition-colors"

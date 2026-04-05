@@ -65,7 +65,7 @@ export default function AnalyticsFilters({
                 <span className="text-sm font-medium text-gray-700">Filtreler:</span>
             </div>
 
-            {/* Event Type Filter */}
+            
             <Select
                 value={filters.eventType || "all"}
                 onValueChange={(value) =>
@@ -85,7 +85,7 @@ export default function AnalyticsFilters({
                 </SelectContent>
             </Select>
 
-            {/* Device Filter */}
+            
             <Select
                 value={filters.device || "all"}
                 onValueChange={(value) =>
@@ -105,7 +105,7 @@ export default function AnalyticsFilters({
                 </SelectContent>
             </Select>
 
-            {/* Page Filter */}
+            
             <input
                 type="text"
                 placeholder="Sayfa filtrele..."
@@ -116,7 +116,7 @@ export default function AnalyticsFilters({
                 className="px-3 py-2 border rounded-md text-sm w-[200px]"
             />
 
-            {/* Clear Filters Button */}
+            
             {hasActiveFilters && (
                 <Button
                     variant="ghost"

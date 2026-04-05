@@ -60,7 +60,7 @@ export default function BrandShowcase({ title, items }: BrandShowcaseProps) {
   return (
     <section className="w-full bg-white py-12 md:py-16">
       <div className="w-full">
-        {/* Header */}
+        
         <div className="flex items-center justify-between mb-8 px-4 md:px-8">
           <h2 className="text-xl md:text-2xl font-light text-[#111] uppercase tracking-wide">
             {title}
@@ -74,7 +74,7 @@ export default function BrandShowcase({ title, items }: BrandShowcaseProps) {
           </Link>
         </div>
 
-        {/* Carousel Container */}
+        
         <div className="relative w-full overflow-hidden">
           <div
             ref={scrollContainerRef}
@@ -102,7 +102,7 @@ export default function BrandShowcase({ title, items }: BrandShowcaseProps) {
             ))}
           </div>
 
-          {/* Navigation Buttons */}
+          
           <button
             onClick={scrollPrev}
             disabled={!canScrollPrev}

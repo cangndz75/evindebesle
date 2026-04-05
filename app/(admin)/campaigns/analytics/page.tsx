@@ -142,7 +142,7 @@ function AnalyticsContent() {
 
     return (
         <div className="p-6 max-w-7xl mx-auto space-y-6">
-            {/* Header */}
+            
             <div className="flex items-center justify-between">
                 <div>
                     <div className="flex items-center gap-3 mb-2">
@@ -172,7 +172,7 @@ function AnalyticsContent() {
                 </div>
             </div>
 
-            {/* Stats Cards */}
+            
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -231,7 +231,7 @@ function AnalyticsContent() {
                 </Card>
             </div>
 
-            {/* Tabs */}
+            
             <Tabs defaultValue="timeline" className="space-y-4">
                 <TabsList>
                     <TabsTrigger value="timeline">Zaman Çizelgesi</TabsTrigger>
@@ -239,7 +239,7 @@ function AnalyticsContent() {
                     <TabsTrigger value="recipients">Alıcılar</TabsTrigger>
                 </TabsList>
 
-                {/* Timeline Tab */}
+                
                 <TabsContent value="timeline">
                     <Card>
                         <CardHeader>
@@ -290,7 +290,7 @@ function AnalyticsContent() {
                     </Card>
                 </TabsContent>
 
-                {/* Links Tab */}
+                
                 <TabsContent value="links">
                     <Card>
                         <CardHeader>
@@ -359,7 +359,7 @@ function AnalyticsContent() {
                     </Card>
                 </TabsContent>
 
-                {/* Recipients Tab */}
+                
                 <TabsContent value="recipients">
                     <Card>
                         <CardHeader>

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Image from "next/image";
 import { useState, useEffect } from "react";
@@ -57,7 +57,7 @@ export default function FashionHero() {
 
   return (
     <section className="relative w-full h-[70vh] sm:h-[75vh] md:h-[80vh] lg:h-[85vh] xl:h-[90vh] overflow-hidden bg-gray-100">
-      {/* Arka Plan Görseli */}
+      
       <div className="absolute inset-0">
         <Image
           src={current.image}
@@ -71,23 +71,23 @@ export default function FashionHero() {
         />
       </div>
 
-      {/* İçerik - Sol Tarafta */}
+      
       <div className="relative z-10 h-full flex items-center">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 w-full">
           <div className="max-w-xl lg:max-w-2xl">
-            {/* Tag */}
+            
             <div className="mb-4 sm:mb-5 md:mb-6">
               <span className="inline-block px-3 py-1 sm:px-4 sm:py-1.5 bg-gray-200/90 backdrop-blur-sm text-gray-700 text-[10px] sm:text-xs md:text-sm font-light tracking-wider rounded-full">
                 YENİ KOLEKSİYON
               </span>
             </div>
 
-            {/* Başlık */}
+            
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-serif font-light text-black mb-3 sm:mb-4 leading-tight">
               {current.title}
             </h1>
 
-            {/* Alt Başlıklar */}
+            
             <div className="flex items-center gap-4 mb-6 sm:mb-7 md:mb-8">
               <p className="text-sm sm:text-base md:text-lg text-gray-700 font-light">
                 {current.subtitle}
@@ -102,7 +102,7 @@ export default function FashionHero() {
               )}
             </div>
 
-            {/* CTA Butonları */}
+            
             <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 mb-6 sm:mb-7 md:mb-8">
               <button className="px-5 py-2 sm:px-6 sm:py-2.5 md:px-8 md:py-3 border border-gray-800 text-gray-800 font-light tracking-wide hover:bg-gray-800 hover:text-white transition-all duration-300 text-xs sm:text-sm md:text-base bg-transparent whitespace-nowrap">
                 {current.cta1}
@@ -112,7 +112,7 @@ export default function FashionHero() {
               </button>
             </div>
 
-            {/* Not - Alt Sol Köşe */}
+            
             <p className="text-[10px] sm:text-xs md:text-sm text-gray-600 font-light">
               {current.note}
             </p>
@@ -120,7 +120,7 @@ export default function FashionHero() {
         </div>
       </div>
 
-      {/* Navigasyon Okları */}
+      
       {heroSlides.length > 1 && (
         <>
           <button
@@ -140,7 +140,7 @@ export default function FashionHero() {
         </>
       )}
 
-      {/* Pagination Dots - Alt Orta */}
+      
       {heroSlides.length > 1 && (
         <div className="absolute bottom-4 sm:bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 flex gap-2 z-20">
           {heroSlides.map((_, index) => (

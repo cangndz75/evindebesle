@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -114,7 +114,7 @@ export default function CompanySettingsClient() {
       <p className="text-gray-600 mb-8">Şirket bilgilerinizi ve genel ayarlarınızı yönetin</p>
 
       <div className="space-y-8">
-        {/* Genel Ayarlar */}
+        
         <div className="space-y-4">
           <h2 className="text-xl font-semibold">Genel Ayarlar</h2>
           <div className="space-y-2">
@@ -157,7 +157,7 @@ export default function CompanySettingsClient() {
 
         <Separator />
 
-        {/* Fatura Bilgileri */}
+        
         <div className="space-y-4">
           <div>
             <h2 className="text-xl font-semibold">Fatura Bilgileri</h2>
@@ -165,7 +165,7 @@ export default function CompanySettingsClient() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Şirket Ünvanı */}
+            
             <div className="space-y-2">
               <Label htmlFor="companyName">Şirket Ünvanı</Label>
               <Input
@@ -176,7 +176,7 @@ export default function CompanySettingsClient() {
               />
             </div>
 
-            {/* Telefon */}
+            
             <div className="space-y-2">
               <Label htmlFor="phone">Telefon</Label>
               <Input
@@ -188,7 +188,7 @@ export default function CompanySettingsClient() {
               />
             </div>
 
-            {/* E-posta */}
+            
             <div className="space-y-2">
               <Label htmlFor="email">E-posta</Label>
               <Input
@@ -200,7 +200,7 @@ export default function CompanySettingsClient() {
               />
             </div>
 
-            {/* Web Sitesi */}
+            
             <div className="space-y-2">
               <Label htmlFor="website">Web Sitesi</Label>
               <Input
@@ -212,7 +212,7 @@ export default function CompanySettingsClient() {
               />
             </div>
 
-            {/* Vergi Dairesi */}
+            
             <div className="space-y-2">
               <Label htmlFor="taxOffice">Vergi Dairesi</Label>
               <Input
@@ -223,7 +223,7 @@ export default function CompanySettingsClient() {
               />
             </div>
 
-            {/* Vergi Numarası */}
+            
             <div className="space-y-2">
               <Label htmlFor="taxNumber">Vergi Numarası</Label>
               <Input
@@ -235,7 +235,7 @@ export default function CompanySettingsClient() {
             </div>
           </div>
 
-          {/* Adres */}
+          
           <div className="space-y-2">
             <Label htmlFor="companyAddress">Şirket Adresi</Label>
             <Textarea
@@ -247,7 +247,7 @@ export default function CompanySettingsClient() {
             />
           </div>
 
-          {/* Logo URL */}
+          
           <div className="space-y-2">
             <Label htmlFor="logoUrl">Logo URL</Label>
             <p className="text-sm text-gray-600">
@@ -275,7 +275,7 @@ export default function CompanySettingsClient() {
           </div>
         </div>
 
-        {/* Kaydet Butonu */}
+        
         <div className="pt-4">
           <Button
             onClick={handleSave}

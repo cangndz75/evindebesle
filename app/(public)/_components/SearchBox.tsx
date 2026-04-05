@@ -151,7 +151,7 @@ export default function SearchBox() {
 
   return (
     <div className="max-w-6xl mx-auto -mt-16 relative z-10 shadow-lg rounded-xl bg-white p-4 flex flex-col md:flex-row md:items-center gap-3 flex-wrap md:flex-nowrap">
-      {/* Pet Seçimi */}
+      
       <div className="flex gap-2 overflow-x-auto scrollbar-hide">
         {loadingPets ? (
           <>
@@ -177,7 +177,7 @@ export default function SearchBox() {
         )}
       </div>
 
-      {/* İlçe Seçimi */}
+      
       <div className="min-w-[160px] w-full md:w-[160px]">
         {primaryAddress ? (
           <div className="text-sm text-gray-800 font-medium py-2 px-3 bg-gray-100 rounded-md">
@@ -217,7 +217,7 @@ export default function SearchBox() {
         )}
       </div>
 
-      {/* Tarih */}
+      
       <div className="min-w-[220px] w-full md:w-[220px]">
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>

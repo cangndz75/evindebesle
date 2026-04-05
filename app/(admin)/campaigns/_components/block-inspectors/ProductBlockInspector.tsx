@@ -135,7 +135,7 @@ export default function ProductBlockInspector({
 
     return (
         <div className="space-y-4">
-            {/* Ürün Listesi */}
+            
             <div>
                 <Label className="text-xs font-medium text-gray-700 mb-2 block">
                     Seçili Ürünler ({products.length})
@@ -185,7 +185,7 @@ export default function ProductBlockInspector({
                     </div>
                 )}
 
-                {/* Ürün Ekle Dialog */}
+                
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
                         <Button variant="outline" className="w-full mt-2" size="sm">
@@ -256,7 +256,7 @@ export default function ProductBlockInspector({
                 </Dialog>
             </div>
 
-            {/* Kolon Sayısı */}
+            
             <div>
                 <Label className="text-xs font-medium text-gray-700">Kolon Sayısı</Label>
                 <Select
@@ -274,7 +274,7 @@ export default function ProductBlockInspector({
                 </Select>
             </div>
 
-            {/* Buton Metni */}
+            
             <div>
                 <Label className="text-xs font-medium text-gray-700">Buton Metni</Label>
                 <Input
@@ -285,7 +285,7 @@ export default function ProductBlockInspector({
                 />
             </div>
 
-            {/* Buton Rengi */}
+            
             <div>
                 <Label className="text-xs font-medium text-gray-700">Buton Rengi</Label>
                 <Input
@@ -296,7 +296,7 @@ export default function ProductBlockInspector({
                 />
             </div>
 
-            {/* Arka Plan Rengi */}
+            
             <div>
                 <Label className="text-xs font-medium text-gray-700">
                     Arka Plan Rengi
@@ -309,7 +309,7 @@ export default function ProductBlockInspector({
                 />
             </div>
 
-            {/* Togglelar */}
+            
             <div className="space-y-3">
                 <div className="flex items-center justify-between">
                     <Label className="text-xs font-medium text-gray-700">

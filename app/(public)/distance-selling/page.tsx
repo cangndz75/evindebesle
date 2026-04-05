@@ -113,45 +113,7 @@ export default function DistanceSellingPage() {
             </p>
           </section>
 
-          {/* <section className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">
-              Madde 4 - Ödeme ve iyzico Entegrasyonu
-            </h2>
-            <p>
-              4.1. Ödemeler, iyzico ödeme sistemleri aracılığıyla güvenli bir
-              şekilde gerçekleştirilir. Alıcı,{" "}
-              <a
-                href="https://www.evindebesle.com"
-                className="text-blue-600 hover:underline"
-              >
-                www.evindebesle.com
-              </a>{" "}
-              üzerinden siparişini tamamladıktan sonra, iyzico ödeme ekranına
-              yönlendirilir ve ödeme işlemi iyzico’nun güvenli altyapısı
-              üzerinden tamamlanır.
-              <br />
-              4.2. Ödeme, kredi kartı, banka kartı veya iyzico’nun sunduğu diğer
-              ödeme yöntemleriyle (örneğin, iyzico Link ile Ödeme) yapılabilir.
-              iyzico, ödeme işlemlerinde 3D Secure sistemini kullanır ve
-              Alıcı’nın ödeme güvenliğini sağlamak için gerekli tüm önlemleri
-              alır.
-              <br />
-              4.3. Alıcı, ödeme işlemini tamamlamadan önce siparişin ödeme
-              yükümlülüğü getirdiğini açıkça kabul eder. Ödeme işlemi
-              tamamlandıktan sonra, iyzico tarafından Satıcı’ya ödeme onayı
-              bildirilir.
-              <br />
-              4.4. Harcama itirazları durumunda, iyzico’nun ilgili banka veya
-              kart hamiliyle iletişime geçerek süreci yöneteceği kabul edilir.
-              Alıcı, harcama itirazı nedeniyle iyzico’nun uğrayacağı zararları
-              (örneğin, geri ödeme veya idari yaptırımlar) Satıcı’ya rücu etme
-              hakkına sahip olduğunu kabul eder.
-              <br />
-              4.5. Ödeme işlemleri, iyzico’nun Çerçeve E-Para İhracı ve Ödeme
-              Hizmeti Sözleşmesi’ne tabidir. Alıcı, bu sözleşmeyi iyzico
-              platformunda onaylamış olduğunu beyan eder.
-            </p>
-          </section> */}
+          
 
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4">
@@ -258,9 +220,7 @@ export default function DistanceSellingPage() {
               9.2. Satıcı, Alıcı’yı hizmet süreci, ödeme ve iptal koşulları
               hakkında açık ve anlaşılır şekilde bilgilendirmekle yükümlüdür.
               <br />
-              {/* 9.3. Satıcı, iyzico aracılığıyla gerçekleştirilen ödemelerin
-              güvenliğini sağlamak için gerekli tüm önlemleri alır.
-              <br /> */}
+              
               9.3. Satıcı, hizmet sırasında evcil hayvanın güvenliği ve sağlığı
               için gerekli özeni gösterir.
             </p>

@@ -46,7 +46,7 @@ export function ProductSidebar({
 
     return (
         <div className="space-y-6">
-            {/* Status Card */}
+            
             <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
                 <h3 className="text-sm font-semibold text-gray-900 mb-4">Durum</h3>
                 <Select value={status} onValueChange={(v: any) => setStatus(v)}>
@@ -64,7 +64,7 @@ export function ProductSidebar({
                 </Select>
             </div>
 
-            {/* Organization Card */}
+            
             <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
                 <h3 className="text-sm font-semibold text-gray-900 mb-4">Organizasyon</h3>
 
@@ -131,7 +131,7 @@ export function ProductSidebar({
                 </div>
             </div>
 
-            {/* Advanced Settings */}
+            
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
                 <button
                     type="button"
@@ -181,25 +181,8 @@ export function ProductSidebar({
                 )}
             </div>
 
-            {/* Quick Tip */}
-            {/* <div className="bg-gray-900 rounded-lg p-4 text-white shadow-lg">
-                <div className="flex items-start gap-3">
-                    <div className="mt-1">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M9 18h6" />
-                            <path d="M10 22h4" />
-                            <path d="M12 2v2" />
-                            <path d="M12 14c-2.3 0-5.1-.3-7-6 0-3.3 2.7-6 6-6s6 2.7 6 6c-1.9 5.7-4.7 6-7 6z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <h4 className="font-semibold text-sm mb-1">İpucu</h4>
-                        <p className="text-xs text-gray-300 leading-relaxed">
-                            Ürünlerinizin katalogda daha kolay bulunması için açıklayıcı başlıklar kullanın ve ilgili etiketleri ekleyin.
-                        </p>
-                    </div>
-                </div>
-            </div> */}
+            
+            
         </div>
     );
 }

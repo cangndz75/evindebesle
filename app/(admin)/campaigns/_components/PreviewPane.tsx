@@ -68,7 +68,7 @@ export default function PreviewPane({
 
   return (
     <div className="h-full flex flex-col">
-      {/* Header */}
+      
       <div className="p-4 border-b border-gray-200 bg-white">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-semibold text-gray-900">Önizleme</h3>
@@ -109,7 +109,7 @@ export default function PreviewPane({
         </div>
       </div>
 
-      {/* Inbox Preview */}
+      
       <div className="p-4 border-b border-gray-200 bg-gray-50">
         <InboxPreviewCard
           subject={draft.subject}
@@ -119,7 +119,7 @@ export default function PreviewPane({
         />
       </div>
 
-      {/* Rendered Email */}
+      
       <div className="flex-1 overflow-y-auto p-4">
         <RenderedEmail
           draft={draft}

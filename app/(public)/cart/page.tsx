@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Minus, Plus, ShoppingBag, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
@@ -285,7 +285,7 @@ export default function CartPage() {
         <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-4xl mx-auto">
                 <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-                    {/* Header */}
+                    
                     <div className="px-8 py-6 border-b border-gray-100 flex items-center justify-between">
                         <div>
                             <h1 className="text-2xl font-serif text-black">Sepetim</h1>
@@ -311,7 +311,7 @@ export default function CartPage() {
                             </div>
                         ) : (
                             <>
-                                {/* FREE SHIPPING BAR */}
+                                
                                 {cartItems.length > 0 && (
                                     <div className="mb-8 rounded-2xl border border-black/5 bg-gray-50 p-5">
                                         <div className="flex items-start gap-4">
@@ -345,7 +345,7 @@ export default function CartPage() {
                                     </div>
                                 )}
 
-                                {/* EMPTY STATE */}
+                                
                                 {cartItems.length === 0 ? (
                                     <div className="text-center py-12">
                                         <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -444,7 +444,7 @@ export default function CartPage() {
                                     </div>
                                 )}
 
-                                {/* Footer / Summary */}
+                                
                                 {cartItems.length > 0 && (
                                     <div className="mt-8 border-t border-gray-100 pt-8">
                                         <div className="flex items-center justify-between mb-2">
@@ -476,7 +476,7 @@ export default function CartPage() {
                     </div>
                 </div>
 
-                {/* Recommended / Recent Tabs */}
+                
                 {(cartItems.length === 0 || activeList.length > 0) && (
                     <div className="mt-12 bg-white rounded-3xl p-8 border border-gray-100 shadow-sm">
                         <div className="flex items-center justify-between gap-4 mb-6">

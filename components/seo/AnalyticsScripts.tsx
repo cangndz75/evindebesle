@@ -8,7 +8,7 @@ export default function AnalyticsScripts() {
 
     return (
         <>
-            {/* Google Analytics 4 */}
+            
             {GA4_ID && (
                 <>
                     <Script
@@ -28,7 +28,7 @@ export default function AnalyticsScripts() {
                 </>
             )}
 
-            {/* Facebook Pixel */}
+            
             {FB_PIXEL_ID && (
                 <Script id="facebook-pixel" strategy="lazyOnload">
                     {`

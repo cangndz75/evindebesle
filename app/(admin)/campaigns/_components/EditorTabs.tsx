@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { Blocks, Code } from "lucide-react";
@@ -32,7 +32,7 @@ export default function EditorTabs({
 
   return (
     <div className="flex flex-col h-full">
-      {/* Tab Headers */}
+      
       <div className="flex items-center border-b border-gray-200 bg-gray-50 px-4">
         <Button
           variant="ghost"
@@ -62,7 +62,7 @@ export default function EditorTabs({
         </Button>
       </div>
 
-      {/* Tab Content */}
+      
       <div className="flex-1 overflow-hidden">
         {activeTab === "blocks" ? (
           <BlockEditor

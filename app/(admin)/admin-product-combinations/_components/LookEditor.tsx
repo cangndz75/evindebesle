@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
  
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -159,7 +159,7 @@ export default function LookEditor({ initialData }: LookEditorProps) {
  
   return (
     <div className="max-w-7xl mx-auto space-y-10 pb-20">
-      {/* Breadcrumbs & Title */}
+      
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-8 rounded-[32px] shadow-sm border border-gray-100">
         <div className="flex items-center gap-6">
           <div className="p-4 bg-black rounded-2xl">
@@ -180,7 +180,7 @@ export default function LookEditor({ initialData }: LookEditorProps) {
         </div>
       </div>
  
-      {/* Steps UI */}
+      
       <div className="flex justify-center mb-10">
         <div className="flex items-center gap-4 bg-white px-6 py-3 rounded-full shadow-sm border border-gray-100">
           {[1, 2, 3].map(s => (
@@ -198,7 +198,7 @@ export default function LookEditor({ initialData }: LookEditorProps) {
  
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
         <div className="lg:col-span-8 space-y-10">
-           {/* STEP 1: Main Product */}
+           
            {step === 1 && (
              <Card className="border-none shadow-2xl rounded-[40px] overflow-hidden">
                 <CardHeader className="bg-gray-50/50 p-8 border-b border-gray-100">
@@ -251,7 +251,7 @@ export default function LookEditor({ initialData }: LookEditorProps) {
              </Card>
            )}
  
-           {/* STEP 2: Selected Items */}
+           
            {step === 2 && (
              <Card className="border-none shadow-2xl rounded-[40px] overflow-hidden">
                 <CardHeader className="bg-gray-50/50 p-8 border-b border-gray-100">
@@ -309,7 +309,7 @@ export default function LookEditor({ initialData }: LookEditorProps) {
              </Card>
            )}
  
-           {/* STEP 3: Display Settings */}
+           
            {step === 3 && (
              <div className="space-y-10">
                <Card className="border-none shadow-2xl rounded-[40px] overflow-hidden">

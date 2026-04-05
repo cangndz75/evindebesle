@@ -86,7 +86,7 @@ export default function OrderOperations({ orders, onStatusChange }: OrderOperati
           </button>
         </div>
 
-        {/* Segmented Control */}
+        
         <div className="flex gap-2 mt-4 p-1 bg-gray-100 rounded-lg">
           {tabs.map((tab) => (
             <button

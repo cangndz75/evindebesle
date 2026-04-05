@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -257,7 +257,7 @@ export default function Footer() {
             © 2026 Dark Velvet. Tüm hakları saklıdır.
           </p>
 
-          {/* Site Haritası Link & Modal */}
+          
           <Dialog>
             <DialogTrigger asChild>
               <button className="flex items-center gap-2 text-xs text-black/60 hover:text-black transition-colors group">
@@ -274,7 +274,7 @@ export default function Footer() {
 
               <div className="px-8 py-8">
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-                  {/* Alışveriş */}
+                  
                   <div className="space-y-4">
                     <h5 className="text-xs uppercase tracking-[0.2em] font-medium text-black border-b border-black/10 pb-2">Alışveriş</h5>
                     <ul className="space-y-3">
@@ -286,7 +286,7 @@ export default function Footer() {
                     </ul>
                   </div>
 
-                  {/* Hesabım */}
+                  
                   <div className="space-y-4">
                     <h5 className="text-xs uppercase tracking-[0.2em] font-medium text-black border-b border-black/10 pb-2">Hesabım</h5>
                     <ul className="space-y-3">
@@ -299,7 +299,7 @@ export default function Footer() {
                     </ul>
                   </div>
 
-                  {/* Müşteri Hizmetleri */}
+                  
                   <div className="space-y-4">
                     <h5 className="text-xs uppercase tracking-[0.2em] font-medium text-black border-b border-black/10 pb-2">Müşteri Hizmetleri</h5>
                     <ul className="space-y-3">
@@ -310,7 +310,7 @@ export default function Footer() {
                     </ul>
                   </div>
 
-                  {/* Bilgilendirme */}
+                  
                   <div className="space-y-4">
                     <h5 className="text-xs uppercase tracking-[0.2em] font-medium text-black border-b border-black/10 pb-2">Bilgilendirme</h5>
                     <ul className="space-y-3">
@@ -320,7 +320,7 @@ export default function Footer() {
                     </ul>
                   </div>
 
-                  {/* Kurumsal */}
+                  
                   <div className="space-y-4">
                     <h5 className="text-xs uppercase tracking-[0.2em] font-medium text-black border-b border-black/10 pb-2">Kurumsal</h5>
                     <ul className="space-y-3">
@@ -329,7 +329,7 @@ export default function Footer() {
                     </ul>
                   </div>
 
-                  {/* Sosyal Medya */}
+                  
                   <div className="space-y-4">
                     <h5 className="text-xs uppercase tracking-[0.2em] font-medium text-black border-b border-black/10 pb-2">Sosyal Medya</h5>
                     <ul className="space-y-3">

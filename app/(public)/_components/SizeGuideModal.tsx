@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import {
   Dialog,
@@ -62,7 +62,7 @@ export default function SizeGuideModal({
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Görsel Alanı */}
+          
           {guide.imageUrl ? (
             <div className="relative w-full aspect-video bg-gray-50 flex items-center justify-center border overflow-hidden rounded-lg">
               <Image
@@ -80,7 +80,7 @@ export default function SizeGuideModal({
                   className="w-full h-full"
                   xmlns="http://www.w3.org/2000/svg"
                 >
-                  {/* Hoodie gövde */}
+                  
                   <rect
                     x="50"
                     y="80"
@@ -90,14 +90,14 @@ export default function SizeGuideModal({
                     stroke="#000"
                     strokeWidth="2"
                   />
-                  {/* Kapüşon */}
+                  
                   <path
                     d="M 50 80 Q 50 40 100 40 Q 150 40 150 80"
                     fill="none"
                     stroke="#000"
                     strokeWidth="2"
                   />
-                  {/* Kollar */}
+                  
                   <rect
                     x="30"
                     y="100"
@@ -116,8 +116,8 @@ export default function SizeGuideModal({
                     stroke="#000"
                     strokeWidth="2"
                   />
-                  {/* Ölçü çizgileri */}
-                  {/* Göğüs */}
+                  
+                  
                   <line
                     x1="50"
                     y1="140"
@@ -130,7 +130,7 @@ export default function SizeGuideModal({
                   <text x="100" y="135" textAnchor="middle" fontSize="10" fill="#666">
                     GÖĞÜS (CHEST)
                   </text>
-                  {/* Boy */}
+                  
                   <line
                     x1="100"
                     y1="80"
@@ -143,7 +143,7 @@ export default function SizeGuideModal({
                   <text x="105" y="170" fontSize="10" fill="#666">
                     BOY (FULL LENGTH)
                   </text>
-                  {/* Kol */}
+                  
                   <line
                     x1="45"
                     y1="100"
@@ -161,7 +161,7 @@ export default function SizeGuideModal({
             )
           )}
 
-          {/* Ölçü Tablosu */}
+          
           <div className="overflow-x-auto">
             <table className="w-full border-collapse border border-gray-300">
               {hasDynamicTable ? (
@@ -230,7 +230,7 @@ export default function SizeGuideModal({
             </table>
           </div>
 
-          {/* Uyarı */}
+          
           {guide.disclaimer && (
             <p className="text-xs text-gray-600 text-center mt-4">
               {guide.disclaimer}

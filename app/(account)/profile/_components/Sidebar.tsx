@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -25,7 +25,7 @@ export default function Sidebar() {
 
   return (
     <div className="space-y-8">
-      {/* Kullanıcı Bilgisi */}
+      
       <div>
         <p className="text-base font-light text-black mb-4">{fullName}</p>
         <button
@@ -37,7 +37,7 @@ export default function Sidebar() {
         </button>
       </div>
 
-      {/* Navigation */}
+      
       <nav className="space-y-1">
         <div className="mb-4">
           <h3 className="text-xs font-medium text-black uppercase tracking-wider mb-3">

@@ -50,7 +50,7 @@ export default async function CollectionDetailPage({ params }: CollectionPagePro
 
   return (
     <div className="min-h-screen bg-white pb-20">
-      {/* Hero Section */}
+      
       <div className="relative h-[70vh] w-full overflow-hidden">
         <Image
           src={collection.image1 || "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=2000&auto=format"}
@@ -100,14 +100,14 @@ export default async function CollectionDetailPage({ params }: CollectionPagePro
                   sizes="(max-width: 768px) 50vw, 25vw"
                 />
                 
-                {/* Sale Badge */}
+                
                 {product.originalPrice && product.originalPrice > product.price && (
                   <div className="absolute top-4 left-4 bg-black text-white px-3 py-1 text-[10px] uppercase font-bold tracking-widest">
                     İNDİRİM
                   </div>
                 )}
 
-                {/* Hover Quick View */}
+                
                 <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
                   <span className="text-white text-[11px] font-bold tracking-[0.3em] uppercase border-b border-white pb-1">İncele</span>
                 </div>
@@ -128,7 +128,7 @@ export default async function CollectionDetailPage({ params }: CollectionPagePro
                   )}
                 </div>
                 
-                {/* Color dots */}
+                
                 {product.colors && product.colors.length > 0 && (
                   <div className="flex gap-1.5 pt-1">
                     {product.colors.slice(0, 4).map((color: any) => (
@@ -149,7 +149,7 @@ export default async function CollectionDetailPage({ params }: CollectionPagePro
         </div>
       </div>
 
-      {/* Side Images layout (Inspired by image 4 UI) */}
+      
       {collection.image2 && collection.image3 && (
         <div className="max-w-[1600px] mx-auto px-6 md:px-12 mt-40 grid grid-cols-1 md:grid-cols-2 gap-20">
           <div className="relative aspect-[4/5] overflow-hidden">

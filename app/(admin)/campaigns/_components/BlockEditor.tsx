@@ -33,7 +33,7 @@ export default function BlockEditor({
 
   return (
     <div className="flex h-full" style={{ minHeight: 0 }}>
-      {/* Sol: Blok Listesi ve Palette */}
+      
       <div className="w-64 border-r border-gray-200 bg-gray-50 flex flex-col flex-shrink-0">
         <div className="p-4 border-b border-gray-200">
           <Button
@@ -52,7 +52,7 @@ export default function BlockEditor({
           </div>
         )}
 
-        {/* Blok Listesi */}
+        
         <div className="flex-1 overflow-y-auto p-4 space-y-2">
           {draft.blocks.length === 0 ? (
             <div className="text-sm text-gray-500 text-center py-8">
@@ -127,7 +127,7 @@ export default function BlockEditor({
         </div>
       </div>
 
-      {/* Orta: Canvas */}
+      
       <div className="flex-1 overflow-y-auto bg-white">
         <Canvas
           blocks={draft.blocks}

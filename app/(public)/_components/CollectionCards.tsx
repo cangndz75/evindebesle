@@ -34,7 +34,7 @@ export default function CollectionCards() {
               key={index}
               className="relative group cursor-pointer overflow-hidden rounded-lg aspect-[3/4]"
             >
-              {/* Görsel */}
+              
               <div className="absolute inset-0">
                 <Image
                   src={collection.image}
@@ -43,11 +43,11 @@ export default function CollectionCards() {
                   className="object-cover transition-transform duration-700 group-hover:scale-110"
                   sizes="(max-width: 768px) 100vw, 33vw"
                 />
-                {/* Overlay */}
+                
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
               </div>
 
-              {/* İçerik */}
+              
               <div className="absolute inset-0 flex flex-col justify-center p-6 md:p-8">
                 <p className="text-white/90 text-xs md:text-sm font-light tracking-wider mb-2 uppercase">
                   {collection.category}

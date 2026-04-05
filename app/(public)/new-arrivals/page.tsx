@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
  
 import { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
@@ -218,7 +218,7 @@ export default function NewArrivalsPage() {
                                         </div>
                                     </div>
 
-                                    {/* Renk Seçenekleri */}
+                                    
                                     <div className="flex items-center justify-center gap-1.5 mt-2">
                                         {Array.from(new Map(product.colors.filter(c => c.images?.[0]).map(c => [c.hexCode || c.name, c])).values()).map((color, idx) => (
                                             <button
@@ -231,7 +231,7 @@ export default function NewArrivalsPage() {
                                         ))}
                                     </div>
 
-                                    {/* Hızlı Ekle (Görsel 5) */}
+                                    
                                     <div className="hidden md:grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-all duration-300 ease-in-out opacity-0 group-hover:opacity-100">
                                         <div className="overflow-hidden">
                                             <div className="mt-4 pt-4 border-t border-gray-100">
@@ -345,7 +345,7 @@ export default function NewArrivalsPage() {
                 )}
             </div>
 
-            {/* Mobile Sort Menu */}
+            
             <Dialog open={sortDialogOpen} onOpenChange={setSortDialogOpen}>
                 <DialogContent>
                     <DialogHeader><DialogTitle>SIRALA</DialogTitle></DialogHeader>

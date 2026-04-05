@@ -37,7 +37,7 @@ export default function About2Page() {
     return (
         <div className="min-h-screen bg-[#0A0A0A] text-white selection:bg-white/20">
             <main className="overflow-hidden">
-                {/* Hero Section */}
+                
                 <section className="relative pt-20 pb-32 md:pt-40 md:pb-60 flex flex-col items-center px-4 overflow-hidden">
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1200px] h-[800px] bg-white/5 blur-[150px] rounded-full pointer-events-none" />
 
@@ -79,7 +79,7 @@ export default function About2Page() {
                     </motion.div>
                 </section>
 
-                {/* Brand Mission Section */}
+                
                 <section className="py-32 bg-[#0F0F0F] relative">
                     <div className="max-w-7xl mx-auto px-4 grid md:grid-cols-2 gap-24 items-center">
                         <div className="space-y-10">
@@ -113,7 +113,7 @@ export default function About2Page() {
                     </div>
                 </section>
 
-                {/* Core Values Section */}
+                
                 <section className="py-32 relative overflow-hidden">
                     <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-white/5 blur-[120px] rounded-full" />
 
@@ -142,7 +142,7 @@ export default function About2Page() {
                     </div>
                 </section>
 
-                {/* CTA Section */}
+                
                 <section className="py-32 px-4">
                     <div className="max-w-7xl mx-auto overflow-hidden relative p-16 md:p-32 text-center group border border-white/5">
                         <Image

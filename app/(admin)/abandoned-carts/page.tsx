@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -234,7 +234,7 @@ export default function AbandonedCartsPage() {
 
     return (
         <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
-            {/* Header */}
+            
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     <Button
@@ -261,7 +261,7 @@ export default function AbandonedCartsPage() {
                 </div>
             </div>
 
-            {/* Summary Cards */}
+            
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <Card>
                     <CardContent className="p-6">
@@ -324,9 +324,9 @@ export default function AbandonedCartsPage() {
                 </Card>
             </div>
 
-            {/* Chart & Top Products */}
+            
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Daily Trend Chart */}
+                
                 <Card>
                     <CardHeader>
                         <CardTitle>Günlük Trend</CardTitle>
@@ -380,7 +380,7 @@ export default function AbandonedCartsPage() {
                     </CardContent>
                 </Card>
 
-                {/* Top Abandoned Products */}
+                
                 <Card>
                     <CardHeader>
                         <CardTitle>En Çok Terk Edilen Ürünler</CardTitle>
@@ -413,7 +413,7 @@ export default function AbandonedCartsPage() {
                 </Card>
             </div>
 
-            {/* Abandoned Carts List */}
+            
             <Card>
                 <CardHeader>
                     <div className="flex items-center justify-between">
@@ -484,7 +484,7 @@ export default function AbandonedCartsPage() {
                 </CardContent>
             </Card>
 
-            {/* User Detail Modal */}
+            
             {selectedUser && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                     <Card className="w-full max-w-lg max-h-[80vh] overflow-y-auto">

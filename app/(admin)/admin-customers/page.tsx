@@ -85,7 +85,7 @@ export default function CustomersPage() {
         </div>
       </div>
 
-      {/* Filtreler */}
+      
       <div className="flex flex-col md:flex-row gap-4">
         <Input
           placeholder="Müşteri adı, e-posta veya telefon ile ara..."
@@ -95,7 +95,7 @@ export default function CustomersPage() {
         />
       </div>
 
-      {/* Müşteri Listesi */}
+      
       {loading ? (
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (

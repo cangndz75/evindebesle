@@ -159,7 +159,7 @@ export default function CampaignsListPage() {
 
     return (
         <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
-            {/* Header */}
+            
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     <Button
@@ -186,7 +186,7 @@ export default function CampaignsListPage() {
                 </div>
             </div>
 
-            {/* Stats Cards */}
+            
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <Card>
                     <CardContent className="p-6">
@@ -248,7 +248,7 @@ export default function CampaignsListPage() {
                 </Card>
             </div>
 
-            {/* Campaigns Table */}
+            
             <Card>
                 <CardHeader>
                     <CardTitle>Kampanya Listesi</CardTitle>
@@ -359,7 +359,7 @@ export default function CampaignsListPage() {
                 </CardContent>
             </Card>
 
-            {/* Delete Confirmation */}
+            
             <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
                 <AlertDialogContent>
                     <AlertDialogHeader>

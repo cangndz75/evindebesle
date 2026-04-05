@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -127,7 +127,7 @@ export default function ProductSelectionModal({ selectedIds, onSelect, trigger }
                 </DialogHeader>
 
                 <div className="flex flex-1 overflow-hidden">
-                    {/* Sol Sidebar - Kategoriler */}
+                    
                     <div className="w-64 border-r bg-gray-50 flex flex-col overflow-y-auto p-4 gap-2">
                         <div className="font-medium text-sm text-gray-500 mb-2">Kategoriler</div>
                         <Button
@@ -149,9 +149,9 @@ export default function ProductSelectionModal({ selectedIds, onSelect, trigger }
                         ))}
                     </div>
 
-                    {/* Sağ Taraf - Ürün Listesi */}
+                    
                     <div className="flex-1 flex flex-col overflow-hidden">
-                        {/* Arama Barı */}
+                        
                         <div className="p-4 border-b flex gap-3 items-center bg-white">
                             <div className="relative flex-1">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -164,7 +164,7 @@ export default function ProductSelectionModal({ selectedIds, onSelect, trigger }
                             </div>
                         </div>
 
-                        {/* Ürün Grid */}
+                        
                         <div className="flex-1 overflow-y-auto p-4 content-start">
                             {loading ? (
                                 <div className="flex items-center justify-center h-full text-gray-500">
@@ -188,7 +188,7 @@ export default function ProductSelectionModal({ selectedIds, onSelect, trigger }
                                                 )}
                                                 onClick={() => toggleSelection(product)}
                                             >
-                                                {/* Seçim İndikatörü */}
+                                                
                                                 <div className={cn(
                                                     "absolute top-2 right-2 z-10 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors shadow-sm",
                                                     isSelected ? "bg-green-500 border-green-500" : "bg-white border-gray-200 group-hover:border-gray-400"
@@ -202,7 +202,7 @@ export default function ProductSelectionModal({ selectedIds, onSelect, trigger }
                                                     ) : (
                                                         <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">Görsel Yok</div>
                                                     )}
-                                                    {/* Stok Bilgisi */}
+                                                    
                                                     {product.stock <= 0 && (
                                                         <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[10px] text-center py-1">
                                                             Tükendi
@@ -223,7 +223,7 @@ export default function ProductSelectionModal({ selectedIds, onSelect, trigger }
                             )}
                         </div>
 
-                        {/* Footer - Seçilenler ve Aksiyon */}
+                        
                         <div className="p-4 border-t bg-gray-50 flex items-center justify-between">
                             <div className="text-sm text-gray-600">
                                 {selectedProducts.length} yeni ürün seçildi

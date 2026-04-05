@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { Block } from "../../types";
@@ -80,7 +80,7 @@ export default function ImageBlockInspector({
 
     return (
         <div className="space-y-4">
-            {/* Görsel URL */}
+            
             <div>
                 <Label className="text-xs font-medium text-gray-700">Görsel URL</Label>
                 <div className="flex gap-2 mt-1">
@@ -116,7 +116,7 @@ export default function ImageBlockInspector({
                 )}
             </div>
 
-            {/* Preview */}
+            
             {block.content.imageUrl && (
                 <div className="border rounded-lg p-2">
                     <img
@@ -127,7 +127,7 @@ export default function ImageBlockInspector({
                 </div>
             )}
 
-            {/* Alt Text */}
+            
             <div>
                 <Label className="text-xs font-medium text-gray-700">
                     Alt Metin (SEO)
@@ -140,7 +140,7 @@ export default function ImageBlockInspector({
                 />
             </div>
 
-            {/* Link URL */}
+            
             <div>
                 <Label className="text-xs font-medium text-gray-700 flex items-center gap-1">
                     <LinkIcon className="w-3 h-3" />
@@ -154,7 +154,7 @@ export default function ImageBlockInspector({
                 />
             </div>
 
-            {/* Hizalama */}
+            
             <div>
                 <Label className="text-xs font-medium text-gray-700">Hizalama</Label>
                 <Select
@@ -172,7 +172,7 @@ export default function ImageBlockInspector({
                 </Select>
             </div>
 
-            {/* Maksimum Genişlik */}
+            
             <div>
                 <Label className="text-xs font-medium text-gray-700">
                     Maksimum Genişlik: {block.style.maxWidth || 100}%
@@ -187,7 +187,7 @@ export default function ImageBlockInspector({
                 />
             </div>
 
-            {/* Dikey Padding */}
+            
             <div>
                 <Label className="text-xs font-medium text-gray-700">
                     Dikey Boşluk: {block.style.paddingY || 16}px
@@ -202,7 +202,7 @@ export default function ImageBlockInspector({
                 />
             </div>
 
-            {/* Arka Plan Rengi */}
+            
             <div>
                 <Label className="text-xs font-medium text-gray-700">
                     Arka Plan Rengi

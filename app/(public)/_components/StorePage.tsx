@@ -91,7 +91,7 @@ export default function StorePage() {
           </p>
         </div>
 
-        {/* Sol-Sağ Butonlar */}
+        
         <button
           onClick={() => scroll("left")}
           className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 items-center justify-center rounded-full bg-white shadow border hover:bg-pink-500 hover:text-white transition-colors"
@@ -105,7 +105,7 @@ export default function StorePage() {
           <ChevronRight className="w-5 h-5" />
         </button>
 
-        {/* Media List */}
+        
         <div
           ref={scrollRef}
           className="flex gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory scrollbar-hide cursor-grab active:cursor-grabbing"
@@ -141,7 +141,7 @@ export default function StorePage() {
         </div>
       </div>
 
-      {/* Modal */}
+      
       <Dialog open={!!selected} onOpenChange={() => setSelected(null)}>
         <DialogContent className="max-w-5xl p-0 bg-black/90 border-0 shadow-none">
           <DialogTitle className="sr-only">Mağaza medyası</DialogTitle>

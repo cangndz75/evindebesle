@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -45,7 +45,7 @@ export default function EditorialGrid() {
 
     return (
         <div className="w-full">
-            {/* Grid Yapısı */}
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {CARDS.map((card) => (
                     <motion.div
@@ -81,7 +81,7 @@ export default function EditorialGrid() {
                 ))}
             </div>
 
-            {/* Genişleyen Kart (Overlay) */}
+            
             <AnimatePresence>
                 {selectedId && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8">
@@ -97,7 +97,7 @@ export default function EditorialGrid() {
                             layoutId={`card-${selectedId}`}
                             className="relative w-full max-w-2xl bg-[#111] rounded-[2rem] overflow-hidden shadow-2xl flex flex-col max-h-[90vh] h-auto"
                         >
-                            {/* Kapat Butonu */}
+                            
                             <button
                                 onClick={(e) => { e.stopPropagation(); setSelectedId(null); }}
                                 className="absolute top-6 right-6 z-20 bg-black/40 text-white p-2 rounded-full hover:bg-black transition border border-white/10"
@@ -107,7 +107,7 @@ export default function EditorialGrid() {
                                 </svg>
                             </button>
 
-                            {/* Üst: Görsel (Taller) */}
+                            
                             <div className="relative w-full h-[400px] md:h-[500px]">
                                 <Image
                                     src={CARDS.find(c => c.id === selectedId)?.image || ""}
@@ -117,7 +117,7 @@ export default function EditorialGrid() {
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-transparent" />
 
-                                {/* Text Overlay on Image (Top-Left) */}
+                                
                                 <div className="absolute top-8 left-8 z-10 pr-12">
                                     <motion.span
                                         layoutId={`category-${selectedId}`}
@@ -134,7 +134,7 @@ export default function EditorialGrid() {
                                 </div>
                             </div>
 
-                            {/* Alt: İçerik (Dark) */}
+                            
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}

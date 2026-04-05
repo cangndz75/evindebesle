@@ -8,7 +8,7 @@ export default function CollectionBanner() {
     <section className="w-full bg-[#f5f1eb] py-12 md:py-20">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         <div className="grid md:grid-cols-3 gap-6 md:gap-8">
-          {/* Sol Bölüm */}
+          
           <div className="md:col-span-2 relative h-[500px] md:h-[600px] overflow-hidden group">
             <Image
               src="https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=1000&auto=format&fit=crop"
@@ -28,7 +28,7 @@ export default function CollectionBanner() {
             </div>
           </div>
 
-          {/* Orta Bölüm - Framed */}
+          
           <div className="relative h-[500px] md:h-[600px] overflow-hidden group border-4 border-white">
             <Image
               src="https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=1000&auto=format&fit=crop"

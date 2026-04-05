@@ -54,7 +54,7 @@ export default function ProductGrid() {
     <section className="w-full bg-white py-12 md:py-20">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
 
-        {/* Filtreler */}
+        
         {activeFilters.length > 0 && (
           <div className="flex flex-wrap items-center gap-3 mb-6">
             {activeFilters.map((filter) => (
@@ -76,7 +76,7 @@ export default function ProductGrid() {
           </div>
         )}
 
-        {/* Sıralama */}
+        
         <div className="flex justify-between items-center mb-8">
           <p className="text-sm text-gray-600 font-light">
             {products.length} ürün
@@ -90,11 +90,11 @@ export default function ProductGrid() {
           </select>
         </div>
 
-        {/* Ürün Grid'i */}
+        
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 mb-12">
           {products.map((product) => (
             <div key={product.id} className="group cursor-pointer">
-              {/* Görsel Container */}
+              
               <div className="relative aspect-[3/4] mb-4 overflow-hidden bg-gray-100">
                 {product.image ? (
                   <Image
@@ -107,7 +107,7 @@ export default function ProductGrid() {
                 ) : (
                   <div className="w-full h-full bg-black" />
                 )}
-                {/* Badge */}
+                
                 {product.badge && (
                   <div
                     className={`absolute ${
@@ -123,7 +123,7 @@ export default function ProductGrid() {
                 )}
               </div>
 
-              {/* Ürün Bilgileri */}
+              
               <div>
                 <h3 className="text-sm font-light text-black mb-2">{product.name}</h3>
                 <div className="flex items-center gap-2 mb-3">
@@ -136,7 +136,7 @@ export default function ProductGrid() {
                     {product.price} ₺
                   </span>
                 </div>
-                {/* Renk Seçenekleri */}
+                
                 <div className="flex gap-2">
                   {product.colors.map((color, idx) => (
                     <div
@@ -151,7 +151,7 @@ export default function ProductGrid() {
           ))}
         </div>
 
-        {/* Daha Fazla Yükle Butonu */}
+        
         <div className="text-center">
           <button className="px-8 py-3 border border-black text-black font-light tracking-wide hover:bg-black hover:text-white transition-all duration-300">
             Daha Fazla Ürün Yükle

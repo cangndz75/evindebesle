@@ -67,7 +67,7 @@ export default function HowItWorksSection() {
       />
 
       <div className="mx-auto w-full max-w-7xl">
-        {/* Headline */}
+        
         <div className="mx-auto mb-12 max-w-2xl text-center">
           <h2 className="text-4xl font-bold md:text-5xl">Nasıl Çalışır?</h2>
           <p className="mt-3 text-muted-foreground">
@@ -78,7 +78,7 @@ export default function HowItWorksSection() {
         <hr className="mx-auto mb-10 h-px w-1/2 bg-foreground/20" />
 
         <div className="flex flex-col gap-6 md:grid md:grid-cols-2 md:gap-10">
-          {/* Left side steps */}
+          
           <div className="order-2 space-y-6 md:order-1">
             {features.map((feature, index) => {
               const Icon = feature.icon;
@@ -128,7 +128,7 @@ export default function HowItWorksSection() {
             })}
           </div>
 
-          {/* Right side image */}
+          
           <div className="relative order-1 h-[200px] md:order-2 md:h-[300px] lg:h-[400px] overflow-hidden rounded-xl border border-primary/20 shadow-xl">
             <AnimatePresence mode="wait">
               {features.map(

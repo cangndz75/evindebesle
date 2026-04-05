@@ -19,7 +19,7 @@ export default function Canvas({
   return (
     <div className="p-6 bg-gray-100" style={{ minHeight: '100%' }}>
       <div className="max-w-6xl mx-auto bg-white shadow-lg">
-        {/* Email Container */}
+        
         <div className="border border-gray-300">
           {blocks.length === 0 ? (
             <div className="p-12 text-center text-gray-500">

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import {
   Dialog,
@@ -1099,14 +1099,14 @@ export function EditProductModal({
           </TabsContent>
 
           <TabsContent value="stock" className="space-y-4 mt-4 flex-1 overflow-y-auto">
-            {/* Ana Ürün Stok ve Fiyat */}
+            
             <div className="space-y-4 border-b pb-4">
               <div>
                 <Label className="text-lg font-semibold">Ana Ürün</Label>
                 <p className="text-sm text-muted-foreground mb-4">Ana ürün için genel stok ve fiyat ayarları</p>
               </div>
 
-              {/* Ana Ürün Fiyat */}
+              
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Fiyat (Ana Ürün)</Label>
@@ -1121,7 +1121,7 @@ export function EditProductModal({
                 </div>
               </div>
 
-              {/* Ana Ürün Beden Stokları */}
+              
               {sizeType && selectedSizeOptions.length > 0 && (
                 <div>
                   <Label>Beden Stokları (Ana Ürün)</Label>
@@ -1162,14 +1162,14 @@ export function EditProductModal({
               )}
             </div>
 
-            {/* Renkler Stok ve Fiyat */}
+            
             {colors.map((color, colorIndex) => (
               <div key={colorIndex} className="space-y-4 border-b pb-4">
                 <div>
                   <Label className="text-lg font-semibold">Renk: {color.name}</Label>
                 </div>
 
-                {/* Renk Fiyat */}
+                
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label>Fiyat ({color.name})</Label>
@@ -1191,7 +1191,7 @@ export function EditProductModal({
                   </div>
                 </div>
 
-                {/* Renk Beden Stokları */}
+                
                 {sizeType && selectedSizeOptions.length > 0 && (
                   <div>
                     <Label>Beden Stokları ({color.name})</Label>

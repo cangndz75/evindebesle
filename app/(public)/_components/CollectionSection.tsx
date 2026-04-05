@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Image from "next/image";
 import { useState, useEffect } from "react";
@@ -74,10 +74,10 @@ export default function CollectionSection() {
 
   return (
     <section className="w-full bg-white">
-      {/* Hero Bölümü - İki Panelli */}
+      
       <div className="relative w-full">
         <div className="relative flex h-[70vh] md:h-[85vh] overflow-hidden">
-          {/* Sol Panel */}
+          
           <div className="relative w-1/2 h-full overflow-hidden group">
             <Image
               src={heroImages[currentHeroIndex].left}
@@ -90,7 +90,7 @@ export default function CollectionSection() {
             />
           </div>
 
-          {/* Sağ Panel */}
+          
           <div className="relative w-1/2 h-full overflow-hidden group">
             <Image
               src={heroImages[currentHeroIndex].right}
@@ -103,7 +103,7 @@ export default function CollectionSection() {
             />
           </div>
 
-          {/* Navigasyon Okları */}
+          
           {heroImages.length > 1 && (
             <>
               <button
@@ -123,7 +123,7 @@ export default function CollectionSection() {
             </>
           )}
 
-          {/* Alt Metin */}
+          
           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-center z-10 animate-fade-in">
             <p className="text-sm md:text-base tracking-wider text-black/80 font-light mb-1">
               YENİ
@@ -136,7 +136,7 @@ export default function CollectionSection() {
             </p>
           </div>
 
-          {/* İndikatörler */}
+          
           {heroImages.length > 1 && (
             <div className="absolute bottom-20 left-1/2 -translate-x-1/2 flex gap-2 z-10">
               {heroImages.map((_, index) => (
@@ -161,7 +161,7 @@ export default function CollectionSection() {
         </div>
       </div>
 
-      {/* Grid Bölümü - 24 Görsel */}
+      
       <div className="w-full bg-white py-8 md:py-12">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7 gap-0">
@@ -177,7 +177,7 @@ export default function CollectionSection() {
                   className="object-cover transition-transform duration-500 group-hover:scale-110"
                   sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 16vw, 14vw"
                 />
-                {/* Hover overlay */}
+                
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-500" />
               </div>
             ))}

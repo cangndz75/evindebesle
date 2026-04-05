@@ -8,12 +8,12 @@ export default function TopBar() {
     <div className="w-full bg-black text-white text-xs md:text-sm">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         <div className="flex items-center justify-between h-10 md:h-12">
-          {/* Sol */}
+          
           <div className="hidden md:block">
             <span className="font-light">ÜCRETSİZ KARGO 150₺ ÜZERİ SİPARİŞLERDE</span>
           </div>
 
-          {/* Orta - Carousel */}
+          
           <div className="flex items-center gap-2 flex-1 justify-center">
             <button className="hover:opacity-70 transition-opacity">
               <ChevronLeft className="w-3 h-3" />
@@ -26,7 +26,7 @@ export default function TopBar() {
             </button>
           </div>
 
-          {/* Sağ */}
+          
           <div className="hidden md:block">
             <Link href="/rewards" className="font-light hover:opacity-70 transition-opacity">
               DARK VELVET+ ÖDÜLLER | Hemen Katıl

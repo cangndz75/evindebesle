@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 export default function HeroSplitCta() {
   return (
     <section className="relative w-full h-[85vh] md:h-[90vh] overflow-hidden bg-black flex items-center justify-center">
-      {/* İçerik - Ortalanmış */}
+      
       <div className="relative z-10 w-full h-full flex items-center justify-center">
         <div className="max-w-7xl mx-auto px-4 md:px-8 w-full text-center">
           <motion.div
@@ -15,18 +15,18 @@ export default function HeroSplitCta() {
             transition={{ duration: 0.6 }}
             className="max-w-4xl mx-auto"
           >
-            {/* Microcopy - Üst */}
+            
             <p className="text-sm md:text-base text-white font-light mb-6 uppercase tracking-wider">
               Gardırobunu Yenile, Konforu Yeniden Tanımla
             </p>
 
-            {/* Ana Başlık - İki Satır */}
+            
             <h1 className="text-7xl md:text-8xl lg:text-9xl xl:text-[12rem] font-serif font-light text-white mb-12 leading-[0.9]">
               <span className="block">MODERN</span>
               <span className="block">RESET</span>
             </h1>
 
-            {/* CTA Butonları */}
+            
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/women"

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import useSWR from "swr";
@@ -82,7 +82,7 @@ export default function AdminSupportPage() {
             <div className="flex items-center justify-between">
                 <h1 className="text-3xl font-bold tracking-tight">Destek Talepleri</h1>
                 <div className="flex items-center gap-2">
-                    {/* Export button could go here */}
+                    
                 </div>
             </div>
 

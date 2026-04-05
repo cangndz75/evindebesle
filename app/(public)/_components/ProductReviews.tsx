@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useMemo } from "react";
 import { Star, Search, Check, ChevronDown, X, MessageSquarePlus } from "lucide-react";
@@ -156,7 +156,7 @@ export default function ProductReviews({ productId, productName = "Ürün", prod
           )}
         </div>
 
-        {/* Empty State */}
+        
         {filteredReviews.length === 0 ? (
           <div className="text-center py-12 bg-gray-50 rounded-lg border border-dashed border-gray-300">
             <div className="flex justify-center mb-4">
@@ -174,7 +174,7 @@ export default function ProductReviews({ productId, productName = "Ürün", prod
           </div>
         ) : (
           <>
-            {/* Overall Rating */}
+            
             <div className="text-center mb-8">
               <div className="flex items-center justify-center gap-2 mb-2">
                 <span className="text-4xl font-light text-black">{averageRating}</span>
@@ -195,9 +195,9 @@ export default function ProductReviews({ productId, productName = "Ürün", prod
               </p>
             </div>
 
-            {/* Filtreleme UI - Ana Sayfada */}
+            
             <div className="mb-8 space-y-4">
-              {/* Search */}
+              
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <input
@@ -209,7 +209,7 @@ export default function ProductReviews({ productId, productName = "Ürün", prod
                 />
               </div>
 
-              {/* Rating Filter */}
+              
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-sm text-gray-600 font-light">Filtrele:</span>
                 {[5, 4, 3, 2, 1].map((rating) => (
@@ -227,14 +227,14 @@ export default function ProductReviews({ productId, productName = "Ürün", prod
               </div>
             </div>
 
-            {/* Initial Reviews */}
+            
             <div className="space-y-8 mb-8">
               {displayedReviews.slice(0, 2).map((review) => (
                 <ReviewCard key={review.id} review={review} />
               ))}
             </div>
 
-            {/* Load More Button */}
+            
             {displayedReviews.length > 2 && (
               <div className="text-center">
                 <button
@@ -249,7 +249,7 @@ export default function ProductReviews({ productId, productName = "Ürün", prod
         )}
       </section>
 
-      {/* Reviews Modal - Show All */}
+      
       <Dialog open={showAllModal} onOpenChange={setShowAllModal}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
           <DialogHeader className="px-6 py-4 border-b border-gray-200 sticky top-0 bg-white z-10">
@@ -259,7 +259,7 @@ export default function ProductReviews({ productId, productName = "Ürün", prod
           </DialogHeader>
 
           <div className="px-6 py-6">
-            {/* Search and Filters */}
+            
             <div className="mb-6 space-y-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -292,7 +292,7 @@ export default function ProductReviews({ productId, productName = "Ürün", prod
                 </div>
               </div>
 
-              {/* Rating Filter */}
+              
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-sm text-gray-600 font-light">Filtrele:</span>
                 {[5, 4, 3, 2, 1].map((rating) => (
@@ -310,7 +310,7 @@ export default function ProductReviews({ productId, productName = "Ürün", prod
               </div>
             </div>
 
-            {/* All Reviews */}
+            
             <div className="space-y-8">
               {displayedReviews.map((review) => (
                 <ReviewCard key={review.id} review={review} />
@@ -320,7 +320,7 @@ export default function ProductReviews({ productId, productName = "Ürün", prod
         </DialogContent>
       </Dialog>
 
-      {/* Review Submission Modal */}
+      
       <ProductReviewModal
         isOpen={showReviewModal}
         onClose={() => setShowReviewModal(false)}

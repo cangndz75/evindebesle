@@ -92,15 +92,7 @@ export default function RegisterForm() {
         </Button>
       </div>
 
-      {/* <div className="text-sm text-center text-muted-foreground pt-4">
-        Hesabın var mı?{" "}
-        <Link
-          href="/login"
-          className="text-violet-700 font-semibold hover:underline"
-        >
-          Giriş Yap
-        </Link>
-      </div> */}
+      
     </div>
   );
 }

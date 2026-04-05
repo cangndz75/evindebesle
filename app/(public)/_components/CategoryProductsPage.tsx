@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -433,7 +433,7 @@ export default function CategoryProductsPage({
     return (
         <div className="min-h-screen bg-white">
             <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
-                {/* Breadcrumb */}
+                
                 <nav className="mb-4">
                     <Link
                         href="/"
@@ -445,14 +445,14 @@ export default function CategoryProductsPage({
                     <span className="text-sm text-[#111] font-light">{categoryName}</span>
                 </nav>
 
-                {/* Title */}
+                
                 <h1 className="text-3xl md:text-4xl lg:text-5xl font-light text-[#111] mb-6">
                     {categoryName}
                 </h1>
 
-                {/* Filter and Sort */}
+                
                 <div className="flex items-center justify-between mb-8 gap-4">
-                    {/* Filtre Butonu - Sol */}
+                    
                     <div className="flex items-center gap-2">
                         <ProductFilters
                             availableSizes={availableOptions.sizes}
@@ -469,13 +469,13 @@ export default function CategoryProductsPage({
                         />
                     </div>
 
-                    {/* Sırala - Sağ */}
+                    
                     <div className="flex items-center gap-4">
                         <span className="text-sm text-[#111]/60 font-light hidden md:inline">
                             {products.length} ürün
                         </span>
 
-                        {/* Mobil: Sırala Butonu */}
+                        
                         <button
                             onClick={() => setSortDialogOpen(true)}
                             className="md:hidden flex items-center gap-2 px-4 py-2 text-sm font-light text-[#111] border border-[#111] hover:bg-[#111] hover:text-white transition-colors"
@@ -484,7 +484,7 @@ export default function CategoryProductsPage({
                             <span>Sırala</span>
                         </button>
 
-                        {/* Desktop: Sırala Dropdown */}
+                        
                         <div className="hidden md:flex items-center gap-2">
                             <span className="text-sm text-[#111] font-light">Sırala:</span>
                             <Select value={sortOption} onValueChange={setSortOption}>
@@ -515,7 +515,7 @@ export default function CategoryProductsPage({
                     </div>
                 </div>
 
-                {/* Mobil Sırala Modal */}
+                
                 <Dialog open={sortDialogOpen} onOpenChange={setSortDialogOpen}>
                     <DialogContent className="sm:max-w-md">
                         <DialogHeader>
@@ -582,7 +582,7 @@ export default function CategoryProductsPage({
                     </DialogContent>
                 </Dialog>
 
-                {/* Product Grid */}
+                
                 {loading ? (
                     <div className="text-center py-12">Yükleniyor...</div>
                 ) : products.length === 0 ? (
@@ -672,7 +672,7 @@ export default function CategoryProductsPage({
                                         </div>
                                     </div>
 
-                                    {/* Renk Seçenekleri */}
+                                    
                                     {product.colors.length > 0 && (
                                         <div className="flex items-center justify-center gap-1.5 mt-2">
                                             {Array.from(new Map(product.colors.filter((c: any) => c.images?.[0]).map((c: any) => [c.hexCode || c.name, c])).values()).map((color: any, idx: number) => {

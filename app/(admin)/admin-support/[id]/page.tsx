@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useRef, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -127,7 +127,7 @@ export default function AdminTicketDetailPage() {
 
     return (
         <div className="flex h-screen bg-gray-50 overflow-hidden">
-            {/* Sidebar with Ticket Info */}
+            
             <aside className="w-80 bg-white border-r flex flex-col overflow-y-auto">
                 <div className="p-4 border-b">
                     <Link href="/admin-support">
@@ -148,7 +148,7 @@ export default function AdminTicketDetailPage() {
                 </div>
 
                 <div className="p-4 space-y-6">
-                    {/* Status Control */}
+                    
                     <div>
                         <label className="text-xs font-semibold text-gray-500 uppercase mb-2 block">Durum</label>
                         <Select
@@ -168,7 +168,7 @@ export default function AdminTicketDetailPage() {
                         </Select>
                     </div>
 
-                    {/* User Info */}
+                    
                     <div>
                         <label className="text-xs font-semibold text-gray-500 uppercase mb-2 block">Kullanıcı</label>
                         <div className="flex items-center gap-3">
@@ -182,7 +182,7 @@ export default function AdminTicketDetailPage() {
                         </div>
                     </div>
 
-                    {/* Related Order */}
+                    
                     {ticket.order && (
                         <div>
                             <label className="text-xs font-semibold text-gray-500 uppercase mb-2 block">İlgili Sipariş</label>
@@ -206,7 +206,7 @@ export default function AdminTicketDetailPage() {
                 </div>
             </aside>
 
-            {/* Main Chat Area */}
+            
             <main className="flex-1 flex flex-col min-w-0">
                 <div className="flex-1 overflow-y-auto p-6 space-y-6">
                     {ticket.messages.map((msg) => (
@@ -242,7 +242,7 @@ export default function AdminTicketDetailPage() {
                     <div ref={messagesEndRef} />
                 </div>
 
-                {/* Input Area */}
+                
                 <div className="p-4 bg-white border-t">
                     <div className="max-w-4xl mx-auto flex gap-4">
                         <Textarea

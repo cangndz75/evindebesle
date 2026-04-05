@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { ArrowLeftRight, Gift, Truck, ShieldCheck } from "lucide-react";
 import { useState } from "react";
@@ -37,7 +37,7 @@ export default function TrustSection() {
 
   return (
     <section className="w-full bg-[#fafafa]">
-      {/* Güven Unsurları */}
+      
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-16">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
           {trustItems.map((item, index) => {
@@ -59,7 +59,7 @@ export default function TrustSection() {
         </div>
       </div>
 
-      {/* Newsletter */}
+      
       <div className="max-w-4xl mx-auto px-4 md:px-8 py-16 md:py-20 text-center border-t border-gray-200">
         <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-light text-black mb-4">
           Yeni Koleksiyonlardan Haberdar Ol

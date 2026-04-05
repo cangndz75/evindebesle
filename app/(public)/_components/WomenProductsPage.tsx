@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -530,7 +530,7 @@ export default function WomenProductsPage({
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 md:py-12">
-        {/* Breadcrumb */}
+        
         <nav className="mb-3 md:mb-4">
           <Link href="/" className="text-xs md:text-sm text-[#111]/60 font-light hover:text-[#111]">
             Ana Sayfa
@@ -539,12 +539,12 @@ export default function WomenProductsPage({
           <span className="text-xs md:text-sm text-[#111] font-light">{breadcrumbCurrent}</span>
         </nav>
 
-        {/* Title */}
+        
         <h1 className="text-2xl md:text-4xl lg:text-5xl font-light text-[#111] mb-4 md:mb-6">
           {pageTitle}
         </h1>
 
-        {/* Category Filters */}
+        
         {!hideCategoryFilters && (
         <div className="flex gap-2 mb-6 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4 md:mx-0 md:px-0">
           <button
@@ -571,9 +571,9 @@ export default function WomenProductsPage({
           ))}
         </div>
         )}
-        {/* Filter and Sort */}
+        
         <div className="flex items-center justify-between mb-6 md:mb-8 gap-2 md:gap-4">
-          {/* Filtre Butonu - Sol */}
+          
           <div className="flex items-center gap-2">
             <ProductFilters
               availableSizes={availableOptions.sizes}
@@ -590,11 +590,11 @@ export default function WomenProductsPage({
             />
           </div>
 
-          {/* Sırala - Sağ */}
+          
           <div className="flex items-center gap-2 md:gap-4">
             <span className="text-xs md:text-sm text-[#111]/60 font-light hidden md:inline">{products.length} ürün</span>
 
-            {/* Mobil: Sırala Butonu */}
+            
             <button
               onClick={() => setSortDialogOpen(true)}
               className="md:hidden flex items-center gap-1.5 px-3 py-2 text-xs font-light text-[#111] border border-[#111] hover:bg-[#111] hover:text-white transition-colors"
@@ -603,7 +603,7 @@ export default function WomenProductsPage({
               <span>Sırala</span>
             </button>
 
-            {/* Desktop: Sırala Dropdown */}
+            
             <div className="hidden md:flex items-center gap-2">
               <span className="text-sm text-[#111] font-light">Sırala:</span>
               <Select value={sortOption} onValueChange={setSortOption}>
@@ -634,7 +634,7 @@ export default function WomenProductsPage({
           </div>
         </div>
 
-        {/* Mobil Sırala Modal */}
+        
         <Dialog open={sortDialogOpen} onOpenChange={setSortDialogOpen}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
@@ -701,8 +701,8 @@ export default function WomenProductsPage({
           </DialogContent>
         </Dialog>
 
-        {/* Mobil: Basit 2 sütunlu grid, Desktop: Karmaşık editorial düzeni */}
-        {/* Mobil Grid */}
+        
+        
         <div className="grid grid-cols-2 gap-4 md:hidden">
           {products.map((product) => {
             const totalStock = product.sizes?.reduce((sum, s) => sum + (s.stock || 0), 0) || 0;
@@ -796,7 +796,7 @@ export default function WomenProductsPage({
                   })}
               </div>
 
-        {/* Desktop Grid - Döngüsel pattern düzeni */}
+        
         <div className="hidden md:grid md:grid-cols-4 gap-6 auto-rows-fr">
           {gridItems.map((item, index) => {
             const product = item as ProductWithGridPosition;
@@ -879,7 +879,7 @@ export default function WomenProductsPage({
                   </div>
                 </div>
 
-                {/* Renk Seçenekleri */}
+                
                 <div className="flex items-center justify-center gap-1 mt-2">
                   {Array.from(new Map(product.colors.filter((c: any) => c.images?.[0]).map((c: any) => [c.hexCode || c.name, c])).values()).map((color: any, idx) => {
                     const colorImg = color.images?.[0] || "";

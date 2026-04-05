@@ -325,7 +325,7 @@ export default function CouponsPage() {
         </Button>
       </div>
 
-      {/* Performans Tablosu */}
+      
       {showPerformance && (
         <Card>
           <CardHeader>

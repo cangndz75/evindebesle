@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import useSWR from "swr";
@@ -189,7 +189,7 @@ export function AdminNotificationBell() {
                 </ScrollArea>
 
                 <DropdownMenuSeparator />
-                {/* Optional: Add "View All" link if a dedicated page exists */}
+                
             </DropdownMenuContent>
         </DropdownMenu>
     );

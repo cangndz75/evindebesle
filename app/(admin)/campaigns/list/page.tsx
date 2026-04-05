@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -173,7 +173,7 @@ export default function CampaignListPage() {
 
     return (
         <div className="p-6 max-w-7xl mx-auto space-y-6">
-            {/* Header */}
+            
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold">Kampanyalar</h1>
@@ -187,7 +187,7 @@ export default function CampaignListPage() {
                 </Link>
             </div>
 
-            {/* Stats Cards */}
+            
             <div className="grid grid-cols-4 gap-4">
                 <Card>
                     <CardHeader className="pb-2">
@@ -237,7 +237,7 @@ export default function CampaignListPage() {
                 </Card>
             </div>
 
-            {/* Campaigns Table */}
+            
             <Card>
                 <CardHeader>
                     <Tabs value={activeTab} onValueChange={setActiveTab}>

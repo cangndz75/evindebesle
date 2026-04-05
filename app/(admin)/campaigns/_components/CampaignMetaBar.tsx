@@ -78,7 +78,7 @@ export default function CampaignMetaBar({
   return (
     <div className="border-b border-gray-200 bg-white">
       <div className="px-8 py-5 space-y-4">
-        {/* Üst Satır: Kampanya Adı ve Durum */}
+        
         <div className="flex items-center justify-between gap-6">
           <div className="flex items-center gap-4 flex-1 min-w-0">
             <div className="flex-1 min-w-0">
@@ -111,7 +111,7 @@ export default function CampaignMetaBar({
             </Badge>
           </div>
 
-          {/* Sağ: Aksiyonlar */}
+          
           <div className="flex items-center gap-2 flex-shrink-0">
             <Button
               variant="ghost"
@@ -158,7 +158,7 @@ export default function CampaignMetaBar({
           </div>
         </div>
 
-        {/* Alt Satır: Subject + Preheader + From */}
+        
         <div className="grid grid-cols-12 gap-4">
           <div className="col-span-4">
             <label className="text-xs font-medium text-gray-600 mb-1 block">Subject</label>

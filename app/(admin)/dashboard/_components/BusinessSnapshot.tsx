@@ -131,7 +131,7 @@ export default function BusinessSnapshot({
 
   return (
     <div className="space-y-6">
-      {/* KPI Cards */}
+      
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {kpis.map((kpi: any, index: number) => (
           <motion.div
@@ -175,9 +175,9 @@ export default function BusinessSnapshot({
         ))}
       </div>
 
-      {/* Revenue Chart + Lists */}
+      
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Sol: Gelir Trendi (Küçük) */}
+        
         <Card className="border-0 shadow-sm bg-white/50 backdrop-blur-sm">
           <CardHeader className="pb-4 border-b border-gray-100">
             <CardTitle className="text-lg font-semibold text-gray-900">Gelir Trendi</CardTitle>
@@ -240,9 +240,9 @@ export default function BusinessSnapshot({
           </CardContent>
         </Card>
 
-        {/* Sağ: Listeler */}
+        
         <div className="space-y-6">
-          {/* Son Siparişler */}
+          
           <Card className="border-0 shadow-sm bg-white/50 backdrop-blur-sm">
             <CardHeader className="pb-3 border-b border-gray-100">
               <div className="flex items-center justify-between">
@@ -295,7 +295,7 @@ export default function BusinessSnapshot({
             </CardContent>
           </Card>
 
-          {/* En Çok Satanlar / Son Ürünler */}
+          
           <Card className="border-0 shadow-sm bg-white/50 backdrop-blur-sm">
             <CardHeader className="pb-3 border-b border-gray-100">
               <div className="flex items-center justify-between">

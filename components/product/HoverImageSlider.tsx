@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useCallback, useMemo } from "react";
 import Image from "next/image";
@@ -72,7 +72,7 @@ export default function HoverImageSlider({
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
         >
-            {/* Tüm resimleri render et, sadece aktif olanı göster */}
+            
             {validImages.map((img, idx) => (
                 <Image
                     key={idx}
@@ -93,13 +93,13 @@ export default function HoverImageSlider({
                 />
             ))}
 
-            {/* Badge */}
+            
             {badge}
 
-            {/* Favorite Button */}
+            
             {favoriteButton}
 
-            {/* Stokta Yok Label */}
+            
             {isOutOfStock && (
                 <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
                     <div className="bg-white/90 text-black px-4 py-2 text-xs font-bold tracking-widest uppercase">
@@ -108,7 +108,7 @@ export default function HoverImageSlider({
                 </div>
             )}
 
-            {/* Alt kısımda resim sayısını gösteren dot indicator'lar */}
+            
             {imageCount > 1 && (
                 <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-1.5 z-10">
                     {validImages.map((_, idx) => (

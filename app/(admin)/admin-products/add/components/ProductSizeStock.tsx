@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -50,7 +50,7 @@ export function ProductSizeStock({
         <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
             <h2 className="text-lg font-semibold mb-4 text-gray-900">Beden ve Stok Yönetimi</h2>
 
-            {/* Size Type Selection */}
+            
             <div className="mb-6">
                 <Label className="mb-2 block font-semibold text-gray-700">Beden Sistemi</Label>
                 <div className="flex flex-wrap gap-4 mb-3">
@@ -73,11 +73,11 @@ export function ProductSizeStock({
                 </div>
             </div>
 
-            {/* Main Product / First Variant Configuration */}
+            
             {isTrackInventory ? (
                 <div className="animate-in fade-in slide-in-from-top-2 duration-300">
 
-                    {/* Always ask for Main Color Name & Hex */}
+                    
                     <div className="mb-4 p-4 bg-gray-50 border border-gray-100 rounded-md">
                         <Label className="text-sm font-semibold text-gray-900 mb-2 block">
                             Ana Ürün Rengi ve Kodu

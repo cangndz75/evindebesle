@@ -21,7 +21,7 @@ export default async function ShippingPage() {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Hero */}
+            
             <div className="bg-gradient-to-br from-gray-900 to-gray-800 text-white py-16 px-4">
                 <div className="max-w-4xl mx-auto text-center">
                     <div className="inline-flex items-center justify-center w-16 h-16 bg-white/10 rounded-full mb-6">
@@ -33,7 +33,7 @@ export default async function ShippingPage() {
             </div>
 
             <div className="max-w-4xl mx-auto px-4 py-12 space-y-10">
-                {/* Öne Çıkanlar */}
+                
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {[
                         { icon: <CreditCard className="w-6 h-6" />, title: `${threshold}₺ Üzeri Ücretsiz Kargo`, desc: `${threshold}₺ ve üzeri alışverişlerinizde kargo ücretsizdir.` },
@@ -50,7 +50,7 @@ export default async function ShippingPage() {
                     ))}
                 </div>
 
-                {/* Kargo Ücretleri */}
+                
                 <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
                     <div className="flex items-center gap-3 mb-6">
                         <div className="p-2 rounded-lg bg-blue-100 text-blue-700">
@@ -83,7 +83,7 @@ export default async function ShippingPage() {
                     </div>
                 </section>
 
-                {/* Teslimat Süreleri */}
+                
                 <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
                     <div className="flex items-center gap-3 mb-6">
                         <div className="p-2 rounded-lg bg-green-100 text-green-700">
@@ -110,7 +110,7 @@ export default async function ShippingPage() {
                     </ul>
                 </section>
 
-                {/* Dikkat Edilmesi Gerekenler */}
+                
                 <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
                     <div className="flex items-center gap-3 mb-6">
                         <div className="p-2 rounded-lg bg-orange-100 text-orange-700">
@@ -135,7 +135,7 @@ export default async function ShippingPage() {
                     </ul>
                 </section>
 
-                {/* Anlaşmalı Kargo */}
+                
                 <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
                     <div className="flex items-center gap-3 mb-6">
                         <div className="p-2 rounded-lg bg-purple-100 text-purple-700">
@@ -155,7 +155,7 @@ export default async function ShippingPage() {
                     </div>
                 </section>
 
-                {/* Destek */}
+                
                 <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-8 text-center">
                     <h3 className="text-lg font-bold text-gray-900 mb-2">Kargonuzla ilgili sorunuz mu var?</h3>
                     <p className="text-gray-600 mb-4">

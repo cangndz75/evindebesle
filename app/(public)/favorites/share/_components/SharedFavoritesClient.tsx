@@ -39,7 +39,7 @@ export default function SharedFavoritesClient({
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
-        {/* Header */}
+        
         <div className="mb-8">
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-light text-[#111] mb-2">
             {userName}'in Favorileri
@@ -49,7 +49,7 @@ export default function SharedFavoritesClient({
           </p>
         </div>
 
-        {/* Favorites Grid */}
+        
         {favorites.length === 0 ? (
           <div className="text-center py-12 text-[#111]/60">
             <p className="text-lg">Bu listede henüz ürün yok</p>

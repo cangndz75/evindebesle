@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useMemo, useRef, useEffect } from "react";
 import Link from "next/link";
@@ -274,15 +274,15 @@ export default function SiteHeader() {
     return (
       <header className="sticky top-0 z-50 bg-white border-b border-black/10 w-full">
         <div className="w-full px-4 md:px-8 h-16 md:h-20 flex items-center justify-between relative">
-          {/* Empty left side for balance or back link could go here */}
+          
           <div className="w-10"></div>
 
-          {/* Center Brand */}
+          
           <div className="absolute left-1/2 -translate-x-1/2 text-2xl md:text-3xl font-serif font-light tracking-wider text-[#111]">
             Dark velvet
           </div>
 
-          {/* Right Cart Icon */}
+          
           <Link href="/cart" className="hover:opacity-70 transition-opacity">
             <ShoppingBag className="w-6 h-6 text-[#111]" />
           </Link>
@@ -335,7 +335,7 @@ export default function SiteHeader() {
                 ))}
               </div>
 
-              {/* Mobile Menu */}
+              
               <Sheet open={menuOpen} onOpenChange={(open) => {
                 setMenuOpen(open);
                 if (!open) setMobileMenuState("main");
@@ -425,7 +425,7 @@ export default function SiteHeader() {
                       </div>
                     )}
                   </div>
-                  {/* Mobil İkonlar - Altta */}
+                  
                   <div className="border-t px-6 py-4 space-y-3">
                     <button
                       onClick={() => {
@@ -469,7 +469,7 @@ export default function SiteHeader() {
                       <span>Sepet</span>
                     </button>
 
-                    {/* Login/Logout Button - Centered at Bottom */}
+                    
                     <div className="pt-4 border-t">
                       {session?.user ? (
                         <button
@@ -496,7 +496,7 @@ export default function SiteHeader() {
                 </SheetContent>
               </Sheet>
 
-              {/* Mobile Logo - Hamburger yanında */}
+              
               <Link
                 href="/home"
                 className="md:hidden ml-3"
@@ -508,7 +508,7 @@ export default function SiteHeader() {
               </Link>
             </div>
 
-            {/* Orta: Logo - Absolute positioned for perfect centering (Desktop only) */}
+            
             <Link
               href="/home"
               className="hidden md:block absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2"
@@ -519,7 +519,7 @@ export default function SiteHeader() {
               </span>
             </Link>
 
-            {/* Sağ: İkonlar */}
+            
             <div className="flex items-center gap-4 md:gap-6">
               <button
                 onClick={() => setSearchModalOpen(true)}
@@ -566,7 +566,7 @@ export default function SiteHeader() {
           </div>
         </nav>
 
-        {/* Desktop Mega Menu */}
+        
         {openMenu && mega[openMenu] && (
           <div
             className="hidden md:block absolute left-0 right-0 top-full z-50 bg-white border-t border-black/10 shadow-lg"
@@ -575,7 +575,7 @@ export default function SiteHeader() {
           >
             <div className="max-w-5xl mx-auto px-8 py-8">
               <div className="flex">
-                {/* Sol Taraf: Link Grupları */}
+                
                 <div className="flex-1 grid grid-cols-2 lg:grid-cols-3 gap-8">
                   {mega[openMenu].left.map((group, gIdx) => (
                     <div key={gIdx} className="space-y-6">
@@ -600,7 +600,7 @@ export default function SiteHeader() {
                   ))}
                 </div>
 
-                {/* Sağ Taraf: Promo */}
+                
                 {mega[openMenu].rightPromo && (
                   <div className="w-[260px] bg-gray-50 border-l border-gray-100 pl-8 flex flex-col justify-center">
                     <Link href={mega[openMenu].rightPromo!.href} className="group block" onClick={() => setOpenMenu(null)}>
@@ -632,20 +632,20 @@ export default function SiteHeader() {
           </div>
         )}
 
-        {/* Search Modal */}
+        
         <SearchModal
           isOpen={searchModalOpen}
           onClose={() => setSearchModalOpen(false)}
         />
 
-        {/* Cart Preview Popup */}
+        
         <CartPreview
           cartIconRef={cartIconRef}
           headerBottom={81}
         />
       </header>
 
-      {/* Shopping Cart Sidebar - Outside header to avoid stacking issues */}
+      
       <ShoppingCart isOpen={cartOpen} onClose={() => setCartOpen(false)} />
     </div>
   );

@@ -130,7 +130,7 @@ export default function KPIStrip({ data }: KPIStripProps) {
 
     return (
         <div className="relative w-full group">
-            {/* Left Scroll Button */}
+            
             <button
                 onClick={() => scroll("left")}
                 className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-full shadow-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-50"
@@ -138,7 +138,7 @@ export default function KPIStrip({ data }: KPIStripProps) {
                 <ChevronLeft className="w-5 h-5 text-gray-600" />
             </button>
 
-            {/* Right Scroll Button */}
+            
             <button
                 onClick={() => scroll("right")}
                 className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-full shadow-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-50"

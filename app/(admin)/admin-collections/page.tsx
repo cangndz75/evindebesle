@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
@@ -331,7 +331,7 @@ export default function AdminCollectionsPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Sol Sütun: Koleksiyonlar Listesi */}
+        
         <div className="lg:col-span-1 space-y-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -373,7 +373,7 @@ export default function AdminCollectionsPage() {
           </Card>
         </div>
 
-        {/* Sağ Sütun: Form & Ürünler */}
+        
         <div className="lg:col-span-2 space-y-6">
            {(selectedCollection || isCreating) ? (
               <>
@@ -397,7 +397,7 @@ export default function AdminCollectionsPage() {
                           <Textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} placeholder="Koleksiyon detayları..." rows={3} />
                        </div>
                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                          {/* Görsel 1 */}
+                          
                           <div className="space-y-2">
                              <label className="text-sm font-medium">Ana Görsel (Dikdörtgen)</label>
                              <div className="space-y-2">
@@ -434,7 +434,7 @@ export default function AdminCollectionsPage() {
                              </div>
                           </div>
 
-                          {/* Görsel 2 */}
+                          
                           <div className="space-y-2">
                              <label className="text-sm font-medium">İkincil Görsel 1 (Kare)</label>
                              <div className="space-y-2">
@@ -471,7 +471,7 @@ export default function AdminCollectionsPage() {
                              </div>
                           </div>
 
-                          {/* Görsel 3 */}
+                          
                           <div className="space-y-2">
                              <label className="text-sm font-medium">İkincil Görsel 2 (Kare)</label>
                              <div className="space-y-2">

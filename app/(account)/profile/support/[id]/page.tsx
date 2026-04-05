@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useRef, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -95,7 +95,7 @@ export default function TicketDetailPage() {
 
     return (
         <div className="flex flex-col h-[calc(100vh-140px)] max-h-[800px]">
-            {/* Header */}
+            
             <div className="flex items-center gap-4 mb-4 shrink-0">
                 <Link href="/profile/support">
                     <Button variant="ghost" size="icon">
@@ -117,7 +117,7 @@ export default function TicketDetailPage() {
                 </div>
             </div>
 
-            {/* Chat Area */}
+            
             <Card className="flex-1 flex flex-col overflow-hidden shadow-sm border-gray-200">
                 <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/50">
                     {ticket.messages.map((msg) => (
@@ -153,7 +153,7 @@ export default function TicketDetailPage() {
                     <div ref={messagesEndRef} />
                 </div>
 
-                {/* Input Area */}
+                
                 <div className="p-4 bg-white border-t">
                     {ticket.status === 'closed' ? (
                         <div className="text-center py-4 bg-gray-50 rounded-lg border border-dashed text-gray-500 text-sm">

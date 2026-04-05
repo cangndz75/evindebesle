@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { ChevronDown, Search, HelpCircle, Package, CreditCard, Truck, RotateCcw, User, ShoppingBag } from "lucide-react";
@@ -85,7 +85,7 @@ export default function SSSPage() {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Hero Section */}
+            
             <div className="bg-gradient-to-br from-gray-900 to-gray-800 text-white py-16 px-4">
                 <div className="max-w-4xl mx-auto text-center">
                     <div className="inline-flex items-center justify-center w-16 h-16 bg-white/10 rounded-full mb-6">
@@ -94,7 +94,7 @@ export default function SSSPage() {
                     <h1 className="text-4xl font-bold mb-4">Sıkça Sorulan Sorular</h1>
                     <p className="text-gray-300 mb-8">Size nasıl yardımcı olabiliriz?</p>
 
-                    {/* Arama */}
+                    
                     <div className="relative max-w-xl mx-auto">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                         <input
@@ -109,7 +109,7 @@ export default function SSSPage() {
             </div>
 
             <div className="max-w-4xl mx-auto px-4 py-12">
-                {/* Kategori Butonları */}
+                
                 {!searchQuery && (
                     <div className="flex flex-wrap gap-2 mb-8">
                         <button
@@ -137,7 +137,7 @@ export default function SSSPage() {
                     </div>
                 )}
 
-                {/* SSS Listesi */}
+                
                 {Object.entries(displayGrouped).map(([category, items]) => (
                     <div key={category} className="mb-8">
                         {!searchQuery && category !== "results" && (
@@ -186,7 +186,7 @@ export default function SSSPage() {
                     </div>
                 )}
 
-                {/* Destek Linki */}
+                
                 <div className="mt-12 p-6 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl text-center">
                     <h3 className="text-lg font-bold text-gray-900 mb-2">Aradığınızı bulamadınız mı?</h3>
                     <p className="text-gray-600 mb-4">Destek ekibimiz size yardımcı olmaktan mutluluk duyar.</p>

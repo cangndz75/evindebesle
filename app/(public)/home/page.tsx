@@ -1,4 +1,4 @@
-﻿import nextDynamic from "next/dynamic";
+import nextDynamic from "next/dynamic";
 import { cache } from "react";
 import CampaignStrip from "@/components/home/CampaignStrip";
 import ByltStyleHero from "@/components/home/ByltStyleHero";
@@ -300,31 +300,20 @@ export default async function HomePage() {
       </div>
       <EditorialBanner />
       <ProductShowcase products={showcaseProducts} />
-      {/* <CategoryShowcase 
-        categories={[
-          { label: "SWEATSHIRT", href: "/sweatshirt" },
-          { label: "BRA", href: "/bra" },
-          { label: "UNDERWEAR", href: "/underwear" },
-          { label: "SOCKS", href: "/socks" },
-        ]}
-        products={showcaseProducts.slice(0, 4)}
-      /> */}
-      {/* <CollectionCarousel /> */}
+      
+      
       <SplitShowcase />
       <TabbedProductCarousel
         newArrivals={newArrivalsTab}
         bestSellers={bestSellersTab}
         recommended={recommendedTab}
       />
-      {/* <TwoUpEditorialTiles /> */}
-      {/* <CategoryRail /> */}
+      
+      
       <FeaturedCardsRow />
-      {/* <ProductCarousel title="Yeni Gelenler" products={newArrivals} viewAllLink="/women/new" /> */}
+      
       <EditorialTiles />
-      {/* <TabbedBestSellers 
-        bestSellersWomen={bestSellersWomen}
-        bestSellersMen={bestSellersMen}
-      /> */}
+      
       <NewsletterSignup />
     </>
   );

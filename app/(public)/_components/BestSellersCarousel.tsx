@@ -59,7 +59,7 @@ export default function BestSellersCarousel() {
         </h2>
 
         <div className="relative">
-          {/* Carousel */}
+          
           <div className="overflow-hidden">
             <div
               className="flex transition-transform duration-500 ease-in-out"
@@ -118,7 +118,7 @@ export default function BestSellersCarousel() {
             </div>
           </div>
 
-          {/* Navigation Arrows */}
+          
           <button
             onClick={prev}
             className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white border border-gray-300 p-2 hover:bg-gray-50 transition-colors z-10"

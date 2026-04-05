@@ -55,7 +55,7 @@ export default function BlockInspector({ block, onUpdate }: BlockInspectorProps)
         <p className="text-xs text-gray-500">{block.type}</p>
       </div>
 
-      {/* Görünürlük Ayarları */}
+      
       <div className="mb-4 space-y-3">
         <Label className="text-xs font-medium text-gray-700">Görünürlük</Label>
         <div className="flex items-center justify-between">
@@ -88,7 +88,7 @@ export default function BlockInspector({ block, onUpdate }: BlockInspectorProps)
         </div>
       </div>
 
-      {/* Blok Tipine Özel Ayarlar */}
+      
       <div className="border-t border-gray-200 pt-4">
         {renderInspector()}
       </div>

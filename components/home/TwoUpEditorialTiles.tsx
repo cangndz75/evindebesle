@@ -38,7 +38,7 @@ export default function TwoUpEditorialTiles() {
   return (
     <section className="w-full bg-white">
       <div className="w-full px-2 md:px-6 py-10 md:py-14">
-        {/* Desktop: Grid */}
+        
         <div className="hidden md:grid grid-cols-2 gap-6">
           {tiles.map((t) => (
             <Link
@@ -47,9 +47,9 @@ export default function TwoUpEditorialTiles() {
               className="group block"
               aria-label={t.title}
             >
-              {/* Image */}
+              
               <div className="relative w-full overflow-hidden bg-[#f4f2ee]">
-                {/* SS'teki gibi yüksek dikey kutu hissi */}
+                
                 <div className="relative h-[520px] sm:h-[620px] lg:h-[720px]">
                   <Image
                     src={t.image}
@@ -60,12 +60,12 @@ export default function TwoUpEditorialTiles() {
                     unoptimized
                     priority={false}
                   />
-                  {/* çok hafif vignette */}
+                  
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors" />
                 </div>
               </div>
 
-              {/* Caption strip (SS'teki gibi altta beyaz alan) */}
+              
               <div className="bg-white pt-4 pb-6">
                 <div className="flex items-center gap-3">
                   <div className="text-[18px] md:text-[20px] font-medium tracking-tight text-black">
@@ -81,7 +81,7 @@ export default function TwoUpEditorialTiles() {
           ))}
         </div>
 
-        {/* Mobile: Carousel - 1 tam görünsün, diğeri ufaktan */}
+        
         <div className="md:hidden overflow-x-auto scrollbar-hide snap-x snap-mandatory" ref={scrollContainerRef}>
           <div className="flex gap-2 px-2">
             {tiles.map((t, index) => (
@@ -92,7 +92,7 @@ export default function TwoUpEditorialTiles() {
                 style={{ width: "calc(100vw - 16px)" }}
                 aria-label={t.title}
               >
-                {/* Image */}
+                
                 <div className="relative w-full overflow-hidden bg-[#f4f2ee]">
                   <div className="relative h-[520px]">
                     <Image
@@ -108,7 +108,7 @@ export default function TwoUpEditorialTiles() {
                   </div>
                 </div>
 
-                {/* Caption strip */}
+                
                 <div className="bg-white pt-4 pb-6">
                   <div className="flex items-center gap-3">
                     <div className="text-[18px] font-medium tracking-tight text-black">

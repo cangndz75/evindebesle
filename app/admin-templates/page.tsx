@@ -144,7 +144,7 @@ export default function AdminTemplatesPage() {
                     <TabsTrigger value="modelInfo">Model Bilgisi</TabsTrigger>
                 </TabsList>
 
-                {/* Washing Instructions */}
+                
                 <TabsContent value="washing">
                     <Card>
                         <CardHeader>
@@ -202,7 +202,7 @@ export default function AdminTemplatesPage() {
                     </Card>
                 </TabsContent>
 
-                {/* Delivery Info */}
+                
                 <TabsContent value="delivery">
                     <Card>
                         <CardHeader>
@@ -260,7 +260,7 @@ export default function AdminTemplatesPage() {
                     </Card>
                 </TabsContent>
 
-                {/* Size Notes */}
+                
                 <TabsContent value="sizeNote">
                     <Card>
                         <CardHeader>
@@ -318,7 +318,7 @@ export default function AdminTemplatesPage() {
                     </Card>
                 </TabsContent>
 
-                {/* Size Guides */}
+                
                 <TabsContent value="sizeGuide">
                     <Card>
                         <CardHeader>
@@ -379,7 +379,7 @@ export default function AdminTemplatesPage() {
                     </Card>
                 </TabsContent>
 
-                {/* Model Info */}
+                
                 <TabsContent value="modelInfo">
                     <Card>
                         <CardHeader>
@@ -439,7 +439,7 @@ export default function AdminTemplatesPage() {
                 </TabsContent>
             </Tabs>
 
-            {/* Modals */}
+            
             <WashingInstructionModal
                 open={washingModal}
                 onOpenChange={(open) => { setWashingModal(open); if (!open) closeModal(); }}

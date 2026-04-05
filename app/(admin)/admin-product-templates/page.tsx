@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -181,7 +181,7 @@ export default function AdminProductTemplatesPage() {
         </TabsList>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-          {/* Sol Kolon: Yeni Ekleme Formu */}
+          
           <Card className="lg:col-span-1 h-fit">
             <CardHeader>
               <CardTitle>Yeni Şablon Ekle</CardTitle>
@@ -211,7 +211,7 @@ export default function AdminProductTemplatesPage() {
             </CardContent>
           </Card>
 
-          {/* Sağ Kolon: Liste */}
+          
           <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle>Mevcut Şablonlar</CardTitle>
@@ -257,7 +257,7 @@ export default function AdminProductTemplatesPage() {
         </div>
       </Tabs>
 
-      {/* Atama Modal */}
+      
       <Dialog open={assignModalOpen} onOpenChange={setAssignModalOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
           <DialogHeader>

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -356,7 +356,7 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                   key={product.id}
                   className="group flex flex-col bg-white snap-start w-[85vw] sm:w-[50vw] md:w-[calc(33.333%-16px)] lg:w-[calc(25%-18px)] flex-shrink-0"
                 >
-                  {/* Ürün Görseli - Tıklanabilir */}
+                  
                   <Link href={productUrl} className="relative w-full aspect-[3/4] overflow-hidden bg-gray-100 mb-4 group">
                     <Image
                       src={currentImage}
@@ -384,7 +384,7 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                       </div>
                     )}
 
-                    {/* Beden Seçimi - Hover ile görünür, görselin alt kısmında */}
+                    
                     {sizes.length > 0 && (
                       <div className="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-3 border-t border-gray-200">
                         <div className="flex items-center gap-1.5 flex-wrap justify-center">
@@ -424,7 +424,7 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                     )}
                   </Link>
 
-                  {/* Ürün Bilgileri */}
+                  
                   <div className="flex-1 flex flex-col">
                     <Link href={productUrl} className="mb-2">
                       <h3 className="text-sm font-light text-[#111] uppercase tracking-wide line-clamp-2">
@@ -432,7 +432,7 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                       </h3>
                     </Link>
 
-                    {/* Fiyat */}
+                    
                     {product.price != null && (
                       <div className="flex items-center gap-2 mb-3">
                         {product.originalPrice ? (
@@ -450,7 +450,7 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                       </div>
                     )}
 
-                    {/* Renk Seçimi */}
+                    
                     {normalizedColors.length > 0 && (
                       <div className="mb-3">
                         <div className="flex items-center gap-1.5 flex-wrap">

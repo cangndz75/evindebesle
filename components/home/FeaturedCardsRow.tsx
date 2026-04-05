@@ -15,7 +15,7 @@ function useParallax(value: MotionValue<number>, distance: number) {
 function MobileCard({ card, index }: { card: any; index: number }) {
   return (
     <div className="flex-shrink-0 w-[85vw] snap-center group">
-      {/* Görsel Alanı */}
+      
       <div className="relative aspect-[4/5] overflow-hidden bg-gray-100 mb-4">
         {(card as any).videoUrl ? (
           <video
@@ -42,7 +42,7 @@ function MobileCard({ card, index }: { card: any; index: number }) {
         )}
       </div>
 
-      {/* Yazı Alanı - Alt kısım */}
+      
       <div className="text-center px-4">
         <h3 className="text-2xl font-serif text-[#111] mb-2 tracking-tight">
           {card.title}

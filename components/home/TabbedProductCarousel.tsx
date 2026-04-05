@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
@@ -96,9 +96,9 @@ export default function TabbedProductCarousel({
           className="w-full"
           onValueChange={handleTabChange}
         >
-          {/* Modern Header - Ortalanmış */}
+          
           <div className="flex flex-col items-center mb-12 px-4">
-            {/* Başlık */}
+            
             <div className="text-center mb-8">
               <span className="inline-block text-xs font-medium tracking-[0.3em] text-[#111]/40 uppercase mb-3">
                 KEŞFET
@@ -108,7 +108,7 @@ export default function TabbedProductCarousel({
               </h2>
             </div>
 
-            {/* Tablar - Modern Pill Style */}
+            
             <TabsList className="bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-full h-auto p-1.5 shadow-sm mx-4 md:mx-0">
               <TabsTrigger
                 value="new-arrivals"
@@ -131,7 +131,7 @@ export default function TabbedProductCarousel({
             </TabsList>
           </div>
 
-          {/* Carousel Kontrolleri - Sağ üstte */}
+          
           <div className="flex items-center justify-end gap-4 mb-6 px-4 md:px-8">
             {getViewAllLink() && (
               <Link
@@ -644,7 +644,7 @@ function ProductCarouselContent({
                       />
                     )}
 
-                    {/* Hover'da "Seçenekleri Gör" butonu */}
+                    
                     {hoveredProduct === product.id && (
                       <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <button
@@ -687,15 +687,15 @@ function ProductCarouselContent({
         </div>
       </div>
 
-      {/* Product Detail Modal */}
+      
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent className="max-w-[95vw] w-full max-h-[85vh] overflow-hidden p-0 flex flex-col md:flex-row my-8 md:my-12">
           <DialogTitle className="sr-only">Ürün Detayları</DialogTitle>
           {selectedProduct && (
             <>
-              {/* Sol taraf - Sticky dikey görsel (Desktop) */}
+              
               <div className="hidden md:flex md:w-[45%] md:sticky md:top-0 md:self-start md:flex-col md:items-center md:justify-start md:p-8 md:py-12 md:bg-gray-50 md:gap-4">
-                {/* Ana görsel */}
+                
                 <div className="relative w-full aspect-[3/4] bg-gray-100">
                   {productImages.length > 0 && productImages[selectedImageIndex] ? (
                     <>
@@ -714,7 +714,7 @@ function ProductCarouselContent({
                             : selectedProduct.badge}
                         </div>
                       )}
-                      {/* Image navigation */}
+                      
                       {productImages.length > 1 && (
                         <>
                           {selectedImageIndex > 0 && (
@@ -752,7 +752,7 @@ function ProductCarouselContent({
                     </div>
                   )}
                 </div>
-                {/* Thumbnail gallery */}
+                
                 {productImages.length > 1 && (
                   <div className="flex gap-2 overflow-x-auto w-full pb-2">
                     {productImages.map((img, idx) => (
@@ -775,7 +775,7 @@ function ProductCarouselContent({
                 )}
               </div>
 
-              {/* Mobile görsel - Üstte */}
+              
               <div className="md:hidden relative aspect-[3/4] bg-gray-100 w-full">
                 {productImages.length > 0 && productImages[selectedImageIndex] ? (
                   <>
@@ -794,7 +794,7 @@ function ProductCarouselContent({
                           : selectedProduct.badge}
                       </div>
                     )}
-                    {/* Image navigation */}
+                    
                     {productImages.length > 1 && (
                       <>
                         {selectedImageIndex > 0 && (
@@ -833,14 +833,14 @@ function ProductCarouselContent({
                 )}
               </div>
 
-              {/* Sağ taraf - Ürün detayları (Scrollable) */}
+              
               <div className="flex-1 overflow-y-auto space-y-4 p-6 md:p-8 md:py-12 min-w-0">
                 <div>
                   <h2 className="text-2xl font-bold text-[#111] mb-2">
                     {selectedProduct.title || "Ürün"}
                   </h2>
 
-                  {/* Fiyat */}
+                  
                   <div className="flex items-center gap-3 mb-4">
                     {(() => {
                       const selectedSizeStock = selectedSize
@@ -879,7 +879,7 @@ function ProductCarouselContent({
                     })()}
                   </div>
 
-                  {/* Yıldız puanı */}
+                  
                   {reviews.length > 0 ? (
                     <div className="flex items-center gap-2 mb-6">
                       <div className="flex items-center gap-1">
@@ -904,7 +904,7 @@ function ProductCarouselContent({
                     </div>
                   )}
 
-                  {/* Ürün detayına git link */}
+                  
                   {selectedProduct.slug ? (
                     <Link
                       href={`/products/${selectedProduct.slug}`}
@@ -914,7 +914,7 @@ function ProductCarouselContent({
                     </Link>
                   ) : null}
 
-                  {/* Renk seçimi - Resimli */}
+                  
                   {productColors.length > 0 && (
                     <div className="mb-6">
                       <p className="text-sm font-light text-[#111] mb-3">
@@ -990,7 +990,7 @@ function ProductCarouselContent({
                     </div>
                   )}
 
-                  {/* Beden seçimi - Her zaman göster */}
+                  
                   <div className="mb-6">
                     <p className="text-sm font-light text-[#111] mb-3">
                       Beden: <span className="text-[#111]/60">
@@ -1049,7 +1049,7 @@ function ProductCarouselContent({
                     </div>
                   </div>
 
-                  {/* Ürün açıklaması */}
+                  
                   {(productDetails?.description || productDetails?.detailText) && (
                     <div className="mb-6">
                       {productDetails.description && (
@@ -1065,7 +1065,7 @@ function ProductCarouselContent({
                     </div>
                   )}
 
-                  {/* Sepete ekle butonu */}
+                  
                   <Button
                     onClick={handleAddToCart}
                     disabled={!selectedSize}

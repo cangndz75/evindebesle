@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Minus, Plus, ShoppingBag, Trash2, ChevronLeft, ChevronRight, Tag, XCircle } from "lucide-react";
@@ -364,7 +364,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
     >
       <SheetContent side="right" className="w-full sm:max-w-md p-0 gap-0 z-[100] bg-white">
         <div className="flex h-full flex-col">
-          {/* Header */}
+          
           <SheetHeader className="px-5 py-4 border-b border-gray-200 bg-white flex-shrink-0">
             <div className="flex items-end justify-between gap-3">
               <div className="space-y-1">
@@ -375,16 +375,16 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                   {cartItems.length > 0 ? `${itemCount} ürün` : "Henüz ürün yok"}
                 </p>
               </div>
-              {/* Close, Sheet zaten X ikon koyuyor olabilir. İstersen buraya ekstra koyma */}
+              
             </div>
           </SheetHeader>
 
-          {/* Body */}
+          
           <div className="flex-1 overflow-y-auto px-5 py-4 bg-white">
-            {/* Empty Cart Skeleton - Sadece isReady değilse göster */}
+            
             {!isReady && cartItems.length === 0 ? (
               <div className="space-y-4 py-4">
-                {/* Skeleton items */}
+                
                 {[1, 2, 3].map((i) => (
                   <div key={i} className="flex gap-4">
                     <div className="h-24 w-24 shrink-0 rounded-xl bg-gray-100" />
@@ -398,7 +398,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
               </div>
             ) : (
               <>
-                {/* FREE SHIPPING BAR (only meaningful when cart has items) */}
+                
                 {cartItems.length > 0 ? (
                   <div className="mb-4 rounded-lg border border-gray-200 bg-gray-50 p-3">
                     <div className="flex items-start gap-2.5">
@@ -438,7 +438,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                   </div>
                 ) : null}
 
-                {/* EMPTY STATE (2. görsel hissi) */}
+                
                 {cartItems.length === 0 ? (
                   <div className="pb-4">
                     <div className="rounded-xl border border-black/10 bg-white px-6 py-10 text-center">
@@ -457,7 +457,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                       </Button>
                     </div>
 
-                    {/* Tabs + Slider */}
+                    
                     <div className="mt-8">
                       <div className="flex items-center justify-between gap-4">
                         <div className="flex items-center gap-8 border-b border-black/10 w-full">
@@ -524,7 +524,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                   </div>
                 ) : null}
 
-                {/* FILLED CART (1. görselin modern/elit versiyonu) */}
+                
                 {cartItems.length > 0 ? (
                   <div className="space-y-0 pb-24">
                     {cartItems.map((item) => (
@@ -657,7 +657,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
             )}
           </div>
 
-          {/* Sticky Footer (elit checkout bar) */}
+          
           {cartItems.length > 0 ? (
             <div className="sticky bottom-0 border-t border-gray-200 bg-white">
               <div className="px-4 py-4">

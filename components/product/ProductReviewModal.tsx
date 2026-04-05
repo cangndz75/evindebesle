@@ -110,7 +110,7 @@ export default function ProductReviewModal({
                 </div>
 
                 <div className="space-y-6 pt-4">
-                    {/* Star Rating */}
+                    
                     <div className="flex flex-col items-center gap-2">
                         <Label>Puanınız</Label>
                         <div className="flex gap-2">
@@ -143,7 +143,7 @@ export default function ProductReviewModal({
                         )}
                     </div>
 
-                    {/* Comment */}
+                    
                     <div className="space-y-2">
                         <Label htmlFor="comment">Yorumunuz (İsteğe bağlı)</Label>
                         <Textarea

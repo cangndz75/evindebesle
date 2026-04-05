@@ -83,7 +83,7 @@ export default function Navbar() {
           <span className="text-xl font-serif font-light tracking-wider text-black">DARK VELVET</span>
         </Link>
 
-        {/* Masaüstü Menü */}
+        
         <div className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground h-[64px]">
           <Link href="/about" className="hover:text-black transition">
             Hakkımızda
@@ -99,7 +99,7 @@ export default function Navbar() {
           </Link>
         </div>
 
-        {/* Mobil Menü + Giriş/Çıkış */}
+        
         <div className="md:hidden flex items-center gap-2 h-[64px]">
           {session?.user ? (
             <Button
@@ -230,19 +230,13 @@ export default function Navbar() {
                   <Book className="w-4 h-4" />
                   Blog
                 </Link>
-                {/* <Link
-                  href="/faq"
-                  className="flex items-center gap-2 hover:text-primary transition"
-                >
-                  <HelpCircle className="w-4 h-4" />
-                  Sık Sorulanlar
-                </Link> */}
+                
               </div>
             </SheetContent>
           </Sheet>
         </div>
 
-        {/* Masaüstü: Hesabım Dropdown ve Çıkış ayrı */}
+        
         <div className="hidden md:flex items-center gap-4 min-w-[160px] justify-end">
           {status === "loading" ? (
             <div className="h-9 w-[100px]" />

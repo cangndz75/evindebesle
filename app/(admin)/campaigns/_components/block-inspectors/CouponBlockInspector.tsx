@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { Block } from "../../types";
@@ -109,7 +109,7 @@ export default function CouponBlockInspector({
 
   return (
     <div className="space-y-4">
-      {/* Kupon Seçici */}
+      
       <div>
         <Label className="text-xs font-medium text-gray-700">
           Veritabanından Kupon Seç
@@ -138,7 +138,7 @@ export default function CouponBlockInspector({
         </Select>
       </div>
 
-      {/* Seçili Kupon Bilgisi */}
+      
       {selectedCoupon && (
         <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-sm">
           <p className="font-medium text-green-800">
@@ -157,7 +157,7 @@ export default function CouponBlockInspector({
         </div>
       )}
 
-      {/* Kupon Kodu (manuel veya override) */}
+      
       <div>
         <Label className="text-xs font-medium text-gray-700">Kupon Kodu</Label>
         <Input
@@ -171,7 +171,7 @@ export default function CouponBlockInspector({
         </p>
       </div>
 
-      {/* İndirim Metni */}
+      
       <div>
         <Label className="text-xs font-medium text-gray-700">
           İndirim Açıklaması
@@ -184,7 +184,7 @@ export default function CouponBlockInspector({
         />
       </div>
 
-      {/* Geçerlilik Metni */}
+      
       <div>
         <Label className="text-xs font-medium text-gray-700">
           Geçerlilik Metni
@@ -197,7 +197,7 @@ export default function CouponBlockInspector({
         />
       </div>
 
-      {/* Border Rengi */}
+      
       <div>
         <Label className="text-xs font-medium text-gray-700">Border Rengi</Label>
         <Input
@@ -208,7 +208,7 @@ export default function CouponBlockInspector({
         />
       </div>
 
-      {/* Arka Plan Rengi */}
+      
       <div>
         <Label className="text-xs font-medium text-gray-700">
           Arka Plan Rengi

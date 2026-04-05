@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -186,7 +186,7 @@ export default function OrderDetailPage() {
 
     return (
         <div className="max-w-5xl mx-auto p-4 md:py-10 md:px-6">
-            {/* Header */}
+            
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                 <div className="flex items-center gap-4">
                     <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full">
@@ -213,10 +213,10 @@ export default function OrderDetailPage() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Left Column: Items & Shipping */}
+                
                 <div className="lg:col-span-2 space-y-6">
 
-                    {/* Items Card */}
+                    
                     <Card className="border-none shadow-sm bg-white overflow-hidden">
                         <CardHeader className="bg-gray-50/50 border-b pb-4">
                             <CardTitle className="text-lg flex items-center gap-2">
@@ -228,7 +228,7 @@ export default function OrderDetailPage() {
                             <div className="divide-y">
                                 {order.items.map((item) => (
                                     <div key={item.id} className="p-4 md:p-6 flex gap-4 md:gap-6 group hover:bg-gray-50 transition-colors">
-                                        {/* Product Image */}
+                                        
                                         <div className="w-20 h-24 md:w-24 md:h-32 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden border">
                                             {(item.image || item.product.image) ? (
                                                 <img
@@ -243,7 +243,7 @@ export default function OrderDetailPage() {
                                             )}
                                         </div>
 
-                                        {/* Details */}
+                                        
                                         <div className="flex-1 min-w-0 flex flex-col justify-between">
                                             <div>
                                                 <div className="flex justify-between items-start gap-2">
@@ -284,7 +284,7 @@ export default function OrderDetailPage() {
                                                     )}
                                                 </div>
 
-                                                {/* Review Button */}
+                                                
                                                 {order.status === "DELIVERED" && (
                                                     <Button
                                                         variant="outline"
@@ -308,7 +308,7 @@ export default function OrderDetailPage() {
                         </CardContent>
                     </Card>
 
-                    {/* Delivery & Address Card */}
+                    
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <Card className="border-none shadow-sm">
                             <CardHeader className="pb-2">
@@ -354,7 +354,7 @@ export default function OrderDetailPage() {
                                                 <p className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
                                                     {order.trackingNumber}
                                                 </p>
-                                                {/* <Button variant="link" className="p-0 h-auto text-xs">Sorgula</Button> */}
+                                                
                                             </div>
                                         ) : (
                                             <p className="text-sm text-gray-500 italic">Henüz oluşmadı</p>
@@ -367,7 +367,7 @@ export default function OrderDetailPage() {
 
                 </div>
 
-                {/* Right Column: Summary & Actions */}
+                
                 <div className="space-y-6">
                     <Card className="border-none shadow-sm sticky top-24">
                         <CardHeader className="bg-gray-50/50 border-b pb-4">
@@ -415,7 +415,7 @@ export default function OrderDetailPage() {
                 </div>
             </div>
 
-            {/* Product Review Modal */}
+            
             {selectedReviewProduct && (
                 <ProductReviewModal
                     isOpen={reviewModalOpen}

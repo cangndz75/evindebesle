@@ -1,4 +1,4 @@
-﻿import { prisma } from "@/lib/db";
+import { prisma } from "@/lib/db";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
@@ -41,7 +41,7 @@ export default async function CollectionsPage() {
 
   return (
     <div className="w-full bg-white text-[#111] font-sans overflow-x-hidden">
-      {/* 1. HERO SECTION (Black Background) */}
+      
       <section className="relative w-full h-[85vh] min-h-[600px] bg-black flex flex-col items-center justify-center text-center px-6 overflow-hidden pt-20">
         <div className="z-10 max-w-4xl animate-in fade-in slide-in-from-bottom-8 duration-1000">
           <span className="text-[10px] md:text-xs tracking-[0.5em] uppercase text-white/60 mb-6 block font-light">
@@ -70,14 +70,14 @@ export default async function CollectionsPage() {
             </Link>
           </div>
         </div>
-        {/* Subtle decorative elements */}
+        
         <div className="absolute inset-0 opacity-20 pointer-events-none">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-white/5 rounded-full blur-[120px]"></div>
           <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-white/5 rounded-full blur-[120px]"></div>
         </div>
       </section>
 
-      {/* 2. MIDDLE TEXT SECTION (White Background) */}
+      
       <section className="py-24 md:py-40 px-6 max-w-7xl mx-auto text-center border-b border-gray-100">
         <span className="text-[10px] md:text-xs tracking-[0.4em] uppercase text-gray-400 mb-6 block font-bold">
           KURGULANMIŞ HİKAYELER
@@ -91,7 +91,7 @@ export default async function CollectionsPage() {
         </p>
       </section>
 
-      {/* 3. COLLECTIONS LIST */}
+      
       <section id="koleksiyonlar" className="w-full">
         {collections.length === 0 ? (
           <div className="text-center py-40 text-gray-400 font-light italic">Mevcut aktif koleksiyon bulunmuyor.</div>
@@ -116,7 +116,7 @@ export default async function CollectionsPage() {
                 <div key={collection.id} className="py-24 md:py-40 border-b border-gray-100 last:border-b-0">
                   <div className={`max-w-[1440px] mx-auto px-6 md:px-12 flex flex-col lg:flex-row items-center gap-16 md:gap-24 ${isEven ? 'lg:flex-row' : 'lg:flex-row-reverse'}`}>
                     
-                    {/* Content Column */}
+                    
                     <div className="w-full lg:w-1/2 space-y-10 group">
                       <div className="space-y-4">
                         <div className="flex items-center gap-4">
@@ -146,7 +146,7 @@ export default async function CollectionsPage() {
                       </div>
                     </div>
 
-                    {/* Image Column */}
+                    
                     <div className="w-full lg:w-1/2 relative">
                       <div className="relative aspect-[4/5] bg-gray-50 overflow-hidden shadow-2xl group/img z-0">
                         <Image
@@ -158,7 +158,7 @@ export default async function CollectionsPage() {
                         />
                       </div>
                       
-                      {/* Secondary Accent Image */}
+                      
                       {collection.image2 && (
                         <div className={`absolute bottom-[-10%] ${isEven ? 'right-[-5%] md:right-[-12%]' : 'left-[-5%] md:left-[-12%]'} w-[50%] md:w-[45%] z-10 shadow-2xl overflow-hidden border-[12px] border-white hidden sm:block h-fit`}>
                            <div className="relative aspect-[3/4]">
@@ -173,7 +173,7 @@ export default async function CollectionsPage() {
                         </div>
                       )}
                       
-                      {/* Background decorative square */}
+                      
                       <div className={`absolute -z-10 top-12 ${isEven ? '-left-12' : '-right-12'} w-3/4 h-3/4 bg-gray-50 hidden lg:block`}></div>
                     </div>
 
@@ -185,7 +185,7 @@ export default async function CollectionsPage() {
         )}
       </section>
 
-      {/* 4. BOTTOM CTA SECTION */}
+      
       <section className="py-32 md:py-48 px-6 bg-gray-50 text-center">
         <div className="max-w-4xl mx-auto space-y-12">
           <h2 className="text-5xl md:text-7xl font-serif font-extralight tracking-tight text-black italic">

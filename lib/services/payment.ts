@@ -4,6 +4,7 @@ import { OrderStatus } from "@prisma/client";
 import { commitReservationToSaleTx, releaseReservationTx } from "@/lib/stock";
 import { createAdminNotification } from "@/lib/admin-notification";
 import { clearRedisCart } from "@/lib/cart-redis";
+import { sendAdminOrderPaidSms } from "@/lib/sms";
 
 interface FinalizePaymentParams {
     orderId: string;
@@ -125,6 +126,20 @@ export async function finalizePayment({
             });
         } catch (notifError) {
             console.error("Failed to send admin notification:", notifError);
+        }
+
+        try {
+            const smsResult = await sendAdminOrderPaidSms({
+                orderNumber: result.order.orderNumber,
+                total: result.order.total,
+                orderId: result.order.id,
+            });
+
+            if (!smsResult.ok) {
+                console.warn("Admin order SMS not sent", smsResult);
+            }
+        } catch (smsError) {
+            console.error("Failed to send admin order SMS:", smsError);
         }
 
         return result.order;

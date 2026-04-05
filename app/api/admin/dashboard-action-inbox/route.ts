@@ -43,45 +43,39 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    const lowStockProducts = await prisma.product.findMany({
-      where: {
-        isActive: true,
-        sizes: {
-          some: {
-            stock: { lte: 3, gt: 0 },
+    const [lowStockCount, outOfStockCount] = await Promise.all([
+      prisma.product.count({
+        where: {
+          isActive: true,
+          sizes: {
+            some: {
+              stock: { lte: 3, gt: 0 },
+            },
           },
         },
-      },
-      include: {
-        sizes: true,
-      },
-    });
-
-    const lowStockCount = lowStockProducts.length;
-
-    const outOfStockProducts = await prisma.product.findMany({
-      where: {
-        isActive: true,
-        OR: [
-          {
-            sizes: {
-              none: {
-                stock: { gt: 0 },
+      }),
+      prisma.product.count({
+        where: {
+          isActive: true,
+          OR: [
+            {
+              sizes: {
+                none: {
+                  stock: { gt: 0 },
+                },
               },
             },
-          },
-          {
-            sizes: {
-              every: {
-                stock: { lte: 0 },
+            {
+              sizes: {
+                every: {
+                  stock: { lte: 0 },
+                },
               },
             },
-          },
-        ],
-      },
-    });
-
-    const outOfStockCount = outOfStockProducts.length;
+          ],
+        },
+      }),
+    ]);
 
     const refundRequests = await prisma.order.count({
       where: {

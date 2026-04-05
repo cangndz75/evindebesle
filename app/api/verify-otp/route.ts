@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { createAdminNotification } from "@/lib/notifications/createAdminNotification";
 
 export async function POST(req: Request) {
   const { email, code } = await req.json();
+  const normalizedEmail = String(email || "").trim().toLocaleLowerCase("tr-TR");
 
-  const user = await prisma.user.findUnique({ where: { email } });
+  const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
   if (
     !user ||
     user.emailVerifyToken !== code ||
@@ -15,13 +17,21 @@ export async function POST(req: Request) {
   }
 
   await prisma.user.update({
-    where: { email },
+    where: { email: normalizedEmail },
     data: {
       emailVerified: true,
       emailVerifyToken: null,
       emailVerifyExpires: null,
     },
   });
+
+  if (!user.emailVerified) {
+    await createAdminNotification({
+      type: "NEW_USER",
+      userId: user.id,
+      message: `Yeni kullanıcı kaydı doğrulandı: ${user.name} (${user.email})`,
+    });
+  }
 
   return NextResponse.json({ success: true });
 }

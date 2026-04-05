@@ -40,7 +40,8 @@ export default function RegisterForm() {
         });
 
         if (!otpRes.ok) {
-          toast.error("Kod gönderilemedi.");
+          toast.error("Kayıt tamamlandı, kod gönderilemedi. Doğrulama ekranından tekrar gönderebilirsiniz.");
+          router.push(`/verify?email=${email}`);
           return;
         }
 

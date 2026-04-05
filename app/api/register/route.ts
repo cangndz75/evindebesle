@@ -2,12 +2,13 @@
 import { rateLimit } from "@/lib/rateLimit";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
-import { createAdminNotification } from "@/lib/notifications/createAdminNotification";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { name, email, password } = body;
+    const normalizedEmail = String(email || "").trim().toLocaleLowerCase("tr-TR");
+    const normalizedName = String(name || "").trim();
 
     const ip = req.headers.get("x-forwarded-for") || "127.0.0.1";
     const { success } = await rateLimit(ip);
@@ -15,11 +16,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Çok fazla istek gönderdiniz. Lütfen daha sonra tekrar deneyin." }, { status: 429 });
     }
 
-    if (!name || !email || !password) {
+    if (!normalizedName || !normalizedEmail || !password) {
       return NextResponse.json({ error: "Tüm alanlar zorunludur." }, { status: 400 });
     }
 
-    const existingUser = await prisma.user.findUnique({ where: { email } });
+    const existingUser = await prisma.user.findUnique({ where: { email: normalizedEmail } });
     if (existingUser) {
       return NextResponse.json({ error: "Bu email adresi zaten kayıtlı." }, { status: 409 });
     }
@@ -28,16 +29,10 @@ export async function POST(req: Request) {
 
     const newUser = await prisma.user.create({
       data: {
-        name,
-        email,
+        name: normalizedName,
+        email: normalizedEmail,
         password: hashedPassword,
       },
-    });
-
-    await createAdminNotification({
-      type: "NEW_USER",
-      userId: newUser.id,
-      message: `Yeni kullanıcı kaydı: ${newUser.name} (${newUser.email})`,
     });
     console.log("[REGISTER_SUCCESS]", newUser.id);
 

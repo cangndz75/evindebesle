@@ -1,19 +1,23 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { Resend } from "resend";
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { resend } from "@/lib/resend";
 
 export async function POST(req: Request) {
-  const { email } = await req.json();
+  try {
+    const { email } = await req.json();
+    const normalizedEmail = String(email || "").trim().toLocaleLowerCase("tr-TR");
 
-  const user = await prisma.user.findUnique({ where: { email } });
-  if (!user) {
-    return NextResponse.json({ error: "Kullanıcı bulunamadı." }, { status: 404 });
-  }
+    if (!normalizedEmail) {
+      return NextResponse.json({ error: "Email gerekli." }, { status: 400 });
+    }
 
-  const token = Math.floor(100000 + Math.random() * 900000).toString();
-  const expires = new Date(Date.now() + 1000 * 60 * 10);
+    const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+    if (!user) {
+      return NextResponse.json({ error: "Kullanıcı bulunamadı." }, { status: 404 });
+    }
+
+    const token = Math.floor(100000 + Math.random() * 900000).toString();
+    const expires = new Date(Date.now() + 1000 * 60 * 10);
 
   const htmlContent = `
   <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 32px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #ffffff;">
@@ -39,20 +43,24 @@ export async function POST(req: Request) {
 `;
 
 
-  await prisma.user.update({
-    where: { email },
-    data: {
-      emailVerifyToken: token,
-      emailVerifyExpires: expires,
-    },
-  });
+    await prisma.user.update({
+      where: { email: normalizedEmail },
+      data: {
+        emailVerifyToken: token,
+        emailVerifyExpires: expires,
+      },
+    });
 
-  await resend.emails.send({
-    from: "Dark Velvet <onboarding@darkvelvet.com>",
-    to: email,
-    subject: "Doğrulama Kodunuz",
-    html: htmlContent,
-  });
+    await resend.emails.send({
+      from: "Dark Velvet <noreply@evindebesle.com>",
+      to: normalizedEmail,
+      subject: "Doğrulama Kodunuz",
+      html: htmlContent,
+    });
 
-  return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("[SEND_OTP_ERROR]", error);
+    return NextResponse.json({ error: "Kod gönderilemedi." }, { status: 500 });
+  }
 }

@@ -51,6 +51,14 @@ type Product = {
     sizeOptions?: Array<{ name: string; isActive: boolean }>;
 };
 
+function getProductTotalStock(product: Product): number {
+    const variants = product.colors?.flatMap((color) => color.variants ?? []) ?? [];
+    const variantStockTotal = variants.reduce((sum, variant) => sum + (Number(variant?.stock) || 0), 0);
+    const sizeStockTotal = product.sizes?.reduce((sum, size) => sum + (Number(size.stock) || 0), 0) || 0;
+
+    return Math.max(variantStockTotal, sizeStockTotal);
+}
+
 function FavoriteButton({ productId, productName }: { productId: string; productName: string }) {
     const [isFavorite, setIsFavorite] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -175,7 +183,7 @@ export default function NewArrivalsPage() {
                 ) : (
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-12 md:gap-x-8 md:gap-y-16">
                         {products.map((product) => {
-                            const totalStock = product.sizes?.reduce((sum, s) => sum + (s.stock || 0), 0) || 0;
+                            const totalStock = getProductTotalStock(product);
                             const isOutOfStock = totalStock === 0;
 
                             const activeColorImage = hoveredColor?.productId === product.id 

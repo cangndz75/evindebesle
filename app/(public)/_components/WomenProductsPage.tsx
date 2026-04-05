@@ -35,7 +35,7 @@ type ProductColor = {
     colorId: string | null;
   };
   id?: string;
-  variants?: any[];
+  variants?: Array<{ stock?: number | null }>;
 };
 
 type ProductSize = {
@@ -64,6 +64,14 @@ type Product = {
   inColors?: number;
   fabricType?: string;
 };
+
+function getProductTotalStock(product: Product): number {
+  const variants = product.colors?.flatMap((color) => color.variants ?? []) ?? [];
+  const variantStockTotal = variants.reduce((sum, variant) => sum + (Number(variant?.stock) || 0), 0);
+  const sizeStockTotal = product.sizes?.reduce((sum, size) => sum + (Number(size.stock) || 0), 0) || 0;
+
+  return Math.max(variantStockTotal, sizeStockTotal);
+}
 
 type EditorialItem = {
   id: string;
@@ -218,6 +226,16 @@ export default function WomenProductsPage({
   const [selectedColor, setSelectedColor] = useState<{ productId: string; colorImage: string; variantCode?: string } | null>(null);
 
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const prefetchedCategoryDataRef = useRef<Record<string, Product[]>>({});
+
+  const hasActiveFilters =
+    Boolean(filters.minPrice) ||
+    Boolean(filters.maxPrice) ||
+    filters.sizes.length > 0 ||
+    filters.colors.length > 0 ||
+    filters.fabricTypes.length > 0;
+
+  const isSimpleCategoryBrowsing = !baseQuery?.tag && !baseQuery?.newArrivals && !baseQuery?.categorySlug && !hasActiveFilters;
 
   useEffect(() => {
     if (debounceTimerRef.current) {
@@ -239,11 +257,55 @@ export default function WomenProductsPage({
     return res.json();
   }, []);
 
+  const prefetchCategoryData = useCallback(async (categorySlug: string) => {
+    if (!isSimpleCategoryBrowsing || sortOption !== "featured") return;
+    if (prefetchedCategoryDataRef.current[categorySlug]) return;
+
+    const params = new URLSearchParams();
+    params.append("gender", "FEMALE");
+    params.append("gender", "UNISEX");
+    if (categorySlug !== "All") {
+      params.append("categorySlug", categorySlug);
+    }
+    params.append("sort", "featured");
+
+    try {
+      const data = await fetcher(`/api/products?${params.toString()}`);
+      if (Array.isArray(data)) {
+        prefetchedCategoryDataRef.current[categorySlug] = data;
+      }
+    } catch {
+    }
+  }, [fetcher, isSimpleCategoryBrowsing, sortOption]);
+
+  const handleCategorySelect = useCallback((categorySlug: string) => {
+    setSelectedCategory(categorySlug);
+
+    if (isSimpleCategoryBrowsing && sortOption === "featured") {
+      const cached = prefetchedCategoryDataRef.current[categorySlug];
+      if (cached) {
+        setProducts(cached);
+      }
+    }
+  }, [isSimpleCategoryBrowsing, sortOption]);
+
+  useEffect(() => {
+    prefetchedCategoryDataRef.current.All = initialProducts;
+  }, [initialProducts]);
+
+  useEffect(() => {
+    if (!isSimpleCategoryBrowsing || sortOption !== "featured" || hideCategoryFilters) return;
+    initialCategories.forEach((category) => {
+      void prefetchCategoryData(category.slug);
+    });
+  }, [initialCategories, prefetchCategoryData, isSimpleCategoryBrowsing, sortOption, hideCategoryFilters]);
+
   const buildApiUrl = useCallback(() => {
     const hasBaseQuery = Boolean(baseQuery?.tag || baseQuery?.newArrivals || baseQuery?.categorySlug);
     const hasFilters =
       hasBaseQuery ||
       selectedCategory !== "All" ||
+      sortOption !== "featured" ||
       debouncedFilters.minPrice ||
       debouncedFilters.maxPrice ||
       debouncedFilters.sizes.length > 0 ||
@@ -548,7 +610,13 @@ export default function WomenProductsPage({
         {!hideCategoryFilters && (
         <div className="flex gap-2 mb-6 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4 md:mx-0 md:px-0">
           <button
-            onClick={() => setSelectedCategory("All")}
+            onClick={() => handleCategorySelect("All")}
+            onMouseEnter={() => {
+              if (isSimpleCategoryBrowsing && sortOption === "featured") {
+                const cachedAll = prefetchedCategoryDataRef.current.All;
+                if (cachedAll) setProducts(cachedAll);
+              }
+            }}
             className={`px-3 md:px-4 py-2 text-xs md:text-sm font-light uppercase tracking-wide transition-colors whitespace-nowrap flex-shrink-0 ${
               selectedCategory === "All"
                 ? "bg-[#111] text-white"
@@ -560,7 +628,10 @@ export default function WomenProductsPage({
           {initialCategories.map((category) => (
             <button
               key={category.slug}
-              onClick={() => setSelectedCategory(category.slug)}
+              onClick={() => handleCategorySelect(category.slug)}
+              onMouseEnter={() => {
+                void prefetchCategoryData(category.slug);
+              }}
               className={`px-3 md:px-4 py-2 text-xs md:text-sm font-light uppercase tracking-wide transition-colors whitespace-nowrap flex-shrink-0 ${selectedCategory === category.slug
                 ? "bg-[#111] text-white"
                 : "bg-white text-[#111] border border-[#111] hover:bg-[#111] hover:text-white"
@@ -705,7 +776,7 @@ export default function WomenProductsPage({
         
         <div className="grid grid-cols-2 gap-4 md:hidden">
           {products.map((product) => {
-            const totalStock = product.sizes?.reduce((sum, s) => sum + (s.stock || 0), 0) || 0;
+            const totalStock = getProductTotalStock(product);
             const isOutOfStock = totalStock === 0;
             const isColorActive = hoveredColor?.productId === product.id || selectedColor?.productId === product.id;
             const activeColorImage = hoveredColor?.productId === product.id
@@ -830,7 +901,7 @@ export default function WomenProductsPage({
             const isLarge = gridPos && (gridPos.span.row > 1 || gridPos.span.col > 1);
             const aspectClass = isLarge ? "aspect-square" : "aspect-[3/4]";
 
-            const totalStock = product.sizes?.reduce((sum, s) => sum + (s.stock || 0), 0) || 0;
+            const totalStock = getProductTotalStock(product);
             const isOutOfStock = totalStock === 0;
 
             return (

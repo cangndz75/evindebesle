@@ -82,6 +82,7 @@ async function getInitialProducts() {
         secondaryImage: true,
         gender: true,
         fabricType: true,
+        createdAt: true,
         colors: {
           select: {
             id: true,
@@ -130,10 +131,6 @@ async function getInitialProducts() {
     });
 
     return products.map((p: any) => {
-      const colorImages = parseImages(p.colors[0]?.images);
-      const primaryImg = p.primaryImage || p.image;
-      const secondaryImg = p.secondaryImage || p.image;
-
       const isNew = p.tags.some((tag: any) =>
         ["yeni ürün", "yeni", "yeni gelenler", "new", "new arrival"].includes(tag.name.toLowerCase())
       );
@@ -144,17 +141,35 @@ async function getInitialProducts() {
         slug: p.slug ?? undefined,
         price: p.price,
         originalPrice: p.originalPrice ?? undefined,
-        image: primaryImg ?? undefined,
-        hoverImage: secondaryImg ?? undefined,
+        image: p.image ?? undefined,
+        primaryImage: p.primaryImage ?? undefined,
+        secondaryImage: p.secondaryImage ?? undefined,
+        gender: p.gender ?? undefined,
+        fabricType: p.fabricType ?? undefined,
         badge: isNew ? "Yeni" : (p.originalPrice && p.originalPrice > p.price ? "İndirim" : undefined),
-        colors: p.colors.map((c: any) => {
-          const cImages = parseImages(c.images);
-          return {
-            name: c.name,
-            value: c.hexCode || "#000000",
-            image: cImages[0] || primaryImg || "/placeholder.png",
-          };
-        }),
+        colors: p.colors.map((c: any) => ({
+          id: c.id,
+          name: c.name,
+          hexCode: c.hexCode ?? undefined,
+          images: parseImages(c.images),
+          variant: c.variants?.[0]
+            ? {
+              id: c.variants[0].id,
+              variantCode: c.variants[0].variantCode,
+              colorId: c.variants[0].colorId,
+            }
+            : undefined,
+          variants: c.variants,
+        })),
+        sizes: p.sizes.map((s: any) => ({
+          name: s.name,
+          stock: s.stock,
+        })),
+        sizeOptions: p.sizeOptions?.map((so: any) => ({
+          name: so.name,
+          isActive: so.isActive,
+        })),
+        tags: p.tags.map((t: any) => ({ name: t.name })),
         inColors: p.colors.length,
       };
     });

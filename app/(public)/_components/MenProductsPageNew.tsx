@@ -68,6 +68,14 @@ type Product = {
   tags: ProductTag[];
 };
 
+function getProductTotalStock(product: Product): number {
+  const variants = product.colors?.flatMap((color) => color.variants ?? []) ?? [];
+  const variantStockTotal = variants.reduce((sum, variant) => sum + (Number(variant?.stock) || 0), 0);
+  const sizeStockTotal = product.sizes?.reduce((sum, size) => sum + (Number(size.stock) || 0), 0) || 0;
+
+  return Math.max(variantStockTotal, sizeStockTotal);
+}
+
 type FilterState = {
   minPrice?: number;
   maxPrice?: number;
@@ -243,6 +251,7 @@ export default function MenProductsPage({
     const hasFilters =
       hasBaseQuery ||
       selectedCategory !== "All" ||
+      sortOption !== "featured" ||
       debouncedFilters.minPrice ||
       debouncedFilters.maxPrice ||
       debouncedFilters.sizes.length > 0 ||
@@ -683,7 +692,7 @@ export default function MenProductsPage({
                 : product.colors?.[0]?.variant?.variantCode;
               const finalUrl = variant ? `${productUrl}?variant=${variant}` : productUrl;
 
-              const totalStock = product.sizes?.reduce((sum, s) => sum + (s.stock || 0), 0) || 0;
+              const totalStock = getProductTotalStock(product);
               const isOutOfStock = totalStock === 0;
 
               return (

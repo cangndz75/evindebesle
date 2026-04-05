@@ -160,6 +160,10 @@ export async function GET(request: NextRequest) {
     orderBy = { price: "asc" };
   } else if (sort === "price-high") {
     orderBy = { price: "desc" };
+  } else if (sort === "az") {
+    orderBy = { name: "asc" };
+  } else if (sort === "za") {
+    orderBy = { name: "desc" };
   } else if (sort === "date-old") {
     orderBy = { createdAt: "asc" };
   } else if (sort === "date-new") {

@@ -81,7 +81,14 @@ export default function CheckoutPage() {
         const { name, value } = e.target;
 
         if (name === "phone") {
-            const digitsOnly = value.replace(/\D/g, "").slice(0, 11);
+            let digitsOnly = value.replace(/\D/g, "");
+            if (digitsOnly.startsWith("90")) {
+                digitsOnly = digitsOnly.slice(2);
+            }
+            if (digitsOnly.startsWith("0")) {
+                digitsOnly = digitsOnly.slice(1);
+            }
+            digitsOnly = digitsOnly.slice(0, 10);
             setFormData({ ...formData, phone: digitsOnly });
             return;
         }
@@ -122,12 +129,10 @@ export default function CheckoutPage() {
         }
 
         const normalizedPhone = formData.phone.replace(/\D/g, "");
-        const phoneIsValid = normalizedPhone.startsWith("0")
-            ? normalizedPhone.length === 11
-            : normalizedPhone.length === 10;
+        const phoneIsValid = /^\d{10}$/.test(normalizedPhone);
 
         if (!phoneIsValid) {
-            toast.error("Telefon numarası 0 ile başlıyorsa 11 hane, başlamıyorsa 10 hane olmalıdır.");
+            toast.error("Telefon numarası zorunludur ve tam 10 hane olmalıdır.");
             return;
         }
 
@@ -355,17 +360,20 @@ export default function CheckoutPage() {
                                     className="w-full border border-gray-300 rounded p-3 focus:outline-none focus:border-black col-span-2"
                                 />
                             </div>
-                            <input
-                                type="tel"
-                                name="phone"
-                                placeholder="Telefon"
-                                value={formData.phone}
-                                onChange={handleChange}
-                                inputMode="numeric"
-                                pattern="[0-9]*"
-                                maxLength={11}
-                                className="w-full border border-gray-300 rounded p-3 focus:outline-none focus:border-black"
-                            />
+                            <div className="w-full flex items-center border border-gray-300 rounded focus-within:border-black overflow-hidden">
+                                <span className="px-3 text-sm text-gray-600 border-r border-gray-200">+90</span>
+                                <input
+                                    type="tel"
+                                    name="phone"
+                                    placeholder="5554443322"
+                                    value={formData.phone}
+                                    onChange={handleChange}
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
+                                    maxLength={10}
+                                    className="w-full p-3 focus:outline-none"
+                                />
+                            </div>
                         </div>
                     </div>
 

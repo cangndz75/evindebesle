@@ -353,7 +353,10 @@ export async function POST(req: Request) {
             })),
         };
 
-        const initRes: any = await iyzicoCall<any>((iyzico as any).checkoutFormInitialize.bind(iyzico), iyzicoReq);
+        const initRes: any = await iyzicoCall<any>(
+            (request, cb) => (iyzico as any).checkoutFormInitialize.create(request, cb),
+            iyzicoReq
+        );
 
         if (initRes.status !== "success") {
             await prisma.paymentAttempt.update({

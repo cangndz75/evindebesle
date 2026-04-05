@@ -132,14 +132,10 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
       ? (selectedSizeObj.id ?? null)
       : null;
 
+    const currentColorImages = getCurrentColorImages();
     let firstImage = "";
-    if (product.images && product.images.length > 0) {
-      const firstImg = product.images[0];
-      if (typeof firstImg === 'string') {
-        firstImage = firstImg;
-      } else if (firstImg && typeof firstImg === 'object' && 'url' in firstImg) {
-        firstImage = firstImg.url || "";
-      }
+    if (currentColorImages.length > 0) {
+      firstImage = currentColorImages[0]?.url || "";
     }
 
     const selectedColorName = selectedColorObj?.name || "";

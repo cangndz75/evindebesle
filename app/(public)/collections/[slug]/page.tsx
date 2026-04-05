@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Metadata } from "next";
 import { cache } from "react";
-import CollectionDetailProductsGrid from "./CollectionDetailProductsGrid";
+import CollectionDetailProductsGrid from "@/app/(public)/collections/_components/CollectionDetailProductsGrid";
 
 export const revalidate = 300;
 
@@ -113,7 +113,7 @@ export default async function CollectionDetailPage({ params }: CollectionPagePro
         </div>
       </div>
 
-      <div className="max-w-[1600px] mx-auto px-6 md:px-12 mt-20">
+      <div className="max-w-400 mx-auto px-6 md:px-12 mt-20">
         <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
           <div className="space-y-4">
             <span className="text-[10px] tracking-[0.4em] uppercase font-bold text-black/40">Sınırlı Üretim</span>
@@ -129,8 +129,8 @@ export default async function CollectionDetailPage({ params }: CollectionPagePro
 
       
       {collection.image2 && collection.image3 && (
-        <div className="max-w-[1600px] mx-auto px-6 md:px-12 mt-40 grid grid-cols-1 md:grid-cols-2 gap-20">
-          <div className="relative aspect-[4/5] overflow-hidden">
+        <div className="max-w-400 mx-auto px-6 md:px-12 mt-40 grid grid-cols-1 md:grid-cols-2 gap-20">
+          <div className="relative aspect-4/5 overflow-hidden">
             <Image
               src={collection.image2}
               alt="Koleksiyon detayı"

@@ -65,6 +65,37 @@ function cleanUrl(url: string | undefined): string | null {
   return t.startsWith("http") ? t : null;
 }
 
+function extractUrlsFromCell(value: string | undefined): string[] {
+  if (!value) return [];
+  const text = String(value).trim();
+  if (!text) return [];
+
+  // Handles both delimited cells and concatenated URL blobs from marketplace exports.
+  const regex = /https?:\/\/[\w\-._~:/?#\[\]@!$&'()*+,;=%]+/gi;
+  const matches = text.match(regex) || [];
+
+  const urls = matches
+    .map((m) => m.trim())
+    .filter((m) => m.startsWith("http"))
+    .map((m) => {
+      const nextHttpIndex = m.indexOf("http", 8);
+      return nextHttpIndex > -1 ? m.slice(0, nextHttpIndex) : m;
+    })
+    .map((m) => m.replace(/[\s,;]+$/g, ""));
+
+  return Array.from(new Set(urls));
+}
+
+function parseColorImages(images: string | null | undefined): string[] {
+  if (!images) return [];
+  try {
+    const parsed = JSON.parse(images);
+    return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
+  } catch {
+    return extractUrlsFromCell(images);
+  }
+}
+
 function normalizeGender(val: string): "FEMALE" | "MALE" | "UNISEX" | undefined {
   const v = val.toLowerCase();
   if (v.includes("kadın") || v.includes("kız") || v.includes("female")) return "FEMALE";
@@ -170,7 +201,9 @@ function parseRows(data: any[]): ExcelRow[] {
     images: [
       COL.IMAGE1, COL.IMAGE2, COL.IMAGE3, COL.IMAGE4,
       COL.IMAGE5, COL.IMAGE6, COL.IMAGE7, COL.IMAGE8,
-    ].map((k) => cleanUrl(row[k])).filter((u): u is string => u !== null),
+    ]
+      .flatMap((k) => extractUrlsFromCell(str(row, k)))
+      .filter((u): u is string => Boolean(cleanUrl(u))),
     brand:          str(row, COL.BRAND),
     category:       str(row, COL.CATEGORY),
     supplierCode:   str(row, COL.SUPPLIER_CODE),
@@ -340,9 +373,22 @@ export async function POST(req: NextRequest) {
         const colorMap = new Map<string, string>();
         const existingColors = await prisma.productColor.findMany({
           where: { productId },
-          select: { id: true, name: true },
+          select: { id: true, name: true, images: true },
         });
-        for (const c of existingColors) colorMap.set(c.name.trim().toLowerCase(), c.id);
+        const colorImagesMap = new Map<string, string[]>();
+        for (const c of existingColors) {
+          const ck = c.name.trim().toLowerCase();
+          colorMap.set(ck, c.id);
+          colorImagesMap.set(ck, parseColorImages(c.images));
+        }
+
+        for (const row of groupRows) {
+          if (!row.color) continue;
+          const ck = row.color.trim().toLowerCase();
+          const current = colorImagesMap.get(ck) || [];
+          const merged = Array.from(new Set([...current, ...(row.images || [])]));
+          colorImagesMap.set(ck, merged);
+        }
 
         const sizeMap = new Map<string, string>();
         const existingSizes = await prisma.productSize.findMany({
@@ -358,10 +404,22 @@ export async function POST(req: NextRequest) {
               const ck = row.color.trim().toLowerCase();
               if (!colorMap.has(ck)) {
                 const newColor = await prisma.productColor.create({
-                  data: { productId, name: row.color.trim() },
+                  data: {
+                    productId,
+                    name: row.color.trim(),
+                    images: JSON.stringify(colorImagesMap.get(ck) || []),
+                  },
                   select: { id: true },
                 });
                 colorMap.set(ck, newColor.id);
+              } else {
+                const imagesForColor = colorImagesMap.get(ck) || [];
+                if (imagesForColor.length > 0) {
+                  await prisma.productColor.update({
+                    where: { id: colorMap.get(ck)! },
+                    data: { images: JSON.stringify(imagesForColor) },
+                  });
+                }
               }
               colorId = colorMap.get(ck)!;
             }

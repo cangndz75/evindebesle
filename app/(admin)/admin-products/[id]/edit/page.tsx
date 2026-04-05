@@ -79,10 +79,6 @@ export default function EditProductPage() {
   const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState("");
 
-  const [combinations, setCombinations] = useState<string[]>([]);
-  const [searchProduct, setSearchProduct] = useState("");
-  const [searchResults, setSearchResults] = useState<Array<{ id: string; name: string; image: string | null }>>([]);
-
   const [detailText, setDetailText] = useState("");
 
   const [washingInstructionId, setWashingInstructionId] = useState("");
@@ -304,50 +300,6 @@ export default function EditProductPage() {
     setSizeStocks(newStocks);
   };
 
-  const searchProducts = async (query: string) => {
-    if (!query || query.length < 2) {
-      setSearchResults([]);
-      return;
-    }
-    try {
-      const res = await fetch(`/api/admin-products?search=${encodeURIComponent(query)}`);
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-      const text = await res.text();
-      if (!text) {
-        setSearchResults([]);
-        return;
-      }
-      const data = JSON.parse(text);
-      setSearchResults(
-        (Array.isArray(data) ? data : [])
-          .filter((p: any) => !combinations.includes(p.id))
-          .map((p: any) => ({
-            id: p.id,
-            name: p.name,
-            image: p.image || p.primaryImage || "/placeholder.jpg",
-          }))
-          .slice(0, 10)
-      );
-    } catch (error) {
-      console.error("Ürün arama hatası:", error);
-      setSearchResults([]);
-    }
-  };
-
-  const addCombination = (productId: string) => {
-    if (!combinations.includes(productId)) {
-      setCombinations([...combinations, productId]);
-    }
-    setSearchProduct("");
-    setSearchResults([]);
-  };
-
-  const removeCombination = (productId: string) => {
-    setCombinations(combinations.filter((id) => id !== productId));
-  };
-
   const loadTemplates = async () => {
     try {
       const [wash, delivery, notes, guides, models] = await Promise.all([
@@ -414,6 +366,34 @@ export default function EditProductPage() {
         setSecondaryImage(product.secondaryImage || "");
 
         if (product.colors && product.colors.length > 0) {
+          const stocksByColor = new Map<string, Record<string, number>>();
+          const sizesByColor = new Map<string, Set<string>>();
+          const pricesByColor = new Map<string, number>();
+
+          if (Array.isArray(product.variants)) {
+            for (const variant of product.variants) {
+              const colorName = variant?.color?.name;
+              const sizeName = variant?.size?.name;
+              if (!colorName) continue;
+
+              if (!stocksByColor.has(colorName)) {
+                stocksByColor.set(colorName, {});
+              }
+              if (!sizesByColor.has(colorName)) {
+                sizesByColor.set(colorName, new Set<string>());
+              }
+
+              if (sizeName) {
+                stocksByColor.get(colorName)![sizeName] = Number(variant.stock) || 0;
+                sizesByColor.get(colorName)!.add(sizeName);
+              }
+
+              if (!pricesByColor.has(colorName) && typeof variant.price === "number" && !Number.isNaN(variant.price)) {
+                pricesByColor.set(colorName, variant.price);
+              }
+            }
+          }
+
           const loadedColors: Color[] = product.colors.map((c: any) => {
             let colorImages: string[] = [];
             if (c.images) {
@@ -432,11 +412,11 @@ export default function EditProductPage() {
               name: c.name,
               hexCode: c.hexCode,
               images: colorImages,
-              useMainPrice: true,
-              price: "",
+              useMainPrice: !pricesByColor.has(c.name),
+              price: pricesByColor.has(c.name) ? String(pricesByColor.get(c.name)) : "",
               originalPrice: "",
-              stock: {},
-              sizes: [], // Renge özel bedenler (varsa yüklenecek)
+              stock: stocksByColor.get(c.name) || {},
+              sizes: Array.from(sizesByColor.get(c.name) || []),
             };
           });
 
@@ -460,9 +440,6 @@ export default function EditProductPage() {
           setTags(product.tags.map((t: any) => t.name));
         }
 
-        if (product.combinations && product.combinations.length > 0) {
-          setCombinations(product.combinations.map((c: any) => c.relatedProductId));
-        }
       }
     } catch (error) {
       console.error("Ürün verisi yüklenirken hata:", error);
@@ -522,7 +499,6 @@ export default function EditProductPage() {
         sizeNoteId: sizeNoteId || undefined,
         sizeGuideId: sizeGuideId || undefined,
         modelInfoId: modelInfoId || undefined,
-        combinations: combinations && combinations.length > 0 ? combinations : undefined,
         colors: [
           ...(primaryProductColor ? [{
             name: primaryProductColor.name,
@@ -1779,89 +1755,6 @@ export default function EditProductPage() {
                           </button>
                         </div>
                       ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold mb-4">Ürün Kombinleri</h2>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="searchProduct">Ürün Ara</Label>
-                  <div className="relative mt-1">
-                    <Input
-                      id="searchProduct"
-                      value={searchProduct}
-                      onChange={(e) => {
-                        setSearchProduct(e.target.value);
-                        searchProducts(e.target.value);
-                      }}
-                      placeholder="Ürün adı ile ara..."
-                    />
-                    {searchResults.length > 0 && (
-                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                        {searchResults.map((product) => (
-                          <div
-                            key={product.id}
-                            className="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-                            onClick={() => addCombination(product.id)}
-                          >
-                            <div className="relative w-12 h-12 rounded overflow-hidden bg-gray-100">
-                              <Image
-                                src={product.image || "/placeholder.jpg"}
-                                alt={product.name}
-                                fill
-                                className="object-cover"
-                              />
-                            </div>
-                            <span className="text-sm font-medium">{product.name}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                
-                {combinations.length > 0 && (
-                  <div>
-                    <Label className="text-sm text-gray-600 mb-2 block">Eklenen Ürünler</Label>
-                    <div className="space-y-2">
-                      {combinations.map((productId) => {
-                        const product = searchResults.find((p) => p.id === productId);
-                        return (
-                          <div
-                            key={productId}
-                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                          >
-                            <div className="flex items-center gap-3">
-                              <div className="relative w-10 h-10 rounded overflow-hidden bg-gray-100">
-                                <Image
-                                  src={product?.image || "/placeholder.jpg"}
-                                  alt={product?.name || "Ürün"}
-                                  fill
-                                  className="object-cover"
-                                />
-                              </div>
-                              <span className="text-sm font-medium">
-                                {product?.name || "Yükleniyor..."}
-                              </span>
-                            </div>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removeCombination(productId)}
-                              className="text-red-500 hover:text-red-600"
-                            >
-                              <X className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        );
-                      })}
                     </div>
                   </div>
                 )}

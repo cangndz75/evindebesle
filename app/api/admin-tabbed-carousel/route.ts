@@ -52,7 +52,7 @@ export async function POST(request: Request) {
 
     const count = await prisma.tabbedCarouselProduct.count({ where: { tab } });
     if (count >= 15) {
-      return jsonNoStore({ error: "Bu sekmeye en fazla 15 Ã¼rÃ¼n eklenebilir." }, { status: 400 });
+      return jsonNoStore({ error: "Bu sekmeye en fazla 15 ürün eklenebilir." }, { status: 400 });
     }
 
     const existing = await prisma.tabbedCarouselProduct.findUnique({
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
     });
 
     if (existing) {
-      return jsonNoStore({ error: "Bu Ã¼rÃ¼n zaten bu sekmede!" }, { status: 400 });
+      return jsonNoStore({ error: "Bu ürün zaten bu sekmede!" }, { status: 400 });
     }
 
     const item = await prisma.tabbedCarouselProduct.create({
@@ -121,12 +121,12 @@ export async function PUT(request: Request) {
     const { items, tab } = body; 
 
     if (!Array.isArray(items) || !tab) {
-      return jsonNoStore({ error: "GeÃ§ersiz liste veya tab." }, { status: 400 });
+      return jsonNoStore({ error: "Geçersiz liste veya tab." }, { status: 400 });
     }
 
     for (const item of items) {
        await prisma.tabbedCarouselProduct.update({
-         where: { id: item.id }, // Burada tab_productId'yi kontrol etmeye gerek yok Ã§Ã¼nkÃ¼ id unique.
+         where: { id: item.id }, // Burada tab_productId'yi kontrol etmeye gerek yok çünkü id unique.
          data: { order: item.order }
        });
     }

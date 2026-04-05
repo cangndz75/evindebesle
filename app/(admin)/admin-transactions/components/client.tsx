@@ -40,9 +40,9 @@ export default function TransactionsClient() {
         <>
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-3xl font-bold tracking-tight">Ä°ÅŸlemler</h2>
+                    <h2 className="text-3xl font-bold tracking-tight">İşlemler</h2>
                     <p className="text-muted-foreground">
-                        TÃ¼m Ã¶deme ve sipariÅŸ iÅŸlemleri listesi
+                        Tüm ödeme ve sipariş işlemleri listesi
                     </p>
                 </div>
             </div>

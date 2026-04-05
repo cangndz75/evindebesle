@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
       },
       buyer: {
         ipAddress: req.headers.get("x-forwarded-for") || "127.0.0.1",
-        name: session.user.name || "MÃ¼ÅŸteri",
+        name: session.user.name || "Müşteri",
         surName: session.user.name?.split(" ").slice(-1)[0] || "Soyisim",
         emailAddress: session.user.email || "noreply@example.com",
         buyerId: session.user.id,

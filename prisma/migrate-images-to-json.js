@@ -6,7 +6,7 @@ config();
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 async function main() {
-  console.log("ğŸ”„ ProductColor images alanlarÄ±nÄ± JSON string'e dÃ¶nÃ¼ÅŸtÃ¼rÃ¼lÃ¼yor...");
+  console.log("ğŸ”„ ProductColor images alanlarını JSON string'e dönüştürülüyor...");
 
   try {
     const typeCheck = await pool.query(`
@@ -18,7 +18,7 @@ async function main() {
 
     console.log("ğŸ“Š Mevcut kolon tipi:", typeCheck.rows[0]?.data_type);
 
-    console.log("ğŸ“ 1. AdÄ±m: Array verilerini JSON string'e dÃ¶nÃ¼ÅŸtÃ¼rÃ¼lÃ¼yor...");
+    console.log("ğŸ“ 1. Adım: Array verilerini JSON string'e dönüştürülüyor...");
     
     await pool.query(`
       ALTER TABLE "ProductColor" 
@@ -34,15 +34,15 @@ async function main() {
       END
     `);
 
-    console.log(`âœ… ${convertResult.rowCount} kayÄ±t dÃ¶nÃ¼ÅŸtÃ¼rÃ¼ldÃ¼`);
+    console.log(`✅ ${convertResult.rowCount} kayıt dönüştürüldü`);
 
-    console.log("ğŸ“ 2. AdÄ±m: Eski kolon siliniyor...");
+    console.log("ğŸ“ 2. Adım: Eski kolon siliniyor...");
     await pool.query(`
       ALTER TABLE "ProductColor" 
       DROP COLUMN IF EXISTS "images"
     `);
 
-    console.log("ğŸ“ 3. AdÄ±m: Yeni kolon oluÅŸturuluyor...");
+    console.log("ğŸ“ 3. Adım: Yeni kolon oluşturuluyor...");
     await pool.query(`
       ALTER TABLE "ProductColor" 
       RENAME COLUMN "images_temp" TO "images"
@@ -54,12 +54,12 @@ async function main() {
       LIMIT 5
     `);
 
-    console.log("âœ… GÃ¼ncellenmiÅŸ kayÄ±tlar:", verifyResult.rows);
-    console.log("âœ… Migration tamamlandÄ±!");
+    console.log("✅ Güncellenmiş kayıtlar:", verifyResult.rows);
+    console.log("✅ Migration tamamlandı!");
   } catch (error) {
     console.error("âŒ Hata:", error);
     
-    console.log("âš ï¸  Alternatif yÃ¶ntem deneniyor...");
+    console.log("⚠️  Alternatif yöntem deneniyor...");
     
     try {
       const colors = await pool.query(`
@@ -67,7 +67,7 @@ async function main() {
         FROM "ProductColor"
       `);
 
-      console.log(`ğŸ“Š ${colors.rows.length} renk kaydÄ± bulundu`);
+      console.log(`ğŸ“Š ${colors.rows.length} renk kaydı bulundu`);
 
       let updated = 0;
       let skipped = 0;
@@ -111,10 +111,10 @@ async function main() {
         }
       }
 
-      console.log(`âœ… ${updated} kayÄ±t gÃ¼ncellendi`);
-      console.log(`â­ï¸  ${skipped} kayÄ±t atlandÄ± (zaten JSON)`);
+      console.log(`✅ ${updated} kayıt güncellendi`);
+      console.log(`â­ï¸  ${skipped} kayıt atlandı (zaten JSON)`);
     } catch (altError) {
-      console.error("âŒ Alternatif yÃ¶ntem de baÅŸarÄ±sÄ±z:", altError);
+      console.error("âŒ Alternatif yöntem de başarısız:", altError);
       throw altError;
     }
   }

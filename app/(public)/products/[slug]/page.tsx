@@ -134,7 +134,7 @@ export default async function ProductSlugPage({
 
   if (!product) {
     product = await prisma.product.findUnique({
-      where: { id: slug }, // slug parametresi aslÄ±nda id olabilir
+      where: { id: slug }, // slug parametresi aslında id olabilir
       include: {
         colors: {
           include: {
@@ -241,7 +241,7 @@ export default async function ProductSlugPage({
     const orderCount = await prisma.order.count({
       where: {
         userId: user.id,
-        status: "DELIVERED", // Sadece teslim edilmiÅŸ sipariÅŸler
+        status: "DELIVERED", // Sadece teslim edilmiş siparişler
         items: {
           some: {
             productId: product.id,
@@ -332,9 +332,9 @@ export default async function ProductSlugPage({
         name: c.name,
         value: c.hexCode || "#000000",
         description: c.description || "",
-        variant: c.variants?.[0]?.variantCode, // Ä°lk variant'Ä±n kodunu al
+        variant: c.variants?.[0]?.variantCode, // İlk variant'ın kodunu al
         images: parsedImages,
-        image: parsedImages.length > 0 ? parsedImages[0] : undefined, // Ä°lk resmi image olarak da ekle (TabbedProductCarousel uyumluluÄŸu iÃ§in)
+        image: parsedImages.length > 0 ? parsedImages[0] : undefined, // İlk resmi image olarak da ekle (TabbedProductCarousel uyumluluğu için)
       };
     }),
     sizes: (() => {
@@ -355,16 +355,16 @@ export default async function ProductSlugPage({
         return product.sizeOptions.map((so: any) => ({
           id: so.id,
           name: so.name,
-          stock: 0, // sizeOptions iÃ§in stok bilgisi yok, varsayÄ±lan 0
+          stock: 0, // sizeOptions için stok bilgisi yok, varsayılan 0
         }));
       }
       console.log('[ProductSlugPage] No sizes found');
       return [];
     })(),
     variants: product.variants
-      .filter((v: any) => v.colorId !== null) // null colorId'li variant'larÄ± filtrele
+      .filter((v: any) => v.colorId !== null) // null colorId'li variant'ları filtrele
       .map((v: any) => ({
-        colorId: v.colorId!, // Non-null assertion Ã§Ã¼nkÃ¼ yukarÄ±da filtreledik
+        colorId: v.colorId!, // Non-null assertion çünkü yukarıda filtreledik
         sizeId: v.sizeId,
         stock: v.stock,
         variantCode: v.variantCode,
@@ -382,7 +382,7 @@ export default async function ProductSlugPage({
     fabric: product.fabricType || "",
     care: "",
     washing: "",
-    delivery: "2-3 iÅŸ gÃ¼nÃ¼ iÃ§inde teslimat",
+    delivery: "2-3 iş günü içinde teslimat",
     sizeNotes: "",
     combinations: product.combinations.map((c: any) => ({
       id: c.relatedProduct.id,

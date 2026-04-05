@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
 
         if (!productId) {
             return NextResponse.json(
-                { error: "ÃœrÃ¼n ID'si gerekli" },
+                { error: "Ürün ID'si gerekli" },
                 { status: 400 }
             );
         }
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
 
         if (!original) {
             return NextResponse.json(
-                { error: "ÃœrÃ¼n bulunamadÄ±" },
+                { error: "Ürün bulunamadı" },
                 { status: 404 }
             );
         }
@@ -158,7 +158,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({
             success: true,
-            message: "ÃœrÃ¼n kopyalandÄ±",
+            message: "Ürün kopyalandı",
             product: {
                 id: newProduct.id,
                 name: newProduct.name,
@@ -168,7 +168,7 @@ export async function POST(req: NextRequest) {
     } catch (error) {
         console.error("Error duplicating product:", error);
         return NextResponse.json(
-            { error: "Kopyalama sÄ±rasÄ±nda bir hata oluÅŸtu" },
+            { error: "Kopyalama sırasında bir hata oluştu" },
             { status: 500 }
         );
     }

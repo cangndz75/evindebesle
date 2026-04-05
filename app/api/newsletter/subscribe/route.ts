@@ -6,7 +6,7 @@ export async function POST(req: NextRequest) {
         const { email } = await req.json();
 
         if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
-            return NextResponse.json({ error: "GeÃ§ersiz email adresi" }, { status: 400 });
+            return NextResponse.json({ error: "Geçersiz email adresi" }, { status: 400 });
         }
 
         await prisma.subscriber.upsert({
@@ -15,8 +15,8 @@ export async function POST(req: NextRequest) {
             create: { email, isActive: true },
         });
 
-        return NextResponse.json({ success: true, message: "BÃ¼lten aboneliÄŸi baÅŸarÄ±lÄ±" });
+        return NextResponse.json({ success: true, message: "Bülten aboneliği başarılı" });
     } catch (error) {
-        return NextResponse.json({ error: "Abonelik baÅŸarÄ±sÄ±z" }, { status: 500 });
+        return NextResponse.json({ error: "Abonelik başarısız" }, { status: 500 });
     }
 }

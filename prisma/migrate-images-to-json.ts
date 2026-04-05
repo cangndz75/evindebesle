@@ -6,7 +6,7 @@ config();
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 async function main() {
-  console.log("ğŸ”„ ProductColor images alanlarÄ±nÄ± JSON string'e dÃ¶nÃ¼ÅŸtÃ¼rÃ¼lÃ¼yor...");
+  console.log("ğŸ”„ ProductColor images alanlarını JSON string'e dönüştürülüyor...");
 
   try {
     const result = await pool.query(`
@@ -21,7 +21,7 @@ async function main() {
         AND images::text NOT LIKE '{%'
     `);
 
-    console.log(`âœ… ${result.rowCount} kayÄ±t gÃ¼ncellendi`);
+    console.log(`✅ ${result.rowCount} kayıt güncellendi`);
 
     const arrayResult = await pool.query(`
       UPDATE "ProductColor"
@@ -30,9 +30,9 @@ async function main() {
         AND pg_typeof(images) = 'text[]'::regtype
     `);
 
-    console.log(`âœ… ${arrayResult.rowCount} array kayÄ±t JSON'a dÃ¶nÃ¼ÅŸtÃ¼rÃ¼ldÃ¼`);
+    console.log(`✅ ${arrayResult.rowCount} array kayıt JSON'a dönüştürüldü`);
   } catch (error: any) {
-    console.log("âš ï¸  Otomatik dÃ¶nÃ¼ÅŸtÃ¼rme baÅŸarÄ±sÄ±z, manuel dÃ¶nÃ¼ÅŸtÃ¼rme deneniyor...");
+    console.log("⚠️  Otomatik dönüştürme başarısız, manuel dönüştürme deneniyor...");
     
     const colors = await pool.query(`
       SELECT id, images
@@ -40,7 +40,7 @@ async function main() {
       WHERE images IS NOT NULL
     `);
 
-    console.log(`ğŸ“Š ${colors.rows.length} renk kaydÄ± bulundu`);
+    console.log(`ğŸ“Š ${colors.rows.length} renk kaydı bulundu`);
 
     let updated = 0;
     let skipped = 0;
@@ -74,8 +74,8 @@ async function main() {
       }
     }
 
-    console.log(`âœ… ${updated} kayÄ±t gÃ¼ncellendi`);
-    console.log(`â­ï¸  ${skipped} kayÄ±t atlandÄ± (zaten JSON)`);
+    console.log(`✅ ${updated} kayıt güncellendi`);
+    console.log(`â­ï¸  ${skipped} kayıt atlandı (zaten JSON)`);
   }
 }
 

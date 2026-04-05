@@ -11,187 +11,187 @@ const prisma = new PrismaClient({ adapter } as any);
 
 const faqData = [
     {
-        question: "SipariÅŸimi nasÄ±l takip edebilirim?",
-        answer: "SipariÅŸ verdikten sonra e-posta adresinize gÃ¶nderilen kargo takip numarasÄ± ile sipariÅŸinizi takip edebilirsiniz. AyrÄ±ca <strong>HesabÄ±m â†’ SipariÅŸlerim</strong> sayfasÄ±ndan sipariÅŸ durumunuzu anlÄ±k olarak gÃ¶rÃ¼ntÃ¼leyebilirsiniz.",
+        question: "Siparişimi nasıl takip edebilirim?",
+        answer: "Sipariş verdikten sonra e-posta adresinize gönderilen kargo takip numarası ile siparişinizi takip edebilirsiniz. Ayrıca <strong>Hesabım → Siparişlerim</strong> sayfasından sipariş durumunuzu anlık olarak görüntüleyebilirsiniz.",
         category: "order",
         order: 1,
     },
     {
-        question: "SipariÅŸimi iptal edebilir miyim?",
-        answer: "SipariÅŸiniz kargoya verilmeden Ã¶nce iptal edebilirsiniz. Bunun iÃ§in <strong>HesabÄ±m â†’ SipariÅŸlerim</strong> sayfasÄ±ndan ilgili sipariÅŸi seÃ§erek \"Ä°ptal Et\" butonuna tÄ±klayabilirsiniz. Kargoya verildikten sonra iptal iÅŸlemi yapÄ±lamamakta olup, Ã¼rÃ¼n elinize ulaÅŸtÄ±ktan sonra iade baÅŸvurusu oluÅŸturabilirsiniz.",
+        question: "Siparişimi iptal edebilir miyim?",
+        answer: "Siparişiniz kargoya verilmeden önce iptal edebilirsiniz. Bunun için <strong>Hesabım → Siparişlerim</strong> sayfasından ilgili siparişi seçerek \"İptal Et\" butonuna tıklayabilirsiniz. Kargoya verildikten sonra iptal işlemi yapılamamakta olup, ürün elinize ulaştıktan sonra iade başvurusu oluşturabilirsiniz.",
         category: "order",
         order: 2,
     },
     {
-        question: "SipariÅŸimi verdikten sonra adres deÄŸiÅŸikliÄŸi yapabilir miyim?",
-        answer: "SipariÅŸiniz henÃ¼z hazÄ±rlanma aÅŸamasÄ±na geÃ§mediyse adres deÄŸiÅŸikliÄŸi yapÄ±labilir. Bunun iÃ§in en kÄ±sa sÃ¼rede mÃ¼ÅŸteri hizmetlerimizle <strong>Bize UlaÅŸÄ±n</strong> sayfasÄ± Ã¼zerinden iletiÅŸime geÃ§menizi rica ederiz.",
+        question: "Siparişimi verdikten sonra adres değişikliği yapabilir miyim?",
+        answer: "Siparişiniz henüz hazırlanma aşamasına geçmediyse adres değişikliği yapılabilir. Bunun için en kısa sürede müşteri hizmetlerimizle <strong>Bize Ulaşın</strong> sayfası üzerinden iletişime geçmenizi rica ederiz.",
         category: "order",
         order: 3,
     },
     {
-        question: "Minimum sipariÅŸ tutarÄ± var mÄ±?",
-        answer: "Sitemizde minimum sipariÅŸ tutarÄ± bulunmamaktadÄ±r. DilediÄŸiniz miktarda alÄ±ÅŸveriÅŸ yapabilirsiniz. Ancak <strong>150 TL</strong> ve Ã¼zeri sipariÅŸlerde Ã¼cretsiz kargo avantajÄ±ndan yararlanabilirsiniz.",
+        question: "Minimum sipariş tutarı var mı?",
+        answer: "Sitemizde minimum sipariş tutarı bulunmamaktadır. Dilediğiniz miktarda alışveriş yapabilirsiniz. Ancak <strong>150 TL</strong> ve üzeri siparişlerde ücretsiz kargo avantajından yararlanabilirsiniz.",
         category: "order",
         order: 4,
     },
     {
-        question: "SipariÅŸim ne zaman kargoya verilir?",
-        answer: "SipariÅŸleriniz, Ã¶deme onayÄ±nÄ±n alÄ±nmasÄ±nÄ±n ardÄ±ndan genellikle <strong>1-2 iÅŸ gÃ¼nÃ¼</strong> iÃ§erisinde kargoya teslim edilir. YoÄŸun kampanya dÃ¶nemlerinde bu sÃ¼re biraz uzayabilir.",
+        question: "Siparişim ne zaman kargoya verilir?",
+        answer: "Siparişleriniz, ödeme onayının alınmasının ardından genellikle <strong>1-2 iş günü</strong> içerisinde kargoya teslim edilir. Yoğun kampanya dönemlerinde bu süre biraz uzayabilir.",
         category: "order",
         order: 5,
     },
 
     {
-        question: "Hangi Ã¶deme yÃ¶ntemlerini kullanabilirim?",
-        answer: "Sitemizde <strong>kredi kartÄ±</strong>, <strong>banka kartÄ±</strong> ve <strong>sanal kart</strong> ile gÃ¼venli Ã¶deme yapabilirsiniz. TÃ¼m Ã¶demeler iyzico gÃ¼venli Ã¶deme altyapÄ±sÄ± Ã¼zerinden gerÃ§ekleÅŸtirilmektedir. Visa, MasterCard ve Troy kartlarÄ± kabul edilmektedir.",
+        question: "Hangi ödeme yöntemlerini kullanabilirim?",
+        answer: "Sitemizde <strong>kredi kartı</strong>, <strong>banka kartı</strong> ve <strong>sanal kart</strong> ile güvenli ödeme yapabilirsiniz. Tüm ödemeler iyzico güvenli ödeme altyapısı üzerinden gerçekleştirilmektedir. Visa, MasterCard ve Troy kartları kabul edilmektedir.",
         category: "payment",
         order: 1,
     },
     {
-        question: "Taksitli Ã¶deme yapabilir miyim?",
-        answer: "Evet, anlaÅŸmalÄ± banka kartlarÄ±yla <strong>2, 3, 6 ve 9 taksit</strong> seÃ§eneklerinden faydalanabilirsiniz. Taksit seÃ§enekleri Ã¶deme sayfasÄ±nda kartÄ±nÄ±za gÃ¶re otomatik olarak gÃ¶rÃ¼ntÃ¼lenir.",
+        question: "Taksitli ödeme yapabilir miyim?",
+        answer: "Evet, anlaşmalı banka kartlarıyla <strong>2, 3, 6 ve 9 taksit</strong> seçeneklerinden faydalanabilirsiniz. Taksit seçenekleri ödeme sayfasında kartınıza göre otomatik olarak görüntülenir.",
         category: "payment",
         order: 2,
     },
     {
-        question: "Ã–deme bilgilerim gÃ¼vende mi?",
-        answer: "Kesinlikle evet. TÃ¼m Ã¶demeleriniz <strong>iyzico</strong> gÃ¼venli Ã¶deme altyapÄ±sÄ± Ã¼zerinden, <strong>256-bit SSL</strong> ÅŸifreleme ile gerÃ§ekleÅŸtirilmektedir. Kart bilgileriniz hiÃ§bir ÅŸekilde sunucularÄ±mÄ±zda saklanmamaktadÄ±r. Ä°yzico, BDDK lisanslÄ± bir Ã¶deme kuruluÅŸudur.",
+        question: "Ödeme bilgilerim güvende mi?",
+        answer: "Kesinlikle evet. Tüm ödemeleriniz <strong>iyzico</strong> güvenli ödeme altyapısı üzerinden, <strong>256-bit SSL</strong> şifreleme ile gerçekleştirilmektedir. Kart bilgileriniz hiçbir şekilde sunucularımızda saklanmamaktadır. İyzico, BDDK lisanslı bir ödeme kuruluşudur.",
         category: "payment",
         order: 3,
     },
     {
-        question: "Ã–deme sÄ±rasÄ±nda hata alÄ±yorum, ne yapmalÄ±yÄ±m?",
-        answer: "Ã–deme hatasÄ± almanÄ±zÄ±n birkaÃ§ nedeni olabilir: <ul class='list-disc pl-5 mt-2 space-y-1'><li>Kart limitinizin yeterli olduÄŸundan emin olun</li><li>Kart bilgilerinizi doÄŸru girdiÄŸinizden emin olun</li><li>3D Secure doÄŸrulamasÄ±nÄ± onayladÄ±ÄŸÄ±nÄ±zdan emin olun</li><li>BankanÄ±zÄ±n online alÄ±ÅŸveriÅŸe izin verdiÄŸinden emin olun</li></ul><br/>Sorun devam ederse farklÄ± bir kart deneyebilir veya mÃ¼ÅŸteri hizmetlerimizle iletiÅŸime geÃ§ebilirsiniz.",
+        question: "Ödeme sırasında hata alıyorum, ne yapmalıyım?",
+        answer: "Ödeme hatası almanızın birkaç nedeni olabilir: <ul class='list-disc pl-5 mt-2 space-y-1'><li>Kart limitinizin yeterli olduğundan emin olun</li><li>Kart bilgilerinizi doğru girdiğinizden emin olun</li><li>3D Secure doğrulamasını onayladığınızdan emin olun</li><li>Bankanızın online alışverişe izin verdiğinden emin olun</li></ul><br/>Sorun devam ederse farklı bir kart deneyebilir veya müşteri hizmetlerimizle iletişime geçebilirsiniz.",
         category: "payment",
         order: 4,
     },
     {
-        question: "Fatura bilgilerimi nasÄ±l gÃ¼ncellerim?",
-        answer: "SipariÅŸ oluÅŸtururken fatura bilgilerinizi girebilirsiniz. Mevcut faturalarÄ±nÄ±z iÃ§in <strong>HesabÄ±m â†’ SipariÅŸlerim</strong> sayfasÄ±ndan ilgili sipariÅŸin detaylarÄ±na giderek faturanÄ±zÄ± gÃ¶rÃ¼ntÃ¼leyebilirsiniz. Fatura dÃ¼zeltmeleri iÃ§in mÃ¼ÅŸteri hizmetlerimize baÅŸvurabilirsiniz.",
+        question: "Fatura bilgilerimi nasıl güncellerim?",
+        answer: "Sipariş oluştururken fatura bilgilerinizi girebilirsiniz. Mevcut faturalarınız için <strong>Hesabım → Siparişlerim</strong> sayfasından ilgili siparişin detaylarına giderek faturanızı görüntüleyebilirsiniz. Fatura düzeltmeleri için müşteri hizmetlerimize başvurabilirsiniz.",
         category: "payment",
         order: 5,
     },
 
     {
-        question: "Kargo Ã¼creti ne kadar?",
-        answer: "<strong>150 TL</strong> ve Ã¼zeri sipariÅŸlerde kargo Ã¼cretsizdir. Bu tutarÄ±n altÄ±ndaki sipariÅŸlerde kargo Ã¼creti <strong>49,90 TL</strong> olarak uygulanmaktadÄ±r.",
+        question: "Kargo ücreti ne kadar?",
+        answer: "<strong>150 TL</strong> ve üzeri siparişlerde kargo ücretsizdir. Bu tutarın altındaki siparişlerde kargo ücreti <strong>49,90 TL</strong> olarak uygulanmaktadır.",
         category: "shipping",
         order: 1,
     },
     {
-        question: "SipariÅŸim kaÃ§ gÃ¼nde elime ulaÅŸÄ±r?",
-        answer: "SipariÅŸleriniz kargoya verildikten sonra <strong>1-3 iÅŸ gÃ¼nÃ¼</strong> iÃ§erisinde teslim edilmektedir. BÃ¼yÃ¼kÅŸehirlere teslimat genellikle 1-2 iÅŸ gÃ¼nÃ¼, diÄŸer illere 2-3 iÅŸ gÃ¼nÃ¼ sÃ¼rmektedir.",
+        question: "Siparişim kaç günde elime ulaşır?",
+        answer: "Siparişleriniz kargoya verildikten sonra <strong>1-3 iş günü</strong> içerisinde teslim edilmektedir. Büyükşehirlere teslimat genellikle 1-2 iş günü, diğer illere 2-3 iş günü sürmektedir.",
         category: "shipping",
         order: 2,
     },
     {
-        question: "Hangi kargo firmasÄ± ile gÃ¶nderim yapÄ±lÄ±yor?",
-        answer: "SipariÅŸleriniz <strong>YurtiÃ§i Kargo</strong>, <strong>Aras Kargo</strong> veya <strong>MNG Kargo</strong> ile gÃ¶nderilmektedir. Kargo firmasÄ± tercihi sipariÅŸ yoÄŸunluÄŸuna ve bÃ¶lgenize gÃ¶re belirlenmektedir.",
+        question: "Hangi kargo firması ile gönderim yapılıyor?",
+        answer: "Siparişleriniz <strong>Yurtiçi Kargo</strong>, <strong>Aras Kargo</strong> veya <strong>MNG Kargo</strong> ile gönderilmektedir. Kargo firması tercihi sipariş yoğunluğuna ve bölgenize göre belirlenmektedir.",
         category: "shipping",
         order: 3,
     },
     {
-        question: "Kargom teslim edilemiyor, ne yapmalÄ±yÄ±m?",
-        answer: "Kargo teslimatÄ±nda sorun yaÅŸÄ±yorsanÄ±z Ã¶ncelikle kargo takip numaranÄ±z ile kargo firmasÄ±nÄ±n mÃ¼ÅŸteri hizmetlerinden durumu sorgulayabilirsiniz. Kargo ÅŸubesinden teslim almak isterseniz ilgili ÅŸubeye kimliÄŸinizle baÅŸvurabilirsiniz. Sorununuz Ã§Ã¶zÃ¼lmezse <strong>Bize UlaÅŸÄ±n</strong> sayfamÄ±z Ã¼zerinden destek talebinde bulunabilirsiniz.",
+        question: "Kargom teslim edilemiyor, ne yapmalıyım?",
+        answer: "Kargo teslimatında sorun yaşıyorsanız öncelikle kargo takip numaranız ile kargo firmasının müşteri hizmetlerinden durumu sorgulayabilirsiniz. Kargo şubesinden teslim almak isterseniz ilgili şubeye kimliğinizle başvurabilirsiniz. Sorununuz çözülmezse <strong>Bize Ulaşın</strong> sayfamız üzerinden destek talebinde bulunabilirsiniz.",
         category: "shipping",
         order: 4,
     },
     {
-        question: "Yurt dÄ±ÅŸÄ±na gÃ¶nderim yapÄ±yor musunuz?",
-        answer: "Åu an iÃ§in yalnÄ±zca <strong>TÃ¼rkiye genelinde</strong> kargo gÃ¶nderimi yapmaktayÄ±z. Yurt dÄ±ÅŸÄ± gÃ¶nderim seÃ§enekleri yakÄ±nda hizmete sunulacaktÄ±r.",
+        question: "Yurt dışına gönderim yapıyor musunuz?",
+        answer: "Şu an için yalnızca <strong>Türkiye genelinde</strong> kargo gönderimi yapmaktayız. Yurt dışı gönderim seçenekleri yakında hizmete sunulacaktır.",
         category: "shipping",
         order: 5,
     },
 
     {
-        question: "Ä°ade ve deÄŸiÅŸim koÅŸullarÄ± nelerdir?",
-        answer: "ÃœrÃ¼nlerinizi teslim aldÄ±ÄŸÄ±nÄ±z tarihten itibaren <strong>14 gÃ¼n</strong> iÃ§erisinde iade veya deÄŸiÅŸim talebinde bulunabilirsiniz. Ä°ade edilecek Ã¼rÃ¼nlerin kullanÄ±lmamÄ±ÅŸ, yÄ±kanmamÄ±ÅŸ, etiketi sÃ¶kÃ¼lmemiÅŸ ve orijinal ambalajÄ±nda olmasÄ± gerekmektedir.",
+        question: "İade ve değişim koşulları nelerdir?",
+        answer: "Ürünlerinizi teslim aldığınız tarihten itibaren <strong>14 gün</strong> içerisinde iade veya değişim talebinde bulunabilirsiniz. İade edilecek ürünlerin kullanılmamış, yıkanmamış, etiketi sökülmemiş ve orijinal ambalajında olması gerekmektedir.",
         category: "return",
         order: 1,
     },
     {
-        question: "Ä°ade iÅŸlemini nasÄ±l baÅŸlatabilirim?",
-        answer: "<strong>HesabÄ±m â†’ SipariÅŸlerim</strong> sayfasÄ±ndan ilgili sipariÅŸi bulup \"Ä°ade Talebi OluÅŸtur\" butonuna tÄ±klayarak iade sÃ¼recini baÅŸlatabilirsiniz. Ä°ade nedeninizi seÃ§ip, gerekirse Ã¼rÃ¼n fotoÄŸraflarÄ±nÄ± yÃ¼kleyerek talebinizi gÃ¶nderebilirsiniz. Ä°ade talebiniz onaylandÄ±ktan sonra kargo kodu e-posta ile tarafÄ±nÄ±za iletilecektir.",
+        question: "İade işlemini nasıl başlatabilirim?",
+        answer: "<strong>Hesabım → Siparişlerim</strong> sayfasından ilgili siparişi bulup \"İade Talebi Oluştur\" butonuna tıklayarak iade sürecini başlatabilirsiniz. İade nedeninizi seçip, gerekirse ürün fotoğraflarını yükleyerek talebinizi gönderebilirsiniz. İade talebiniz onaylandıktan sonra kargo kodu e-posta ile tarafınıza iletilecektir.",
         category: "return",
         order: 2,
     },
     {
-        question: "Ä°ade kargo Ã¼creti kime aittir?",
-        answer: "ÃœrÃ¼n kusurlu veya hatalÄ± gÃ¶nderim durumlarÄ±nda iade kargo Ã¼creti <strong>firmamÄ±za</strong> aittir. MÃ¼ÅŸteri kaynaklÄ± iade taleplerinde (beÄŸenmeme, beden uyumsuzluÄŸu vb.) iade kargo Ã¼creti <strong>alÄ±cÄ±ya</strong> aittir.",
+        question: "İade kargo ücreti kime aittir?",
+        answer: "Ürün kusurlu veya hatalı gönderim durumlarında iade kargo ücreti <strong>firmamıza</strong> aittir. Müşteri kaynaklı iade taleplerinde (beğenmeme, beden uyumsuzluğu vb.) iade kargo ücreti <strong>alıcıya</strong> aittir.",
         category: "return",
         order: 3,
     },
     {
-        question: "Ä°ade ettiÄŸim Ã¼rÃ¼nÃ¼n parasÄ± ne zaman iade edilir?",
-        answer: "Ä°ade edilen Ã¼rÃ¼nÃ¼nÃ¼z depomÄ±za ulaÅŸÄ±p kontrol edildikten sonra <strong>3-5 iÅŸ gÃ¼nÃ¼</strong> iÃ§erisinde Ã¶demeniz iade edilir. Kredi kartÄ±na yapÄ±lan iadelerde bankanÄ±zÄ±n sÃ¼reci nedeniyle tutarÄ±n hesabÄ±nÄ±za yansÄ±masÄ± ek olarak <strong>7-14 iÅŸ gÃ¼nÃ¼</strong> sÃ¼rebilir.",
+        question: "İade ettiğim ürünün parası ne zaman iade edilir?",
+        answer: "İade edilen ürününüz depomıza ulaşıp kontrol edildikten sonra <strong>3-5 iş günü</strong> içerisinde ödemeniz iade edilir. Kredi kartına yapılan iadelerde bankanızın süreci nedeniyle tutarın hesabınıza yansıması ek olarak <strong>7-14 iş günü</strong> sürebilir.",
         category: "return",
         order: 4,
     },
     {
-        question: "Hangi Ã¼rÃ¼nler iade edilemez?",
-        answer: "AÅŸaÄŸÄ±daki durumlarda iade kabul edilememektedir:<ul class='list-disc pl-5 mt-2 space-y-1'><li>KullanÄ±lmÄ±ÅŸ, yÄ±kanmÄ±ÅŸ veya hasar gÃ¶rmÃ¼ÅŸ Ã¼rÃ¼nler</li><li>Etiketi Ã§Ä±karÄ±lmÄ±ÅŸ veya kesilmiÅŸ Ã¼rÃ¼nler</li><li>Orijinal ambalajÄ± aÃ§Ä±lmÄ±ÅŸ iÃ§ giyim Ã¼rÃ¼nleri (hijyen nedeniyle)</li><li>Orijinal ambalajÄ± aÃ§Ä±lmÄ±ÅŸ mayo ve bikini Ã¼rÃ¼nleri</li></ul>",
+        question: "Hangi ürünler iade edilemez?",
+        answer: "Aşağıdaki durumlarda iade kabul edilememektedir:<ul class='list-disc pl-5 mt-2 space-y-1'><li>Kullanılmış, yıkanmış veya hasar görmüş ürünler</li><li>Etiketi çıkarılmış veya kesilmiş ürünler</li><li>Orijinal ambalajı açılmış iç giyim ürünleri (hijyen nedeniyle)</li><li>Orijinal ambalajı açılmış mayo ve bikini ürünleri</li></ul>",
         category: "return",
         order: 5,
     },
 
     {
-        question: "Beden tablosu nasÄ±l kullanÄ±lÄ±r?",
-        answer: "Her Ã¼rÃ¼n sayfasÄ±nda detaylÄ± <strong>beden tablosu</strong> bulunmaktadÄ±r. VÃ¼cut Ã¶lÃ§Ã¼lerinize gÃ¶re en uygun bedeni seÃ§ebilirsiniz. Ã–lÃ§Ã¼lerinizi mezura ile alarak tablodaki deÄŸerlerle karÅŸÄ±laÅŸtÄ±rmanÄ±zÄ± Ã¶neririz. EÄŸer iki beden arasÄ±nda kaldÄ±ysanÄ±z, rahat bir kullanÄ±m iÃ§in bÃ¼yÃ¼k bedeni tercih etmenizi tavsiye ederiz.",
+        question: "Beden tablosu nasıl kullanılır?",
+        answer: "Her ürün sayfasında detaylı <strong>beden tablosu</strong> bulunmaktadır. Vücut ölçülerinize göre en uygun bedeni seçebilirsiniz. Ölçülerinizi mezura ile alarak tablodaki değerlerle karşılaştırmanızı öneririz. Eğer iki beden arasında kaldıysanız, rahat bir kullanım için büyük bedeni tercih etmenizi tavsiye ederiz.",
         category: "product",
         order: 1,
     },
     {
-        question: "ÃœrÃ¼n renkleri gerÃ§eÄŸiyle birebir aynÄ± mÄ±?",
-        answer: "ÃœrÃ¼n fotoÄŸraflarÄ± profesyonel ortamda Ã§ekilmektedir, ancak monitÃ¶r ve ekran ayarlarÄ±na baÄŸlÄ± olarak renklerde <strong>hafif ton farklÄ±lÄ±klarÄ±</strong> olabilir. ÃœrÃ¼n aÃ§Ä±klamalarÄ±ndaki renk bilgisini de dikkate almanÄ±zÄ± Ã¶neririz.",
+        question: "Ürün renkleri gerçeğiyle birebir aynı mı?",
+        answer: "Ürün fotoğrafları profesyonel ortamda çekilmektedir, ancak monitör ve ekran ayarlarına bağlı olarak renklerde <strong>hafif ton farklılıkları</strong> olabilir. Ürün açıklamalarındaki renk bilgisini de dikkate almanızı öneririz.",
         category: "product",
         order: 2,
     },
     {
-        question: "StoÄŸu tÃ¼kenen Ã¼rÃ¼n tekrar gelecek mi?",
-        answer: "StoÄŸu tÃ¼kenen Ã¼rÃ¼nler iÃ§in ilgili Ã¼rÃ¼n sayfasÄ±ndaki <strong>\"Gelince Haber Ver\"</strong> butonuna tÄ±klayarak e-posta bildirimlerine kaydolabilirsiniz. ÃœrÃ¼n tekrar stoklara girdiÄŸinde size otomatik bilgilendirme yapÄ±lacaktÄ±r.",
+        question: "Stoğu tükenen ürün tekrar gelecek mi?",
+        answer: "Stoğu tükenen ürünler için ilgili ürün sayfasındaki <strong>\"Gelince Haber Ver\"</strong> butonuna tıklayarak e-posta bildirimlerine kaydolabilirsiniz. Ürün tekrar stoklara girdiğinde size otomatik bilgilendirme yapılacaktır.",
         category: "product",
         order: 3,
     },
     {
-        question: "ÃœrÃ¼nlerin kumaÅŸ iÃ§eriÄŸini nereden Ã¶ÄŸrenebilirim?",
-        answer: "Her Ã¼rÃ¼nÃ¼n detay sayfasÄ±nda <strong>kumaÅŸ bilgisi</strong> ve <strong>bakÄ±m talimatlarÄ±</strong> bÃ¶lÃ¼mÃ¼ bulunmaktadÄ±r. Burada Ã¼rÃ¼nÃ¼n malzeme iÃ§eriÄŸi, yÄ±kama talimatlarÄ± ve kullanÄ±m Ã¶nerileri detaylÄ± ÅŸekilde yer almaktadÄ±r.",
+        question: "Ürünlerin kumaş içeriğini nereden öğrenebilirim?",
+        answer: "Her ürünün detay sayfasında <strong>kumaş bilgisi</strong> ve <strong>bakım talimatları</strong> bölümü bulunmaktadır. Burada ürünün malzeme içeriği, yıkama talimatları ve kullanım önerileri detaylı şekilde yer almaktadır.",
         category: "product",
         order: 4,
     },
     {
-        question: "ÃœrÃ¼nler orijinal mi?",
-        answer: "Sitemizde satÄ±lan tÃ¼m Ã¼rÃ¼nler <strong>%100 orijinal</strong> ve kendi markamÄ±za aittir. TÃ¼m Ã¼rÃ¼nler kalite kontrol sÃ¼reÃ§lerinden geÃ§irildikten sonra satÄ±ÅŸa sunulmaktadÄ±r.",
+        question: "Ürünler orijinal mi?",
+        answer: "Sitemizde satılan tüm ürünler <strong>%100 orijinal</strong> ve kendi markamıza aittir. Tüm ürünler kalite kontrol süreçlerinden geçirildikten sonra satışa sunulmaktadır.",
         category: "product",
         order: 5,
     },
 
     {
-        question: "NasÄ±l Ã¼ye olabilirim?",
-        answer: "Ana sayfanÄ±n saÄŸ Ã¼st kÃ¶ÅŸesindeki <strong>\"GiriÅŸ Yap\"</strong> butonuna tÄ±klayarak kayÄ±t formunu doldurabilirsiniz. E-posta adresiniz, adÄ±nÄ±z ve ÅŸifrenizle hÄ±zlÄ±ca Ã¼ye olabilirsiniz. AyrÄ±ca <strong>Google hesabÄ±nÄ±zla</strong> da tek tÄ±kla kayÄ±t olabilirsiniz.",
+        question: "Nasıl üye olabilirim?",
+        answer: "Ana sayfanın sağ üst köşesindeki <strong>\"Giriş Yap\"</strong> butonuna tıklayarak kayıt formunu doldurabilirsiniz. E-posta adresiniz, adınız ve şifrenizle hızlıca üye olabilirsiniz. Ayrıca <strong>Google hesabınızla</strong> da tek tıkla kayıt olabilirsiniz.",
         category: "account",
         order: 1,
     },
     {
-        question: "Åifremi unuttum, ne yapmalÄ±yÄ±m?",
-        answer: "GiriÅŸ sayfasÄ±ndaki <strong>\"Åifremi Unuttum\"</strong> baÄŸlantÄ±sÄ±na tÄ±klayarak kayÄ±tlÄ± e-posta adresinizi girin. Size ÅŸifre sÄ±fÄ±rlama baÄŸlantÄ±sÄ± iÃ§eren bir e-posta gÃ¶nderilecektir. E-postadaki baÄŸlantÄ±ya tÄ±klayarak yeni ÅŸifrenizi belirleyebilirsiniz.",
+        question: "Şifremi unuttum, ne yapmalıyım?",
+        answer: "Giriş sayfasındaki <strong>\"Şifremi Unuttum\"</strong> bağlantısına tıklayarak kayıtlı e-posta adresinizi girin. Size şifre sıfırlama bağlantısı içeren bir e-posta gönderilecektir. E-postadaki bağlantıya tıklayarak yeni şifrenizi belirleyebilirsiniz.",
         category: "account",
         order: 2,
     },
     {
-        question: "Hesap bilgilerimi nasÄ±l gÃ¼ncellerim?",
-        answer: "<strong>HesabÄ±m</strong> sayfasÄ±ndan adÄ±nÄ±zÄ±, e-posta adresinizi, telefon numaranÄ±zÄ± ve adres bilgilerinizi gÃ¼ncelleyebilirsiniz. Åifre deÄŸiÅŸikliÄŸi de yine bu sayfa Ã¼zerinden yapÄ±labilir.",
+        question: "Hesap bilgilerimi nasıl güncellerim?",
+        answer: "<strong>Hesabım</strong> sayfasından adınızı, e-posta adresinizi, telefon numaranızı ve adres bilgilerinizi güncelleyebilirsiniz. Şifre değişikliği de yine bu sayfa üzerinden yapılabilir.",
         category: "account",
         order: 3,
     },
     {
-        question: "HesabÄ±mÄ± silmek istiyorum, nasÄ±l yapabilirim?",
-        answer: "HesabÄ±nÄ±zÄ± silmek iÃ§in mÃ¼ÅŸteri hizmetlerimizle <strong>Bize UlaÅŸÄ±n</strong> sayfasÄ± Ã¼zerinden iletiÅŸime geÃ§meniz gerekmektedir. Hesap silme talebiniz en geÃ§ <strong>72 saat</strong> iÃ§erisinde iÅŸleme alÄ±nacaktÄ±r. KVKK kapsamÄ±ndaki haklarÄ±nÄ±z saklÄ±dÄ±r.",
+        question: "Hesabımı silmek istiyorum, nasıl yapabilirim?",
+        answer: "Hesabınızı silmek için müşteri hizmetlerimizle <strong>Bize Ulaşın</strong> sayfası üzerinden iletişime geçmeniz gerekmektedir. Hesap silme talebiniz en geç <strong>72 saat</strong> içerisinde işleme alınacaktır. KVKK kapsamındaki haklarınız saklıdır.",
         category: "account",
         order: 4,
     },
     {
-        question: "Kupon kodum nasÄ±l kullanÄ±lÄ±r?",
-        answer: "Sepetinize Ã¼rÃ¼n ekledikten sonra Ã¶deme sayfasÄ±nda bulunan <strong>\"Kupon Kodu\"</strong> alanÄ±na kodunuzu girerek <strong>\"Uygula\"</strong> butonuna tÄ±klayÄ±n. Ä°ndirim otomatik olarak toplam tutarÄ±nÄ±za yansÄ±yacaktÄ±r. Her kupon yalnÄ±zca bir kez kullanÄ±labilir ve belirli bir geÃ§erlilik sÃ¼resi vardÄ±r.",
+        question: "Kupon kodum nasıl kullanılır?",
+        answer: "Sepetinize ürün ekledikten sonra ödeme sayfasında bulunan <strong>\"Kupon Kodu\"</strong> alanına kodunuzu girerek <strong>\"Uygula\"</strong> butonuna tıklayın. İndirim otomatik olarak toplam tutarınıza yansıyacaktır. Her kupon yalnızca bir kez kullanılabilir ve belirli bir geçerlilik süresi vardır.",
         category: "account",
         order: 5,
     },
@@ -215,12 +215,12 @@ async function seed() {
     }
 
     const count = await prisma.fAQ.count();
-    console.log(`âœ… ${count} FAQ kaydÄ± baÅŸarÄ±yla oluÅŸturuldu!`);
+    console.log(`✅ ${count} FAQ kaydı başarıyla oluşturuldu!`);
 }
 
 seed()
     .catch((e) => {
-        console.error("âŒ Seed hatasÄ±:", e);
+        console.error("âŒ Seed hatası:", e);
         process.exit(1);
     })
     .finally(async () => {

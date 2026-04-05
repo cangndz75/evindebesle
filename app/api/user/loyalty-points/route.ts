@@ -71,10 +71,10 @@ export async function POST(req: NextRequest) {
 }
 
 const LOYALTY_RULES = {
-    PURCHASE_RATE: 5, // Her 100 TL iÃ§in 5 puan
+    PURCHASE_RATE: 5, // Her 100 TL için 5 puan
     REVIEW_BONUS: 20, // Yorum yapmak 20 puan
-    SIGNUP_BONUS: 50, // KayÄ±t olunca 50 puan
-    BIRTHDAY_BONUS: 100, // DoÄŸum gÃ¼nÃ¼ 100 puan
-    REFERRAL_BONUS: 50, // ArkadaÅŸ davet 50 puan
+    SIGNUP_BONUS: 50, // Kayıt olunca 50 puan
+    BIRTHDAY_BONUS: 100, // Doğum günü 100 puan
+    REFERRAL_BONUS: 50, // Arkadaş davet 50 puan
     POINTS_PER_TL: 10, // 10 puan = 1 TL
 };

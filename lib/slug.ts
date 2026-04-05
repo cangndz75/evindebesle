@@ -1,11 +1,11 @@
 ﻿export function generateSlug(text: string): string {
   const turkishToEnglish: { [key: string]: string } = {
-    'Ã§': 'c', 'Ã‡': 'C',
-    'ÄŸ': 'g', 'Ä': 'G',
-    'Ä±': 'i', 'Ä°': 'I',
-    'Ã¶': 'o', 'Ã–': 'O',
-    'ÅŸ': 's', 'Å': 'S',
-    'Ã¼': 'u', 'Ãœ': 'U',
+    'ç': 'c', 'Ç': 'C',
+    'ğ': 'g', 'Ğ': 'G',
+    'ı': 'i', 'İ': 'I',
+    'ö': 'o', 'Ö': 'O',
+    'ş': 's', 'Ş': 'S',
+    'ü': 'u', 'Ü': 'U',
   };
 
   let slug = text;

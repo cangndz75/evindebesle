@@ -72,7 +72,7 @@ export default function HoverImageSlider({
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
         >
-            {/* TÃ¼m resimleri render et, sadece aktif olanÄ± gÃ¶ster */}
+            {/* Tüm resimleri render et, sadece aktif olanı göster */}
             {validImages.map((img, idx) => (
                 <Image
                     key={idx}
@@ -108,7 +108,7 @@ export default function HoverImageSlider({
                 </div>
             )}
 
-            {/* Alt kÄ±sÄ±mda resim sayÄ±sÄ±nÄ± gÃ¶steren dot indicator'lar */}
+            {/* Alt kısımda resim sayısını gösteren dot indicator'lar */}
             {imageCount > 1 && (
                 <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-1.5 z-10">
                     {validImages.map((_, idx) => (

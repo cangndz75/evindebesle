@@ -159,13 +159,13 @@ export default function CategoriesPage() {
     setLoading(true);
     try {
       const res = await fetch("/api/admin-categories");
-      if (!res.ok) throw new Error("Kategoriler yÃ¼klenemedi");
+      if (!res.ok) throw new Error("Kategoriler yüklenemedi");
       const categories = await res.json();
       setData(Array.isArray(categories) ? categories : []);
     } catch (error) {
-      console.error("Kategoriler yÃ¼klenirken hata:", error);
+      console.error("Kategoriler yüklenirken hata:", error);
       setData([]);
-      toast.error("Kategoriler yÃ¼klenirken bir hata oluÅŸtu");
+      toast.error("Kategoriler yüklenirken bir hata oluştu");
     } finally {
       setLoading(false);
     }
@@ -180,12 +180,12 @@ export default function CategoriesPage() {
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      toast.error("LÃ¼tfen geÃ§erli bir resim dosyasÄ± seÃ§in");
+      toast.error("Lütfen geçerli bir resim dosyası seçin");
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      toast.error("Resim boyutu 5MB'dan kÃ¼Ã§Ã¼k olmalÄ±dÄ±r");
+      toast.error("Resim boyutu 5MB'dan küçük olmalıdır");
       return;
     }
 
@@ -200,14 +200,14 @@ export default function CategoriesPage() {
         body: formData,
       });
 
-      if (!res.ok) throw new Error("YÃ¼kleme baÅŸarÄ±sÄ±z");
+      if (!res.ok) throw new Error("Yükleme başarısız");
 
       const data = await res.json();
       setFormImage(data.url);
-      toast.success("Resim yÃ¼klendi");
+      toast.success("Resim yüklendi");
     } catch (error) {
       console.error("Upload error:", error);
-      toast.error("Resim yÃ¼klenirken bir hata oluÅŸtu");
+      toast.error("Resim yüklenirken bir hata oluştu");
     } finally {
       setUploadingImage(false);
     }
@@ -243,7 +243,7 @@ export default function CategoriesPage() {
 
   const handleSave = async () => {
     if (!formName.trim()) {
-      toast.error("Kategori adÄ± gereklidir");
+      toast.error("Kategori adı gereklidir");
       return;
     }
 
@@ -272,16 +272,16 @@ export default function CategoriesPage() {
 
       if (!res.ok) {
         const error = await res.json();
-        throw new Error(error.error || "KayÄ±t sÄ±rasÄ±nda bir hata oluÅŸtu");
+        throw new Error(error.error || "Kayıt sırasında bir hata oluştu");
       }
 
-      toast.success(editingCategory ? "Kategori gÃ¼ncellendi" : "Kategori eklendi");
+      toast.success(editingCategory ? "Kategori güncellendi" : "Kategori eklendi");
       setAddDialogOpen(false);
       setEditDialogOpen(false);
       fetchCategories();
     } catch (error: any) {
-      console.error("KayÄ±t hatasÄ±:", error);
-      toast.error(error.message || "KayÄ±t sÄ±rasÄ±nda bir hata oluÅŸtu");
+      console.error("Kayıt hatası:", error);
+      toast.error(error.message || "Kayıt sırasında bir hata oluştu");
     } finally {
       setSaving(false);
     }
@@ -295,15 +295,15 @@ export default function CategoriesPage() {
         body: JSON.stringify({ [field]: value }),
       });
 
-      if (!res.ok) throw new Error("GÃ¼ncelleme baÅŸarÄ±sÄ±z");
+      if (!res.ok) throw new Error("Güncelleme başarısız");
 
       setData((prev) =>
         prev.map((item) => (item.id === id ? { ...item, [field]: value } : item))
       );
-      toast.success("GÃ¼ncellendi");
+      toast.success("Güncellendi");
     } catch (error) {
       console.error("Toggle error:", error);
-      toast.error("Bir hata oluÅŸtu");
+      toast.error("Bir hata oluştu");
     }
   };
 
@@ -318,15 +318,15 @@ export default function CategoriesPage() {
 
       if (!res.ok) {
         const error = await res.json();
-        throw new Error(error.error || "Silme sÄ±rasÄ±nda bir hata oluÅŸtu");
+        throw new Error(error.error || "Silme sırasında bir hata oluştu");
       }
 
       toast.success("Kategori silindi");
       setDeleteId(null);
       fetchCategories();
     } catch (error: any) {
-      console.error("Silme hatasÄ±:", error);
-      toast.error(error.message || "Silme sÄ±rasÄ±nda bir hata oluÅŸtu");
+      console.error("Silme hatası:", error);
+      toast.error(error.message || "Silme sırasında bir hata oluştu");
     } finally {
       setDeleting(false);
     }
@@ -355,11 +355,11 @@ export default function CategoriesPage() {
         body: JSON.stringify({ items: updates }),
       });
 
-      if (!res.ok) throw new Error("SÄ±ralama kaydedilemedi");
-      toast.success("SÄ±ralama gÃ¼ncellendi");
+      if (!res.ok) throw new Error("Sıralama kaydedilemedi");
+      toast.success("Sıralama güncellendi");
     } catch (error) {
       console.error("Reorder error:", error);
-      toast.error("SÄ±ralama kaydedilemedi");
+      toast.error("Sıralama kaydedilemedi");
       fetchCategories();
     } finally {
       setReordering(false);
@@ -369,7 +369,7 @@ export default function CategoriesPage() {
   const columns: ColumnDef<Category>[] = [
     {
       accessorKey: "image",
-      header: "GÃ¶rsel",
+      header: "Görsel",
       cell: ({ row }) => {
         const image = row.original.image;
         return (
@@ -393,7 +393,7 @@ export default function CategoriesPage() {
     },
     {
       accessorKey: "name",
-      header: "Kategori AdÄ±",
+      header: "Kategori Adı",
       cell: ({ row }) => (
         <div className="font-medium">{row.getValue("name")}</div>
       ),
@@ -407,7 +407,7 @@ export default function CategoriesPage() {
     },
     {
       accessorKey: "_count",
-      header: "ÃœrÃ¼n SayÄ±sÄ±",
+      header: "Ürün Sayısı",
       cell: ({ row }) => {
         const count = row.original._count;
         return (
@@ -446,14 +446,14 @@ export default function CategoriesPage() {
             }
           />
           <span className="text-xs font-medium">
-            {row.getValue("showOnHome") ? "Evet" : "HayÄ±r"}
+            {row.getValue("showOnHome") ? "Evet" : "Hayır"}
           </span>
         </div>
       ),
     },
     {
       accessorKey: "showOnMen",
-      header: "Erkek SayfasÄ±",
+      header: "Erkek Sayfası",
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           <Switch
@@ -463,14 +463,14 @@ export default function CategoriesPage() {
             }
           />
           <span className="text-xs font-medium">
-            {row.getValue("showOnMen") ? "Evet" : "HayÄ±r"}
+            {row.getValue("showOnMen") ? "Evet" : "Hayır"}
           </span>
         </div>
       ),
     },
     {
       accessorKey: "showOnWomen",
-      header: "KadÄ±n SayfasÄ±",
+      header: "Kadın Sayfası",
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           <Switch
@@ -480,14 +480,14 @@ export default function CategoriesPage() {
             }
           />
           <span className="text-xs font-medium">
-            {row.getValue("showOnWomen") ? "Evet" : "HayÄ±r"}
+            {row.getValue("showOnWomen") ? "Evet" : "Hayır"}
           </span>
         </div>
       ),
     },
     {
       id: "actions",
-      header: "Ä°ÅŸlemler",
+      header: "İşlemler",
       cell: ({ row }) => {
         const category = row.original;
         return (
@@ -546,7 +546,7 @@ export default function CategoriesPage() {
         <div>
           <h1 className="text-2xl font-bold">Kategoriler</h1>
           <p className="text-sm text-gray-500 mt-1">
-            SÄ±ralamalarÄ± deÄŸiÅŸtirmek iÃ§in sÃ¼rÃ¼kleyip bÄ±rakÄ±n
+            Sıralamaları değiştirmek için sürükleyip bırakın
           </p>
         </div>
         <Button onClick={handleAdd}>
@@ -570,7 +570,7 @@ export default function CategoriesPage() {
         </div>
         {reordering && (
           <span className="text-sm text-gray-500 animate-pulse">
-            SÄ±ralama kaydediliyor...
+            Sıralama kaydediliyor...
           </span>
         )}
       </div>
@@ -605,7 +605,7 @@ export default function CategoriesPage() {
                 {data.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={columns.length + 1} className="text-center py-8">
-                      Kategori bulunamadÄ±
+                      Kategori bulunamadı
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -659,7 +659,7 @@ export default function CategoriesPage() {
                             }
                           />
                           <span className="text-xs font-medium">
-                            {category.showOnHome ? "Evet" : "HayÄ±r"}
+                            {category.showOnHome ? "Evet" : "Hayır"}
                           </span>
                         </div>
                       </TableCell>
@@ -672,7 +672,7 @@ export default function CategoriesPage() {
                             }
                           />
                           <span className="text-xs font-medium">
-                            {category.showOnMen ? "Evet" : "HayÄ±r"}
+                            {category.showOnMen ? "Evet" : "Hayır"}
                           </span>
                         </div>
                       </TableCell>
@@ -685,7 +685,7 @@ export default function CategoriesPage() {
                             }
                           />
                           <span className="text-xs font-medium">
-                            {category.showOnWomen ? "Evet" : "HayÄ±r"}
+                            {category.showOnWomen ? "Evet" : "Hayır"}
                           </span>
                         </div>
                       </TableCell>
@@ -729,22 +729,22 @@ export default function CategoriesPage() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <Label htmlFor="add-name">Kategori AdÄ± *</Label>
+              <Label htmlFor="add-name">Kategori Adı *</Label>
               <Input
                 id="add-name"
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
-                placeholder="Kategori adÄ±"
+                placeholder="Kategori adı"
                 className="mt-1"
               />
             </div>
             <div>
-              <Label htmlFor="add-description">AÃ§Ä±klama</Label>
+              <Label htmlFor="add-description">Açıklama</Label>
               <Textarea
                 id="add-description"
                 value={formDescription}
                 onChange={(e) => setFormDescription(e.target.value)}
-                placeholder="Kategori aÃ§Ä±klamasÄ±"
+                placeholder="Kategori açıklaması"
                 className="mt-1"
                 rows={3}
               />
@@ -755,11 +755,11 @@ export default function CategoriesPage() {
                 <Label htmlFor="gender">Cinsiyet</Label>
                 <Select value={formGender} onValueChange={setFormGender}>
                   <SelectTrigger id="gender" className="mt-1">
-                    <SelectValue placeholder="SeÃ§iniz" />
+                    <SelectValue placeholder="Seçiniz" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="MALE">Erkek</SelectItem>
-                    <SelectItem value="FEMALE">KadÄ±n</SelectItem>
+                    <SelectItem value="FEMALE">Kadın</SelectItem>
                     <SelectItem value="UNISEX">Unisex</SelectItem>
                   </SelectContent>
                 </Select>
@@ -768,7 +768,7 @@ export default function CategoriesPage() {
                 <Label htmlFor="group">Grup</Label>
                 <Select value={formGroup} onValueChange={setFormGroup}>
                   <SelectTrigger id="group" className="mt-1">
-                    <SelectValue placeholder="SeÃ§iniz" />
+                    <SelectValue placeholder="Seçiniz" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Giyim">Giyim</SelectItem>
@@ -787,7 +787,7 @@ export default function CategoriesPage() {
                   checked={formShowOnHome}
                   onCheckedChange={setFormShowOnHome}
                 />
-                <Label htmlFor="showOnHome">Anasayfada GÃ¶ster</Label>
+                <Label htmlFor="showOnHome">Anasayfada Göster</Label>
               </div>
               <div className="flex items-center gap-2">
                 <Switch
@@ -806,7 +806,7 @@ export default function CategoriesPage() {
                   checked={formShowOnMen}
                   onCheckedChange={setFormShowOnMen}
                 />
-                <Label htmlFor="showOnMen">Erkek SayfasÄ±nda GÃ¶ster</Label>
+                <Label htmlFor="showOnMen">Erkek Sayfasında Göster</Label>
               </div>
               <div className="flex items-center gap-2">
                 <Switch
@@ -814,18 +814,18 @@ export default function CategoriesPage() {
                   checked={formShowOnWomen}
                   onCheckedChange={setFormShowOnWomen}
                 />
-                <Label htmlFor="showOnWomen">KadÄ±n SayfasÄ±nda GÃ¶ster</Label>
+                <Label htmlFor="showOnWomen">Kadın Sayfasında Göster</Label>
               </div>
             </div>
 
             <div>
-              <Label>Kategori GÃ¶rseli (Dikey)</Label>
+              <Label>Kategori Görseli (Dikey)</Label>
               <div className="mt-2">
                 {formImage ? (
                   <div className="relative w-32 h-44 rounded-lg overflow-hidden bg-gray-100 group">
                     <Image
                       src={formImage}
-                      alt="Kategori gÃ¶rseli"
+                      alt="Kategori görseli"
                       fill
                       className="object-cover"
                     />
@@ -850,12 +850,12 @@ export default function CategoriesPage() {
                     ) : (
                       <>
                         <Upload className="w-6 h-6 text-gray-400 mb-2" />
-                        <span className="text-xs text-gray-500">Resim YÃ¼kle</span>
+                        <span className="text-xs text-gray-500">Resim Yükle</span>
                       </>
                     )}
                   </label>
                 )}
-                <p className="text-xs text-gray-500 mt-1">Ã–nerilen oran: 3:4 (dikey)</p>
+                <p className="text-xs text-gray-500 mt-1">Önerilen oran: 3:4 (dikey)</p>
               </div>
             </div>
 
@@ -870,7 +870,7 @@ export default function CategoriesPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setAddDialogOpen(false)}>
-              Ä°ptal
+              İptal
             </Button>
             <Button onClick={handleSave} disabled={saving || uploadingImage}>
               {saving ? "Kaydediliyor..." : "Kaydet"}
@@ -882,26 +882,26 @@ export default function CategoriesPage() {
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Kategori DÃ¼zenle</DialogTitle>
+            <DialogTitle>Kategori Düzenle</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <Label htmlFor="edit-name">Kategori AdÄ± *</Label>
+              <Label htmlFor="edit-name">Kategori Adı *</Label>
               <Input
                 id="edit-name"
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
-                placeholder="Kategori adÄ±"
+                placeholder="Kategori adı"
                 className="mt-1"
               />
             </div>
             <div>
-              <Label htmlFor="edit-description">AÃ§Ä±klama</Label>
+              <Label htmlFor="edit-description">Açıklama</Label>
               <Textarea
                 id="edit-description"
                 value={formDescription}
                 onChange={(e) => setFormDescription(e.target.value)}
-                placeholder="Kategori aÃ§Ä±klamasÄ±"
+                placeholder="Kategori açıklaması"
                 className="mt-1"
                 rows={3}
               />
@@ -912,11 +912,11 @@ export default function CategoriesPage() {
                 <Label htmlFor="edit-gender">Cinsiyet</Label>
                 <Select value={formGender} onValueChange={setFormGender}>
                   <SelectTrigger id="edit-gender" className="mt-1">
-                    <SelectValue placeholder="SeÃ§iniz" />
+                    <SelectValue placeholder="Seçiniz" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="MALE">Erkek</SelectItem>
-                    <SelectItem value="FEMALE">KadÄ±n</SelectItem>
+                    <SelectItem value="FEMALE">Kadın</SelectItem>
                     <SelectItem value="UNISEX">Unisex</SelectItem>
                   </SelectContent>
                 </Select>
@@ -925,7 +925,7 @@ export default function CategoriesPage() {
                 <Label htmlFor="edit-group">Grup</Label>
                 <Select value={formGroup} onValueChange={setFormGroup}>
                   <SelectTrigger id="edit-group" className="mt-1">
-                    <SelectValue placeholder="SeÃ§iniz" />
+                    <SelectValue placeholder="Seçiniz" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Giyim">Giyim</SelectItem>
@@ -944,18 +944,18 @@ export default function CategoriesPage() {
                   checked={formShowOnHome}
                   onCheckedChange={setFormShowOnHome}
                 />
-                <Label htmlFor="edit-showOnHome">Anasayfada GÃ¶ster</Label>
+                <Label htmlFor="edit-showOnHome">Anasayfada Göster</Label>
               </div>
             </div>
 
             <div>
-              <Label>Kategori GÃ¶rseli (Dikey)</Label>
+              <Label>Kategori Görseli (Dikey)</Label>
               <div className="mt-2">
                 {formImage ? (
                   <div className="relative w-32 h-44 rounded-lg overflow-hidden bg-gray-100 group">
                     <Image
                       src={formImage}
-                      alt="Kategori gÃ¶rseli"
+                      alt="Kategori görseli"
                       fill
                       className="object-cover"
                     />
@@ -980,12 +980,12 @@ export default function CategoriesPage() {
                     ) : (
                       <>
                         <Upload className="w-6 h-6 text-gray-400 mb-2" />
-                        <span className="text-xs text-gray-500">Resim YÃ¼kle</span>
+                        <span className="text-xs text-gray-500">Resim Yükle</span>
                       </>
                     )}
                   </label>
                 )}
-                <p className="text-xs text-gray-500 mt-1">Ã–nerilen oran: 3:4 (dikey)</p>
+                <p className="text-xs text-gray-500 mt-1">Önerilen oran: 3:4 (dikey)</p>
               </div>
             </div>
 
@@ -1000,7 +1000,7 @@ export default function CategoriesPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
-              Ä°ptal
+              İptal
             </Button>
             <Button onClick={handleSave} disabled={saving || uploadingImage}>
               {saving ? "Kaydediliyor..." : "Kaydet"}
@@ -1014,10 +1014,10 @@ export default function CategoriesPage() {
           <DialogHeader>
             <DialogTitle>Kategoriyi Sil</DialogTitle>
           </DialogHeader>
-          <p>Bu kategoriyi silmek istediÄŸinizden emin misiniz?</p>
+          <p>Bu kategoriyi silmek istediğinizden emin misiniz?</p>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteId(null)}>
-              Ä°ptal
+              İptal
             </Button>
             <Button
               variant="destructive"

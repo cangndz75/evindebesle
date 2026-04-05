@@ -40,15 +40,15 @@ export default function SendBar({ draft, onUpdate }: SendBarProps) {
     const warnings: string[] = [];
 
     if (!draft.subject) {
-      errors.push("Subject boÅŸ olamaz");
+      errors.push("Subject boş olamaz");
     }
 
     if (!draft.id) {
-      errors.push("Kampanya henÃ¼z kaydedilmemiÅŸ. LÃ¼tfen gÃ¶nderimden Ã¶nce kaydedin.");
+      errors.push("Kampanya henüz kaydedilmemiş. Lütfen gönderimden önce kaydedin.");
     }
 
     if (!draft.blocks.some((b) => b.type === "footer")) {
-      errors.push("Footer bloÄŸu zorunludur (unsubscribe linki iÃ§in)");
+      errors.push("Footer bloğu zorunludur (unsubscribe linki için)");
     }
 
     const hasUnsubscribe = draft.blocks.some(
@@ -64,7 +64,7 @@ export default function SendBar({ draft, onUpdate }: SendBarProps) {
     if (hasCoupon) {
       const couponBlock = draft.blocks.find((b) => b.type === "coupon");
       if (couponBlock && !couponBlock.content.couponCode?.includes("coupon_code")) {
-        errors.push("Kupon bloÄŸu varsa coupon_code deÄŸiÅŸkeni kullanÄ±lmalÄ±dÄ±r");
+        errors.push("Kupon bloğu varsa coupon_code değişkeni kullanılmalıdır");
       }
     }
 
@@ -73,7 +73,7 @@ export default function SendBar({ draft, onUpdate }: SendBarProps) {
 
   const handleTestSend = async () => {
     if (!testEmail) {
-      toast.error("Test e-postasÄ± girin");
+      toast.error("Test e-postası girin");
       return;
     }
 
@@ -92,19 +92,19 @@ export default function SendBar({ draft, onUpdate }: SendBarProps) {
         }),
       });
 
-      if (!response.ok) throw new Error("Test gÃ¶nderimi baÅŸarÄ±sÄ±z");
+      if (!response.ok) throw new Error("Test gönderimi başarısız");
 
-      toast.success("Test e-postasÄ± gÃ¶nderildi");
+      toast.success("Test e-postası gönderildi");
       setTestEmail("");
     } catch (error) {
-      toast.error("Test gÃ¶nderimi sÄ±rasÄ±nda bir hata oluÅŸtu");
+      toast.error("Test gönderimi sırasında bir hata oluştu");
       console.error(error);
     }
   };
 
   const handleSend = async () => {
     if (!sendConfirmed) {
-      toast.error("LÃ¼tfen onay kutusunu iÅŸaretleyin");
+      toast.error("Lütfen onay kutusunu işaretleyin");
       return;
     }
 
@@ -116,13 +116,13 @@ export default function SendBar({ draft, onUpdate }: SendBarProps) {
         body: JSON.stringify(draft),
       });
 
-      if (!response.ok) throw new Error("GÃ¶nderim baÅŸarÄ±sÄ±z");
+      if (!response.ok) throw new Error("Gönderim başarısız");
 
       onUpdate({ status: "sent" });
-      toast.success("Kampanya gÃ¶nderildi");
+      toast.success("Kampanya gönderildi");
       setShowSendModal(false);
     } catch (error) {
-      toast.error("GÃ¶nderim sÄ±rasÄ±nda bir hata oluÅŸtu");
+      toast.error("Gönderim sırasında bir hata oluştu");
       console.error(error);
     } finally {
       setIsSending(false);
@@ -136,14 +136,14 @@ export default function SendBar({ draft, onUpdate }: SendBarProps) {
     <>
       <div className="border-t border-gray-200 bg-white">
         <div className="px-8 py-5 space-y-4">
-          {/* Ãœst SatÄ±r: Test, Segment, Zamanlama, GÃ¶nder */}
+          {/* Üst Satır: Test, Segment, Zamanlama, Gönder */}
           <div className="flex items-center justify-between gap-6">
-            {/* Sol: Test GÃ¶nder */}
+            {/* Sol: Test Gönder */}
             <div className="flex items-center gap-3">
               <Mail className="w-5 h-5 text-gray-500" />
               <div className="flex items-center gap-2">
                 <Input
-                  placeholder="Test e-postasÄ±..."
+                  placeholder="Test e-postası..."
                   value={testEmail}
                   onChange={(e) => setTestEmail(e.target.value)}
                   className="w-72"
@@ -155,18 +155,18 @@ export default function SendBar({ draft, onUpdate }: SendBarProps) {
                   onClick={handleTestSend}
                   disabled={!testEmail}
                 >
-                  Test GÃ¶nder
+                  Test Gönder
                 </Button>
               </div>
             </div>
 
-            {/* Orta: Segment veya AlÄ±cÄ± ve Zamanlama */}
+            {/* Orta: Segment veya Alıcı ve Zamanlama */}
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <Users className="w-5 h-5 text-gray-500" />
                 {draft.recipientEmail ? (
                   <div className="flex flex-col">
-                    <span className="text-xs text-gray-500">AlÄ±cÄ±</span>
+                    <span className="text-xs text-gray-500">Alıcı</span>
                     <span className="text-sm font-medium">{draft.recipientEmail}</span>
                   </div>
                 ) : (
@@ -177,13 +177,13 @@ export default function SendBar({ draft, onUpdate }: SendBarProps) {
                     }
                   >
                     <SelectTrigger className="w-56">
-                      <SelectValue placeholder="Segment seÃ§" />
+                      <SelectValue placeholder="Segment seç" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="newsletter">BÃ¼lten Aboneleri</SelectItem>
-                      <SelectItem value="all">TÃ¼m KullanÄ±cÄ±lar</SelectItem>
-                      <SelectItem value="active">Aktif KullanÄ±cÄ±lar</SelectItem>
-                      <SelectItem value="inactive">Pasif KullanÄ±cÄ±lar</SelectItem>
+                      <SelectItem value="newsletter">Bülten Aboneleri</SelectItem>
+                      <SelectItem value="all">Tüm Kullanıcılar</SelectItem>
+                      <SelectItem value="active">Aktif Kullanıcılar</SelectItem>
+                      <SelectItem value="inactive">Pasif Kullanıcılar</SelectItem>
                     </SelectContent>
                   </Select>
                 )}
@@ -212,7 +212,7 @@ export default function SendBar({ draft, onUpdate }: SendBarProps) {
               </div>
             </div>
 
-            {/* SaÄŸ: GÃ¶nder Butonu */}
+            {/* Sağ: Gönder Butonu */}
             <div>
               <Button
                 onClick={() => setShowSendModal(true)}
@@ -221,7 +221,7 @@ export default function SendBar({ draft, onUpdate }: SendBarProps) {
                 size="lg"
               >
                 <Send className="w-5 h-5 mr-2" />
-                GÃ¶nder
+                Gönder
               </Button>
             </div>
           </div>
@@ -229,7 +229,7 @@ export default function SendBar({ draft, onUpdate }: SendBarProps) {
           {/* Validation Warnings */}
           {validation.warnings.length > 0 && (
             <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
-              <strong className="font-semibold">UyarÄ±lar:</strong>
+              <strong className="font-semibold">Uyarılar:</strong>
               <ul className="list-disc list-inside mt-2 space-y-1">
                 {validation.warnings.map((warning, i) => (
                   <li key={i}>{warning}</li>
@@ -255,18 +255,18 @@ export default function SendBar({ draft, onUpdate }: SendBarProps) {
       <Dialog open={showSendModal} onOpenChange={setShowSendModal}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>KampanyayÄ± GÃ¶nder</DialogTitle>
+            <DialogTitle>Kampanyayı Gönder</DialogTitle>
             <DialogDescription>
-              Bu iÅŸlem geri alÄ±namaz. LÃ¼tfen gÃ¶nderim Ã¶zetini kontrol edin.
+              Bu işlem geri alınamaz. Lütfen gönderim özetini kontrol edin.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
             <div>
-              <strong>AlÄ±cÄ±:</strong> {draft.recipientEmail ? draft.recipientEmail : "HesaplanÄ±yor..."}
+              <strong>Alıcı:</strong> {draft.recipientEmail ? draft.recipientEmail : "Hesaplanıyor..."}
             </div>
             <div>
-              <strong>Kampanya:</strong> {draft.name || "Ä°simsiz"}
+              <strong>Kampanya:</strong> {draft.name || "İsimsiz"}
             </div>
             <div>
               <strong>Subject:</strong> {draft.subject || "Subject yok"}
@@ -274,7 +274,7 @@ export default function SendBar({ draft, onUpdate }: SendBarProps) {
 
             {validation.warnings.length > 0 && (
               <div className="p-3 bg-yellow-50 border border-yellow-200 rounded text-sm">
-                <strong>UyarÄ±lar:</strong>
+                <strong>Uyarılar:</strong>
                 <ul className="list-disc list-inside mt-1">
                   {validation.warnings.map((warning, i) => (
                     <li key={i}>{warning}</li>
@@ -293,7 +293,7 @@ export default function SendBar({ draft, onUpdate }: SendBarProps) {
                 htmlFor="confirm"
                 className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               >
-                Eminim, gÃ¶nder
+                Eminim, gönder
               </label>
             </div>
           </div>
@@ -303,14 +303,14 @@ export default function SendBar({ draft, onUpdate }: SendBarProps) {
               variant="outline"
               onClick={() => setShowSendModal(false)}
             >
-              Ä°ptal
+              İptal
             </Button>
             <Button
               onClick={handleSend}
               disabled={!sendConfirmed || isSending}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              {isSending ? "GÃ¶nderiliyor..." : "GÃ¶nder"}
+              {isSending ? "Gönderiliyor..." : "Gönder"}
             </Button>
           </DialogFooter>
         </DialogContent>

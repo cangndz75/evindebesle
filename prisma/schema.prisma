@@ -211,8 +211,8 @@ model Category {
   name        String    @unique
   slug        String    @unique
   description String?
-  image       String?   // Dikey kategori gÃ¶rseli
-  sortOrder   Int       @default(0) // SÄ±ralama deÄŸeri
+  image       String?   // Dikey kategori görseli
+  sortOrder   Int       @default(0) // Sıralama değeri
   isActive    Boolean   @default(true)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -251,8 +251,8 @@ model Product {
   brand                String?
   categoryId           String?
   weight               Float?
-  isTrackInventory     Boolean              @default(true) // Stok takibi yapÄ±lsÄ±n mÄ±?
-  allowBackorders      Boolean              @default(false) // Stok yokken satÄ±ÅŸa izin verilsin mi?
+  isTrackInventory     Boolean              @default(true) // Stok takibi yapılsın mı?
+  allowBackorders      Boolean              @default(false) // Stok yokken satışa izin verilsin mi?
   shipmentType         String?
   trendyolLink         String?
   modelCode            String?
@@ -525,7 +525,7 @@ model CompanySettings {
   companyName    String? @default("Evindebesle")
   companyAddress String?
   taxOffice      String? // Vergi dairesi
-  taxNumber      String? // Vergi numarasÄ±
+  taxNumber      String? // Vergi numarası
   phone          String?
   email          String?
   logoUrl        String?
@@ -601,9 +601,9 @@ model Invoice {
   orderId         String
   status          InvoiceStatus @default(DRAFT)
   
-  companyDetails  Json          // Åirket bilgileri
-  customerDetails Json          // MÃ¼ÅŸteri bilgileri
-  items           Json          // ÃœrÃ¼n kalemleri
+  companyDetails  Json          // Şirket bilgileri
+  customerDetails Json          // Müşteri bilgileri
+  items           Json          // Ürün kalemleri
   
   subtotal        Float
   taxAmount       Float
@@ -1430,8 +1430,8 @@ model NewArrival {
 model LookConfiguration {
   id                String     @id @default(cuid())
   mainProductId     String     @unique
-  title             String?    @default("TakÄ±mÄ± Tamamla")
-  priority          Int        @default(0) // 0: Normal, 1: YÃ¼ksek
+  title             String?    @default("Takımı Tamamla")
+  priority          Int        @default(0) // 0: Normal, 1: Yüksek
   isVisible         Boolean    @default(true)
   showAllAddButton  Boolean    @default(true)
   showTotalPrice    Boolean    @default(true)

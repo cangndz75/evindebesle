@@ -97,12 +97,12 @@ export default function CheckoutPage() {
         const methodToUse = methodOverride || paymentMethod;
 
         if (!cart || cart.length === 0) {
-            toast.error("Sepetiniz boÅŸ!");
+            toast.error("Sepetiniz boş!");
             return;
         }
 
         if (!formData.email || !formData.firstName || !formData.lastName || !formData.addressLine1 || !formData.city || !formData.phone) {
-            toast.error("LÃ¼tfen tÃ¼m zorunlu alanlarÄ± doldurunuz.");
+            toast.error("Lütfen tüm zorunlu alanları doldurunuz.");
             return;
         }
 
@@ -157,7 +157,7 @@ export default function CheckoutPage() {
             }
 
         } catch (error: any) {
-            toast.error(error.message || "Ã–deme baÅŸlatÄ±lamadÄ±");
+            toast.error(error.message || "Ödeme başlatılamadı");
         } finally {
             setLoading(false);
         }
@@ -174,27 +174,27 @@ export default function CheckoutPage() {
     if (status === "unauthenticated") {
         return (
             <div className="container mx-auto px-4 py-12 md:py-20 max-w-lg text-center">
-                <h1 className="text-3xl font-serif font-light mb-4">GiriÅŸ YapÄ±n</h1>
+                <h1 className="text-3xl font-serif font-light mb-4">Giriş Yapın</h1>
                 <p className="text-gray-500 mb-8 font-light">
-                    SipariÅŸinizi tamamlamak iÃ§in lÃ¼tfen giriÅŸ yapÄ±n veya Ã¼ye olun.
+                    Siparişinizi tamamlamak için lütfen giriş yapın veya üye olun.
                 </p>
                 <div className="flex flex-col gap-4">
                     <Link
                         href="/auth-tabs?mode=login&redirect=/checkout"
                         className="w-full bg-black text-white py-4 rounded text-sm uppercase tracking-widest hover:bg-gray-800 transition-colors"
                     >
-                        GiriÅŸ Yap
+                        Giriş Yap
                     </Link>
                     <Link
                         href="/auth-tabs?mode=register&redirect=/checkout"
                         className="w-full bg-white text-black border border-black py-4 rounded text-sm uppercase tracking-widest hover:bg-gray-50 transition-colors"
                     >
-                        Ãœye Ol
+                        Üye Ol
                     </Link>
                 </div>
                 <div className="mt-8 pt-8 border-t border-gray-100">
                     <p className="text-xs text-gray-400">
-                        Devam ederek KullanÄ±m KoÅŸullarÄ± ve Gizlilik PolitikamÄ±zÄ± kabul etmiÅŸ olursunuz.
+                        Devam ederek Kullanım Koşulları ve Gizlilik Politikamızı kabul etmiş olursunuz.
                     </p>
                 </div>
             </div>
@@ -204,8 +204,8 @@ export default function CheckoutPage() {
     if (!cart || cart.length === 0) {
         return (
             <div className="container mx-auto px-4 py-20 text-center">
-                <h1 className="text-2xl font-serif mb-4">Sepetiniz BoÅŸ</h1>
-                <Link href="/men" className="text-blue-600 underline">AlÄ±ÅŸveriÅŸe BaÅŸla</Link>
+                <h1 className="text-2xl font-serif mb-4">Sepetiniz Boş</h1>
+                <Link href="/men" className="text-blue-600 underline">Alışverişe Başla</Link>
             </div>
         );
     }
@@ -220,11 +220,11 @@ export default function CheckoutPage() {
                     {/* Contact Info */}
                     <div>
                         <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-xl font-medium">Ä°letiÅŸim</h2>
+                            <h2 className="text-xl font-medium">İletişim</h2>
                             {session?.user ? (
-                                <span className="text-sm text-gray-500">GiriÅŸ yapÄ±ldÄ±: {session.user.email}</span>
+                                <span className="text-sm text-gray-500">Giriş yapıldı: {session.user.email}</span>
                             ) : (
-                                <Link href="/auth-tabs" className="text-sm underline">GiriÅŸ Yap</Link>
+                                <Link href="/auth-tabs" className="text-sm underline">Giriş Yap</Link>
                             )}
                         </div>
                         <input
@@ -237,7 +237,7 @@ export default function CheckoutPage() {
                         />
                         <div className="mt-2 flex items-center gap-2">
                             <input type="checkbox" id="newsletter" className="rounded border-gray-300" />
-                            <label htmlFor="newsletter" className="text-sm text-gray-600">Kampanyalardan ve fÄ±rsatlardan haberdar olmak istiyorum</label>
+                            <label htmlFor="newsletter" className="text-sm text-gray-600">Kampanyalardan ve fırsatlardan haberdar olmak istiyorum</label>
                         </div>
                     </div>
 
@@ -252,7 +252,7 @@ export default function CheckoutPage() {
                                     onChange={handleChange}
                                     className="w-full border border-gray-300 rounded p-3 bg-white focus:outline-none focus:border-black"
                                 >
-                                    <option value="Turkey">TÃ¼rkiye</option>
+                                    <option value="Turkey">Türkiye</option>
                                 </select>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
@@ -293,7 +293,7 @@ export default function CheckoutPage() {
                                 <input
                                     type="text"
                                     name="city"
-                                    placeholder="Åehir"
+                                    placeholder="Şehir"
                                     value={formData.city}
                                     onChange={handleChange}
                                     className="w-full border border-gray-300 rounded p-3 focus:outline-none focus:border-black"
@@ -320,11 +320,11 @@ export default function CheckoutPage() {
 
                     {/* Mobile Coupon Section */}
                     <div className="block lg:hidden">
-                        <h2 className="text-xl font-medium mb-4">Ä°ndirim Kodu</h2>
+                        <h2 className="text-xl font-medium mb-4">İndirim Kodu</h2>
                         <div className="flex gap-2 mb-2">
                             <input
                                 type="text"
-                                placeholder="Ä°ndirim kodu"
+                                placeholder="İndirim kodu"
                                 value={couponInput}
                                 onChange={(e) => setCouponInput(e.target.value)}
                                 className="flex-1 border border-gray-300 rounded p-2 text-sm focus:outline-none focus:border-black"
@@ -340,24 +340,24 @@ export default function CheckoutPage() {
                         {couponCode && (
                             <div className="flex justify-between items-center bg-green-50 p-2 rounded border border-green-200">
                                 <span className="text-sm text-green-700 font-medium">{couponCode}</span>
-                                <button onClick={removeCoupon} className="text-xs text-red-500 hover:text-red-700">KaldÄ±r</button>
+                                <button onClick={removeCoupon} className="text-xs text-red-500 hover:text-red-700">Kaldır</button>
                             </div>
                         )}
                     </div>
 
                     {/* Shipping Method - Fixed/Visual for now */}
                     <div>
-                        <h2 className="text-xl font-medium mb-4">Kargo YÃ¶ntemi</h2>
+                        <h2 className="text-xl font-medium mb-4">Kargo Yöntemi</h2>
                         <div className="border border-gray-200 rounded p-4 flex justify-between items-center bg-gray-50">
-                            <span className="text-sm">Standart Kargo (1-3 Ä°ÅŸ GÃ¼nÃ¼)</span>
-                            <span className="font-medium">{shippingPrice === 0 ? "Ãœcretsiz" : `${shippingPrice} TL`}</span>
+                            <span className="text-sm">Standart Kargo (1-3 İş Günü)</span>
+                            <span className="font-medium">{shippingPrice === 0 ? "Ücretsiz" : `${shippingPrice} TL`}</span>
                         </div>
                     </div>
 
                     {/* Payment Method */}
                     <div>
-                        <h2 className="text-xl font-medium mb-2">Ã–deme</h2>
-                        <p className="text-sm text-gray-500 mb-4">TÃ¼m iÅŸlemler ÅŸifreli ve gÃ¼venlidir.</p>
+                        <h2 className="text-xl font-medium mb-2">Ödeme</h2>
+                        <p className="text-sm text-gray-500 mb-4">Tüm işlemler şifreli ve güvenlidir.</p>
 
                         <div className="border border-gray-200 rounded overflow-hidden">
                             {/* Option 1: Credit Card */}
@@ -367,7 +367,7 @@ export default function CheckoutPage() {
                                 <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${paymentMethod === "CREDIT_CARD" ? "border-black" : "border-gray-300"}`}>
                                     {paymentMethod === "CREDIT_CARD" && <div className="w-2 h-2 rounded-full bg-black" />}
                                 </div>
-                                <span className="flex-1 font-medium">Kredi / Banka KartÄ±</span>
+                                <span className="flex-1 font-medium">Kredi / Banka Kartı</span>
                                 <div className="flex gap-1">
                                     {/* Simple visual placeholders for card icons */}
                                     {["visa", "mastercard"].map(brand => (
@@ -381,7 +381,7 @@ export default function CheckoutPage() {
                                 <div className="p-6 bg-gray-50 border-b border-gray-200 text-center">
                                     <CreditCard className="w-12 h-12 mx-auto text-gray-400 mb-2" />
                                     <p className="text-sm text-gray-600 mb-4">
-                                        GÃ¼venli Ã¶deme sayfasÄ±na yÃ¶nlendirileceksiniz.
+                                        Güvenli ödeme sayfasına yönlendirileceksiniz.
                                     </p>
 
                                     {/* Container for Iyzico Form */}
@@ -397,7 +397,7 @@ export default function CheckoutPage() {
                             disabled={loading}
                             className="w-full bg-black text-white py-4 rounded font-medium text-lg hover:bg-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            {loading && paymentMethod === "CREDIT_CARD" ? "Ä°ÅŸleniyor..." : `Ã–demeyi Tamamla â€¢ ${total.toFixed(2)} TL`}
+                            {loading && paymentMethod === "CREDIT_CARD" ? "İşleniyor..." : `Ödemeyi Tamamla • ${total.toFixed(2)} TL`}
                         </button>
 
                         {/* Separate Test Payment Button */}
@@ -407,7 +407,7 @@ export default function CheckoutPage() {
                             className="w-full border border-gray-300 text-gray-600 py-3 rounded font-medium text-sm hover:bg-gray-50 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                         >
                             <Wallet className="w-4 h-4" />
-                            {loading && paymentMethod === "TEST" ? "Ä°ÅŸleniyor..." : "Test SipariÅŸi OluÅŸtur (Ã–demesiz)"}
+                            {loading && paymentMethod === "TEST" ? "İşleniyor..." : "Test Siparişi Oluştur (Ödemesiz)"}
                         </button> */}
                     </div>
 
@@ -420,7 +420,7 @@ export default function CheckoutPage() {
                 {/* RIGHT COLUMN - Summary */}
                 <div className="lg:col-span-5">
                     <div className="bg-gray-50 p-6 rounded-lg sticky top-24">
-                        <h2 className="text-xl font-medium mb-6">SipariÅŸ Ã–zeti</h2>
+                        <h2 className="text-xl font-medium mb-6">Sipariş Özeti</h2>
 
                         {/* Items */}
                         <div className="space-y-4 mb-6 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
@@ -443,7 +443,7 @@ export default function CheckoutPage() {
                                     </div>
                                     <div className="flex-1">
                                         <h3 className="text-sm font-medium leading-tight mb-1">{item.product.name}</h3>
-                                        <p className="text-xs text-gray-500 mb-1">{item.size?.name} {item.color?.name && `â€¢ ${item.color.name}`}</p>
+                                        <p className="text-xs text-gray-500 mb-1">{item.size?.name} {item.color?.name && `• ${item.color.name}`}</p>
                                     </div>
                                     <div className="text-sm font-medium flex flex-col items-end">
                                         <span>{(item.product.price * item.quantity).toFixed(2)} TL</span>
@@ -461,7 +461,7 @@ export default function CheckoutPage() {
                         <div className="hidden lg:flex gap-2 mb-6">
                             <input
                                 type="text"
-                                placeholder="Ä°ndirim kodu"
+                                placeholder="İndirim kodu"
                                 value={couponInput}
                                 onChange={(e) => setCouponInput(e.target.value)}
                                 className="flex-1 border border-gray-300 rounded p-2 text-sm focus:outline-none focus:border-black"
@@ -479,7 +479,7 @@ export default function CheckoutPage() {
                         {couponCode && (
                             <div className="hidden lg:flex justify-between items-center bg-green-50 p-2 rounded border border-green-200 mb-4">
                                 <span className="text-sm text-green-700 font-medium">{couponCode}</span>
-                                <button onClick={removeCoupon} className="text-xs text-red-500 hover:text-red-700">KaldÄ±r</button>
+                                <button onClick={removeCoupon} className="text-xs text-red-500 hover:text-red-700">Kaldır</button>
                             </div>
                         )}
 
@@ -491,11 +491,11 @@ export default function CheckoutPage() {
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-gray-600">Kargo</span>
-                                <span>{shippingPrice === 0 ? "Ãœcretsiz" : `${shippingPrice.toFixed(2)} TL`}</span>
+                                <span>{shippingPrice === 0 ? "Ücretsiz" : `${shippingPrice.toFixed(2)} TL`}</span>
                             </div>
                             {discountAmount > 0 && (
                                 <div className="flex justify-between text-green-600">
-                                    <span>Ä°ndirim</span>
+                                    <span>İndirim</span>
                                     <span>-{discountAmount.toFixed(2)} TL</span>
                                 </div>
                             )}

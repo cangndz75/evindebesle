@@ -1,4 +1,4 @@
-﻿const express = require("express");
+const express = require("express");
 const Iyzipay = require("iyzipay");
 const { v4: uuidv4 } = require("uuid");
 const bodyParser = require("body-parser");
@@ -15,6 +15,7 @@ const formatDateForIyzipay = () => {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(now.getSeconds()).padStart(2, "0")}`;
 };
 
+// Ödeme başlatma
 router.post("/initiate", (req, res) => {
   const {
     cardHolderName,
@@ -27,7 +28,7 @@ router.post("/initiate", (req, res) => {
   } = req.body;
 
   if (!draftAppointmentId || !price) {
-    console.warn("âš ï¸ Eksik veri:", { draftAppointmentId, price });
+    console.warn("⚠️ Eksik veri:", { draftAppointmentId, price });
     return res
       .status(400)
       .json({ error: "Eksik veri: draftAppointmentId veya price yok." });
@@ -35,8 +36,8 @@ router.post("/initiate", (req, res) => {
 
   const finalPrice = parseFloat(price);
   if (isNaN(finalPrice) || finalPrice <= 0) {
-    console.warn("âš ï¸ GeÃ§ersiz fiyat:", price);
-    return res.status(400).json({ error: "GeÃ§ersiz fiyat." });
+    console.warn("⚠️ Geçersiz fiyat:", price);
+    return res.status(400).json({ error: "Geçersiz fiyat." });
   }
 
   const iyzipay = new Iyzipay({
@@ -81,21 +82,21 @@ router.post("/initiate", (req, res) => {
         req.headers["x-forwarded-for"] ||
         req.socket.remoteAddress ||
         "127.0.0.1",
-      city: "Ä°stanbul",
-      country: "TÃ¼rkiye",
+      city: "İstanbul",
+      country: "Türkiye",
       zipCode: "34700",
     },
     shippingAddress: {
       contactName: "Test User",
-      city: "Ä°stanbul",
-      country: "TÃ¼rkiye",
+      city: "İstanbul",
+      country: "Türkiye",
       address: "Test Mah. No:1",
       zipCode: "34700",
     },
     billingAddress: {
       contactName: "Test User",
-      city: "Ä°stanbul",
-      country: "TÃ¼rkiye",
+      city: "İstanbul",
+      country: "Türkiye",
       address: "Test Mah. No:1",
       zipCode: "34700",
     },
@@ -110,15 +111,15 @@ router.post("/initiate", (req, res) => {
     ],
   };
 
-  console.log("ğŸ“¥ 3D Ã¶deme baÅŸlatÄ±lÄ±yor:", { draftAppointmentId, finalPrice });
-  console.log("ğŸ“¤ OluÅŸturulan callbackUrl:", request.callbackUrl);
+  console.log("📥 3D ödeme başlatılıyor:", { draftAppointmentId, finalPrice });
+  console.log("📤 Oluşturulan callbackUrl:", request.callbackUrl);
 
   iyzipay.threedsInitialize.create(request, (err, resultRaw) => {
     if (err) {
-      console.error("âŒ 3D baÅŸlatma hatasÄ±:", err);
+      console.error("❌ 3D başlatma hatası:", err);
       return res
         .status(500)
-        .json({ error: "3D baÅŸlatma sÄ±rasÄ±nda hata oluÅŸtu" });
+        .json({ error: "3D başlatma sırasında hata oluştu" });
     }
 
     let result;
@@ -126,17 +127,17 @@ router.post("/initiate", (req, res) => {
       result =
         typeof resultRaw === "string" ? JSON.parse(resultRaw) : resultRaw;
     } catch (parseError) {
-      console.error("âŒ YanÄ±t JSON parse edilemedi:", parseError);
-      return res.status(500).json({ error: "GeÃ§ersiz JSON" });
+      console.error("❌ Yanıt JSON parse edilemedi:", parseError);
+      return res.status(500).json({ error: "Geçersiz JSON" });
     }
 
-    console.log("ğŸ“¦ threedsInitialize sonucu:", result);
+    console.log("📦 threedsInitialize sonucu:", result);
 
     if (result.status !== "success") {
-      console.error("âŒ 3D baÅŸlatma baÅŸarÄ±sÄ±z:", result);
+      console.error("❌ 3D başlatma başarısız:", result);
       return res
         .status(500)
-        .json({ error: result.errorMessage || "3D baÅŸlatÄ±lamadÄ±" });
+        .json({ error: result.errorMessage || "3D başlatılamadı" });
     }
 
     let encodedHtml = result.threeDSHtmlContent;
@@ -155,12 +156,12 @@ router.post("/initiate", (req, res) => {
     );
     encodedHtml = Buffer.from(decodedHtml).toString("base64");
 
-    console.log("ğŸ”‘ Token:", result.token || "Yok");
-    console.log("ğŸ“„ DÃ¼zenlenmiÅŸ HTML:", decodedHtml);
+    console.log("🔑 Token:", result.token || "Yok");
+    console.log("📄 Düzenlenmiş HTML:", decodedHtml);
 
     return res.json({
       paymentPageHtml: encodedHtml,
-      paymentId: result.paymentId, // paymentId'yi istemciye dÃ¶ndÃ¼r
+      paymentId: result.paymentId, // paymentId'yi istemciye döndür
       token: result.token || null,
     });
   });
@@ -169,12 +170,12 @@ router.post("/initiate", (req, res) => {
 router.get("/callback", cors({ origin: "*" }), (req, res) => {
   const redirectBase =
     process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-  console.log("âš ï¸ GET isteÄŸi alÄ±ndÄ± /api/payment/callback", {
+  console.log("⚠️ GET isteği alındı /api/payment/callback", {
     query: JSON.stringify(req.query, null, 2),
     url: req.originalUrl,
   });
   return res.redirect(
-    `${redirectBase}/fail?reason=invalid_request_method&error=${encodeURIComponent("GET isteÄŸi desteklenmiyor, yalnÄ±zca POST kabul edilir.")}`
+    `${redirectBase}/fail?reason=invalid_request_method&error=${encodeURIComponent("GET isteği desteklenmiyor, yalnızca POST kabul edilir.")}`
   );
 });
 
@@ -182,10 +183,10 @@ router.post("/callback", cors({ origin: "*" }), async (req, res) => {
   const redirectBase =
     process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
-  console.log("ğŸ”„ CALLBACK GELDÄ°");
-  console.log("ğŸ“¥ Body:", JSON.stringify(req.body, null, 2));
-  console.log("ğŸ“¥ Query:", JSON.stringify(req.query, null, 2));
-  console.log("ğŸŒ URL:", req.originalUrl);
+  console.log("🔄 CALLBACK GELDİ");
+  console.log("📥 Body:", JSON.stringify(req.body, null, 2));
+  console.log("📥 Query:", JSON.stringify(req.query, null, 2));
+  console.log("🌐 URL:", req.originalUrl);
 
   try {
     const {
@@ -202,26 +203,26 @@ router.post("/callback", cors({ origin: "*" }), async (req, res) => {
     const effectiveAppointmentId = queryAppointmentId || bodyAppointmentId;
     const effectiveConversationId = conversationId || uuidv4();
 
-    console.log("ğŸ§  appointmentId:", effectiveAppointmentId);
-    console.log("ğŸ§  conversationId:", effectiveConversationId);
+    console.log("🧠 appointmentId:", effectiveAppointmentId);
+    console.log("🧠 conversationId:", effectiveConversationId);
 
     if (!effectiveAppointmentId) {
-      console.warn("âš ï¸ appointmentId eksik.");
+      console.warn("⚠️ appointmentId eksik.");
       return res.redirect(`${redirectBase}/fail?reason=missing_appointment_id`);
     }
 
     if (isCancel === "1") {
-      console.warn("âš ï¸ KullanÄ±cÄ± Ã¶demeyi iptal etti.");
+      console.warn("⚠️ Kullanıcı ödemeyi iptal etti.");
       return res.redirect(`${redirectBase}/fail?reason=payment_cancelled`);
     }
 
     const derivedPaymentId =
       bodyPaymentId || orderId?.match(/mock\d+-(\d+)/)?.[1];
-    console.log("ğŸ§¾ orderId:", orderId);
-    console.log("ğŸ”‘ TÃ¼retilmiÅŸ paymentId:", derivedPaymentId);
+    console.log("🧾 orderId:", orderId);
+    console.log("🔑 Türetilmiş paymentId:", derivedPaymentId);
 
     if (!derivedPaymentId) {
-      console.warn("âš ï¸ paymentId bulunamadÄ±.");
+      console.warn("⚠️ paymentId bulunamadı.");
       return res.redirect(`${redirectBase}/fail?reason=missing_payment_id`);
     }
 
@@ -237,12 +238,12 @@ router.post("/callback", cors({ origin: "*" }), async (req, res) => {
       paymentId: derivedPaymentId,
     };
 
-    console.log("ğŸ“¤ threedsAuth gÃ¶nderiliyor:", authRequest);
+    console.log("📤 threedsAuth gönderiliyor:", authRequest);
 
     const paymentResult = await new Promise((resolve, reject) => {
       Iyzipay.ThreeDSAuth.create(authRequest, (err, result) => {
         if (err) {
-          console.error("âŒ threedsAuth hata:", err);
+          console.error("❌ threedsAuth hata:", err);
           return reject(err);
         }
 
@@ -250,7 +251,7 @@ router.post("/callback", cors({ origin: "*" }), async (req, res) => {
         try {
           parsed = typeof result === "string" ? JSON.parse(result) : result;
         } catch (e) {
-          console.error("âŒ threedsAuth sonucu parse edilemedi:", result);
+          console.error("❌ threedsAuth sonucu parse edilemedi:", result);
           return reject(e);
         }
 
@@ -258,26 +259,26 @@ router.post("/callback", cors({ origin: "*" }), async (req, res) => {
       });
     });
 
-    console.log("ğŸ“¦ payment.retrieve sonucu:", paymentResult);
+    console.log("📦 payment.retrieve sonucu:", paymentResult);
 
     if (paymentResult.status !== "success") {
-      console.error("âŒ payment.retrieve baÅŸarÄ±sÄ±z:", {
+      console.error("❌ payment.retrieve başarısız:", {
         status: paymentResult.status,
         errorMessage: paymentResult.errorMessage,
         errorCode: paymentResult.errorCode,
       });
       return res.redirect(
-        `${redirectBase}/fail?reason=payment_verification_failed&error=${encodeURIComponent(paymentResult.errorMessage || "DoÄŸrulama baÅŸarÄ±sÄ±z")}`
+        `${redirectBase}/fail?reason=payment_verification_failed&error=${encodeURIComponent(paymentResult.errorMessage || "Doğrulama başarısız")}`
       );
     }
 
     const paidPrice = parseFloat(
       paymentResult.paidPrice || paymentResult.price || "0.00"
     );
-    console.log("ğŸ’° paidPrice:", paidPrice);
+    console.log("💰 paidPrice:", paidPrice);
 
     if (isNaN(paidPrice) || paidPrice <= 0) {
-      console.error("âŒ GeÃ§ersiz fiyat deÄŸeri:", paidPrice);
+      console.error("❌ Geçersiz fiyat değeri:", paidPrice);
       return res.redirect(`${redirectBase}/fail?reason=invalid_paid_price`);
     }
 
@@ -287,7 +288,7 @@ router.post("/callback", cors({ origin: "*" }), async (req, res) => {
       conversationId: paymentResult.conversationId || effectiveConversationId,
     };
 
-    console.log("ğŸ“¤ /api/payment/complete gÃ¶nderiliyor:", completeBody);
+    console.log("📤 /api/payment/complete gönderiliyor:", completeBody);
 
     const completeResponse = await fetch(
       `${redirectBase}/api/payment/complete`,
@@ -298,32 +299,32 @@ router.post("/callback", cors({ origin: "*" }), async (req, res) => {
       }
     );
 
-    console.log("ğŸ“¥ /api/payment/complete yanÄ±t:", {
+    console.log("📥 /api/payment/complete yanıt:", {
       status: completeResponse.status,
       statusText: completeResponse.statusText,
     });
 
     if (!completeResponse.ok) {
       const errorText = await completeResponse.text();
-      console.error("âŒ /api/payment/complete baÅŸarÄ±sÄ±z:", errorText);
+      console.error("❌ /api/payment/complete başarısız:", errorText);
       return res.redirect(
         `${redirectBase}/fail?reason=appointment_update_failed&error=${encodeURIComponent(errorText)}`
       );
     }
 
     const completeData = await completeResponse.json();
-    console.log("ğŸŸ¢ BaÅŸarÄ±lÄ± complete yanÄ±tÄ±:", completeData);
+    console.log("🟢 Başarılı complete yanıtı:", completeData);
 
     if (completeData.success && completeData.appointmentId) {
-      console.log("âœ… Ã–deme iÅŸlemi tamamlandÄ± ve randevu oluÅŸturuldu.");
+      console.log("✅ Ödeme işlemi tamamlandı ve randevu oluşturuldu.");
       return res.redirect(
         `${redirectBase}/success?appointmentId=${completeData.appointmentId}&paidPrice=${paidPrice}`
       );
     }
 
-    throw new Error("Randevu oluÅŸturma baÅŸarÄ±sÄ±z.");
+    throw new Error("Randevu oluşturma başarısız.");
   } catch (err) {
-    console.error("ğŸ”¥ callback iÅŸleminde genel hata:", err);
+    console.error("🔥 callback işleminde genel hata:", err);
     return res.redirect(
       `${redirectBase}/fail?reason=internal_error&error=${encodeURIComponent(err.message)}`
     );

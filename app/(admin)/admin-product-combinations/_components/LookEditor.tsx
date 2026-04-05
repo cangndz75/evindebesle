@@ -38,7 +38,7 @@ export default function LookEditor({ initialData }: LookEditorProps) {
   const [mainProduct, setMainProduct] = useState<ProductBasics | null>(null);
   const [lookItems, setLookItems] = useState<ProductBasics[]>([]);
   const [config, setConfig] = useState({
-    title: "TakÄ±mÄ± Tamamla",
+    title: "Takımı Tamamla",
     priority: "0",
     isVisible: true,
     showAllAddButton: true,
@@ -53,7 +53,7 @@ export default function LookEditor({ initialData }: LookEditorProps) {
       setMainProduct(initialData.mainProduct);
       setLookItems(initialData.items.map((i: any) => i.product));
       setConfig({
-        title: initialData.title || "TakÄ±mÄ± Tamamla",
+        title: initialData.title || "Takımı Tamamla",
         priority: initialData.priority?.toString() || "0",
         isVisible: initialData.isVisible ?? true,
         showAllAddButton: initialData.showAllAddButton ?? true,
@@ -142,14 +142,14 @@ export default function LookEditor({ initialData }: LookEditorProps) {
       });
  
       if (res.ok) {
-        toast.success(published ? "Kombinasyon yayÄ±na alÄ±ndÄ±!" : "Taslak olarak kaydedildi.");
+        toast.success(published ? "Kombinasyon yayına alındı!" : "Taslak olarak kaydedildi.");
         router.push("/admin-product-combinations");
       } else {
         const data = await res.json();
         toast.error(data.error || "Kaydedilemedi.");
       }
     } catch (e) {
-      toast.error("Bir hata oluÅŸtu.");
+      toast.error("Bir hata oluştu.");
     } finally { setLoading(false); }
   };
  
@@ -166,13 +166,13 @@ export default function LookEditor({ initialData }: LookEditorProps) {
             <Layout className="h-8 w-8 text-white" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">{initialData ? "Kombinasyonu DÃ¼zenle" : "Yeni ÃœrÃ¼n Kombinasyonu"}</h1>
-            <p className="text-gray-500 mt-1">Stil Ã¶nerileri ve "TakÄ±mÄ± Tamamla" bÃ¶lÃ¼mlerini yÃ¶netin</p>
+            <h1 className="text-3xl font-bold tracking-tight">{initialData ? "Kombinasyonu Düzenle" : "Yeni Ürün Kombinasyonu"}</h1>
+            <p className="text-gray-500 mt-1">Stil önerileri ve "Takımı Tamamla" bölümlerini yönetin</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
            <Button variant="outline" className="rounded-full px-6 h-12" onClick={() => router.push("/admin-product-combinations")}>
-             Ä°ptal
+             İptal
            </Button>
            <Button className="rounded-full px-8 h-12 bg-black hover:bg-black/90" onClick={() => handleSave(false)} disabled={loading || !mainProduct}>
               Taslak Kaydet
@@ -207,8 +207,8 @@ export default function LookEditor({ initialData }: LookEditorProps) {
                       <Plus className="h-6 w-6 text-black" />
                     </div>
                     <div>
-                      <CardTitle className="text-2xl">Ana ÃœrÃ¼nÃ¼ SeÃ§in</CardTitle>
-                      <CardDescription>Kombinasyonun hangi Ã¼rÃ¼n detay sayfasÄ±nda gÃ¶rÃ¼neceÄŸini belirleyin</CardDescription>
+                      <CardTitle className="text-2xl">Ana Ürünü Seçin</CardTitle>
+                      <CardDescription>Kombinasyonun hangi ürün detay sayfasında görüneceğini belirleyin</CardDescription>
                     </div>
                   </div>
                 </CardHeader>
@@ -216,7 +216,7 @@ export default function LookEditor({ initialData }: LookEditorProps) {
                   <div className="relative group mx-auto max-w-xl">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300 group-focus-within:text-black transition-colors" />
                     <Input 
-                      placeholder="ÃœrÃ¼n adÄ± veya stok kodu ile ara..." 
+                      placeholder="Ürün adı veya stok kodu ile ara..." 
                       className="pl-12 h-14 bg-gray-50 border-gray-100 rounded-2xl text-lg focus:ring-black focus:border-black"
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
@@ -224,13 +224,13 @@ export default function LookEditor({ initialData }: LookEditorProps) {
                   </div>
  
                   <div className="flex gap-2 pb-2 justify-center overflow-x-auto no-scrollbar">
-                      <Button variant={selectedCategoryId === 'all' ? 'default' : 'outline'} size="sm" className="rounded-full px-6 h-10 font-bold" onClick={() => setSelectedCategoryId('all')}>TÃ¼mÃ¼</Button>
+                      <Button variant={selectedCategoryId === 'all' ? 'default' : 'outline'} size="sm" className="rounded-full px-6 h-10 font-bold" onClick={() => setSelectedCategoryId('all')}>Tümü</Button>
                       {categories.map(cat => (
                         <Button key={cat.id} variant={selectedCategoryId === cat.id ? 'default' : 'outline'} size="sm" className="rounded-full px-6 h-10 font-bold" onClick={() => setSelectedCategoryId(cat.id)}>{cat.name}</Button>
                       ))}
                   </div>
  
-                  {searching && <div className="text-center py-20 animate-pulse text-gray-300 font-black tracking-widest uppercase">AranÄ±yor...</div>}
+                  {searching && <div className="text-center py-20 animate-pulse text-gray-300 font-black tracking-widest uppercase">Aranıyor...</div>}
  
                   <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
                     {searchResults.map(p => (
@@ -260,8 +260,8 @@ export default function LookEditor({ initialData }: LookEditorProps) {
                       <Plus className="h-6 w-6 text-black" />
                     </div>
                     <div>
-                      <CardTitle className="text-2xl">TamamlayÄ±cÄ± ÃœrÃ¼nler Ekle</CardTitle>
-                      <CardDescription>Bu kombinasyonda birlikte Ã¶nerilecek Ã¼rÃ¼nleri seÃ§in</CardDescription>
+                      <CardTitle className="text-2xl">Tamamlayıcı Ürünler Ekle</CardTitle>
+                      <CardDescription>Bu kombinasyonda birlikte önerilecek ürünleri seçin</CardDescription>
                     </div>
                   </div>
                 </CardHeader>
@@ -269,7 +269,7 @@ export default function LookEditor({ initialData }: LookEditorProps) {
                    <div className="relative group">
                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300 group-focus-within:text-black transition-colors" />
                      <Input 
-                       placeholder="TamamlayÄ±cÄ± Ã¼rÃ¼n ara..." 
+                       placeholder="Tamamlayıcı ürün ara..." 
                        className="pl-12 h-14 bg-gray-50 border-gray-100 rounded-2xl text-lg focus:ring-black focus:border-black"
                        value={search}
                        onChange={(e) => setSearch(e.target.value)}
@@ -277,13 +277,13 @@ export default function LookEditor({ initialData }: LookEditorProps) {
                    </div>
  
                    <div className="flex gap-2 pb-2 overflow-x-auto no-scrollbar">
-                      <Button variant={selectedCategoryId === 'all' ? 'default' : 'outline'} size="sm" className="rounded-full px-6 h-10 font-bold" onClick={() => setSelectedCategoryId('all')}>TÃ¼mÃ¼</Button>
+                      <Button variant={selectedCategoryId === 'all' ? 'default' : 'outline'} size="sm" className="rounded-full px-6 h-10 font-bold" onClick={() => setSelectedCategoryId('all')}>Tümü</Button>
                       {categories.map(cat => (
                         <Button key={cat.id} variant={selectedCategoryId === cat.id ? 'default' : 'outline'} size="sm" className="rounded-full px-6 h-10 font-bold" onClick={() => setSelectedCategoryId(cat.id)}>{cat.name}</Button>
                       ))}
                    </div>
  
-                   {searching && <div className="text-center py-20 animate-pulse text-gray-300 font-black tracking-widest uppercase">AranÄ±yor...</div>}
+                   {searching && <div className="text-center py-20 animate-pulse text-gray-300 font-black tracking-widest uppercase">Aranıyor...</div>}
  
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                     {searchResults.map(p => (
@@ -316,32 +316,32 @@ export default function LookEditor({ initialData }: LookEditorProps) {
                  <CardHeader className="bg-gray-50/50 p-8 border-b border-gray-100">
                    <div className="flex items-center gap-4">
                      <Settings className="h-8 w-8 text-black" />
-                     <CardTitle className="text-2xl">GÃ¶rÃ¼ntÃ¼leme AyarlarÄ±</CardTitle>
+                     <CardTitle className="text-2xl">Görüntüleme Ayarları</CardTitle>
                    </div>
                  </CardHeader>
                  <CardContent className="p-8 space-y-10">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                        <div className="space-y-4">
-                         <Label className="text-black font-black uppercase tracking-widest text-xs">BÃ¶lÃ¼m BaÅŸlÄ±ÄŸÄ±</Label>
+                         <Label className="text-black font-black uppercase tracking-widest text-xs">Bölüm Başlığı</Label>
                          <Input 
-                           placeholder="Ã–rn: TakÄ±mÄ± Tamamla" 
+                           placeholder="Örn: Takımı Tamamla" 
                            className="h-14 bg-gray-50 border-gray-100 rounded-2xl px-6"
                            value={config.title}
                            onChange={(e) => setConfig({...config, title: e.target.value})}
                          />
                        </div>
                        <div className="space-y-4">
-                         <Label className="text-black font-black uppercase tracking-widest text-xs">Ã–ncelik</Label>
+                         <Label className="text-black font-black uppercase tracking-widest text-xs">Öncelik</Label>
                          <Select 
                            value={config.priority}
                            onValueChange={(v) => setConfig({...config, priority: v})}
                          >
                            <SelectTrigger className="h-14 bg-gray-50 border-gray-100 rounded-2xl px-6">
-                             <SelectValue placeholder="SeÃ§iniz" />
+                             <SelectValue placeholder="Seçiniz" />
                            </SelectTrigger>
                            <SelectContent className="rounded-2xl border-gray-100">
-                             <SelectItem value="0">Normal - Alt kÄ±sÄ±mlarda gÃ¶ster</SelectItem>
-                             <SelectItem value="10">YÃ¼ksek - Ãœst kÄ±sÄ±mlarda gÃ¶ster</SelectItem>
+                             <SelectItem value="0">Normal - Alt kısımlarda göster</SelectItem>
+                             <SelectItem value="10">Yüksek - Üst kısımlarda göster</SelectItem>
                            </SelectContent>
                          </Select>
                        </div>
@@ -350,11 +350,11 @@ export default function LookEditor({ initialData }: LookEditorProps) {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                        <div className="flex items-center space-x-4 bg-gray-50/50 p-6 rounded-3xl border border-gray-100 hover:bg-white hover:shadow-xl transition-all cursor-pointer">
                          <Checkbox id="isVisible" checked={config.isVisible} onCheckedChange={(v) => setConfig({...config, isVisible: !!v})} className="w-6 h-6 rounded-lg" />
-                         <Label htmlFor="isVisible" className="font-bold cursor-pointer">ÃœrÃ¼n sayfasÄ±nda gÃ¶ster</Label>
+                         <Label htmlFor="isVisible" className="font-bold cursor-pointer">Ürün sayfasında göster</Label>
                        </div>
                        <div className="flex items-center space-x-4 bg-gray-50/50 p-6 rounded-3xl border border-gray-100 hover:bg-white hover:shadow-xl transition-all cursor-pointer">
                          <Checkbox id="showTotalPrice" checked={config.showTotalPrice} onCheckedChange={(v) => setConfig({...config, showTotalPrice: !!v})} className="w-6 h-6 rounded-lg" />
-                         <Label htmlFor="showTotalPrice" className="font-bold cursor-pointer">Toplam deÄŸer gÃ¶ster</Label>
+                         <Label htmlFor="showTotalPrice" className="font-bold cursor-pointer">Toplam değer göster</Label>
                        </div>
                        <div className="flex items-center space-x-4 bg-gray-50/50 p-6 rounded-3xl border border-gray-100 hover:bg-white hover:shadow-xl transition-all cursor-pointer">
                          <Checkbox id="showAllAddButton" checked={config.showAllAddButton} onCheckedChange={(v) => setConfig({...config, showAllAddButton: !!v})} className="w-6 h-6 rounded-lg" />
@@ -362,7 +362,7 @@ export default function LookEditor({ initialData }: LookEditorProps) {
                        </div>
                        <div className="flex items-center space-x-4 bg-gray-50/50 p-6 rounded-3xl border border-gray-100 hover:bg-white hover:shadow-xl transition-all cursor-pointer">
                          <Checkbox id="showDiscountBadge" checked={config.showDiscountBadge} onCheckedChange={(v) => setConfig({...config, showDiscountBadge: !!v})} className="w-6 h-6 rounded-lg" />
-                         <Label htmlFor="showDiscountBadge" className="font-bold cursor-pointer">Ä°ndirim rozeti gÃ¶ster</Label>
+                         <Label htmlFor="showDiscountBadge" className="font-bold cursor-pointer">İndirim rozeti göster</Label>
                        </div>
                     </div>
                  </CardContent>
@@ -372,14 +372,14 @@ export default function LookEditor({ initialData }: LookEditorProps) {
                  <CardHeader className="p-8 border-b border-white/10">
                     <div className="flex items-center gap-4">
                       <Eye className="h-8 w-8 text-white" />
-                      <CardTitle className="text-2xl text-white">MaÄŸaza Ã–n GÃ¶rÃ¼nÃ¼mÃ¼</CardTitle>
+                      <CardTitle className="text-2xl text-white">Mağaza Ön Görünümü</CardTitle>
                     </div>
                  </CardHeader>
                  <CardContent className="p-8 pt-4">
                    <div className="bg-gray-50/50 border border-dashed border-gray-200 rounded-3xl p-10 text-center min-h-[300px] flex flex-col justify-center items-center text-black">
-                       {!config.isVisible && <div className="mb-4 bg-red-50 text-red-500 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border border-red-100">Åu an gizli (ÃœrÃ¼n sayfasÄ±nda gÃ¶rÃ¼nmez)</div>}
-                       <h3 className="text-4xl font-light mb-4">{config.title || "TakÄ±mÄ± Tamamla"}</h3>
-                       <p className="text-sm text-gray-400 font-light italic mb-10">Bu parÃ§ayÄ± seÃ§tiÄŸimiz tamamlayÄ±cÄ± Ã¼rÃ¼nlerle stilize edin ve gÃ¶rÃ¼nÃ¼mÃ¼nÃ¼zÃ¼ tamamlayÄ±n</p>
+                       {!config.isVisible && <div className="mb-4 bg-red-50 text-red-500 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border border-red-100">Şu an gizli (Ürün sayfasında görünmez)</div>}
+                       <h3 className="text-4xl font-light mb-4">{config.title || "Takımı Tamamla"}</h3>
+                       <p className="text-sm text-gray-400 font-light italic mb-10">Bu parçayı seçtiğimiz tamamlayıcı ürünlerle stilize edin ve görünümünüzü tamamlayın</p>
                        
                        <div className="flex flex-wrap justify-center gap-6">
                          {lookItems.map(item => (
@@ -408,7 +408,7 @@ export default function LookEditor({ initialData }: LookEditorProps) {
            <Card className="border-none shadow-2xl rounded-[40px] sticky top-32 overflow-hidden bg-white/80 backdrop-blur-xl">
              <CardHeader className="p-8 border-b border-gray-100 bg-gray-50/30">
                 <CardTitle className="text-xl flex items-center justify-between">
-                  <span>Sizin SeÃ§iminiz</span>
+                  <span>Sizin Seçiminiz</span>
                   {lookItems.length > 0 && <Badge className="bg-black text-white hover:bg-black rounded-full px-4">{lookItems.length}</Badge>}
                 </CardTitle>
              </CardHeader>
@@ -417,7 +417,7 @@ export default function LookEditor({ initialData }: LookEditorProps) {
                   <div className="space-y-8">
                      <div className="bg-white p-6 rounded-3xl border border-black shadow-xl ring-1 ring-black/5">
                         <p className="text-[10px] font-black uppercase text-gray-400 mb-3 tracking-widest flex items-center gap-2">
-                           <Check className="w-3 h-3 text-green-500" /> Ana ÃœrÃ¼n
+                           <Check className="w-3 h-3 text-green-500" /> Ana Ürün
                         </p>
                         <div className="flex items-center gap-4">
                           <img src={getProductImage(mainProduct)} className="w-20 h-28 object-cover rounded-2xl shadow-md" />
@@ -425,16 +425,16 @@ export default function LookEditor({ initialData }: LookEditorProps) {
                             <h4 className="font-bold text-sm truncate">{mainProduct.name}</h4>
                             <p className="text-xs text-gray-400 mt-1">{mainProduct.stockCode}</p>
                             <p className="text-[14px] font-black text-gray-900 mt-2">{mainProduct.price} TL</p>
-                            <button onClick={() => { setMainProduct(null); setStep(1); }} className="text-[10px] text-red-500 font-bold mt-2 hover:underline">DeÄŸiÅŸtir</button>
+                            <button onClick={() => { setMainProduct(null); setStep(1); }} className="text-[10px] text-red-500 font-bold mt-2 hover:underline">Değiştir</button>
                           </div>
                         </div>
                      </div>
  
                      <div className="space-y-4">
-                        <h5 className="text-[10px] font-black uppercase text-gray-400 tracking-widest border-b border-gray-100 pb-2">TamamlayÄ±cÄ± ÃœrÃ¼nler</h5>
+                        <h5 className="text-[10px] font-black uppercase text-gray-400 tracking-widest border-b border-gray-100 pb-2">Tamamlayıcı Ürünler</h5>
                         {lookItems.length === 0 ? (
                            <div className="py-10 text-center border-2 border-dashed border-gray-100 rounded-3xl">
-                              <p className="text-xs text-gray-300 italic">HenÃ¼z Ã¼rÃ¼n seÃ§ilmedi</p>
+                              <p className="text-xs text-gray-300 italic">Henüz ürün seçilmedi</p>
                            </div>
                         ) : (
                            <div className="space-y-3">
@@ -467,7 +467,7 @@ export default function LookEditor({ initialData }: LookEditorProps) {
                         <div className="bg-yellow-50 p-4 rounded-2xl flex items-start gap-3 mt-4 border border-yellow-100">
                            <div className="w-2 h-2 bg-yellow-400 rounded-full mt-1.5 flex-shrink-0"></div>
                            <p className="text-[11px] font-bold text-yellow-800 leading-relaxed italic">
-                              Ok tuÅŸlarÄ±yla Ã¼rÃ¼nlerin gÃ¶rÃ¼nÃ¼m sÄ±rasÄ±nÄ± deÄŸiÅŸtirebilirsiniz.
+                              Ok tuşlarıyla ürünlerin görünüm sırasını değiştirebilirsiniz.
                            </p>
                         </div>
                      </div>
@@ -479,20 +479,20 @@ export default function LookEditor({ initialData }: LookEditorProps) {
                             onClick={() => setStep(3)}
                             disabled={lookItems.length === 0}
                           >
-                             Ayarlara GeÃ§ <ArrowRight className="ml-2 w-5 h-5" />
+                             Ayarlara Geç <ArrowRight className="ml-2 w-5 h-5" />
                           </Button>
                         )}
                         {step === 3 && (
                           <div className="grid grid-cols-2 gap-4">
                              <Button variant="outline" className="h-14 rounded-[20px] font-bold" onClick={() => setStep(2)}>
-                               <ArrowLeft className="mr-2 w-5 h-5" /> SeÃ§ime DÃ¶n
+                               <ArrowLeft className="mr-2 w-5 h-5" /> Seçime Dön
                              </Button>
                              <Button 
                                className="h-14 bg-black hover:bg-black/90 text-white rounded-[20px] font-bold shadow-xl flex items-center justify-center gap-2"
                                onClick={() => handleSave(true)}
                                disabled={loading}
                              >
-                               <Layout className="w-5 h-5" /> Kombinasyonu YayÄ±nla
+                               <Layout className="w-5 h-5" /> Kombinasyonu Yayınla
                              </Button>
                           </div>
                         )}
@@ -501,7 +501,7 @@ export default function LookEditor({ initialData }: LookEditorProps) {
                 ) : (
                   <div className="py-20 text-center text-gray-300">
                     <Layout className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                    <p className="italic text-sm">LÃ¼tfen Ã¶nce bir ana Ã¼rÃ¼n seÃ§in</p>
+                    <p className="italic text-sm">Lütfen önce bir ana ürün seçin</p>
                   </div>
                 )}
              </CardContent>

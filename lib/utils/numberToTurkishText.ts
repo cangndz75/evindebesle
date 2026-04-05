@@ -1,12 +1,12 @@
 ﻿export function numberToTurkishText(amount: number): string {
-    if (amount === 0) return "SIFIR TÃœRK LÄ°RASI";
+    if (amount === 0) return "SIFIR TÜRK LİRASI";
 
     const integerPart = Math.floor(amount);
     const decimalPart = Math.round((amount - integerPart) * 100);
 
-    const ones = ["", "BÄ°R", "Ä°KÄ°", "ÃœÃ‡", "DÃ–RT", "BEÅ", "ALTI", "YEDÄ°", "SEKÄ°Z", "DOKUZ"];
-    const tens = ["", "ON", "YÄ°RMÄ°", "OTUZ", "KIRK", "ELLÄ°", "ALTMIÅ", "YETMÄ°Å", "SEKSEN", "DOKSAN"];
-    const groups = ["", "BÄ°N", "MÄ°LYON", "MÄ°LYAR", "TRÄ°LYON"];
+    const ones = ["", "BİR", "İKİ", "ÜÇ", "DÖRT", "BEŞ", "ALTI", "YEDİ", "SEKİZ", "DOKUZ"];
+    const tens = ["", "ON", "YİRMİ", "OTUZ", "KIRK", "ELLİ", "ALTMIŞ", "YETMİŞ", "SEKSEN", "DOKSAN"];
+    const groups = ["", "BİN", "MİLYON", "MİLYAR", "TRİLYON"];
 
     function convertGroup(num: number): string {
         if (num === 0) return "";
@@ -17,8 +17,8 @@
 
         let result = "";
 
-        if (h === 1) result += "YÃœZ ";
-        else if (h > 1) result += ones[h] + " YÃœZ ";
+        if (h === 1) result += "YÜZ ";
+        else if (h > 1) result += ones[h] + " YÜZ ";
 
         result += tens[t] + " ";
         result += ones[o] + " ";
@@ -56,9 +56,9 @@
     const integerText = convertInteger(integerPart);
     const decimalText = decimalPart > 0 ? convertInteger(decimalPart) : "SIFIR";
 
-    let result = integerText + " TÃœRK LÄ°RASI";
+    let result = integerText + " TÜRK LİRASI";
     if (decimalPart > 0) {
-        result += " " + decimalText + " KURUÅ";
+        result += " " + decimalText + " KURUŞ";
     }
 
     return result;

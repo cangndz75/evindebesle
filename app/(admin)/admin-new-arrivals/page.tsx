@@ -98,7 +98,7 @@ export default function AdminNewArrivalsPage() {
       }
     } catch (e) {
       console.error(e);
-      toast.error("Liste yÃ¼klenemedi");
+      toast.error("Liste yüklenemedi");
     } finally {
       setLoading(false);
     }
@@ -117,10 +117,10 @@ export default function AdminNewArrivalsPage() {
         fetchNewArrivalItems();
       } else {
         const err = await res.json();
-        toast.error(err.error || "Hata oluÅŸtu");
+        toast.error(err.error || "Hata oluştu");
       }
     } catch (e) {
-      toast.error("Bir hata oluÅŸtu");
+      toast.error("Bir hata oluştu");
     }
   };
 
@@ -128,13 +128,13 @@ export default function AdminNewArrivalsPage() {
     try {
       const res = await fetch(`/api/admin-new-arrivals?productId=${productId}`, { method: "DELETE" });
       if (res.ok) {
-        toast.success("Listeden Ã§Ä±karÄ±ldÄ±!");
+        toast.success("Listeden çıkarıldı!");
         fetchNewArrivalItems();
       } else {
         toast.error("Silinemedi");
       }
     } catch (e) {
-      toast.error("Bir hata oluÅŸtu");
+      toast.error("Bir hata oluştu");
     }
   };
 
@@ -161,13 +161,13 @@ export default function AdminNewArrivalsPage() {
       });
 
       if (!res.ok) {
-        toast.error("SÄ±ralama gÃ¼ncellenemedi");
+        toast.error("Sıralama güncellenemedi");
         fetchNewArrivalItems(); 
       } else {
-        toast.success("SÄ±ralama gÃ¼ncellendi");
+        toast.success("Sıralama güncellendi");
       }
     } catch (e) {
-      toast.error("SÄ±ralama yÃ¼klenirken hata oluÅŸtu");
+      toast.error("Sıralama yüklenirken hata oluştu");
     }
   };
 
@@ -186,24 +186,24 @@ export default function AdminNewArrivalsPage() {
   return (
     <div className="space-y-6 lg:p-6 p-4">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Yeni Gelenler ModÃ¼lÃ¼</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Yeni Gelenler Modülü</h1>
         <p className="text-muted-foreground mt-2">
-          "/new-arrivals" sayfasÄ±nda gÃ¶rÃ¼necek olan Ã¼rÃ¼nleri bu listeden ekleyip sÄ±rasÄ±nÄ± deÄŸiÅŸtirebilirsiniz.
+          "/new-arrivals" sayfasında görünecek olan ürünleri bu listeden ekleyip sırasını değiştirebilirsiniz.
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>ÃœrÃ¼n Ara ve Ekle</CardTitle>
-            <CardDescription>Ä°sme veya stok koduna gÃ¶re arama yapabilirsiniz</CardDescription>
+            <CardTitle>Ürün Ara ve Ekle</CardTitle>
+            <CardDescription>İsme veya stok koduna göre arama yapabilirsiniz</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="ÃœrÃ¼n adÄ± veya kodu yazÄ±n..."
+                  placeholder="Ürün adı veya kodu yazın..."
                   className="pl-9"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -216,9 +216,9 @@ export default function AdminNewArrivalsPage() {
                     <SelectValue placeholder="Cinsiyet" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">TÃ¼m Cinsiyetler</SelectItem>
+                    <SelectItem value="all">Tüm Cinsiyetler</SelectItem>
                     <SelectItem value="male">Erkek</SelectItem>
-                    <SelectItem value="female">KadÄ±n</SelectItem>
+                    <SelectItem value="female">Kadın</SelectItem>
                     <SelectItem value="unisex">Unisex</SelectItem>
                   </SelectContent>
                 </Select>
@@ -228,7 +228,7 @@ export default function AdminNewArrivalsPage() {
                     <SelectValue placeholder="Kategori" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">TÃ¼m Kategoriler</SelectItem>
+                    <SelectItem value="all">Tüm Kategoriler</SelectItem>
                     {categories.map((cat) => (
                       <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
                     ))}
@@ -239,7 +239,7 @@ export default function AdminNewArrivalsPage() {
 
             {(search.length >= 2 || selectedCategoryId !== "all" || selectedGender !== "all") && searchResults.length === 0 && !searching && (
               <div className="text-center py-8 text-sm text-gray-400 font-light italic">
-                SonuÃ§ bulunamadÄ±
+                Sonuç bulunamadı
               </div>
             )}
 
@@ -291,26 +291,26 @@ export default function AdminNewArrivalsPage() {
         <Card>
           <CardHeader>
              <CardTitle className="flex justify-between items-center">
-                Ekli ÃœrÃ¼nler
+                Ekli Ürünler
                 <span className="text-sm font-normal text-muted-foreground bg-gray-100 px-2 py-1 rounded">
-                   {newArrivalItems.length} ÃœrÃ¼n
+                   {newArrivalItems.length} Ürün
                 </span>
              </CardTitle>
-             <CardDescription>Bu listedeki Ã¼rÃ¼nleri sÄ±ralayÄ±n veya Ã§Ä±kartÄ±n</CardDescription>
+             <CardDescription>Bu listedeki ürünleri sıralayın veya çıkartın</CardDescription>
           </CardHeader>
           <CardContent>
              {loading ? (
-                <div className="text-center py-4 text-sm text-gray-500">YÃ¼kleniyor...</div>
+                <div className="text-center py-4 text-sm text-gray-500">Yükleniyor...</div>
              ) : newArrivalItems.length === 0 ? (
-                <div className="text-center py-4 text-sm text-gray-500">Bu listede henÃ¼z Ã¼rÃ¼n yok.</div>
+                <div className="text-center py-4 text-sm text-gray-500">Bu listede henüz ürün yok.</div>
              ) : (
                 <Table>
                    <TableHeader>
                       <TableRow>
-                         <TableHead>SÄ±ra</TableHead>
+                         <TableHead>Sıra</TableHead>
                          <TableHead>Resim</TableHead>
-                         <TableHead>ÃœrÃ¼n AdÄ±</TableHead>
-                         <TableHead className="text-right">Ä°ÅŸlem</TableHead>
+                         <TableHead>Ürün Adı</TableHead>
+                         <TableHead className="text-right">İşlem</TableHead>
                       </TableRow>
                    </TableHeader>
                    <TableBody>

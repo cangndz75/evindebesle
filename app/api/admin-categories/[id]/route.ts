@@ -23,21 +23,21 @@ export async function GET(
       include: {
         _count: {
           select: {
-            products: true, // Deprecated ama Ã§alÄ±ÅŸÄ±yor
+            products: true, // Deprecated ama çalışıyor
           },
         },
       },
     });
 
     if (!category) {
-      return NextResponse.json({ error: "Kategori bulunamadÄ±" }, { status: 404 });
+      return NextResponse.json({ error: "Kategori bulunamadı" }, { status: 404 });
     }
 
     return NextResponse.json(category);
   } catch (error: any) {
     console.error("Category fetch error:", error);
     return NextResponse.json(
-      { error: error.message || "Kategori getirilirken bir hata oluÅŸtu" },
+      { error: error.message || "Kategori getirilirken bir hata oluştu" },
       { status: 500 }
     );
   }
@@ -126,7 +126,7 @@ export async function PATCH(
   } catch (error: any) {
     console.error("Category update error:", error);
     return NextResponse.json(
-      { error: error.message || "Kategori gÃ¼ncellenirken bir hata oluÅŸtu" },
+      { error: error.message || "Kategori güncellenirken bir hata oluştu" },
       { status: 500 }
     );
   }
@@ -150,7 +150,7 @@ export async function DELETE(
 
     if (productCount > 0) {
       return NextResponse.json(
-        { error: "Bu kategori kullanÄ±ldÄ±ÄŸÄ± iÃ§in silinemez" },
+        { error: "Bu kategori kullanıldığı için silinemez" },
         { status: 400 }
       );
     }
@@ -182,7 +182,7 @@ export async function DELETE(
   } catch (error: any) {
     console.error("Category deletion error:", error);
     return NextResponse.json(
-      { error: error.message || "Kategori silinirken bir hata oluÅŸtu" },
+      { error: error.message || "Kategori silinirken bir hata oluştu" },
       { status: 500 }
     );
   }

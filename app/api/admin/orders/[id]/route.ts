@@ -101,7 +101,7 @@ export async function GET(
 
     if (!order) {
       return NextResponse.json(
-        { error: "SipariÅŸ bulunamadÄ±" },
+        { error: "Sipariş bulunamadı" },
         { status: 404 }
       );
     }
@@ -110,7 +110,7 @@ export async function GET(
   } catch (error: any) {
     console.error("Order detail fetch error:", error);
     return NextResponse.json(
-      { error: "SipariÅŸ detayÄ± yÃ¼klenirken bir hata oluÅŸtu." },
+      { error: "Sipariş detayı yüklenirken bir hata oluştu." },
       { status: 500 }
     );
   }
@@ -184,7 +184,7 @@ export async function PATCH(
   } catch (error: any) {
     console.error("Order update error:", error);
     return NextResponse.json(
-      { error: "SipariÅŸ gÃ¼ncellenirken bir hata oluÅŸtu." },
+      { error: "Sipariş güncellenirken bir hata oluştu." },
       { status: 500 }
     );
   }

@@ -35,7 +35,7 @@ export default function SizeGuideModal({
   sizeGuide,
 }: SizeGuideModalProps) {
   const defaultSizeGuide: SizeGuideData = {
-    productName: "ÃœrÃ¼n",
+    productName: "Ürün",
     measurements: [
       { size: "S", chest: 64, length: 69.5, arm: 57.5 },
       { size: "M", chest: 66, length: 71.5, arm: 58.5 },
@@ -44,7 +44,7 @@ export default function SizeGuideModal({
       { size: "2XL", chest: 72, length: 77.5, arm: 61.5 },
       { size: "3XL", chest: 74, length: 79.5, arm: 62.5 },
     ],
-    disclaimer: "KumaÅŸÄ±n pamuk likralÄ± Ã¶zelliÄŸinden dolayÄ± beden Ã¶lÃ§Ã¼lerinde +/- 2cm farklÄ±lÄ±k gÃ¶rÃ¼lebilir. TÃ¼m haklarÄ± saklÄ±dÄ±r.",
+    disclaimer: "Kumaşın pamuk likralı özelliğinden dolayı beden ölçülerinde +/- 2cm farklılık görülebilir. Tüm hakları saklıdır.",
   };
 
   const guide = sizeGuide || defaultSizeGuide;
@@ -62,7 +62,7 @@ export default function SizeGuideModal({
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* GÃ¶rsel AlanÄ± */}
+          {/* Görsel Alanı */}
           {guide.imageUrl ? (
             <div className="relative w-full aspect-video bg-gray-50 flex items-center justify-center border overflow-hidden rounded-lg">
               <Image
@@ -80,7 +80,7 @@ export default function SizeGuideModal({
                   className="w-full h-full"
                   xmlns="http://www.w3.org/2000/svg"
                 >
-                  {/* Hoodie gÃ¶vde */}
+                  {/* Hoodie gövde */}
                   <rect
                     x="50"
                     y="80"
@@ -90,7 +90,7 @@ export default function SizeGuideModal({
                     stroke="#000"
                     strokeWidth="2"
                   />
-                  {/* KapÃ¼ÅŸon */}
+                  {/* Kapüşon */}
                   <path
                     d="M 50 80 Q 50 40 100 40 Q 150 40 150 80"
                     fill="none"
@@ -116,8 +116,8 @@ export default function SizeGuideModal({
                     stroke="#000"
                     strokeWidth="2"
                   />
-                  {/* Ã–lÃ§Ã¼ Ã§izgileri */}
-                  {/* GÃ¶ÄŸÃ¼s */}
+                  {/* Ölçü çizgileri */}
+                  {/* Göğüs */}
                   <line
                     x1="50"
                     y1="140"
@@ -128,7 +128,7 @@ export default function SizeGuideModal({
                     strokeDasharray="5,5"
                   />
                   <text x="100" y="135" textAnchor="middle" fontSize="10" fill="#666">
-                    GÃ–ÄÃœS (CHEST)
+                    GÖĞÜS (CHEST)
                   </text>
                   {/* Boy */}
                   <line
@@ -161,7 +161,7 @@ export default function SizeGuideModal({
             )
           )}
 
-          {/* Ã–lÃ§Ã¼ Tablosu */}
+          {/* Ölçü Tablosu */}
           <div className="overflow-x-auto">
             <table className="w-full border-collapse border border-gray-300">
               {hasDynamicTable ? (
@@ -196,7 +196,7 @@ export default function SizeGuideModal({
                           Beden
                         </th>
                         <th className="border border-gray-300 px-4 py-2 text-left font-semibold">
-                          GÃ–ÄÃœS (CHEST)
+                          GÖĞÜS (CHEST)
                         </th>
                         <th className="border border-gray-300 px-4 py-2 text-left font-semibold">
                           BOY (LENGTH)
@@ -230,7 +230,7 @@ export default function SizeGuideModal({
             </table>
           </div>
 
-          {/* UyarÄ± */}
+          {/* Uyarı */}
           {guide.disclaimer && (
             <p className="text-xs text-gray-600 text-center mt-4">
               {guide.disclaimer}

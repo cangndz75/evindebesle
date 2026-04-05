@@ -20,7 +20,7 @@ export const authConfig: AuthOptions = {
         const ratelimit = await checkRateLimit(ip as string, RateLimits.strict);
 
         if (!ratelimit.success) {
-          throw new Error("Ã‡ok fazla baÅŸarÄ±sÄ±z giriÅŸ denemesi. LÃ¼tfen daha sonra tekrar deneyiniz.");
+          throw new Error("Çok fazla başarısız giriş denemesi. Lütfen daha sonra tekrar deneyiniz.");
         }
 
         if (!credentials?.email || !credentials?.password) return null;

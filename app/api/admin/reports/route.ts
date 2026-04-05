@@ -133,7 +133,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error("Reports error:", error);
     return NextResponse.json(
-      { error: "Rapor verileri yÃ¼klenirken bir hata oluÅŸtu." },
+      { error: "Rapor verileri yüklenirken bir hata oluştu." },
       { status: 500 }
     );
   }

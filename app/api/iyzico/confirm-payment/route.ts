@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     );
 
     if (data.status !== "success") {
-      console.error("3D Secure Auth BaÅŸarÄ±sÄ±z:", data);
+      console.error("3D Secure Auth Başarısız:", data);
       return NextResponse.redirect(`${process.env.APP_URL}/payment/result?status=failure&uid=${conversationId}`);
     }
 

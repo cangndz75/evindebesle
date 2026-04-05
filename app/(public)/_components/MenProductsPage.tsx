@@ -84,7 +84,7 @@ const products: Product[] = [
   },
   {
     id: "m3",
-    name: "Premium TakÄ±m",
+    name: "Premium Takım",
     price: 899,
     originalPrice: 1099,
     image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=600&auto=format&fit=crop",
@@ -218,13 +218,13 @@ export default function MenProductsPage() {
           </Sheet>
 
           <div className="flex items-center gap-4">
-            <span className="text-sm text-[#111]/60 font-light">{products.length} Ã¼rÃ¼n</span>
+            <span className="text-sm text-[#111]/60 font-light">{products.length} ürün</span>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-[#111] font-light">SÄ±rala:</span>
+              <span className="text-sm text-[#111] font-light">Sırala:</span>
               <select className="text-sm font-light text-[#111] bg-transparent border-none focus:outline-none cursor-pointer">
-                <option>Ã–ne Ã‡Ä±kanlar</option>
-                <option>Fiyat: DÃ¼ÅŸÃ¼kten YÃ¼kseÄŸe</option>
-                <option>Fiyat: YÃ¼ksekten DÃ¼ÅŸÃ¼ÄŸe</option>
+                <option>Öne Çıkanlar</option>
+                <option>Fiyat: Düşükten Yükseğe</option>
+                <option>Fiyat: Yüksekten Düşüğe</option>
                 <option>En Yeni</option>
               </select>
               <ChevronDown className="w-4 h-4" />
@@ -268,7 +268,7 @@ export default function MenProductsPage() {
                     )}
                     {product.originalPrice && product.originalPrice > product.price ? (
                       <div className="absolute top-3 left-3 bg-[#111] text-white text-[10px] px-2 py-1 uppercase font-light">
-                        Ä°ndirim
+                        İndirim
                       </div>
                     ) : product.badge ? (
                       <div className="absolute top-3 left-3 bg-[#111] text-white text-[10px] px-2 py-1 uppercase font-light">
@@ -287,21 +287,21 @@ export default function MenProductsPage() {
                     {product.originalPrice && product.originalPrice > product.price ? (
                       <>
                         <span className="text-sm md:text-base font-light text-[#111]">
-                          {product.price} â‚º
+                          {product.price} ₺
                         </span>
                         <span className="text-sm text-[#111]/60 line-through">
-                          {product.originalPrice} â‚º
+                          {product.originalPrice} ₺
                         </span>
                       </>
                     ) : (
                       <span className="text-sm md:text-base font-light text-[#111]">
-                        {product.price} â‚º
+                        {product.price} ₺
                       </span>
                     )}
                   </div>
                   {product.inColors && (
                     <p className="text-xs text-[#111]/60 font-light mt-1">
-                      {product.inColors} renk seÃ§eneÄŸi
+                      {product.inColors} renk seçeneği
                     </p>
                   )}
                 </div>
@@ -319,7 +319,7 @@ export default function MenProductsPage() {
                           isActive ? "border-[#111] scale-110" : "border-gray-300"
                         }`}
                         style={{ backgroundColor: color.value }}
-                        aria-label={`${color.name} renk seÃ§eneÄŸi`}
+                        aria-label={`${color.name} renk seçeneği`}
                       />
                     );
                   })}

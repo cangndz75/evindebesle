@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
     } catch (error) {
         console.error("Stock update error:", error);
         return NextResponse.json(
-            { error: "Stok gÃ¼ncellenemedi" },
+            { error: "Stok güncellenemedi" },
             { status: 500 }
         );
     }

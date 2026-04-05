@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
     } catch (error: any) {
         console.error("Stock movements error:", error);
         return NextResponse.json(
-            { error: "Stok hareketleri yÃ¼klenirken hata oluÅŸtu" },
+            { error: "Stok hareketleri yüklenirken hata oluştu" },
             { status: 500 }
         );
     }

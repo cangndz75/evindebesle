@@ -170,7 +170,7 @@ function renderCouponBlock(block: Block): string {
       <td style="background-color: ${bgColor}; padding: 32px; text-align: center;">
         <div style="display: inline-block; border: 2px dashed ${borderColor}; padding: 24px 48px; border-radius: 8px;">
           ${discountText ? `<p style="margin: 0 0 8px; font-size: 18px; font-weight: bold; color: ${borderColor};">${discountText}</p>` : ""}
-          <p style="margin: 0 0 8px; font-size: 12px; color: #6b7280;">Ä°ndirim Kodu</p>
+          <p style="margin: 0 0 8px; font-size: 12px; color: #6b7280;">İndirim Kodu</p>
           <p style="margin: 0 0 12px; font-size: 28px; font-family: monospace; font-weight: bold; color: ${borderColor}; background-color: #f3f4f6; padding: 8px 16px; border-radius: 4px;">
             ${couponCode}
           </p>
@@ -185,7 +185,7 @@ function renderCtaBlock(block: Block, options: RenderOptions): string {
   const bgColor = block.style.backgroundColor || "#ffffff";
   const buttonColor = block.style.buttonColor || "#000000";
   const buttonTextColor = block.style.buttonTextColor || "#ffffff";
-  const text = block.content.buttonText || "TÄ±kla";
+  const text = block.content.buttonText || "Tıkla";
   let url = block.content.linkUrl || "#";
 
   if (options.campaignId && url !== "#") {
@@ -322,7 +322,7 @@ function renderFooterBlock(block: Block, options: RenderOptions): string {
   const companyName = block.content.companyName || "";
   const companyAddress = block.content.companyAddress || "";
   const siteLink = block.content.siteLink || "";
-  const unsubscribeText = block.content.unsubscribeText || "Abonelikten Ã§Ä±k";
+  const unsubscribeText = block.content.unsubscribeText || "Abonelikten çık";
 
   const unsubscribeLink = options.trackingId
     ? `${options.baseUrl}/unsubscribe?id=${options.trackingId}`

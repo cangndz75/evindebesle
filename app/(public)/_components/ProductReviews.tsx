@@ -34,19 +34,19 @@ function formatDate(date: Date | string): string {
   const diffTime = Math.abs(now.getTime() - reviewDate.getTime());
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-  if (diffDays === 0) return "BUGÃœN";
-  if (diffDays === 1) return "1 GÃœN Ã–NCE";
-  if (diffDays < 7) return `${diffDays} GÃœN Ã–NCE`;
+  if (diffDays === 0) return "BUGÜN";
+  if (diffDays === 1) return "1 GÜN ÖNCE";
+  if (diffDays < 7) return `${diffDays} GÜN ÖNCE`;
   if (diffDays < 30) {
     const weeks = Math.floor(diffDays / 7);
-    return `${weeks} HAFTA Ã–NCE`;
+    return `${weeks} HAFTA ÖNCE`;
   }
   if (diffDays < 365) {
     const months = Math.floor(diffDays / 30);
-    return `${months} AY Ã–NCE`;
+    return `${months} AY ÖNCE`;
   }
   const years = Math.floor(diffDays / 365);
-  return `${years} YIL Ã–NCE`;
+  return `${years} YIL ÖNCE`;
 }
 
 interface ProductReviewsProps {
@@ -55,10 +55,10 @@ interface ProductReviewsProps {
   productImage?: string | null;
   selectedColorId?: string;
   reviews?: { id: string; userName: string; rating: number; comment: string; createdAt: Date | string; colorId?: string; colorName?: string }[];
-  hasOrdered?: boolean; // KullanÄ±cÄ± bu Ã¼rÃ¼nÃ¼ sipariÅŸ verdi mi?
+  hasOrdered?: boolean; // Kullanıcı bu ürünü sipariş verdi mi?
 }
 
-export default function ProductReviews({ productId, productName = "ÃœrÃ¼n", productImage = null, selectedColorId, reviews = [], hasOrdered = false }: ProductReviewsProps) {
+export default function ProductReviews({ productId, productName = "Ürün", productImage = null, selectedColorId, reviews = [], hasOrdered = false }: ProductReviewsProps) {
   const [showAllModal, setShowAllModal] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -116,7 +116,7 @@ export default function ProductReviews({ productId, productName = "ÃœrÃ¼n", 
       filtered.sort((a, b) => a.rating - b.rating);
     } else if (sortBy === "newest") {
       filtered.sort((a, b) => {
-        const dateA = parseInt(a.date) || 0; // Basit parse, geliÅŸtirilebilir
+        const dateA = parseInt(a.date) || 0; // Basit parse, geliştirilebilir
         const dateB = parseInt(b.date) || 0;
         return dateA - dateB;
       });
@@ -162,13 +162,13 @@ export default function ProductReviews({ productId, productName = "ÃœrÃ¼n", 
             <div className="flex justify-center mb-4">
               <Star className="w-12 h-12 text-gray-300" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">HenÃ¼z yorum yapÄ±lmamÄ±ÅŸ</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Henüz yorum yapılmamış</h3>
             <p className="text-gray-500 mb-6 max-w-sm mx-auto">
-              Bu Ã¼rÃ¼n hakkÄ±nda ilk yorumu siz yaparak diÄŸer kullanÄ±cÄ±lara yardÄ±mcÄ± olabilirsiniz.
+              Bu ürün hakkında ilk yorumu siz yaparak diğer kullanıcılara yardımcı olabilirsiniz.
             </p>
             {hasOrdered && (
               <Button variant="outline" onClick={() => setShowReviewModal(true)}>
-                Ä°lk Yorumu Yap
+                İlk Yorumu Yap
               </Button>
             )}
           </div>
@@ -221,7 +221,7 @@ export default function ProductReviews({ productId, productName = "ÃœrÃ¼n", 
                       : "border-gray-300 hover:border-black"
                       }`}
                   >
-                    {rating} YÄ±ldÄ±z
+                    {rating} Yıldız
                   </button>
                 ))}
               </div>
@@ -241,7 +241,7 @@ export default function ProductReviews({ productId, productName = "ÃœrÃ¼n", 
                   onClick={() => setShowAllModal(true)}
                   className="px-8 py-3 border border-black text-black text-sm font-light uppercase tracking-wide hover:bg-black hover:text-white transition-colors"
                 >
-                  Daha Fazla YÃ¼kle ({displayedReviews.length - 2})
+                  Daha Fazla Yükle ({displayedReviews.length - 2})
                 </button>
               </div>
             )}
@@ -254,7 +254,7 @@ export default function ProductReviews({ productId, productName = "ÃœrÃ¼n", 
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
           <DialogHeader className="px-6 py-4 border-b border-gray-200 sticky top-0 bg-white z-10">
             <DialogTitle className="text-2xl font-serif font-light text-black">
-              TÃ¼m Yorumlar
+              Tüm Yorumlar
             </DialogTitle>
           </DialogHeader>
 
@@ -277,14 +277,14 @@ export default function ProductReviews({ productId, productName = "ÃœrÃ¼n", 
                   <span>+ Filtre</span>
                 </button>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600 font-light">SÄ±rala:</span>
+                  <span className="text-sm text-gray-600 font-light">Sırala:</span>
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
                     className="text-sm bg-transparent border-none focus:outline-none cursor-pointer font-light"
                   >
-                    <option value="highest">En YÃ¼ksek Puan</option>
-                    <option value="lowest">En DÃ¼ÅŸÃ¼k Puan</option>
+                    <option value="highest">En Yüksek Puan</option>
+                    <option value="lowest">En Düşük Puan</option>
                     <option value="newest">En Yeni</option>
                     <option value="oldest">En Eski</option>
                   </select>
@@ -304,7 +304,7 @@ export default function ProductReviews({ productId, productName = "ÃœrÃ¼n", 
                       : "border-gray-300 hover:border-black"
                       }`}
                   >
-                    {rating} YÄ±ldÄ±z
+                    {rating} Yıldız
                   </button>
                 ))}
               </div>
@@ -343,7 +343,7 @@ function ReviewCard({ review }: { review: Review }) {
             {review.isVerified && (
               <div className="flex items-center gap-1 text-xs text-gray-600">
                 <Check className="w-3 h-3" />
-                <span>DoÄŸrulanmÄ±ÅŸ AlÄ±cÄ±</span>
+                <span>Doğrulanmış Alıcı</span>
               </div>
             )}
           </div>

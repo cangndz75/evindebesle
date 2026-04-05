@@ -9,7 +9,7 @@ async function main() {
     if (!welcome) {
         await prisma.automation.create({
             data: {
-                name: "HoÅŸgeldin Serisi",
+                name: "Hoşgeldin Serisi",
                 triggerType: "WELCOME",
                 isActive: true,
                 steps: {
@@ -20,8 +20,8 @@ async function main() {
                             template: {
                                 create: {
                                     name: "Welcome Email",
-                                    subject: "AramÄ±za HoÅŸgeldin! ğŸ‘‹",
-                                    bodyJson: "<h1>HoÅŸgeldin!</h1><p>Evinde Besle ailesine katÄ±ldÄ±ÄŸÄ±n iÃ§in teÅŸekkÃ¼rler.</p>"
+                                    subject: "Aramıza Hoşgeldin! ğŸ‘‹",
+                                    bodyJson: "<h1>Hoşgeldin!</h1><p>Evinde Besle ailesine katıldığın için teşekkürler.</p>"
                                 }
                             }
                         },
@@ -37,7 +37,7 @@ async function main() {
                                 create: {
                                     name: "Brand Story",
                                     subject: "Biz Kimiz?",
-                                    bodyJson: "<h1>Hikayemiz</h1><p>DoÄŸal ve taze...</p>"
+                                    bodyJson: "<h1>Hikayemiz</h1><p>Doğal ve taze...</p>"
                                 }
                             }
                         },
@@ -52,8 +52,8 @@ async function main() {
                             template: {
                                 create: {
                                     name: "First Discount",
-                                    subject: "Sana Ã–zel %10 Ä°ndirim ğŸ",
-                                    bodyJson: "<h1>Kupon Kodun: WELCOME10</h1><p>Ä°lk sipariÅŸinde kullanabilirsin.</p>"
+                                    subject: "Sana Özel %10 İndirim ğŸ",
+                                    bodyJson: "<h1>Kupon Kodun: WELCOME10</h1><p>İlk siparişinde kullanabilirsin.</p>"
                                 }
                             }
                         }
@@ -80,7 +80,7 @@ async function main() {
                                 create: {
                                     name: "Cart Reminder",
                                     subject: "Sepetindekileri Unutma! ğŸ›’",
-                                    bodyJson: "<h1>Sepetin seni bekliyor</h1><p>TÃ¼kenmeden al.</p>"
+                                    bodyJson: "<h1>Sepetin seni bekliyor</h1><p>Tükenmeden al.</p>"
                                 }
                             }
                         }
@@ -95,7 +95,7 @@ async function main() {
     if (!winback) {
         await prisma.automation.create({
             data: {
-                name: "Geri KazanÄ±m (Win-back)",
+                name: "Geri Kazanım (Win-back)",
                 triggerType: "WINBACK",
                 isActive: true,
                 steps: {
@@ -106,8 +106,8 @@ async function main() {
                             template: {
                                 create: {
                                     name: "We Miss You",
-                                    subject: "Seni Ã–zledik ğŸ˜¢",
-                                    bodyJson: "<h1>Uzun zaman oldu...</h1><p>Seni tekrar aramÄ±zda gÃ¶rmek istiyoruz.</p>"
+                                    subject: "Seni Özledik ğŸ˜¢",
+                                    bodyJson: "<h1>Uzun zaman oldu...</h1><p>Seni tekrar aramızda görmek istiyoruz.</p>"
                                 }
                             }
                         }
@@ -122,7 +122,7 @@ async function main() {
     if (!review) {
         await prisma.automation.create({
             data: {
-                name: "ÃœrÃ¼n Yorumu Ä°steÄŸi",
+                name: "Ürün Yorumu İsteği",
                 triggerType: "REVIEW_REQUEST",
                 isActive: true,
                 steps: {
@@ -138,8 +138,8 @@ async function main() {
                             template: {
                                 create: {
                                     name: "Review Request",
-                                    subject: "SipariÅŸinden memnun kaldÄ±n mÄ±?",
-                                    bodyJson: "<h1>Fikrin bizim iÃ§in Ã¶nemli</h1><p>AldÄ±ÄŸÄ±n Ã¼rÃ¼nleri deÄŸerlendir.</p>"
+                                    subject: "Siparişinden memnun kaldın mı?",
+                                    bodyJson: "<h1>Fikrin bizim için önemli</h1><p>Aldığın ürünleri değerlendir.</p>"
                                 }
                             }
                         }

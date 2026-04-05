@@ -35,9 +35,9 @@ export async function GET(req: NextRequest) {
             take: 20,
         });
 
-        const cities = ["Ä°stanbul", "Ankara", "Ä°zmir", "Bursa", "Antalya", "Konya", "Adana", "Gaziantep"];
+        const cities = ["İstanbul", "Ankara", "İzmir", "Bursa", "Antalya", "Konya", "Adana", "Gaziantep"];
         const anonymize = (name: string | null): string => {
-            if (!name) return "MÃ¼ÅŸteri";
+            if (!name) return "Müşteri";
             const parts = name.split(" ");
             if (parts.length > 1) {
                 return `${parts[0]} ${parts[1][0]}.`;
@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
             const item = order.items[0];
             return {
                 id: order.id,
-                productName: item?.product?.name || "ÃœrÃ¼n",
+                productName: item?.product?.name || "Ürün",
                 productImage: item?.product?.image || null,
                 buyerName: anonymize(order.user?.name ?? null),
                 city: order.user?.district?.name || cities[Math.floor(Math.random() * cities.length)],

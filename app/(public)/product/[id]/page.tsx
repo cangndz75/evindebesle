@@ -68,12 +68,12 @@ export async function generateMetadata({
 
   if (!product) {
     return {
-      title: "ÃœrÃ¼n BulunamadÄ± | Evinde Besle",
-      description: "AradÄ±ÄŸÄ±nÄ±z Ã¼rÃ¼n bulunamadÄ±.",
+      title: "Ürün Bulunamadı | Evinde Besle",
+      description: "Aradığınız ürün bulunamadı.",
     };
   }
 
-  const categoryName = product.category?.name || "ÃœrÃ¼nler";
+  const categoryName = product.category?.name || "Ürünler";
 
   const description = product.description
     ? product.description.slice(0, 160)
@@ -94,7 +94,7 @@ export async function generateMetadata({
       product.brand || "",
       product.fabricType || "",
       "evcil hayvan",
-      "online alÄ±ÅŸveriÅŸ",
+      "online alışveriş",
     ].filter(Boolean),
     openGraph: {
       title: product.name,
@@ -157,7 +157,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   const sizes = product.sizes.map((s: { name: string }) => s.name);
 
-  const categoryName = product.category?.name || "ÃœrÃ¼nler";
+  const categoryName = product.category?.name || "Ürünler";
   const categorySlug = product.category?.slug || "";
 
   const productData = {
@@ -176,7 +176,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     fabric: product.fabricType || "",
     care: "",
     washing: "",
-    delivery: "2-3 iÅŸ gÃ¼nÃ¼ iÃ§inde kargo",
+    delivery: "2-3 iş günü içinde kargo",
     sizeNotes: "",
     rating: avgRating,
     reviewCount: product.reviews.length,
@@ -233,25 +233,25 @@ export default async function ProductPage({ params }: ProductPageProps) {
       <FAQPageSchema
         faqs={[
           {
-            question: "ÃœrÃ¼n ne zaman kargoya verilir?",
-            answer: "SipariÅŸiniz onaylandÄ±ktan sonra 1-2 iÅŸ gÃ¼nÃ¼ iÃ§inde kargoya verilir. Kargo sÃ¼resi 2-3 iÅŸ gÃ¼nÃ¼dÃ¼r."
+            question: "Ürün ne zaman kargoya verilir?",
+            answer: "Siparişiniz onaylandıktan sonra 1-2 iş günü içinde kargoya verilir. Kargo süresi 2-3 iş günüdür."
           },
           {
-            question: "ÃœrÃ¼n deÄŸiÅŸimi yapÄ±labilir mi?",
-            answer: "Evet, Ã¼rÃ¼n teslim tarihinden itibaren 14 gÃ¼n iÃ§inde Ã¼cretsiz deÄŸiÅŸim ve iade hakkÄ±nÄ±z bulunmaktadÄ±r."
+            question: "Ürün değişimi yapılabilir mi?",
+            answer: "Evet, ürün teslim tarihinden itibaren 14 gün içinde ücretsiz değişim ve iade hakkınız bulunmaktadır."
           },
           {
-            question: "ÃœrÃ¼n bakÄ±mÄ± nasÄ±l yapÄ±lmalÄ±?",
-            answer: product.washingInstruction?.content || "ÃœrÃ¼n etiketindeki yÄ±kama talimatlarÄ±na uyunuz. Genellikle 30 derecede makinede yÄ±kanabilir."
+            question: "Ürün bakımı nasıl yapılmalı?",
+            answer: product.washingInstruction?.content || "Ürün etiketindeki yıkama talimatlarına uyunuz. Genellikle 30 derecede makinede yıkanabilir."
           },
           {
-            question: "Kargo Ã¼creti ne kadar?",
-            answer: `${threshold} TL Ã¼zeri alÄ±ÅŸveriÅŸlerde kargo Ã¼cretsizdir. AltÄ±ndaki sipariÅŸlerde kargo bedeli ${shippingPrice.toFixed(2)} TL'dir.`
+            question: "Kargo ücreti ne kadar?",
+            answer: `${threshold} TL üzeri alışverişlerde kargo ücretsizdir. Altındaki siparişlerde kargo bedeli ${shippingPrice.toFixed(2)} TL'dir.`
           }
         ]}
       />
 
-      {/* ÃœrÃ¼n Detay SayfasÄ± */}
+      {/* Ürün Detay Sayfası */}
       <ProductDetailPage product={productData} />
     </>
   );

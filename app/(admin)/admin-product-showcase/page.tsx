@@ -98,7 +98,7 @@ export default function AdminShowcasePage() {
       }
     } catch (e) {
       console.error(e);
-      toast.error("Vitrin listesi yÃ¼klenemedi");
+      toast.error("Vitrin listesi yüklenemedi");
     } finally {
       setLoading(false);
     }
@@ -106,7 +106,7 @@ export default function AdminShowcasePage() {
 
   const handleAdd = async (product: ProductBasics) => {
     if (showcaseItems.length >= 8) {
-      toast.error("En fazla 8 Ã¼rÃ¼n eklenebilir.");
+      toast.error("En fazla 8 ürün eklenebilir.");
       return;
     }
     try {
@@ -121,10 +121,10 @@ export default function AdminShowcasePage() {
         fetchShowcaseItems();
       } else {
         const err = await res.json();
-        toast.error(err.error || "Hata oluÅŸtu");
+        toast.error(err.error || "Hata oluştu");
       }
     } catch (e) {
-      toast.error("Bir hata oluÅŸtu");
+      toast.error("Bir hata oluştu");
     }
   };
 
@@ -132,13 +132,13 @@ export default function AdminShowcasePage() {
     try {
       const res = await fetch(`/api/admin-showcase?productId=${productId}`, { method: "DELETE" });
       if (res.ok) {
-        toast.success("Vitrinden Ã§Ä±karÄ±ldÄ±!");
+        toast.success("Vitrinden çıkarıldı!");
         fetchShowcaseItems();
       } else {
         toast.error("Silinemedi");
       }
     } catch (e) {
-      toast.error("Bir hata oluÅŸtu");
+      toast.error("Bir hata oluştu");
     }
   };
 
@@ -165,13 +165,13 @@ export default function AdminShowcasePage() {
       });
 
       if (!res.ok) {
-        toast.error("SÄ±ralama gÃ¼ncellenemedi");
+        toast.error("Sıralama güncellenemedi");
         fetchShowcaseItems(); // revert
       } else {
-        toast.success("SÄ±ralama gÃ¼ncellendi");
+        toast.success("Sıralama güncellendi");
       }
     } catch (e) {
-      toast.error("SÄ±ralama yÃ¼klenirken hata oluÅŸtu");
+      toast.error("Sıralama yüklenirken hata oluştu");
     }
   };
 
@@ -192,23 +192,23 @@ export default function AdminShowcasePage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Ana Sayfa Vitrini (Showcase)</h1>
         <p className="text-muted-foreground mt-2">
-          Ana sayfadaki ilk bÃ¼yÃ¼k slider'da (Product Showcase) gÃ¶rÃ¼necek en fazla 8 Ã¼rÃ¼nÃ¼ yÃ¶netin ve sÄ±rasÄ±nÄ± belirleyin.
+          Ana sayfadaki ilk büyük slider'da (Product Showcase) görünecek en fazla 8 ürünü yönetin ve sırasını belirleyin.
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* ÃœrÃ¼n Arama */}
+        {/* Ürün Arama */}
         <Card>
           <CardHeader>
-            <CardTitle>ÃœrÃ¼n Ara ve Ekle</CardTitle>
-            <CardDescription>Ä°sme veya stok koduna gÃ¶re arama yapabilirsiniz</CardDescription>
+            <CardTitle>Ürün Ara ve Ekle</CardTitle>
+            <CardDescription>İsme veya stok koduna göre arama yapabilirsiniz</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="ÃœrÃ¼n adÄ± veya kodu yazÄ±n..."
+                  placeholder="Ürün adı veya kodu yazın..."
                   className="pl-9"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -221,9 +221,9 @@ export default function AdminShowcasePage() {
                     <SelectValue placeholder="Cinsiyet" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">TÃ¼m Cinsiyetler</SelectItem>
+                    <SelectItem value="all">Tüm Cinsiyetler</SelectItem>
                     <SelectItem value="male">Erkek</SelectItem>
-                    <SelectItem value="female">KadÄ±n</SelectItem>
+                    <SelectItem value="female">Kadın</SelectItem>
                     <SelectItem value="unisex">Unisex</SelectItem>
                   </SelectContent>
                 </Select>
@@ -233,7 +233,7 @@ export default function AdminShowcasePage() {
                     <SelectValue placeholder="Kategori" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">TÃ¼m Kategoriler</SelectItem>
+                    <SelectItem value="all">Tüm Kategoriler</SelectItem>
                     {categories.map((cat) => (
                       <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
                     ))}
@@ -244,7 +244,7 @@ export default function AdminShowcasePage() {
 
             {(search.length >= 2 || selectedCategoryId !== "all" || selectedGender !== "all") && searchResults.length === 0 && !searching && (
               <div className="text-center py-8 text-sm text-gray-400 font-light italic">
-                SonuÃ§ bulunamadÄ±
+                Sonuç bulunamadı
               </div>
             )}
 
@@ -297,26 +297,26 @@ export default function AdminShowcasePage() {
         <Card>
           <CardHeader>
              <CardTitle className="flex justify-between items-center">
-                Vitrindeki ÃœrÃ¼nler
+                Vitrindeki Ürünler
                 <span className="text-sm font-normal text-muted-foreground bg-gray-100 px-2 py-1 rounded">
                    {showcaseItems.length} / 8 Eklendi
                 </span>
              </CardTitle>
-             <CardDescription>Vitrindeki Ã¼rÃ¼nleri ve sÄ±rasÄ±nÄ± gÃ¶rÃ¼ntÃ¼leyin</CardDescription>
+             <CardDescription>Vitrindeki ürünleri ve sırasını görüntüleyin</CardDescription>
           </CardHeader>
           <CardContent>
              {loading ? (
-                <div className="text-center py-4 text-sm text-gray-500">YÃ¼kleniyor...</div>
+                <div className="text-center py-4 text-sm text-gray-500">Yükleniyor...</div>
              ) : showcaseItems.length === 0 ? (
-                <div className="text-center py-4 text-sm text-gray-500">Vitrinde henÃ¼z Ã¼rÃ¼n yok.</div>
+                <div className="text-center py-4 text-sm text-gray-500">Vitrinde henüz ürün yok.</div>
              ) : (
                 <Table>
                    <TableHeader>
                       <TableRow>
-                         <TableHead>SÄ±ra</TableHead>
+                         <TableHead>Sıra</TableHead>
                          <TableHead>Resim</TableHead>
-                         <TableHead>ÃœrÃ¼n AdÄ±</TableHead>
-                         <TableHead className="text-right">Ä°ÅŸlem</TableHead>
+                         <TableHead>Ürün Adı</TableHead>
+                         <TableHead className="text-right">İşlem</TableHead>
                       </TableRow>
                    </TableHeader>
                    <TableBody>

@@ -86,9 +86,9 @@ export function AdminNotificationBell() {
                 body: JSON.stringify({ markAllRead: true }),
             });
             mutate();
-            toast.success("TÃ¼m bildirimler okundu olarak iÅŸaretlendi");
+            toast.success("Tüm bildirimler okundu olarak işaretlendi");
         } catch (error) {
-            toast.error("Bir hata oluÅŸtu");
+            toast.error("Bir hata oluştu");
         }
     };
 
@@ -138,7 +138,7 @@ export function AdminNotificationBell() {
                             className="h-auto px-2 py-0.5 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                         >
                             <CheckCheck className="mr-1 h-3 w-3" />
-                            TÃ¼mÃ¼nÃ¼ Okundu Ä°ÅŸaretle
+                            Tümünü Okundu İşaretle
                         </Button>
                     )}
                 </DropdownMenuLabel>
@@ -147,7 +147,7 @@ export function AdminNotificationBell() {
                     {notifications.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-40 text-gray-500">
                             <Bell className="h-8 w-8 mb-2 opacity-20" />
-                            <p className="text-sm">HenÃ¼z bildirim yok.</p>
+                            <p className="text-sm">Henüz bildirim yok.</p>
                         </div>
                     ) : (
                         <div className="flex flex-col p-1">

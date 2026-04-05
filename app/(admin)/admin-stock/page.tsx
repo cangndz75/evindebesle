@@ -78,7 +78,7 @@ export default function StockManagementPage() {
       }
     } catch (error) {
       console.error("Error fetching stock data:", error);
-      toast.error("Stok verileri yÃ¼klenirken bir hata oluÅŸtu");
+      toast.error("Stok verileri yüklenirken bir hata oluştu");
     } finally {
       setLoading(false);
     }
@@ -108,13 +108,13 @@ export default function StockManagementPage() {
       });
 
       if (res.ok) {
-        toast.success("Stok gÃ¼ncellendi");
+        toast.success("Stok güncellendi");
         fetchStockData();
       } else {
-        throw new Error("GÃ¼ncelleme baÅŸarÄ±sÄ±z");
+        throw new Error("Güncelleme başarısız");
       }
     } catch (error) {
-      toast.error("GÃ¼ncelleme hatasÄ±");
+      toast.error("Güncelleme hatası");
       console.error(error);
     }
   };
@@ -138,18 +138,18 @@ export default function StockManagementPage() {
         <div>
           <h1 className="text-2xl md:text-3xl font-bold">Stok ve Tedarik</h1>
           <p className="text-sm text-gray-600 mt-1">
-            ÃœrÃ¼n varyantlarÄ±nÄ± hÄ±zlÄ±ca yÃ¶netin
+            Ürün varyantlarını hızlıca yönetin
           </p>
         </div>
         <div>
           <Button variant="outline" onClick={() => router.push("/admin-stock/movements")}>
             <Package className="w-4 h-4 mr-2" />
-            GeÃ§miÅŸ Hareketler
+            Geçmiş Hareketler
           </Button>
         </div>
       </div>
 
-      {/* Ã–zet Kartlar */}
+      {/* Özet Kartlar */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-3">
@@ -163,7 +163,7 @@ export default function StockManagementPage() {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 text-amber-500" />
-              DÃ¼ÅŸÃ¼k Stok
+              Düşük Stok
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -174,7 +174,7 @@ export default function StockManagementPage() {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
               <Package className="w-4 h-4 text-red-500" />
-              TÃ¼kenen Stok
+              Tükenen Stok
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -186,7 +186,7 @@ export default function StockManagementPage() {
       {/* Filtreler */}
       <div className="flex flex-col md:flex-row gap-4">
         <Input
-          placeholder="ÃœrÃ¼n adÄ±, renk veya stok kodu..."
+          placeholder="Ürün adı, renk veya stok kodu..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="flex-1"
@@ -196,9 +196,9 @@ export default function StockManagementPage() {
             <SelectValue placeholder="Filtrele" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">TÃ¼mÃ¼</SelectItem>
-            <SelectItem value="lowStock">DÃ¼ÅŸÃ¼k Stok</SelectItem>
-            <SelectItem value="outOfStock">TÃ¼kenen Stok</SelectItem>
+            <SelectItem value="all">Tümü</SelectItem>
+            <SelectItem value="lowStock">Düşük Stok</SelectItem>
+            <SelectItem value="outOfStock">Tükenen Stok</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -212,7 +212,7 @@ export default function StockManagementPage() {
         </div>
       ) : filteredItems.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
-          KayÄ±t bulunamadÄ±
+          Kayıt bulunamadı
         </div>
       ) : (
         <Card>
@@ -224,13 +224,13 @@ export default function StockManagementPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>ÃœrÃ¼n</TableHead>
+                    <TableHead>Ürün</TableHead>
                     <TableHead>Renk</TableHead>
                     <TableHead>Stok Kodu</TableHead>
                     <TableHead>Toplam Stok</TableHead>
                     <TableHead>Durum</TableHead>
                     <TableHead className="w-[50px]"></TableHead>
-                    <TableHead className="text-right">Ä°ÅŸlemler</TableHead>
+                    <TableHead className="text-right">İşlemler</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -269,7 +269,7 @@ export default function StockManagementPage() {
                           </TableCell>
                           <TableCell>
                             {isOutOfStock ? (
-                              <Badge className="bg-red-100 text-red-800 hover:bg-red-100">TÃ¼kendi</Badge>
+                              <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Tükendi</Badge>
                             ) : isLowStock ? (
                               <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">Kritik</Badge>
                             ) : (
@@ -292,7 +292,7 @@ export default function StockManagementPage() {
                               variant="default"
                               onClick={() => setSelectedProductForModal(item.productId)}
                             >
-                              Stok GÃ¼ncelle
+                              Stok Güncelle
                             </Button>
                           </TableCell>
                         </TableRow>

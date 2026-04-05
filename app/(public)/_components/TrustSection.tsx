@@ -6,23 +6,23 @@ import { useState } from "react";
 const trustItems = [
   {
     icon: ArrowLeftRight,
-    title: "30 GÃ¼n Kolay Ä°ade",
-    description: "Ãœcretsiz iade ve deÄŸiÅŸim",
+    title: "30 Gün Kolay İade",
+    description: "Ücretsiz iade ve değişim",
   },
   {
     icon: ShieldCheck,
     title: "Gizli Paketleme",
-    description: "Ã–zel ve gÃ¼venli teslimat",
+    description: "Özel ve güvenli teslimat",
   },
   {
     icon: Truck,
-    title: "HÄ±zlÄ± Teslimat",
-    description: "2-3 iÅŸ gÃ¼nÃ¼ iÃ§inde",
+    title: "Hızlı Teslimat",
+    description: "2-3 iş günü içinde",
   },
   {
     icon: ShieldCheck,
-    title: "GÃ¼venli Ã–deme",
-    description: "256-bit SSL ÅŸifreleme",
+    title: "Güvenli Ödeme",
+    description: "256-bit SSL şifreleme",
   },
 ];
 
@@ -31,13 +31,13 @@ export default function TrustSection() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Newsletter kayÄ±t:", email);
+    console.log("Newsletter kayıt:", email);
     setEmail("");
   };
 
   return (
     <section className="w-full bg-[#fafafa]">
-      {/* GÃ¼ven UnsurlarÄ± */}
+      {/* Güven Unsurları */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-16">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
           {trustItems.map((item, index) => {
@@ -65,7 +65,7 @@ export default function TrustSection() {
           Yeni Koleksiyonlardan Haberdar Ol
         </h2>
         <p className="text-base md:text-lg text-gray-700 font-light mb-8 max-w-2xl mx-auto">
-          Ã–zel kampanyalar, yeni Ã¼rÃ¼nler ve stil Ã¶nerileri iÃ§in e-posta listemize katÄ±lÄ±n.
+          Özel kampanyalar, yeni ürünler ve stil önerileri için e-posta listemize katılın.
         </p>
         <form onSubmit={handleSubmit} className="max-w-lg mx-auto">
           <div className="flex gap-2">
@@ -81,7 +81,7 @@ export default function TrustSection() {
               type="submit"
               className="px-8 py-3 bg-black text-white font-light tracking-wide hover:bg-gray-800 transition-colors text-sm uppercase"
             >
-              KatÄ±l
+              Katıl
             </button>
           </div>
         </form>

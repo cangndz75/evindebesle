@@ -75,7 +75,7 @@ export async function GET(req: Request) {
     });
     return jsonNoStore(configs);
   } catch (error) {
-    return jsonNoStore({ error: "Veriler alÄ±namadÄ±" }, { status: 500 });
+    return jsonNoStore({ error: "Veriler alınamadı" }, { status: 500 });
   }
 }
 

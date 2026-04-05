@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            return NextResponse.json({ error: "GeÃ§ersiz e-posta adresi" }, { status: 400 });
+            return NextResponse.json({ error: "Geçersiz e-posta adresi" }, { status: 400 });
         }
 
         const existing = await prisma.priceAlert.findFirst({
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
                     currentPrice,
                 },
             });
-            return NextResponse.json({ success: true, message: "Bildirim gÃ¼ncellendi" });
+            return NextResponse.json({ success: true, message: "Bildirim güncellendi" });
         }
 
         await prisma.priceAlert.create({

@@ -226,24 +226,24 @@ import { Metadata } from "next";
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://darkvelvet.com";
 
 export const metadata: Metadata = {
-  title: "Dark Velvet | Premium Ä°Ã§ ve DÄ±ÅŸ Giyim Koleksiyonu",
-  description: "TÃ¼rkiye'nin Ã¶nde gelen premium iÃ§ giyim markasÄ±. KadÄ±n ve erkek iÃ§in kaliteli iÃ§ Ã§amaÅŸÄ±rÄ±, kÃ¼lot, sÃ¼tyen, boxer, sweat koleksiyonlarÄ±. Ãœcretsiz kargo, hÄ±zlÄ± teslimat.",
+  title: "Dark Velvet | Premium İç ve Dış Giyim Koleksiyonu",
+  description: "Türkiye'nin önde gelen premium iç giyim markası. Kadın ve erkek için kaliteli iç çamaşırı, külot, sütyen, boxer, sweat koleksiyonları. Ücretsiz kargo, hızlı teslimat.",
   keywords: [
-    "iÃ§ Ã§amaÅŸÄ±rÄ±",
-    "kadÄ±n iÃ§ Ã§amaÅŸÄ±rÄ±",
-    "erkek iÃ§ Ã§amaÅŸÄ±rÄ±",
-    "kÃ¼lot",
-    "sÃ¼tyen",
+    "iç çamaşırı",
+    "kadın iç çamaşırı",
+    "erkek iç çamaşırı",
+    "külot",
+    "sütyen",
     "boxer",
     "sweat",
     "Dark Velvet",
-    "premium iÃ§ giyim",
-    "online iÃ§ Ã§amaÅŸÄ±rÄ±",
-    "iÃ§ giyim maÄŸazasÄ±"
+    "premium iç giyim",
+    "online iç çamaşırı",
+    "iç giyim mağazası"
   ],
   openGraph: {
-    title: "Dark Velvet - Premium Ä°Ã§ Giyim",
-    description: "TÃ¼rkiye'nin Ã¶nde gelen premium iÃ§ giyim markasÄ±. Kaliteli ve ÅŸÄ±k tasarÄ±mlar.",
+    title: "Dark Velvet - Premium İç Giyim",
+    description: "Türkiye'nin önde gelen premium iç giyim markası. Kaliteli ve şık tasarımlar.",
     url: `${BASE_URL}/home`,
     type: "website",
     locale: "tr_TR",
@@ -253,14 +253,14 @@ export const metadata: Metadata = {
         url: `${BASE_URL}/og-home.jpg`,
         width: 1200,
         height: 630,
-        alt: "Dark Velvet Premium Ä°Ã§ Giyim"
+        alt: "Dark Velvet Premium İç Giyim"
       }
     ]
   },
   twitter: {
     card: "summary_large_image",
-    title: "Dark Velvet - Premium Ä°Ã§ Giyim",
-    description: "TÃ¼rkiye'nin Ã¶nde gelen premium iÃ§ giyim markasÄ±"
+    title: "Dark Velvet - Premium İç Giyim",
+    description: "Türkiye'nin önde gelen premium iç giyim markası"
   },
   alternates: {
     canonical: `${BASE_URL}/home`

@@ -63,12 +63,12 @@ export default function TicketDetailPage() {
                 body: JSON.stringify({ content: replyMessage }),
             });
 
-            if (!response.ok) throw new Error("Mesaj gÃ¶nderilemedi");
+            if (!response.ok) throw new Error("Mesaj gönderilemedi");
 
             setReplyMessage("");
             mutate(); // Refresh messages
         } catch (error) {
-            toast.error("Mesaj gÃ¶nderilirken bir hata oluÅŸtu");
+            toast.error("Mesaj gönderilirken bir hata oluştu");
         } finally {
             setIsSending(false);
         }
@@ -85,9 +85,9 @@ export default function TicketDetailPage() {
     if (!ticket) {
         return (
             <div className="text-center py-12">
-                <h2 className="text-xl font-semibold">Talep bulunamadÄ±</h2>
+                <h2 className="text-xl font-semibold">Talep bulunamadı</h2>
                 <Link href="/profile/support">
-                    <Button variant="link" className="mt-2">Listeye DÃ¶n</Button>
+                    <Button variant="link" className="mt-2">Listeye Dön</Button>
                 </Link>
             </div>
         );
@@ -106,12 +106,12 @@ export default function TicketDetailPage() {
                     <div className="flex items-center gap-3 mb-1">
                         <h1 className="text-xl font-bold truncate">{ticket.subject}</h1>
                         <Badge variant={ticket.status === 'open' ? 'default' : 'secondary'} className="uppercase text-[10px]">
-                            {ticket.status === 'open' ? 'AÃ§Ä±k' : ticket.status}
+                            {ticket.status === 'open' ? 'Açık' : ticket.status}
                         </Badge>
                     </div>
                     <p className="text-xs text-muted-foreground flex gap-2">
                         <span>#{ticket.id.slice(-6)}</span>
-                        <span>â€¢</span>
+                        <span>•</span>
                         <span>{format(new Date(ticket.createdAt), "d MMMM yyyy HH:mm", { locale: tr })}</span>
                     </p>
                 </div>
@@ -157,14 +157,14 @@ export default function TicketDetailPage() {
                 <div className="p-4 bg-white border-t">
                     {ticket.status === 'closed' ? (
                         <div className="text-center py-4 bg-gray-50 rounded-lg border border-dashed text-gray-500 text-sm">
-                            Bu talep kapatÄ±lmÄ±ÅŸtÄ±r. Yeni bir cevap yazamazsÄ±nÄ±z.
+                            Bu talep kapatılmıştır. Yeni bir cevap yazamazsınız.
                         </div>
                     ) : (
                         <div className="flex gap-2">
                             <Textarea
                                 value={replyMessage}
                                 onChange={(e) => setReplyMessage(e.target.value)}
-                                placeholder="Bir cevap yazÄ±n..."
+                                placeholder="Bir cevap yazın..."
                                 className="min-h-[50px] max-h-[150px] resize-none"
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter' && !e.shiftKey) {

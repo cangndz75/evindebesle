@@ -68,14 +68,14 @@ export async function POST(req: NextRequest) {
 
             if (!product) {
                 return NextResponse.json(
-                    { error: "ÃœrÃ¼n bulunamadÄ±" },
+                    { error: "Ürün bulunamadı" },
                     { status: 404 }
                 );
             }
 
             if (product.stockCode) {
                 return NextResponse.json(
-                    { error: "Bu Ã¼rÃ¼nÃ¼n zaten bir stok kodu var", stockCode: product.stockCode },
+                    { error: "Bu ürünün zaten bir stok kodu var", stockCode: product.stockCode },
                     { status: 400 }
                 );
             }
@@ -109,7 +109,7 @@ export async function POST(req: NextRequest) {
 
             return NextResponse.json({
                 success: true,
-                message: `${result.updated} Ã¼rÃ¼n iÃ§in stok kodu oluÅŸturuldu`,
+                message: `${result.updated} ürün için stok kodu oluşturuldu`,
                 updated: result.updated,
                 failed: result.failed,
             });
@@ -122,7 +122,7 @@ export async function POST(req: NextRequest) {
     } catch (error) {
         console.error("Error generating SKU:", error);
         return NextResponse.json(
-            { error: "Stok kodu oluÅŸturulurken hata oluÅŸtu" },
+            { error: "Stok kodu oluşturulurken hata oluştu" },
             { status: 500 }
         );
     }

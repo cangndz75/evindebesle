@@ -52,7 +52,7 @@ export default function ProductSelectionModal({ selectedIds, onSelect, trigger }
                     setCategories(data);
                 }
             } catch (error) {
-                console.error("Kategoriler yÃ¼klenirken hata:", error);
+                console.error("Kategoriler yüklenirken hata:", error);
             }
         };
         fetchCategories();
@@ -71,8 +71,8 @@ export default function ProductSelectionModal({ selectedIds, onSelect, trigger }
                 setProducts(Array.isArray(data) ? data : []);
             }
         } catch (error) {
-            console.error("ÃœrÃ¼nler yÃ¼klenirken hata:", error);
-            toast.error("ÃœrÃ¼nler yÃ¼klenirken hata oluÅŸtu");
+            console.error("Ürünler yüklenirken hata:", error);
+            toast.error("Ürünler yüklenirken hata oluştu");
         } finally {
             setLoading(false);
         }
@@ -82,7 +82,7 @@ export default function ProductSelectionModal({ selectedIds, onSelect, trigger }
         if (open) {
             searchProducts();
         }
-    }, [open, categoryId]); // Kategori deÄŸiÅŸince otomatik ara
+    }, [open, categoryId]); // Kategori değişince otomatik ara
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -98,7 +98,7 @@ export default function ProductSelectionModal({ selectedIds, onSelect, trigger }
             if (selectedProducts.some(p => p.id === product.id)) {
                 setSelectedProducts(prev => prev.filter(p => p.id !== product.id));
             } else {
-                toast.warning("Bu Ã¼rÃ¼n zaten ekli.");
+                toast.warning("Bu ürün zaten ekli.");
             }
         } else {
             setSelectedProducts(prev => [...prev, product]);
@@ -117,13 +117,13 @@ export default function ProductSelectionModal({ selectedIds, onSelect, trigger }
                 {trigger || (
                     <Button variant="outline" size="sm" className="h-9">
                         <Plus className="w-4 h-4 mr-2" />
-                        ÃœrÃ¼n Ekle
+                        Ürün Ekle
                     </Button>
                 )}
             </DialogTrigger>
             <DialogContent className="max-w-4xl h-[80vh] flex flex-col p-0 gap-0">
                 <DialogHeader className="p-6 pb-2 border-b">
-                    <DialogTitle>TakÄ±mÄ± Tamamla - ÃœrÃ¼n SeÃ§imi</DialogTitle>
+                    <DialogTitle>Takımı Tamamla - Ürün Seçimi</DialogTitle>
                 </DialogHeader>
 
                 <div className="flex flex-1 overflow-hidden">
@@ -135,7 +135,7 @@ export default function ProductSelectionModal({ selectedIds, onSelect, trigger }
                             className="justify-start text-left font-normal"
                             onClick={() => setCategoryId("")}
                         >
-                            TÃ¼mÃ¼
+                            Tümü
                         </Button>
                         {categories.map(cat => (
                             <Button
@@ -149,14 +149,14 @@ export default function ProductSelectionModal({ selectedIds, onSelect, trigger }
                         ))}
                     </div>
 
-                    {/* SaÄŸ Taraf - ÃœrÃ¼n Listesi */}
+                    {/* Sağ Taraf - Ürün Listesi */}
                     <div className="flex-1 flex flex-col overflow-hidden">
-                        {/* Arama BarÄ± */}
+                        {/* Arama Barı */}
                         <div className="p-4 border-b flex gap-3 items-center bg-white">
                             <div className="relative flex-1">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                                 <Input
-                                    placeholder="ÃœrÃ¼n adÄ±, renk veya kod ile ara..."
+                                    placeholder="Ürün adı, renk veya kod ile ara..."
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
                                     className="pl-9"
@@ -164,16 +164,16 @@ export default function ProductSelectionModal({ selectedIds, onSelect, trigger }
                             </div>
                         </div>
 
-                        {/* ÃœrÃ¼n Grid */}
+                        {/* Ürün Grid */}
                         <div className="flex-1 overflow-y-auto p-4 content-start">
                             {loading ? (
                                 <div className="flex items-center justify-center h-full text-gray-500">
-                                    YÃ¼kleniyor...
+                                    Yükleniyor...
                                 </div>
                             ) : products.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center h-full text-gray-500 gap-2">
                                     <Search className="w-8 h-8 opacity-20" />
-                                    <p>ÃœrÃ¼n bulunamadÄ±</p>
+                                    <p>Ürün bulunamadı</p>
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -188,7 +188,7 @@ export default function ProductSelectionModal({ selectedIds, onSelect, trigger }
                                                 )}
                                                 onClick={() => toggleSelection(product)}
                                             >
-                                                {/* SeÃ§im Ä°ndikatÃ¶rÃ¼ */}
+                                                {/* Seçim İndikatörü */}
                                                 <div className={cn(
                                                     "absolute top-2 right-2 z-10 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors shadow-sm",
                                                     isSelected ? "bg-green-500 border-green-500" : "bg-white border-gray-200 group-hover:border-gray-400"
@@ -200,19 +200,19 @@ export default function ProductSelectionModal({ selectedIds, onSelect, trigger }
                                                     {product.image ? (
                                                         <Image src={product.image} alt={product.name} fill className="object-cover" />
                                                     ) : (
-                                                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">GÃ¶rsel Yok</div>
+                                                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">Görsel Yok</div>
                                                     )}
                                                     {/* Stok Bilgisi */}
                                                     {product.stock <= 0 && (
                                                         <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[10px] text-center py-1">
-                                                            TÃ¼kendi
+                                                            Tükendi
                                                         </div>
                                                     )}
                                                 </div>
                                                 <div className="p-3">
                                                     <h4 className="font-medium text-sm line-clamp-1">{product.name}</h4>
                                                     <div className="flex justify-between items-center mt-2">
-                                                        <span className="font-semibold text-sm">{product.price.toFixed(2)} â‚º</span>
+                                                        <span className="font-semibold text-sm">{product.price.toFixed(2)} ₺</span>
                                                         <span className="text-xs text-gray-500">{product.gender}</span>
                                                     </div>
                                                 </div>
@@ -223,15 +223,15 @@ export default function ProductSelectionModal({ selectedIds, onSelect, trigger }
                             )}
                         </div>
 
-                        {/* Footer - SeÃ§ilenler ve Aksiyon */}
+                        {/* Footer - Seçilenler ve Aksiyon */}
                         <div className="p-4 border-t bg-gray-50 flex items-center justify-between">
                             <div className="text-sm text-gray-600">
-                                {selectedProducts.length} yeni Ã¼rÃ¼n seÃ§ildi
+                                {selectedProducts.length} yeni ürün seçildi
                             </div>
                             <div className="flex gap-2">
-                                <Button variant="outline" onClick={() => setOpen(false)}>Ä°ptal</Button>
+                                <Button variant="outline" onClick={() => setOpen(false)}>İptal</Button>
                                 <Button onClick={handleConfirm} disabled={selectedProducts.length === 0}>
-                                    SeÃ§ilenleri Ekle ({selectedProducts.length})
+                                    Seçilenleri Ekle ({selectedProducts.length})
                                 </Button>
                             </div>
                         </div>

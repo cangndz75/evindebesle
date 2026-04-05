@@ -102,7 +102,7 @@ export default function AdminTabbedCarouselPage() {
       }
     } catch (e) {
       console.error(e);
-      toast.error("Liste yÃ¼klenemedi");
+      toast.error("Liste yüklenemedi");
     } finally {
       setLoading(false);
     }
@@ -110,7 +110,7 @@ export default function AdminTabbedCarouselPage() {
 
   const handleAdd = async (product: ProductBasics) => {
     if (tabItems.length >= 15) {
-      toast.error("En fazla 15 Ã¼rÃ¼n eklenebilir.");
+      toast.error("En fazla 15 ürün eklenebilir.");
       return;
     }
     try {
@@ -125,10 +125,10 @@ export default function AdminTabbedCarouselPage() {
         fetchTabItems();
       } else {
         const err = await res.json();
-        toast.error(err.error || "Hata oluÅŸtu");
+        toast.error(err.error || "Hata oluştu");
       }
     } catch (e) {
-      toast.error("Bir hata oluÅŸtu");
+      toast.error("Bir hata oluştu");
     }
   };
 
@@ -136,13 +136,13 @@ export default function AdminTabbedCarouselPage() {
     try {
       const res = await fetch(`/api/admin-tabbed-carousel?productId=${productId}&tab=${activeTab}`, { method: "DELETE" });
       if (res.ok) {
-        toast.success("Listeden Ã§Ä±karÄ±ldÄ±!");
+        toast.success("Listeden çıkarıldı!");
         fetchTabItems();
       } else {
         toast.error("Silinemedi");
       }
     } catch (e) {
-      toast.error("Bir hata oluÅŸtu");
+      toast.error("Bir hata oluştu");
     }
   };
 
@@ -169,13 +169,13 @@ export default function AdminTabbedCarouselPage() {
       });
 
       if (!res.ok) {
-        toast.error("SÄ±ralama gÃ¼ncellenemedi");
+        toast.error("Sıralama güncellenemedi");
         fetchTabItems(); // revert
       } else {
-        toast.success("SÄ±ralama gÃ¼ncellendi");
+        toast.success("Sıralama güncellendi");
       }
     } catch (e) {
-      toast.error("SÄ±ralama yÃ¼klenirken hata oluÅŸtu");
+      toast.error("Sıralama yüklenirken hata oluştu");
     }
   };
 
@@ -194,32 +194,32 @@ export default function AdminTabbedCarouselPage() {
   return (
     <div className="space-y-6 lg:p-6 p-4">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Sekmeli KaydÄ±rÄ±cÄ±lar (Carousel)</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Sekmeli Kaydırıcılar (Carousel)</h1>
         <p className="text-muted-foreground mt-2">
-          Ana sayfadaki sekmeli kaydÄ±rÄ±cÄ±daki Ã¼rÃ¼nleri (Yeni Gelenler, Ã‡ok Satanlar, Ã–nerilenler) yÃ¶netin.
+          Ana sayfadaki sekmeli kaydırıcıdaki ürünleri (Yeni Gelenler, Çok Satanlar, Önerilenler) yönetin.
         </p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="mb-4">
           <TabsTrigger value="new-arrivals">Yeni Gelenler</TabsTrigger>
-          <TabsTrigger value="best-sellers">Ã‡ok Satanlar</TabsTrigger>
-          <TabsTrigger value="recommended">Ã–nerilenler</TabsTrigger>
+          <TabsTrigger value="best-sellers">Çok Satanlar</TabsTrigger>
+          <TabsTrigger value="recommended">Önerilenler</TabsTrigger>
         </TabsList>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-          {/* ÃœrÃ¼n Arama */}
+          {/* Ürün Arama */}
           <Card>
             <CardHeader>
-              <CardTitle>ÃœrÃ¼n Ara ve Ekle</CardTitle>
-              <CardDescription>Ä°lgili sekmeye eklemek iÃ§in arama yapÄ±n</CardDescription>
+              <CardTitle>Ürün Ara ve Ekle</CardTitle>
+              <CardDescription>İlgili sekmeye eklemek için arama yapın</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="ÃœrÃ¼n adÄ± veya kodu yazÄ±n..."
+                    placeholder="Ürün adı veya kodu yazın..."
                     className="pl-9"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
@@ -232,9 +232,9 @@ export default function AdminTabbedCarouselPage() {
                       <SelectValue placeholder="Cinsiyet" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">TÃ¼m Cinsiyetler</SelectItem>
+                      <SelectItem value="all">Tüm Cinsiyetler</SelectItem>
                       <SelectItem value="male">Erkek</SelectItem>
-                      <SelectItem value="female">KadÄ±n</SelectItem>
+                      <SelectItem value="female">Kadın</SelectItem>
                       <SelectItem value="unisex">Unisex</SelectItem>
                     </SelectContent>
                   </Select>
@@ -244,7 +244,7 @@ export default function AdminTabbedCarouselPage() {
                       <SelectValue placeholder="Kategori" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">TÃ¼m Kategoriler</SelectItem>
+                      <SelectItem value="all">Tüm Kategoriler</SelectItem>
                       {categories.map((cat) => (
                         <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
                       ))}
@@ -255,7 +255,7 @@ export default function AdminTabbedCarouselPage() {
 
               {(search.length >= 2 || selectedCategoryId !== "all" || selectedGender !== "all") && searchResults.length === 0 && !searching && (
                 <div className="text-center py-8 text-sm text-gray-400 font-light italic">
-                  SonuÃ§ bulunamadÄ±
+                  Sonuç bulunamadı
                 </div>
               )}
 
@@ -308,26 +308,26 @@ export default function AdminTabbedCarouselPage() {
           <Card>
             <CardHeader>
                <CardTitle className="flex justify-between items-center">
-                  Ekli ÃœrÃ¼nler
+                  Ekli Ürünler
                   <span className="text-sm font-normal text-muted-foreground bg-gray-100 px-2 py-1 rounded">
                      {tabItems.length} / 15 Eklendi
                   </span>
                </CardTitle>
-               <CardDescription>Bu sekmedeki Ã¼rÃ¼nleri sÄ±ralayÄ±n veya Ã§Ä±kartÄ±n</CardDescription>
+               <CardDescription>Bu sekmedeki ürünleri sıralayın veya çıkartın</CardDescription>
             </CardHeader>
             <CardContent>
                {loading ? (
-                  <div className="text-center py-4 text-sm text-gray-500">YÃ¼kleniyor...</div>
+                  <div className="text-center py-4 text-sm text-gray-500">Yükleniyor...</div>
                ) : tabItems.length === 0 ? (
-                  <div className="text-center py-4 text-sm text-gray-500">Bu sekmede henÃ¼z Ã¼rÃ¼n yok.</div>
+                  <div className="text-center py-4 text-sm text-gray-500">Bu sekmede henüz ürün yok.</div>
                ) : (
                   <Table>
                      <TableHeader>
                         <TableRow>
-                           <TableHead>SÄ±ra</TableHead>
+                           <TableHead>Sıra</TableHead>
                            <TableHead>Resim</TableHead>
-                           <TableHead>ÃœrÃ¼n AdÄ±</TableHead>
-                           <TableHead className="text-right">Ä°ÅŸlem</TableHead>
+                           <TableHead>Ürün Adı</TableHead>
+                           <TableHead className="text-right">İşlem</TableHead>
                         </TableRow>
                      </TableHeader>
                      <TableBody>

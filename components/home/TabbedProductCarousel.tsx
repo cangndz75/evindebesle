@@ -96,15 +96,15 @@ export default function TabbedProductCarousel({
           className="w-full"
           onValueChange={handleTabChange}
         >
-          {/* Modern Header - OrtalanmÄ±ÅŸ */}
+          {/* Modern Header - Ortalanmış */}
           <div className="flex flex-col items-center mb-12 px-4">
-            {/* BaÅŸlÄ±k */}
+            {/* Başlık */}
             <div className="text-center mb-8">
               <span className="inline-block text-xs font-medium tracking-[0.3em] text-[#111]/40 uppercase mb-3">
-                KEÅFET
+                KEŞFET
               </span>
               <h2 className="text-3xl md:text-4xl font-light text-[#111] tracking-tight">
-                Sizin Ä°Ã§in SeÃ§tiklerimiz
+                Sizin İçin Seçtiklerimiz
               </h2>
             </div>
 
@@ -120,25 +120,25 @@ export default function TabbedProductCarousel({
                 value="best-sellers"
                 className="px-4 md:px-6 py-2.5 text-xs font-medium uppercase tracking-wider rounded-full transition-all duration-300 data-[state=active]:bg-[#111] data-[state=active]:text-white data-[state=active]:shadow-md text-[#111]/60 hover:text-[#111]"
               >
-                En Ã‡ok Satanlar
+                En Çok Satanlar
               </TabsTrigger>
               <TabsTrigger
                 value="recommended"
                 className="px-4 md:px-6 py-2.5 text-xs font-medium uppercase tracking-wider rounded-full transition-all duration-300 data-[state=active]:bg-[#111] data-[state=active]:text-white data-[state=active]:shadow-md text-[#111]/60 hover:text-[#111]"
               >
-                Ã–nerilenler
+                Önerilenler
               </TabsTrigger>
             </TabsList>
           </div>
 
-          {/* Carousel Kontrolleri - SaÄŸ Ã¼stte */}
+          {/* Carousel Kontrolleri - Sağ üstte */}
           <div className="flex items-center justify-end gap-4 mb-6 px-4 md:px-8">
             {getViewAllLink() && (
               <Link
                 href={getViewAllLink()!}
                 className="text-xs font-medium text-[#111] hover:opacity-70 transition-opacity uppercase tracking-wider hidden sm:inline-flex items-center gap-2 group"
               >
-                TÃœMÃœNÃœ GÃ–R
+                TÜMÜNÜ GÖR
                 <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </Link>
             )}
@@ -147,7 +147,7 @@ export default function TabbedProductCarousel({
                 onClick={scrollPrev}
                 disabled={!canScrollPrev}
                 className="w-10 h-10 flex items-center justify-center border border-gray-300 rounded-full hover:bg-[#111] hover:text-white hover:border-[#111] transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-[#111] disabled:hover:border-gray-300"
-                aria-label="Ã–nceki"
+                aria-label="Önceki"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
@@ -341,14 +341,14 @@ function ProductCarouselContent({
     if (!selectedProduct) return;
 
     if (!selectedProduct.id) {
-      toast.error("ÃœrÃ¼n bilgisi bulunamadÄ±", {
+      toast.error("Ürün bilgisi bulunamadı", {
         position: "bottom-left",
       });
       return;
     }
 
     if (!selectedSize) {
-      toast.error("LÃ¼tfen bir beden seÃ§in", {
+      toast.error("Lütfen bir beden seçin", {
         position: "bottom-left",
       });
       return;
@@ -494,13 +494,13 @@ function ProductCarouselContent({
         setModalOpen(false);
       } else {
         const error = await res.json();
-        toast.error(error.error || "Sepete eklenirken bir hata oluÅŸtu", {
+        toast.error(error.error || "Sepete eklenirken bir hata oluştu", {
           position: "bottom-left",
         });
       }
     } catch (error) {
       if (error instanceof Error && !error.message.includes('401')) {
-        toast.error("Sepete eklenirken bir hata oluÅŸtu", {
+        toast.error("Sepete eklenirken bir hata oluştu", {
           position: "bottom-left",
         });
       }
@@ -624,14 +624,14 @@ function ProductCarouselContent({
                       />
                     )}
 
-                    {/* Hover'da "SeÃ§enekleri GÃ¶r" butonu */}
+                    {/* Hover'da "Seçenekleri Gör" butonu */}
                     {hoveredProduct === product.id && (
                       <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <button
                           onClick={(e) => handleOpenModal(product, e)}
                           className="bg-white text-[#111] px-6 py-3 text-sm font-light uppercase tracking-wide hover:bg-gray-100 transition-colors"
                         >
-                          SeÃ§enekleri GÃ¶r
+                          Seçenekleri Gör
                         </button>
                       </div>
                     )}
@@ -647,15 +647,15 @@ function ProductCarouselContent({
                       {product.originalPrice && product.originalPrice > product.price ? (
                         <>
                           <p className="text-base font-light text-[#111]">
-                            â‚º{product.price.toFixed(2)}
+                            ₺{product.price.toFixed(2)}
                           </p>
                           <p className="text-sm font-light text-[#111]/60 line-through">
-                            â‚º{product.originalPrice.toFixed(2)}
+                            ₺{product.originalPrice.toFixed(2)}
                           </p>
                         </>
                       ) : (
                         <p className="text-base font-light text-[#111]">
-                          â‚º{product.originalPrice ? product.originalPrice.toFixed(2) : product.price.toFixed(2)}
+                          ₺{product.originalPrice ? product.originalPrice.toFixed(2) : product.price.toFixed(2)}
                         </p>
                       )}
                     </div>
@@ -670,18 +670,18 @@ function ProductCarouselContent({
       {/* Product Detail Modal */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent className="max-w-[95vw] w-full max-h-[85vh] overflow-hidden p-0 flex flex-col md:flex-row my-8 md:my-12">
-          <DialogTitle className="sr-only">ÃœrÃ¼n DetaylarÄ±</DialogTitle>
+          <DialogTitle className="sr-only">Ürün Detayları</DialogTitle>
           {selectedProduct && (
             <>
-              {/* Sol taraf - Sticky dikey gÃ¶rsel (Desktop) */}
+              {/* Sol taraf - Sticky dikey görsel (Desktop) */}
               <div className="hidden md:flex md:w-[45%] md:sticky md:top-0 md:self-start md:flex-col md:items-center md:justify-start md:p-8 md:py-12 md:bg-gray-50 md:gap-4">
-                {/* Ana gÃ¶rsel */}
+                {/* Ana görsel */}
                 <div className="relative w-full aspect-[3/4] bg-gray-100">
                   {productImages.length > 0 && productImages[selectedImageIndex] ? (
                     <>
                       <Image
                         src={productImages[selectedImageIndex]}
-                        alt={selectedProduct.title || "ÃœrÃ¼n gÃ¶rseli"}
+                        alt={selectedProduct.title || "Ürün görseli"}
                         fill
                         className="object-cover"
                         sizes="50vw"
@@ -690,7 +690,7 @@ function ProductCarouselContent({
                       {selectedProduct.badge && (
                         <div className="absolute top-3 left-3 bg-[#111] text-white text-xs px-3 py-1.5 uppercase font-light">
                           {selectedProduct.badge === "İndirim" && selectedProduct.originalPrice
-                            ? `%${Math.round(((selectedProduct.originalPrice - (selectedProduct.price || 0)) / selectedProduct.originalPrice) * 100)} Ä°NDÄ°RÄ°M`
+                            ? `%${Math.round(((selectedProduct.originalPrice - (selectedProduct.price || 0)) / selectedProduct.originalPrice) * 100)} İNDİRİM`
                             : selectedProduct.badge}
                         </div>
                       )}
@@ -701,7 +701,7 @@ function ProductCarouselContent({
                             <button
                               onClick={() => setSelectedImageIndex(selectedImageIndex - 1)}
                               className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-md transition-all"
-                              aria-label="Ã–nceki resim"
+                              aria-label="Önceki resim"
                             >
                               <ChevronLeft className="w-5 h-5 text-[#111]" />
                             </button>
@@ -721,14 +721,14 @@ function ProductCarouselContent({
                   ) : (selectedProduct.hoverImage || selectedProduct.image) ? (
                     <Image
                       src={selectedProduct.hoverImage || selectedProduct.image || ""}
-                      alt={selectedProduct.title || "ÃœrÃ¼n gÃ¶rseli"}
+                      alt={selectedProduct.title || "Ürün görseli"}
                       fill
                       className="object-cover"
                       sizes="50vw"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-400">
-                      <span>GÃ¶rsel yÃ¼kleniyor...</span>
+                      <span>Görsel yükleniyor...</span>
                     </div>
                   )}
                 </div>
@@ -744,7 +744,7 @@ function ProductCarouselContent({
                       >
                         <Image
                           src={img}
-                          alt={`${selectedProduct.title} gÃ¶rsel ${idx + 1}`}
+                          alt={`${selectedProduct.title} görsel ${idx + 1}`}
                           fill
                           className="object-cover"
                           sizes="64px"
@@ -755,13 +755,13 @@ function ProductCarouselContent({
                 )}
               </div>
 
-              {/* Mobile gÃ¶rsel - Ãœstte */}
+              {/* Mobile görsel - Üstte */}
               <div className="md:hidden relative aspect-[3/4] bg-gray-100 w-full">
                 {productImages.length > 0 && productImages[selectedImageIndex] ? (
                   <>
                     <Image
                       src={productImages[selectedImageIndex]}
-                      alt={selectedProduct.title || "ÃœrÃ¼n gÃ¶rseli"}
+                      alt={selectedProduct.title || "Ürün görseli"}
                       fill
                       className="object-cover"
                       sizes="100vw"
@@ -770,7 +770,7 @@ function ProductCarouselContent({
                     {selectedProduct.badge && (
                       <div className="absolute top-3 left-3 bg-[#111] text-white text-xs px-3 py-1.5 uppercase font-light">
                         {selectedProduct.badge === "İndirim" && selectedProduct.originalPrice
-                          ? `%${Math.round(((selectedProduct.originalPrice - (selectedProduct.price || 0)) / selectedProduct.originalPrice) * 100)} Ä°NDÄ°RÄ°M`
+                          ? `%${Math.round(((selectedProduct.originalPrice - (selectedProduct.price || 0)) / selectedProduct.originalPrice) * 100)} İNDİRİM`
                           : selectedProduct.badge}
                       </div>
                     )}
@@ -781,7 +781,7 @@ function ProductCarouselContent({
                           <button
                             onClick={() => setSelectedImageIndex(selectedImageIndex - 1)}
                             className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-md"
-                            aria-label="Ã–nceki resim"
+                            aria-label="Önceki resim"
                           >
                             <ChevronLeft className="w-5 h-5 text-[#111]" />
                           </button>
@@ -801,23 +801,23 @@ function ProductCarouselContent({
                 ) : (selectedProduct.hoverImage || selectedProduct.image) ? (
                   <Image
                     src={selectedProduct.hoverImage || selectedProduct.image || ""}
-                    alt={selectedProduct.title || "ÃœrÃ¼n gÃ¶rseli"}
+                    alt={selectedProduct.title || "Ürün görseli"}
                     fill
                     className="object-cover"
                     sizes="100vw"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-gray-400">
-                    <span>GÃ¶rsel yÃ¼kleniyor...</span>
+                    <span>Görsel yükleniyor...</span>
                   </div>
                 )}
               </div>
 
-              {/* SaÄŸ taraf - ÃœrÃ¼n detaylarÄ± (Scrollable) */}
+              {/* Sağ taraf - Ürün detayları (Scrollable) */}
               <div className="flex-1 overflow-y-auto space-y-4 p-6 md:p-8 md:py-12 min-w-0">
                 <div>
                   <h2 className="text-2xl font-bold text-[#111] mb-2">
-                    {selectedProduct.title || "ÃœrÃ¼n"}
+                    {selectedProduct.title || "Ürün"}
                   </h2>
 
                   {/* Fiyat */}
@@ -839,10 +839,10 @@ function ProductCarouselContent({
                         return (
                           <>
                             <span className={`text-2xl font-light ${shouldStrikeThrough ? 'text-[#111]/60 line-through' : 'text-[#111]'}`}>
-                              â‚º{lowerPrice.toFixed(2)}
+                              ₺{lowerPrice.toFixed(2)}
                             </span>
                             <span className="text-lg font-light text-[#111]/60 line-through">
-                              â‚º{higherPrice.toFixed(2)}
+                              ₺{higherPrice.toFixed(2)}
                             </span>
                             <span className="text-sm font-light text-[#111]/60 whitespace-nowrap">
                               -{discountPercent}%
@@ -852,14 +852,14 @@ function ProductCarouselContent({
                       } else {
                         return (
                           <span className={`text-2xl font-light ${shouldStrikeThrough ? 'text-[#111]/60 line-through' : 'text-[#111]'}`}>
-                            â‚º{price.toFixed(2)}
+                            ₺{price.toFixed(2)}
                           </span>
                         );
                       }
                     })()}
                   </div>
 
-                  {/* YÄ±ldÄ±z puanÄ± */}
+                  {/* Yıldız puanı */}
                   {reviews.length > 0 ? (
                     <div className="flex items-center gap-2 mb-6">
                       <div className="flex items-center gap-1">
@@ -880,28 +880,28 @@ function ProductCarouselContent({
                     </div>
                   ) : (
                     <div className="mb-6">
-                      <span className="text-sm text-[#111]/60 font-light">HenÃ¼z yorum yok</span>
+                      <span className="text-sm text-[#111]/60 font-light">Henüz yorum yok</span>
                     </div>
                   )}
 
-                  {/* ÃœrÃ¼n detayÄ±na git link */}
+                  {/* Ürün detayına git link */}
                   {selectedProduct.slug ? (
                     <Link
                       href={`/products/${selectedProduct.slug}`}
                       className="text-sm text-[#111] hover:underline font-light mb-6 inline-block"
                     >
-                      ÃœrÃ¼n detayÄ±na git â†’
+                      Ürün detayına git →
                     </Link>
                   ) : null}
 
-                  {/* Renk seÃ§imi - Resimli */}
+                  {/* Renk seçimi - Resimli */}
                   {productColors.length > 0 && (
                     <div className="mb-6">
                       <p className="text-sm font-light text-[#111] mb-3">
                         Renk: <span className="text-[#111]/60">
                           {selectedColor
-                            ? productColors.find(c => c.id === selectedColor)?.name || "SeÃ§iniz"
-                            : "SeÃ§iniz"}
+                            ? productColors.find(c => c.id === selectedColor)?.name || "Seçiniz"
+                            : "Seçiniz"}
                         </span>
                       </p>
                       <div className="flex gap-3 flex-wrap">
@@ -914,7 +914,7 @@ function ProductCarouselContent({
                               key={color.id}
                               onClick={() => {
                                 setSelectedColor(color.id);
-                                setSelectedSize(null); // Renk deÄŸiÅŸince beden seÃ§imini sÄ±fÄ±rla
+                                setSelectedSize(null); // Renk değişince beden seçimini sıfırla
 
                                 if (color.images && color.images.length > 0) {
                                   const colorImages = color.images;
@@ -949,7 +949,7 @@ function ProductCarouselContent({
                               {colorImage ? (
                                 <Image
                                   src={colorImage}
-                                  alt={color.name || "Renk seÃ§eneÄŸi"}
+                                  alt={color.name || "Renk seçeneği"}
                                   fill
                                   className="object-cover"
                                   sizes="64px"
@@ -970,7 +970,7 @@ function ProductCarouselContent({
                     </div>
                   )}
 
-                  {/* Beden seÃ§imi - Her zaman gÃ¶ster */}
+                  {/* Beden seçimi - Her zaman göster */}
                   <div className="mb-6">
                     <p className="text-sm font-light text-[#111] mb-3">
                       Beden: <span className="text-[#111]/60">
@@ -986,7 +986,7 @@ function ProductCarouselContent({
                               ? (typeof foundSize === 'string' ? foundSize : foundSize.name)
                               : selectedSize;
                           })()
-                          : "SeÃ§iniz"}
+                          : "Seçiniz"}
                       </span>
                     </p>
                     <div className="grid grid-cols-4 gap-2">
@@ -1022,14 +1022,14 @@ function ProductCarouselContent({
                           });
                         } else {
                           return (
-                            <p className="text-sm text-[#111]/60 font-light col-span-4">Beden bilgisi bulunamadÄ±</p>
+                            <p className="text-sm text-[#111]/60 font-light col-span-4">Beden bilgisi bulunamadı</p>
                           );
                         }
                       })()}
                     </div>
                   </div>
 
-                  {/* ÃœrÃ¼n aÃ§Ä±klamasÄ± */}
+                  {/* Ürün açıklaması */}
                   {(productDetails?.description || productDetails?.detailText) && (
                     <div className="mb-6">
                       {productDetails.description && (
@@ -1054,7 +1054,7 @@ function ProductCarouselContent({
                       : "bg-gray-300 text-gray-500 cursor-not-allowed"
                       }`}
                   >
-                    {selectedSize ? "Sepete Ekle" : "Beden SeÃ§iniz"}
+                    {selectedSize ? "Sepete Ekle" : "Beden Seçiniz"}
                   </Button>
                 </div>
               </div>

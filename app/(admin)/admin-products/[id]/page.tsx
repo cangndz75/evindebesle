@@ -106,7 +106,7 @@ export default function ProductDetailPage() {
       }
     } catch (error) {
       console.error("Error fetching product:", error);
-      toast.error("ÃœrÃ¼n yÃ¼klenirken bir hata oluÅŸtu");
+      toast.error("Ürün yüklenirken bir hata oluştu");
     } finally {
       setLoading(false);
     }
@@ -128,13 +128,13 @@ export default function ProductDetailPage() {
       });
 
       if (res.ok) {
-        toast.success("ÃœrÃ¼n gÃ¼ncellendi");
+        toast.success("Ürün güncellendi");
         fetchProduct();
       } else {
-        throw new Error("GÃ¼ncelleme baÅŸarÄ±sÄ±z");
+        throw new Error("Güncelleme başarısız");
       }
     } catch (error) {
-      toast.error("ÃœrÃ¼n gÃ¼ncellenirken bir hata oluÅŸtu");
+      toast.error("Ürün güncellenirken bir hata oluştu");
     } finally {
       setSaving(false);
     }
@@ -149,11 +149,11 @@ export default function ProductDetailPage() {
       });
 
       if (res.ok) {
-        toast.success("Varyant stoku gÃ¼ncellendi");
+        toast.success("Varyant stoku güncellendi");
         fetchProduct();
       }
     } catch (error) {
-      toast.error("Stok gÃ¼ncellenirken bir hata oluÅŸtu");
+      toast.error("Stok güncellenirken bir hata oluştu");
     }
   };
 
@@ -176,8 +176,8 @@ export default function ProductDetailPage() {
   if (!product) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
-        <p className="text-gray-600 mb-4">ÃœrÃ¼n bulunamadÄ±</p>
-        <Button onClick={() => router.back()}>Geri DÃ¶n</Button>
+        <p className="text-gray-600 mb-4">Ürün bulunamadı</p>
+        <Button onClick={() => router.back()}>Geri Dön</Button>
       </div>
     );
   }
@@ -200,7 +200,7 @@ export default function ProductDetailPage() {
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={() => router.push(`/products/${product.slug}`)}>
             <Eye className="w-4 h-4 mr-2" />
-            Ã–nizle
+            Önizle
           </Button>
           <Button onClick={handleSave} disabled={saving}>
             <Save className="w-4 h-4 mr-2" />
@@ -214,7 +214,7 @@ export default function ProductDetailPage() {
           <TabsTrigger value="general">Genel</TabsTrigger>
           <TabsTrigger value="variants">Varyantlar</TabsTrigger>
           <TabsTrigger value="seo">SEO</TabsTrigger>
-          <TabsTrigger value="related">Ä°liÅŸkili ÃœrÃ¼nler</TabsTrigger>
+          <TabsTrigger value="related">İlişkili Ürünler</TabsTrigger>
         </TabsList>
 
         {/* Genel Bilgiler */}
@@ -227,7 +227,7 @@ export default function ProductDetailPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <Label>ÃœrÃ¼n AdÄ±</Label>
+                    <Label>Ürün Adı</Label>
                     <Input value={product.name} disabled className="mt-2" />
                   </div>
                   <div>
@@ -235,7 +235,7 @@ export default function ProductDetailPage() {
                     <Input value={product.slug || ""} disabled className="mt-2" />
                   </div>
                   <div>
-                    <Label>AÃ§Ä±klama</Label>
+                    <Label>Açıklama</Label>
                     <Textarea
                       value={product.description || ""}
                       disabled
@@ -253,12 +253,12 @@ export default function ProductDetailPage() {
                 </CardContent>
               </Card>
 
-              {/* Kalite UyarÄ±larÄ± */}
+              {/* Kalite Uyarıları */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <AlertTriangle className="w-5 h-5 text-amber-500" />
-                    Kalite KontrolÃ¼
+                    Kalite Kontrolü
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -266,25 +266,25 @@ export default function ProductDetailPage() {
                     {!product.image && (
                       <div className="flex items-center gap-2 text-sm text-amber-600">
                         <ImageIcon className="w-4 h-4" />
-                        <span>GÃ¶rsel eksik</span>
+                        <span>Görsel eksik</span>
                       </div>
                     )}
                     {(!product.colors || product.colors.length === 0) && (
                       <div className="flex items-center gap-2 text-sm text-amber-600">
                         <Tag className="w-4 h-4" />
-                        <span>Renk varyantÄ± eksik</span>
+                        <span>Renk varyantı eksik</span>
                       </div>
                     )}
                     {(!product.sizes || product.sizes.length === 0) && (
                       <div className="flex items-center gap-2 text-sm text-amber-600">
                         <Package className="w-4 h-4" />
-                        <span>Beden varyantÄ± eksik</span>
+                        <span>Beden varyantı eksik</span>
                       </div>
                     )}
                     {!product.description && (
                       <div className="flex items-center gap-2 text-sm text-amber-600">
                         <AlertTriangle className="w-4 h-4" />
-                        <span>AÃ§Ä±klama eksik</span>
+                        <span>Açıklama eksik</span>
                       </div>
                     )}
                     {!product.stockCode && (
@@ -301,7 +301,7 @@ export default function ProductDetailPage() {
                       product.description &&
                       product.stockCode && (
                         <div className="flex items-center gap-2 text-sm text-green-600">
-                          <span>âœ“ TÃ¼m alanlar tamamlandÄ±</span>
+                          <span>✓ Tüm alanlar tamamlandı</span>
                         </div>
                       )}
                   </div>
@@ -316,7 +316,7 @@ export default function ProductDetailPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <Label>YayÄ±n Durumu</Label>
+                    <Label>Yayın Durumu</Label>
                     <Badge variant={product.isActive ? "default" : "secondary"}>
                       {product.isActive ? "Aktif" : "Taslak"}
                     </Badge>
@@ -339,13 +339,13 @@ export default function ProductDetailPage() {
         <TabsContent value="variants" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Varyant YÃ¶netimi</CardTitle>
+              <CardTitle>Varyant Yönetimi</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {product.variants.length === 0 ? (
                   <p className="text-sm text-gray-500 text-center py-4">
-                    HenÃ¼z varyant eklenmemiÅŸ
+                    Henüz varyant eklenmemiş
                   </p>
                 ) : (
                   <div className="rounded-md border overflow-x-auto">
@@ -357,7 +357,7 @@ export default function ProductDetailPage() {
                           <th className="text-left p-3">Beden</th>
                           <th className="text-left p-3">Stok</th>
                           <th className="text-left p-3">Fiyat</th>
-                          <th className="text-left p-3">SatÄ±ÅŸ (Sale)</th>
+                          <th className="text-left p-3">Satış (Sale)</th>
                           <th className="text-left p-3">Piyasa (Market)</th>
                           <th className="text-left p-3">BuyBox</th>
                         </tr>
@@ -390,28 +390,28 @@ export default function ProductDetailPage() {
                             </td>
                             <td className="p-3">
                               {variant.price ? (
-                                <span>{variant.price.toFixed(2)} â‚º</span>
+                                <span>{variant.price.toFixed(2)} ₺</span>
                               ) : (
                                 <span className="text-gray-400">-</span>
                               )}
                             </td>
                             <td className="p-3">
                               {variant.salePrice ? (
-                                <span>{variant.salePrice.toFixed(2)} â‚º</span>
+                                <span>{variant.salePrice.toFixed(2)} ₺</span>
                               ) : (
                                 <span className="text-gray-400">-</span>
                               )}
                             </td>
                             <td className="p-3">
                               {variant.marketPrice ? (
-                                <span>{variant.marketPrice.toFixed(2)} â‚º</span>
+                                <span>{variant.marketPrice.toFixed(2)} ₺</span>
                               ) : (
                                 <span className="text-gray-400">-</span>
                               )}
                             </td>
                             <td className="p-3">
                               {variant.buyBoxPrice ? (
-                                <span>{variant.buyBoxPrice.toFixed(2)} â‚º</span>
+                                <span>{variant.buyBoxPrice.toFixed(2)} ₺</span>
                               ) : (
                                 <span className="text-gray-400">-</span>
                               )}
@@ -433,7 +433,7 @@ export default function ProductDetailPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <LinkIcon className="w-5 h-5" />
-                SEO AyarlarÄ±
+                SEO Ayarları
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -443,12 +443,12 @@ export default function ProductDetailPage() {
                   id="metaTitle"
                   value={metaTitle}
                   onChange={(e) => setMetaTitle(e.target.value)}
-                  placeholder="ÃœrÃ¼n adÄ± - Marka"
+                  placeholder="Ürün adı - Marka"
                   className="mt-2"
                   maxLength={60}
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  {metaTitle.length}/60 karakter (Ã¶nerilen: 50-60)
+                  {metaTitle.length}/60 karakter (önerilen: 50-60)
                 </p>
               </div>
               <div>
@@ -457,12 +457,12 @@ export default function ProductDetailPage() {
                   id="metaDescription"
                   value={metaDescription}
                   onChange={(e) => setMetaDescription(e.target.value)}
-                  placeholder="ÃœrÃ¼n aÃ§Ä±klamasÄ±..."
+                  placeholder="Ürün açıklaması..."
                   className="mt-2 min-h-[100px]"
                   maxLength={160}
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  {metaDescription.length}/160 karakter (Ã¶nerilen: 150-160)
+                  {metaDescription.length}/160 karakter (önerilen: 150-160)
                 </p>
               </div>
               <div>
@@ -475,23 +475,23 @@ export default function ProductDetailPage() {
                   className="mt-2"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Bu Ã¼rÃ¼n iÃ§in canonical URL (boÅŸ bÄ±rakÄ±lÄ±rsa otomatik oluÅŸturulur)
+                  Bu ürün için canonical URL (boş bırakılırsa otomatik oluşturulur)
                 </p>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* Ä°liÅŸkili ÃœrÃ¼nler */}
+        {/* İlişkili Ürünler */}
         <TabsContent value="related" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Ä°liÅŸkili ÃœrÃ¼nler / Upsell</CardTitle>
+              <CardTitle>İlişkili Ürünler / Upsell</CardTitle>
             </CardHeader>
             <CardContent>
               {product.combinations.length === 0 ? (
                 <p className="text-sm text-gray-500 text-center py-4">
-                  HenÃ¼z iliÅŸkili Ã¼rÃ¼n eklenmemiÅŸ
+                  Henüz ilişkili ürün eklenmemiş
                 </p>
               ) : (
                 <div className="space-y-2">
@@ -515,7 +515,7 @@ export default function ProductDetailPage() {
                         size="sm"
                         onClick={() => router.push(`/admin-products/${combo.relatedProduct.id}`)}
                       >
-                        GÃ¶rÃ¼ntÃ¼le
+                        Görüntüle
                       </Button>
                     </div>
                   ))}

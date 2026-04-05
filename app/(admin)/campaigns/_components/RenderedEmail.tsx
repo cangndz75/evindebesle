@@ -56,7 +56,7 @@ export default function RenderedEmail({
       <div className="bg-white">
         {processedBlocks.length === 0 ? (
           <div className="p-12 text-center text-gray-500">
-            <p className="text-sm">HenÃ¼z blok eklenmedi</p>
+            <p className="text-sm">Henüz blok eklenmedi</p>
           </div>
         ) : (
           processedBlocks.map((block) => (

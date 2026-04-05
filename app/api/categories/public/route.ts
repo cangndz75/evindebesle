@@ -24,7 +24,7 @@ export async function GET() {
     } catch (error: any) {
         console.error("Public categories fetch error:", error);
         return NextResponse.json(
-            { error: "Kategoriler yÃ¼klenemedi" },
+            { error: "Kategoriler yüklenemedi" },
             { status: 500 }
         );
     }

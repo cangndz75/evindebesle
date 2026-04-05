@@ -13,37 +13,37 @@ const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Dark Velvet - Premium Ä°Ã§ ve DÄ±ÅŸ Giyim Koleksiyonu",
-  description: "TÃ¼rkiye'nin Ã¶nde gelen premium iÃ§ giyim markasÄ±. KadÄ±n ve erkek iÃ§in kaliteli iÃ§ Ã§amaÅŸÄ±rÄ±, kÃ¼lot, sÃ¼tyen, boxer, sweat ve daha fazlasÄ±. Ãœcretsiz kargo ve hÄ±zlÄ± teslimat.",
+  title: "Dark Velvet - Premium İç ve Dış Giyim Koleksiyonu",
+  description: "Türkiye'nin önde gelen premium iç giyim markası. Kadın ve erkek için kaliteli iç çamaşırı, külot, sütyen, boxer, sweat ve daha fazlası. Ücretsiz kargo ve hızlı teslimat.",
   applicationName: "Dark Velvet",
   keywords: [
-    "iÃ§ Ã§amaÅŸÄ±rÄ±",
-    "kadÄ±n iÃ§ Ã§amaÅŸÄ±rÄ±",
-    "erkek iÃ§ Ã§amaÅŸÄ±rÄ±",
-    "kÃ¼lot",
-    "sÃ¼tyen",
+    "iç çamaşırı",
+    "kadın iç çamaşırı",
+    "erkek iç çamaşırı",
+    "külot",
+    "sütyen",
     "boxer",
     "sweat",
-    "iÃ§ giyim",
-    "dÄ±ÅŸ giyim",
-    "premium iÃ§ Ã§amaÅŸÄ±rÄ±",
+    "iç giyim",
+    "dış giyim",
+    "premium iç çamaşırı",
     "Dark Velvet",
-    "online iÃ§ Ã§amaÅŸÄ±rÄ±",
-    "kaliteli iÃ§ giyim"
+    "online iç çamaşırı",
+    "kaliteli iç giyim"
   ],
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || "https://darkvelvet.com"),
   openGraph: {
     type: "website",
     locale: "tr_TR",
     siteName: "Dark Velvet",
-    title: "Dark Velvet - Premium Ä°Ã§ ve DÄ±ÅŸ Giyim",
-    description: "TÃ¼rkiye'nin Ã¶nde gelen premium iÃ§ giyim markasÄ±. KadÄ±n ve erkek iÃ§in kaliteli iÃ§ Ã§amaÅŸÄ±rÄ±.",
+    title: "Dark Velvet - Premium İç ve Dış Giyim",
+    description: "Türkiye'nin önde gelen premium iç giyim markası. Kadın ve erkek için kaliteli iç çamaşırı.",
     images: [
       {
         url: "/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "Dark Velvet Premium Ä°Ã§ Giyim"
+        alt: "Dark Velvet Premium İç Giyim"
       }
     ]
   },

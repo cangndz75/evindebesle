@@ -65,7 +65,7 @@ export default function UpsellSection() {
                 })
             );
         } catch (error) {
-            toast.error("ÃœrÃ¼n eklenirken hata oluÅŸtu");
+            toast.error("Ürün eklenirken hata oluştu");
         } finally {
             setLoading(null);
         }
@@ -75,7 +75,7 @@ export default function UpsellSection() {
 
     return (
         <div className="mt-8">
-            <h3 className="text-lg font-semibold mb-4">Kasa Ã–nÃ¼ FÄ±rsatlar</h3>
+            <h3 className="text-lg font-semibold mb-4">Kasa Önü Fırsatlar</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {products.map((product) => (
                     <div key={product.id} className="border rounded-lg p-3 flex flex-col items-center text-center bg-white shadow-sm">
@@ -88,7 +88,7 @@ export default function UpsellSection() {
                             />
                         </div>
                         <h4 className="text-sm font-medium line-clamp-2 min-h-[40px]">{product.name}</h4>
-                        <p className="text-sm font-bold text-gray-900 mt-1">{product.price} â‚º</p>
+                        <p className="text-sm font-bold text-gray-900 mt-1">{product.price} ₺</p>
                         <button
                             onClick={() => handleAddToCart(product)}
                             disabled={loading === product.id}

@@ -45,7 +45,7 @@ export default function AnnouncementBanner({
     return (
       <div className={`${className} ${positionClass}`}>
         <div className={`${bgColor} ${textColor} text-[11px] tracking-[0.18em] uppercase text-center h-9 flex items-center justify-center`}>
-          ÃœCRETSÄ°Z KARGO
+          ÜCRETSİZ KARGO
         </div>
       </div>
     );
@@ -54,7 +54,7 @@ export default function AnnouncementBanner({
   return (
     <div className={`${className} ${positionClass}`}>
       <div className={`${bgColor} ${textColor} text-[11px] tracking-[0.18em] uppercase text-center h-9 flex items-center justify-center`}>
-        ÃœCRETSÄ°Z KARGO {freeShippingThreshold ? `${Math.round(freeShippingThreshold)}â‚º+` : "999â‚º+"}
+        ÜCRETSİZ KARGO {freeShippingThreshold ? `${Math.round(freeShippingThreshold)}₺+` : "999₺+"}
       </div>
     </div>
   );

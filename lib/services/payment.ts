@@ -119,8 +119,8 @@ export async function finalizePayment({
         try {
             await createAdminNotification({
                 type: "ORDER",
-                title: "Yeni SipariÅŸ AlÄ±ndÄ±",
-                message: `#${result.order.orderNumber} numaralÄ± sipariÅŸ baÅŸarÄ±yla oluÅŸturuldu.`,
+                title: "Yeni Sipariş Alındı",
+                message: `#${result.order.orderNumber} numaralı sipariş başarıyla oluşturuldu.`,
                 link: `/admin/orders/${result.order.id}` // Corrected link path
             });
         } catch (notifError) {

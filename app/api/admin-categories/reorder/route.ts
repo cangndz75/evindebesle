@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
 
         if (!Array.isArray(items) || items.length === 0) {
             return NextResponse.json(
-                { error: "GeÃ§ersiz sÄ±ralama verisi" },
+                { error: "Geçersiz sıralama verisi" },
                 { status: 400 }
             );
         }
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     } catch (error: any) {
         console.error("Category reorder error:", error);
         return NextResponse.json(
-            { error: error.message || "SÄ±ralama gÃ¼ncellenirken bir hata oluÅŸtu" },
+            { error: error.message || "Sıralama güncellenirken bir hata oluştu" },
             { status: 500 }
         );
     }

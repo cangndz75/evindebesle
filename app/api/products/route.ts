@@ -245,7 +245,7 @@ export async function GET(request: NextRequest) {
       sum + (c.variants?.reduce((vs: number, v: any) => vs + (v.stock || 0), 0) || 0), 0);
     const inStockA = totalStockA > 0 ? 1 : 0;
     const inStockB = totalStockB > 0 ? 1 : 0;
-    return inStockB - inStockA; // Stokta olanlar Ã¶nce
+    return inStockB - inStockA; // Stokta olanlar önce
   });
 
   setCachedFilterResponse(cacheKey, parsedProducts);

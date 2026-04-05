@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
       include: {
         _count: {
           select: {
-            products: true, // Deprecated ama Ã§alÄ±ÅŸÄ±yor
+            products: true, // Deprecated ama çalışıyor
           },
         },
       },
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error("Categories fetch error:", error);
     return NextResponse.json(
-      { error: error.message || "Kategoriler getirilirken bir hata oluÅŸtu" },
+      { error: error.message || "Kategoriler getirilirken bir hata oluştu" },
       { status: 500 }
     );
   }
@@ -45,7 +45,7 @@ export async function POST(req: Request) {
 
     if (!name) {
       return NextResponse.json(
-        { error: "Kategori adÄ± gereklidir" },
+        { error: "Kategori adı gereklidir" },
         { status: 400 }
       );
     }
@@ -109,7 +109,7 @@ export async function POST(req: Request) {
   } catch (error: any) {
     console.error("Category creation error:", error);
     return NextResponse.json(
-      { error: error.message || "Kategori oluÅŸturulurken bir hata oluÅŸtu" },
+      { error: error.message || "Kategori oluşturulurken bir hata oluştu" },
       { status: 500 }
     );
   }

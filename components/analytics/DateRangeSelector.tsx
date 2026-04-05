@@ -43,11 +43,11 @@ export default function DateRangeSelector({
                     <SelectValue placeholder="Select period" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="today">BugÃ¼n</SelectItem>
-                    <SelectItem value="7d">Son 7 GÃ¼n</SelectItem>
-                    <SelectItem value="30d">Son 30 GÃ¼n</SelectItem>
-                    <SelectItem value="90d">Son 90 GÃ¼n</SelectItem>
-                    <SelectItem value="custom">Ã–zel Tarih AralÄ±ÄŸÄ±</SelectItem>
+                    <SelectItem value="today">Bugün</SelectItem>
+                    <SelectItem value="7d">Son 7 Gün</SelectItem>
+                    <SelectItem value="30d">Son 30 Gün</SelectItem>
+                    <SelectItem value="90d">Son 90 Gün</SelectItem>
+                    <SelectItem value="custom">Özel Tarih Aralığı</SelectItem>
                 </SelectContent>
             </Select>
 

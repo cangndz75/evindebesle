@@ -50,12 +50,12 @@ interface ProductDetailPageProps {
 const defaultProduct = {
   id: "1",
   slug: "kopek-gezdirme-hizmeti",
-  name: "Profesyonel KÃ¶pek Gezdirme",
+  name: "Profesyonel Köpek Gezdirme",
   price: 250,
   originalPrice: undefined,
-  description: "Dostunuzun gÃ¼nlÃ¼k egzersiz ihtiyacÄ±nÄ± profesyonel ekibimizle karÅŸÄ±lÄ±yoruz. GPS takibi ve fotoÄŸraf gÃ¼ncellemeleri dahildir.",
+  description: "Dostunuzun günlük egzersiz ihtiyacını profesyonel ekibimizle karşılıyoruz. GPS takibi ve fotoğraf güncellemeleri dahildir.",
   images: [
-    { url: "https://images.unsplash.com/photo-1551730459-92db2a308d6a?q=80&w=1000&auto=format&fit=crop", badge: "PopÃ¼ler" },
+    { url: "https://images.unsplash.com/photo-1551730459-92db2a308d6a?q=80&w=1000&auto=format&fit=crop", badge: "Popüler" },
     { url: "https://images.unsplash.com/photo-1601758124510-52d02ddb7cbd?q=80&w=1000&auto=format&fit=crop", badge: undefined },
   ],
   colors: [
@@ -63,17 +63,17 @@ const defaultProduct = {
   ],
   sizes: ["30 Dakika", "60 Dakika", "90 Dakika"],
   details: [
-    "GPS ile gerÃ§ek zamanlÄ± takip",
-    "FotoÄŸraf ve video gÃ¼ncellemeleri",
+    "GPS ile gerçek zamanlı takip",
+    "Fotoğraf ve video güncellemeleri",
     "Profesyonel gezdirici ekibi",
-    "Acil durum sigortasÄ±",
-    "Esnek saat seÃ§enekleri",
+    "Acil durum sigortası",
+    "Esnek saat seçenekleri",
   ],
-  fabric: "TÃ¼m hava koÅŸullarÄ±na uygun ekipman",
-  care: "LÃ¼tfen randevu saatinden 15 dakika Ã¶nce iletiÅŸime geÃ§in",
-  washing: "Her yÃ¼rÃ¼yÃ¼ÅŸ sonrasÄ± pati temizliÄŸi fiyata dahildir",
-  delivery: "AynÄ± gÃ¼n hizmet imkanÄ±",
-  sizeNotes: "SÃ¼reler yaklaÅŸÄ±k deÄŸerlerdir",
+  fabric: "Tüm hava koşullarına uygun ekipman",
+  care: "Lütfen randevu saatinden 15 dakika önce iletişime geçin",
+  washing: "Her yürüyüş sonrası pati temizliği fiyata dahildir",
+  delivery: "Aynı gün hizmet imkanı",
+  sizeNotes: "Süreler yaklaşık değerlerdir",
   washingInstruction: null,
   deliveryInfo: null,
   sizeNote: null,
@@ -115,7 +115,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
 
   const addToCart = async (options?: { redirectToPayment?: boolean }) => {
     if (!selectedSize) {
-      toast.error("LÃ¼tfen bir beden seÃ§in");
+      toast.error("Lütfen bir beden seçin");
       return;
     }
 
@@ -182,7 +182,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
       }
     } catch (error) {
       console.error("Error adding to cart:", error);
-      toast.error("Bir hata oluÅŸtu");
+      toast.error("Bir hata oluştu");
     }
   };
 
@@ -237,10 +237,10 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
 
   const handleColorChange = (idx: number) => {
     setSelectedColor(idx);
-    setSelectedImage(0); // Ä°lk fotoÄŸrafa dÃ¶n
-    setSelectedSize(""); // Beden seÃ§imini sÄ±fÄ±rla (yeni renk iÃ§in)
-    setQuantity(1); // Adeti 1'e sÄ±fÄ±rla
-    setThumbnailScrollIndex(0); // Thumbnail scroll'u sÄ±fÄ±rla
+    setSelectedImage(0); // İlk fotoğrafa dön
+    setSelectedSize(""); // Beden seçimini sıfırla (yeni renk için)
+    setQuantity(1); // Adeti 1'e sıfırla
+    setThumbnailScrollIndex(0); // Thumbnail scroll'u sıfırla
 
     const selectedColorObj = product.colors?.[idx];
     const variantCode = selectedColorObj?.variant;
@@ -324,7 +324,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
         }),
       });
       if (res.ok) {
-        alert("Stoka girince size mail gÃ¶nderilecek!");
+        alert("Stoka girince size mail gönderilecek!");
         setEmailNotify("");
       }
     } catch (error) {
@@ -443,7 +443,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
 
     const checkStock = async () => {
       try {
-        const currentColor = product.colors?.[selectedColor]; // 0 dahil Ã§alÄ±ÅŸÄ±r
+        const currentColor = product.colors?.[selectedColor]; // 0 dahil çalışır
         const sizeObj = product.sizes?.find(
           (s: any) => typeof s === "object" && s.name === selectedSize
         ) || product.sizeOptions?.find(
@@ -530,7 +530,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                 href={product.gender === "MALE" ? "/men" : product.gender === "FEMALE" ? "/women" : "/home"}
                 className="hover:text-black transition-colors"
               >
-                {product.gender === "MALE" ? "Erkek" : product.gender === "FEMALE" ? "KadÄ±n" : "Unisex"}
+                {product.gender === "MALE" ? "Erkek" : product.gender === "FEMALE" ? "Kadın" : "Unisex"}
               </Link>
               <ChevronRight className="w-4 h-4" />
             </>
@@ -556,7 +556,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
       {/* Main Product Section */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-          {/* Sol: GÃ¶rseller */}
+          {/* Sol: Görseller */}
           <div className="flex flex-col lg:flex-row gap-4 lg:max-w-[600px]">
             {/* Thumbnail'ler - Scrollable */}
             <div className="flex lg:flex-col gap-2 order-2 lg:order-1 relative">
@@ -568,7 +568,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                       onClick={() => setThumbnailScrollIndex(Math.max(0, thumbnailScrollIndex - 1))}
                       disabled={thumbnailScrollIndex === 0}
                       className="hidden lg:flex absolute top-0 left-1/2 -translate-x-1/2 -translate-y-full mb-2 w-8 h-8 items-center justify-center bg-white border border-gray-300 hover:border-black transition-colors z-10 disabled:opacity-50 disabled:cursor-not-allowed"
-                      aria-label="YukarÄ± kaydÄ±r"
+                      aria-label="Yukarı kaydır"
                     >
                       <ChevronLeft className="w-4 h-4 rotate-90" />
                     </button>
@@ -589,7 +589,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                         >
                           <Image
                             src={imageUrl}
-                            alt={`${product.name} gÃ¶rsel ${actualIdx + 1}`}
+                            alt={`${product.name} görsel ${actualIdx + 1}`}
                             fill
                             className="object-cover"
                             sizes="80px"
@@ -605,7 +605,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                       onClick={() => setThumbnailScrollIndex(Math.min(getCurrentColorImages().length - 4, thumbnailScrollIndex + 1))}
                       disabled={thumbnailScrollIndex >= getCurrentColorImages().length - 4}
                       className="hidden lg:flex absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-full mt-2 w-8 h-8 items-center justify-center bg-white border border-gray-300 hover:border-black transition-colors z-10 disabled:opacity-50 disabled:cursor-not-allowed"
-                      aria-label="AÅŸaÄŸÄ± kaydÄ±r"
+                      aria-label="Aşağı kaydır"
                     >
                       <ChevronRight className="w-4 h-4 rotate-90" />
                     </button>
@@ -613,12 +613,12 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                 </>
               ) : (
                 <div className="w-16 h-20 lg:w-20 lg:h-24 bg-gray-100 flex items-center justify-center text-xs text-gray-400">
-                  FotoÄŸraf Yok
+                  Fotoğraf Yok
                 </div>
               )}
             </div>
 
-            {/* Ana GÃ¶rsel */}
+            {/* Ana Görsel */}
             <div className="order-1 lg:order-2 flex-1 min-w-0 relative">
               <div
                 ref={imageContainerRef}
@@ -632,7 +632,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                   if (currentColorImages.length === 0) {
                     return (
                       <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400">
-                        FotoÄŸraf Yok
+                        Fotoğraf Yok
                       </div>
                     );
                   }
@@ -678,7 +678,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                     setSelectedImage((prev) => (prev > 0 ? prev - 1 : currentColorImages.length - 1));
                   }}
                   className="absolute left-2 top-1/2 -translate-y-1/2 md:hidden bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-colors z-10"
-                  aria-label="Ã–nceki gÃ¶rsel"
+                  aria-label="Önceki görsel"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
@@ -689,7 +689,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                     setSelectedImage((prev) => (prev < maxIndex ? prev + 1 : 0));
                   }}
                   className="absolute right-2 top-1/2 -translate-y-1/2 md:hidden bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-colors z-10"
-                  aria-label="Sonraki gÃ¶rsel"
+                  aria-label="Sonraki görsel"
                 >
                   <ChevronRight className="w-5 h-5" />
                 </button>
@@ -697,9 +697,9 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
             </div>
           </div>
 
-          {/* SaÄŸ: ÃœrÃ¼n Bilgileri */}
+          {/* Sağ: Ürün Bilgileri */}
           <div className="flex flex-col justify-start pt-8 lg:pt-0">
-            {/* BaÅŸlÄ±k - Hidden on mobile, shown on desktop */}
+            {/* Başlık - Hidden on mobile, shown on desktop */}
             <div className="hidden md:flex items-center justify-between mb-4">
               <h1 className="text-3xl md:text-4xl font-serif font-light text-black">
                 {product.name}
@@ -712,14 +712,14 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                     rel="noopener noreferrer"
                     className="flex items-center gap-2 border border-orange-500 text-orange-500 hover:bg-orange-50 px-4 py-2 rounded-full text-sm font-medium transition-colors"
                   >
-                    Trendyol'da GÃ¶r
+                    Trendyol'da Gör
                   </a>
                  )}
                 <button
                   onClick={toggleFavorite}
                   disabled={isLoadingFavorite}
                   className="hover:opacity-70 transition-opacity flex-shrink-0"
-                  aria-label={isFavorite ? "Favorilerden Ã§Ä±kar" : "Favorilere ekle"}
+                  aria-label={isFavorite ? "Favorilerden çıkar" : "Favorilere ekle"}
                 >
                   <Heart className={`w-6 h-6 ${isFavorite ? "fill-red-500 text-red-500" : "text-black"}`} />
                 </button>
@@ -732,15 +732,15 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                 {product.originalPrice && product.originalPrice > product.price ? (
                   <>
                     <span className="text-2xl md:text-3xl font-light text-black">
-                      {product.price} â‚º
+                      {product.price} ₺
                     </span>
                     <span className="text-lg line-through ml-3 text-gray-400">
-                      {product.originalPrice} â‚º
+                      {product.originalPrice} ₺
                     </span>
                   </>
                 ) : (
                   <span className="text-2xl md:text-3xl font-light text-black">
-                    {product.price} â‚º
+                    {product.price} ₺
                   </span>
                 )}
               </div>
@@ -752,12 +752,12 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                   rel="noopener noreferrer"
                   className="md:hidden mt-2 inline-flex items-center gap-2 border border-orange-500 text-orange-500 hover:bg-orange-50 px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
                 >
-                  Trendyol'da GÃ¶r
+                  Trendyol'da Gör
                 </a>
               )}
             </div>
 
-            {/* Rating ve Yorum SayÄ±sÄ± */}
+            {/* Rating ve Yorum Sayısı */}
             {product.reviews && product.reviews.length > 0 && (() => {
               const averageRating = product.reviews.reduce((sum, r) => sum + r.rating, 0) / product.reviews.length;
               const reviewCount = product.reviews.length;
@@ -781,15 +781,15 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
               );
             })()}
 
-            {/* AÃ§Ä±klama */}
+            {/* Açıklama */}
             <p className="text-base text-gray-700 font-light leading-relaxed mb-8 max-w-lg">
               {product.colors?.[selectedColor]?.description || product.description}
             </p>
 
-            {/* Renk SeÃ§imi - Hidden on mobile, shown on desktop */}
+            {/* Renk Seçimi - Hidden on mobile, shown on desktop */}
             <div className="hidden md:block mb-8">
               <p className="text-sm font-light text-black mb-3">
-                Renk: <span className="font-normal">{product.colors?.[selectedColor]?.name || "Renk seÃ§ilmedi"}</span>
+                Renk: <span className="font-normal">{product.colors?.[selectedColor]?.name || "Renk seçilmedi"}</span>
               </p>
               <div className="flex gap-3">
                 {product.colors?.map((color, idx) => {
@@ -842,7 +842,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                           />
                         )}
                       </button>
-                      {/* Tooltip - Renk adÄ± */}
+                      {/* Tooltip - Renk adı */}
                       <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black text-white text-xs font-light whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
                         {color.name}
                         <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-black"></div>
@@ -853,11 +853,11 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
               </div>
             </div>
 
-            {/* Beden SeÃ§imi - Hem Mobil Hem Desktop */}
+            {/* Beden Seçimi - Hem Mobil Hem Desktop */}
             <div className="mb-8">
               <div className="mb-4">
                 <p className="text-sm font-light text-black mb-3">
-                  Beden: <span className="text-gray-500">{selectedSize || "SeÃ§iniz"}</span>
+                  Beden: <span className="text-gray-500">{selectedSize || "Seçiniz"}</span>
                 </p>
 
                 <div className="flex gap-2 flex-wrap">
@@ -865,7 +865,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                     const availableSizes = getAvailableSizesForColor();
                     if (availableSizes.length === 0) {
                       return (
-                        <p className="text-sm text-gray-500">Bu renk iÃ§in beden seÃ§eneÄŸi bulunmuyor.</p>
+                        <p className="text-sm text-gray-500">Bu renk için beden seçeneği bulunmuyor.</p>
                       );
                     }
 
@@ -929,7 +929,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                 if (stock <= 0) {
                   return (
                     <div className="mb-6 p-3 bg-gray-50 border border-gray-200 rounded">
-                      <p className="text-sm text-gray-700 mb-2">Bu beden ÅŸu anda stokta yok.</p>
+                      <p className="text-sm text-gray-700 mb-2">Bu beden şu anda stokta yok.</p>
                       <div className="flex gap-2">
                         <input
                           type="email"
@@ -952,7 +952,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                   return (
                     <div className="mb-4">
                       <span className="text-red-600 text-sm font-medium animate-pulse">
-                        Son {stock} Ã¼rÃ¼n!
+                        Son {stock} ürün!
                       </span>
                     </div>
                   );
@@ -963,7 +963,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
 
             {/* Adet ve Sepete Ekle */}
             <div className="flex items-center gap-4 mb-8">
-              {/* Adet SeÃ§ici */}
+              {/* Adet Seçici */}
               <div className="flex items-center border border-gray-300 h-[56px]">
                 <button
                   onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
@@ -1002,13 +1002,13 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
       {/* Accordion Detaylar */}
       <div className="max-w-4xl mx-auto px-4 md:px-8 py-12 border-t border-gray-200">
         <div className="space-y-0">
-          {/* ÃœrÃ¼n DetayÄ± */}
+          {/* Ürün Detayı */}
           <div className="border-b border-gray-200">
             <button
               onClick={() => toggleSection("details")}
               className="w-full flex items-center justify-between py-6 text-left"
             >
-              <h3 className="text-base font-light text-black">ÃœrÃ¼n DetayÄ±</h3>
+              <h3 className="text-base font-light text-black">Ürün Detayı</h3>
               {expandedSections.details ? (
                 <Minus className="w-5 h-5 text-gray-400" />
               ) : (
@@ -1039,13 +1039,13 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
               </div>
             )}
 
-            {/* KumaÅŸ ve BakÄ±m */}
+            {/* Kumaş ve Bakım */}
           <div className="border-b border-gray-200">
             <button
               onClick={() => toggleSection("fabric")}
               className="w-full flex items-center justify-between py-6 text-left"
             >
-              <h3 className="text-base font-light text-black">KumaÅŸ ve BakÄ±m</h3>
+              <h3 className="text-base font-light text-black">Kumaş ve Bakım</h3>
               {expandedSections.fabric ? (
                 <Minus className="w-5 h-5 text-gray-400" />
               ) : (
@@ -1060,13 +1060,13 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
             )}
           </div>
 
-          {/* YÄ±kama TalimatlarÄ± */}
+          {/* Yıkama Talimatları */}
           <div className="border-b border-gray-200">
             <button
               onClick={() => toggleSection("washing")}
               className="w-full flex items-center justify-between py-6 text-left"
             >
-              <h3 className="text-base font-light text-black">YÄ±kama TalimatlarÄ±</h3>
+              <h3 className="text-base font-light text-black">Yıkama Talimatları</h3>
               {expandedSections.washing ? (
                 <Minus className="w-5 h-5 text-gray-400" />
               ) : (
@@ -1083,13 +1083,13 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
             )}
           </div>
 
-          {/* Teslimat ve Ä°ade */}
+          {/* Teslimat ve İade */}
           <div className="border-b border-gray-200">
             <button
               onClick={() => toggleSection("delivery")}
               className="w-full flex items-center justify-between py-6 text-left"
             >
-              <h3 className="text-base font-light text-black">Teslimat ve Ä°ade</h3>
+              <h3 className="text-base font-light text-black">Teslimat ve İade</h3>
               {expandedSections.delivery ? (
                 <Minus className="w-5 h-5 text-gray-400" />
               ) : (
@@ -1106,7 +1106,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
             )}
           </div>
 
-          {/* Varyant DetaylarÄ± */}
+          {/* Varyant Detayları */}
           {product.variants && product.variants.length > 0 && (
             <div className="border-b border-gray-200">
               <button
@@ -1146,7 +1146,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                             {v.stock > 0 ? (
                                 <span className="text-green-600 font-medium">{v.stock} Adet</span>
                               ) : (
-                                <span className="text-red-500">TÃ¼kendi</span>
+                                <span className="text-red-500">Tükendi</span>
                               )}
                           </td>
                         </tr>
@@ -1158,13 +1158,13 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
             </div>
           )}
 
-          {/* Beden NotlarÄ± */}
+          {/* Beden Notları */}
           <div className="border-b border-gray-200">
             <button
               onClick={() => toggleSection("sizeNotes")}
               className="w-full flex items-center justify-between py-6 text-left"
             >
-              <h3 className="text-base font-light text-black">Beden NotlarÄ±</h3>
+              <h3 className="text-base font-light text-black">Beden Notları</h3>
               {expandedSections.sizeNotes ? (
                 <Minus className="w-5 h-5 text-gray-400" />
               ) : (
@@ -1183,7 +1183,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
         </div>
       </div >
 
-      {/* Yorumlar BÃ¶lÃ¼mÃ¼ */}
+      {/* Yorumlar Bölümü */}
       < ProductReviews
         productId={product.id}
         productName={product.name}
@@ -1202,17 +1202,17 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
         hasOrdered={hasOrdered}
       />
 
-      {/* TakÄ±mÄ± Tamamla BÃ¶lÃ¼mÃ¼ (Look Configuration) */}
+      {/* Takımı Tamamla Bölümü (Look Configuration) */}
       {product.lookConfiguration && product.lookConfiguration.items && product.lookConfiguration.items.length > 0 && (
         <LookConfigurationSection config={product.lookConfiguration} />
       )}
  
-      {/* Bu ÃœrÃ¼nÃ¼n Bir ParÃ§asÄ± OlduÄŸu Kombin (Parent Look) */}
+      {/* Bu Ürünün Bir Parçası Olduğu Kombin (Parent Look) */}
       {product.parentLookConfigs && product.parentLookConfigs.length > 0 && (
         <ParentLookConfigsSection configs={product.parentLookConfigs} />
       )}
 
-      {/* Son GÃ¶rÃ¼ntÃ¼lenenler */}
+      {/* Son Görüntülenenler */}
       <RecentlyViewedSection currentProductId={product.id} />
 
       {/* Beden Rehberi Modal */}
@@ -1262,14 +1262,14 @@ function LookConfigurationSection({ config }: { config: any }) {
     <section className="max-w-7xl mx-auto px-4 md:px-8 py-16 border-t border-gray-100">
       <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
         <div className="space-y-4">
-          <span className="text-[10px] tracking-[0.4em] uppercase font-bold text-black/40">Kombininizi TamamlayÄ±n</span>
+          <span className="text-[10px] tracking-[0.4em] uppercase font-bold text-black/40">Kombininizi Tamamlayın</span>
           <h2 className="text-3xl md:text-4xl font-serif font-light text-black">
-            {config.title || "TakÄ±mÄ± Tamamla"}
+            {config.title || "Takımı Tamamla"}
           </h2>
         </div>
         {config.showAllAddButton && (
           <Button variant="outline" className="rounded-full px-8 h-12 border-black text-black font-bold uppercase text-[10px] tracking-[0.2em] hover:bg-black hover:text-white transition-all hidden md:flex">
-            TÃ¼m ParÃ§alarÄ± Ä°ncele
+            Tüm Parçaları İncele
           </Button>
         )}
       </div>
@@ -1287,7 +1287,7 @@ function LookConfigurationSection({ config }: { config: any }) {
               className="flex-shrink-0 w-64 md:w-72 snap-start group"
             >
               <div className="relative aspect-[3/4] mb-6 overflow-hidden bg-gray-50 group-hover:shadow-xl transition-all duration-700">
-                {config.showDiscountBadge && <div className="absolute top-4 left-4 bg-black text-white text-[10px] px-2 py-1 uppercase z-10">Ä°ndirim</div>}
+                {config.showDiscountBadge && <div className="absolute top-4 left-4 bg-black text-white text-[10px] px-2 py-1 uppercase z-10">İndirim</div>}
                 <Image
                   src={item.product.primaryImage || item.product.image || "/placeholder.jpg"}
                   alt={item.product.name}
@@ -1298,7 +1298,7 @@ function LookConfigurationSection({ config }: { config: any }) {
                 
                 {/* Hover Quick View Overlay */}
                 <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
-                  <span className="text-white text-[10px] font-bold tracking-[0.3em] uppercase border-b border-white pb-1">Ä°ncele</span>
+                  <span className="text-white text-[10px] font-bold tracking-[0.3em] uppercase border-b border-white pb-1">İncele</span>
                 </div>
               </div>
               
@@ -1308,10 +1308,10 @@ function LookConfigurationSection({ config }: { config: any }) {
                 </h3>
                 {config.showTotalPrice && (
                   <div className="flex items-baseline gap-3">
-                    <span className="text-sm font-medium">{item.product.price.toLocaleString('tr-TR')} â‚º</span>
+                    <span className="text-sm font-medium">{item.product.price.toLocaleString('tr-TR')} ₺</span>
                     {item.product.originalPrice && item.product.originalPrice > item.product.price && (
                       <span className="text-[11px] text-black/30 line-through">
-                        {item.product.originalPrice.toLocaleString('tr-TR')} â‚º
+                        {item.product.originalPrice.toLocaleString('tr-TR')} ₺
                       </span>
                     )}
                   </div>
@@ -1344,7 +1344,7 @@ function LookConfigurationSection({ config }: { config: any }) {
       {config.showAllAddButton && (
         <div className="mt-8 flex md:hidden">
           <Button variant="outline" className="w-full rounded-full h-14 border-black text-black font-bold uppercase text-xs tracking-widest">
-            TÃ¼m ParÃ§alarÄ± Ä°ncele
+            Tüm Parçaları İncele
           </Button>
         </div>
       )}
@@ -1370,7 +1370,7 @@ function RecentlyViewedSection({ currentProductId }: { currentProductId?: string
         const localProducts = getRecentlyViewed();
 
         const localFormatted = localProducts
-          .filter((p) => p.productId !== currentProductId) // Mevcut Ã¼rÃ¼nÃ¼ filtrele
+          .filter((p) => p.productId !== currentProductId) // Mevcut ürünü filtrele
           .map((p: {
             id: string;
             productId: string;
@@ -1397,7 +1397,7 @@ function RecentlyViewedSection({ currentProductId }: { currentProductId?: string
             const apiProducts = Array.isArray(data?.products) ? data.products : [];
 
             const apiFormatted = apiProducts
-              .filter((p: any) => p.id !== currentProductId) // Mevcut Ã¼rÃ¼nÃ¼ filtrele
+              .filter((p: any) => p.id !== currentProductId) // Mevcut ürünü filtrele
               .map((p: any) => ({
                 id: `api-${p.id}`,
                 productId: p.id,
@@ -1451,7 +1451,7 @@ function RecentlyViewedSection({ currentProductId }: { currentProductId?: string
     return () => {
       window.removeEventListener("recentlyViewedUpdated", loadRecentlyViewed);
     };
-  }, [currentProductId]); // currentProductId deÄŸiÅŸtiÄŸinde yeniden yÃ¼kle
+  }, [currentProductId]); // currentProductId değiştiğinde yeniden yükle
 
   if (viewedProducts.length === 0) {
     return null;
@@ -1460,7 +1460,7 @@ function RecentlyViewedSection({ currentProductId }: { currentProductId?: string
   return (
     <section className="max-w-7xl mx-auto px-4 md:px-8 py-16 border-t border-gray-200">
       <h2 className="text-2xl md:text-3xl font-serif font-light text-black mb-8">
-        Son GÃ¶rÃ¼ntÃ¼lenenler
+        Son Görüntülenenler
       </h2>
       <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
         {viewedProducts.map((product) => (
@@ -1480,12 +1480,12 @@ function RecentlyViewedSection({ currentProductId }: { currentProductId?: string
                 />
               ) : (
                 <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                  <span className="text-xs text-gray-400">FotoÄŸraf Yok</span>
+                  <span className="text-xs text-gray-400">Fotoğraf Yok</span>
                 </div>
               )}
             </div>
             <h3 className="text-sm font-light text-black mb-1">{product.name}</h3>
-            <p className="text-sm font-light text-black">{product.price} â‚º</p>
+            <p className="text-sm font-light text-black">{product.price} ₺</p>
           </Link>
         ))}
       </div>
@@ -1498,12 +1498,12 @@ function ParentLookConfigsSection({ configs }: { configs: any[] }) {
     <section className="max-w-7xl mx-auto px-4 md:px-8 py-16 border-t border-gray-100 bg-gray-50/30">
       <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
         <div className="space-y-4">
-          <span className="text-[10px] tracking-[0.4em] uppercase font-bold text-black/40">Kombin ParÃ§asÄ±</span>
+          <span className="text-[10px] tracking-[0.4em] uppercase font-bold text-black/40">Kombin Parçası</span>
           <h2 className="text-3xl md:text-4xl font-serif font-light text-black">
-             Bu ÃœrÃ¼nÃ¼n Bir ParÃ§asÄ± OlduÄŸu Stil
+             Bu Ürünün Bir Parçası Olduğu Stil
           </h2>
           <p className="text-sm text-gray-500 font-light">
-            Bu Ã¼rÃ¼n aÅŸaÄŸÄ±daki ana kombinasyonun bir parÃ§asÄ±dÄ±r. TÃ¼m kombini inceleyebilirsiniz.
+            Bu ürün aşağıdaki ana kombinasyonun bir parçasıdır. Tüm kombini inceleyebilirsiniz.
           </p>
         </div>
       </div>
@@ -1528,14 +1528,14 @@ function ParentLookConfigsSection({ configs }: { configs: any[] }) {
               </div>
               <div className="flex flex-col gap-4 text-center md:text-left">
                 <div className="space-y-1">
-                  <span className="text-[10px] font-bold text-orange-500 uppercase tracking-widest">{config.title || "Kombin Ana ÃœrÃ¼nÃ¼"}</span>
+                  <span className="text-[10px] font-bold text-orange-500 uppercase tracking-widest">{config.title || "Kombin Ana Ürünü"}</span>
                   <h3 className="text-2xl font-serif font-light text-black group-hover:text-black/70 transition-colors">{p.name}</h3>
                 </div>
                 <div className="flex items-baseline gap-3 justify-center md:justify-start">
-                  <span className="text-lg font-medium">{p.price.toLocaleString('tr-TR')} â‚º</span>
+                  <span className="text-lg font-medium">{p.price.toLocaleString('tr-TR')} ₺</span>
                   <ArrowRight className="w-5 h-5 text-black/20 group-hover:translate-x-2 transition-transform" />
                 </div>
-                <Button className="mt-2 bg-black text-white rounded-full px-8 h-12 uppercase text-[10px] tracking-widest">Kombini GÃ¶r</Button>
+                <Button className="mt-2 bg-black text-white rounded-full px-8 h-12 uppercase text-[10px] tracking-widest">Kombini Gör</Button>
               </div>
             </Link>
           );

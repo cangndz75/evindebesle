@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
           tags: {
             some: {
               name: {
-                in: ["yeni Ã¼rÃ¼n", "yeni", "yeni gelenler", "new", "new arrival"],
+                in: ["yeni ürün", "yeni", "yeni gelenler", "new", "new arrival"],
               },
             },
           },
@@ -93,7 +93,7 @@ export async function GET(request: NextRequest) {
               tags: {
                 some: {
                   name: {
-                    in: ["Ã§ok satan", "best seller", "bestseller", "en Ã§ok satan"],
+                    in: ["çok satan", "best seller", "bestseller", "en çok satan"],
                   },
                 },
               },
@@ -173,7 +173,7 @@ export async function GET(request: NextRequest) {
               tags: {
                 some: {
                   name: {
-                    in: ["Ã¶ne Ã§Ä±kan", "featured", "trend", "popÃ¼ler"],
+                    in: ["öne çıkan", "featured", "trend", "popüler"],
                   },
                 },
               },
@@ -247,7 +247,7 @@ export async function GET(request: NextRequest) {
       });
     } else {
       return NextResponse.json(
-        { error: "GeÃ§ersiz type parametresi" },
+        { error: "Geçersiz type parametresi" },
         { status: 400 }
       );
     }
@@ -291,7 +291,7 @@ export async function GET(request: NextRequest) {
         originalPrice: product.originalPrice || undefined,
         image: mainImage,
         hoverImage: hoverImage !== mainImage ? hoverImage : undefined,
-        badge: product.originalPrice ? "Ä°ndirim" : "Yeni",
+        badge: product.originalPrice ? "İndirim" : "Yeni",
         colors: product.colors.map((c: any) => {
           const images = parseImages(c.images);
           return images[0] || "";
@@ -313,7 +313,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Error fetching home products:", error);
     return NextResponse.json(
-      { error: "ÃœrÃ¼nler yÃ¼klenirken bir hata oluÅŸtu" },
+      { error: "Ürünler yüklenirken bir hata oluştu" },
       { status: 500 }
     );
   }

@@ -37,7 +37,7 @@ export async function PATCH(
         });
 
         if (!returnRequest) {
-            return NextResponse.json({ error: "Ä°ade bulunamadÄ±" }, { status: 404 });
+            return NextResponse.json({ error: "İade bulunamadı" }, { status: 404 });
         }
 
         await prisma.$transaction(async (tx: any) => {
@@ -71,7 +71,7 @@ export async function PATCH(
                             variantId,
                             quantity: item.quantity,
                             type: "RETURN",
-                            reason: `Ä°ade Talebi #${id} OnayÄ±`,
+                            reason: `İade Talebi #${id} Onayı`,
                             userId: session.user.id,
                         },
                     });
@@ -84,7 +84,7 @@ export async function PATCH(
     } catch (error: any) {
         console.error("Return update error:", error);
         return NextResponse.json(
-            { error: "Ä°ade gÃ¼ncellenirken hata oluÅŸtu" },
+            { error: "İade güncellenirken hata oluştu" },
             { status: 500 }
         );
     }

@@ -90,7 +90,7 @@ export default function PurchaseNotifications() {
                     <p className="text-sm text-gray-900 font-medium truncate">
                         {current.buyerName}, {current.city}
                     </p>
-                    <p className="text-sm text-gray-600 truncate">{current.productName} satÄ±n aldÄ±</p>
+                    <p className="text-sm text-gray-600 truncate">{current.productName} satın aldı</p>
                     <p className="text-xs text-gray-400 mt-1">{current.timeAgo}</p>
                 </div>
                 <button

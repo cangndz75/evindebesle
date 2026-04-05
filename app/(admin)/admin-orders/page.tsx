@@ -118,7 +118,7 @@ export default function AdminOrdersPage() {
       }
     } catch (error) {
       console.error("Error fetching orders:", error);
-      toast.error("SipariÅŸler yÃ¼klenirken bir hata oluÅŸtu");
+      toast.error("Siparişler yüklenirken bir hata oluştu");
     } finally {
       setLoading(false);
     }
@@ -141,17 +141,17 @@ export default function AdminOrdersPage() {
       });
 
       if (res.ok) {
-        toast.success("SipariÅŸ durumu gÃ¼ncellendi");
+        toast.success("Sipariş durumu güncellendi");
         fetchOrders();
         if (selectedOrder?.id === orderId) {
           const updated = await res.json();
           setSelectedOrder(updated.order);
         }
       } else {
-        throw new Error("GÃ¼ncelleme baÅŸarÄ±sÄ±z");
+        throw new Error("Güncelleme başarısız");
       }
     } catch (error) {
-      toast.error("SipariÅŸ durumu gÃ¼ncellenirken bir hata oluÅŸtu");
+      toast.error("Sipariş durumu güncellenirken bir hata oluştu");
     } finally {
       setUpdatingStatus(false);
     }
@@ -168,14 +168,14 @@ export default function AdminOrdersPage() {
 
       if (res.ok) {
         const invoice = await res.json();
-        toast.success("Fatura baÅŸarÄ±yla oluÅŸturuldu");
+        toast.success("Fatura başarıyla oluşturuldu");
         router.push(`/admin-invoices/${invoice.id}`);
       } else {
         const msg = await res.text();
-        toast.error(msg || "Fatura oluÅŸturulamadÄ±");
+        toast.error(msg || "Fatura oluşturulamadı");
       }
     } catch (error) {
-      toast.error("Bir hata oluÅŸtu");
+      toast.error("Bir hata oluştu");
     } finally {
       setUpdatingStatus(false);
     }
@@ -184,11 +184,11 @@ export default function AdminOrdersPage() {
   const getStatusBadge = (status: string) => {
     const statusMap: Record<string, { label: string; className: string }> = {
       PENDING: { label: "Beklemede", className: "bg-yellow-100 text-yellow-800" },
-      PAID: { label: "Ã–dendi", className: "bg-green-100 text-green-800" },
-      PREPARING: { label: "HazÄ±rlanÄ±yor", className: "bg-blue-100 text-blue-800" },
+      PAID: { label: "Ödendi", className: "bg-green-100 text-green-800" },
+      PREPARING: { label: "Hazırlanıyor", className: "bg-blue-100 text-blue-800" },
       SHIPPED: { label: "Kargoya Verildi", className: "bg-purple-100 text-purple-800" },
       DELIVERED: { label: "Teslim Edildi", className: "bg-green-100 text-green-800" },
-      CANCELLED: { label: "Ä°ptal Edildi", className: "bg-red-100 text-red-800" },
+      CANCELLED: { label: "İptal Edildi", className: "bg-red-100 text-red-800" },
     };
     const statusInfo = statusMap[status] || { label: status, className: "bg-gray-100 text-gray-800" };
     return (
@@ -200,10 +200,10 @@ export default function AdminOrdersPage() {
 
   const getPaymentStatusBadge = (status: string) => {
     const statusMap: Record<string, { label: string; className: string }> = {
-      PENDING: { label: "Ã–deme Bekleniyor", className: "bg-gray-100 text-gray-800" },
-      PAID: { label: "Ã–dendi", className: "bg-green-100 text-green-800" },
-      FAILED: { label: "BaÅŸarÄ±sÄ±z", className: "bg-red-100 text-red-800" },
-      REFUNDED: { label: "Ä°ade Edildi", className: "bg-orange-100 text-orange-800" },
+      PENDING: { label: "Ödeme Bekleniyor", className: "bg-gray-100 text-gray-800" },
+      PAID: { label: "Ödendi", className: "bg-green-100 text-green-800" },
+      FAILED: { label: "Başarısız", className: "bg-red-100 text-red-800" },
+      REFUNDED: { label: "İade Edildi", className: "bg-orange-100 text-orange-800" },
     };
     const statusInfo = statusMap[status] || { label: status, className: "bg-gray-100 text-gray-800" };
     return (
@@ -234,7 +234,7 @@ export default function AdminOrdersPage() {
 
   const handleBulkAction = async (action: string) => {
     if (selectedOrders.size === 0) {
-      toast.error("LÃ¼tfen en az bir sipariÅŸ seÃ§in");
+      toast.error("Lütfen en az bir sipariş seçin");
       return;
     }
 
@@ -268,28 +268,28 @@ export default function AdminOrdersPage() {
       }
 
       await Promise.all(promises);
-      toast.success(`${selectedOrders.size} sipariÅŸ gÃ¼ncellendi`);
+      toast.success(`${selectedOrders.size} sipariş güncellendi`);
       setSelectedOrders(new Set());
       fetchOrders();
     } catch (error) {
-      toast.error("Toplu iÅŸlem sÄ±rasÄ±nda bir hata oluÅŸtu");
+      toast.error("Toplu işlem sırasında bir hata oluştu");
     } finally {
       setUpdatingStatus(false);
     }
   };
 
   const tabs = [
-    { key: "ALL" as const, label: "TÃ¼m SipariÅŸler", count: orders.length },
-    { key: "PAID" as const, label: "Yeni SipariÅŸler", count: orders.filter((o) => o.status === "PAID").length },
-    { key: "PREPARING" as const, label: "HazÄ±rlanÄ±yor", count: orders.filter((o) => o.status === "PREPARING").length },
+    { key: "ALL" as const, label: "Tüm Siparişler", count: orders.length },
+    { key: "PAID" as const, label: "Yeni Siparişler", count: orders.filter((o) => o.status === "PAID").length },
+    { key: "PREPARING" as const, label: "Hazırlanıyor", count: orders.filter((o) => o.status === "PREPARING").length },
     { key: "SHIPPED" as const, label: "Kargoda", count: orders.filter((o) => o.status === "SHIPPED").length },
-    { key: "CANCELLED" as const, label: "Ä°ade", count: orders.filter((o) => o.status === "CANCELLED").length },
+    { key: "CANCELLED" as const, label: "İade", count: orders.filter((o) => o.status === "CANCELLED").length },
   ];
 
   return (
     <div className="space-y-6 p-4 md:p-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <h1 className="text-2xl md:text-3xl font-bold">TÃ¼m SipariÅŸler</h1>
+        <h1 className="text-2xl md:text-3xl font-bold">Tüm Siparişler</h1>
       </div>
 
       {/* Tab View */}
@@ -314,41 +314,41 @@ export default function AdminOrdersPage() {
         ))}
       </div>
 
-      {/* Filtreler ve Toplu Ä°ÅŸlemler */}
+      {/* Filtreler ve Toplu İşlemler */}
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
         <div className="flex flex-col md:flex-row gap-4 flex-1">
           <Input
-            placeholder="SipariÅŸ no, mÃ¼ÅŸteri adÄ± veya e-posta ile ara..."
+            placeholder="Sipariş no, müşteri adı veya e-posta ile ara..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="flex-1"
           />
           <Select value={paymentFilter} onValueChange={setPaymentFilter}>
             <SelectTrigger className="w-full md:w-[180px]">
-              <SelectValue placeholder="Ã–deme Durumu" />
+              <SelectValue placeholder="Ödeme Durumu" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">TÃ¼mÃ¼</SelectItem>
-              <SelectItem value="PENDING">Ã–deme Bekleniyor</SelectItem>
-              <SelectItem value="PAID">Ã–dendi</SelectItem>
-              <SelectItem value="FAILED">BaÅŸarÄ±sÄ±z</SelectItem>
-              <SelectItem value="REFUNDED">Ä°ade Edildi</SelectItem>
+              <SelectItem value="all">Tümü</SelectItem>
+              <SelectItem value="PENDING">Ödeme Bekleniyor</SelectItem>
+              <SelectItem value="PAID">Ödendi</SelectItem>
+              <SelectItem value="FAILED">Başarısız</SelectItem>
+              <SelectItem value="REFUNDED">İade Edildi</SelectItem>
             </SelectContent>
           </Select>
           <Select onValueChange={(val) => {
             if (val === "high") {
               const params = new URLSearchParams(window.location.search);
               params.set("risk", "high");
-              toast.info("YÃ¼ksek riskli sipariÅŸler filtreleniyor (Demo)");
+              toast.info("Yüksek riskli siparişler filtreleniyor (Demo)");
             }
           }}>
             <SelectTrigger className="w-[150px]">
               <SelectValue placeholder="Risk Durumu" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">TÃ¼mÃ¼</SelectItem>
-              <SelectItem value="high">YÃ¼ksek Risk (&gt;50)</SelectItem>
-              <SelectItem value="low">DÃ¼ÅŸÃ¼k Risk</SelectItem>
+              <SelectItem value="all">Tümü</SelectItem>
+              <SelectItem value="high">Yüksek Risk (&gt;50)</SelectItem>
+              <SelectItem value="low">Düşük Risk</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -374,7 +374,7 @@ export default function AdminOrdersPage() {
               size="sm"
               onClick={() => setSelectedOrders(new Set())}
             >
-              SeÃ§imi Temizle
+              Seçimi Temizle
             </Button>
           </div>
         )}
@@ -389,7 +389,7 @@ export default function AdminOrdersPage() {
         </div>
       ) : filteredOrders.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
-          SipariÅŸ bulunamadÄ±
+          Sipariş bulunamadı
         </div>
       ) : (
         <div className="rounded-md border overflow-x-auto">
@@ -408,15 +408,15 @@ export default function AdminOrdersPage() {
                     }}
                   />
                 </TableHead>
-                <TableHead>SipariÅŸ No</TableHead>
-                <TableHead>MÃ¼ÅŸteri</TableHead>
+                <TableHead>Sipariş No</TableHead>
+                <TableHead>Müşteri</TableHead>
                 <TableHead>Tarih</TableHead>
-                <TableHead>ÃœrÃ¼nler</TableHead>
+                <TableHead>Ürünler</TableHead>
                 <TableHead>Tutar</TableHead>
                 <TableHead>Risk</TableHead>
                 <TableHead>Durum</TableHead>
-                <TableHead>Ã–deme</TableHead>
-                <TableHead className="text-right">Ä°ÅŸlemler</TableHead>
+                <TableHead>Ödeme</TableHead>
+                <TableHead className="text-right">İşlemler</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -448,17 +448,17 @@ export default function AdminOrdersPage() {
                   </TableCell>
                   <TableCell>
                     <div className="text-sm">
-                      {order.items.length} Ã¼rÃ¼n
+                      {order.items.length} ürün
                       {order.items.length > 0 && (
                         <div className="text-muted-foreground mt-1">
                           {order.items[0].productName}
-                          {order.items.length > 1 && ` +${order.items.length - 1} Ã¼rÃ¼n`}
+                          {order.items.length > 1 && ` +${order.items.length - 1} ürün`}
                         </div>
                       )}
                     </div>
                   </TableCell>
                   <TableCell className="font-medium">
-                    {order.total.toFixed(2)} â‚º
+                    {order.total.toFixed(2)} ₺
                   </TableCell>
                   <TableCell>
                     {order.riskScore && order.riskScore > 50 ? (
@@ -466,7 +466,7 @@ export default function AdminOrdersPage() {
                         {order.riskScore}
                       </Badge>
                     ) : (
-                      <span className="text-green-600 text-sm font-medium">GÃ¼venli</span>
+                      <span className="text-green-600 text-sm font-medium">Güvenli</span>
                     )}
                   </TableCell>
                   <TableCell>{getStatusBadge(order.status)}</TableCell>
@@ -483,19 +483,19 @@ export default function AdminOrdersPage() {
                           onClick={() => router.push(`/admin-orders/${order.id}`)}
                         >
                           <Eye className="w-4 h-4 mr-2" />
-                          DetaylarÄ± GÃ¶rÃ¼ntÃ¼le
+                          Detayları Görüntüle
                         </DropdownMenuItem>
                         {order.status !== "PREPARING" && (
                           <DropdownMenuItem
                             onClick={() => handleStatusChange(order.id, "PREPARING")}
                           >
                             <Package className="w-4 h-4 mr-2" />
-                            HazÄ±rlanÄ±yor Yap
+                            Hazırlanıyor Yap
                           </DropdownMenuItem>
                         )}
                         <DropdownMenuItem onClick={() => handleCreateInvoice(order.id)}>
                           <FileText className="w-4 h-4 mr-2" />
-                          Fatura OluÅŸtur
+                          Fatura Oluştur
                         </DropdownMenuItem>
                         {order.status !== "SHIPPED" && order.status !== "DELIVERED" && order.status !== "CANCELLED" && (
                           <DropdownMenuItem
@@ -515,7 +515,7 @@ export default function AdminOrdersPage() {
                             onClick={() => handleStatusChange(order.id, "DELIVERED")}
                           >
                             <CheckCircle className="w-4 h-4 mr-2" />
-                            Teslim Edildi Ä°ÅŸaretle
+                            Teslim Edildi İşaretle
                           </DropdownMenuItem>
                         )}
                         {order.status !== "CANCELLED" && (
@@ -527,7 +527,7 @@ export default function AdminOrdersPage() {
                             className="text-red-600"
                           >
                             <XCircle className="w-4 h-4 mr-2" />
-                            Ä°ptal Et
+                            İptal Et
                           </DropdownMenuItem>
                         )}
                       </DropdownMenuContent>
@@ -540,17 +540,17 @@ export default function AdminOrdersPage() {
         </div>
       )}
 
-      {/* SipariÅŸ Detay Modal */}
+      {/* Sipariş Detay Modal */}
       <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>SipariÅŸ DetaylarÄ± - {selectedOrder?.orderNumber}</DialogTitle>
+            <DialogTitle>Sipariş Detayları - {selectedOrder?.orderNumber}</DialogTitle>
           </DialogHeader>
           {selectedOrder && (
             <div className="space-y-6">
-              {/* MÃ¼ÅŸteri Bilgileri */}
+              {/* Müşteri Bilgileri */}
               <div>
-                <h3 className="font-semibold mb-2">MÃ¼ÅŸteri Bilgileri</h3>
+                <h3 className="font-semibold mb-2">Müşteri Bilgileri</h3>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <p><strong>Ad:</strong> {selectedOrder.user.name}</p>
                   <p><strong>E-posta:</strong> {selectedOrder.user.email}</p>
@@ -568,9 +568,9 @@ export default function AdminOrdersPage() {
                 </div>
               )}
 
-              {/* ÃœrÃ¼nler */}
+              {/* Ürünler */}
               <div>
-                <h3 className="font-semibold mb-2">ÃœrÃ¼nler</h3>
+                <h3 className="font-semibold mb-2">Ürünler</h3>
                 <div className="space-y-2">
                   {selectedOrder.items.map((item) => (
                     <div key={item.id} className="flex items-center gap-4 p-4 border rounded-lg">
@@ -586,12 +586,12 @@ export default function AdminOrdersPage() {
                         {(item.colorName || item.sizeName) && (
                           <p className="text-sm text-muted-foreground">
                             {item.colorName && `Renk: ${item.colorName}`}
-                            {item.colorName && item.sizeName && " â€¢ "}
+                            {item.colorName && item.sizeName && " • "}
                             {item.sizeName && `Beden: ${item.sizeName}`}
                           </p>
                         )}
                         <p className="text-sm text-muted-foreground">
-                          Adet: {item.quantity} Ã— {item.unitPrice.toFixed(2)} â‚º = {item.totalPrice.toFixed(2)} â‚º
+                          Adet: {item.quantity} Ã— {item.unitPrice.toFixed(2)} ₺ = {item.totalPrice.toFixed(2)} ₺
                         </p>
                       </div>
                     </div>
@@ -599,27 +599,27 @@ export default function AdminOrdersPage() {
                 </div>
               </div>
 
-              {/* Fiyat Ã–zeti */}
+              {/* Fiyat Özeti */}
               <div>
-                <h3 className="font-semibold mb-2">Fiyat Ã–zeti</h3>
+                <h3 className="font-semibold mb-2">Fiyat Özeti</h3>
                 <div className="bg-gray-50 p-4 rounded-lg space-y-2">
                   <div className="flex justify-between">
                     <span>Ara Toplam:</span>
-                    <span>{selectedOrder.subtotal.toFixed(2)} â‚º</span>
+                    <span>{selectedOrder.subtotal.toFixed(2)} ₺</span>
                   </div>
                   {selectedOrder.discount > 0 && (
                     <div className="flex justify-between text-green-600">
-                      <span>Ä°ndirim:</span>
-                      <span>-{selectedOrder.discount.toFixed(2)} â‚º</span>
+                      <span>İndirim:</span>
+                      <span>-{selectedOrder.discount.toFixed(2)} ₺</span>
                     </div>
                   )}
                   <div className="flex justify-between">
                     <span>Kargo:</span>
-                    <span>{selectedOrder.shippingCost.toFixed(2)} â‚º</span>
+                    <span>{selectedOrder.shippingCost.toFixed(2)} ₺</span>
                   </div>
                   <div className="flex justify-between font-bold text-lg pt-2 border-t">
                     <span>Toplam:</span>
-                    <span>{selectedOrder.total.toFixed(2)} â‚º</span>
+                    <span>{selectedOrder.total.toFixed(2)} ₺</span>
                   </div>
                 </div>
               </div>
@@ -627,11 +627,11 @@ export default function AdminOrdersPage() {
               {/* Durum Bilgileri */}
               <div className="flex gap-4">
                 <div>
-                  <h3 className="font-semibold mb-2">SipariÅŸ Durumu</h3>
+                  <h3 className="font-semibold mb-2">Sipariş Durumu</h3>
                   {getStatusBadge(selectedOrder.status)}
                 </div>
                 <div>
-                  <h3 className="font-semibold mb-2">Ã–deme Durumu</h3>
+                  <h3 className="font-semibold mb-2">Ödeme Durumu</h3>
                   {getPaymentStatusBadge(selectedOrder.paymentStatus)}
                 </div>
               </div>
@@ -660,10 +660,10 @@ export default function AdminOrdersPage() {
             handleStatusChange(orderToCancel, "CANCELLED");
           }
         }}
-        title="SipariÅŸi Ä°ptal Et"
-        description="Bu sipariÅŸi iptal etmek istediÄŸinize emin misiniz? Bu iÅŸlem geri alÄ±namaz."
-        confirmLabel="SipariÅŸi Ä°ptal Et"
-        cancelLabel="VazgeÃ§"
+        title="Siparişi İptal Et"
+        description="Bu siparişi iptal etmek istediğinize emin misiniz? Bu işlem geri alınamaz."
+        confirmLabel="Siparişi İptal Et"
+        cancelLabel="Vazgeç"
       />
 
       <Dialog open={trackingDialogOpen} onOpenChange={setTrackingDialogOpen}>
@@ -672,13 +672,13 @@ export default function AdminOrdersPage() {
             <DialogTitle>Kargo Bilgisi</DialogTitle>
             <DialogDescription>
               {isBulkTracking
-                ? `${selectedOrders.size} sipariÅŸ iÃ§in kargo takip numarasÄ± girin.`
-                : "SeÃ§ili sipariÅŸ iÃ§in kargo takip numarasÄ± girin."}
+                ? `${selectedOrders.size} sipariş için kargo takip numarası girin.`
+                : "Seçili sipariş için kargo takip numarası girin."}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <Input
-              placeholder="Takip NumarasÄ±"
+              placeholder="Takip Numarası"
               value={trackingInput}
               onChange={(e) => setTrackingInput(e.target.value)}
               autoFocus
@@ -686,7 +686,7 @@ export default function AdminOrdersPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setTrackingDialogOpen(false)}>
-              Ä°ptal
+              İptal
             </Button>
             <Button
               disabled={!trackingInput || updatingStatus}
@@ -702,11 +702,11 @@ export default function AdminOrdersPage() {
                       })
                     );
                     await Promise.all(promises);
-                    toast.success(`${selectedOrders.size} sipariÅŸ kargoya verildi`);
+                    toast.success(`${selectedOrders.size} sipariş kargoya verildi`);
                     setSelectedOrders(new Set());
                     fetchOrders();
                   } catch (error) {
-                    toast.error("Toplu iÅŸlem sÄ±rasÄ±nda bir hata oluÅŸtu");
+                    toast.error("Toplu işlem sırasında bir hata oluştu");
                   } finally {
                     setUpdatingStatus(false);
                     setTrackingDialogOpen(false);

@@ -11,7 +11,7 @@ export interface RecentlyViewedProduct {
 }
 
 const STORAGE_KEY = "recentlyViewedProducts";
-const MAX_ITEMS = 20; // Maksimum 20 Ã¼rÃ¼n sakla
+const MAX_ITEMS = 20; // Maksimum 20 ürün sakla
 
 export function getRecentlyViewed(): RecentlyViewedProduct[] {
   if (typeof window === "undefined") return [];

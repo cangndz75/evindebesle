@@ -36,13 +36,13 @@ export default function SupportPage() {
     const getStatusBadge = (status: string) => {
         switch (status) {
             case "open":
-                return <Badge className="bg-green-500 hover:bg-green-600">AÃ§Ä±k</Badge>;
+                return <Badge className="bg-green-500 hover:bg-green-600">Açık</Badge>;
             case "pending":
                 return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200">Beklemede</Badge>;
             case "resolved":
-                return <Badge variant="secondary" className="bg-blue-100 text-blue-800 hover:bg-blue-200">Ã‡Ã¶zÃ¼ldÃ¼</Badge>;
+                return <Badge variant="secondary" className="bg-blue-100 text-blue-800 hover:bg-blue-200">Çözüldü</Badge>;
             case "closed":
-                return <Badge variant="outline" className="text-gray-500 border-gray-300">KapalÄ±</Badge>;
+                return <Badge variant="outline" className="text-gray-500 border-gray-300">Kapalı</Badge>;
             default:
                 return <Badge variant="outline">{status}</Badge>;
         }
@@ -50,11 +50,11 @@ export default function SupportPage() {
 
     const getCategoryLabel = (category: string) => {
         const labels: Record<string, string> = {
-            order: "SipariÅŸ",
-            payment: "Ã–deme",
-            return: "Ä°ade/DeÄŸiÅŸim",
-            product: "ÃœrÃ¼n",
-            other: "DiÄŸer",
+            order: "Sipariş",
+            payment: "Ödeme",
+            return: "İade/Değişim",
+            product: "Ürün",
+            other: "Diğer",
         };
         return labels[category] || category;
     };
@@ -65,7 +65,7 @@ export default function SupportPage() {
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight">Destek Taleplerim</h1>
                     <p className="text-sm text-muted-foreground mt-1">
-                        SorularÄ±nÄ±z ve talepleriniz iÃ§in buradan bizimle iletiÅŸime geÃ§ebilirsiniz.
+                        Sorularınız ve talepleriniz için buradan bizimle iletişime geçebilirsiniz.
                     </p>
                 </div>
                 <Link href="/profile/support/create">
@@ -92,9 +92,9 @@ export default function SupportPage() {
                                         </CardTitle>
                                         <CardDescription className="flex items-center gap-2 text-xs">
                                             <span>#{ticket.id.slice(-6)}</span>
-                                            <span>â€¢</span>
+                                            <span>•</span>
                                             <span>{format(new Date(ticket.createdAt), "d MMMM yyyy HH:mm", { locale: tr })}</span>
-                                            <span>â€¢</span>
+                                            <span>•</span>
                                             <span className="font-medium text-gray-900">{getCategoryLabel(ticket.category)}</span>
                                         </CardDescription>
                                     </div>
@@ -109,7 +109,7 @@ export default function SupportPage() {
                                             <span>{ticket._count.messages} mesaj</span>
                                         </div>
                                         <div>
-                                            Son GÃ¼ncelleme: {format(new Date(ticket.updatedAt), "d MMM HH:mm", { locale: tr })}
+                                            Son Güncelleme: {format(new Date(ticket.updatedAt), "d MMM HH:mm", { locale: tr })}
                                         </div>
                                     </div>
                                 </CardContent>
@@ -121,12 +121,12 @@ export default function SupportPage() {
                 <Card className="border-dashed">
                     <CardContent className="flex flex-col items-center justify-center py-10 text-center">
                         <MessageSquare className="h-10 w-10 text-muted-foreground mb-4 opacity-20" />
-                        <h3 className="font-semibold text-lg mb-1">HenÃ¼z bir talebiniz yok</h3>
+                        <h3 className="font-semibold text-lg mb-1">Henüz bir talebiniz yok</h3>
                         <p className="text-sm text-muted-foreground max-w-sm mb-6">
-                            SipariÅŸleriniz veya Ã¼rÃ¼nlerimiz hakkÄ±nda merak ettikleriniz iÃ§in yeni bir destek talebi oluÅŸturabilirsiniz.
+                            Siparişleriniz veya ürünlerimiz hakkında merak ettikleriniz için yeni bir destek talebi oluşturabilirsiniz.
                         </p>
                         <Link href="/profile/support/create">
-                            <Button variant="outline">Talep OluÅŸtur</Button>
+                            <Button variant="outline">Talep Oluştur</Button>
                         </Link>
                     </CardContent>
                 </Card>

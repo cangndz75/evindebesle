@@ -142,7 +142,7 @@ export default function CartPreview({ cartIconRef, headerBottom }: CartPreviewPr
               {popup.color && <span>{popup.color}</span>}
             </p>
             <p className="text-sm font-light text-[#111]">
-              â‚º{(popup.product.originalPrice ?? popup.product.price).toFixed(2)}
+              ₺{(popup.product.originalPrice ?? popup.product.price).toFixed(2)}
             </p>
           </div>
         </div>
@@ -159,7 +159,7 @@ export default function CartPreview({ cartIconRef, headerBottom }: CartPreviewPr
             }}
             className="w-full px-4 py-2.5 border border-[#111] bg-white text-[#111] font-light text-xs uppercase tracking-wider hover:bg-[#111] hover:text-white transition-colors text-center"
           >
-            Sepeti GÃ¶rÃ¼ntÃ¼le {cartCount > 0 && `(${cartCount})`}
+            Sepeti Görüntüle {cartCount > 0 && `(${cartCount})`}
           </button>
           <Link
             href="/checkout/summary"
@@ -171,7 +171,7 @@ export default function CartPreview({ cartIconRef, headerBottom }: CartPreviewPr
             }}
             className="w-full px-4 py-2.5 bg-[#111] text-white font-light text-xs uppercase tracking-wider hover:bg-[#333] transition-colors text-center block"
           >
-            Ã–deme AdÄ±mÄ±na GeÃ§
+            Ödeme Adımına Geç
           </Link>
         </div>
       </div>

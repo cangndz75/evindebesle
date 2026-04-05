@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
     const ps = await prisma.paymentSession.findFirst({ where: { orderId } });
     if (!ps) {
       return NextResponse.json(
-        { error: "paymentSession bulunamadÄ±" },
+        { error: "paymentSession bulunamadı" },
         { status: 404 }
       );
     }

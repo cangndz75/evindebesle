@@ -13,11 +13,11 @@ interface FAQ {
 }
 
 const categoryConfig: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
-    order: { label: "SipariÅŸ", icon: <ShoppingBag className="w-5 h-5" />, color: "bg-blue-100 text-blue-700" },
-    payment: { label: "Ã–deme", icon: <CreditCard className="w-5 h-5" />, color: "bg-green-100 text-green-700" },
+    order: { label: "Sipariş", icon: <ShoppingBag className="w-5 h-5" />, color: "bg-blue-100 text-blue-700" },
+    payment: { label: "Ödeme", icon: <CreditCard className="w-5 h-5" />, color: "bg-green-100 text-green-700" },
     shipping: { label: "Kargo", icon: <Truck className="w-5 h-5" />, color: "bg-orange-100 text-orange-700" },
-    return: { label: "Ä°ade", icon: <RotateCcw className="w-5 h-5" />, color: "bg-red-100 text-red-700" },
-    product: { label: "ÃœrÃ¼n", icon: <Package className="w-5 h-5" />, color: "bg-purple-100 text-purple-700" },
+    return: { label: "İade", icon: <RotateCcw className="w-5 h-5" />, color: "bg-red-100 text-red-700" },
+    product: { label: "Ürün", icon: <Package className="w-5 h-5" />, color: "bg-purple-100 text-purple-700" },
     account: { label: "Hesap", icon: <User className="w-5 h-5" />, color: "bg-indigo-100 text-indigo-700" },
 };
 
@@ -91,8 +91,8 @@ export default function SSSPage() {
                     <div className="inline-flex items-center justify-center w-16 h-16 bg-white/10 rounded-full mb-6">
                         <HelpCircle className="w-8 h-8" />
                     </div>
-                    <h1 className="text-4xl font-bold mb-4">SÄ±kÃ§a Sorulan Sorular</h1>
-                    <p className="text-gray-300 mb-8">Size nasÄ±l yardÄ±mcÄ± olabiliriz?</p>
+                    <h1 className="text-4xl font-bold mb-4">Sıkça Sorulan Sorular</h1>
+                    <p className="text-gray-300 mb-8">Size nasıl yardımcı olabiliriz?</p>
 
                     {/* Arama */}
                     <div className="relative max-w-xl mx-auto">
@@ -109,7 +109,7 @@ export default function SSSPage() {
             </div>
 
             <div className="max-w-4xl mx-auto px-4 py-12">
-                {/* Kategori ButonlarÄ± */}
+                {/* Kategori Butonları */}
                 {!searchQuery && (
                     <div className="flex flex-wrap gap-2 mb-8">
                         <button
@@ -119,7 +119,7 @@ export default function SSSPage() {
                                 : "bg-white text-gray-600 hover:bg-gray-100"
                                 }`}
                         >
-                            TÃ¼mÃ¼
+                            Tümü
                         </button>
                         {Object.entries(categoryConfig).map(([key, config]) => (
                             <button
@@ -181,20 +181,20 @@ export default function SSSPage() {
                 {filteredFaqs.length === 0 && (
                     <div className="text-center py-12 text-gray-500">
                         <HelpCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                        <p className="text-lg">SonuÃ§ bulunamadÄ±</p>
-                        <p className="text-sm mt-2">FarklÄ± bir arama terimi deneyin</p>
+                        <p className="text-lg">Sonuç bulunamadı</p>
+                        <p className="text-sm mt-2">Farklı bir arama terimi deneyin</p>
                     </div>
                 )}
 
                 {/* Destek Linki */}
                 <div className="mt-12 p-6 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl text-center">
-                    <h3 className="text-lg font-bold text-gray-900 mb-2">AradÄ±ÄŸÄ±nÄ±zÄ± bulamadÄ±nÄ±z mÄ±?</h3>
-                    <p className="text-gray-600 mb-4">Destek ekibimiz size yardÄ±mcÄ± olmaktan mutluluk duyar.</p>
+                    <h3 className="text-lg font-bold text-gray-900 mb-2">Aradığınızı bulamadınız mı?</h3>
+                    <p className="text-gray-600 mb-4">Destek ekibimiz size yardımcı olmaktan mutluluk duyar.</p>
                     <a
                         href="/contact"
                         className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-medium"
                     >
-                        Bize UlaÅŸÄ±n
+                        Bize Ulaşın
                     </a>
                 </div>
             </div>

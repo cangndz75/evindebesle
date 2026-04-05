@@ -14,14 +14,14 @@ export async function POST(req: NextRequest) {
 
         if (!productIds || !Array.isArray(productIds) || productIds.length === 0) {
             return NextResponse.json(
-                { error: "ÃœrÃ¼n ID'leri gerekli" },
+                { error: "Ürün ID'leri gerekli" },
                 { status: 400 }
             );
         }
 
         if (!["archive", "restore", "delete"].includes(action)) {
             return NextResponse.json(
-                { error: "GeÃ§ersiz iÅŸlem. archive, restore veya delete olmalÄ±" },
+                { error: "Geçersiz işlem. archive, restore veya delete olmalı" },
                 { status: 400 }
             );
         }
@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
             if (productsWithOrders.length > 0) {
                 return NextResponse.json(
                     {
-                        error: "SipariÅŸi olan Ã¼rÃ¼nler silinemez. Bunun yerine arÅŸivleyin.",
+                        error: "Siparişi olan ürünler silinemez. Bunun yerine arşivleyin.",
                         products: productsWithOrders.map((p: any) => p.name),
                     },
                     { status: 400 }
@@ -86,20 +86,20 @@ export async function POST(req: NextRequest) {
         });
 
         const actionText = ({
-            archive: "arÅŸivlendi",
-            restore: "geri yÃ¼klendi",
+            archive: "arşivlendi",
+            restore: "geri yüklendi",
             delete: "silindi",
         } as any)[action];
 
         return NextResponse.json({
             success: true,
-            message: `${updatedCount} Ã¼rÃ¼n ${actionText}`,
+            message: `${updatedCount} ürün ${actionText}`,
             count: updatedCount,
         });
     } catch (error) {
         console.error("Error in archive operation:", error);
         return NextResponse.json(
-            { error: "Ä°ÅŸlem sÄ±rasÄ±nda bir hata oluÅŸtu" },
+            { error: "İşlem sırasında bir hata oluştu" },
             { status: 500 }
         );
     }

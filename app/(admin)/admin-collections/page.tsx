@@ -132,7 +132,7 @@ export default function AdminCollectionsPage() {
         setCollections([]);
       }
     } catch (e) {
-      toast.error("Koleksiyonlar yÃ¼klenemedi");
+      toast.error("Koleksiyonlar yüklenemedi");
     } finally {
       setLoading(false);
     }
@@ -166,7 +166,7 @@ export default function AdminCollectionsPage() {
         setCollectionItems([]);
       }
     } catch (e) {
-      toast.error("ÃœrÃ¼nler yÃ¼klenemedi");
+      toast.error("Ürünler yüklenemedi");
     } finally {
       setItemsLoading(false);
     }
@@ -185,7 +185,7 @@ export default function AdminCollectionsPage() {
       });
 
       if (res.ok) {
-        toast.success(selectedCollection ? "Koleksiyon gÃ¼ncellendi!" : "Koleksiyon oluÅŸturuldu!");
+        toast.success(selectedCollection ? "Koleksiyon güncellendi!" : "Koleksiyon oluşturuldu!");
         fetchCollections();
         setIsCreating(false);
         if (!selectedCollection) {
@@ -194,15 +194,15 @@ export default function AdminCollectionsPage() {
         }
       } else {
          const err = await res.json();
-         toast.error(err.error || "Hata oluÅŸtu");
+         toast.error(err.error || "Hata oluştu");
       }
     } catch (e) {
-      toast.error("Bir hata oluÅŸtu");
+      toast.error("Bir hata oluştu");
     }
   };
 
   const handleDeleteCollection = async (id: string) => {
-    if (!confirm("Koleksiyonu silmek istediÄŸinize emin misiniz? (Ä°Ã§indeki Ã¼rÃ¼n baÄŸlantÄ±larÄ± da silinecektir)")) return;
+    if (!confirm("Koleksiyonu silmek istediğinize emin misiniz? (İçindeki ürün bağlantıları da silinecektir)")) return;
     try {
       const res = await fetch(`/api/admin-collections?id=${id}`, { method: "DELETE" });
       if (res.ok) {
@@ -213,7 +213,7 @@ export default function AdminCollectionsPage() {
         toast.error("Silinemedi");
       }
     } catch (e) {
-      toast.error("Bir hata oluÅŸtu");
+      toast.error("Bir hata oluştu");
     }
   };
 
@@ -229,13 +229,13 @@ export default function AdminCollectionsPage() {
       if (res.ok) {
         toast.success("Koleksiyona eklendi!");
         fetchCollectionItems(selectedCollection.id);
-        fetchCollections(); // Count gÃ¼ncellemesi iÃ§in
+        fetchCollections(); // Count güncellemesi için
       } else {
         const err = await res.json();
-        toast.error(err.error || "Hata oluÅŸtu");
+        toast.error(err.error || "Hata oluştu");
       }
     } catch (e) {
-      toast.error("Bir hata oluÅŸtu");
+      toast.error("Bir hata oluştu");
     }
   };
 
@@ -244,14 +244,14 @@ export default function AdminCollectionsPage() {
     try {
       const res = await fetch(`/api/admin-collection-products?productId=${productId}&collectionId=${selectedCollection.id}`, { method: "DELETE" });
       if (res.ok) {
-        toast.success("Koleksiyondan Ã§Ä±karÄ±ldÄ±!");
+        toast.success("Koleksiyondan çıkarıldı!");
         fetchCollectionItems(selectedCollection.id);
         fetchCollections();
       } else {
         toast.error("Silinemedi");
       }
     } catch (e) {
-      toast.error("Bir hata oluÅŸtu");
+      toast.error("Bir hata oluştu");
     }
   };
 
@@ -279,13 +279,13 @@ export default function AdminCollectionsPage() {
       });
 
       if (!res.ok) {
-        toast.error("SÄ±ralama gÃ¼ncellenemedi");
+        toast.error("Sıralama güncellenemedi");
         fetchCollectionItems(selectedCollection.id);
       } else {
-        toast.success("SÄ±ralama gÃ¼ncellendi");
+        toast.success("Sıralama güncellendi");
       }
     } catch (e) {
-      toast.error("SÄ±ralama yÃ¼klenirken hata oluÅŸtu");
+      toast.error("Sıralama yüklenirken hata oluştu");
     }
   };
 
@@ -310,12 +310,12 @@ export default function AdminCollectionsPage() {
       const url = await uploadFileToCloudinary(file);
       if (url) {
         setFormData(prev => ({ ...prev, [field]: url }));
-        toast.success("GÃ¶rsel yÃ¼klendi!");
+        toast.success("Görsel yüklendi!");
       } else {
-        toast.error("GÃ¶rsel yÃ¼klenemedi");
+        toast.error("Görsel yüklenemedi");
       }
     } catch (error) {
-      toast.error("YÃ¼kleme sÄ±rasÄ±nda hata oluÅŸtu");
+      toast.error("Yükleme sırasında hata oluştu");
     } finally {
       setUploading(prev => ({ ...prev, [field]: false }));
     }
@@ -324,14 +324,14 @@ export default function AdminCollectionsPage() {
   return (
     <div className="space-y-6 lg:p-6 p-4">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Koleksiyonlar YÃ¶netimi</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Koleksiyonlar Yönetimi</h1>
         <p className="text-muted-foreground mt-2">
-          GÃ¶rselli Ã¶zel koleksiyon sayfalarÄ± ("Poliform Collection" gibi) oluÅŸturun ve Ã¼rÃ¼n atayÄ±n.
+          Görselli özel koleksiyon sayfaları ("Poliform Collection" gibi) oluşturun ve ürün atayın.
         </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Sol SÃ¼tun: Koleksiyonlar Listesi */}
+        {/* Sol Sütun: Koleksiyonlar Listesi */}
         <div className="lg:col-span-1 space-y-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -339,14 +339,14 @@ export default function AdminCollectionsPage() {
                  <CardTitle>Mevcut Koleksiyonlar</CardTitle>
               </div>
               <Button size="sm" onClick={() => { setIsCreating(true); setSelectedCollection(null); }}>
-                <Plus className="w-4 h-4 mr-1" /> Yeni OluÅŸtur
+                <Plus className="w-4 h-4 mr-1" /> Yeni Oluştur
               </Button>
             </CardHeader>
             <CardContent>
                {loading ? (
-                  <div className="text-center py-4 text-sm text-gray-500">YÃ¼kleniyor...</div>
+                  <div className="text-center py-4 text-sm text-gray-500">Yükleniyor...</div>
                ) : collections.length === 0 ? (
-                  <div className="text-center py-4 text-sm text-gray-500">HiÃ§ koleksiyon bulunamadÄ±.</div>
+                  <div className="text-center py-4 text-sm text-gray-500">Hiç koleksiyon bulunamadı.</div>
                ) : (
                   <div className="space-y-2 max-h-[600px] overflow-y-auto">
                      {collections.map(c => (
@@ -363,7 +363,7 @@ export default function AdminCollectionsPage() {
                            </div>
                            <p className="text-xs text-muted-foreground truncate">/{c.slug}</p>
                            <div className="mt-2 text-xs font-medium text-gray-500 bg-gray-100 inline-block px-2 py-0.5 rounded">
-                              {c._count?.products || 0} ÃœrÃ¼n
+                              {c._count?.products || 0} Ürün
                            </div>
                         </div>
                      ))}
@@ -373,33 +373,33 @@ export default function AdminCollectionsPage() {
           </Card>
         </div>
 
-        {/* SaÄŸ SÃ¼tun: Form & ÃœrÃ¼nler */}
+        {/* Sağ Sütun: Form & Ürünler */}
         <div className="lg:col-span-2 space-y-6">
            {(selectedCollection || isCreating) ? (
               <>
                  <Card>
                     <CardHeader>
-                       <CardTitle>{isCreating && !selectedCollection ? "Yeni Koleksiyon OluÅŸtur" : "Koleksiyon DetaylarÄ±"}</CardTitle>
+                       <CardTitle>{isCreating && !selectedCollection ? "Yeni Koleksiyon Oluştur" : "Koleksiyon Detayları"}</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
                        <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
-                             <label className="text-sm font-medium">BaÅŸlÄ±k</label>
-                             <Input value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} placeholder="Ã–rn: Poliform Collection" />
+                             <label className="text-sm font-medium">Başlık</label>
+                             <Input value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} placeholder="Örn: Poliform Collection" />
                           </div>
                           <div className="space-y-2">
-                             <label className="text-sm font-medium">BaÄŸlantÄ± URL (Slug)</label>
-                             <Input value={formData.slug} onChange={e => setFormData({...formData, slug: e.target.value})} placeholder="Ã–rn: poliform-collection" />
+                             <label className="text-sm font-medium">Bağlantı URL (Slug)</label>
+                             <Input value={formData.slug} onChange={e => setFormData({...formData, slug: e.target.value})} placeholder="Örn: poliform-collection" />
                           </div>
                        </div>
                        <div className="space-y-2">
-                          <label className="text-sm font-medium">AÃ§Ä±klama</label>
-                          <Textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} placeholder="Koleksiyon detaylarÄ±..." rows={3} />
+                          <label className="text-sm font-medium">Açıklama</label>
+                          <Textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} placeholder="Koleksiyon detayları..." rows={3} />
                        </div>
                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                          {/* GÃ¶rsel 1 */}
+                          {/* Görsel 1 */}
                           <div className="space-y-2">
-                             <label className="text-sm font-medium">Ana GÃ¶rsel (DikdÃ¶rtgen)</label>
+                             <label className="text-sm font-medium">Ana Görsel (Dikdörtgen)</label>
                              <div className="space-y-2">
                                 {formData.image1 && (
                                    <div className="relative aspect-video w-full overflow-hidden rounded-md border bg-gray-50">
@@ -410,7 +410,7 @@ export default function AdminCollectionsPage() {
                                    <Input 
                                       value={formData.image1} 
                                       onChange={e => setFormData({...formData, image1: e.target.value})} 
-                                      placeholder="URL veya dosya seÃ§in..." 
+                                      placeholder="URL veya dosya seçin..." 
                                       className="flex-1"
                                    />
                                    <div className="relative">
@@ -427,16 +427,16 @@ export default function AdminCollectionsPage() {
                                          disabled={uploading.image1}
                                          onClick={() => document.getElementById("upload-image1")?.click()}
                                       >
-                                         {uploading.image1 ? "..." : "YÃ¼kle"}
+                                         {uploading.image1 ? "..." : "Yükle"}
                                       </Button>
                                    </div>
                                 </div>
                              </div>
                           </div>
 
-                          {/* GÃ¶rsel 2 */}
+                          {/* Görsel 2 */}
                           <div className="space-y-2">
-                             <label className="text-sm font-medium">Ä°kincil GÃ¶rsel 1 (Kare)</label>
+                             <label className="text-sm font-medium">İkincil Görsel 1 (Kare)</label>
                              <div className="space-y-2">
                                 {formData.image2 && (
                                    <div className="relative aspect-square w-full overflow-hidden rounded-md border bg-gray-50">
@@ -447,7 +447,7 @@ export default function AdminCollectionsPage() {
                                    <Input 
                                       value={formData.image2} 
                                       onChange={e => setFormData({...formData, image2: e.target.value})} 
-                                      placeholder="URL veya dosya seÃ§in..." 
+                                      placeholder="URL veya dosya seçin..." 
                                       className="flex-1"
                                    />
                                    <div className="relative">
@@ -464,16 +464,16 @@ export default function AdminCollectionsPage() {
                                          disabled={uploading.image2}
                                          onClick={() => document.getElementById("upload-image2")?.click()}
                                       >
-                                         {uploading.image2 ? "..." : "YÃ¼kle"}
+                                         {uploading.image2 ? "..." : "Yükle"}
                                       </Button>
                                    </div>
                                 </div>
                              </div>
                           </div>
 
-                          {/* GÃ¶rsel 3 */}
+                          {/* Görsel 3 */}
                           <div className="space-y-2">
-                             <label className="text-sm font-medium">Ä°kincil GÃ¶rsel 2 (Kare)</label>
+                             <label className="text-sm font-medium">İkincil Görsel 2 (Kare)</label>
                              <div className="space-y-2">
                                 {formData.image3 && (
                                    <div className="relative aspect-square w-full overflow-hidden rounded-md border bg-gray-50">
@@ -484,7 +484,7 @@ export default function AdminCollectionsPage() {
                                    <Input 
                                       value={formData.image3} 
                                       onChange={e => setFormData({...formData, image3: e.target.value})} 
-                                      placeholder="URL veya dosya seÃ§in..." 
+                                      placeholder="URL veya dosya seçin..." 
                                       className="flex-1"
                                    />
                                    <div className="relative">
@@ -501,7 +501,7 @@ export default function AdminCollectionsPage() {
                                          disabled={uploading.image3}
                                          onClick={() => document.getElementById("upload-image3")?.click()}
                                       >
-                                         {uploading.image3 ? "..." : "YÃ¼kle"}
+                                         {uploading.image3 ? "..." : "Yükle"}
                                       </Button>
                                    </div>
                                 </div>
@@ -515,7 +515,7 @@ export default function AdminCollectionsPage() {
                  {selectedCollection && (
                     <Card>
                        <CardHeader>
-                          <CardTitle>Koleksiyondaki ÃœrÃ¼nler</CardTitle>
+                          <CardTitle>Koleksiyondaki Ürünler</CardTitle>
                        </CardHeader>
                        <CardContent>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -523,7 +523,7 @@ export default function AdminCollectionsPage() {
                                 <div className="space-y-3">
                                   <div className="relative">
                                     <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                    <Input placeholder="ÃœrÃ¼n ara..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+                                    <Input placeholder="Ürün ara..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
                                   </div>
                                   
                                   <div className="grid grid-cols-2 gap-2">
@@ -532,9 +532,9 @@ export default function AdminCollectionsPage() {
                                         <SelectValue placeholder="Cinsiyet" />
                                       </SelectTrigger>
                                       <SelectContent>
-                                        <SelectItem value="all">TÃ¼m Cins.</SelectItem>
+                                        <SelectItem value="all">Tüm Cins.</SelectItem>
                                         <SelectItem value="male">Erkek</SelectItem>
-                                        <SelectItem value="female">KadÄ±n</SelectItem>
+                                        <SelectItem value="female">Kadın</SelectItem>
                                         <SelectItem value="unisex">Unisex</SelectItem>
                                       </SelectContent>
                                     </Select>
@@ -544,7 +544,7 @@ export default function AdminCollectionsPage() {
                                         <SelectValue placeholder="Kategori" />
                                       </SelectTrigger>
                                       <SelectContent>
-                                        <SelectItem value="all">TÃ¼m Kat.</SelectItem>
+                                        <SelectItem value="all">Tüm Kat.</SelectItem>
                                         {categories.map((cat) => (
                                           <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
                                         ))}
@@ -554,7 +554,7 @@ export default function AdminCollectionsPage() {
                                 </div>
 
                                 {(search.length >= 2 || selectedCategoryId !== "all" || selectedGender !== "all") && searchResults.length === 0 && !searching && (
-                                  <div className="text-center py-4 text-[11px] text-gray-400 italic">SonuÃ§ yok</div>
+                                  <div className="text-center py-4 text-[11px] text-gray-400 italic">Sonuç yok</div>
                                 )}
 
                                 {searching && (
@@ -598,14 +598,14 @@ export default function AdminCollectionsPage() {
                                 <Table>
                                    <TableHeader>
                                       <TableRow>
-                                         <TableHead className="w-12">SÄ±ra</TableHead>
-                                         <TableHead>ÃœrÃ¼n</TableHead>
+                                         <TableHead className="w-12">Sıra</TableHead>
+                                         <TableHead>Ürün</TableHead>
                                          <TableHead className="text-right w-12"></TableHead>
                                       </TableRow>
                                    </TableHeader>
                                    <TableBody>
                                       {collectionItems.length === 0 ? (
-                                        <TableRow><TableCell colSpan={3} className="text-center py-4 text-xs text-gray-500">ÃœrÃ¼n yok.</TableCell></TableRow>
+                                        <TableRow><TableCell colSpan={3} className="text-center py-4 text-xs text-gray-500">Ürün yok.</TableCell></TableRow>
                                       ) : collectionItems.map((item, idx) => (
                                         <TableRow key={item.id}>
                                            <TableCell className="p-2">
@@ -637,7 +637,7 @@ export default function AdminCollectionsPage() {
               </>
            ) : (
               <div className="flex items-center justify-center h-[400px] border-2 border-dashed rounded-lg bg-gray-50 text-gray-400">
-                 Koleksiyon ayrÄ±ntÄ±larÄ±nÄ± gÃ¶rmek veya oluÅŸturmak iÃ§in soldan iÅŸlem yapÄ±n.
+                 Koleksiyon ayrıntılarını görmek veya oluşturmak için soldan işlem yapın.
               </div>
            )}
         </div>

@@ -86,20 +86,20 @@ export default function CouponBlockInspector({
       const daysLeft = differenceInDays(expiresDate, new Date());
 
       if (daysLeft > 0) {
-        updateContent("validityText", `${daysLeft} gÃ¼n geÃ§erli (${format(expiresDate, "d MMMM yyyy", { locale: tr })} tarihine kadar)`);
+        updateContent("validityText", `${daysLeft} gün geçerli (${format(expiresDate, "d MMMM yyyy", { locale: tr })} tarihine kadar)`);
       } else if (daysLeft === 0) {
-        updateContent("validityText", "BugÃ¼n son gÃ¼n!");
+        updateContent("validityText", "Bugün son gün!");
       } else {
-        updateContent("validityText", "SÃ¼resi dolmuÅŸ");
+        updateContent("validityText", "Süresi dolmuş");
       }
     } else {
-      updateContent("validityText", "SÃ¼resiz geÃ§erli");
+      updateContent("validityText", "Süresiz geçerli");
     }
 
     const discountText =
       coupon.discountType === "PERCENT"
-        ? `%${coupon.value} Ä°ndirim`
-        : `${coupon.value} TL Ä°ndirim`;
+        ? `%${coupon.value} İndirim`
+        : `${coupon.value} TL İndirim`;
     updateContent("discountText", discountText);
   };
 
@@ -109,10 +109,10 @@ export default function CouponBlockInspector({
 
   return (
     <div className="space-y-4">
-      {/* Kupon SeÃ§ici */}
+      {/* Kupon Seçici */}
       <div>
         <Label className="text-xs font-medium text-gray-700">
-          VeritabanÄ±ndan Kupon SeÃ§
+          Veritabanından Kupon Seç
         </Label>
         <Select
           value={block.content.selectedCouponId || "manual"}
@@ -120,10 +120,10 @@ export default function CouponBlockInspector({
           disabled={isLoading}
         >
           <SelectTrigger className="mt-1">
-            <SelectValue placeholder={isLoading ? "YÃ¼kleniyor..." : "Kupon seÃ§in"} />
+            <SelectValue placeholder={isLoading ? "Yükleniyor..." : "Kupon seçin"} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="manual">Manuel GiriÅŸ</SelectItem>
+            <SelectItem value="manual">Manuel Giriş</SelectItem>
             {coupons
               .filter((c) => c.isActive)
               .map((coupon) => (
@@ -138,7 +138,7 @@ export default function CouponBlockInspector({
         </Select>
       </div>
 
-      {/* SeÃ§ili Kupon Bilgisi */}
+      {/* Seçili Kupon Bilgisi */}
       {selectedCoupon && (
         <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-sm">
           <p className="font-medium text-green-800">
@@ -151,8 +151,8 @@ export default function CouponBlockInspector({
           )}
           <p className="text-green-600 text-xs mt-1">
             {selectedCoupon.discountType === "PERCENT"
-              ? `%${selectedCoupon.value} Ä°ndirim`
-              : `${selectedCoupon.value} TL Ä°ndirim`}
+              ? `%${selectedCoupon.value} İndirim`
+              : `${selectedCoupon.value} TL İndirim`}
           </p>
         </div>
       )}
@@ -167,32 +167,32 @@ export default function CouponBlockInspector({
           className="mt-1 font-mono"
         />
         <p className="text-xs text-gray-500 mt-1">
-          DeÄŸiÅŸken: {"{{coupon_code}}"} kullanabilirsiniz
+          Değişken: {"{{coupon_code}}"} kullanabilirsiniz
         </p>
       </div>
 
-      {/* Ä°ndirim Metni */}
+      {/* İndirim Metni */}
       <div>
         <Label className="text-xs font-medium text-gray-700">
-          Ä°ndirim AÃ§Ä±klamasÄ±
+          İndirim Açıklaması
         </Label>
         <Input
           value={block.content.discountText || ""}
           onChange={(e) => updateContent("discountText", e.target.value)}
-          placeholder="%20 Ä°ndirim"
+          placeholder="%20 İndirim"
           className="mt-1"
         />
       </div>
 
-      {/* GeÃ§erlilik Metni */}
+      {/* Geçerlilik Metni */}
       <div>
         <Label className="text-xs font-medium text-gray-700">
-          GeÃ§erlilik Metni
+          Geçerlilik Metni
         </Label>
         <Input
           value={block.content.validityText || ""}
           onChange={(e) => updateContent("validityText", e.target.value)}
-          placeholder="30 gÃ¼n geÃ§erli"
+          placeholder="30 gün geçerli"
           className="mt-1"
         />
       </div>

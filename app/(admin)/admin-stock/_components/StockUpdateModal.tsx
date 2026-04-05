@@ -77,7 +77,7 @@ export default function StockUpdateModal({
                 setStockUpdates(initialStocks);
             }
         } catch (error) {
-            toast.error("ÃœrÃ¼n detaylarÄ± yÃ¼klenemedi");
+            toast.error("Ürün detayları yüklenemedi");
         } finally {
             setLoading(false);
         }
@@ -113,10 +113,10 @@ export default function StockUpdateModal({
 
             await Promise.all(promises);
 
-            toast.success("Stoklar gÃ¼ncellendi");
+            toast.success("Stoklar güncellendi");
             onClose();
         } catch (error) {
-            toast.error("GÃ¼ncelleme sÄ±rasÄ±nda hata");
+            toast.error("Güncelleme sırasında hata");
         } finally {
             setSaving(false);
         }
@@ -128,9 +128,9 @@ export default function StockUpdateModal({
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle>Stok GÃ¼ncelleme</DialogTitle>
+                    <DialogTitle>Stok Güncelleme</DialogTitle>
                     <DialogDescription>
-                        {product?.name} varyant stoklarÄ±nÄ± dÃ¼zenleyin.
+                        {product?.name} varyant stoklarını düzenleyin.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -139,7 +139,7 @@ export default function StockUpdateModal({
                         <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
                     </div>
                 ) : !product ? (
-                    <div className="text-center p-4">ÃœrÃ¼n yÃ¼klenemedi</div>
+                    <div className="text-center p-4">Ürün yüklenemedi</div>
                 ) : (
                     <div className="space-y-6 py-4">
                         {/* If product has colors, group by Color */}
@@ -192,11 +192,11 @@ export default function StockUpdateModal({
 
                 <DialogFooter>
                     <Button variant="outline" onClick={onClose} disabled={saving}>
-                        Ä°ptal
+                        İptal
                     </Button>
                     <Button onClick={handleSave} disabled={saving || loading}>
                         {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                        DeÄŸiÅŸiklikleri Kaydet
+                        Değişiklikleri Kaydet
                     </Button>
                 </DialogFooter>
             </DialogContent>

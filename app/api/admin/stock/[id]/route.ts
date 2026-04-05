@@ -33,7 +33,7 @@ export async function PATCH(
   } catch (error: any) {
     console.error("Stock update error:", error);
     return NextResponse.json(
-      { error: error.message || "Stok gÃ¼ncellenirken bir hata oluÅŸtu" },
+      { error: error.message || "Stok güncellenirken bir hata oluştu" },
       { status: 500 }
     );
   }

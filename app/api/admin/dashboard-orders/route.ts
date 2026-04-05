@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
     const session = await getServerSession(authConfig);
 
     if (!session?.user?.isAdmin) {
-      return NextResponse.json({ error: "Yetkisiz eriÅŸim" }, { status: 403 });
+      return NextResponse.json({ error: "Yetkisiz erişim" }, { status: 403 });
     }
 
     const searchParams = req.nextUrl.searchParams;
@@ -57,11 +57,11 @@ export async function GET(req: NextRequest) {
 
       let timeAgo = "";
       if (diffHours > 0) {
-        timeAgo = `${diffHours} saat Ã¶nce`;
+        timeAgo = `${diffHours} saat önce`;
       } else if (diffMinutes > 0) {
-        timeAgo = `${diffMinutes} dakika Ã¶nce`;
+        timeAgo = `${diffMinutes} dakika önce`;
       } else {
-        timeAgo = "Az Ã¶nce";
+        timeAgo = "Az önce";
       }
 
       return {
@@ -74,7 +74,7 @@ export async function GET(req: NextRequest) {
   } catch (error: any) {
     console.error("Dashboard orders error:", error);
     return NextResponse.json(
-      { error: error.message || "SipariÅŸler yÃ¼klenirken bir hata oluÅŸtu" },
+      { error: error.message || "Siparişler yüklenirken bir hata oluştu" },
       { status: 500 }
     );
   }

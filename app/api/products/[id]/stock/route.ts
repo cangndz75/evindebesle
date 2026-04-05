@@ -52,7 +52,7 @@ export async function GET(
     });
 
     if (!product) {
-      return NextResponse.json({ error: "ÃœrÃ¼n bulunamadÄ±" }, { status: 404 });
+      return NextResponse.json({ error: "Ürün bulunamadı" }, { status: 404 });
     }
 
     const totalStock = product.sizes.reduce((sum: number, s: any) => sum + s.stock, 0);
@@ -60,7 +60,7 @@ export async function GET(
   } catch (error: any) {
     console.error("Stock check error:", error);
     return NextResponse.json(
-      { error: error.message || "Stok kontrolÃ¼ yapÄ±lÄ±rken bir hata oluÅŸtu" },
+      { error: error.message || "Stok kontrolü yapılırken bir hata oluştu" },
       { status: 500 }
     );
   }

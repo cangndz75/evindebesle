@@ -10,7 +10,7 @@ export const runtime = "nodejs";
 type Card = { number: string; name: string; expireMonth: string; expireYear: string; cvc: string };
 type Body = {
   draftAppointmentId: string;
-  amount: number; // TL cinsinden (Ã¶r: 1650)
+  amount: number; // TL cinsinden (ör: 1650)
   currency?: "TRY";
   card: Card;
   buyer?: any;
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
       data: {
         userId: session.user.id,
         draftId: input.draftAppointmentId,
-        amount: Math.round(Number(input.amount) * 100), // kuruÅŸ saklÄ±yoruz
+        amount: Math.round(Number(input.amount) * 100), // kuruş saklıyoruz
         currency: input.currency || "TRY",
         status: PaymentSessionStatus.INIT,
       },
@@ -72,23 +72,23 @@ export async function POST(req: NextRequest) {
         emailAddress: session.user.email || "noreply@example.com",
         ipAddress: getClientIp(req),
         buyerId: session.user.id,
-        name: session.user.name || "MÃ¼ÅŸteri",
-        surName: "â€”",
+        name: session.user.name || "Müşteri",
+        surName: "—",
         phoneNumber: "0000000000",
       },
 
       billingAddress: input.billingAddress ?? {
         address: "N/A",
-        city: "Ä°stanbul",
-        country: "TÃ¼rkiye",
-        contactName: session.user.name || "MÃ¼ÅŸteri",
+        city: "İstanbul",
+        country: "Türkiye",
+        contactName: session.user.name || "Müşteri",
       },
 
       shippingAddress: input.shippingAddress ?? {
         address: "N/A",
-        city: "Ä°stanbul",
-        country: "TÃ¼rkiye",
-        contactName: session.user.name || "MÃ¼ÅŸteri",
+        city: "İstanbul",
+        country: "Türkiye",
+        contactName: session.user.name || "Müşteri",
       },
 
       basket: input.basket ?? {

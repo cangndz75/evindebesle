@@ -11,64 +11,64 @@ export default function TeslimatVeIadePage() {
         <div className="max-w-4xl mx-auto px-4">
           <div className="flex items-center gap-2 mb-6">
             <TruckIcon className="text-green-600 w-6 h-6" />
-            <h1 className="text-2xl font-bold">Teslimat ve Ä°ade ÅartlarÄ±</h1>
+            <h1 className="text-2xl font-bold">Teslimat ve İade Şartları</h1>
           </div>
 
-          <h2 className="text-lg font-semibold mb-4">Teslimat KoÅŸullarÄ±</h2>
+          <h2 className="text-lg font-semibold mb-4">Teslimat Koşulları</h2>
           <p className="mb-6">
-            <strong>evindebesle.com</strong> Ã¼zerinden alÄ±nan Ã¼rÃ¼nler,
-            sipariÅŸ sÄ±rasÄ±nda belirtilen teslimat sÃ¼releri iÃ§erisinde
-            adrese uygun ÅŸekilde ulaÅŸtÄ±rÄ±lÄ±r. TÃ¼m
-            Ã¼rÃ¼nlerde kullanÄ±cÄ±larÄ±n seÃ§tiÄŸi beden ve renk
-            detaylarÄ±na gÃ¶re gÃ¶nderim yapÄ±lÄ±r.
+            <strong>evindebesle.com</strong> üzerinden alınan ürünler,
+            sipariş sırasında belirtilen teslimat süreleri içerisinde
+            adrese uygun şekilde ulaştırılır. Tüm
+            ürünlerde kullanıcıların seçtiği beden ve renk
+            detaylarına göre gönderim yapılır.
           </p>
 
           <ul className="list-disc list-inside mb-6 space-y-1">
             <li>
-              Hizmetler yalnÄ±zca platformda belirtilen ilÃ§e sÄ±nÄ±rlarÄ± iÃ§inde
+              Hizmetler yalnızca platformda belirtilen ilçe sınırları içinde
               verilir.
             </li>
             <li>
-              Belirtilen hizmet sÃ¼resi iÃ§inde hizmete baÅŸlanamamasÄ± durumunda
-              kullanÄ±cÄ± bilgilendirilir.
+              Belirtilen hizmet süresi içinde hizmete başlanamaması durumunda
+              kullanıcı bilgilendirilir.
             </li>
             <li>
-              Hizmet Ã¶ncesi kullanÄ±cÄ±dan Ã¶zel hassasiyet bilgileri ve detay
+              Hizmet öncesi kullanıcıdan özel hassasiyet bilgileri ve detay
               adres talep edilir.
             </li>
           </ul>
 
           <h2 className="text-lg font-semibold mb-4">
-            Ä°ade ve Ä°ptal KoÅŸullarÄ±
+            İade ve İptal Koşulları
           </h2>
           <p className="mb-4">
-            SipariÅŸlerinizde iptal ve iade iÅŸlemleri aÅŸaÄŸÄ±daki
-            kurallara gÃ¶re gerÃ§ekleÅŸtirilir:
+            Siparişlerinizde iptal ve iade işlemleri aşağıdaki
+            kurallara göre gerçekleştirilir:
           </p>
           <ul className="list-disc list-inside mb-6 space-y-1">
             <li>
-              ÃœrÃ¼n teslimatÄ±ndan sonra <strong>14 gÃ¼n iÃ§inde</strong> sebep gÃ¶stermeksizin iade hakkÄ±nÄ±z bulunmaktadÄ±r.
+              Ürün teslimatından sonra <strong>14 gün içinde</strong> sebep göstermeksizin iade hakkınız bulunmaktadır.
             </li>
             <li>
-              Ä°ade edilecek Ã¼rÃ¼nÃ¼n <strong>etiketinin sÃ¶kÃ¼lmemiÅŸ ve kullanÄ±lmamÄ±ÅŸ</strong> olmasÄ± gerekmektedir.
+              İade edilecek ürünün <strong>etiketinin sökülmemiş ve kullanılmamış</strong> olması gerekmektedir.
             </li>
             <li>
-              Hijyen kurallarÄ± gereÄŸi kÃ¼pe, iÃ§ giyim ve alt grup mayo Ã¼rÃ¼nlerinde iade kabul edilmemektedir.
+              Hijyen kuralları gereği küpe, iç giyim ve alt grup mayo ürünlerinde iade kabul edilmemektedir.
             </li>
             <li>
-              Hizmet saÄŸlayÄ±cÄ± kaynaklÄ± iptallerde, kullanÄ±cÄ±ya{" "}
-              <strong>tam Ã¼cret iadesi</strong> yapÄ±lÄ±r veya talebe gÃ¶re yeniden
-              planlama saÄŸlanÄ±r.
+              Hizmet sağlayıcı kaynaklı iptallerde, kullanıcıya{" "}
+              <strong>tam ücret iadesi</strong> yapılır veya talebe göre yeniden
+              planlama sağlanır.
             </li>
             <li>
-              Ã–deme iadeleri, Ã¶demenin yapÄ±ldÄ±ÄŸÄ± kart veya yÃ¶nteme gÃ¶re{" "}
-              <strong>7 iÅŸ gÃ¼nÃ¼</strong> iÃ§inde gerÃ§ekleÅŸtirilir.
+              Ödeme iadeleri, ödemenin yapıldığı kart veya yönteme göre{" "}
+              <strong>7 iş günü</strong> içinde gerçekleştirilir.
             </li>
           </ul>
 
-          <h2 className="text-lg font-semibold mb-4">Ä°letiÅŸim</h2>
+          <h2 className="text-lg font-semibold mb-4">İletişim</h2>
           <p className="mb-6">
-            Teslimat veya iade iÅŸlemleriyle ilgili tÃ¼m taleplerinizi{" "}
+            Teslimat veya iade işlemleriyle ilgili tüm taleplerinizi{" "}
             <a
               href="mailto:info@dark-velvet.com"
               className="underline text-blue-600"
@@ -80,7 +80,7 @@ export default function TeslimatVeIadePage() {
 
           <p className="text-muted-foreground text-xs">
             Bu metin en son {new Date().toLocaleDateString("tr-TR")} tarihinde
-            gÃ¼ncellenmiÅŸtir.
+            güncellenmiştir.
           </p>
         </div>
       </div>

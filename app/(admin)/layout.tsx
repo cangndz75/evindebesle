@@ -35,7 +35,7 @@ import { AdminNotificationBell } from "./_components/AdminNotificationBell";
 
 const navSections = [
   {
-    title: "ANA MENÃœ",
+    title: "ANA MENÜ",
     links: [
       {
         label: "Dashboard",
@@ -48,12 +48,12 @@ const navSections = [
     title: "OPERASYONLAR",
     links: [
       {
-        label: "SipariÅŸler",
+        label: "Siparişler",
         href: "/admin-orders",
         icon: <ShoppingBag className="w-5 h-5" />,
       },
       {
-        label: "Stok YÃ¶netimi",
+        label: "Stok Yönetimi",
         href: "/admin-stock",
         icon: <Package className="w-5 h-5" />,
       },
@@ -63,7 +63,7 @@ const navSections = [
         icon: <FileText className="w-5 h-5" />,
       },
       {
-        label: "Ä°ÅŸlemler",
+        label: "İşlemler",
         href: "/admin-transactions",
         icon: <Briefcase className="w-5 h-5" />,
       },
@@ -73,7 +73,7 @@ const navSections = [
     title: "KATALOG",
     links: [
       {
-        label: "ÃœrÃ¼nler",
+        label: "Ürünler",
         href: "/admin-products",
         icon: <Package className="w-5 h-5" />,
       },
@@ -83,12 +83,12 @@ const navSections = [
         icon: <List className="w-5 h-5" />,
       },
       {
-        label: "ÃœrÃ¼n ÅablonlarÄ±",
+        label: "Ürün Şablonları",
         href: "/admin-product-templates",
         icon: <FileText className="w-5 h-5" />,
       },
       {
-        label: "ÃœrÃ¼n Kombinleri",
+        label: "Ürün Kombinleri",
         href: "/admin-product-combinations",
         icon: <Package className="w-5 h-5" />,
       },
@@ -108,7 +108,7 @@ const navSections = [
         icon: <Ticket className="w-5 h-5" />,
       },
       {
-        label: "Mail GÃ¶nder",
+        label: "Mail Gönder",
         href: "/campaigns",
         icon: <Mail className="w-5 h-5" />,
       },
@@ -118,14 +118,14 @@ const navSections = [
         icon: <Mail className="w-5 h-5" />,
       },
       {
-        label: "BÃ¼lten Aboneleri",
+        label: "Bülten Aboneleri",
         href: "/admin-subscribers",
         icon: <Users className="w-5 h-5" />,
       },
     ],
   },
   {
-    title: "ANA SAYFA & UI YÃ–NETÄ°MÄ°",
+    title: "ANA SAYFA & UI YÖNETİMİ",
     links: [
       {
         label: "Ana Sayfa Vitrin",
@@ -133,7 +133,7 @@ const navSections = [
         icon: <Package className="w-5 h-5" />,
       },
       {
-        label: "Sekmeli KaydÄ±rÄ±cÄ±lar",
+        label: "Sekmeli Kaydırıcılar",
         href: "/admin-tabbed-carousel",
         icon: <List className="w-5 h-5" />,
       },
@@ -143,32 +143,32 @@ const navSections = [
         icon: <Package className="w-5 h-5" />,
       },
       {
-        label: "Yeni Gelenler ModÃ¼lÃ¼",
+        label: "Yeni Gelenler Modülü",
         href: "/admin-new-arrivals",
         icon: <List className="w-5 h-5" />,
       },
     ],
   },
   {
-    title: "Ä°Ã‡ERÄ°K YÃ–NETÄ°MÄ°",
+    title: "İÇERİK YÖNETİMİ",
     links: [
       {
-        label: "Blog YazÄ±larÄ±",
+        label: "Blog Yazıları",
         href: "/admin-blog",
         icon: <FileText className="w-5 h-5" />,
       },
       {
-        label: "SSS YÃ¶netimi",
+        label: "SSS Yönetimi",
         href: "/admin-faq",
         icon: <FileText className="w-5 h-5" />,
       },
     ],
   },
   {
-    title: "MÃœÅTERÄ° & DESTEK",
+    title: "MÜŞTERİ & DESTEK",
     links: [
       {
-        label: "MÃ¼ÅŸteriler",
+        label: "Müşteriler",
         href: "/admin-customers",
         icon: <User className="w-5 h-5" />,
       },
@@ -194,7 +194,7 @@ const navSections = [
         icon: <MapPin className="w-5 h-5" />,
       },
       {
-        label: "Firma YÃ¶netimi",
+        label: "Firma Yönetimi",
         href: "/company-settings",
         icon: <Building className="w-5 h-5" />,
       },
@@ -204,7 +204,7 @@ const navSections = [
         icon: <HelpCircle className="w-5 h-5" />,
       },
       {
-        label: "DokÃ¼mantasyon",
+        label: "Dokümantasyon",
         href: "/docs",
         icon: <FileText className="w-5 h-5" />,
       },
@@ -240,7 +240,7 @@ export default function AdminLayout({
 
   const handleLogout = async () => {
     await signOut({ redirect: false });
-    toast.success("Ã‡Ä±kÄ±ÅŸ yapÄ±ldÄ±");
+    toast.success("Çıkış yapıldı");
     router.push("/home");
   };
 
@@ -285,7 +285,7 @@ export default function AdminLayout({
               <button
                 onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
                 className="w-full flex items-center justify-center p-1.5 hover:bg-gray-800 rounded transition-colors"
-                title="GeniÅŸlet"
+                title="Genişlet"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
@@ -334,10 +334,10 @@ export default function AdminLayout({
             className={`w-full text-sm text-gray-300 hover:text-white hover:bg-gray-800 ${sidebarCollapsed ? "justify-center px-0" : ""
               }`}
             onClick={handleLogout}
-            title={sidebarCollapsed ? "Ã‡Ä±kÄ±ÅŸ Yap" : undefined}
+            title={sidebarCollapsed ? "Çıkış Yap" : undefined}
           >
             <LogOut className="w-4 h-4 flex-shrink-0" />
-            {!sidebarCollapsed && <span className="ml-2">Ã‡Ä±kÄ±ÅŸ Yap</span>}
+            {!sidebarCollapsed && <span className="ml-2">Çıkış Yap</span>}
           </Button>
         </div>
       </aside>
@@ -383,7 +383,7 @@ export default function AdminLayout({
             onClick={handleLogout}
           >
             <LogOut className="w-5 h-5" />
-            Ã‡Ä±kÄ±ÅŸ Yap
+            Çıkış Yap
           </Button>
         </div>
       )}

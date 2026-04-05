@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
     const session = await getServerSession(authConfig);
 
     if (!session?.user?.isAdmin) {
-      return NextResponse.json({ error: "Yetkisiz eriÅŸim" }, { status: 403 });
+      return NextResponse.json({ error: "Yetkisiz erişim" }, { status: 403 });
     }
 
     const searchParams = req.nextUrl.searchParams;
@@ -68,7 +68,7 @@ export async function GET(req: NextRequest) {
   } catch (error: any) {
     console.error("Stock alert error:", error);
     return NextResponse.json(
-      { error: error.message || "Stok bilgileri yÃ¼klenirken bir hata oluÅŸtu" },
+      { error: error.message || "Stok bilgileri yüklenirken bir hata oluştu" },
       { status: 500 }
     );
   }

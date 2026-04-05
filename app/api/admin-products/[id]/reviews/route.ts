@@ -46,7 +46,7 @@ export async function POST(
 
     if (!rating || rating < 1 || rating > 5) {
       return jsonNoStore(
-        { error: "Puan 1-5 arasÄ±nda olmalÄ±dÄ±r" },
+        { error: "Puan 1-5 arasında olmalıdır" },
         { status: 400 }
       );
     }
@@ -58,7 +58,7 @@ export async function POST(
         userName: userName || undefined,
         rating: parseInt(rating),
         comment: comment || undefined,
-        isApproved: false, // Admin onayÄ± gerekli
+        isApproved: false, // Admin onayı gerekli
       },
     });
 

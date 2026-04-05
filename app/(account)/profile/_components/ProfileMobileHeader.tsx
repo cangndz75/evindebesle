@@ -9,11 +9,11 @@ import Link from "next/link";
 import clsx from "clsx";
 
 const tabs = [
-  { label: "KiÅŸisel Bilgilerim", href: "/profile/personal-info" },
-  { label: "Evcil HayvanlarÄ±m", href: "/profile/pets" },
-  { label: "SipariÅŸlerim", href: "/profile/orders" },
+  { label: "Kişisel Bilgilerim", href: "/profile/personal-info" },
+  { label: "Evcil Hayvanlarım", href: "/profile/pets" },
+  { label: "Siparişlerim", href: "/profile/orders" },
   { label: "Favorilerim", href: "/profile/favorites" },
-  { label: "Ä°ndirim KuponlarÄ±m", href: "/profile/coupons" },
+  { label: "İndirim Kuponlarım", href: "/profile/coupons" },
 ];
 
 export default function ProfileMobileHeader() {
@@ -23,7 +23,7 @@ export default function ProfileMobileHeader() {
 
   const handleLogout = async () => {
     await signOut({ redirect: false });
-    toast.success("Ã‡Ä±kÄ±ÅŸ yapÄ±ldÄ±");
+    toast.success("Çıkış yapıldı");
     window.location.href = "/auth-tabs";
   };
 
@@ -39,7 +39,7 @@ export default function ProfileMobileHeader() {
           <span className="text-sm font-semibold">{session?.user?.name}</span>
         </div>
         <Button variant="link" size="sm" onClick={handleLogout}>
-          Ã‡Ä±kÄ±ÅŸ Yap
+          Çıkış Yap
         </Button>
       </div>
       <div className="overflow-x-auto no-scrollbar px-4 -mx-4">

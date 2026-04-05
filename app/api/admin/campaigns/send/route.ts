@@ -80,10 +80,10 @@ export async function POST(req: NextRequest) {
         });
 
         const personalizedHtml = replaceVariables(html, {
-          user_name: recipient.name || "DeÄŸerli MÃ¼ÅŸterimiz",
+          user_name: recipient.name || "Değerli Müşterimiz",
           user_email: recipient.email,
-          user_first_name: recipient.name?.split(" ")[0] || "DeÄŸerli MÃ¼ÅŸterimiz",
-          coupon_code: "HOÅGELDÄ°N", // Default or you can add logic to fetch specific coupon
+          user_first_name: recipient.name?.split(" ")[0] || "Değerli Müşterimiz",
+          coupon_code: "HOŞGELDİN", // Default or you can add logic to fetch specific coupon
         });
 
         const { error } = await resend.emails.send({

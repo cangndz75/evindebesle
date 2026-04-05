@@ -133,8 +133,8 @@ export default function ProductsPage() {
         try {
           return JSON.parse(text);
         } catch (e) {
-          console.error("JSON parse hatasÄ±:", e, "Response text:", text);
-          throw new Error("GeÃ§ersiz JSON yanÄ±tÄ±");
+          console.error("JSON parse hatası:", e, "Response text:", text);
+          throw new Error("Geçersiz JSON yanıtı");
         }
       })
       .then((res) => {
@@ -142,7 +142,7 @@ export default function ProductsPage() {
         setLoading(false);
       })
       .catch((err) => {
-        console.error("ÃœrÃ¼nler yÃ¼klenirken hata:", err);
+        console.error("Ürünler yüklenirken hata:", err);
         setData([]);
         setLoading(false);
       });
@@ -216,7 +216,7 @@ export default function ProductsPage() {
       size: 20,
     },
     {
-      header: "GÃ¶rsel",
+      header: "Görsel",
       accessorKey: "image",
       cell: ({ row }) => {
         const url = row.original.image;
@@ -230,7 +230,7 @@ export default function ProductsPage() {
       },
     },
     {
-      header: "ÃœrÃ¼n AdÄ±",
+      header: "Ürün Adı",
       accessorKey: "name",
       cell: ({ row }) => (
         <button
@@ -260,7 +260,7 @@ export default function ProductsPage() {
         const gender = row.original.gender;
         const genderMap: Record<string, string> = {
           MALE: "Erkek",
-          FEMALE: "KadÄ±n",
+          FEMALE: "Kadın",
           UNISEX: "Unisex",
         };
         return (
@@ -341,11 +341,11 @@ export default function ProductsPage() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ price: value }),
               });
-              if (!res.ok) throw new Error("GÃ¼ncelleme baÅŸarÄ±sÄ±z");
+              if (!res.ok) throw new Error("Güncelleme başarısız");
               refresh();
             }}
             type="number"
-            format={(val) => `${Number(val).toFixed(2)} â‚º`}
+            format={(val) => `${Number(val).toFixed(2)} ₺`}
             className="font-medium min-w-[100px]"
           />
         );
@@ -391,10 +391,10 @@ export default function ProductsPage() {
         const product = row.original;
         const warnings: string[] = [];
         
-        if (!product.image) warnings.push("GÃ¶rsel eksik");
+        if (!product.image) warnings.push("Görsel eksik");
         if (!product.colors || product.colors.length === 0) warnings.push("Varyant eksik");
         if (!product.sizes || product.sizes.length === 0) warnings.push("Beden eksik");
-        if (!product.description) warnings.push("AÃ§Ä±klama eksik");
+        if (!product.description) warnings.push("Açıklama eksik");
         if (!product.stockCode) warnings.push("SKU eksik");
 
         if (warnings.length === 0) {
@@ -431,7 +431,7 @@ export default function ProductsPage() {
     },
     {
       id: "actions",
-      header: "Ä°ÅŸlemler",
+      header: "İşlemler",
       cell: ({ row }) => (
         <div className="flex items-center gap-1 whitespace-nowrap">
           <Button 
@@ -492,17 +492,17 @@ export default function ProductsPage() {
 
                       if (!deleteResponse.ok) {
                         const error = await deleteResponse.json();
-                        toast.error(error.error || "Silme iÅŸlemi baÅŸarÄ±sÄ±z oldu");
+                        toast.error(error.error || "Silme işlemi başarısız oldu");
                         setDeleteId(null);
                         return;
                       }
 
-                      toast.success("ÃœrÃ¼n baÅŸarÄ±yla silindi");
+                      toast.success("Ürün başarıyla silindi");
                       setDeleteId(null);
                       refresh();
                     } catch (error) {
-                      console.error("Silme hatasÄ±:", error);
-                      toast.error("Silme iÅŸlemi sÄ±rasÄ±nda bir hata oluÅŸtu");
+                      console.error("Silme hatası:", error);
+                      toast.error("Silme işlemi sırasında bir hata oluştu");
                       setDeleteId(null);
                     } finally {
                       setDeleting(false);
@@ -510,8 +510,8 @@ export default function ProductsPage() {
                   }
                 }
               } catch (error) {
-                console.error("Renkler yÃ¼klenirken hata:", error);
-                toast.error("ÃœrÃ¼n bilgileri yÃ¼klenirken bir hata oluÅŸtu");
+                console.error("Renkler yüklenirken hata:", error);
+                toast.error("Ürün bilgileri yüklenirken bir hata oluştu");
                 setDeleteId(null);
               } finally {
                 setLoadingColors(false);
@@ -567,7 +567,7 @@ export default function ProductsPage() {
 
   const genderMap: Record<string, string> = {
     MALE: "Erkek",
-    FEMALE: "KadÄ±n",
+    FEMALE: "Kadın",
     UNISEX: "Unisex",
   };
 
@@ -578,7 +578,7 @@ export default function ProductsPage() {
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
             <Input
-              placeholder="ÃœrÃ¼n adÄ±, SKU, aÃ§Ä±klama..."
+              placeholder="Ürün adı, SKU, açıklama..."
               value={searchQuery}
               onChange={(e) => {
                 const value = e.target.value;
@@ -619,27 +619,27 @@ export default function ProductsPage() {
             </SheetTrigger>
             <SheetContent side="right" className="w-full sm:w-[500px] overflow-y-auto">
               <SheetHeader>
-                <SheetTitle className="text-left text-xl font-bold">Filtrele ve SÄ±rala</SheetTitle>
+                <SheetTitle className="text-left text-xl font-bold">Filtrele ve Sırala</SheetTitle>
               </SheetHeader>
               
               <div className="mt-6 space-y-6 pb-6">
-                {/* SÄ±ralama */}
+                {/* Sıralama */}
                 <div>
-                  <h3 className="text-sm font-semibold mb-3">SÄ±ralama</h3>
+                  <h3 className="text-sm font-semibold mb-3">Sıralama</h3>
                   <div className="grid grid-cols-2 gap-2">
                     <Button
                       variant={sortBy === "name" ? "default" : "outline"}
                       className={`h-10 ${sortBy === "name" ? "bg-black text-white" : ""}`}
                       onClick={() => setSortBy("name")}
                     >
-                      Ada gÃ¶re
+                      Ada göre
                     </Button>
                     <Button
                       variant={sortBy === "stock" ? "default" : "outline"}
                       className={`h-10 ${sortBy === "stock" ? "bg-black text-white" : ""}`}
                       onClick={() => setSortBy("stock")}
                     >
-                      Stoka gÃ¶re
+                      Stoka göre
                     </Button>
                     <Button
                       variant={sortBy === "newest" ? "default" : "outline"}
@@ -674,7 +674,7 @@ export default function ProductsPage() {
                       className={`h-10 ${gender === "FEMALE" ? "bg-black text-white" : ""}`}
                       onClick={() => setGender(gender === "FEMALE" ? "" : "FEMALE")}
                     >
-                      KadÄ±n
+                      Kadın
                     </Button>
                     <Button
                       variant={gender === "UNISEX" ? "default" : "outline"}
@@ -707,9 +707,9 @@ export default function ProductsPage() {
                   </div>
                 </div>
 
-                {/* Stok AralÄ±ÄŸÄ± */}
+                {/* Stok Aralığı */}
                 <div>
-                  <h3 className="text-sm font-semibold mb-3">Stok AralÄ±ÄŸÄ±</h3>
+                  <h3 className="text-sm font-semibold mb-3">Stok Aralığı</h3>
                   <div className="flex items-center gap-2">
                     <Input
                       type="number"
@@ -737,7 +737,7 @@ export default function ProductsPage() {
                   onClick={handleResetFilters}
                   className="flex-1 h-12"
                 >
-                  SÄ±fÄ±rla
+                  Sıfırla
                 </Button>
                 <Button
                   onClick={handleApplyFilters}
@@ -758,7 +758,7 @@ export default function ProductsPage() {
             className={`whitespace-nowrap h-9 ${stockStatus === "all" ? "bg-black text-white" : ""}`}
             onClick={() => setStockStatus("all")}
           >
-            TÃ¼mÃ¼
+            Tümü
           </Button>
           <Button
             variant={stockStatus === "inStock" ? "default" : "outline"}
@@ -774,7 +774,7 @@ export default function ProductsPage() {
             className={`whitespace-nowrap h-9 ${stockStatus === "outOfStock" ? "bg-black text-white" : ""}`}
             onClick={() => setStockStatus("outOfStock")}
           >
-            TÃ¼kendi
+            Tükendi
           </Button>
           <Button
             variant={stockStatus === "lowStock" ? "default" : "outline"}
@@ -782,7 +782,7 @@ export default function ProductsPage() {
             className={`whitespace-nowrap h-9 ${stockStatus === "lowStock" ? "bg-black text-white" : ""}`}
             onClick={() => setStockStatus("lowStock")}
           >
-            DÃ¼ÅŸÃ¼k Stok
+            Düşük Stok
           </Button>
         </div>
 
@@ -791,7 +791,7 @@ export default function ProductsPage() {
             onClick={() => router.push("/admin-products/add")}
             className="bg-black text-white hover:bg-gray-800"
           >
-            Yeni ÃœrÃ¼n Ekle
+            Yeni Ürün Ekle
           </Button>
         </div>
       </div>
@@ -840,7 +840,7 @@ export default function ProductsPage() {
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="text-center">
-                  KayÄ±t bulunamadÄ±
+                  Kayıt bulunamadı
                 </TableCell>
               </TableRow>
             )}
@@ -867,7 +867,7 @@ export default function ProductsPage() {
                 <CardContent className="p-0">
                   {/* Ana Bilgiler */}
                   <div className="p-4 flex gap-3">
-                    {/* GÃ¶rsel */}
+                    {/* Görsel */}
                     <div className="flex-shrink-0">
                       {product.image ? (
                         <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100">
@@ -879,12 +879,12 @@ export default function ProductsPage() {
                         </div>
                       ) : (
                         <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center text-xs text-gray-400">
-                          GÃ¶rsel Yok
+                          Görsel Yok
                         </div>
                       )}
                     </div>
 
-                    {/* ÃœrÃ¼n Bilgileri */}
+                    {/* Ürün Bilgileri */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1 min-w-0">
@@ -909,7 +909,7 @@ export default function ProductsPage() {
                         <div>
                           <span className="text-xs text-gray-500">Fiyat:</span>
                           <span className="text-sm font-semibold text-gray-900 ml-1">
-                            {product.price.toFixed(2)} â‚º
+                            {product.price.toFixed(2)} ₺
                           </span>
                         </div>
                         {totalStock > 0 && (
@@ -922,7 +922,7 @@ export default function ProductsPage() {
                         )}
                       </div>
 
-                      {/* HÄ±zlÄ± Bilgiler */}
+                      {/* Hızlı Bilgiler */}
                       <div className="mt-2 flex items-center gap-2 flex-wrap">
                         {product.gender && (
                           <Badge variant="outline" className="text-xs">
@@ -948,7 +948,7 @@ export default function ProductsPage() {
                     </div>
                   </div>
 
-                  {/* Detaylar Butonu ve Ä°ÅŸlemler */}
+                  {/* Detaylar Butonu ve İşlemler */}
                   <div className="border-t border-gray-200 px-4 py-2 flex items-center justify-between bg-gray-50">
                     <Button
                       variant="ghost"
@@ -959,12 +959,12 @@ export default function ProductsPage() {
                       {isExpanded ? (
                         <>
                           <ChevronUp className="w-4 h-4 mr-1" />
-                          DetaylarÄ± Gizle
+                          Detayları Gizle
                         </>
                       ) : (
                         <>
                           <ChevronDown className="w-4 h-4 mr-1" />
-                          DetaylarÄ± GÃ¶ster
+                          Detayları Göster
                         </>
                       )}
                     </Button>
@@ -1014,17 +1014,17 @@ export default function ProductsPage() {
 
                       if (!deleteResponse.ok) {
                         const error = await deleteResponse.json();
-                        toast.error(error.error || "Silme iÅŸlemi baÅŸarÄ±sÄ±z oldu");
+                        toast.error(error.error || "Silme işlemi başarısız oldu");
                         setDeleteId(null);
                         return;
                       }
 
-                      toast.success("ÃœrÃ¼n baÅŸarÄ±yla silindi");
+                      toast.success("Ürün başarıyla silindi");
                       setDeleteId(null);
                       refresh();
                     } catch (error) {
-                      console.error("Silme hatasÄ±:", error);
-                      toast.error("Silme iÅŸlemi sÄ±rasÄ±nda bir hata oluÅŸtu");
+                      console.error("Silme hatası:", error);
+                      toast.error("Silme işlemi sırasında bir hata oluştu");
                       setDeleteId(null);
                     } finally {
                       setDeleting(false);
@@ -1032,8 +1032,8 @@ export default function ProductsPage() {
                   }
                 }
               } catch (error) {
-                console.error("Renkler yÃ¼klenirken hata:", error);
-                toast.error("ÃœrÃ¼n bilgileri yÃ¼klenirken bir hata oluÅŸtu");
+                console.error("Renkler yüklenirken hata:", error);
+                toast.error("Ürün bilgileri yüklenirken bir hata oluştu");
                 setDeleteId(null);
               } finally {
                 setLoadingColors(false);
@@ -1045,7 +1045,7 @@ export default function ProductsPage() {
                     </div>
                   </div>
 
-                  {/* GeniÅŸletilmiÅŸ Detaylar */}
+                  {/* Genişletilmiş Detaylar */}
                   {isExpanded && (
                     <div className="border-t border-gray-200 p-4 space-y-3 bg-white">
                       {product.stockCode && (
@@ -1056,7 +1056,7 @@ export default function ProductsPage() {
                       )}
                       {product.description && (
                         <div>
-                          <span className="text-xs font-medium text-gray-500">AÃ§Ä±klama:</span>
+                          <span className="text-xs font-medium text-gray-500">Açıklama:</span>
                           <p className="text-sm text-gray-900 mt-1">{product.description}</p>
                         </div>
                       )}
@@ -1093,7 +1093,7 @@ export default function ProductsPage() {
           })
         ) : (
           <Card className="p-8 text-center">
-            <p className="text-gray-500">KayÄ±t bulunamadÄ±</p>
+            <p className="text-gray-500">Kayıt bulunamadı</p>
           </Card>
         )}
       </div>
@@ -1110,16 +1110,16 @@ export default function ProductsPage() {
       >
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Silme Ä°ÅŸlemi</DialogTitle>
+            <DialogTitle>Silme İşlemi</DialogTitle>
           </DialogHeader>
           {deleteId && (
             <div className="space-y-4">
               {loadingColors ? (
-                <div className="text-center py-4">Renkler yÃ¼kleniyor...</div>
+                <div className="text-center py-4">Renkler yükleniyor...</div>
               ) : productColors.length > 0 ? (
                 <>
                   <div className="text-sm text-muted-foreground">
-                    Bu Ã¼rÃ¼nÃ¼n {productColors.length} rengi bulunmaktadÄ±r. Silmek istediÄŸiniz renkleri seÃ§in veya tÃ¼mÃ¼nÃ¼ silin.
+                    Bu ürünün {productColors.length} rengi bulunmaktadır. Silmek istediğiniz renkleri seçin veya tümünü silin.
                   </div>
                   
                   <div className="space-y-2">
@@ -1138,13 +1138,13 @@ export default function ProductsPage() {
                         htmlFor="deleteAll"
                         className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                       >
-                        TÃ¼mÃ¼nÃ¼ Sil (ÃœrÃ¼n ve tÃ¼m renkleri)
+                        Tümünü Sil (Ürün ve tüm renkleri)
                       </label>
                     </div>
 
                     {!deleteAll && (
                       <div className="space-y-2 border rounded-md p-3 max-h-60 overflow-y-auto">
-                        <div className="text-sm font-medium mb-2">Renkleri SeÃ§:</div>
+                        <div className="text-sm font-medium mb-2">Renkleri Seç:</div>
                         {productColors.map((color) => (
                           <div key={color.id} className="flex items-center space-x-2">
                             <Checkbox
@@ -1178,7 +1178,7 @@ export default function ProductsPage() {
                 </>
               ) : (
                 <div className="text-sm text-muted-foreground">
-                  Bu Ã¼rÃ¼nÃ¼ silmek istediÄŸinize emin misiniz? Bu iÅŸlem geri alÄ±namaz.
+                  Bu ürünü silmek istediğinize emin misiniz? Bu işlem geri alınamaz.
                 </div>
               )}
             </div>
@@ -1194,7 +1194,7 @@ export default function ProductsPage() {
               }}
               disabled={deleting}
             >
-              VazgeÃ§
+              Vazgeç
             </Button>
             <Button
               onClick={async () => {
@@ -1216,19 +1216,19 @@ export default function ProductsPage() {
 
                     if (!response.ok) {
                       const error = await response.json();
-                      toast.error(error.error || "Silme iÅŸlemi baÅŸarÄ±sÄ±z oldu");
+                      toast.error(error.error || "Silme işlemi başarısız oldu");
                       return;
                     }
 
-                    toast.success("ÃœrÃ¼n baÅŸarÄ±yla silindi");
+                    toast.success("Ürün başarıyla silindi");
                     setDeleteId(null);
                     setProductColors([]);
                     setSelectedColorIds([]);
                     setDeleteAll(false);
                     refresh();
                   } catch (error) {
-                    console.error("Silme hatasÄ±:", error);
-                    toast.error("Silme iÅŸlemi sÄ±rasÄ±nda bir hata oluÅŸtu");
+                    console.error("Silme hatası:", error);
+                    toast.error("Silme işlemi sırasında bir hata oluştu");
                   } finally {
                     setDeleting(false);
                   }
@@ -1236,7 +1236,7 @@ export default function ProductsPage() {
                 }
                 
                 if (!deleteAll && selectedColorIds.length === 0) {
-                  toast.error("LÃ¼tfen silinecek renkleri seÃ§in veya 'TÃ¼mÃ¼nÃ¼ Sil' seÃ§eneÄŸini iÅŸaretleyin.");
+                  toast.error("Lütfen silinecek renkleri seçin veya 'Tümünü Sil' seçeneğini işaretleyin.");
                   return;
                 }
 
@@ -1255,19 +1255,19 @@ export default function ProductsPage() {
 
                   if (!response.ok) {
                     const error = await response.json();
-                    toast.error(error.error || "Silme iÅŸlemi baÅŸarÄ±sÄ±z oldu");
+                    toast.error(error.error || "Silme işlemi başarısız oldu");
                     return;
                   }
 
-                  toast.success("Silme iÅŸlemi baÅŸarÄ±yla tamamlandÄ±");
+                  toast.success("Silme işlemi başarıyla tamamlandı");
                   setDeleteId(null);
                   setProductColors([]);
                   setSelectedColorIds([]);
                   setDeleteAll(false);
                   refresh();
                 } catch (error) {
-                  console.error("Silme hatasÄ±:", error);
-                  toast.error("Silme iÅŸlemi sÄ±rasÄ±nda bir hata oluÅŸtu");
+                  console.error("Silme hatası:", error);
+                  toast.error("Silme işlemi sırasında bir hata oluştu");
                 } finally {
                   setDeleting(false);
                 }
@@ -1308,7 +1308,7 @@ export default function ProductsPage() {
           <div className="text-xs sm:text-sm">
             {data.length > 0 && (
               <>
-                GÃ¶sterilen: {pagination.pageIndex * pagination.pageSize + 1}â€“
+                Gösterilen: {pagination.pageIndex * pagination.pageSize + 1}–
                 {Math.min(
                   (pagination.pageIndex + 1) * pagination.pageSize,
                   data.length

@@ -79,15 +79,15 @@ export default function FavoritesClient({
 
       if (res.ok) {
         setFavoritesList(favoritesList.filter((f) => f.productId !== productId));
-        toast.success(`${productName} favorilerden Ã§Ä±karÄ±ldÄ±`, {
+        toast.success(`${productName} favorilerden çıkarıldı`, {
           position: "bottom-left",
         });
       } else {
-        toast.error("Bir hata oluÅŸtu");
+        toast.error("Bir hata oluştu");
       }
     } catch (error) {
       console.error("Error removing favorite:", error);
-      toast.error("Bir hata oluÅŸtu");
+      toast.error("Bir hata oluştu");
     }
   };
 
@@ -102,15 +102,15 @@ export default function FavoritesClient({
         const shareUrl = `${window.location.origin}/favorites/share?lid=${data.shareId}`;
         await navigator.clipboard.writeText(shareUrl);
         setShareLink(shareUrl);
-        toast.success("PaylaÅŸÄ±m linki kopyalandÄ±!", {
+        toast.success("Paylaşım linki kopyalandı!", {
           position: "bottom-left",
         });
       } else {
-        toast.error("PaylaÅŸÄ±m linki oluÅŸturulamadÄ±");
+        toast.error("Paylaşım linki oluşturulamadı");
       }
     } catch (error) {
       console.error("Error sharing:", error);
-      toast.error("Bir hata oluÅŸtu");
+      toast.error("Bir hata oluştu");
     }
   };
 
@@ -132,12 +132,12 @@ export default function FavoritesClient({
                 onClick={handleShare}
                 className="flex items-center gap-2 text-[#111] hover:opacity-70 transition-opacity"
               >
-                <span className="text-sm font-light uppercase tracking-wider">PaylaÅŸ</span>
+                <span className="text-sm font-light uppercase tracking-wider">Paylaş</span>
                 <Share2 className="w-4 h-4" />
               </button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Favori listenizi paylaÅŸ</p>
+              <p>Favori listenizi paylaş</p>
             </TooltipContent>
           </Tooltip>
         </div>
@@ -145,12 +145,12 @@ export default function FavoritesClient({
         {/* Favorites Grid */}
         {favoritesList.length === 0 ? (
           <div className="text-center py-12 text-[#111]/60">
-            <p className="text-lg mb-4">HenÃ¼z favori Ã¼rÃ¼nÃ¼nÃ¼z yok</p>
+            <p className="text-lg mb-4">Henüz favori ürününüz yok</p>
             <Link
               href="/men"
               className="text-[#111] underline hover:opacity-70"
             >
-              AlÄ±ÅŸveriÅŸe baÅŸla
+              Alışverişe başla
             </Link>
           </div>
         ) : (
@@ -186,7 +186,7 @@ export default function FavoritesClient({
                           handleRemoveFavorite(product.id, product.name);
                         }}
                         className="absolute top-3 right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center transition-all hover:scale-110 z-10 shadow-sm"
-                        aria-label="Favorilerden Ã‡Ä±kar"
+                        aria-label="Favorilerden Çıkar"
                       >
                         <Heart className="w-4 h-4 fill-[#111] text-[#111]" />
                       </button>
@@ -198,12 +198,12 @@ export default function FavoritesClient({
                     </h3>
                     <div className="flex items-center justify-center gap-2">
                       <span className="text-sm md:text-base font-light text-[#111]">
-                        {product.price.toFixed(2)} â‚º
+                        {product.price.toFixed(2)} ₺
                       </span>
                     </div>
                   </div>
 
-                  {/* Renk SeÃ§enekleri */}
+                  {/* Renk Seçenekleri */}
                   {product.colors && product.colors.length > 0 && (
                     <div className="flex items-center justify-center gap-1.5 mb-2">
                       {Array.from(new Map(product.colors.filter((c: any) => c.images?.[0]).map((c: any) => [c.hexCode || c.name, c])).values()).map((color: any, idx: number) => (
@@ -213,17 +213,17 @@ export default function FavoritesClient({
                           style={{
                             backgroundColor: color.hexCode || "#ccc",
                           }}
-                          aria-label={`${color.name} renk seÃ§eneÄŸi`}
+                          aria-label={`${color.name} renk seçeneği`}
                         />
                       ))}
                     </div>
                   )}
 
-                  {/* Hover'da HÄ±zlÄ± Ekle BÃ¶lÃ¼mÃ¼ - Collapsible Grid */}
+                  {/* Hover'da Hızlı Ekle Bölümü - Collapsible Grid */}
                   <div className="hidden md:grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-all duration-300 ease-in-out opacity-0 group-hover:opacity-100">
                     <div className="overflow-hidden">
                       <div className="mt-4 pt-4 border-t border-gray-100 px-4 pb-4">
-                        <p className="text-[10px] tracking-[0.2em] font-light text-[#111]/40 uppercase mb-3 text-center">HÄ±zlÄ± ekle</p>
+                        <p className="text-[10px] tracking-[0.2em] font-light text-[#111]/40 uppercase mb-3 text-center">Hızlı ekle</p>
                         <div className="flex flex-wrap gap-2 justify-center">
                           {(() => {
                             const availableSizes = product.sizes && product.sizes.length > 0
@@ -234,7 +234,7 @@ export default function FavoritesClient({
 
                             if (availableSizes.length === 0) {
                               return (
-                                <p className="text-xs text-gray-500">Beden seÃ§eneÄŸi bulunmuyor</p>
+                                <p className="text-xs text-gray-500">Beden seçeneği bulunmuyor</p>
                               );
                             }
 
@@ -266,7 +266,7 @@ export default function FavoritesClient({
                             });
 
                             if (inStockSizes.length === 0) {
-                              return <p className="text-[10px] text-gray-400">TÃ¼kendi</p>;
+                              return <p className="text-[10px] text-gray-400">Tükendi</p>;
                             }
 
                             return inStockSizes.map(({ size, sizeName, sizeId, finalStock }: any, sizeIdx: number) => {
@@ -325,13 +325,13 @@ export default function FavoritesClient({
 
                                       } else {
                                         const error = await res.json();
-                                        toast.error(error.error || "Sepete eklenirken bir hata oluÅŸtu", {
+                                        toast.error(error.error || "Sepete eklenirken bir hata oluştu", {
                                           position: "bottom-left",
                                         });
                                       }
                                     } catch (error) {
                                       console.error("Error adding to cart:", error);
-                                      toast.error("Sepete eklenirken bir hata oluÅŸtu", {
+                                      toast.error("Sepete eklenirken bir hata oluştu", {
                                         position: "bottom-left",
                                       });
                                     }
@@ -358,11 +358,11 @@ export default function FavoritesClient({
           </div>
         )}
 
-        {/* TakÄ±mÄ± Tamamla Section */}
+        {/* Takımı Tamamla Section */}
         {completeTheSet.length > 0 && (
           <div className="mt-16">
             <h2 className="text-2xl md:text-3xl font-light text-[#111] mb-8 text-center">
-              TakÄ±mÄ± Tamamla
+              Takımı Tamamla
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
               {completeTheSet.map((product: CompleteTheSetItem) => {
@@ -396,7 +396,7 @@ export default function FavoritesClient({
                       </h3>
                       <div className="flex items-center gap-2">
                         <span className="text-sm md:text-base font-light text-[#111]">
-                          {product.price.toFixed(2)} â‚º
+                          {product.price.toFixed(2)} ₺
                         </span>
                       </div>
                     </div>

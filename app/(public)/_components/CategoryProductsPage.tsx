@@ -115,7 +115,7 @@ function FavoriteButton({ productId, productName }: { productId: string; product
                 await fetch(`/api/favorites?productId=${productId}`, {
                     method: "DELETE",
                 });
-                toast.success(`${productName} favorilerden Ã§Ä±karÄ±ldÄ±`, {
+                toast.success(`${productName} favorilerden çıkarıldı`, {
                     position: "bottom-left",
                 });
             } else {
@@ -132,7 +132,7 @@ function FavoriteButton({ productId, productName }: { productId: string; product
         } catch (error) {
             setIsFavorite(!nextFavorite);
             console.error("Error toggling favorite:", error);
-            toast.error("Bir hata oluÅŸtu");
+            toast.error("Bir hata oluştu");
         } finally {
             setIsLoading(false);
         }
@@ -143,7 +143,7 @@ function FavoriteButton({ productId, productName }: { productId: string; product
             className="absolute top-3 right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center transition-all hover:scale-110 z-10 disabled:opacity-50 shadow-sm"
             onClick={handleToggle}
             disabled={isLoading}
-            aria-label={isFavorite ? "Favorilerden Ã‡Ä±kar" : "Favorilere Ekle"}
+            aria-label={isFavorite ? "Favorilerden Çıkar" : "Favorilere Ekle"}
         >
             <Heart
                 className={`w-4 h-4 transition-colors ${isFavorite ? "fill-[#111] text-[#111]" : "text-[#111]"
@@ -366,10 +366,10 @@ export default function CategoryProductsPage({
         if (filters.minPrice || filters.maxPrice) {
             const label =
                 filters.minPrice && filters.maxPrice
-                    ? `â‚º${filters.minPrice} - â‚º${filters.maxPrice}`
+                    ? `₺${filters.minPrice} - ₺${filters.maxPrice}`
                     : filters.minPrice
-                        ? `â‚º${filters.minPrice}+`
-                        : `â‚º${filters.maxPrice}-`;
+                        ? `₺${filters.minPrice}+`
+                        : `₺${filters.maxPrice}-`;
             result.push({
                 type: "price",
                 label,
@@ -469,44 +469,44 @@ export default function CategoryProductsPage({
                         />
                     </div>
 
-                    {/* SÄ±rala - SaÄŸ */}
+                    {/* Sırala - Sağ */}
                     <div className="flex items-center gap-4">
                         <span className="text-sm text-[#111]/60 font-light hidden md:inline">
-                            {products.length} Ã¼rÃ¼n
+                            {products.length} ürün
                         </span>
 
-                        {/* Mobil: SÄ±rala Butonu */}
+                        {/* Mobil: Sırala Butonu */}
                         <button
                             onClick={() => setSortDialogOpen(true)}
                             className="md:hidden flex items-center gap-2 px-4 py-2 text-sm font-light text-[#111] border border-[#111] hover:bg-[#111] hover:text-white transition-colors"
                         >
                             <ArrowUpDown className="w-4 h-4" />
-                            <span>SÄ±rala</span>
+                            <span>Sırala</span>
                         </button>
 
-                        {/* Desktop: SÄ±rala Dropdown */}
+                        {/* Desktop: Sırala Dropdown */}
                         <div className="hidden md:flex items-center gap-2">
-                            <span className="text-sm text-[#111] font-light">SÄ±rala:</span>
+                            <span className="text-sm text-[#111] font-light">Sırala:</span>
                             <Select value={sortOption} onValueChange={setSortOption}>
                                 <SelectTrigger className="w-[200px] border-none bg-transparent text-sm font-light text-[#111] focus:ring-0 focus:ring-offset-0">
                                     <SelectValue>
-                                        {sortOption === "featured" && "Ã–ne Ã§Ä±kan"}
-                                        {sortOption === "bestseller" && "En Ã§ok satan"}
+                                        {sortOption === "featured" && "Öne çıkan"}
+                                        {sortOption === "bestseller" && "En çok satan"}
                                         {sortOption === "az" && "Alfabetik olarak, A-Z"}
                                         {sortOption === "za" && "Alfabetik olarak, Z-A"}
-                                        {sortOption === "price-low" && "Fiyat, dÃ¼ÅŸÃ¼kten yÃ¼kseÄŸe"}
-                                        {sortOption === "price-high" && "Fiyat, yÃ¼ksekten dÃ¼ÅŸÃ¼ÄŸe"}
+                                        {sortOption === "price-low" && "Fiyat, düşükten yükseğe"}
+                                        {sortOption === "price-high" && "Fiyat, yüksekten düşüğe"}
                                         {sortOption === "date-old" && "Tarih, eskiden yeniye"}
                                         {sortOption === "date-new" && "Tarih, yeniden eskiye"}
                                     </SelectValue>
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="featured">Ã–ne Ã§Ä±kan</SelectItem>
-                                    <SelectItem value="bestseller">En Ã§ok satan</SelectItem>
+                                    <SelectItem value="featured">Öne çıkan</SelectItem>
+                                    <SelectItem value="bestseller">En çok satan</SelectItem>
                                     <SelectItem value="az">Alfabetik olarak, A-Z</SelectItem>
                                     <SelectItem value="za">Alfabetik olarak, Z-A</SelectItem>
-                                    <SelectItem value="price-low">Fiyat, dÃ¼ÅŸÃ¼kten yÃ¼kseÄŸe</SelectItem>
-                                    <SelectItem value="price-high">Fiyat, yÃ¼ksekten dÃ¼ÅŸÃ¼ÄŸe</SelectItem>
+                                    <SelectItem value="price-low">Fiyat, düşükten yükseğe</SelectItem>
+                                    <SelectItem value="price-high">Fiyat, yüksekten düşüğe</SelectItem>
                                     <SelectItem value="date-old">Tarih, eskiden yeniye</SelectItem>
                                     <SelectItem value="date-new">Tarih, yeniden eskiye</SelectItem>
                                 </SelectContent>
@@ -515,23 +515,23 @@ export default function CategoryProductsPage({
                     </div>
                 </div>
 
-                {/* Mobil SÄ±rala Modal */}
+                {/* Mobil Sırala Modal */}
                 <Dialog open={sortDialogOpen} onOpenChange={setSortDialogOpen}>
                     <DialogContent className="sm:max-w-md">
                         <DialogHeader>
-                            <DialogTitle className="text-left">SÄ±rala</DialogTitle>
+                            <DialogTitle className="text-left">Sırala</DialogTitle>
                         </DialogHeader>
                         <RadioGroup value={sortOption} onValueChange={setSortOption} className="mt-4">
                             <div className="flex items-center space-x-2 py-3 border-b">
                                 <RadioGroupItem value="featured" id="featured" />
                                 <Label htmlFor="featured" className="flex-1 cursor-pointer font-normal">
-                                    Ã–ne Ã§Ä±kan
+                                    Öne çıkan
                                 </Label>
                             </div>
                             <div className="flex items-center space-x-2 py-3 border-b">
                                 <RadioGroupItem value="bestseller" id="bestseller" />
                                 <Label htmlFor="bestseller" className="flex-1 cursor-pointer font-normal">
-                                    En Ã§ok satan
+                                    En çok satan
                                 </Label>
                             </div>
                             <div className="flex items-center space-x-2 py-3 border-b">
@@ -549,13 +549,13 @@ export default function CategoryProductsPage({
                             <div className="flex items-center space-x-2 py-3 border-b">
                                 <RadioGroupItem value="price-low" id="price-low" />
                                 <Label htmlFor="price-low" className="flex-1 cursor-pointer font-normal">
-                                    Fiyat, dÃ¼ÅŸÃ¼kten yÃ¼kseÄŸe
+                                    Fiyat, düşükten yükseğe
                                 </Label>
                             </div>
                             <div className="flex items-center space-x-2 py-3 border-b">
                                 <RadioGroupItem value="price-high" id="price-high" />
                                 <Label htmlFor="price-high" className="flex-1 cursor-pointer font-normal">
-                                    Fiyat, yÃ¼ksekten dÃ¼ÅŸÃ¼ÄŸe
+                                    Fiyat, yüksekten düşüğe
                                 </Label>
                             </div>
                             <div className="flex items-center space-x-2 py-3 border-b">
@@ -576,7 +576,7 @@ export default function CategoryProductsPage({
                                 onClick={() => setSortDialogOpen(false)}
                                 className="bg-[#800020] hover:bg-[#5C1A1A] text-white px-8"
                             >
-                                BÄ°TTÄ°
+                                BİTTİ
                             </Button>
                         </div>
                     </DialogContent>
@@ -584,10 +584,10 @@ export default function CategoryProductsPage({
 
                 {/* Product Grid */}
                 {loading ? (
-                    <div className="text-center py-12">YÃ¼kleniyor...</div>
+                    <div className="text-center py-12">Yükleniyor...</div>
                 ) : products.length === 0 ? (
                     <div className="text-center py-12 text-[#111]/60">
-                        ÃœrÃ¼n bulunamadÄ±
+                        Ürün bulunamadı
                     </div>
                 ) : (
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
@@ -644,7 +644,7 @@ export default function CategoryProductsPage({
                                             alt={product.name}
                                             sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                                             className="mb-4"
-                                            badge={product.originalPrice && product.originalPrice > product.price ? "Ä°ndirim" : null}
+                                            badge={product.originalPrice && product.originalPrice > product.price ? "İndirim" : null}
                                             favoriteButton={<FavoriteButton productId={product.id} productName={product.name} />}
                                             isOutOfStock={isOutOfStock}
                                         />
@@ -658,21 +658,21 @@ export default function CategoryProductsPage({
                                             {product.originalPrice && product.originalPrice > product.price ? (
                                                 <>
                                                     <span className="text-sm md:text-base font-light text-[#111]">
-                                                        {product.price.toFixed(2)} â‚º
+                                                        {product.price.toFixed(2)} ₺
                                                     </span>
                                                     <span className="text-sm text-[#111]/60 line-through">
-                                                        {product.originalPrice.toFixed(2)} â‚º
+                                                        {product.originalPrice.toFixed(2)} ₺
                                                     </span>
                                                 </>
                                             ) : (
                                                 <span className="text-sm md:text-base font-light text-[#111]">
-                                                    {product.price.toFixed(2)} â‚º
+                                                    {product.price.toFixed(2)} ₺
                                                 </span>
                                             )}
                                         </div>
                                     </div>
 
-                                    {/* Renk SeÃ§enekleri */}
+                                    {/* Renk Seçenekleri */}
                                     {product.colors.length > 0 && (
                                         <div className="flex items-center justify-center gap-1.5 mt-2">
                                             {Array.from(new Map(product.colors.filter((c: any) => c.images?.[0]).map((c: any) => [c.hexCode || c.name, c])).values()).map((color: any, idx: number) => {
@@ -704,7 +704,7 @@ export default function CategoryProductsPage({
                                                         style={{
                                                             backgroundColor: color.hexCode || "#ccc",
                                                         }}
-                                                        aria-label={`${color.name} renk seÃ§eneÄŸi`}
+                                                        aria-label={`${color.name} renk seçeneği`}
                                                     />
                                                 );
                                             })}

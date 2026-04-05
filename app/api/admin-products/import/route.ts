@@ -17,32 +17,32 @@ function toExcelBuffer(data: ArrayBuffer | Buffer): Buffer<ArrayBuffer> {
 const COL = {
   PARTNER_ID:     "Partner ID",
   BARCODE:        "Barkod",
-  COMMISSION:     "Komisyon OranÄ±",
+  COMMISSION:     "Komisyon Oranı",
   MODEL_CODE:     "Model Kodu",
-  COLOR:          "ÃœrÃ¼n Rengi",
+  COLOR:          "Ürün Rengi",
   SIZE:           "Beden",
   DIMENSION:      "Boyut/Ebat",
   GENDER:         "Cinsiyet",
   BRAND:          "Marka",
-  CATEGORY:       "Kategori Ä°smi",
-  SUPPLIER_CODE:  "TedarikÃ§i Stok Kodu",
-  NAME:           "ÃœrÃ¼n AdÄ±",
-  DESCRIPTION:    "ÃœrÃ¼n AÃ§Ä±klamasÄ±",
-  MARKET_PRICE:   "Piyasa SatÄ±ÅŸ FiyatÄ± (KDV Dahil)",
-  SALE_PRICE:     "Trendyol'da SatÄ±lacak Fiyat",
-  BUYBOX_PRICE:   "BuyBox FiyatÄ±",
-  STOCK:          "ÃœrÃ¼n Stok Adedi",
-  VAT_RATE:       "KDV OranÄ±",
-  OTV_RATE:       "Ã–TV OranÄ±",
+  CATEGORY:       "Kategori İsmi",
+  SUPPLIER_CODE:  "Tedarikçi Stok Kodu",
+  NAME:           "Ürün Adı",
+  DESCRIPTION:    "Ürün Açıklaması",
+  MARKET_PRICE:   "Piyasa Satış Fiyatı (KDV Dahil)",
+  SALE_PRICE:     "Trendyol'da Satılacak Fiyat",
+  BUYBOX_PRICE:   "BuyBox Fiyatı",
+  STOCK:          "Ürün Stok Adedi",
+  VAT_RATE:       "KDV Oranı",
+  OTV_RATE:       "ÖTV Oranı",
   SHIPMENT_TYPE:  "Sevkiyat Tipi",
-  IMAGE1:         "GÃ¶rsel 1",
-  IMAGE2:         "GÃ¶rsel 2",
-  IMAGE3:         "GÃ¶rsel 3",
-  IMAGE4:         "GÃ¶rsel 4",
-  IMAGE5:         "GÃ¶rsel 5",
-  IMAGE6:         "GÃ¶rsel 6",
-  IMAGE7:         "GÃ¶rsel 7",
-  IMAGE8:         "GÃ¶rsel 8",
+  IMAGE1:         "Görsel 1",
+  IMAGE2:         "Görsel 2",
+  IMAGE3:         "Görsel 3",
+  IMAGE4:         "Görsel 4",
+  IMAGE5:         "Görsel 5",
+  IMAGE6:         "Görsel 6",
+  IMAGE7:         "Görsel 7",
+  IMAGE8:         "Görsel 8",
   TRENDYOL_LINK:  "Trendyol Linki",
 };
 
@@ -67,7 +67,7 @@ function cleanUrl(url: string | undefined): string | null {
 
 function normalizeGender(val: string): "FEMALE" | "MALE" | "UNISEX" | undefined {
   const v = val.toLowerCase();
-  if (v.includes("kadÄ±n") || v.includes("kÄ±z") || v.includes("female")) return "FEMALE";
+  if (v.includes("kadın") || v.includes("kız") || v.includes("female")) return "FEMALE";
   if (v.includes("erkek") || v.includes("male")) return "MALE";
   if (v.includes("unisex")) return "UNISEX";
   return undefined;
@@ -76,8 +76,8 @@ function normalizeGender(val: string): "FEMALE" | "MALE" | "UNISEX" | undefined 
 function slugify(text: string): string {
   return text
     .toLowerCase()
-    .replace(/ÄŸ/g, "g").replace(/Ã¼/g, "u").replace(/ÅŸ/g, "s")
-    .replace(/Ä±/g, "i").replace(/Ã¶/g, "o").replace(/Ã§/g, "c")
+    .replace(/ğ/g, "g").replace(/ü/g, "u").replace(/ş/g, "s")
+    .replace(/ı/g, "i").replace(/ö/g, "o").replace(/ç/g, "c")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 }
@@ -206,12 +206,12 @@ export async function POST(req: NextRequest) {
 
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
-    if (!file) return NextResponse.json({ error: "Dosya bulunamadÄ±" }, { status: 400 });
+    if (!file) return NextResponse.json({ error: "Dosya bulunamadı" }, { status: 400 });
 
     const buffer = toExcelBuffer(await file.arrayBuffer());
     const rawData = await readExcelRowsFromBuffer(buffer);
 
-    if (!rawData.length) return NextResponse.json({ error: "Excel dosyasÄ± boÅŸ" }, { status: 400 });
+    if (!rawData.length) return NextResponse.json({ error: "Excel dosyası boş" }, { status: 400 });
 
     const rows = parseRows(rawData);
     const groups = groupRows(rows);
@@ -436,7 +436,7 @@ export async function POST(req: NextRequest) {
               createdVariants++;
             }
           } catch (rowErr: any) {
-            errors.push({ group: groupKey, error: `SatÄ±r (${row.barcode || row.size}): ${rowErr.message}` });
+            errors.push({ group: groupKey, error: `Satır (${row.barcode || row.size}): ${rowErr.message}` });
           }
         }
       } catch (groupErr: any) {
@@ -456,7 +456,7 @@ export async function POST(req: NextRequest) {
     });
   } catch (error: any) {
     console.error("Import error:", error);
-    return NextResponse.json({ error: error.message || "Import hatasÄ±" }, { status: 500 });
+    return NextResponse.json({ error: error.message || "Import hatası" }, { status: 500 });
   }
 }
 
@@ -469,7 +469,7 @@ export async function PUT(req: NextRequest) {
 
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
-    if (!file) return NextResponse.json({ error: "Dosya bulunamadÄ±" }, { status: 400 });
+    if (!file) return NextResponse.json({ error: "Dosya bulunamadı" }, { status: 400 });
 
     const buffer = toExcelBuffer(await file.arrayBuffer());
     const rawData = await readExcelRowsFromBuffer(buffer);

@@ -104,9 +104,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(sortedProducts);
   } catch (error: any) {
-    console.error("ÃœrÃ¼nler yÃ¼klenirken hata:", error);
+    console.error("Ürünler yüklenirken hata:", error);
     return NextResponse.json(
-      { error: error.message || "ÃœrÃ¼nler yÃ¼klenirken bir hata oluÅŸtu" },
+      { error: error.message || "Ürünler yüklenirken bir hata oluştu" },
       { status: 500 }
     );
   }
@@ -150,7 +150,7 @@ export async function POST(req: Request) {
     if (finalBarcode) {
       const existing = await prisma.product.findFirst({ where: { barcode: finalBarcode } });
       if (existing) {
-        throw new Error(`Barkod (${finalBarcode}) zaten kullanÄ±mda.`);
+        throw new Error(`Barkod (${finalBarcode}) zaten kullanımda.`);
       }
     }
 
@@ -271,7 +271,7 @@ export async function POST(req: Request) {
         isPrimary: true,
         isSecondary: false,
         order: imageOrder++,
-        alt: `${name} - Ana GÃ¶rsel`,
+        alt: `${name} - Ana Görsel`,
       });
     }
 
@@ -282,7 +282,7 @@ export async function POST(req: Request) {
         isPrimary: false,
         isSecondary: true,
         order: imageOrder++,
-        alt: `${name} - Ä°kinci GÃ¶rsel`,
+        alt: `${name} - İkinci Görsel`,
       });
     }
 
@@ -445,7 +445,7 @@ export async function POST(req: Request) {
   } catch (error: any) {
     console.error("Product creation error:", error);
     return NextResponse.json(
-      { error: error.message || "ÃœrÃ¼n oluÅŸturulurken bir hata oluÅŸtu" },
+      { error: error.message || "Ürün oluşturulurken bir hata oluştu" },
       { status: 500 }
     );
   }

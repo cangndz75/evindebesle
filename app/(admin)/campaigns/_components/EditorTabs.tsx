@@ -45,7 +45,7 @@ export default function EditorTabs({
           }`}
         >
           <Blocks className="w-4 h-4 mr-2" />
-          Blok EditÃ¶r
+          Blok Editör
         </Button>
         <Button
           variant="ghost"

@@ -51,10 +51,10 @@ export default function AddressForm({
   return (
     <form className="space-y-4" onSubmit={handleSubmit}>
       <div className="space-y-2">
-        <Label>Ä°lÃ§e</Label>
+        <Label>İlçe</Label>
         <Select value={selectedDistrict} onValueChange={setSelectedDistrict}>
           <SelectTrigger className="w-full">
-            <SelectValue placeholder="Ä°lÃ§e SeÃ§iniz" />
+            <SelectValue placeholder="İlçe Seçiniz" />
           </SelectTrigger>
           <SelectContent>
             {districts.map((d) => (
@@ -67,9 +67,9 @@ export default function AddressForm({
       </div>
 
       <div className="space-y-2">
-        <Label>Adres DetayÄ±</Label>
+        <Label>Adres Detayı</Label>
         <Input
-          placeholder="AÃ§Ä±k adresinizi girin"
+          placeholder="Açık adresinizi girin"
           value={address}
           onChange={(e) => setAddress(e.target.value)}
         />
@@ -98,7 +98,7 @@ export default function AddressForm({
             />
           </svg>
         ) : districtId ? (
-          "GÃ¼ncelle"
+          "Güncelle"
         ) : (
           "Kaydet"
         )}

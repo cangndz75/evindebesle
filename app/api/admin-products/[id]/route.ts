@@ -52,14 +52,14 @@ export async function GET(
     });
 
     if (!product) {
-      return NextResponse.json({ error: "ÃœrÃ¼n bulunamadÄ±" }, { status: 404 });
+      return NextResponse.json({ error: "Ürün bulunamadı" }, { status: 404 });
     }
 
     return NextResponse.json(product);
   } catch (error: any) {
     console.error("Product fetch error:", error);
     return NextResponse.json(
-      { error: error.message || "ÃœrÃ¼n yÃ¼klenirken bir hata oluÅŸtu" },
+      { error: error.message || "Ürün yüklenirken bir hata oluştu" },
       { status: 500 }
     );
   }
@@ -122,7 +122,7 @@ export async function PATCH(
     });
 
     if (!existingProduct) {
-      return NextResponse.json({ error: "ÃœrÃ¼n bulunamadÄ±" }, { status: 404 });
+      return NextResponse.json({ error: "Ürün bulunamadı" }, { status: 404 });
     }
 
     let categoryName: string | null = existingProduct.category?.name || null;
@@ -175,7 +175,7 @@ export async function PATCH(
       if (body.barcode && body.barcode !== existingProduct.barcode) {
         const existing = await prisma.product.findFirst({ where: { barcode: body.barcode } });
         if (existing) {
-          throw new Error(`Barkod (${body.barcode}) zaten kullanÄ±mda.`);
+          throw new Error(`Barkod (${body.barcode}) zaten kullanımda.`);
         }
       }
       updateData.barcode = body.barcode || null;
@@ -445,7 +445,7 @@ export async function PATCH(
   } catch (error: any) {
     console.error("Product update error:", error);
     return NextResponse.json(
-      { error: error.message || "ÃœrÃ¼n gÃ¼ncellenirken bir hata oluÅŸtu" },
+      { error: error.message || "Ürün güncellenirken bir hata oluştu" },
       { status: 500 }
     );
   }
@@ -478,7 +478,7 @@ export async function DELETE(
     });
 
     if (!product) {
-      return NextResponse.json({ error: "ÃœrÃ¼n bulunamadÄ±" }, { status: 404 });
+      return NextResponse.json({ error: "Ürün bulunamadı" }, { status: 404 });
     }
 
     const hasOrders = await prisma.orderItem.count({
@@ -487,7 +487,7 @@ export async function DELETE(
 
     if (hasOrders > 0) {
       return NextResponse.json(
-        { error: "SipariÅŸi olan Ã¼rÃ¼nler silinemez. Bunun yerine arÅŸivleyin." },
+        { error: "Siparişi olan ürünler silinemez. Bunun yerine arşivleyin." },
         { status: 400 }
       );
     }
@@ -543,7 +543,7 @@ export async function DELETE(
       }
     } else {
       return NextResponse.json(
-        { error: "LÃ¼tfen silinecek renkleri seÃ§in veya tÃ¼mÃ¼nÃ¼ sil seÃ§eneÄŸini iÅŸaretleyin" },
+        { error: "Lütfen silinecek renkleri seçin veya tümünü sil seçeneğini işaretleyin" },
         { status: 400 }
       );
     }
@@ -565,12 +565,12 @@ export async function DELETE(
     revalidatePath("/new-arrivals");
     revalidatePath("/collections");
     revalidatePath(`/product/${id}`);
-    return NextResponse.json({ success: true, message: "Silme iÅŸlemi tamamlandÄ±" });
+    return NextResponse.json({ success: true, message: "Silme işlemi tamamlandı" });
 
   } catch (error: any) {
     console.error("Product delete error:", error);
     return NextResponse.json(
-      { error: error.message || "ÃœrÃ¼n silinirken bir hata oluÅŸtu" },
+      { error: error.message || "Ürün silinirken bir hata oluştu" },
       { status: 500 }
     );
   }

@@ -26,9 +26,9 @@ export default function HtmlEditor({ draft, onUpdate }: HtmlEditorProps) {
   return (
     <div className="h-full flex flex-col">
       <div className="p-4 border-b border-gray-200 bg-gray-50">
-        <h3 className="text-sm font-medium text-gray-700">HTML EditÃ¶r</h3>
+        <h3 className="text-sm font-medium text-gray-700">HTML Editör</h3>
         <p className="text-xs text-gray-500 mt-1">
-          GeliÅŸmiÅŸ kullanÄ±cÄ±lar iÃ§in HTML dÃ¼zenleme
+          Gelişmiş kullanıcılar için HTML düzenleme
         </p>
       </div>
       <div className="flex-1 p-4">
@@ -36,7 +36,7 @@ export default function HtmlEditor({ draft, onUpdate }: HtmlEditorProps) {
           value={html}
           onChange={(e) => setHtml(e.target.value)}
           className="h-full font-mono text-sm"
-          placeholder="HTML kodunu buraya yazÄ±n..."
+          placeholder="HTML kodunu buraya yazın..."
         />
       </div>
     </div>

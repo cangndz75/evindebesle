@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
     });
 
     const personalizedHtml = replaceVariables(html, {
-      user_name: "Test KullanÄ±cÄ±",
+      user_name: "Test Kullanıcı",
       user_email: email,
       user_first_name: "Test",
       coupon_code: "TESTKODU",

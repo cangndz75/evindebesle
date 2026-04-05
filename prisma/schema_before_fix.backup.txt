@@ -1140,7 +1140,7 @@ model BundleItem {
 }
 
 // ==========================================
-// �r�n Detay �ablonlar�
+// rn Detay ablonlar
 // ==========================================
 
 model WashingInstruction {

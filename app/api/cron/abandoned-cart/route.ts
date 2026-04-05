@@ -51,17 +51,17 @@ export async function GET(req: NextRequest) {
             const checkoutUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/checkout?orderId=${order.id}`;
             const emailContent = `
                 <h2>Sepetiniz Sizi Bekliyor!</h2>
-                <p>Merhaba, sepetinizde unuttuÄŸunuz Ã¼rÃ¼nler olduÄŸunu fark ettik.</p>
-                <p>AlÄ±ÅŸveriÅŸinizi tamamlamanÄ±z iÃ§in size Ã¶zel indirim kodu tanÄ±mladÄ±k: <strong>${couponCode}</strong></p>
-                <p>Bu kod ile %10 indirim kazanÄ±n.</p>
-                <a href="${checkoutUrl}" style="background: #111; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 5px;">AlÄ±ÅŸveriÅŸi Tamamla</a>
-                <p>SipariÅŸ ID: ${order.id}</p>
+                <p>Merhaba, sepetinizde unuttuğunuz ürünler olduğunu fark ettik.</p>
+                <p>Alışverişinizi tamamlamanız için size özel indirim kodu tanımladık: <strong>${couponCode}</strong></p>
+                <p>Bu kod ile %10 indirim kazanın.</p>
+                <a href="${checkoutUrl}" style="background: #111; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Alışverişi Tamamla</a>
+                <p>Sipariş ID: ${order.id}</p>
             `;
 
             const { error } = await resend.emails.send({
                 from: "Evinde Besle <newsletter@evindebesle.com>",
                 to: order.email!,
-                subject: "Sepetinizde Size Ã–zel Bir Teklif Var!",
+                subject: "Sepetinizde Size Özel Bir Teklif Var!",
                 html: emailContent,
             });
 

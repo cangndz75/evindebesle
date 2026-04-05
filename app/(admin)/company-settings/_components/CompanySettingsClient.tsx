@@ -59,7 +59,7 @@ export default function CompanySettingsClient() {
         }
       } catch (error) {
         console.error("Error loading settings:", error);
-        toast.error("Ayarlar yÃ¼klenirken bir hata oluÅŸtu");
+        toast.error("Ayarlar yüklenirken bir hata oluştu");
       } finally {
         setIsLoading(false);
       }
@@ -73,7 +73,7 @@ export default function CompanySettingsClient() {
       setIsSaving(true);
 
       if (isNaN(settings.freeShippingThreshold) || settings.freeShippingThreshold < 0) {
-        toast.error("GeÃ§erli bir fiyat girin");
+        toast.error("Geçerli bir fiyat girin");
         return;
       }
 
@@ -86,11 +86,11 @@ export default function CompanySettingsClient() {
       if (res.ok) {
         toast.success("Ayarlar kaydedildi");
       } else {
-        toast.error("Ayarlar kaydedilirken bir hata oluÅŸtu");
+        toast.error("Ayarlar kaydedilirken bir hata oluştu");
       }
     } catch (error) {
       console.error("Error saving settings:", error);
-      toast.error("Ayarlar kaydedilirken bir hata oluÅŸtu");
+      toast.error("Ayarlar kaydedilirken bir hata oluştu");
     } finally {
       setIsSaving(false);
     }
@@ -103,15 +103,15 @@ export default function CompanySettingsClient() {
   if (isLoading) {
     return (
       <div className="p-8">
-        <p>YÃ¼kleniyor...</p>
+        <p>Yükleniyor...</p>
       </div>
     );
   }
 
   return (
     <div className="p-8 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-light mb-2">Firma AyarlarÄ±</h1>
-      <p className="text-gray-600 mb-8">Åirket bilgilerinizi ve genel ayarlarÄ±nÄ±zÄ± yÃ¶netin</p>
+      <h1 className="text-3xl font-light mb-2">Firma Ayarları</h1>
+      <p className="text-gray-600 mb-8">Şirket bilgilerinizi ve genel ayarlarınızı yönetin</p>
 
       <div className="space-y-8">
         {/* Genel Ayarlar */}
@@ -119,10 +119,10 @@ export default function CompanySettingsClient() {
           <h2 className="text-xl font-semibold">Genel Ayarlar</h2>
           <div className="space-y-2">
             <Label htmlFor="freeShippingThreshold" className="text-base font-medium">
-              Ãœcretsiz Kargo FiyatÄ± (â‚º)
+              Ücretsiz Kargo Fiyatı (₺)
             </Label>
             <p className="text-sm text-gray-600">
-              Sepet toplamÄ± bu tutara ulaÅŸtÄ±ÄŸÄ±nda Ã¼cretsiz kargo uygulanÄ±r.
+              Sepet toplamı bu tutara ulaştığında ücretsiz kargo uygulanır.
             </p>
             <Input
               id="freeShippingThreshold"
@@ -137,10 +137,10 @@ export default function CompanySettingsClient() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="shippingPrice" className="text-base font-medium">
-              Kargo Ãœcreti (â‚º)
+              Kargo Ücreti (₺)
             </Label>
             <p className="text-sm text-gray-600">
-              Ãœcretsiz kargo eÅŸiÄŸinin altÄ±ndaki sipariÅŸlere uygulanacak kargo Ã¼creti.
+              Ücretsiz kargo eşiğinin altındaki siparişlere uygulanacak kargo ücreti.
             </p>
             <Input
               id="shippingPrice"
@@ -161,13 +161,13 @@ export default function CompanySettingsClient() {
         <div className="space-y-4">
           <div>
             <h2 className="text-xl font-semibold">Fatura Bilgileri</h2>
-            <p className="text-sm text-gray-600 mt-1">Bu bilgiler PDF faturalarÄ±nda gÃ¶rÃ¼necektir</p>
+            <p className="text-sm text-gray-600 mt-1">Bu bilgiler PDF faturalarında görünecektir</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Åirket ÃœnvanÄ± */}
+            {/* Şirket Ünvanı */}
             <div className="space-y-2">
-              <Label htmlFor="companyName">Åirket ÃœnvanÄ±</Label>
+              <Label htmlFor="companyName">Şirket Ünvanı</Label>
               <Input
                 id="companyName"
                 value={settings.companyName || ""}
@@ -219,13 +219,13 @@ export default function CompanySettingsClient() {
                 id="taxOffice"
                 value={settings.taxOffice || ""}
                 onChange={(e) => handleChange("taxOffice", e.target.value)}
-                placeholder="KadÄ±kÃ¶y Vergi Dairesi"
+                placeholder="Kadıköy Vergi Dairesi"
               />
             </div>
 
-            {/* Vergi NumarasÄ± */}
+            {/* Vergi Numarası */}
             <div className="space-y-2">
-              <Label htmlFor="taxNumber">Vergi NumarasÄ±</Label>
+              <Label htmlFor="taxNumber">Vergi Numarası</Label>
               <Input
                 id="taxNumber"
                 value={settings.taxNumber || ""}
@@ -237,12 +237,12 @@ export default function CompanySettingsClient() {
 
           {/* Adres */}
           <div className="space-y-2">
-            <Label htmlFor="companyAddress">Åirket Adresi</Label>
+            <Label htmlFor="companyAddress">Şirket Adresi</Label>
             <Textarea
               id="companyAddress"
               value={settings.companyAddress || ""}
               onChange={(e) => handleChange("companyAddress", e.target.value)}
-              placeholder="Mahalle, Sokak, No:, Ä°lÃ§e/Ä°l"
+              placeholder="Mahalle, Sokak, No:, İlçe/İl"
               rows={3}
             />
           </div>
@@ -251,7 +251,7 @@ export default function CompanySettingsClient() {
           <div className="space-y-2">
             <Label htmlFor="logoUrl">Logo URL</Label>
             <p className="text-sm text-gray-600">
-              Faturada gÃ¶rÃ¼necek logo gÃ¶rselinin URL'si
+              Faturada görünecek logo görselinin URL'si
             </p>
             <Input
               id="logoUrl"
@@ -264,7 +264,7 @@ export default function CompanySettingsClient() {
               <div className="mt-2">
                 <img
                   src={settings.logoUrl}
-                  alt="Logo Ã¶nizleme"
+                  alt="Logo önizleme"
                   className="max-w-xs h-auto border rounded p-2"
                   onError={(e) => {
                     (e.target as HTMLImageElement).style.display = "none";

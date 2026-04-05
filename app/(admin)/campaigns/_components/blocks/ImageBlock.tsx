@@ -29,7 +29,7 @@ export default function ImageBlock({ block, onUpdate }: ImageBlockProps) {
             <div className="p-8 text-center" style={{ backgroundColor }}>
                 <div className="border-2 border-dashed border-gray-300 rounded-lg py-12 px-4 flex flex-col items-center gap-4">
                     <p className="text-gray-400 text-sm">
-                        GÃ¶rsel eklemek iÃ§in saÄŸ panelden URL girin veya buraya tÄ±klayÄ±p yÃ¼kleyin
+                        Görsel eklemek için sağ panelden URL girin veya buraya tıklayıp yükleyin
                     </p>
                     <label className="cursor-pointer">
                         <input
@@ -41,7 +41,7 @@ export default function ImageBlock({ block, onUpdate }: ImageBlockProps) {
                                 if (!file) return;
 
                                 if (!file.type.startsWith("image/")) {
-                                    toast.error("LÃ¼tfen bir gÃ¶rsel dosyasÄ± seÃ§in");
+                                    toast.error("Lütfen bir görsel dosyası seçin");
                                     return;
                                 }
 
@@ -70,12 +70,12 @@ export default function ImageBlock({ block, onUpdate }: ImageBlockProps) {
                                     });
                                 } catch (error) {
                                     console.error("Upload error:", error);
-                                    toast.error("YÃ¼kleme sÄ±rasÄ±nda bir hata oluÅŸtu");
+                                    toast.error("Yükleme sırasında bir hata oluştu");
                                 }
                             }}
                         />
                         <div className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-md transition-colors text-sm cursor-pointer">
-                            GÃ¶rsel YÃ¼kle
+                            Görsel Yükle
                         </div>
                     </label>
                 </div>

@@ -2,6 +2,7 @@ import CollectionProductsPage from "@/app/(public)/_components/CollectionProduct
 import { prisma } from "@/lib/db";
 import { Metadata } from "next";
 import { unstable_cache } from "next/cache";
+import { Suspense } from "react";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://darkvelvet.com";
 
@@ -168,6 +169,26 @@ const getCategories = unstable_cache(
   { revalidate: 300, tags: ["categories", "collections"] }
 );
 
+function CollectionsAllPageFallback() {
+  return (
+    <div className="min-h-screen bg-white">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 md:py-12 pt-24">
+        <div className="h-4 w-48 bg-[#111]/10 animate-pulse mb-6" />
+        <div className="h-12 w-64 bg-[#111]/10 animate-pulse mb-8" />
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+          {Array.from({ length: 8 }).map((_, index) => (
+            <div key={index} className="space-y-3">
+              <div className="aspect-[3/4] bg-[#111]/10 animate-pulse" />
+              <div className="h-4 w-3/4 bg-[#111]/10 animate-pulse" />
+              <div className="h-4 w-1/3 bg-[#111]/10 animate-pulse" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default async function CollectionsAllPage() {
   const [initialProducts, priceRange, categories] = await Promise.all([
     getInitialProducts(),
@@ -176,10 +197,12 @@ export default async function CollectionsAllPage() {
   ]);
 
   return (
-    <CollectionProductsPage
-      initialProducts={initialProducts}
-      initialPriceRange={priceRange}
-      initialCategories={categories}
-    />
+    <Suspense fallback={<CollectionsAllPageFallback />}>
+      <CollectionProductsPage
+        initialProducts={initialProducts}
+        initialPriceRange={priceRange}
+        initialCategories={categories}
+      />
+    </Suspense>
   );
 }

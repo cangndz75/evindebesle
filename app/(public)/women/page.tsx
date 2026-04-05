@@ -6,21 +6,21 @@ import CollectionPageSchema from "@/components/seo/CollectionPageSchema";
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://darkvelvet.com";
 
 export const metadata: Metadata = {
-  title: "KadÄ±n Ä°Ã§ Giyim - Premium KÃ¼lot, SÃ¼tyen ve Ä°Ã§ Ã‡amaÅŸÄ±rÄ± | Dark Velvet",
-  description: "Dark Velvet kadÄ±n iÃ§ giyim koleksiyonu. Premium kalitede kÃ¼lot, sÃ¼tyen, iÃ§ Ã§amaÅŸÄ±rÄ± ve daha fazlasÄ±. Ãœcretsiz kargo ve hÄ±zlÄ± teslimat ile tÃ¼m kadÄ±n Ã¼rÃ¼nlerimizi keÅŸfedin.",
+  title: "Kadın İç Giyim - Premium Külot, Sütyen ve İç Çamaşırı | Dark Velvet",
+  description: "Dark Velvet kadın iç giyim koleksiyonu. Premium kalitede külot, sütyen, iç çamaşırı ve daha fazlası. Ücretsiz kargo ve hızlı teslimat ile tüm kadın ürünlerimizi keşfedin.",
   keywords: [
-    "kadÄ±n iÃ§ Ã§amaÅŸÄ±rÄ±",
-    "kadÄ±n kÃ¼lot",
-    "kadÄ±n sÃ¼tyen",
-    "kadÄ±n iÃ§ giyim",
-    "premium iÃ§ Ã§amaÅŸÄ±rÄ±",
-    "kadÄ±n sweat",
-    "kadÄ±n pijama",
-    "online iÃ§ Ã§amaÅŸÄ±rÄ±"
+    "kadın iç çamaşırı",
+    "kadın külot",
+    "kadın sütyen",
+    "kadın iç giyim",
+    "premium iç çamaşırı",
+    "kadın sweat",
+    "kadın pijama",
+    "online iç çamaşırı"
   ],
   openGraph: {
-    title: "KadÄ±n Ä°Ã§ Giyim Koleksiyonu - Dark Velvet",
-    description: "Premium kalitede kadÄ±n iÃ§ Ã§amaÅŸÄ±rÄ±, kÃ¼lot, sÃ¼tyen ve daha fazlasÄ±.",
+    title: "Kadın İç Giyim Koleksiyonu - Dark Velvet",
+    description: "Premium kalitede kadın iç çamaşırı, külot, sütyen ve daha fazlası.",
     url: `${BASE_URL}/women`,
     type: "website",
     locale: "tr_TR",
@@ -30,14 +30,14 @@ export const metadata: Metadata = {
         url: `${BASE_URL}/og-women.jpg`,
         width: 1200,
         height: 630,
-        alt: "Dark Velvet KadÄ±n Ä°Ã§ Giyim"
+        alt: "Dark Velvet Kadın İç Giyim"
       }
     ]
   },
   twitter: {
     card: "summary_large_image",
-    title: "KadÄ±n Ä°Ã§ Giyim - Dark Velvet",
-    description: "Premium kadÄ±n iÃ§ Ã§amaÅŸÄ±rÄ± koleksiyonu"
+    title: "Kadın İç Giyim - Dark Velvet",
+    description: "Premium kadın iç çamaşırı koleksiyonu"
   },
   alternates: {
     canonical: `${BASE_URL}/women`
@@ -126,7 +126,7 @@ async function getInitialProducts() {
         },
       },
       orderBy: { createdAt: "desc" },
-      take: 100, // Ä°lk yÃ¼kleme iÃ§in yeterli
+      take: 100, // İlk yükleme için yeterli
     });
 
     return products.map((p: any) => {
@@ -135,7 +135,7 @@ async function getInitialProducts() {
       const secondaryImg = p.secondaryImage || p.image;
 
       const isNew = p.tags.some((tag: any) =>
-        ["yeni Ã¼rÃ¼n", "yeni", "yeni gelenler", "new", "new arrival"].includes(tag.name.toLowerCase())
+        ["yeni ürün", "yeni", "yeni gelenler", "new", "new arrival"].includes(tag.name.toLowerCase())
       );
 
       return {
@@ -146,7 +146,7 @@ async function getInitialProducts() {
         originalPrice: p.originalPrice ?? undefined,
         image: primaryImg ?? undefined,
         hoverImage: secondaryImg ?? undefined,
-        badge: isNew ? "Yeni" : (p.originalPrice && p.originalPrice > p.price ? "Ä°ndirim" : undefined),
+        badge: isNew ? "Yeni" : (p.originalPrice && p.originalPrice > p.price ? "İndirim" : undefined),
         colors: p.colors.map((c: any) => {
           const cImages = parseImages(c.images);
           return {
@@ -226,8 +226,8 @@ export default async function WomenPage() {
   return (
     <>
       <CollectionPageSchema
-        name="KadÄ±n Ä°Ã§ Giyim Koleksiyonu"
-        description="Dark Velvet premium kadÄ±n iÃ§ Ã§amaÅŸÄ±rÄ±, kÃ¼lot, sÃ¼tyen ve daha fazlasÄ±"
+        name="Kadın İç Giyim Koleksiyonu"
+        description="Dark Velvet premium kadın iç çamaşırı, külot, sütyen ve daha fazlası"
         url={`${BASE_URL}/women`}
         products={schemaProducts}
         minPrice={priceRange.min}

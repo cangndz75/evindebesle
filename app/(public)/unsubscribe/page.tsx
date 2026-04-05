@@ -9,7 +9,7 @@ import { toast } from "sonner";
 
 export default function UnsubscribePage() {
     return (
-        <Suspense fallback={<div>YÃ¼kleniyor...</div>}>
+        <Suspense fallback={<div>Yükleniyor...</div>}>
             <UnsubscribeContent />
         </Suspense>
     );
@@ -46,13 +46,13 @@ function UnsubscribeContent() {
                 </div>
 
                 <p className="text-gray-900 font-medium text-lg leading-relaxed">
-                    AboneliÄŸi iptal etme talebiniz alÄ±nmÄ±ÅŸtÄ±r. Tekrar mail almak isterseniz "HesabÄ±m" sayfasÄ±ndan izin tercihlerinizi gÃ¼ncelleyebilirsiniz.
+                    Aboneliği iptal etme talebiniz alınmıştır. Tekrar mail almak isterseniz "Hesabım" sayfasından izin tercihlerinizi güncelleyebilirsiniz.
                 </p>
 
                 <div className="pt-4">
                     <Link href="/">
                         <Button className="w-full bg-[#1A1A1A] hover:bg-black text-white h-12 rounded-md font-medium">
-                            Ana Sayfaya DÃ¶n
+                            Ana Sayfaya Dön
                         </Button>
                     </Link>
                 </div>

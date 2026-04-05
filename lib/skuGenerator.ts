@@ -2,7 +2,7 @@
 
 
 interface SKUOptions {
-    categoryPrefix?: string; // K = KadÄ±n, E = Erkek, U = Unisex
+    categoryPrefix?: string; // K = Kadın, E = Erkek, U = Unisex
     brandPrefix?: string;    // First 4 chars of brand
     colorCode?: string;      // Color identifier
     sizeCode?: string;       // Size (S, M, L, 36, 38, etc.)

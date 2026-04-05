@@ -54,7 +54,7 @@ export async function rateLimitCheck(
     if (!result.success) {
         return NextResponse.json(
             {
-                error: "Ã‡ok fazla istek gÃ¶nderdiniz. LÃ¼tfen bekleyin.",
+                error: "Çok fazla istek gönderdiniz. Lütfen bekleyin.",
                 retryAfter: Math.ceil((result.resetTime - Date.now()) / 1000),
             },
             {

@@ -48,7 +48,7 @@ export default function ModernNavbar() {
     <nav className="w-full bg-white/95 backdrop-blur-sm border-b border-gray-100">
       <div className="max-w-7xl mx-auto pl-4 md:pl-8 pr-0">
         <div className="relative flex items-center justify-between h-16 md:h-20">
-          {/* Sol: MenÃ¼ */}
+          {/* Sol: Menü */}
           <div className="flex items-center gap-4 md:gap-6 flex-shrink-0">
             <Link
               href="/men"
@@ -60,13 +60,13 @@ export default function ModernNavbar() {
               href="/women"
               className="text-sm font-light text-black hover:opacity-70 transition-opacity uppercase hidden md:inline"
             >
-              KadÄ±n
+              Kadın
             </Link>
             <Link
               href="/kids"
               className="text-sm font-light text-black hover:opacity-70 transition-opacity uppercase hidden lg:inline"
             >
-              Ã‡ocuk
+              Çocuk
             </Link>
             <Link
               href="/bundles"
@@ -78,7 +78,7 @@ export default function ModernNavbar() {
               href="/sale"
               className="text-sm font-light text-black hover:opacity-70 transition-opacity uppercase hidden lg:inline"
             >
-              Son FÄ±rsat
+              Son Fırsat
             </Link>
             <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
               <SheetTrigger asChild>
@@ -88,7 +88,7 @@ export default function ModernNavbar() {
               </SheetTrigger>
               <SheetContent side="left" className="w-[300px] p-6">
                 <SheetHeader>
-                  <SheetTitle className="sr-only">MenÃ¼</SheetTitle>
+                  <SheetTitle className="sr-only">Menü</SheetTitle>
                 </SheetHeader>
                 <div className="mt-8 space-y-4">
                   <Link
@@ -96,14 +96,14 @@ export default function ModernNavbar() {
                     onClick={() => setMenuOpen(false)}
                     className="block text-black font-light hover:opacity-70 transition-opacity"
                   >
-                    HakkÄ±mÄ±zda
+                    Hakkımızda
                   </Link>
                   <Link
                     href="/contact"
                     onClick={() => setMenuOpen(false)}
                     className="block text-black font-light hover:opacity-70 transition-opacity"
                   >
-                    Ä°letiÅŸim
+                    İletişim
                   </Link>
                   <Link
                     href="/blog"
@@ -126,7 +126,7 @@ export default function ModernNavbar() {
                       onClick={() => setMenuOpen(false)}
                       className="block text-black font-light hover:opacity-70 transition-opacity mt-8"
                     >
-                      GiriÅŸ Yap
+                      Giriş Yap
                     </Link>
                   )}
                 </div>
@@ -144,7 +144,7 @@ export default function ModernNavbar() {
             </span>
           </Link>
 
-          {/* SaÄŸ: Ä°konlar */}
+          {/* Sağ: İkonlar */}
           <div className="flex items-center gap-4 md:gap-6 flex-shrink-0 ml-auto pr-4 md:pr-8">
             <button
               className="text-black hover:opacity-70 transition-opacity"
@@ -155,7 +155,7 @@ export default function ModernNavbar() {
             <Link
               href={session?.user ? "/profile/personal-info" : "/auth-tabs"}
               className="text-black hover:opacity-70 transition-opacity"
-              aria-label="HesabÄ±m"
+              aria-label="Hesabım"
             >
               <User className="w-5 h-5" />
             </Link>

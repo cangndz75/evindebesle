@@ -22,7 +22,7 @@ export default async function BlogRecentPosts() {
           id="recent-posts-heading"
           className="text-lg font-semibold text-slate-800"
         >
-          Son YazÄ±lar
+          Son Yazılar
         </h3>
         <div className="mt-2 h-[3px] w-14 rounded-full bg-indigo-600" />
       </div>

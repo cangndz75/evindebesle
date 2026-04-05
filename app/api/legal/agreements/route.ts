@@ -12,7 +12,7 @@ function TL(n: number) {
 }
 
 function safe(s?: string) {
-  return (s ?? "").toString().trim() || "â€”";
+  return (s ?? "").toString().trim() || "—";
 }
 
 function buildOrderTable(items: LineItem[], shippingFee = 0, discounts: Discount[] = []) {
@@ -49,16 +49,16 @@ function buildOrderTable(items: LineItem[], shippingFee = 0, discounts: Discount
     <table style="width:100%;border-collapse:collapse" border="1" cellspacing="0" cellpadding="6">
       <thead>
         <tr>
-          <th align="left">ÃœrÃ¼n/Hizmet AÃ§Ä±klamasÄ±</th>
+          <th align="left">Ürün/Hizmet Açıklaması</th>
           <th align="right">Adet</th>
-          <th align="right">PeÅŸin FiyatÄ±</th>
+          <th align="right">Peşin Fiyatı</th>
           <th align="right">Ara Toplam (KDV Dahil)</th>
         </tr>
       </thead>
       <tbody>
         ${rows}
         <tr>
-          <td>Kargo TutarÄ±</td>
+          <td>Kargo Tutarı</td>
           <td align="right">-</td>
           <td align="right">${TL(shippingFee || 0)}</td>
           <td align="right">${TL(shippingFee || 0)}</td>
@@ -84,9 +84,9 @@ function preInfoTemplate(data: any) {
   } = data;
 
   const sellerDefaults = {
-    title: "Dogo Petshop LTD. ÅTÄ°.",
-    tax: "YakacÄ±k VD | VKN: 3021119045 â€¢ MERSÄ°S: 0302111904500001",
-    address: "Uptwins Blok, Orta, YalnÄ±z Selvi Cd. No: 5AB, 34880 Kartal/Ä°stanbul",
+    title: "Dogo Petshop LTD. ŞTİ.",
+    tax: "Yakacık VD | VKN: 3021119045 • MERSİS: 0302111904500001",
+    address: "Uptwins Blok, Orta, Yalnız Selvi Cd. No: 5AB, 34880 Kartal/İstanbul",
     phone: "+90 216 519 26 00",
     email: "info@dark-velvet.com",
     website: "evindebesle.com",
@@ -95,39 +95,39 @@ function preInfoTemplate(data: any) {
   const s = { ...sellerDefaults, ...(seller || {}) };
 
   return `
-  <h3 style="text-align:center;margin:0 0 12px 0;"><b>Ã–n Bilgilendirme Formu</b></h3>
+  <h3 style="text-align:center;margin:0 0 12px 0;"><b>Ön Bilgilendirme Formu</b></h3>
 
   <p><b>1. Taraflar ve Konu</b><br/>
-  Ä°ÅŸbu Ã–n Bilgilendirme Formuâ€™nun konusu, Hizmeti Alan (AlÄ±cÄ±) ile Hizmeti Sunan (SatÄ±cÄ±) arasÄ±ndaki mesafeli hizmet sÃ¶zleÅŸmesine iliÅŸkin Kanun ve YÃ¶netmelik uyarÄ±nca gerekli bilgilendirmedir.</p>
+  İşbu Ön Bilgilendirme Formu’nun konusu, Hizmeti Alan (Alıcı) ile Hizmeti Sunan (Satıcı) arasındaki mesafeli hizmet sözleşmesine ilişkin Kanun ve Yönetmelik uyarınca gerekli bilgilendirmedir.</p>
 
   <p><b>2. Hizmeti Alan, Hizmeti Sunan ve Platform</b></p>
-  <p><u>HÄ°ZMETÄ° ALAN (ALICI)</u><br/>
+  <p><u>HİZMETİ ALAN (ALICI)</u><br/>
   Ad/Soyad: ${safe(recipientName || buyer?.name)}<br/>
-  Teslim/Ä°fa Adresi: ${safe(deliveryAddress)}<br/>
+  Teslim/İfa Adresi: ${safe(deliveryAddress)}<br/>
   Eâ€‘posta: ${safe(buyer?.email)}</p>
 
-  <p><u>HÄ°ZMETÄ° SUNAN (SATICI)</u><br/>
-  Ãœnvan: ${safe(s.title)}<br/>
+  <p><u>HİZMETİ SUNAN (SATICI)</u><br/>
+  Ünvan: ${safe(s.title)}<br/>
   Adres: ${safe(s.address)}<br/>
-  Vergi/MERSÄ°S: ${safe(s.tax)}<br/>
-  Telefon: ${safe(s.phone)} â€” Eâ€‘posta: ${safe(s.email)}</p>
+  Vergi/MERSİS: ${safe(s.tax)}<br/>
+  Telefon: ${safe(s.phone)} — Eâ€‘posta: ${safe(s.email)}</p>
 
   <p><u>PLATFORM</u><br/>
-  ${safe(platform?.title || "Evindebesle")} â€” ${safe(platform?.address || "evindebesle.com")}</p>
+  ${safe(platform?.title || "Evindebesle")} — ${safe(platform?.address || "evindebesle.com")}</p>
 
-  <p><b>3. ÃœrÃ¼n/Hizmet Bilgileri</b></p>
+  <p><b>3. Ürün/Hizmet Bilgileri</b></p>
   ${orderTableHtml}
 
-  <p><b>4. Ã–deme / Adres / Zaman</b><br/>
-  Ã–deme Åekli ve PlanÄ±: ${safe(paymentMethod || "Online Ã–deme")}<br/>
+  <p><b>4. Ödeme / Adres / Zaman</b><br/>
+  Ödeme Şekli ve Planı: ${safe(paymentMethod || "Online Ödeme")}<br/>
   Fatura Adresi: ${safe(invoiceAddress || deliveryAddress)}<br/>
-  SipariÅŸ Tarihi: ${safe(orderDate)}<br/>
-  Ä°fa/Ä°cra Åekli: ${safe(deliveryType || "Adrese Ä°fa")}<br/>
-  ${safe(deliveryDeadlineLabel || "Hizmet DÃ¶nemi")}: ${safe(deliveryDeadline)}<br/>
-  ${safe(cargoHandOverLabel || "Planlanan Zaman AralÄ±ÄŸÄ±")}: ${safe(cargoHandOverDate)}</p>
+  Sipariş Tarihi: ${safe(orderDate)}<br/>
+  İfa/İcra Şekli: ${safe(deliveryType || "Adrese İfa")}<br/>
+  ${safe(deliveryDeadlineLabel || "Hizmet Dönemi")}: ${safe(deliveryDeadline)}<br/>
+  ${safe(cargoHandOverLabel || "Planlanan Zaman Aralığı")}: ${safe(cargoHandOverDate)}</p>
 
-  <p><b>5. Genel HÃ¼kÃ¼mler (Ã–zet)</b><br/>
-  Hizmet, sipariÅŸte belirtilen niteliklere uygun olarak ifa edilir; hizmete Ã¶zel istisnalar hariÃ§, mevzuattaki cayma ve ayÄ±plÄ± ifa hÃ¼kÃ¼mleri saklÄ±dÄ±r.</p>
+  <p><b>5. Genel Hükümler (Özet)</b><br/>
+  Hizmet, siparişte belirtilen niteliklere uygun olarak ifa edilir; hizmete özel istisnalar hariç, mevzuattaki cayma ve ayıplı ifa hükümleri saklıdır.</p>
   `;
 }
 
@@ -141,46 +141,46 @@ function distanceSalesTemplate(data: any) {
   } = data;
 
   const sellerDefaults = {
-    title: "Dogo Petshop LTD. ÅTÄ°.",
-    tax: "YakacÄ±k VD | VKN: 3021119045 â€¢ MERSÄ°S: 0302111904500001",
-    address: "Uptwins Blok, Orta, YalnÄ±z Selvi Cd. No: 5AB, 34880 Kartal/Ä°stanbul",
+    title: "Dogo Petshop LTD. ŞTİ.",
+    tax: "Yakacık VD | VKN: 3021119045 • MERSİS: 0302111904500001",
+    address: "Uptwins Blok, Orta, Yalnız Selvi Cd. No: 5AB, 34880 Kartal/İstanbul",
     phone: "+90 216 519 26 00",
     email: "info@dark-velvet.com",
   };
   const s = { ...sellerDefaults, ...(seller || {}) };
 
   return `
-  <h3 style="text-align:center;margin:0 0 12px 0;"><b>Mesafeli SatÄ±ÅŸ SÃ¶zleÅŸmesi</b></h3>
+  <h3 style="text-align:center;margin:0 0 12px 0;"><b>Mesafeli Satış Sözleşmesi</b></h3>
 
   <p><b>1. Taraflar</b><br/>
-  Hizmeti Alan (AlÄ±cÄ±): ${safe(recipientName || buyer?.name)} â€” ${safe(buyer?.email)}<br/>
-  Hizmeti Sunan (SatÄ±cÄ±): ${safe(s.title)} â€” ${safe(s.address)}</p>
+  Hizmeti Alan (Alıcı): ${safe(recipientName || buyer?.name)} — ${safe(buyer?.email)}<br/>
+  Hizmeti Sunan (Satıcı): ${safe(s.title)} — ${safe(s.address)}</p>
 
-  <p><b>2. TanÄ±mlar</b><br/>
-  AlÄ±cÄ±: Hizmeti ticari/mesleki olmayan amaÃ§larla edinen gerÃ§ek kiÅŸi. SatÄ±cÄ±: Hizmeti sunan tÃ¼zel/gerÃ§ek kiÅŸi. YÃ¶netmelik: Mesafeli SÃ¶zleÅŸmeler YÃ¶netmeliÄŸi vb.</p>
+  <p><b>2. Tanımlar</b><br/>
+  Alıcı: Hizmeti ticari/mesleki olmayan amaçlarla edinen gerçek kişi. Satıcı: Hizmeti sunan tüzel/gerçek kişi. Yönetmelik: Mesafeli Sözleşmeler Yönetmeliği vb.</p>
 
-  <p><b>3. SÃ¶zleÅŸmenin Konusu ve KapsamÄ±</b><br/>
-  AlÄ±cÄ±â€™nÄ±n elektronik ortamda sipariÅŸ verdiÄŸi hizmetin ifasÄ±na iliÅŸkin taraflarÄ±n hak ve yÃ¼kÃ¼mlÃ¼lÃ¼kleri belirlenir.</p>
+  <p><b>3. Sözleşmenin Konusu ve Kapsamı</b><br/>
+  Alıcı’nın elektronik ortamda sipariş verdiği hizmetin ifasına ilişkin tarafların hak ve yükümlülükleri belirlenir.</p>
 
-  <p><b>4. Ã–n Bilgilendirme HususlarÄ±</b><br/>
-  AlÄ±cÄ±, sipariÅŸ Ã¶ncesi ve sÄ±rasÄ±nda hizmet nitelikleri, fiyat, Ã¶deme/ifa sÃ¼reÃ§leri, cayma ve istisnalar hakkÄ±nda bilgilendirildiÄŸini kabul eder.</p>
+  <p><b>4. Ön Bilgilendirme Hususları</b><br/>
+  Alıcı, sipariş öncesi ve sırasında hizmet nitelikleri, fiyat, ödeme/ifa süreçleri, cayma ve istisnalar hakkında bilgilendirildiğini kabul eder.</p>
 
   <p><b>5. Hizmet Bilgileri</b></p>
   ${orderTableHtml}
-  <p>Ã–deme: ${safe(paymentMethod || "Online Ã–deme")} â€¢ SipariÅŸ Tarihi: ${safe(orderDate)}<br/>
-  Ä°fa Åekli: ${safe(deliveryType || "Adrese Ä°fa")} â€¢ ${safe(deliveryDeadlineLabel || "Hizmet DÃ¶nemi")}: ${safe(deliveryDeadline)} â€¢ ${safe(cargoHandOverLabel || "Planlanan Zaman AralÄ±ÄŸÄ±")}: ${safe(cargoHandOverDate)}<br/>
+  <p>Ödeme: ${safe(paymentMethod || "Online Ödeme")} • Sipariş Tarihi: ${safe(orderDate)}<br/>
+  İfa Şekli: ${safe(deliveryType || "Adrese İfa")} • ${safe(deliveryDeadlineLabel || "Hizmet Dönemi")}: ${safe(deliveryDeadline)} • ${safe(cargoHandOverLabel || "Planlanan Zaman Aralığı")}: ${safe(cargoHandOverDate)}<br/>
   Fatura Adresi: ${safe(invoiceAddress || deliveryAddress)}</p>
 
-  <p><b>6. Genel HÃ¼kÃ¼mler</b><br/>
-  SatÄ±cÄ±, hizmeti eksiksiz ve niteliklere uygun ifa eder. MÃ¼cbir sebep/ifa imkansÄ±zlÄ±ÄŸÄ± halinde AlÄ±cÄ± bilgilendirilir ve bedeller iade sÃ¼recine alÄ±nÄ±r. Ä°fa Ã¶ncesi gÃ¼venlik/doÄŸrulama talep edilebilir.</p>
+  <p><b>6. Genel Hükümler</b><br/>
+  Satıcı, hizmeti eksiksiz ve niteliklere uygun ifa eder. Mücbir sebep/ifa imkansızlığı halinde Alıcı bilgilendirilir ve bedeller iade sürecine alınır. İfa öncesi güvenlik/doğrulama talep edilebilir.</p>
 
-  <p><b>7. Cayma HakkÄ±</b><br/>
-  AlÄ±cÄ±, hizmete iliÅŸkin mevzuattaki sÃ¼re ve ÅŸartlarda cayma hakkÄ±nÄ± kullanabilir; istisnalar ve iade sÃ¼reÃ§leri Ã–n Bilgilendirmeâ€™de ayrÄ±ca yer alÄ±r.</p>
+  <p><b>7. Cayma Hakkı</b><br/>
+  Alıcı, hizmete ilişkin mevzuattaki süre ve şartlarda cayma hakkını kullanabilir; istisnalar ve iade süreçleri Ön Bilgilendirme’de ayrıca yer alır.</p>
 
-  <p><b>8. UyuÅŸmazlÄ±klarÄ±n Ã‡Ã¶zÃ¼mÃ¼</b><br/>
-  AlÄ±cÄ±â€™nÄ±n yerleÅŸim yerindeki TÃ¼ketici Hakem Heyetleri/TÃ¼ketici Mahkemeleri yetkilidir.</p>
+  <p><b>8. Uyuşmazlıkların Çözümü</b><br/>
+  Alıcı’nın yerleşim yerindeki Tüketici Hakem Heyetleri/Tüketici Mahkemeleri yetkilidir.</p>
 
-  <p><small>Bu metin elektronik ortamda onaylanmak suretiyle kurulmuÅŸtur.</small></p>
+  <p><small>Bu metin elektronik ortamda onaylanmak suretiyle kurulmuştur.</small></p>
   `;
 }
 

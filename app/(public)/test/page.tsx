@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 export default function PaymentForm() {
   const router = useRouter();
   const [form, setForm] = useState({
-    cardHolderName: "Test KullanÄ±cÄ±",
+    cardHolderName: "Test Kullanıcı",
     cardNumber: "5526 0800 0000 0006",
     expireMonth: "12",
     expireYear: "2030",
@@ -47,10 +47,10 @@ export default function PaymentForm() {
     const data = await res.json();
 
     if (res.ok && data.data?.status === "success") {
-      console.log("Ã–deme baÅŸarÄ±lÄ±:", data.data);
+      console.log("Ödeme başarılı:", data.data);
       router.push("/success");
     } else {
-      alert("Hata: " + (data.error || data.message || "Ã–deme baÅŸlatÄ±lamadÄ±"));
+      alert("Hata: " + (data.error || data.message || "Ödeme başlatılamadı"));
     }
 
     setLoading(false);
@@ -59,7 +59,7 @@ export default function PaymentForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto mt-10">
       <div>
-        <Label>Kart Ãœzerindeki Ä°sim</Label>
+        <Label>Kart Üzerindeki İsim</Label>
         <Input
           name="cardHolderName"
           value={form.cardHolderName}
@@ -67,7 +67,7 @@ export default function PaymentForm() {
         />
       </div>
       <div>
-        <Label>Kart NumarasÄ±</Label>
+        <Label>Kart Numarası</Label>
         <Input
           name="cardNumber"
           value={form.cardNumber}
@@ -84,7 +84,7 @@ export default function PaymentForm() {
           />
         </div>
         <div>
-          <Label>YÄ±l</Label>
+          <Label>Yıl</Label>
           <Input
             name="expireYear"
             value={form.expireYear}
@@ -110,7 +110,7 @@ export default function PaymentForm() {
         />
       </div>
       <Button type="submit" disabled={loading}>
-        {loading ? "YÃ¶nlendiriliyor..." : "3D Secure ile Ã–de"}
+        {loading ? "Yönlendiriliyor..." : "3D Secure ile Öde"}
       </Button>
     </form>
   );

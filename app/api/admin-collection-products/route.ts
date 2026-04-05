@@ -61,7 +61,7 @@ export async function POST(request: Request) {
     });
 
     if (existing) {
-      return jsonNoStore({ error: "Bu Ã¼rÃ¼n zaten bu koleksiyonda!" }, { status: 400 });
+      return jsonNoStore({ error: "Bu ürün zaten bu koleksiyonda!" }, { status: 400 });
     }
 
     const item = await prisma.collectionProduct.create({
@@ -122,7 +122,7 @@ export async function PUT(request: Request) {
     const { items, collectionId } = body; 
 
     if (!Array.isArray(items) || !collectionId) {
-      return jsonNoStore({ error: "GeÃ§ersiz liste." }, { status: 400 });
+      return jsonNoStore({ error: "Geçersiz liste." }, { status: 400 });
     }
 
     for (const item of items) {

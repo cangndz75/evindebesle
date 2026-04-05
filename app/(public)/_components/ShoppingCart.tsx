@@ -121,7 +121,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
 
   const handleCreateOrder = async () => {
     if (cartItems.length === 0) {
-      toast.error("Sepetiniz boÅŸ");
+      toast.error("Sepetiniz boş");
       return;
     }
 
@@ -139,7 +139,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
     } catch (error: any) {
       console.error("Order creation error:", error);
       if (!error.message?.includes('401')) {
-        toast.error(error.message || "SipariÅŸ oluÅŸturulurken bir hata oluÅŸtu");
+        toast.error(error.message || "Sipariş oluşturulurken bir hata oluştu");
       }
     } finally {
       setIsCreatingOrder(false);
@@ -372,16 +372,16 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                   Sepetim
                 </SheetTitle>
                 <p className="text-xs text-gray-500">
-                  {cartItems.length > 0 ? `${itemCount} Ã¼rÃ¼n` : "HenÃ¼z Ã¼rÃ¼n yok"}
+                  {cartItems.length > 0 ? `${itemCount} ürün` : "Henüz ürün yok"}
                 </p>
               </div>
-              {/* Close, Sheet zaten X ikon koyuyor olabilir. Ä°stersen buraya ekstra koyma */}
+              {/* Close, Sheet zaten X ikon koyuyor olabilir. İstersen buraya ekstra koyma */}
             </div>
           </SheetHeader>
 
           {/* Body */}
           <div className="flex-1 overflow-y-auto px-5 py-4 bg-white">
-            {/* Empty Cart Skeleton - Sadece isReady deÄŸilse gÃ¶ster */}
+            {/* Empty Cart Skeleton - Sadece isReady değilse göster */}
             {!isReady && cartItems.length === 0 ? (
               <div className="space-y-4 py-4">
                 {/* Skeleton items */}
@@ -409,11 +409,11 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                         <p className="text-sm text-gray-700 leading-5">
                           {qualifiesForFreeShipping ? (
                             <span className="font-semibold text-black">
-                              Ãœcretsiz kargo iÃ§in yeterli tutara ulaÅŸtÄ±nÄ±z.
+                              Ücretsiz kargo için yeterli tutara ulaştınız.
                             </span>
                           ) : (
                             <>
-                              Ãœcretsiz kargo iÃ§in{" "}
+                              Ücretsiz kargo için{" "}
                               <span className="font-medium text-black">
                                 {formatPriceTRY(remainingForFreeShipping)}
                               </span>{" "}
@@ -438,22 +438,22 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                   </div>
                 ) : null}
 
-                {/* EMPTY STATE (2. gÃ¶rsel hissi) */}
+                {/* EMPTY STATE (2. görsel hissi) */}
                 {cartItems.length === 0 ? (
                   <div className="pb-4">
                     <div className="rounded-xl border border-black/10 bg-white px-6 py-10 text-center">
                       <p className="text-xl font-semibold tracking-tight text-black">
-                        Sepetiniz BoÅŸ
+                        Sepetiniz Boş
                       </p>
                       <p className="mt-2 text-sm text-gray-500">
-                        ÃœrÃ¼nlere gÃ¶z atÄ±n ve favorilerinizi sepete ekleyin.
+                        Ürünlere göz atın ve favorilerinizi sepete ekleyin.
                       </p>
                       <Button
                         variant="outline"
                         className="mt-6 h-12 rounded-xl border-black text-black hover:bg-black hover:text-white px-8"
                         onClick={onClose}
                       >
-                        AlÄ±ÅŸveriÅŸe Devam Et
+                        Alışverişe Devam Et
                       </Button>
                     </div>
 
@@ -470,7 +470,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                                 : "text-gray-500 hover:text-black",
                             ].join(" ")}
                           >
-                            Ã–zellikle Sizin Ä°Ã§in
+                            Özellikle Sizin İçin
                           </button>
                           <button
                             onClick={() => setActiveTab("recent")}
@@ -481,7 +481,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                                 : "text-gray-500 hover:text-black",
                             ].join(" ")}
                           >
-                            Son GÃ¶rÃ¼ntÃ¼lenenler
+                            Son Görüntülenenler
                           </button>
                         </div>
 
@@ -490,7 +490,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                             type="button"
                             onClick={() => scrollSlider(emptySliderRef, "left")}
                             className="h-9 w-9 rounded-full border border-black/10 hover:border-black/20 hover:bg-black/5 grid place-items-center"
-                            aria-label="Sola kaydÄ±r"
+                            aria-label="Sola kaydır"
                           >
                             <ChevronLeft className="h-4 w-4" />
                           </button>
@@ -498,7 +498,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                             type="button"
                             onClick={() => scrollSlider(emptySliderRef, "right")}
                             className="h-9 w-9 rounded-full border border-black/10 hover:border-black/20 hover:bg-black/5 grid place-items-center"
-                            aria-label="SaÄŸa kaydÄ±r"
+                            aria-label="Sağa kaydır"
                           >
                             <ChevronRight className="h-4 w-4" />
                           </button>
@@ -515,7 +515,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                           ))}
                           {activeList.length === 0 ? (
                             <div className="text-sm text-gray-500 py-6">
-                              GÃ¶sterilecek Ã¼rÃ¼n yok.
+                              Gösterilecek ürün yok.
                             </div>
                           ) : null}
                         </div>
@@ -524,7 +524,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                   </div>
                 ) : null}
 
-                {/* FILLED CART (1. gÃ¶rselin modern/elit versiyonu) */}
+                {/* FILLED CART (1. görselin modern/elit versiyonu) */}
                 {cartItems.length > 0 ? (
                   <div className="space-y-0 pb-24">
                     {cartItems.map((item) => (
@@ -560,14 +560,14 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                                   {item.product.name}
                                 </Link>
                                 <p className="mt-1 text-xs text-gray-500">
-                                  {item.color?.name || "Renk"} Â· {item.size?.name || "Beden"}
+                                  {item.color?.name || "Renk"} · {item.size?.name || "Beden"}
                                 </p>
                               </div>
 
                               <button
                                 onClick={() => removeItem(item.id)}
                                 className="rounded-xl p-2 text-gray-400 hover:text-black hover:bg-black/5 transition-colors"
-                                aria-label="ÃœrÃ¼nÃ¼ kaldÄ±r"
+                                aria-label="Ürünü kaldır"
                                 type="button"
                               >
                                 <Trash2 className="h-4 w-4" />
@@ -581,7 +581,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                                   onClick={() => updateQuantity(item.id, item.quantity - 1)}
                                   disabled={item.quantity <= 1}
                                   className="h-8 w-8 grid place-items-center text-black hover:bg-black/5 disabled:opacity-40 disabled:hover:bg-transparent"
-                                  aria-label="MiktarÄ± azalt"
+                                  aria-label="Miktarı azalt"
                                 >
                                   <Minus className="h-4 w-4" />
                                 </button>
@@ -592,7 +592,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                                   type="button"
                                   onClick={() => updateQuantity(item.id, item.quantity + 1)}
                                   className="h-8 w-8 grid place-items-center text-black hover:bg-black/5"
-                                  aria-label="MiktarÄ± artÄ±r"
+                                  aria-label="Miktarı artır"
                                 >
                                   <Plus className="h-4 w-4" />
                                 </button>
@@ -616,15 +616,15 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                       <div className="pt-5 border-t border-gray-200">
                         <div className="flex items-center justify-between">
                           <SectionTitle
-                            title="BunlarÄ± da beÄŸenebilirsiniz"
-                            subtitle="Kombininizi tamamlayÄ±n"
+                            title="Bunları da beğenebilirsiniz"
+                            subtitle="Kombininizi tamamlayın"
                           />
                           <div className="flex items-center gap-2">
                             <button
                               type="button"
                               onClick={() => scrollSlider(filledRecommendedRef, "left")}
                               className="h-7 w-7 rounded-full border border-gray-300 bg-white hover:bg-gray-50 grid place-items-center"
-                              aria-label="Sola kaydÄ±r"
+                              aria-label="Sola kaydır"
                             >
                               <ChevronLeft className="h-3.5 w-3.5" />
                             </button>
@@ -632,7 +632,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                               type="button"
                               onClick={() => scrollSlider(filledRecommendedRef, "right")}
                               className="h-7 w-7 rounded-full border border-gray-300 bg-white hover:bg-gray-50 grid place-items-center"
-                              aria-label="SaÄŸa kaydÄ±r"
+                              aria-label="Sağa kaydır"
                             >
                               <ChevronRight className="h-3.5 w-3.5" />
                             </button>
@@ -674,11 +674,11 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                     onClick={handleCreateOrder}
                     disabled={isCreatingOrder}
                   >
-                    {isCreatingOrder ? "YÃ¶nlendiriliyor..." : "Ã–DEMEYE GEÃ‡"}
+                    {isCreatingOrder ? "Yönlendiriliyor..." : "ÖDEMEYE GEÇ"}
                   </Button>
 
                   <p className="text-[11px] leading-4 text-gray-400 text-center">
-                    KDV dahildir Â· Kargo Ã¼creti Ã¶deme adÄ±mÄ±nda hesaplanÄ±r
+                    KDV dahildir · Kargo ücreti ödeme adımında hesaplanır
                   </p>
                 </div>
               </div>

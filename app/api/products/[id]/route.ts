@@ -11,7 +11,7 @@ export async function GET(
     const product = await prisma.product.findUnique({
       where: { 
         id,
-        isActive: true, // Sadece aktif Ã¼rÃ¼nler
+        isActive: true, // Sadece aktif ürünler
       },
       select: {
         id: true,
@@ -60,7 +60,7 @@ export async function GET(
     });
 
     if (!product) {
-      return NextResponse.json({ error: "ÃœrÃ¼n bulunamadÄ±" }, { status: 404 });
+      return NextResponse.json({ error: "Ürün bulunamadı" }, { status: 404 });
     }
 
     const response = NextResponse.json(product);
@@ -70,7 +70,7 @@ export async function GET(
   } catch (error: any) {
     console.error("Product fetch error:", error);
     return NextResponse.json(
-      { error: error.message || "ÃœrÃ¼n yÃ¼klenirken bir hata oluÅŸtu" },
+      { error: error.message || "Ürün yüklenirken bir hata oluştu" },
       { status: 500 }
     );
   }

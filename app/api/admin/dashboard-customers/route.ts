@@ -9,11 +9,11 @@ export async function GET(req: NextRequest) {
     const session = await getServerSession(authConfig);
 
     if (!session?.user?.isAdmin) {
-      return NextResponse.json({ error: "Yetkisiz eriÅŸim" }, { status: 403 });
+      return NextResponse.json({ error: "Yetkisiz erişim" }, { status: 403 });
     }
 
     if (!prisma || !prisma.order) {
-      console.error("Prisma client veya order modeli bulunamadÄ±");
+      console.error("Prisma client veya order modeli bulunamadı");
       return NextResponse.json(
         {
           total: 0,
@@ -64,7 +64,7 @@ export async function GET(req: NextRequest) {
         .sort((a: any, b: any) => (b._count.id || 0) - (a._count.id || 0))
         .slice(0, 5);
     } catch (groupByError) {
-      console.error("groupBy hatasÄ±:", groupByError);
+      console.error("groupBy hatası:", groupByError);
       topCustomers = [];
     }
 
@@ -108,7 +108,7 @@ export async function GET(req: NextRequest) {
   } catch (error: any) {
     console.error("Dashboard customers error:", error);
     return NextResponse.json(
-      { error: error.message || "MÃ¼ÅŸteri bilgileri yÃ¼klenirken bir hata oluÅŸtu" },
+      { error: error.message || "Müşteri bilgileri yüklenirken bir hata oluştu" },
       { status: 500 }
     );
   }

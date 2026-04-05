@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
 
         if (!file) {
             return NextResponse.json(
-                { error: "CSV dosyasÄ± gerekli" },
+                { error: "CSV dosyası gerekli" },
                 { status: 400 }
             );
         }
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
 
         if (lines.length < 2) {
             return NextResponse.json(
-                { error: "CSV dosyasÄ± boÅŸ veya geÃ§ersiz" },
+                { error: "CSV dosyası boş veya geçersiz" },
                 { status: 400 }
             );
         }
@@ -71,13 +71,13 @@ export async function POST(req: NextRequest) {
             });
 
             if (!row.name || !row.price) {
-                errors.push(`SatÄ±r ${i + 1}: name ve price zorunlu`);
+                errors.push(`Satır ${i + 1}: name ve price zorunlu`);
                 continue;
             }
 
             const price = sanitizePrice(row.price);
             if (price === null) {
-                errors.push(`SatÄ±r ${i + 1}: GeÃ§ersiz fiyat`);
+                errors.push(`Satır ${i + 1}: Geçersiz fiyat`);
                 continue;
             }
 
@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
 
         if (rows.length === 0) {
             return NextResponse.json(
-                { error: "GeÃ§erli Ã¼rÃ¼n bulunamadÄ±", details: errors },
+                { error: "Geçerli ürün bulunamadı", details: errors },
                 { status: 400 }
             );
         }
@@ -172,7 +172,7 @@ export async function POST(req: NextRequest) {
                 console.error(`Error creating product ${row.name}:`, error);
                 skippedProducts.push({
                     name: row.name,
-                    reason: "OluÅŸturma hatasÄ±",
+                    reason: "Oluşturma hatası",
                 });
             }
         }
@@ -194,7 +194,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({
             success: true,
-            message: `${createdProducts.length} Ã¼rÃ¼n oluÅŸturuldu`,
+            message: `${createdProducts.length} ürün oluşturuldu`,
             created: createdProducts,
             skipped: skippedProducts,
             parseErrors: errors.slice(0, 10), // Return first 10 parse errors
@@ -202,7 +202,7 @@ export async function POST(req: NextRequest) {
     } catch (error) {
         console.error("Error in bulk upload:", error);
         return NextResponse.json(
-            { error: "YÃ¼kleme sÄ±rasÄ±nda bir hata oluÅŸtu" },
+            { error: "Yükleme sırasında bir hata oluştu" },
             { status: 500 }
         );
     }

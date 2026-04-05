@@ -51,27 +51,27 @@ export default async function AutomationsPage() {
                         <CardContent>
                             <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-4">
                                 <div className="flex flex-col">
-                                    <span className="text-xs text-muted-foreground uppercase font-bold">GÃ¶nderim</span>
+                                    <span className="text-xs text-muted-foreground uppercase font-bold">Gönderim</span>
                                     <span className="text-2xl font-bold">{stat.sends}</span>
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="text-xs text-muted-foreground uppercase font-bold">AÃ§Ä±lma</span>
+                                    <span className="text-xs text-muted-foreground uppercase font-bold">Açılma</span>
                                     <span className="text-2xl font-bold">
                                         %{stat.sends ? ((stat.opens / stat.sends) * 100).toFixed(1) : "0.0"}
                                     </span>
                                     <span className="text-xs text-muted-foreground">{stat.opens} email</span>
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="text-xs text-muted-foreground uppercase font-bold">TÄ±klama</span>
+                                    <span className="text-xs text-muted-foreground uppercase font-bold">Tıklama</span>
                                     <span className="text-2xl font-bold">
                                         %{stat.sends ? ((stat.clicks / stat.sends) * 100).toFixed(1) : "0.0"}
                                     </span>
                                     <span className="text-xs text-muted-foreground">{stat.clicks} email</span>
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="text-xs text-muted-foreground uppercase font-bold">DÃ¶nÃ¼ÅŸÃ¼m</span>
+                                    <span className="text-xs text-muted-foreground uppercase font-bold">Dönüşüm</span>
                                     <span className="text-2xl font-bold">{stat.conversions}</span>
-                                    <span className="text-xs text-muted-foreground">SipariÅŸ</span>
+                                    <span className="text-xs text-muted-foreground">Sipariş</span>
                                 </div>
                                 <div className="flex flex-col">
                                     <span className="text-xs text-muted-foreground uppercase font-bold">Ciro</span>
@@ -86,7 +86,7 @@ export default async function AutomationsPage() {
 
                 {stats.length === 0 && (
                     <div className="text-center py-10 text-gray-500">
-                        HenÃ¼z otomasyon oluÅŸturulmamÄ±ÅŸ. VeritabanÄ± seed iÅŸlemi veya manuel ekleme yapÄ±n.
+                        Henüz otomasyon oluşturulmamış. Veritabanı seed işlemi veya manuel ekleme yapın.
                     </div>
                 )}
             </div>

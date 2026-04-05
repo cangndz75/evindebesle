@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
 
       return {
         id: user.id,
-        name: user.name || "Ä°simsiz",
+        name: user.name || "İsimsiz",
         email: user.email,
         phone: user.phone,
         image: user.image,
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error("Customers fetch error:", error);
     return NextResponse.json(
-      { error: error.message || "MÃ¼ÅŸteri verileri yÃ¼klenirken bir hata oluÅŸtu" },
+      { error: error.message || "Müşteri verileri yüklenirken bir hata oluştu" },
       { status: 500 }
     );
   }

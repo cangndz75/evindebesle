@@ -28,7 +28,7 @@ export async function PATCH(
       const updated = await updateRedisCartItemQuantity(user.id, itemId, quantity);
       if (!updated) {
         return NextResponse.json(
-          { error: "Sepet Ã¶ÄŸesi bulunamadÄ±" },
+          { error: "Sepet öğesi bulunamadı" },
           { status: 404 }
         );
       }
@@ -44,7 +44,7 @@ export async function PATCH(
 
       if (!targetItem) {
         return NextResponse.json(
-          { error: "Sepet Ã¶ÄŸesi bulunamadÄ±" },
+          { error: "Sepet öğesi bulunamadı" },
           { status: 404 }
         );
       }
@@ -68,15 +68,15 @@ export async function PATCH(
     } catch (prismaError: any) {
       if (prismaError.code === 'P2025') {
         return NextResponse.json(
-          { error: "Sepet Ã¶ÄŸesi bulunamadÄ±" },
+          { error: "Sepet öğesi bulunamadı" },
           { status: 404 }
         );
       }
-      throw prismaError; // DiÄŸer hatalar iÃ§in Ã¼st seviyeye fÄ±rlat
+      throw prismaError; // Diğer hatalar için üst seviyeye fırlat
     }
   } catch (error) {
     console.error("Error updating cart item:", error);
-    const errorMessage = error instanceof Error ? error.message : "Sepet Ã¶ÄŸesi gÃ¼ncellenirken bir hata oluÅŸtu";
+    const errorMessage = error instanceof Error ? error.message : "Sepet öğesi güncellenirken bir hata oluştu";
     return NextResponse.json(
       { error: errorMessage },
       { status: 500 }

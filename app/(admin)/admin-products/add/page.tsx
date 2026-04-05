@@ -35,7 +35,7 @@ export default function AddProductPage() {
         }
       } catch (error) {
         console.error("Failed to fetch categories", error);
-        toast.error("Kategoriler yÃ¼klenemedi");
+        toast.error("Kategoriler yüklenemedi");
       }
     }
     fetchCategories();
@@ -85,7 +85,7 @@ export default function AddProductPage() {
     if (!name || isSlugManuallyEdited) return;
     const baseSlug = generateProductSlug(name);
     setValue("slug", `${baseSlug}-${slugSuffix}`);
-    setValue("seoTitle", `${name} - ${brand || "MaÄŸaza"}`);
+    setValue("seoTitle", `${name} - ${brand || "Mağaza"}`);
   }, [name, brand, isSlugManuallyEdited, slugSuffix, setValue]);
 
 
@@ -112,7 +112,7 @@ export default function AddProductPage() {
       setValue("secondaryImage", updatedImages[1]);
     }
 
-    toast.success(`${newUrls.length} gÃ¶rsel eklendi`);
+    toast.success(`${newUrls.length} görsel eklendi`);
   };
 
   const handleColorImageUpload = (files: FileList, colorIndex: number) => {
@@ -137,7 +137,7 @@ export default function AddProductPage() {
     newVariants[colorIndex] = updatedVariant;
     setValue("variants", newVariants);
 
-    toast.success("Varyant gÃ¶rselleri gÃ¼ncellendi");
+    toast.success("Varyant görselleri güncellendi");
   };
 
   const processImageUpload = async (url: string): Promise<string> => {
@@ -147,10 +147,10 @@ export default function AddProductPage() {
       if (fileMap.has(url)) {
         const file = fileMap.get(url)!;
         const uploadedUrl = await uploadFileToCloudinary(file);
-        if (!uploadedUrl) throw new Error("GÃ¶rsel yÃ¼klenemedi (Upload failed)");
+        if (!uploadedUrl) throw new Error("Görsel yüklenemedi (Upload failed)");
         return uploadedUrl;
       } else {
-        throw new Error("GÃ¶rsel bulunamadÄ± (File map miss). LÃ¼tfen sayfayÄ± yenileyip tekrar deneyin.");
+        throw new Error("Görsel bulunamadı (File map miss). Lütfen sayfayı yenileyip tekrar deneyin.");
       }
     }
     return url; // Already a remote URL
@@ -158,7 +158,7 @@ export default function AddProductPage() {
 
   const onSubmit = async (data: ProductFormValues) => {
     setLoading(true);
-    const toastId = toast.loading("ÃœrÃ¼n oluÅŸturuluyor & gÃ¶rseller yÃ¼kleniyor...");
+    const toastId = toast.loading("Ürün oluşturuluyor & görseller yükleniyor...");
 
     try {
       const processedImages: string[] = [];
@@ -217,11 +217,11 @@ export default function AddProductPage() {
 
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.error || "Sunucu hatasÄ±");
+        throw new Error(err.error || "Sunucu hatası");
       }
 
       toast.dismiss(toastId);
-      toast.success("ÃœrÃ¼n baÅŸarÄ±yla yayÄ±nlandÄ±!");
+      toast.success("Ürün başarıyla yayınlandı!");
       router.push("/admin-products");
 
     } catch (error: any) {
@@ -245,23 +245,23 @@ export default function AddProductPage() {
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>
-              <h1 className="text-xl font-bold text-gray-900 leading-none">Yeni ÃœrÃ¼n Ekle</h1>
-              <p className="text-xs text-gray-500 mt-1">{isVariable ? "VaryantlÄ± ÃœrÃ¼n" : "Tekil ÃœrÃ¼n"}</p>
+              <h1 className="text-xl font-bold text-gray-900 leading-none">Yeni Ürün Ekle</h1>
+              <p className="text-xs text-gray-500 mt-1">{isVariable ? "Varyantlı Ürün" : "Tekil Ürün"}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <Button variant="outline" className="text-gray-600 border-gray-300" onClick={() => toast.info("Taslak (frontend only) kaydedildi")}>
-              TaslaÄŸÄ± Kaydet
+              Taslağı Kaydet
             </Button>
             <Button
               onClick={handleSubmit(onSubmit, (invalid) => {
                 console.log("Validation Errors:", invalid);
-                toast.error("LÃ¼tfen formdaki hatalarÄ± giderin.");
+                toast.error("Lütfen formdaki hataları giderin.");
               })}
               disabled={loading}
               className="bg-gray-900 text-white hover:bg-black shadow-md transition-all active:scale-95"
             >
-              {loading ? "GÃ¶rseller YÃ¼kleniyor..." : "ÃœrÃ¼nÃ¼ YayÄ±nla"}
+              {loading ? "Görseller Yükleniyor..." : "Ürünü Yayınla"}
             </Button>
           </div>
         </header>

@@ -85,7 +85,7 @@ export default function ActionInbox({ items }: ActionInboxProps) {
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 mb-3">
             <AlertTriangle className="w-6 h-6 text-gray-400" />
           </div>
-          <p className="text-sm text-gray-500">Bekleyen iÅŸ yok âœ¨</p>
+          <p className="text-sm text-gray-500">Bekleyen iş yok âœ¨</p>
         </CardContent>
       </Card>
     );
@@ -99,7 +99,7 @@ export default function ActionInbox({ items }: ActionInboxProps) {
             <div className="p-2 rounded-lg bg-blue-100">
               <AlertTriangle className="w-4 h-4 text-blue-600" />
             </div>
-            <CardTitle className="text-xl font-semibold text-gray-900">Operasyon AkÄ±ÅŸÄ± (BugÃ¼n)</CardTitle>
+            <CardTitle className="text-xl font-semibold text-gray-900">Operasyon Akışı (Bugün)</CardTitle>
           </div>
           {displayItems.length > 0 && (
             <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-2 py-1 rounded-full">
@@ -128,7 +128,7 @@ export default function ActionInbox({ items }: ActionInboxProps) {
                   <p className="text-sm font-medium text-gray-900 truncate">{item.label}</p>
                   <p className="text-xs text-gray-500 mt-0.5">
                     {item.priority === "high" && "Acil"}
-                    {item.priority === "medium" && "Ã–nemli"}
+                    {item.priority === "medium" && "Önemli"}
                     {item.priority === "low" && "Bilgilendirme"}
                   </p>
                 </div>

@@ -59,7 +59,7 @@ export async function POST(request: Request) {
 
     const count = await prisma.showcase.count();
     if (count >= 8) {
-      return jsonNoStore({ error: "Vitrine en fazla 8 Ã¼rÃ¼n eklenebilir." }, { status: 400 });
+      return jsonNoStore({ error: "Vitrine en fazla 8 ürün eklenebilir." }, { status: 400 });
     }
 
     const existing = await prisma.showcase.findUnique({
@@ -67,7 +67,7 @@ export async function POST(request: Request) {
     });
 
     if (existing) {
-      return jsonNoStore({ error: "Bu Ã¼rÃ¼n zaten vitrinde!" }, { status: 400 });
+      return jsonNoStore({ error: "Bu ürün zaten vitrinde!" }, { status: 400 });
     }
 
     const item = await prisma.showcase.create({
@@ -126,7 +126,7 @@ export async function PUT(request: Request) {
     const { items } = body; // [{ id: string, order: number }]
 
     if (!Array.isArray(items)) {
-      return jsonNoStore({ error: "GeÃ§ersiz liste numarasÄ±." }, { status: 400 });
+      return jsonNoStore({ error: "Geçersiz liste numarası." }, { status: 400 });
     }
 
     for (const item of items) {

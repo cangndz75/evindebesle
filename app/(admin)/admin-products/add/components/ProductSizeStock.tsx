@@ -48,7 +48,7 @@ export function ProductSizeStock({
 
     return (
         <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-            <h2 className="text-lg font-semibold mb-4 text-gray-900">Beden ve Stok YÃ¶netimi</h2>
+            <h2 className="text-lg font-semibold mb-4 text-gray-900">Beden ve Stok Yönetimi</h2>
 
             {/* Size Type Selection */}
             <div className="mb-6">
@@ -80,16 +80,16 @@ export function ProductSizeStock({
                     {/* Always ask for Main Color Name & Hex */}
                     <div className="mb-4 p-4 bg-gray-50 border border-gray-100 rounded-md">
                         <Label className="text-sm font-semibold text-gray-900 mb-2 block">
-                            Ana ÃœrÃ¼n Rengi ve Kodu
+                            Ana Ürün Rengi ve Kodu
                         </Label>
                         <p className="text-xs text-gray-500 mb-3">
-                            ÃœrÃ¼n tek renk olsa bile, ileride varyant eklenmesi durumunda bu bilgiler kullanÄ±lacaktÄ±r.
+                            Ürün tek renk olsa bile, ileride varyant eklenmesi durumunda bu bilgiler kullanılacaktır.
                         </p>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <Label className="text-xs mb-1.5 block font-medium">Renk AdÄ±</Label>
+                                <Label className="text-xs mb-1.5 block font-medium">Renk Adı</Label>
                                 <Input
-                                    placeholder="Ã–rn: Siyah, Lacivert"
+                                    placeholder="Örn: Siyah, Lacivert"
                                     value={mainColorName || ""}
                                     onChange={(e) => setMainColorName(e.target.value)}
                                     className="bg-white text-black"
@@ -120,7 +120,7 @@ export function ProductSizeStock({
                     </div>
 
                     <Label className="text-sm font-medium mb-3 block">
-                        {isVariable ? `Stok Adetleri (${mainColorName || "Ana Renk"})` : "ÃœrÃ¼n Stok Adetleri"}
+                        {isVariable ? `Stok Adetleri (${mainColorName || "Ana Renk"})` : "Ürün Stok Adetleri"}
                     </Label>
 
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
@@ -139,7 +139,7 @@ export function ProductSizeStock({
                     </div>
                 </div>
             ) : (
-                <p className="text-sm text-gray-500 italic">Stok takibi kapalÄ±.</p>
+                <p className="text-sm text-gray-500 italic">Stok takibi kapalı.</p>
             )}
         </div>
     );

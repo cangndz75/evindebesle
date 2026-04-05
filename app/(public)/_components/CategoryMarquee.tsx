@@ -5,7 +5,7 @@ import Image from "next/image";
 
 const items = [
   {
-    label: "Evcil Hayvan BakÄ±mÄ±",
+    label: "Evcil Hayvan Bakımı",
     color: "text-green-800",
     img: "/cat.jpg",
   },

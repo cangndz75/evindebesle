@@ -14,7 +14,7 @@ export async function POST(req: Request) {
     const { type, templateId, productIds } = body;
 
     if (!type || !templateId || !productIds || !Array.isArray(productIds)) {
-      return NextResponse.json({ error: "Eksik veya hatalÄ± parametre" }, { status: 400 });
+      return NextResponse.json({ error: "Eksik veya hatalı parametre" }, { status: 400 });
     }
 
     let result: any = null;
@@ -34,7 +34,7 @@ export async function POST(req: Request) {
         data: { sizeNoteId: templateId },
       });
     } else {
-      return NextResponse.json({ error: "GeÃ§ersiz tip" }, { status: 400 });
+      return NextResponse.json({ error: "Geçersiz tip" }, { status: 400 });
     }
 
     revalidatePath("/home");

@@ -115,7 +115,7 @@ export async function PUT(req: NextRequest) {
         });
 
         if (!ticket) {
-            return NextResponse.json({ error: "Ticket bulunamadÄ±" }, { status: 404 });
+            return NextResponse.json({ error: "Ticket bulunamadı" }, { status: 404 });
         }
 
         if (!user.isAdmin && ticket.userId !== user.id) {

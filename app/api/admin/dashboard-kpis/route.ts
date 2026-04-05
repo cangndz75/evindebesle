@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
     const session = await getServerSession(authConfig);
 
     if (!session?.user?.isAdmin) {
-      return NextResponse.json({ error: "Yetkisiz eriÅŸim" }, { status: 403 });
+      return NextResponse.json({ error: "Yetkisiz erişim" }, { status: 403 });
     }
 
     const now = new Date();
@@ -177,8 +177,8 @@ export async function GET(req: NextRequest) {
       }
     });
 
-    const profitMargin = 25.5; // Ã–rnek sabit deÄŸer, ileride maliyet tablosu gelince hesaplanÄ±r
-    const conversionRate = 3.2; // Ã–rnek sabit deÄŸer, ileride trafik api gelince hesaplanÄ±r
+    const profitMargin = 25.5; // Örnek sabit değer, ileride maliyet tablosu gelince hesaplanır
+    const conversionRate = 3.2; // Örnek sabit değer, ileride trafik api gelince hesaplanır
 
     const customersWithMultipleOrders = await prisma.order.groupBy({
       by: ["userId"],
@@ -271,7 +271,7 @@ export async function GET(req: NextRequest) {
   } catch (error: any) {
     console.error("Dashboard KPIs error:", error);
     return NextResponse.json(
-      { error: error.message || "KPI'lar yÃ¼klenirken bir hata oluÅŸtu" },
+      { error: error.message || "KPI'lar yüklenirken bir hata oluştu" },
       { status: 500 }
     );
   }

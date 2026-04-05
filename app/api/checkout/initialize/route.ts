@@ -13,7 +13,7 @@ export async function POST(req: Request) {
         const paymentRate = await checkRateLimit(rateKey, RateLimits.payment);
         if (!paymentRate.success) {
             return NextResponse.json(
-                { error: "Ã‡ok fazla Ã¶deme denemesi. LÃ¼tfen bir dakika sonra tekrar deneyin." },
+                { error: "Çok fazla ödeme denemesi. Lütfen bir dakika sonra tekrar deneyin." },
                 { status: 429 }
             );
         }
@@ -61,14 +61,14 @@ export async function POST(req: Request) {
             });
 
             if (!variant) {
-                return NextResponse.json({ error: `ÃœrÃ¼n varyantÄ± bulunamadÄ±: ${item.productId}` }, { status: 400 });
+                return NextResponse.json({ error: `Ürün varyantı bulunamadı: ${item.productId}` }, { status: 400 });
             }
 
             if (variant.product.isTrackInventory && !variant.product.allowBackorders) {
                 const availableStock = variant.stock - (variant.stockReserved || 0);
                 if (availableStock < item.quantity) {
                     return NextResponse.json({
-                        error: `"${variant.product.name}" iÃ§in yeterli stok yok. Mevcut: ${availableStock}`
+                        error: `"${variant.product.name}" için yeterli stok yok. Mevcut: ${availableStock}`
                     }, { status: 400 });
                 }
             }
@@ -127,7 +127,7 @@ export async function POST(req: Request) {
 
                 if (discount > eligibleSubtotal) discount = eligibleSubtotal;
             } else if (body.couponCode) {
-                return NextResponse.json({ error: "BÃ¶yle bir kupon yoktur" }, { status: 400 });
+                return NextResponse.json({ error: "Böyle bir kupon yoktur" }, { status: 400 });
             }
         }
 
@@ -270,7 +270,7 @@ export async function POST(req: Request) {
             buyer: {
                 id: order.userId ?? order.email,
                 name: body.billingAddress?.firstName || "Misafir",
-                surname: body.billingAddress?.lastName || "KullanÄ±cÄ±",
+                surname: body.billingAddress?.lastName || "Kullanıcı",
                 gsmNumber: body.billingAddress?.phone || "+905555555555",
                 email: body.email,
                 identityNumber: "11111111111", // Required by Iyzico

@@ -136,10 +136,10 @@ export default function CollectionCarousel() {
         {/* Header */}
         <div className="mb-12 text-center">
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-light text-[#111] mb-3">
-            ZAMANSIZ Ä°KONLAR
+            ZAMANSIZ İKONLAR
           </h2>
           <p className="text-sm md:text-base text-[#111]/70 font-light">
-            Her kadÄ±nÄ±n sahip olmasÄ± gereken zamansÄ±z ayakkabÄ±larÄ± keÅŸfedin.
+            Her kadının sahip olması gereken zamansız ayakkabıları keşfedin.
           </p>
         </div>
 
@@ -195,7 +195,7 @@ export default function CollectionCarousel() {
                   {collection.title}
                 </h3>
                 <p className="text-xs md:text-sm text-[#111]/60 font-light text-center hover:text-[#111] transition-colors">
-                  ÅÄ°MDÄ° KEÅFET
+                  ŞİMDİ KEŞFET
                 </p>
               </Link>
             ))}
@@ -206,7 +206,7 @@ export default function CollectionCarousel() {
             onClick={scrollPrev}
             disabled={!canScrollPrev}
             className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 md:-translate-x-6 bg-white border border-gray-300 p-2 md:p-4 hover:bg-gray-50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111] focus-visible:ring-offset-2 shadow-lg z-10"
-            aria-label="Ã–nceki"
+            aria-label="Önceki"
           >
             <ChevronLeft className="w-4 h-4 md:w-6 md:h-6" />
           </button>

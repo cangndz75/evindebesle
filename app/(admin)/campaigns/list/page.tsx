@@ -59,9 +59,9 @@ const statusConfig: Record<
     { label: string; variant: "default" | "secondary" | "outline" | "destructive" }
 > = {
     draft: { label: "Taslak", variant: "secondary" },
-    ready: { label: "HazÄ±r", variant: "outline" },
-    scheduled: { label: "ZamanlandÄ±", variant: "default" },
-    sent: { label: "GÃ¶nderildi", variant: "default" },
+    ready: { label: "Hazır", variant: "outline" },
+    scheduled: { label: "Zamanlandı", variant: "default" },
+    sent: { label: "Gönderildi", variant: "default" },
 };
 
 export default function CampaignListPage() {
@@ -93,7 +93,7 @@ export default function CampaignListPage() {
             }
         } catch (error) {
             console.error("Error fetching campaigns:", error);
-            toast.error("Kampanyalar yÃ¼klenemedi");
+            toast.error("Kampanyalar yüklenemedi");
         } finally {
             setIsLoading(false);
         }
@@ -108,7 +108,7 @@ export default function CampaignListPage() {
             );
 
             if (!fullCampaign) {
-                toast.error("Kampanya bulunamadÄ±");
+                toast.error("Kampanya bulunamadı");
                 return;
             }
 
@@ -126,12 +126,12 @@ export default function CampaignListPage() {
             });
 
             if (duplicateResponse.ok) {
-                toast.success("Kampanya kopyalandÄ±");
+                toast.success("Kampanya kopyalandı");
                 fetchCampaigns();
             }
         } catch (error) {
             console.error("Error duplicating campaign:", error);
-            toast.error("Kopyalama baÅŸarÄ±sÄ±z");
+            toast.error("Kopyalama başarısız");
         }
     };
 
@@ -154,7 +154,7 @@ export default function CampaignListPage() {
             }
         } catch (error) {
             console.error("Error deleting campaign:", error);
-            toast.error("Silme baÅŸarÄ±sÄ±z");
+            toast.error("Silme başarısız");
         }
     };
 
@@ -177,7 +177,7 @@ export default function CampaignListPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold">Kampanyalar</h1>
-                    <p className="text-gray-500">Email kampanyalarÄ±nÄ±zÄ± yÃ¶netin</p>
+                    <p className="text-gray-500">Email kampanyalarınızı yönetin</p>
                 </div>
                 <Link href="/campaigns">
                     <Button>
@@ -214,7 +214,7 @@ export default function CampaignListPage() {
                 <Card>
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-medium text-gray-500">
-                            ZamanlandÄ±
+                            Zamanlandı
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -226,7 +226,7 @@ export default function CampaignListPage() {
                 <Card>
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-medium text-gray-500">
-                            GÃ¶nderildi
+                            Gönderildi
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -242,10 +242,10 @@ export default function CampaignListPage() {
                 <CardHeader>
                     <Tabs value={activeTab} onValueChange={setActiveTab}>
                         <TabsList>
-                            <TabsTrigger value="all">TÃ¼mÃ¼</TabsTrigger>
+                            <TabsTrigger value="all">Tümü</TabsTrigger>
                             <TabsTrigger value="draft">Taslak</TabsTrigger>
-                            <TabsTrigger value="scheduled">ZamanlandÄ±</TabsTrigger>
-                            <TabsTrigger value="sent">GÃ¶nderildi</TabsTrigger>
+                            <TabsTrigger value="scheduled">Zamanlandı</TabsTrigger>
+                            <TabsTrigger value="sent">Gönderildi</TabsTrigger>
                         </TabsList>
                     </Tabs>
                 </CardHeader>
@@ -253,8 +253,8 @@ export default function CampaignListPage() {
                     {filteredCampaigns.length === 0 ? (
                         <div className="text-center py-12 text-gray-500">
                             {activeTab === "all"
-                                ? "HenÃ¼z kampanya yok. Ä°lk kampanyanÄ±zÄ± oluÅŸturun!"
-                                : "Bu kategoride kampanya bulunamadÄ±."}
+                                ? "Henüz kampanya yok. İlk kampanyanızı oluşturun!"
+                                : "Bu kategoride kampanya bulunamadı."}
                         </div>
                     ) : (
                         <Table>
@@ -262,9 +262,9 @@ export default function CampaignListPage() {
                                 <TableRow>
                                     <TableHead>Kampanya</TableHead>
                                     <TableHead>Durum</TableHead>
-                                    <TableHead>GÃ¶nderim</TableHead>
+                                    <TableHead>Gönderim</TableHead>
                                     <TableHead>Tarih</TableHead>
-                                    <TableHead className="text-right">Ä°ÅŸlemler</TableHead>
+                                    <TableHead className="text-right">İşlemler</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -287,7 +287,7 @@ export default function CampaignListPage() {
                                             {campaign.status === "sent" ? (
                                                 <span className="flex items-center gap-1">
                                                     <Mail className="w-4 h-4 text-gray-400" />
-                                                    {campaign.sentCount} kiÅŸi
+                                                    {campaign.sentCount} kişi
                                                 </span>
                                             ) : campaign.status === "scheduled" && campaign.scheduleAt ? (
                                                 <span className="flex items-center gap-1">
@@ -332,7 +332,7 @@ export default function CampaignListPage() {
                                                     <DropdownMenuItem asChild>
                                                         <Link href={`/campaigns?id=${campaign.id}`}>
                                                             <Edit className="w-4 h-4 mr-2" />
-                                                            DÃ¼zenle
+                                                            Düzenle
                                                         </Link>
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem
@@ -363,8 +363,8 @@ export default function CampaignListPage() {
                 open={confirmDeleteOpen}
                 onOpenChange={setConfirmDeleteOpen}
                 onConfirm={performDelete}
-                title="KampanyayÄ± Sil"
-                description="Bu kampanyayÄ± silmek istediÄŸinizden emin misiniz? Bu iÅŸlem geri alÄ±namaz."
+                title="Kampanyayı Sil"
+                description="Bu kampanyayı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
             />
         </div>
     );

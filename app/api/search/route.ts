@@ -179,12 +179,12 @@ export async function GET(request: NextRequest) {
 
       let badge: string | undefined;
       const isNew = product.tags.some((tag: any) =>
-        ["yeni", "new", "yeni Ã¼rÃ¼n", "yeni gelenler", "new arrival"].includes(tag.name.toLowerCase())
+        ["yeni", "new", "yeni ürün", "yeni gelenler", "new arrival"].includes(tag.name.toLowerCase())
       );
       if (isNew) {
         badge = "Yeni";
       } else if (product.originalPrice && product.originalPrice > product.price) {
-        badge = "Ä°ndirim";
+        badge = "İndirim";
       }
 
       return {
@@ -208,7 +208,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Search error:", error);
     return NextResponse.json(
-      { error: "Arama sÄ±rasÄ±nda bir hata oluÅŸtu", products: [], total: 0 },
+      { error: "Arama sırasında bir hata oluştu", products: [], total: 0 },
       { status: 500 }
     );
   }

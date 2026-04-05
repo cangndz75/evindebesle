@@ -87,14 +87,14 @@ export async function GET(request: NextRequest) {
         },
       },
       orderBy: { createdAt: "desc" },
-      take: 100, // Ä°lk 100 sipariÅŸ
+      take: 100, // İlk 100 sipariş
     });
 
     return NextResponse.json(orders);
   } catch (error: any) {
     console.error("Admin orders fetch error:", error);
     return NextResponse.json(
-      { error: error.message || "SipariÅŸler yÃ¼klenirken bir hata oluÅŸtu" },
+      { error: error.message || "Siparişler yüklenirken bir hata oluştu" },
       { status: 500 }
     );
   }

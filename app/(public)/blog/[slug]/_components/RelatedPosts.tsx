@@ -7,7 +7,7 @@ export default function RelatedPosts({ posts }: { posts: BlogPost[] }) {
 
   return (
     <section className="mx-auto max-w-4xl mt-10 px-5 md:px-10">
-      <h3 className="text-xl font-bold mb-4">Benzer YazÄ±lar</h3>
+      <h3 className="text-xl font-bold mb-4">Benzer Yazılar</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {posts.map((p) => (
           <Link

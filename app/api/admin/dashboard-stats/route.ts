@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
     const session = await getServerSession(authConfig);
 
     if (!session?.user?.isAdmin) {
-      return NextResponse.json({ error: "Yetkisiz eriÅŸim" }, { status: 403 });
+      return NextResponse.json({ error: "Yetkisiz erişim" }, { status: 403 });
     }
 
     const now = new Date();
@@ -92,7 +92,7 @@ export async function GET(req: NextRequest) {
     }).length;
 
     const stockAlarmCount = lowStockProducts.length + outOfStockProducts.length;
-    const previousStockAlarmCount = stockAlarmCount - 3; // SimÃ¼le edilmiÅŸ
+    const previousStockAlarmCount = stockAlarmCount - 3; // Simüle edilmiş
     const stockChange = previousStockAlarmCount > 0
       ? ((stockAlarmCount - previousStockAlarmCount) / previousStockAlarmCount) * 100
       : 0;
@@ -119,7 +119,7 @@ export async function GET(req: NextRequest) {
   } catch (error: any) {
     console.error("Dashboard stats error:", error);
     return NextResponse.json(
-      { error: "Ä°statistikler yÃ¼klenirken bir hata oluÅŸtu." },
+      { error: "İstatistikler yüklenirken bir hata oluştu." },
       { status: 500 }
     );
   }

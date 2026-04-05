@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
         const session = await getServerSession(authConfig);
 
         if (!session?.user?.isAdmin) {
-            return NextResponse.json({ error: "Yetkisiz eriÅŸim" }, { status: 403 });
+            return NextResponse.json({ error: "Yetkisiz erişim" }, { status: 403 });
         }
 
         const now = new Date();
@@ -178,7 +178,7 @@ export async function GET(req: NextRequest) {
     } catch (error: any) {
         console.error("Abandoned carts error:", error);
         return NextResponse.json(
-            { error: "Terk edilen sepet verileri yÃ¼klenirken hata oluÅŸtu." },
+            { error: "Terk edilen sepet verileri yüklenirken hata oluştu." },
             { status: 500 }
         );
     }

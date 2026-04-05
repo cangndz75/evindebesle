@@ -35,8 +35,8 @@ type Promo = {
 const navItems = [
     { key: "men" as const, label: "ERKEK", href: "/men" },
     { key: "women" as const, label: "KADIN", href: "/women" },
-    { key: "new" as const, label: "YENÄ°", href: "/category/new" },
-    { key: "collections" as const, label: "KOLEKSÄ°YON", href: "/category/collections" },
+    { key: "new" as const, label: "YENİ", href: "/category/new" },
+    { key: "collections" as const, label: "KOLEKSİYON", href: "/category/collections" },
     { key: "blog" as const, label: "BLOG", href: "/blog" },
 ] as const;
 
@@ -113,12 +113,12 @@ export default function HomeHeader() {
             men: {
                 left: [
                     {
-                        title: "ERKEK GÄ°YÄ°M",
+                        title: "ERKEK GİYİM",
                         items: [
                             { label: "T-Shirt", href: "/category/men-tshirt" },
                             { label: "Sweatshirt", href: "/category/men-sweatshirt" },
                             { label: "Pantolon", href: "/category/men-pants" },
-                            { label: "TÃ¼mÃ¼nÃ¼ GÃ¶r", href: "/men" },
+                            { label: "Tümünü Gör", href: "/men" },
                         ],
                     },
                 ],
@@ -132,18 +132,18 @@ export default function HomeHeader() {
             women: {
                 left: [
                     {
-                        title: "KADIN GÄ°YÄ°M",
+                        title: "KADIN GİYİM",
                         items: [
                             { label: "Elbise", href: "/category/women-dresses" },
                             { label: "Bluz", href: "/category/women-tops" },
-                            { label: "DÄ±ÅŸ Giyim", href: "/category/women-outerwear" },
-                            { label: "TÃ¼mÃ¼nÃ¼ GÃ¶r", href: "/women" },
+                            { label: "Dış Giyim", href: "/category/women-outerwear" },
+                            { label: "Tümünü Gör", href: "/women" },
                         ],
                     },
                 ],
                 rightPromo: {
-                    title: "KadÄ±n Koleksiyonu",
-                    subtitle: "Zarif tasarÄ±mlar",
+                    title: "Kadın Koleksiyonu",
+                    subtitle: "Zarif tasarımlar",
                     image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1200&auto=format&fit=crop",
                     href: "/women",
                 },
@@ -151,7 +151,7 @@ export default function HomeHeader() {
             new: {
                 left: [
                     {
-                        title: "YENÄ° GELENLER",
+                        title: "YENİ GELENLER",
                         items: [
                             { label: "En Yeniler", href: "/category/new" },
                             { label: "Trendler", href: "/category/trends" },
@@ -160,7 +160,7 @@ export default function HomeHeader() {
                 ],
                 rightPromo: {
                     title: "Yeni Sezon",
-                    subtitle: "KeÅŸfedin",
+                    subtitle: "Keşfedin",
                     image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=1200&auto=format&fit=crop",
                     href: "/category/new",
                 },
@@ -168,7 +168,7 @@ export default function HomeHeader() {
             collections: {
                 left: [
                     {
-                        title: "Ã–ZEL KOLEKSÄ°YONLAR",
+                        title: "ÖZEL KOLEKSİYONLAR",
                         items: [
                             { label: "Minimalist", href: "/category/collection-minimalist" },
                             { label: "Dark Edition", href: "/category/collection-dark" },
@@ -177,7 +177,7 @@ export default function HomeHeader() {
                 ],
                 rightPromo: {
                     title: "Dark Collection",
-                    subtitle: "SÄ±nÄ±rlÄ± sayÄ±da",
+                    subtitle: "Sınırlı sayıda",
                     image: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?q=80&w=1200&auto=format&fit=crop",
                     href: "/category/collections",
                 },
@@ -186,7 +186,7 @@ export default function HomeHeader() {
                 left: [],
                 rightPromo: {
                     title: "Fashion Blog",
-                    subtitle: "Stil Ã¶nerileri",
+                    subtitle: "Stil önerileri",
                     image: "https://images.unsplash.com/photo-1512486130939-2c4f79935e4f?q=80&w=1200&auto=format&fit=crop",
                     href: "/blog",
                 },
@@ -213,7 +213,7 @@ export default function HomeHeader() {
         <>
             {/* Announcement Banner - Scrolls away */}
             <div className="w-full bg-black text-white text-[11px] tracking-[0.18em] uppercase text-center h-9 flex items-center justify-center">
-                ÃœCRETSÄ°Z KARGO {freeShippingThreshold ? `${Math.round(freeShippingThreshold)}â‚º+` : "999â‚º+"}
+                ÜCRETSİZ KARGO {freeShippingThreshold ? `${Math.round(freeShippingThreshold)}₺+` : "999₺+"}
             </div>
 
             {/* Fixed Navbar - Sticks to top on scroll */}
@@ -224,7 +224,7 @@ export default function HomeHeader() {
             >
                 <nav className="w-full px-4 md:px-8">
                     <div className="relative flex items-center justify-between h-16 md:h-20">
-                        {/* Sol: MenÃ¼ */}
+                        {/* Sol: Menü */}
                         <div className="flex items-center gap-3 md:gap-4 lg:gap-6">
                             {/* Desktop Navigation */}
                             <div className="hidden md:flex items-center gap-3 md:gap-4 lg:gap-6">
@@ -254,7 +254,7 @@ export default function HomeHeader() {
                                 <SheetTrigger asChild>
                                     <button
                                         className="md:hidden hover:opacity-70 transition-opacity text-[#111]"
-                                        aria-label="MenÃ¼"
+                                        aria-label="Menü"
                                     >
                                         <Menu className="w-5 h-5" />
                                     </button>
@@ -262,8 +262,8 @@ export default function HomeHeader() {
                                 <SheetContent side="left" className="w-[300px] p-0 flex flex-col">
                                     <SheetHeader className="px-6 pt-6 pb-4 border-b">
                                         <SheetTitle className="text-lg font-light uppercase tracking-wide text-[#111] text-left">
-                                            {mobileMenuState === "main" ? "MenÃ¼" :
-                                                mobileMenuState === "men" ? "Erkek Giyim" : "KadÄ±n Giyim"}
+                                            {mobileMenuState === "main" ? "Menü" :
+                                                mobileMenuState === "men" ? "Erkek Giyim" : "Kadın Giyim"}
                                         </SheetTitle>
                                     </SheetHeader>
 
@@ -299,7 +299,7 @@ export default function HomeHeader() {
                                                     className="flex items-center gap-2 text-sm text-[#111]/60 font-medium mb-6 hover:text-[#111] transition-colors"
                                                 >
                                                     <ChevronLeft className="w-4 h-4" />
-                                                    TÃ¼m MenÃ¼
+                                                    Tüm Menü
                                                 </button>
 
                                                 <Link
@@ -307,7 +307,7 @@ export default function HomeHeader() {
                                                     onClick={() => setMenuOpen(false)}
                                                     className="block text-[#111] font-medium hover:opacity-70 transition-opacity uppercase border-b border-gray-100 pb-2 mb-4"
                                                 >
-                                                    TÃ¼m {mobileMenuState === "men" ? "Erkek" : "KadÄ±n"} Giyim
+                                                    Tüm {mobileMenuState === "men" ? "Erkek" : "Kadın"} Giyim
                                                 </Link>
 
                                                 <div className="space-y-1">
@@ -349,7 +349,7 @@ export default function HomeHeader() {
                                             className="flex items-center gap-3 text-[#111] font-light hover:opacity-70 transition-opacity"
                                         >
                                             <User className="w-5 h-5" />
-                                            <span>HesabÄ±m</span>
+                                            <span>Hesabım</span>
                                         </Link>
                                         <Link
                                             href={session?.user ? "/favorites" : "/auth-tabs"}
@@ -386,7 +386,7 @@ export default function HomeHeader() {
                                                     }}
                                                     className="w-full px-4 py-2.5 text-center bg-black text-white hover:bg-gray-800 transition-colors rounded-md font-light uppercase tracking-wide text-sm"
                                                 >
-                                                    Ã‡Ä±kÄ±ÅŸ Yap
+                                                    Çıkış Yap
                                                 </button>
                                             ) : (
                                                 <Link
@@ -394,7 +394,7 @@ export default function HomeHeader() {
                                                     onClick={() => setMenuOpen(false)}
                                                     className="block w-full px-4 py-2.5 text-center bg-black text-white hover:bg-gray-800 transition-colors rounded-md font-light uppercase tracking-wide text-sm"
                                                 >
-                                                    GiriÅŸ Yap
+                                                    Giriş Yap
                                                 </Link>
                                             )}
                                         </div>
@@ -421,7 +421,7 @@ export default function HomeHeader() {
                             </span>
                         </Link>
 
-                        {/* SaÄŸ: Ä°konlar */}
+                        {/* Sağ: İkonlar */}
                         <div className="flex items-center gap-4 md:gap-6">
                             <button
                                 onClick={() => setSearchModalOpen(true)}
@@ -433,7 +433,7 @@ export default function HomeHeader() {
                             <Link
                                 href={session?.user ? "/profile/personal-info" : "/auth-tabs"}
                                 className="hover:opacity-70 transition-all text-[#111]"
-                                aria-label="HesabÄ±m"
+                                aria-label="Hesabım"
                             >
                                 <User className="w-5 h-5" />
                             </Link>

@@ -309,7 +309,7 @@ export async function DELETE(request: NextRequest) {
 
     if (!targetItem) {
       return NextResponse.json(
-        { error: "Sepet Ã¶ÄŸesi bulunamadÄ±" },
+        { error: "Sepet öğesi bulunamadı" },
         { status: 404 }
       );
     }

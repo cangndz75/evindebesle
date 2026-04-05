@@ -61,14 +61,14 @@ type AddItemParams = {
 type CartState = {
   items: CartItem[];
   hydrated: boolean;
-  isReady: boolean; // hydrate tamamlandÄ± ve initial fetch tamamlandÄ±
+  isReady: boolean; // hydrate tamamlandı ve initial fetch tamamlandı
   couponCode: string | null;
   discountAmount: number;
   setItems: (items: CartItem[]) => void;
   hydrate: () => Promise<void>;
-  refreshCart: () => Promise<void>; // API'den cart'Ä± fetch edip gÃ¼ncelle (hydrate deÄŸil)
+  refreshCart: () => Promise<void>; // API'den cart'ı fetch edip güncelle (hydrate değil)
   syncGuestCartToAPI: () => Promise<void>;
-  reset: () => void; // Logout iÃ§in cart'Ä± sÄ±fÄ±rla
+  reset: () => void; // Logout için cart'ı sıfırla
   addItemOptimistic: (params: AddItemParams) => Promise<void>;
   updateQuantity: (itemId: string, quantity: number) => void;
   removeItem: (itemId: string) => Promise<void>;
@@ -180,7 +180,7 @@ export const useCartStore = create<CartState>((set, get) => ({
         item.productId === productId &&
         item.colorId === (colorId || null) &&
         item.sizeId === (sizeId || null) &&
-        !item.optimisticId // Sadece gerÃ§ek item'larÄ± kontrol et
+        !item.optimisticId // Sadece gerçek item'ları kontrol et
     );
 
     if (existingItem) {
@@ -406,7 +406,7 @@ export const useCartStore = create<CartState>((set, get) => ({
 
   applyCoupon: async (code: string) => {
     if (get().couponCode) {
-      return { success: false, message: "Zaten bir kupon uygulanmÄ±ÅŸ. Ã–nce mevcut olanÄ± silmelisiniz." };
+      return { success: false, message: "Zaten bir kupon uygulanmış. Önce mevcut olanı silmelisiniz." };
     }
 
     try {
@@ -430,7 +430,7 @@ export const useCartStore = create<CartState>((set, get) => ({
 
         if (eligibleItems.length === 0) {
           set({ couponCode: null, discountAmount: 0 });
-          return { success: false, message: "Kupon bu Ã¼rÃ¼nler iÃ§in geÃ§erli deÄŸil" };
+          return { success: false, message: "Kupon bu ürünler için geçerli değil" };
         }
 
         const eligibleSubtotal = eligibleItems.reduce((acc, item) =>
@@ -451,14 +451,14 @@ export const useCartStore = create<CartState>((set, get) => ({
           discountAmount: discount
         });
 
-        return { success: true, message: "Kupon uygulandÄ±" };
+        return { success: true, message: "Kupon uygulandı" };
       } else {
         set({ couponCode: null, discountAmount: 0 });
-        return { success: false, message: data.message || "GeÃ§ersiz kupon kodu" };
+        return { success: false, message: data.message || "Geçersiz kupon kodu" };
       }
     } catch (error) {
       console.error("Coupon apply error:", error);
-      return { success: false, message: "Kupon doÄŸrulanÄ±rken bir hata oluÅŸtu" };
+      return { success: false, message: "Kupon doğrulanırken bir hata oluştu" };
     }
   },
 

@@ -222,7 +222,7 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
       window.dispatchEvent(new Event("cartUpdated"));
     } catch (error) {
       console.error("Error adding to cart:", error);
-      toast.error("Sepete eklenirken bir hata oluÅŸtu", { position: "bottom-left" });
+      toast.error("Sepete eklenirken bir hata oluştu", { position: "bottom-left" });
     } finally {
       setAddingToCart((prev) => ({ ...prev, [productId]: false }));
     }
@@ -237,7 +237,7 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
     };
 
     if (!options.sizeId) {
-      toast.error("LÃ¼tfen bir beden seÃ§in", { position: "bottom-left" });
+      toast.error("Lütfen bir beden seçin", { position: "bottom-left" });
       return;
     }
 
@@ -284,7 +284,7 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
       window.dispatchEvent(new Event("cartUpdated"));
     } catch (error) {
       console.error("Error adding to cart:", error);
-      toast.error("Sepete eklenirken bir hata oluÅŸtu", { position: "bottom-left" });
+      toast.error("Sepete eklenirken bir hata oluştu", { position: "bottom-left" });
     } finally {
       setAddingToCart((prev) => ({ ...prev, [product.id]: false }));
     }
@@ -300,7 +300,7 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
     <section className="w-full bg-white py-12 md:py-20 relative">
       <div className="w-full px-4 md:px-8 max-w-[1400px] mx-auto">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl md:text-2xl font-semibold tracking-tight uppercase">Ã–ne Ã‡Ä±kanlar</h2>
+          <h2 className="text-xl md:text-2xl font-semibold tracking-tight uppercase">Öne Çıkanlar</h2>
           {products.length > 0 && (
             <div className="flex gap-2">
               <Button
@@ -327,7 +327,7 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
 
         {products.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-[#111]/60 font-light">HenÃ¼z Ã¼rÃ¼n bulunmuyor.</p>
+            <p className="text-[#111]/60 font-light">Henüz ürün bulunmuyor.</p>
           </div>
         ) : (
           <div 
@@ -356,7 +356,7 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                   key={product.id}
                   className="group flex flex-col bg-white snap-start w-[85vw] sm:w-[50vw] md:w-[calc(33.333%-16px)] lg:w-[calc(25%-18px)] flex-shrink-0"
                 >
-                  {/* ÃœrÃ¼n GÃ¶rseli - TÄ±klanabilir */}
+                  {/* Ürün Görseli - Tıklanabilir */}
                   <Link href={productUrl} className="relative w-full aspect-[3/4] overflow-hidden bg-gray-100 mb-4 group">
                     <Image
                       src={currentImage}
@@ -384,7 +384,7 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                       </div>
                     )}
 
-                    {/* Beden SeÃ§imi - Hover ile gÃ¶rÃ¼nÃ¼r, gÃ¶rselin alt kÄ±smÄ±nda */}
+                    {/* Beden Seçimi - Hover ile görünür, görselin alt kısmında */}
                     {sizes.length > 0 && (
                       <div className="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-3 border-t border-gray-200">
                         <div className="flex items-center gap-1.5 flex-wrap justify-center">
@@ -424,7 +424,7 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                     )}
                   </Link>
 
-                  {/* ÃœrÃ¼n Bilgileri */}
+                  {/* Ürün Bilgileri */}
                   <div className="flex-1 flex flex-col">
                     <Link href={productUrl} className="mb-2">
                       <h3 className="text-sm font-light text-[#111] uppercase tracking-wide line-clamp-2">
@@ -437,20 +437,20 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                       <div className="flex items-center gap-2 mb-3">
                         {product.originalPrice ? (
                           <>
-                            <p className="text-sm font-light text-[#111]">â‚º{product.originalPrice.toFixed(2)}</p>
+                            <p className="text-sm font-light text-[#111]">₺{product.originalPrice.toFixed(2)}</p>
                             <p className="text-sm font-light text-gray-400 line-through">
-                              â‚º{product.price.toFixed(2)}
+                              ₺{product.price.toFixed(2)}
                             </p>
                           </>
                         ) : (
                           <p className="text-sm font-light text-[#111]">
-                            â‚º{product.price.toFixed(2)}
+                            ₺{product.price.toFixed(2)}
                           </p>
                         )}
                       </div>
                     )}
 
-                    {/* Renk SeÃ§imi */}
+                    {/* Renk Seçimi */}
                     {normalizedColors.length > 0 && (
                       <div className="mb-3">
                         <div className="flex items-center gap-1.5 flex-wrap">

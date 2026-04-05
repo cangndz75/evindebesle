@@ -735,18 +735,18 @@ function RowActions({ row }: { row: Row<Item> }) {
         <DropdownMenuGroup>
           <DropdownMenuItem>
             <span>Edit</span>
-            <DropdownMenuShortcut>âŒ˜E</DropdownMenuShortcut>
+            <DropdownMenuShortcut>⌘E</DropdownMenuShortcut>
           </DropdownMenuItem>
           <DropdownMenuItem>
             <span>Duplicate</span>
-            <DropdownMenuShortcut>âŒ˜D</DropdownMenuShortcut>
+            <DropdownMenuShortcut>⌘D</DropdownMenuShortcut>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem>
             <span>Archive</span>
-            <DropdownMenuShortcut>âŒ˜A</DropdownMenuShortcut>
+            <DropdownMenuShortcut>⌘A</DropdownMenuShortcut>
           </DropdownMenuItem>
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>More</DropdownMenuSubTrigger>
@@ -768,7 +768,7 @@ function RowActions({ row }: { row: Row<Item> }) {
         <DropdownMenuSeparator />
         <DropdownMenuItem className="text-destructive focus:text-destructive">
           <span>Delete</span>
-          <DropdownMenuShortcut>âŒ˜âŒ«</DropdownMenuShortcut>
+          <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

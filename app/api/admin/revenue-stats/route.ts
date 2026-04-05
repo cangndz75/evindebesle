@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
   }
 
   const start = new Date();
-  start.setDate(start.getDate() - 6); // son 7 gÃ¼n
+  start.setDate(start.getDate() - 6); // son 7 gün
   const end = new Date();
 
   const days = eachDayOfInterval({ start, end });

@@ -64,15 +64,15 @@ export default function StockMovementsPage() {
     const getTypeBadge = (type: string) => {
         switch (type) {
             case "PURCHASE":
-                return <Badge className="bg-green-100 text-green-800">AlÄ±m</Badge>;
+                return <Badge className="bg-green-100 text-green-800">Alım</Badge>;
             case "SALE":
-                return <Badge className="bg-blue-100 text-blue-800">SatÄ±ÅŸ</Badge>;
+                return <Badge className="bg-blue-100 text-blue-800">Satış</Badge>;
             case "RETURN":
-                return <Badge className="bg-purple-100 text-purple-800">Ä°ade</Badge>;
+                return <Badge className="bg-purple-100 text-purple-800">İade</Badge>;
             case "ADJUSTMENT":
-                return <Badge className="bg-gray-100 text-gray-800">DÃ¼zeltme</Badge>;
+                return <Badge className="bg-gray-100 text-gray-800">Düzeltme</Badge>;
             case "DAMAGED":
-                return <Badge className="bg-red-100 text-red-800">HasarlÄ±</Badge>;
+                return <Badge className="bg-red-100 text-red-800">Hasarlı</Badge>;
             default:
                 return <Badge variant="outline">{type}</Badge>;
         }
@@ -101,8 +101,8 @@ export default function StockMovementsPage() {
                     <ArrowLeft className="w-5 h-5" />
                 </Button>
                 <div>
-                    <h1 className="text-2xl font-bold">Stok GeÃ§miÅŸi</h1>
-                    <p className="text-sm text-gray-600">ÃœrÃ¼n hareket kayÄ±tlarÄ±</p>
+                    <h1 className="text-2xl font-bold">Stok Geçmişi</h1>
+                    <p className="text-sm text-gray-600">Ürün hareket kayıtları</p>
                 </div>
             </div>
 
@@ -113,18 +113,18 @@ export default function StockMovementsPage() {
                             {[1, 2, 3].map(i => <Skeleton key={i} className="h-12 w-full" />)}
                         </div>
                     ) : movements.length === 0 ? (
-                        <div className="p-12 text-center text-gray-500">KayÄ±t bulunamadÄ±.</div>
+                        <div className="p-12 text-center text-gray-500">Kayıt bulunamadı.</div>
                     ) : (
                         <Table>
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Tarih</TableHead>
-                                    <TableHead>ÃœrÃ¼n</TableHead>
+                                    <TableHead>Ürün</TableHead>
                                     <TableHead>Varyant</TableHead>
-                                    <TableHead>Ä°ÅŸlem</TableHead>
+                                    <TableHead>İşlem</TableHead>
                                     <TableHead>Miktar</TableHead>
-                                    <TableHead>AÃ§Ä±klama</TableHead>
-                                    <TableHead>KullanÄ±cÄ±</TableHead>
+                                    <TableHead>Açıklama</TableHead>
+                                    <TableHead>Kullanıcı</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>

@@ -10,11 +10,11 @@ export async function POST(req: Request) {
   const ip = req.headers.get("x-forwarded-for") || "127.0.0.1";
   const { success } = await rateLimit(ip);
   if (!success) {
-    return NextResponse.json({ error: "Ã‡ok fazla istek gÃ¶nderdiniz. LÃ¼tfen daha sonra tekrar deneyin." }, { status: 429 });
+    return NextResponse.json({ error: "Çok fazla istek gönderdiniz. Lütfen daha sonra tekrar deneyin." }, { status: 429 });
   }
 
   if (!email || typeof email !== "string") {
-    return NextResponse.json({ error: "GeÃ§ersiz e-posta." }, { status: 400 })
+    return NextResponse.json({ error: "Geçersiz e-posta." }, { status: 400 })
   }
 
   const user = await prisma.user.findUnique({ where: { email } })
@@ -43,7 +43,7 @@ export async function POST(req: Request) {
   await resend.emails.send({
     from: "EvindeBesle <noreply@evindebesle.com>",
     to: [user.email],
-    subject: "Åifre SÄ±fÄ±rlama Talebi",
+    subject: "Şifre Sıfırlama Talebi",
     html: generateResetPasswordEmailHtml({
       name: user.name,
       resetUrl,

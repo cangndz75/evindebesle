@@ -335,7 +335,7 @@ export default function ProductListingPage() {
                         className={`w-4 h-4 rounded-full border transition-all duration-200 hover:scale-110 ${isActive ? "border-[#111] scale-110" : "border-gray-300"
                           }`}
                         style={{ backgroundColor: color.value }}
-                        aria-label={`${color.name} renk seÃ§eneÄŸi`}
+                        aria-label={`${color.name} renk seçeneği`}
                       />
                     );
                   })}

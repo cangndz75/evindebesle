@@ -32,8 +32,8 @@ export default function ProfilePage() {
         method: "DELETE",
       });
 
-      if (!res.ok) throw new Error("Silme iÅŸlemi baÅŸarÄ±sÄ±z");
-      toast.success("HesabÄ±nÄ±z silindi.");
+      if (!res.ok) throw new Error("Silme işlemi başarısız");
+      toast.success("Hesabınız silindi.");
       router.push("/");
     } catch (err) {
       toast.error("Hesap silinemedi.");
@@ -42,13 +42,13 @@ export default function ProfilePage() {
 
   return (
     <div className="w-full">
-      {/* BaÅŸlÄ±k */}
+      {/* Başlık */}
       <div className="mb-8">
         <h1 className="text-3xl font-light tracking-tight text-black mb-2">
-          KiÅŸisel Bilgilerim
+          Kişisel Bilgilerim
         </h1>
         <p className="text-sm text-gray-600 font-light">
-          Hesap bilgilerinizi ve ÅŸifrenizi buradan gÃ¼ncelleyebilirsiniz.
+          Hesap bilgilerinizi ve şifrenizi buradan güncelleyebilirsiniz.
         </p>
       </div>
 
@@ -62,7 +62,7 @@ export default function ProfilePage() {
               : "text-gray-500 hover:text-black"
           }`}
         >
-          Profil DetaylarÄ±
+          Profil Detayları
           {activeTab === "profile" && (
             <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-black" />
           )}
@@ -75,7 +75,7 @@ export default function ProfilePage() {
               : "text-gray-500 hover:text-black"
           }`}
         >
-          Åifre DeÄŸiÅŸtirme
+          Şifre Değiştirme
           {activeTab === "password" && (
             <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-black" />
           )}
@@ -107,25 +107,25 @@ export default function ProfilePage() {
         {/* Delete Account */}
         <div className="mt-12 pt-8 border-t border-gray-200">
           <div className="space-y-2">
-            <h3 className="text-sm font-medium text-black">Hesap Ä°ÅŸlemleri</h3>
+            <h3 className="text-sm font-medium text-black">Hesap İşlemleri</h3>
             <p className="text-xs text-gray-600 font-light">
-              HesabÄ±nÄ±zÄ± kalÄ±cÄ± olarak silmek istiyorsanÄ±z aÅŸaÄŸÄ±daki butona tÄ±klayÄ±n.
-              Bu iÅŸlem geri alÄ±namaz.
+              Hesabınızı kalıcı olarak silmek istiyorsanız aşağıdaki butona tıklayın.
+              Bu işlem geri alınamaz.
             </p>
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <button className="mt-4 text-sm text-red-600 hover:text-red-700 font-light underline">
-                  HesabÄ± Sil
+                  Hesabı Sil
                 </button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>
-                    HesabÄ±nÄ±zÄ± silmek istediÄŸinize emin misiniz?
+                    Hesabınızı silmek istediğinize emin misiniz?
                   </AlertDialogTitle>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>VazgeÃ§</AlertDialogCancel>
+                  <AlertDialogCancel>Vazgeç</AlertDialogCancel>
                   <AlertDialogAction onClick={handleDeleteAccount}>
                     Evet, Sil
                   </AlertDialogAction>

@@ -4,11 +4,11 @@ export const sizeTypeEnum = z.enum(["letter", "number", "cup"]);
 export const statusEnum = z.enum(["draft", "published", "archived"]);
 
 export const productVariantSchema = z.object({
-    colorName: z.string().min(1, "Renk adÄ± zorunludur"),
+    colorName: z.string().min(1, "Renk adı zorunludur"),
     hexCode: z.string().min(1, "Renk kodu zorunludur"),
-    images: z.array(z.string()).min(1, "En az 1 gÃ¶rsel yÃ¼klemelisiniz"),
+    images: z.array(z.string()).min(1, "En az 1 görsel yüklemelisiniz"),
     stock: z.record(z.string(), z.number().min(0)).refine((val) => Object.keys(val).length > 0, {
-        message: "En az bir beden stoÄŸu girmelisiniz",
+        message: "En az bir beden stoğu girmelisiniz",
     }),
     isOpen: z.boolean().optional(),
 
@@ -18,11 +18,11 @@ export const productVariantSchema = z.object({
 });
 
 export const productSchema = z.object({
-    name: z.string().min(2, "ÃœrÃ¼n adÄ± en az 2 karakter olmalÄ±dÄ±r"),
+    name: z.string().min(2, "Ürün adı en az 2 karakter olmalıdır"),
     description: z.string().optional(),
     gender: z.enum(["MALE", "FEMALE", "UNISEX"]).optional(),
 
-    price: z.coerce.number().min(0.01, "Fiyat 0'dan bÃ¼yÃ¼k olmalÄ±dÄ±r"),
+    price: z.coerce.number().min(0.01, "Fiyat 0'dan büyük olmalıdır"),
     originalPrice: z.coerce.number().optional(),
     sku: z.string().optional(),
     barcode: z.string().optional(),
@@ -40,7 +40,7 @@ export const productSchema = z.object({
     variants: z.array(productVariantSchema).optional(),
 
     status: statusEnum.default("draft"),
-    categoryId: z.string().min(1, "Kategori seÃ§melisiniz"),
+    categoryId: z.string().min(1, "Kategori seçmelisiniz"),
     brand: z.string().optional(),
     tags: z.array(z.string()).default([]),
 
@@ -61,7 +61,7 @@ export const productSchema = z.object({
         return true;
     }
 }, {
-    message: "VaryantlÄ± Ã¼rÃ¼n iÃ§in en az bir varyant (renk) eklemelisiniz",
+    message: "Varyantlı ürün için en az bir varyant (renk) eklemelisiniz",
     path: ["variants"],
 }).refine((data) => {
     if (data.originalPrice && data.originalPrice > 0) {
@@ -69,7 +69,7 @@ export const productSchema = z.object({
     }
     return true;
 }, {
-    message: "Ä°ndirimsiz fiyat, satÄ±ÅŸ fiyatÄ±ndan bÃ¼yÃ¼k olamaz",
+    message: "İndirimsiz fiyat, satış fiyatından büyük olamaz",
     path: ["originalPrice"],
 });
 

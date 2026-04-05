@@ -54,7 +54,7 @@ export async function PATCH(
 
   } catch (error) {
     console.error("PATCH /coupons/[id] error:", error)
-    return NextResponse.json({ error: "GÃ¼ncelleme baÅŸarÄ±sÄ±z" }, { status: 500 })
+    return NextResponse.json({ error: "Güncelleme başarısız" }, { status: 500 })
   }
 }
 
@@ -90,6 +90,6 @@ export async function DELETE(
 
   } catch (error) {
     console.error("DELETE /coupons/[id] error:", error)
-    return NextResponse.json({ error: "Silme baÅŸarÄ±sÄ±z" }, { status: 500 })
+    return NextResponse.json({ error: "Silme başarısız" }, { status: 500 })
   }
 }

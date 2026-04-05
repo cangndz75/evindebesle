@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
 
         if (!productId || !rating) {
             return NextResponse.json(
-                { error: "ÃœrÃ¼n ve puan zorunludur" },
+                { error: "Ürün ve puan zorunludur" },
                 { status: 400 }
             );
         }
@@ -25,10 +25,10 @@ export async function POST(request: NextRequest) {
             data: {
                 productId,
                 userId: session.user.id,
-                userName: session.user.name || "KullanÄ±cÄ±",
+                userName: session.user.name || "Kullanıcı",
                 rating: Number(rating),
                 comment: comment || "",
-                isApproved: true, // GeliÅŸtirme aÅŸamasÄ±nda otomatik onay
+                isApproved: true, // Geliştirme aşamasında otomatik onay
             },
         });
 
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     } catch (error: any) {
         console.error("Review creation error:", error);
         return NextResponse.json(
-            { error: error.message || "Yorum gÃ¶nderilirken bir hata oluÅŸtu" },
+            { error: error.message || "Yorum gönderilirken bir hata oluştu" },
             { status: 500 }
         );
     }
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url);
         const productId = searchParams.get("productId");
-        const checkUser = searchParams.get("checkUser"); // "true" ise kullanÄ±cÄ±nÄ±n yorumunu kontrol et
+        const checkUser = searchParams.get("checkUser"); // "true" ise kullanıcının yorumunu kontrol et
 
         if (!productId) {
             return NextResponse.json({ error: "Product ID required" }, { status: 400 });
@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
     } catch (error: any) {
         console.error("Review fetch error:", error);
         return NextResponse.json(
-            { error: error.message || "Yorumlar yÃ¼klenirken bir hata oluÅŸtu" },
+            { error: error.message || "Yorumlar yüklenirken bir hata oluştu" },
             { status: 500 }
         );
     }

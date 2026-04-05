@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
     } catch (error: any) {
         console.error("Returns fetch error:", error);
         return NextResponse.json(
-            { error: "Ä°ade talepleri yÃ¼klenirken hata oluÅŸtu" },
+            { error: "İade talepleri yüklenirken hata oluştu" },
             { status: 500 }
         );
     }

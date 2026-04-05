@@ -1,7 +1,7 @@
 ﻿import CategoryCard from "./CategoryCard";
 
 const categories = [
-  "Evcil Hayvan BakÄ±mÄ±",
+  "Evcil Hayvan Bakımı",
   "Evcil Hayvan Besleme",
   "Mama ve Aksesuar",
 ];
@@ -11,7 +11,7 @@ export default function CategorySection() {
     <section className="bg-neutral-50 py-16 ">
       <div className="max-w-7xl mx-auto px-4 text-center">
         <h2 className="text-3xl font-bold mb-10">
-          Milyonlarca ailenin tercih ettiÄŸi hizmetler
+          Milyonlarca ailenin tercih ettiği hizmetler
         </h2>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 justify-center">

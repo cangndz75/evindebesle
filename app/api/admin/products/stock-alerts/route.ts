@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
 
         if (!productId || typeof threshold !== "number" || threshold < 0) {
             return NextResponse.json(
-                { error: "GeÃ§ersiz parametreler" },
+                { error: "Geçersiz parametreler" },
                 { status: 400 }
             );
         }
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({
             success: true,
-            message: "Stok uyarÄ±sÄ± ayarlandÄ±",
+            message: "Stok uyarısı ayarlandı",
         });
     } catch (error) {
         console.error("Error setting stock alert:", error);
@@ -90,7 +90,7 @@ export async function DELETE(req: NextRequest) {
 
         return NextResponse.json({
             success: true,
-            message: "Stok uyarÄ±sÄ± kaldÄ±rÄ±ldÄ±",
+            message: "Stok uyarısı kaldırıldı",
         });
     } catch (error) {
         console.error("Error removing stock alert:", error);

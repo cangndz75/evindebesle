@@ -117,7 +117,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error("Stock fetch error:", error);
     return NextResponse.json(
-      { error: error.message || "Stok verileri yÃ¼klenirken bir hata oluÅŸtu" },
+      { error: error.message || "Stok verileri yüklenirken bir hata oluştu" },
       { status: 500 }
     );
   }

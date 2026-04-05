@@ -46,7 +46,7 @@ function BlogMobileHeader() {
           <span className="font-semibold text-primary">Blog</span>
         </nav>
         <hr className="my-3 border-border" />
-        <h1 className="text-2xl font-extrabold">Blog YazÄ±larÄ±</h1>
+        <h1 className="text-2xl font-extrabold">Blog Yazıları</h1>
       </div>
     </div>
   );
@@ -68,17 +68,17 @@ export async function generateMetadata({
 
   let title = "Moda ve Stil Blogu | Dark Velvet";
   let description =
-    "En son moda trendleri, stil Ã¶nerileri ve koleksiyon haberleri iÃ§in blogumuzu takip edin.";
+    "En son moda trendleri, stil önerileri ve koleksiyon haberleri için blogumuzu takip edin.";
 
   if (tag) {
-    title = `${tag} HakkÄ±nda Stil YazÄ±larÄ± | Dark Velvet`;
-    description = `${tag} ile ilgili en gÃ¼ncel moda yazÄ±larÄ±nÄ± okuyun.`;
+    title = `${tag} Hakkında Stil Yazıları | Dark Velvet`;
+    description = `${tag} ile ilgili en güncel moda yazılarını okuyun.`;
   } else if (category) {
-    title = `${category} Kategorisi Moda YazÄ±larÄ± | Dark Velvet`;
-    description = `${category} kategorisinde stil ve tasarÄ±m Ã¼zerine yazÄ±lar.`;
+    title = `${category} Kategorisi Moda Yazıları | Dark Velvet`;
+    description = `${category} kategorisinde stil ve tasarım üzerine yazılar.`;
   } else if (q) {
-    title = `"${q}" Arama SonuÃ§larÄ± | Dark Velvet Blog`;
-    description = `"${q}" ile ilgili blog sonuÃ§larÄ±nÄ± gÃ¶rÃ¼ntÃ¼leyin.`;
+    title = `"${q}" Arama Sonuçları | Dark Velvet Blog`;
+    description = `"${q}" ile ilgili blog sonuçlarını görüntüleyin.`;
   }
 
   const noIndex = !!q || !!tag || !!category;
@@ -140,7 +140,7 @@ export default async function BlogHomePage({
     "@type": "Blog",
     name: "Dark Velvet Blog",
     description:
-      "Moda, stil ve yaÅŸam Ã¼zerine en gÃ¼ncel blog yazÄ±larÄ±.",
+      "Moda, stil ve yaşam üzerine en güncel blog yazıları.",
     url: `${baseUrl}/blog`,
     blogPost: pageItems.map((post: any) => ({
       "@type": "BlogPosting",
@@ -182,7 +182,7 @@ export default async function BlogHomePage({
           <div className="lg:col-span-8 space-y-10">
             {pageItems.length === 0 ? (
               <div className="rounded-xl border p-6 text-sm text-muted-foreground">
-                AramanÄ±zla eÅŸleÅŸen yazÄ± bulunamadÄ±. Filtreleri temizleyip
+                Aramanızla eşleşen yazı bulunamadı. Filtreleri temizleyip
                 yeniden deneyin.
               </div>
             ) : (

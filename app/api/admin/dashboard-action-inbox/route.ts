@@ -9,13 +9,13 @@ export async function GET(req: NextRequest) {
     const session = await getServerSession(authConfig);
 
     if (!session?.user?.isAdmin) {
-      return NextResponse.json({ error: "Yetkisiz eriÅŸim" }, { status: 403 });
+      return NextResponse.json({ error: "Yetkisiz erişim" }, { status: 403 });
     }
 
     if (!prisma || !prisma.order) {
-      console.error("Prisma client veya order modeli bulunamadÄ±");
+      console.error("Prisma client veya order modeli bulunamadı");
       return NextResponse.json(
-        { error: "VeritabanÄ± baÄŸlantÄ± hatasÄ±", items: [] },
+        { error: "Veritabanı bağlantı hatası", items: [] },
         { status: 500 }
       );
     }
@@ -102,21 +102,21 @@ export async function GET(req: NextRequest) {
         ...(pendingOrders > 0 ? [{
           type: "pending_orders",
           count: pendingOrders,
-          label: `${pendingOrders} bekleyen sipariÅŸ`,
+          label: `${pendingOrders} bekleyen sipariş`,
           action: "/admin-orders?status=PAID",
           priority: "high",
         }] : []),
         ...(readyToShip > 0 ? [{
           type: "ready_to_ship",
           count: readyToShip,
-          label: `${readyToShip} sipariÅŸ kargoya hazÄ±r`,
+          label: `${readyToShip} sipariş kargoya hazır`,
           action: "/admin-orders?status=PREPARING",
           priority: "high",
         }] : []),
         ...(paymentFailed > 0 ? [{
           type: "payment_failed",
           count: paymentFailed,
-          label: `${paymentFailed} Ã¶deme hatasÄ± / fraud ÅŸÃ¼phesi`,
+          label: `${paymentFailed} ödeme hatası / fraud şüphesi`,
           action: "/admin-orders?paymentStatus=FAILED",
           priority: "high",
         }] : []),
@@ -130,7 +130,7 @@ export async function GET(req: NextRequest) {
         ...(outOfStockCount > 0 ? [{
           type: "out_of_stock",
           count: outOfStockCount,
-          label: `${outOfStockCount} Ã¼rÃ¼n tÃ¼kendi`,
+          label: `${outOfStockCount} ürün tükendi`,
           action: "/admin-products?stockStatus=outOfStock",
           priority: "high",
         }] : []),
@@ -147,7 +147,7 @@ export async function GET(req: NextRequest) {
   } catch (error: any) {
     console.error("Action inbox error:", error);
     return NextResponse.json(
-      { error: error.message || "Action inbox yÃ¼klenirken bir hata oluÅŸtu" },
+      { error: error.message || "Action inbox yüklenirken bir hata oluştu" },
       { status: 500 }
     );
   }

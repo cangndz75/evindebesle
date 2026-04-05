@@ -11,7 +11,7 @@ export default function TrackPage() {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!trackingNumber.trim()) {
-            setError("LÃ¼tfen sipariÅŸ numaranÄ±zÄ± veya kargo takip numaranÄ±zÄ± giriniz.");
+            setError("Lütfen sipariş numaranızı veya kargo takip numaranızı giriniz.");
             return;
         }
         setError("");
@@ -26,8 +26,8 @@ export default function TrackPage() {
                     <div className="inline-flex items-center justify-center w-16 h-16 bg-white/10 rounded-full mb-6">
                         <Truck className="w-8 h-8" />
                     </div>
-                    <h1 className="text-4xl font-bold mb-4">SipariÅŸimi Takip Et</h1>
-                    <p className="text-gray-300">SipariÅŸ numaranÄ±z veya kargo takip numaranÄ±z ile sipariÅŸinizi takip edin</p>
+                    <h1 className="text-4xl font-bold mb-4">Siparişimi Takip Et</h1>
+                    <p className="text-gray-300">Sipariş numaranız veya kargo takip numaranız ile siparişinizi takip edin</p>
                 </div>
             </div>
 
@@ -36,7 +36,7 @@ export default function TrackPage() {
                 <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
                     <form onSubmit={handleSubmit} className="max-w-xl mx-auto">
                         <label htmlFor="tracking" className="block text-sm font-medium text-gray-700 mb-2">
-                            SipariÅŸ veya Kargo Takip NumarasÄ±
+                            Sipariş veya Kargo Takip Numarası
                         </label>
                         <div className="flex gap-3">
                             <div className="relative flex-1">
@@ -46,7 +46,7 @@ export default function TrackPage() {
                                     type="text"
                                     value={trackingNumber}
                                     onChange={(e) => { setTrackingNumber(e.target.value); setError(""); }}
-                                    placeholder="Ã–rn: DV2026021234 veya 3300012345678"
+                                    placeholder="Örn: DV2026021234 veya 3300012345678"
                                     className="w-full pl-12 pr-4 py-4 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent text-gray-900"
                                 />
                             </div>
@@ -65,16 +65,16 @@ export default function TrackPage() {
                     </form>
                 </section>
 
-                {/* SipariÅŸ DurumlarÄ± */}
+                {/* Sipariş Durumları */}
                 <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-                    <h2 className="text-xl font-bold text-gray-900 mb-6">SipariÅŸ DurumlarÄ±</h2>
+                    <h2 className="text-xl font-bold text-gray-900 mb-6">Sipariş Durumları</h2>
                     <div className="space-y-4">
                         {[
-                            { icon: <Clock className="w-5 h-5" />, status: "SipariÅŸ AlÄ±ndÄ±", desc: "SipariÅŸiniz baÅŸarÄ±yla oluÅŸturuldu ve onay bekliyor.", color: "bg-blue-100 text-blue-700" },
-                            { icon: <CheckCircle2 className="w-5 h-5" />, status: "HazÄ±rlanÄ±yor", desc: "SipariÅŸiniz depomuzda hazÄ±rlanÄ±yor.", color: "bg-yellow-100 text-yellow-700" },
-                            { icon: <Package className="w-5 h-5" />, status: "Kargoya Verildi", desc: "SipariÅŸiniz kargo firmasÄ±na teslim edildi.", color: "bg-orange-100 text-orange-700" },
-                            { icon: <Truck className="w-5 h-5" />, status: "Yolda", desc: "SipariÅŸiniz daÄŸÄ±tÄ±m aÅŸamasÄ±nda.", color: "bg-purple-100 text-purple-700" },
-                            { icon: <MapPin className="w-5 h-5" />, status: "Teslim Edildi", desc: "SipariÅŸiniz baÅŸarÄ±yla teslim edildi.", color: "bg-green-100 text-green-700" },
+                            { icon: <Clock className="w-5 h-5" />, status: "Sipariş Alındı", desc: "Siparişiniz başarıyla oluşturuldu ve onay bekliyor.", color: "bg-blue-100 text-blue-700" },
+                            { icon: <CheckCircle2 className="w-5 h-5" />, status: "Hazırlanıyor", desc: "Siparişiniz depomuzda hazırlanıyor.", color: "bg-yellow-100 text-yellow-700" },
+                            { icon: <Package className="w-5 h-5" />, status: "Kargoya Verildi", desc: "Siparişiniz kargo firmasına teslim edildi.", color: "bg-orange-100 text-orange-700" },
+                            { icon: <Truck className="w-5 h-5" />, status: "Yolda", desc: "Siparişiniz dağıtım aşamasında.", color: "bg-purple-100 text-purple-700" },
+                            { icon: <MapPin className="w-5 h-5" />, status: "Teslim Edildi", desc: "Siparişiniz başarıyla teslim edildi.", color: "bg-green-100 text-green-700" },
                         ].map((item, i) => (
                             <div key={i} className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
                                 <div className={`p-2 rounded-lg ${item.color}`}>
@@ -89,30 +89,30 @@ export default function TrackPage() {
                     </div>
                 </section>
 
-                {/* Ãœye GiriÅŸi */}
+                {/* Üye Girişi */}
                 <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
-                    <h2 className="text-xl font-bold text-gray-900 mb-3">HesabÄ±nÄ±zdan Takip Edin</h2>
+                    <h2 className="text-xl font-bold text-gray-900 mb-3">Hesabınızdan Takip Edin</h2>
                     <p className="text-gray-600 mb-6">
-                        Dark Velvet hesabÄ±nÄ±za giriÅŸ yaparak tÃ¼m sipariÅŸlerinizi detaylÄ± olarak takip edebilirsiniz.
+                        Dark Velvet hesabınıza giriş yaparak tüm siparişlerinizi detaylı olarak takip edebilirsiniz.
                     </p>
                     <Link
                         href="/profile/orders"
                         className="inline-flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition-colors font-medium"
                     >
                         <Package className="w-4 h-4" />
-                        SipariÅŸlerim
+                        Siparişlerim
                     </Link>
                 </section>
 
                 {/* Destek */}
                 <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-8 text-center">
-                    <h3 className="text-lg font-bold text-gray-900 mb-2">SipariÅŸinizle ilgili bir sorun mu var?</h3>
-                    <p className="text-gray-600 mb-4">Destek ekibimiz size yardÄ±mcÄ± olmaktan mutluluk duyar.</p>
+                    <h3 className="text-lg font-bold text-gray-900 mb-2">Siparişinizle ilgili bir sorun mu var?</h3>
+                    <p className="text-gray-600 mb-4">Destek ekibimiz size yardımcı olmaktan mutluluk duyar.</p>
                     <Link
                         href="/contact"
                         className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-medium"
                     >
-                        Bize UlaÅŸÄ±n
+                        Bize Ulaşın
                     </Link>
                 </div>
             </div>

@@ -19,21 +19,21 @@ export async function POST(req: NextRequest) {
 
         if (!productIds || !Array.isArray(productIds) || productIds.length === 0) {
             return NextResponse.json(
-                { error: "ÃœrÃ¼n ID'leri gerekli" },
+                { error: "Ürün ID'leri gerekli" },
                 { status: 400 }
             );
         }
 
         if (!updateType || !["PERCENT_INCREASE", "PERCENT_DECREASE", "FIXED_INCREASE", "FIXED_DECREASE", "SET_PRICE"].includes(updateType)) {
             return NextResponse.json(
-                { error: "GeÃ§ersiz gÃ¼ncelleme tipi" },
+                { error: "Geçersiz güncelleme tipi" },
                 { status: 400 }
             );
         }
 
         if (typeof value !== "number" || value < 0) {
             return NextResponse.json(
-                { error: "GeÃ§erli bir deÄŸer giriniz" },
+                { error: "Geçerli bir değer giriniz" },
                 { status: 400 }
             );
         }
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
 
         if (products.length === 0) {
             return NextResponse.json(
-                { error: "ÃœrÃ¼n bulunamadÄ±" },
+                { error: "Ürün bulunamadı" },
                 { status: 404 }
             );
         }
@@ -129,7 +129,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({
             success: true,
-            message: `${products.length} Ã¼rÃ¼n fiyatÄ± gÃ¼ncellendi`,
+            message: `${products.length} ürün fiyatı güncellendi`,
             updates: updates.map((u: any) => ({
                 id: u.id,
                 oldPrice: u.oldPrice,
@@ -139,7 +139,7 @@ export async function POST(req: NextRequest) {
     } catch (error) {
         console.error("Error in bulk price update:", error);
         return NextResponse.json(
-            { error: "Ä°ÅŸlem sÄ±rasÄ±nda bir hata oluÅŸtu" },
+            { error: "İşlem sırasında bir hata oluştu" },
             { status: 500 }
         );
     }

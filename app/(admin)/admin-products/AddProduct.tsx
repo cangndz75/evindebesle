@@ -36,8 +36,8 @@ type Color = {
   hexCode: string;
   description?: string;
   images: string[];
-  price?: number; // Renk bazlÄ± fiyat (opsiyonel)
-  sizeStocks?: { [sizeName: string]: number }; // Her beden iÃ§in stok
+  price?: number; // Renk bazlı fiyat (opsiyonel)
+  sizeStocks?: { [sizeName: string]: number }; // Her beden için stok
 };
 
 type Size = {
@@ -60,7 +60,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
   const [price, setPrice] = useState("");
   const [originalPrice, setOriginalPrice] = useState("");
   const [image, setImage] = useState("");
-  const [uploadedImages, setUploadedImages] = useState<string[]>([]); // YÃ¼klenen tÃ¼m fotoÄŸraflar
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]); // Yüklenen tüm fotoğraflar
   const [primaryImage, setPrimaryImage] = useState("");
   const [secondaryImage, setSecondaryImage] = useState("");
   const [gender, setGender] = useState<"MALE" | "FEMALE" | "UNISEX" | "">("");
@@ -148,11 +148,11 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
             return updated;
           });
         } else {
-          toast.error("GÃ¶rsel Cloudinary'e yÃ¼klenemedi");
+          toast.error("Görsel Cloudinary'e yüklenemedi");
         }
       } catch (error) {
         console.error("Upload error:", error);
-        toast.error("GÃ¶rsel yÃ¼klenirken hata oluÅŸtu");
+        toast.error("Görsel yüklenirken hata oluştu");
       } finally {
         setLoading(false);
       }
@@ -191,7 +191,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
         }
       } catch (error) {
         console.error("Upload error:", error);
-        toast.error("FotoÄŸraflar yÃ¼klenirken hata oluÅŸtu");
+        toast.error("Fotoğraflar yüklenirken hata oluştu");
       } finally {
         setLoading(false);
       }
@@ -259,17 +259,17 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
 
       if (image?.startsWith("data:image")) {
         const url = await uploadBase64ToCloudinary(image);
-        if (!url) throw new Error("Ana gÃ¶rsel yÃ¼klenemedi");
+        if (!url) throw new Error("Ana görsel yüklenemedi");
         finalImage = url;
       }
       if (primaryImage?.startsWith("data:image")) {
         const url = await uploadBase64ToCloudinary(primaryImage);
-        if (!url) throw new Error("Birinci gÃ¶rsel yÃ¼klenemedi");
+        if (!url) throw new Error("Birinci görsel yüklenemedi");
         finalPrimaryImage = url;
       }
       if (secondaryImage?.startsWith("data:image")) {
         const url = await uploadBase64ToCloudinary(secondaryImage);
-        if (!url) throw new Error("Ä°kinci gÃ¶rsel yÃ¼klenemedi");
+        if (!url) throw new Error("İkinci görsel yüklenemedi");
         finalSecondaryImage = url;
       }
 
@@ -280,7 +280,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
               if (img.startsWith("data:image")) {
                 const url = await uploadBase64ToCloudinary(img);
                 if (!url) {
-                  throw new Error(`${c.name} rengi iÃ§in gÃ¶rsel yÃ¼klenemedi`);
+                  throw new Error(`${c.name} rengi için görsel yüklenemedi`);
                 }
                 return url;
               }
@@ -317,7 +317,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
             images: await Promise.all(primaryColor.images.map(async (img: string) => {
               if (img.startsWith("data:image")) {
                 const url = await uploadBase64ToCloudinary(img);
-                if (!url) throw new Error(`${primaryColor.name} rengi iÃ§in gÃ¶rsel yÃ¼klenemedi`);
+                if (!url) throw new Error(`${primaryColor.name} rengi için görsel yüklenemedi`);
                 return url;
               }
               return img;
@@ -358,7 +358,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
       }
     } catch (error: any) {
       console.error("Hata:", error);
-      toast.error(error.message || "ÃœrÃ¼n eklenirken bir hata oluÅŸtu");
+      toast.error(error.message || "Ürün eklenirken bir hata oluştu");
     } finally {
       setLoading(false);
     }
@@ -397,14 +397,14 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
       <DialogTrigger asChild>
         {children || (
           <Button variant="outline" className="w-full sm:w-auto">
-            Yeni ÃœrÃ¼n Ekle
+            Yeni Ürün Ekle
           </Button>
         )}
       </DialogTrigger>
 
       <DialogContent className="max-w-4xl h-[95vh] md:h-[90vh] w-[95vw] md:w-full flex flex-col p-0 md:p-6">
         <DialogHeader className="px-4 md:px-0 pt-4 md:pt-0">
-          <DialogTitle className="text-xl md:text-2xl font-bold">Yeni ÃœrÃ¼n Ekle</DialogTitle>
+          <DialogTitle className="text-xl md:text-2xl font-bold">Yeni Ürün Ekle</DialogTitle>
         </DialogHeader>
 
         <Tabs defaultValue="basic" className="w-full flex-1 flex flex-col overflow-hidden">
@@ -420,11 +420,11 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
 
           <TabsContent value="basic" className="space-y-5 md:space-y-4 mt-4 md:mt-4 flex-1 overflow-y-auto px-4 md:px-0 pb-4 md:pb-0">
             <div className="space-y-2">
-              <Label className="text-sm md:text-base font-semibold">ÃœrÃ¼n AdÄ± *</Label>
+              <Label className="text-sm md:text-base font-semibold">Ürün Adı *</Label>
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="ÃœrÃ¼n adÄ±"
+                placeholder="Ürün adı"
                 className="h-12 md:h-10 text-base md:text-sm"
               />
             </div>
@@ -450,7 +450,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-sm md:text-base font-semibold">Orijinal Fiyat (Ä°ndirimli Ã¼rÃ¼nler iÃ§in)</Label>
+                <Label className="text-sm md:text-base font-semibold">Orijinal Fiyat (İndirimli ürünler için)</Label>
                 <Input
                   type="number"
                   step="0.01"
@@ -461,7 +461,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                 />
                 {originalPrice && price && parseFloat(originalPrice) > parseFloat(price) && (
                   <p className="text-xs md:text-xs text-green-600 font-medium mt-1">
-                    Ä°ndirim: %{Math.round(((parseFloat(originalPrice) - parseFloat(price)) / parseFloat(originalPrice)) * 100)}
+                    İndirim: %{Math.round(((parseFloat(originalPrice) - parseFloat(price)) / parseFloat(originalPrice)) * 100)}
                   </p>
                 )}
               </div>
@@ -471,11 +471,11 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                 <Label className="text-sm md:text-base font-semibold">Cinsiyet</Label>
                 <Select value={gender} onValueChange={(v: any) => setGender(v)}>
                   <SelectTrigger className="h-12 md:h-10 text-base md:text-sm">
-                    <SelectValue placeholder="SeÃ§iniz" />
+                    <SelectValue placeholder="Seçiniz" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="MALE">Erkek</SelectItem>
-                    <SelectItem value="FEMALE">KadÄ±n</SelectItem>
+                    <SelectItem value="FEMALE">Kadın</SelectItem>
                     <SelectItem value="UNISEX">Unisex</SelectItem>
                   </SelectContent>
                 </Select>
@@ -497,7 +497,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                   }
                 }}>
                   <SelectTrigger className="h-12 md:h-10 text-base md:text-sm">
-                    <SelectValue placeholder="SeÃ§iniz" />
+                    <SelectValue placeholder="Seçiniz" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="LETTER">Harf (XS, S, M, L, XL)</SelectItem>
@@ -506,18 +506,18 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label className="text-sm md:text-base font-semibold">KumaÅŸ Tipi</Label>
+                <Label className="text-sm md:text-base font-semibold">Kumaş Tipi</Label>
                 <Input
                   value={fabricType}
                   onChange={(e) => setFabricType(e.target.value)}
-                  placeholder="Ã–rn: Pamuk, Polyester"
+                  placeholder="Örn: Pamuk, Polyester"
                   className="h-12 md:h-10 text-base md:text-sm"
                 />
               </div>
             </div>
             {sizeType && (
               <div className="space-y-2">
-                <Label className="text-sm md:text-base font-semibold">Beden SeÃ§enekleri</Label>
+                <Label className="text-sm md:text-base font-semibold">Beden Seçenekleri</Label>
                 <div className="flex flex-wrap gap-3 md:gap-2 mt-2">
                   {(sizeType === "LETTER" ? letterSizes : numberSizes).map((size) => (
                     <div key={size} className="flex items-center space-x-2">
@@ -542,11 +542,11 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
               </div>
             )}
             <div className="space-y-2">
-              <Label className="text-sm md:text-base font-semibold">KÄ±sa AÃ§Ä±klama</Label>
+              <Label className="text-sm md:text-base font-semibold">Kısa Açıklama</Label>
               <Textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="KÄ±sa Ã¼rÃ¼n aÃ§Ä±klamasÄ±"
+                placeholder="Kısa ürün açıklaması"
                 rows={4}
                 className="text-base md:text-sm min-h-[100px] md:min-h-[80px]"
               />
@@ -554,7 +554,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
             <div className="space-y-2">
               <Label className="text-sm md:text-base font-semibold">Slug (URL)</Label>
               <p className="text-sm md:text-sm text-gray-600 mt-1 p-3 md:p-2 bg-gray-50 rounded-md border border-gray-200">
-                {generateSlug(name) || "ÃœrÃ¼n adÄ± girildiÄŸinde otomatik oluÅŸturulacak"}
+                {generateSlug(name) || "Ürün adı girildiğinde otomatik oluşturulacak"}
               </p>
             </div>
 
@@ -565,7 +565,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                 <div className="space-y-3 md:space-y-2">
                   <div className="flex flex-col md:flex-row gap-3 md:gap-2">
                     <Input
-                      placeholder="Renk adÄ± (Ã¶rn: KÄ±rmÄ±zÄ±)"
+                      placeholder="Renk adı (örn: Kırmızı)"
                       value={primaryColorName}
                       onChange={(e) => setPrimaryColorName(e.target.value)}
                       className="flex-1 min-w-0 h-12 md:h-10 text-base md:text-sm"
@@ -576,7 +576,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                         value={primaryColorHex || "#FF0000"}
                         onChange={(e) => setPrimaryColorHex(e.target.value)}
                         className="w-14 h-12 md:w-12 md:h-10 rounded-md border-2 border-gray-300 cursor-pointer"
-                        title="Renk seÃ§"
+                        title="Renk seç"
                       />
                       <Input
                         placeholder="#FF0000"
@@ -617,16 +617,16 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                   </div>
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label>Renk AÃ§Ä±klamasÄ± ({primaryColor.name})</Label>
+                      <Label>Renk Açıklaması ({primaryColor.name})</Label>
                       <Textarea
                         value={primaryColor.description || ""}
                         onChange={(e) => setPrimaryColor({ ...primaryColor, description: e.target.value })}
-                        placeholder={`${primaryColor.name} renk seÃ§eneÄŸi iÃ§in Ã¶zel aÃ§Ä±klama...`}
+                        placeholder={`${primaryColor.name} renk seçeneği için özel açıklama...`}
                         rows={3}
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Renk FotoÄŸraflarÄ±</Label>
+                      <Label>Renk Fotoğrafları</Label>
                       <div className="flex gap-2">
                         <Input
                           type="file"
@@ -648,7 +648,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                                 }
                               } catch (error) {
                                 console.error("Upload error:", error);
-                                alert("FotoÄŸraflar yÃ¼klenirken hata oluÅŸtu");
+                                alert("Fotoğraflar yüklenirken hata oluştu");
                               } finally {
                                 setLoading(false);
                                 e.target.value = "";
@@ -663,12 +663,12 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                           disabled={loading}
                         >
                           <Plus className="w-4 h-4 mr-2" />
-                          FotoÄŸraf Ekle
+                          Fotoğraf Ekle
                         </Button>
                       </div>
                       <Input
                         type="text"
-                        placeholder="veya GÃ¶rsel URL girin (base64 desteklenir)..."
+                        placeholder="veya Görsel URL girin (base64 desteklenir)..."
                         className="text-sm"
                         onKeyDown={async (e) => {
                           if (e.key === "Enter") {
@@ -685,13 +685,13 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                                       ...primaryColor,
                                       images: [...primaryColor.images, cloudinaryUrl],
                                     });
-                                    toast.success("GÃ¶rsel Cloudinary'e yÃ¼klendi");
+                                    toast.success("Görsel Cloudinary'e yüklendi");
                                   } else {
-                                    toast.error("GÃ¶rsel yÃ¼klenemedi");
+                                    toast.error("Görsel yüklenemedi");
                                   }
                                 } catch (error) {
                                   console.error("Upload error:", error);
-                                  toast.error("GÃ¶rsel yÃ¼klenirken hata oluÅŸtu");
+                                  toast.error("Görsel yüklenirken hata oluştu");
                                 } finally {
                                   setLoading(false);
                                 }
@@ -737,7 +737,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
               )}
             </div>
             <div className="space-y-2">
-              <Label className="text-sm md:text-base font-semibold">Ana GÃ¶rsel</Label>
+              <Label className="text-sm md:text-base font-semibold">Ana Görsel</Label>
               <div className="space-y-3 md:space-y-2">
                 <div className="flex gap-2">
                   <div className="relative flex-1">
@@ -760,7 +760,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                             }
                           } catch (error) {
                             console.error("Upload error:", error);
-                            toast.error("FotoÄŸraflar yÃ¼klenirken hata oluÅŸtu");
+                            toast.error("Fotoğraflar yüklenirken hata oluştu");
                           } finally {
                             setLoading(false);
                             e.target.value = "";
@@ -789,7 +789,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                           d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                         />
                       </svg>
-                      {loading ? "YÃ¼kleniyor..." : "FotoÄŸraf YÃ¼kle"}
+                      {loading ? "Yükleniyor..." : "Fotoğraf Yükle"}
                     </Button>
                   </div>
                 </div>
@@ -808,13 +808,13 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                           if (!uploadedImages.includes(cloudinaryUrl)) {
                             setUploadedImages((prev) => [...prev, cloudinaryUrl]);
                           }
-                          toast.success("GÃ¶rsel Cloudinary'e yÃ¼klendi");
+                          toast.success("Görsel Cloudinary'e yüklendi");
                         } else {
-                          toast.error("GÃ¶rsel yÃ¼klenemedi");
+                          toast.error("Görsel yüklenemedi");
                         }
                       } catch (error) {
                         console.error("Upload error:", error);
-                        toast.error("GÃ¶rsel yÃ¼klenirken hata oluÅŸtu");
+                        toast.error("Görsel yüklenirken hata oluştu");
                       } finally {
                         setLoading(false);
                       }
@@ -825,18 +825,18 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                       }
                     }
                   }}
-                  placeholder="veya GÃ¶rsel URL girin (base64 desteklenir)..."
+                  placeholder="veya Görsel URL girin (base64 desteklenir)..."
                 />
                 {uploadedImages.length > 0 && (
                   <div className="mt-4 space-y-4">
-                    <p className="text-sm font-medium">YÃ¼klenen FotoÄŸraflar:</p>
+                    <p className="text-sm font-medium">Yüklenen Fotoğraflar:</p>
                     <div className="grid grid-cols-3 gap-4">
                       {uploadedImages.map((imgUrl, index) => (
                         <div key={index} className="space-y-2">
                           <div className="relative aspect-square">
                             <img
                               src={imgUrl}
-                              alt={`FotoÄŸraf ${index + 1}`}
+                              alt={`Fotoğraf ${index + 1}`}
                               className="w-full h-full object-cover rounded border"
                             />
                             {primaryImage === imgUrl ? (
@@ -845,7 +845,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                               </div>
                             ) : secondaryImage === imgUrl ? (
                               <div className="absolute top-1 left-1 bg-blue-500 text-white text-xs px-2 py-1 rounded z-10">
-                                Ä°kinci Foto
+                                İkinci Foto
                               </div>
                             ) : null}
                           </div>
@@ -861,13 +861,13 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                                     setPrimaryImage("");
                                   } else {
                                     if (secondaryImage === imgUrl) {
-                                      toast.warning("Bir fotoÄŸraf hem ana hem ikinci fotoÄŸraf olamaz!");
+                                      toast.warning("Bir fotoğraf hem ana hem ikinci fotoğraf olamaz!");
                                       return;
                                     }
                                     setPrimaryImage(imgUrl);
                                   }
                                 }}
-                                onChange={() => { }} // onChange boÅŸ, onClick kullanÄ±yoruz
+                                onChange={() => { }} // onChange boş, onClick kullanıyoruz
                                 className="w-4 h-4 cursor-pointer accent-green-600"
                                 style={{
                                   width: '16px',
@@ -875,7 +875,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                                 }}
                               />
                               <span className={primaryImage === imgUrl ? "font-semibold text-green-600" : ""}>
-                                Ana foto olarak seÃ§
+                                Ana foto olarak seç
                               </span>
                             </label>
                             <label className="flex items-center gap-2 text-sm cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors">
@@ -889,17 +889,17 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                                     setSecondaryImage("");
                                   } else {
                                     if (!primaryImage) {
-                                      toast.warning("Ã–nce ana fotoÄŸraf seÃ§melisiniz!");
+                                      toast.warning("Önce ana fotoğraf seçmelisiniz!");
                                       return;
                                     }
                                     if (primaryImage === imgUrl) {
-                                      toast.warning("Bir fotoÄŸraf hem ana hem ikinci fotoÄŸraf olamaz!");
+                                      toast.warning("Bir fotoğraf hem ana hem ikinci fotoğraf olamaz!");
                                       return;
                                     }
                                     setSecondaryImage(imgUrl);
                                   }
                                 }}
-                                onChange={() => { }} // onChange boÅŸ, onClick kullanÄ±yoruz
+                                onChange={() => { }} // onChange boş, onClick kullanıyoruz
                                 className="w-4 h-4 cursor-pointer accent-blue-600"
                                 style={{
                                   width: '16px',
@@ -907,7 +907,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                                 }}
                               />
                               <span className={secondaryImage === imgUrl ? "font-semibold text-blue-600" : ""}>
-                                Ä°kinci fotoÄŸraf olarak seÃ§
+                                İkinci fotoğraf olarak seç
                               </span>
                             </label>
                             <Button
@@ -952,7 +952,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
               <Label className="text-sm md:text-base font-semibold">Yeni Renk Ekle</Label>
               <div className="flex gap-2 flex-wrap">
                 <Input
-                  placeholder="Renk adÄ± (Ã¶rn: KÄ±rmÄ±zÄ±)"
+                  placeholder="Renk adı (örn: Kırmızı)"
                   value={newColorName}
                   onChange={(e) => setNewColorName(e.target.value)}
                   className="flex-1 min-w-[150px]"
@@ -963,7 +963,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                     value={newColorHex || "#FF0000"}
                     onChange={(e) => setNewColorHex(e.target.value)}
                     className="w-12 h-10 rounded border cursor-pointer"
-                    title="Renk seÃ§"
+                    title="Renk seç"
                   />
                   <Input
                     placeholder="#FF0000"
@@ -1000,12 +1000,12 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                           className="text-red-500 hover:text-red-700 hover:bg-red-50"
                         >
                           <Trash2 className="w-4 h-4 mr-2" />
-                          Rengi KaldÄ±r
+                          Rengi Kaldır
                         </Button>
                       </div>
 
                       <div className="space-y-2">
-                        <Label>Renk AÃ§Ä±klamasÄ± ({color.name})</Label>
+                        <Label>Renk Açıklaması ({color.name})</Label>
                         <Textarea
                           value={color.description || ""}
                           onChange={(e) => {
@@ -1013,7 +1013,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                             newColors[index] = { ...color, description: e.target.value };
                             setColors(newColors);
                           }}
-                          placeholder={`${color.name} iÃ§in Ã¶zel aÃ§Ä±klama...`}
+                          placeholder={`${color.name} için özel açıklama...`}
                           rows={3}
                         />
                       </div>
@@ -1033,14 +1033,14 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                               };
                               setColors(newColors);
                             }}
-                            placeholder="Ana fiyatÄ± kullanmak iÃ§in boÅŸ bÄ±rakÄ±n"
+                            placeholder="Ana fiyatı kullanmak için boş bırakın"
                           />
                         </div>
                       </div>
 
                       {sizeType && selectedSizeOptions.length > 0 && (
                         <div className="space-y-3">
-                          <Label className="text-sm font-semibold">Beden StoklarÄ± ({color.name})</Label>
+                          <Label className="text-sm font-semibold">Beden Stokları ({color.name})</Label>
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                             {selectedSizeOptions.map((size) => {
                               const sizeStock = color.sizeStocks?.[size] || 0;
@@ -1073,7 +1073,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                       )}
 
                       <div className="space-y-3">
-                        <Label>FotoÄŸraflar</Label>
+                        <Label>Fotoğraflar</Label>
                         <div className="space-y-2">
                           <div className="relative">
                             <Input
@@ -1098,11 +1098,11 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                               disabled={loading}
                             >
                               <Plus className="w-4 h-4 mr-2" />
-                              FotoÄŸraf YÃ¼kle
+                              Fotoğraf Yükle
                             </Button>
                           </div>
                           <Input
-                            placeholder="veya FotoÄŸraf URL girin..."
+                            placeholder="veya Fotoğraf URL girin..."
                             className="text-sm"
                             onKeyDown={(e) => {
                               if (e.key === "Enter") {
@@ -1147,17 +1147,17 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
           </TabsContent>
 
           <TabsContent value="stock" className="space-y-5 md:space-y-4 mt-4 md:mt-4 flex-1 overflow-y-auto px-4 md:px-0 pb-4 md:pb-0">
-            {/* Ana ÃœrÃ¼n Stok ve Fiyat */}
+            {/* Ana Ürün Stok ve Fiyat */}
             <div className="space-y-4 border-b border-gray-200 pb-4">
               <div>
-                <Label className="text-lg font-semibold">Ana ÃœrÃ¼n</Label>
-                <p className="text-sm text-muted-foreground mb-4">Ana Ã¼rÃ¼n iÃ§in genel stok ve fiyat ayarlarÄ±</p>
+                <Label className="text-lg font-semibold">Ana Ürün</Label>
+                <p className="text-sm text-muted-foreground mb-4">Ana ürün için genel stok ve fiyat ayarları</p>
               </div>
 
-              {/* Ana ÃœrÃ¼n Fiyat */}
+              {/* Ana Ürün Fiyat */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>Fiyat (Ana ÃœrÃ¼n)</Label>
+                  <Label>Fiyat (Ana Ürün)</Label>
                   <Input
                     type="number"
                     step="0.01"
@@ -1168,10 +1168,10 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                 </div>
               </div>
 
-              {/* Ana ÃœrÃ¼n Beden StoklarÄ± */}
+              {/* Ana Ürün Beden Stokları */}
               {sizeType && selectedSizeOptions.length > 0 && (
                 <div>
-                  <Label>Beden StoklarÄ± (Ana ÃœrÃ¼n)</Label>
+                  <Label>Beden Stokları (Ana Ürün)</Label>
                   <div className="space-y-2 mt-2">
                     {selectedSizeOptions.map((size) => {
                       const sizeStock = sizes.find(s => s.name === size)?.stock || 0;
@@ -1203,7 +1203,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
               )}
               {sizeType && selectedSizeOptions.length === 0 && (
                 <p className="text-sm text-muted-foreground">
-                  Ã–nce "Temel" tab'Ä±nda beden seÃ§eneklerini seÃ§in.
+                  Önce "Temel" tab'ında beden seçeneklerini seçin.
                 </p>
               )}
             </div>
@@ -1229,15 +1229,15 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                           price: e.target.value ? parseFloat(e.target.value) : undefined
                         });
                       }}
-                      placeholder="Ana Ã¼rÃ¼n fiyatÄ±"
+                      placeholder="Ana ürün fiyatı"
                     />
                   </div>
                 </div>
 
-                {/* Ana Renk Beden StoklarÄ± */}
+                {/* Ana Renk Beden Stokları */}
                 {sizeType && selectedSizeOptions.length > 0 && (
                   <div>
-                    <Label>Beden StoklarÄ± ({primaryColor.name})</Label>
+                    <Label>Beden Stokları ({primaryColor.name})</Label>
                     <div className="space-y-2 mt-2">
                       {selectedSizeOptions.map((size) => {
                         const sizeStock = primaryColor.sizeStocks?.[size] || 0;
@@ -1269,7 +1269,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
               </div>
             )}
 
-            {/* DiÄŸer Renkler Stok ve Fiyat */}
+            {/* Diğer Renkler Stok ve Fiyat */}
             {colors.map((color, colorIndex) => (
               <div key={colorIndex} className="space-y-4 border-b pb-4">
                 <div>
@@ -1292,15 +1292,15 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
                         };
                         setColors(newColors);
                       }}
-                      placeholder="Ana Ã¼rÃ¼n fiyatÄ±"
+                      placeholder="Ana ürün fiyatı"
                     />
                   </div>
                 </div>
 
-                {/* Renk Beden StoklarÄ± */}
+                {/* Renk Beden Stokları */}
                 {sizeType && selectedSizeOptions.length > 0 && (
                   <div>
-                    <Label>Beden StoklarÄ± ({color.name})</Label>
+                    <Label>Beden Stokları ({color.name})</Label>
                     <div className="space-y-2 mt-2">
                       {selectedSizeOptions.map((size) => {
                         const sizeStock = color.sizeStocks?.[size] || 0;
@@ -1336,7 +1336,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
 
             {!primaryColor && colors.length === 0 && (
               <p className="text-sm text-muted-foreground text-center py-8">
-                Ã–nce renk ekleyin, sonra stok yÃ¶netimi yapabilirsiniz.
+                Önce renk ekleyin, sonra stok yönetimi yapabilirsiniz.
               </p>
             )}
           </TabsContent>
@@ -1347,7 +1347,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
               <Textarea
                 value={detailText}
                 onChange={(e) => setDetailText(e.target.value)}
-                placeholder="<p>KalÄ±n yazÄ±</p><p>Normal yazÄ±</p>"
+                placeholder="<p>Kalın yazı</p><p>Normal yazı</p>"
                 rows={10}
                 className="font-mono"
               />
@@ -1356,7 +1356,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
               <Label>Etiketler</Label>
               <div className="flex gap-2">
                 <Input
-                  placeholder="Etiket adÄ± (Ã¶rn: Moda)"
+                  placeholder="Etiket adı (örn: Moda)"
                   value={newTag}
                   onChange={(e) => setNewTag(e.target.value)}
                   onKeyDown={(e) => {
@@ -1394,9 +1394,9 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
 
           <TabsContent value="combinations" className="space-y-5 md:space-y-4 mt-4 md:mt-4 flex-1 overflow-y-auto px-4 md:px-0 pb-4 md:pb-0">
             <div className="space-y-2">
-              <Label className="text-sm md:text-base font-semibold">ÃœrÃ¼n Ara</Label>
+              <Label className="text-sm md:text-base font-semibold">Ürün Ara</Label>
               <Input
-                placeholder="ÃœrÃ¼n adÄ± ile ara..."
+                placeholder="Ürün adı ile ara..."
                 value={searchProduct}
                 onChange={(e) => {
                   setSearchProduct(e.target.value);
@@ -1422,7 +1422,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
               )}
             </div>
             <div>
-              <Label>SeÃ§ili ÃœrÃ¼nler</Label>
+              <Label>Seçili Ürünler</Label>
               <div className="space-y-2 mt-2">
                 {combinations.map((productId) => (
                   <div
@@ -1452,7 +1452,7 @@ export function AddProductModal({ onSuccess, children }: { onSuccess: () => void
             disabled={loading}
             className="w-full sm:w-auto h-12 md:h-10 text-base md:text-sm order-2 sm:order-1"
           >
-            Ä°ptal
+            İptal
           </Button>
           <Button
             disabled={loading || !name || !price}

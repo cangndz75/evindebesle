@@ -12,7 +12,7 @@ export default function AnnouncementBar() {
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         <div className="flex items-center justify-center">
           <span className="font-light tracking-wide">
-            ÃœCRETSÄ°Z KARGO {threshold}â‚º+
+            ÜCRETSİZ KARGO {threshold}₺+
           </span>
         </div>
       </div>

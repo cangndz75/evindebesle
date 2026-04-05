@@ -146,7 +146,7 @@ export default function CampaignComposerPage() {
 
   return (
     <div className="flex flex-col bg-gray-50 h-full w-full">
-      {/* A) ÃœST BAR: Kampanya Meta */}
+      {/* A) ÜST BAR: Kampanya Meta */}
       <div className="flex-shrink-0">
         <CampaignMetaBar
           draft={draft}
@@ -158,9 +158,9 @@ export default function CampaignComposerPage() {
         />
       </div>
 
-      {/* B) ORTA ALAN: EditÃ¶r + Preview */}
+      {/* B) ORTA ALAN: Editör + Preview */}
       <div className="flex-1 flex overflow-hidden" style={{ minHeight: 0 }}>
-        {/* Sol: EditÃ¶r */}
+        {/* Sol: Editör */}
         <div className="flex-1 flex flex-col border-r border-gray-200 bg-white" style={{ minWidth: 0 }}>
           <EditorTabs
             draft={draft}
@@ -174,12 +174,12 @@ export default function CampaignComposerPage() {
           />
         </div>
 
-        {/* SaÄŸ: Sidebar (Preview veya Inspector) */}
+        {/* Sağ: Sidebar (Preview veya Inspector) */}
         <div className="w-[360px] border-l border-gray-200 bg-gray-50 overflow-y-auto flex-shrink-0 transition-all duration-300">
           {selectedBlock ? (
             <div className="h-full flex flex-col">
               <div className="p-4 border-b border-gray-200 bg-white flex items-center justify-between">
-                <h3 className="font-semibold text-sm">Blok AyarlarÄ±</h3>
+                <h3 className="font-semibold text-sm">Blok Ayarları</h3>
                 <button
                   onClick={() => setSelectedBlockId(null)}
                   className="text-xs text-blue-600 hover:text-blue-800"
@@ -206,7 +206,7 @@ export default function CampaignComposerPage() {
         </div>
       </div>
 
-      {/* C) ALT BAR: GÃ¶nderim ve Test */}
+      {/* C) ALT BAR: Gönderim ve Test */}
       <div className="flex-shrink-0">
         <SendBar
           draft={draft}

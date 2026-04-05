@@ -169,13 +169,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
     if (!category) {
         return {
-            title: "Kategori BulunamadÄ±",
+            title: "Kategori Bulunamadı",
         };
     }
 
     return {
         title: `${category.name} - Dark Velvet`,
-        description: category.description || `${category.name} kategorisindeki Ã¼rÃ¼nleri keÅŸfedin.`,
+        description: category.description || `${category.name} kategorisindeki ürünleri keşfedin.`,
         alternates: {
             canonical: `${process.env.NEXT_PUBLIC_BASE_URL || "https://darkvelvet.com"}/category/${slug}`
         }

@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
     const session = await getServerSession(authConfig);
 
     if (!session?.user?.isAdmin) {
-      return NextResponse.json({ error: "Yetkisiz eriÅŸim" }, { status: 403 });
+      return NextResponse.json({ error: "Yetkisiz erişim" }, { status: 403 });
     }
 
     const userId = session.user.id;
@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
   } catch (error: any) {
     console.error("Error fetching dashboard widgets:", error);
     return NextResponse.json(
-      { error: error.message || "Widget'lar yÃ¼klenirken bir hata oluÅŸtu" },
+      { error: error.message || "Widget'lar yüklenirken bir hata oluştu" },
       { status: 500 }
     );
   }
@@ -54,7 +54,7 @@ export async function PUT(req: NextRequest) {
     const session = await getServerSession(authConfig);
 
     if (!session?.user?.isAdmin) {
-      return NextResponse.json({ error: "Yetkisiz eriÅŸim" }, { status: 403 });
+      return NextResponse.json({ error: "Yetkisiz erişim" }, { status: 403 });
     }
 
     const userId = session.user.id;
@@ -62,7 +62,7 @@ export async function PUT(req: NextRequest) {
 
     if (!Array.isArray(widgets)) {
       return NextResponse.json(
-        { error: "GeÃ§ersiz widget verisi" },
+        { error: "Geçersiz widget verisi" },
         { status: 400 }
       );
     }
@@ -80,7 +80,7 @@ export async function PUT(req: NextRequest) {
   } catch (error: any) {
     console.error("Error updating dashboard widgets:", error);
     return NextResponse.json(
-      { error: error.message || "Widget pozisyonlarÄ± gÃ¼ncellenirken bir hata oluÅŸtu" },
+      { error: error.message || "Widget pozisyonları güncellenirken bir hata oluştu" },
       { status: 500 }
     );
   }

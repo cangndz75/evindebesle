@@ -158,11 +158,11 @@ export default function OrderDetailPage() {
         }
       } else {
         const errorData = await res.json();
-        toast.error(errorData.error || "SipariÅŸ yÃ¼klenirken bir hata oluÅŸtu");
+        toast.error(errorData.error || "Sipariş yüklenirken bir hata oluştu");
       }
     } catch (error: any) {
       console.error("Error fetching order:", error);
-      toast.error("SipariÅŸ yÃ¼klenirken bir hata oluÅŸtu");
+      toast.error("Sipariş yüklenirken bir hata oluştu");
     } finally {
       setLoading(false);
     }
@@ -184,14 +184,14 @@ export default function OrderDetailPage() {
       });
 
       if (res.ok) {
-        toast.success("SipariÅŸ durumu gÃ¼ncellendi");
+        toast.success("Sipariş durumu güncellendi");
         setStatusModalOpen(false);
         fetchOrder();
       } else {
-        throw new Error("GÃ¼ncelleme baÅŸarÄ±sÄ±z");
+        throw new Error("Güncelleme başarısız");
       }
     } catch (error) {
-      toast.error("SipariÅŸ durumu gÃ¼ncellenirken bir hata oluÅŸtu");
+      toast.error("Sipariş durumu güncellenirken bir hata oluştu");
     } finally {
       setUpdating(false);
     }
@@ -200,10 +200,10 @@ export default function OrderDetailPage() {
   const getStatusBadge = (status: string) => {
     const statusMap: Record<string, { label: string; className: string }> = {
       PENDING: { label: "Yeni", className: "bg-blue-100 text-blue-800" },
-      PREPARING: { label: "HazÄ±rlanÄ±yor", className: "bg-yellow-100 text-yellow-800" },
+      PREPARING: { label: "Hazırlanıyor", className: "bg-yellow-100 text-yellow-800" },
       SHIPPED: { label: "Kargoya Verildi", className: "bg-purple-100 text-purple-800" },
       DELIVERED: { label: "Teslim Edildi", className: "bg-green-100 text-green-800" },
-      CANCELLED: { label: "Ä°ptal Edildi", className: "bg-red-100 text-red-800" },
+      CANCELLED: { label: "İptal Edildi", className: "bg-red-100 text-red-800" },
     };
     const statusInfo = statusMap[status] || { label: status, className: "bg-gray-100 text-gray-800" };
     return (
@@ -215,10 +215,10 @@ export default function OrderDetailPage() {
 
   const getPaymentStatusBadge = (status: string) => {
     const statusMap: Record<string, { label: string; className: string }> = {
-      PENDING: { label: "Ã–deme Bekleniyor", className: "bg-gray-100 text-gray-800" },
-      PAID: { label: "Ã–dendi", className: "bg-green-100 text-green-800" },
-      FAILED: { label: "BaÅŸarÄ±sÄ±z", className: "bg-red-100 text-red-800" },
-      REFUNDED: { label: "Ä°ade Edildi", className: "bg-orange-100 text-orange-800" },
+      PENDING: { label: "Ödeme Bekleniyor", className: "bg-gray-100 text-gray-800" },
+      PAID: { label: "Ödendi", className: "bg-green-100 text-green-800" },
+      FAILED: { label: "Başarısız", className: "bg-red-100 text-red-800" },
+      REFUNDED: { label: "İade Edildi", className: "bg-orange-100 text-orange-800" },
     };
     const statusInfo = statusMap[status] || { label: status, className: "bg-gray-100 text-gray-800" };
     return (
@@ -258,8 +258,8 @@ export default function OrderDetailPage() {
   if (!order) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
-        <p className="text-gray-600 mb-4">SipariÅŸ bulunamadÄ±</p>
-        <Button onClick={() => router.back()}>Geri DÃ¶n</Button>
+        <p className="text-gray-600 mb-4">Sipariş bulunamadı</p>
+        <Button onClick={() => router.back()}>Geri Dön</Button>
       </div>
     );
   }
@@ -273,7 +273,7 @@ export default function OrderDetailPage() {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">SipariÅŸ #{order.orderNumber}</h1>
+            <h1 className="text-2xl font-bold">Sipariş #{order.orderNumber}</h1>
             <p className="text-sm text-gray-600">
               {format(new Date(order.createdAt), "dd MMMM yyyy HH:mm", { locale: tr })}
             </p>
@@ -285,7 +285,7 @@ export default function OrderDetailPage() {
             onClick={() => setStatusModalOpen(true)}
             className="bg-gray-900 text-white hover:bg-gray-800"
           >
-            Durum GÃ¼ncelle
+            Durum Güncelle
           </Button>
           <Button variant="outline" onClick={() => router.push(`/admin-support/new?orderId=${order.id}`)}>
             <Mail className="w-4 h-4 mr-2" />
@@ -293,14 +293,14 @@ export default function OrderDetailPage() {
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline">Ä°ÅŸlemler <MoreVertical className="w-4 h-4 ml-2" /></Button>
+              <Button variant="outline">İşlemler <MoreVertical className="w-4 h-4 ml-2" /></Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => window.print()}>
-                <Printer className="w-4 h-4 mr-2" /> YazdÄ±r
+                <Printer className="w-4 h-4 mr-2" /> Yazdır
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => router.push(`/admin-orders/${order.id}/refund`)}>
-                <RotateCcw className="w-4 h-4 mr-2" /> Ä°ade OluÅŸtur
+                <RotateCcw className="w-4 h-4 mr-2" /> İade Oluştur
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -323,41 +323,41 @@ export default function OrderDetailPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-semibold text-lg text-red-900">Skor: {order.riskScore} / 100</p>
-                    <p className="text-sm text-red-600">YÃ¼ksek riskli sipariÅŸ. LÃ¼tfen kontrol ediniz.</p>
+                    <p className="text-sm text-red-600">Yüksek riskli sipariş. Lütfen kontrol ediniz.</p>
                   </div>
-                  <Button variant="destructive" size="sm">DetaylÄ± Ä°ncele</Button>
+                  <Button variant="destructive" size="sm">Detaylı İncele</Button>
                 </div>
               </CardContent>
             </Card>
           )}
 
-          {/* SipariÅŸ ve Ã–deme Durumu */}
+          {/* Sipariş ve Ödeme Durumu */}
           <Card>
             <CardHeader>
-              <CardTitle>SipariÅŸ ve Ã–deme Durumu</CardTitle>
+              <CardTitle>Sipariş ve Ödeme Durumu</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label className="text-sm text-gray-600">SipariÅŸ Durumu</Label>
+                <Label className="text-sm text-gray-600">Sipariş Durumu</Label>
                 <div className="mt-2">{getStatusBadge(order.status)}</div>
               </div>
               <div>
-                <Label className="text-sm text-gray-600">Ã–deme Durumu</Label>
+                <Label className="text-sm text-gray-600">Ödeme Durumu</Label>
                 <div className="mt-2">{getPaymentStatusBadge(order.paymentStatus)}</div>
               </div>
               {order.paymentMethod && (
                 <div>
-                  <Label className="text-sm text-gray-600">Ã–deme YÃ¶ntemi</Label>
+                  <Label className="text-sm text-gray-600">Ödeme Yöntemi</Label>
                   <p className="mt-2 font-medium">{order.paymentMethod}</p>
                 </div>
               )}
             </CardContent>
           </Card>
 
-          {/* ÃœrÃ¼nler */}
+          {/* Ürünler */}
           <Card>
             <CardHeader>
-              <CardTitle>ÃœrÃ¼nler</CardTitle>
+              <CardTitle>Ürünler</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -409,7 +409,7 @@ export default function OrderDetailPage() {
                     <CheckCircle className="w-4 h-4 text-green-600" />
                   </div>
                   <div className="flex-1">
-                    <p className="font-medium">SipariÅŸ OluÅŸturuldu</p>
+                    <p className="font-medium">Sipariş Oluşturuldu</p>
                     <p className="text-sm text-gray-600">
                       {format(new Date(order.createdAt), "dd MMMM yyyy HH:mm", { locale: tr })}
                     </p>
@@ -423,7 +423,7 @@ export default function OrderDetailPage() {
                       <CheckCircle className="w-4 h-4 text-green-600" />
                     </div>
                     <div className="flex-1">
-                      <p className="font-medium">Ã–deme AlÄ±ndÄ±</p>
+                      <p className="font-medium">Ödeme Alındı</p>
                       <p className="text-sm text-gray-600">
                         {order.paidAt
                           ? format(new Date(order.paidAt), "dd MMMM yyyy HH:mm", { locale: tr })
@@ -442,9 +442,9 @@ export default function OrderDetailPage() {
                         }`} />
                     </div>
                     <div className="flex-1">
-                      <p className="font-medium">HazÄ±rlanÄ±yor</p>
+                      <p className="font-medium">Hazırlanıyor</p>
                       {order.status !== "PREPARING" && (
-                        <p className="text-sm text-gray-600">TamamlandÄ±</p>
+                        <p className="text-sm text-gray-600">Tamamlandı</p>
                       )}
                     </div>
                   </div>
@@ -494,7 +494,7 @@ export default function OrderDetailPage() {
                       <XCircle className="w-4 h-4 text-red-600" />
                     </div>
                     <div className="flex-1">
-                      <p className="font-medium">Ä°ptal Edildi</p>
+                      <p className="font-medium">İptal Edildi</p>
                     </div>
                   </div>
                 )}
@@ -510,31 +510,31 @@ export default function OrderDetailPage() {
             <CardContent className="space-y-4">
               {order.customerNote && (
                 <div>
-                  <Label className="text-sm text-gray-600">MÃ¼ÅŸteri Notu</Label>
+                  <Label className="text-sm text-gray-600">Müşteri Notu</Label>
                   <p className="mt-2 p-3 bg-gray-50 rounded-lg text-sm">{order.customerNote}</p>
                 </div>
               )}
               {order.adminNote && (
                 <div>
-                  <Label className="text-sm text-gray-600">Ä°Ã§ Not (Admin)</Label>
+                  <Label className="text-sm text-gray-600">İç Not (Admin)</Label>
                   <p className="mt-2 p-3 bg-blue-50 rounded-lg text-sm">{order.adminNote}</p>
                 </div>
               )}
               {!order.customerNote && !order.adminNote && (
-                <p className="text-sm text-gray-500">HenÃ¼z not eklenmemiÅŸ</p>
+                <p className="text-sm text-gray-500">Henüz not eklenmemiş</p>
               )}
             </CardContent>
           </Card>
 
-          {/* Ä°ÅŸlem GeÃ§miÅŸi (Audit Logs) */}
+          {/* İşlem Geçmişi (Audit Logs) */}
           <Card>
             <CardHeader>
-              <CardTitle>Ä°ÅŸlem GeÃ§miÅŸi</CardTitle>
+              <CardTitle>İşlem Geçmişi</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {auditLogs.length === 0 ? (
-                  <p className="text-sm text-gray-500">HenÃ¼z kaydedilmiÅŸ iÅŸlem yok.</p>
+                  <p className="text-sm text-gray-500">Henüz kaydedilmiş işlem yok.</p>
                 ) : (
                   auditLogs.map((log) => (
                     <div key={log.id} className="flex gap-3 text-sm">
@@ -542,8 +542,8 @@ export default function OrderDetailPage() {
                       <div className="flex-1">
                         <div className="flex justify-between items-start">
                           <p className="font-medium text-gray-900">
-                            {log.action === "UPDATE" ? "GÃ¼ncelleme" : log.action}
-                            {log.performedBy && <span className="text-gray-500 font-normal"> â€¢ {log.performedBy.name}</span>}
+                            {log.action === "UPDATE" ? "Güncelleme" : log.action}
+                            {log.performedBy && <span className="text-gray-500 font-normal"> • {log.performedBy.name}</span>}
                           </p>
                           <span className="text-xs text-gray-400">
                             {format(new Date(log.createdAt), "dd MMM HH:mm", { locale: tr })}
@@ -557,7 +557,7 @@ export default function OrderDetailPage() {
                                 <p>Durum: <span className="font-medium">{(log.newValue as any).status}</span></p>
                               )}
                               {(log.newValue as any).paymentStatus && (
-                                <p>Ã–deme: <span className="font-medium">{(log.newValue as any).paymentStatus}</span></p>
+                                <p>Ödeme: <span className="font-medium">{(log.newValue as any).paymentStatus}</span></p>
                               )}
                               {(log.newValue as any).trackingNumber && (
                                 <p>Kargo Takip: <span className="font-medium">{(log.newValue as any).trackingNumber}</span></p>
@@ -574,12 +574,12 @@ export default function OrderDetailPage() {
           </Card>
         </div>
 
-        {/* SaÄŸ Kolon */}
+        {/* Sağ Kolon */}
         <div className="space-y-6">
-          {/* SipariÅŸ Ã–zeti */}
+          {/* Sipariş Özeti */}
           <Card>
             <CardHeader>
-              <CardTitle>SipariÅŸ Ã–zeti</CardTitle>
+              <CardTitle>Sipariş Özeti</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex justify-between">
@@ -588,14 +588,14 @@ export default function OrderDetailPage() {
               </div>
               {order.discount > 0 && (
                 <div className="flex justify-between text-green-600">
-                  <span>Ä°ndirim</span>
+                  <span>İndirim</span>
                   <span>-{formatPrice(order.discount)}</span>
                 </div>
               )}
               <div className="flex justify-between">
                 <span className="text-gray-600">Kargo</span>
                 <span className={order.shippingCost === 0 ? "text-green-600" : ""}>
-                  {order.shippingCost === 0 ? "Ãœcretsiz" : formatPrice(order.shippingCost)}
+                  {order.shippingCost === 0 ? "Ücretsiz" : formatPrice(order.shippingCost)}
                 </span>
               </div>
               <div className="pt-3 border-t">
@@ -607,17 +607,17 @@ export default function OrderDetailPage() {
             </CardContent>
           </Card>
 
-          {/* MÃ¼ÅŸteri */}
+          {/* Müşteri */}
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>MÃ¼ÅŸteri</CardTitle>
+                <CardTitle>Müşteri</CardTitle>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => router.push(`/users?userId=${order.user.id}`)}
                 >
-                  GeÃ§miÅŸ SipariÅŸler
+                  Geçmiş Siparişler
                 </Button>
               </div>
             </CardHeader>
@@ -636,7 +636,7 @@ export default function OrderDetailPage() {
                 </Avatar>
                 <div>
                   <p className="font-semibold">{order.user.name}</p>
-                  <p className="text-sm text-gray-600">MÃ¼ÅŸteri DetaylarÄ±</p>
+                  <p className="text-sm text-gray-600">Müşteri Detayları</p>
                 </div>
               </div>
               <div className="space-y-2">
@@ -667,7 +667,7 @@ export default function OrderDetailPage() {
                       navigator.clipboard.writeText(
                         `${order.shippingAddress?.district.name} - ${order.shippingAddress?.fullAddress}`
                       );
-                      toast.success("Adres kopyalandÄ±");
+                      toast.success("Adres kopyalandı");
                     }}
                   >
                     Kopyala
@@ -694,11 +694,11 @@ export default function OrderDetailPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label className="text-sm text-gray-600">Kargo FirmasÄ±</Label>
+                  <Label className="text-sm text-gray-600">Kargo Firması</Label>
                   <p className="mt-2 font-medium">MNG Kargo</p>
                 </div>
                 <div>
-                  <Label className="text-sm text-gray-600">Takip NumarasÄ±</Label>
+                  <Label className="text-sm text-gray-600">Takip Numarası</Label>
                   <p className="mt-2 font-mono font-medium">{order.trackingNumber}</p>
                 </div>
                 <div className="flex gap-2">
@@ -714,16 +714,16 @@ export default function OrderDetailPage() {
             </Card>
           )}
 
-          {/* Ã–deme DetaylarÄ± */}
+          {/* Ödeme Detayları */}
           {order.paymentStatus === "PAID" && (
             <Card>
               <CardHeader>
-                <CardTitle>Ã–deme DetaylarÄ±</CardTitle>
+                <CardTitle>Ödeme Detayları</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {order.paymentMethod && (
                   <div>
-                    <Label className="text-sm text-gray-600">Ã–deme YÃ¶ntemi</Label>
+                    <Label className="text-sm text-gray-600">Ödeme Yöntemi</Label>
                     <p className="mt-1 font-medium">{order.paymentMethod}</p>
                   </div>
                 )}
@@ -735,7 +735,7 @@ export default function OrderDetailPage() {
                 )}
                 {order.paidAt && (
                   <div>
-                    <Label className="text-sm text-gray-600">Ã–deme Tarihi</Label>
+                    <Label className="text-sm text-gray-600">Ödeme Tarihi</Label>
                     <p className="mt-1 text-sm">
                       {format(new Date(order.paidAt), "dd MMMM yyyy HH:mm", { locale: tr })}
                     </p>
@@ -747,12 +747,12 @@ export default function OrderDetailPage() {
         </div>
       </div>
 
-      {/* Durum GÃ¼ncelle Modal */}
+      {/* Durum Güncelle Modal */}
       <Dialog open={statusModalOpen} onOpenChange={setStatusModalOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Durum GÃ¼ncelle</DialogTitle>
-            <DialogDescription>SipariÅŸ #{order.orderNumber}</DialogDescription>
+            <DialogTitle>Durum Güncelle</DialogTitle>
+            <DialogDescription>Sipariş #{order.orderNumber}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
@@ -760,11 +760,11 @@ export default function OrderDetailPage() {
               <div className="mt-2 space-y-2">
                 {[
                   { value: "PENDING", label: "Yeni", icon: Package },
-                  { value: "PREPARING", label: "HazÄ±rlanÄ±yor", icon: Clock },
-                  { value: "PREPARING", label: "Kargoya HazÄ±r", icon: CheckCircle },
+                  { value: "PREPARING", label: "Hazırlanıyor", icon: Clock },
+                  { value: "PREPARING", label: "Kargoya Hazır", icon: CheckCircle },
                   { value: "SHIPPED", label: "Kargoya Verildi", icon: Truck },
                   { value: "DELIVERED", label: "Teslim Edildi", icon: CheckCircle },
-                  { value: "CANCELLED", label: "Ä°ptal Edildi", icon: XCircle },
+                  { value: "CANCELLED", label: "İptal Edildi", icon: XCircle },
                 ].map((status) => {
                   const Icon = status.icon;
                   return (
@@ -785,11 +785,11 @@ export default function OrderDetailPage() {
             {newStatus === "SHIPPED" && (
               <div>
                 <Label htmlFor="tracking">
-                  Kargo Takip NumarasÄ± <span className="text-red-500">*</span>
+                  Kargo Takip Numarası <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="tracking"
-                  placeholder="Ã–rn: MNG123456789TR"
+                  placeholder="Örn: MNG123456789TR"
                   value={trackingNumber}
                   onChange={(e) => setTrackingNumber(e.target.value)}
                   className="mt-2"
@@ -800,7 +800,7 @@ export default function OrderDetailPage() {
               <Label htmlFor="note">Not (Opsiyonel)</Label>
               <Textarea
                 id="note"
-                placeholder="Durum deÄŸiÅŸikliÄŸi hakkÄ±nda not ekleyin..."
+                placeholder="Durum değişikliği hakkında not ekleyin..."
                 value={statusNote}
                 onChange={(e) => setStatusNote(e.target.value)}
                 className="mt-2 min-h-[100px]"
@@ -811,7 +811,7 @@ export default function OrderDetailPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setStatusModalOpen(false)}>
-              Ä°ptal
+              İptal
             </Button>
             <Button
               onClick={handleStatusUpdate}
@@ -819,7 +819,7 @@ export default function OrderDetailPage() {
               className="bg-gray-900 text-white hover:bg-gray-800"
             >
               <CheckCircle className="w-4 h-4 mr-2" />
-              GÃ¼ncelle
+              Güncelle
             </Button>
           </DialogFooter>
         </DialogContent>

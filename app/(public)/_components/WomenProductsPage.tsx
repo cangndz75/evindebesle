@@ -111,7 +111,7 @@ function FavoriteButton({ productId, productName }: { productId: string; product
           method: "DELETE",
         });
         setIsFavorite(false);
-        toast.success(`${productName} favorilerden Ã§Ä±karÄ±ldÄ±`, {
+        toast.success(`${productName} favorilerden çıkarıldı`, {
           position: "bottom-left",
         });
       } else {
@@ -128,7 +128,7 @@ function FavoriteButton({ productId, productName }: { productId: string; product
       window.dispatchEvent(new Event("favoriteUpdated"));
     } catch (error) {
       console.error("Error toggling favorite:", error);
-      toast.error("Bir hata oluÅŸtu");
+      toast.error("Bir hata oluştu");
     } finally {
       setIsLoading(false);
     }
@@ -139,7 +139,7 @@ function FavoriteButton({ productId, productName }: { productId: string; product
       className="absolute top-3 right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center transition-all hover:scale-110 z-10 disabled:opacity-50 shadow-sm"
       onClick={handleToggle}
       disabled={isLoading}
-      aria-label={isFavorite ? "Favorilerden Ã‡Ä±kar" : "Favorilere Ekle"}
+      aria-label={isFavorite ? "Favorilerden Çıkar" : "Favorilere Ekle"}
     >
       <Heart
         className={`w-4 h-4 transition-colors ${isFavorite ? "fill-[#111] text-[#111]" : "text-[#111]"
@@ -196,8 +196,8 @@ export default function WomenProductsPage({
   initialProducts = [],
   initialPriceRange = { min: 0, max: 2000 },
   initialCategories = [],
-  pageTitle = "KadÄ±n",
-  breadcrumbCurrent = "KadÄ±n",
+  pageTitle = "Kadın",
+  breadcrumbCurrent = "Kadın",
   baseQuery,
   hideCategoryFilters = false,
 }: WomenProductsPageProps) {
@@ -392,7 +392,7 @@ export default function WomenProductsPage({
         }
       }
 
-      currentRow += 2; // 2 satÄ±r kullandÄ±k
+      currentRow += 2; // 2 satır kullandık
 
       for (let i = 0; i < 4 && productIndex < productItems.length; i++) {
         items.push({
@@ -406,7 +406,7 @@ export default function WomenProductsPage({
         });
         productIndex++;
       }
-      currentRow += 1; // 1 satÄ±r kullandÄ±k
+      currentRow += 1; // 1 satır kullandık
 
       for (let c = 1; c <= 2; c++) {
         for (let r = 0; r <= 1; r++) {
@@ -438,7 +438,7 @@ export default function WomenProductsPage({
         productIndex++;
       }
 
-      currentRow += 2; // 2 satÄ±r kullandÄ±k
+      currentRow += 2; // 2 satır kullandık
 
       for (let i = 0; i < 4 && productIndex < productItems.length; i++) {
         items.push({
@@ -452,7 +452,7 @@ export default function WomenProductsPage({
         });
         productIndex++;
       }
-      currentRow += 1; // 1 satÄ±r kullandÄ±k
+      currentRow += 1; // 1 satır kullandık
     }
 
     return items;
@@ -465,10 +465,10 @@ export default function WomenProductsPage({
         type: "price",
         label:
           filters.minPrice && filters.maxPrice
-            ? `â‚º${filters.minPrice} - â‚º${filters.maxPrice}`
+            ? `₺${filters.minPrice} - ₺${filters.maxPrice}`
             : filters.minPrice
-              ? `â‚º${filters.minPrice}+`
-              : `â‚º${filters.maxPrice}-`,
+              ? `₺${filters.minPrice}+`
+              : `₺${filters.maxPrice}-`,
         value: `${filters.minPrice || ""}-${filters.maxPrice || ""}`,
       });
     }
@@ -555,7 +555,7 @@ export default function WomenProductsPage({
                 : "bg-white text-[#111] border border-[#111] hover:bg-[#111] hover:text-white"
             }`}
           >
-            TÃœMÃœ
+            TÜMÜ
           </button>
           {initialCategories.map((category) => (
             <button
@@ -590,42 +590,42 @@ export default function WomenProductsPage({
             />
           </div>
 
-          {/* SÄ±rala - SaÄŸ */}
+          {/* Sırala - Sağ */}
           <div className="flex items-center gap-2 md:gap-4">
-            <span className="text-xs md:text-sm text-[#111]/60 font-light hidden md:inline">{products.length} Ã¼rÃ¼n</span>
+            <span className="text-xs md:text-sm text-[#111]/60 font-light hidden md:inline">{products.length} ürün</span>
 
-            {/* Mobil: SÄ±rala Butonu */}
+            {/* Mobil: Sırala Butonu */}
             <button
               onClick={() => setSortDialogOpen(true)}
               className="md:hidden flex items-center gap-1.5 px-3 py-2 text-xs font-light text-[#111] border border-[#111] hover:bg-[#111] hover:text-white transition-colors"
             >
               <ArrowUpDown className="w-3.5 h-3.5" />
-              <span>SÄ±rala</span>
+              <span>Sırala</span>
             </button>
 
-            {/* Desktop: SÄ±rala Dropdown */}
+            {/* Desktop: Sırala Dropdown */}
             <div className="hidden md:flex items-center gap-2">
-              <span className="text-sm text-[#111] font-light">SÄ±rala:</span>
+              <span className="text-sm text-[#111] font-light">Sırala:</span>
               <Select value={sortOption} onValueChange={setSortOption}>
                 <SelectTrigger className="w-[200px] border-none bg-transparent text-sm font-light text-[#111] focus:ring-0 focus:ring-offset-0">
                   <SelectValue>
-                    {sortOption === "featured" && "Ã–ne Ã§Ä±kan"}
-                    {sortOption === "bestseller" && "En Ã§ok satan"}
+                    {sortOption === "featured" && "Öne çıkan"}
+                    {sortOption === "bestseller" && "En çok satan"}
                     {sortOption === "az" && "Alfabetik olarak, A-Z"}
                     {sortOption === "za" && "Alfabetik olarak, Z-A"}
-                    {sortOption === "price-low" && "Fiyat, dÃ¼ÅŸÃ¼kten yÃ¼kseÄŸe"}
-                    {sortOption === "price-high" && "Fiyat, yÃ¼ksekten dÃ¼ÅŸÃ¼ÄŸe"}
+                    {sortOption === "price-low" && "Fiyat, düşükten yükseğe"}
+                    {sortOption === "price-high" && "Fiyat, yüksekten düşüğe"}
                     {sortOption === "date-old" && "Tarih, eskiden yeniye"}
                     {sortOption === "date-new" && "Tarih, yeniden eskiye"}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="featured">Ã–ne Ã§Ä±kan</SelectItem>
-                  <SelectItem value="bestseller">En Ã§ok satan</SelectItem>
+                  <SelectItem value="featured">Öne çıkan</SelectItem>
+                  <SelectItem value="bestseller">En çok satan</SelectItem>
                   <SelectItem value="az">Alfabetik olarak, A-Z</SelectItem>
                   <SelectItem value="za">Alfabetik olarak, Z-A</SelectItem>
-                  <SelectItem value="price-low">Fiyat, dÃ¼ÅŸÃ¼kten yÃ¼kseÄŸe</SelectItem>
-                  <SelectItem value="price-high">Fiyat, yÃ¼ksekten dÃ¼ÅŸÃ¼ÄŸe</SelectItem>
+                  <SelectItem value="price-low">Fiyat, düşükten yükseğe</SelectItem>
+                  <SelectItem value="price-high">Fiyat, yüksekten düşüğe</SelectItem>
                   <SelectItem value="date-old">Tarih, eskiden yeniye</SelectItem>
                   <SelectItem value="date-new">Tarih, yeniden eskiye</SelectItem>
                 </SelectContent>
@@ -634,23 +634,23 @@ export default function WomenProductsPage({
           </div>
         </div>
 
-        {/* Mobil SÄ±rala Modal */}
+        {/* Mobil Sırala Modal */}
         <Dialog open={sortDialogOpen} onOpenChange={setSortDialogOpen}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle className="text-left">SÄ±rala</DialogTitle>
+              <DialogTitle className="text-left">Sırala</DialogTitle>
             </DialogHeader>
             <RadioGroup value={sortOption} onValueChange={setSortOption} className="mt-4">
               <div className="flex items-center space-x-2 py-3 border-b">
                 <RadioGroupItem value="featured" id="w-featured" />
                 <Label htmlFor="w-featured" className="flex-1 cursor-pointer font-normal">
-                  Ã–ne Ã§Ä±kan
+                  Öne çıkan
                 </Label>
               </div>
               <div className="flex items-center space-x-2 py-3 border-b">
                 <RadioGroupItem value="bestseller" id="w-bestseller" />
                 <Label htmlFor="w-bestseller" className="flex-1 cursor-pointer font-normal">
-                  En Ã§ok satan
+                  En çok satan
                 </Label>
               </div>
               <div className="flex items-center space-x-2 py-3 border-b">
@@ -668,13 +668,13 @@ export default function WomenProductsPage({
               <div className="flex items-center space-x-2 py-3 border-b">
                 <RadioGroupItem value="price-low" id="w-price-low" />
                 <Label htmlFor="w-price-low" className="flex-1 cursor-pointer font-normal">
-                  Fiyat, dÃ¼ÅŸÃ¼kten yÃ¼kseÄŸe
+                  Fiyat, düşükten yükseğe
                 </Label>
               </div>
               <div className="flex items-center space-x-2 py-3 border-b">
                 <RadioGroupItem value="price-high" id="w-price-high" />
                 <Label htmlFor="w-price-high" className="flex-1 cursor-pointer font-normal">
-                  Fiyat, yÃ¼ksekten dÃ¼ÅŸÃ¼ÄŸe
+                  Fiyat, yüksekten düşüğe
                 </Label>
               </div>
               <div className="flex items-center space-x-2 py-3 border-b">
@@ -695,13 +695,13 @@ export default function WomenProductsPage({
                 onClick={() => setSortDialogOpen(false)}
                 className="bg-[#800020] hover:bg-[#5C1A1A] text-white px-8"
               >
-                BÄ°TTÄ°
+                BİTTİ
               </Button>
             </div>
           </DialogContent>
         </Dialog>
 
-        {/* Mobil: Basit 2 sÃ¼tunlu grid, Desktop: KarmaÅŸÄ±k editorial dÃ¼zeni */}
+        {/* Mobil: Basit 2 sütunlu grid, Desktop: Karmaşık editorial düzeni */}
         {/* Mobil Grid */}
         <div className="grid grid-cols-2 gap-4 md:hidden">
           {products.map((product) => {
@@ -729,7 +729,7 @@ export default function WomenProductsPage({
                     badge={
                       product.originalPrice && product.originalPrice > product.price ? (
                         <div className="absolute top-3 left-3 bg-[#111] text-white uppercase font-light text-[10px] px-2 py-1 z-10">
-                          Ä°ndirim
+                          İndirim
                         </div>
                       ) : product.badge ? (
                         <div className="absolute top-3 left-3 bg-[#111] text-white uppercase font-light text-[10px] px-2 py-1 z-10">
@@ -749,15 +749,15 @@ export default function WomenProductsPage({
                     {product.originalPrice && product.originalPrice > product.price ? (
                       <>
                         <span className="font-light text-[#111] text-xs">
-                          {product.price} â‚º
+                          {product.price} ₺
                         </span>
                         <span className="text-[#111]/60 line-through text-[10px]">
-                          {product.originalPrice} â‚º
+                          {product.originalPrice} ₺
                         </span>
                       </>
                     ) : (
                       <span className="font-light text-[#111] text-xs">
-                        {product.price} â‚º
+                        {product.price} ₺
                       </span>
                     )}
                   </div>
@@ -781,7 +781,7 @@ export default function WomenProductsPage({
                         className={`w-3 h-3 rounded-full border transition-all duration-200 flex-shrink-0 ${isActive ? "border-[#111] scale-110" : "border-gray-300"
                           }`}
                         style={{ backgroundColor: color.hexCode || "#000000" }}
-                        aria-label={`${color.name} renk seÃ§eneÄŸi`}
+                        aria-label={`${color.name} renk seçeneği`}
                       />
                     );
                   })}
@@ -796,7 +796,7 @@ export default function WomenProductsPage({
                   })}
               </div>
 
-        {/* Desktop Grid - DÃ¶ngÃ¼sel pattern dÃ¼zeni */}
+        {/* Desktop Grid - Döngüsel pattern düzeni */}
         <div className="hidden md:grid md:grid-cols-4 gap-6 auto-rows-fr">
           {gridItems.map((item, index) => {
             const product = item as ProductWithGridPosition;
@@ -865,21 +865,21 @@ export default function WomenProductsPage({
                     {product.originalPrice && product.originalPrice > product.price ? (
                       <>
                         <span className="font-light text-[#111] text-xs md:text-sm">
-                          {product.price} â‚º
+                          {product.price} ₺
                         </span>
                         <span className="text-[#111]/60 line-through text-xs">
-                          {product.originalPrice} â‚º
+                          {product.originalPrice} ₺
                         </span>
                       </>
                     ) : (
                       <span className="font-light text-[#111] text-xs md:text-sm">
-                        {product.price} â‚º
+                        {product.price} ₺
                       </span>
                     )}
                   </div>
                 </div>
 
-                {/* Renk SeÃ§enekleri */}
+                {/* Renk Seçenekleri */}
                 <div className="flex items-center justify-center gap-1 mt-2">
                   {Array.from(new Map(product.colors.filter((c: any) => c.images?.[0]).map((c: any) => [c.hexCode || c.name, c])).values()).map((color: any, idx) => {
                     const colorImg = color.images?.[0] || "";
@@ -893,7 +893,7 @@ export default function WomenProductsPage({
                         className={`w-3 h-3 rounded-full border transition-all duration-200 ${isActive ? "border-[#111]" : "border-gray-300"
                           }`}
                         style={{ backgroundColor: color.hexCode || "#000000" }}
-                        aria-label={`${color.name} renk seÃ§eneÄŸi`}
+                        aria-label={`${color.name} renk seçeneği`}
                       />
                     );
                   })}

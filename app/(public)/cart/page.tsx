@@ -5,22 +5,70 @@ import { Minus, Plus, ShoppingBag, Trash2, ChevronLeft, ChevronRight } from "luc
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { getRecentlyViewed } from "@/lib/recently-viewed";
 import { useCartStore, type CartItem } from "@/lib/stores/cartStore";
 
+type ProductColor = {
+    id: string;
+    name: string;
+    hexCode?: string | null;
+    images: string[];
+    variants?: Array<{
+        id?: string;
+        variantCode?: string | null;
+        colorId?: string;
+    }>;
+};
+
 type RecommendedProduct = {
     id: string;
     name: string;
     slug: string | null;
     price: number;
+    originalPrice?: number | null;
     image: string | null;
     primaryImage: string | null;
-    colors?: Array<{
+    description?: string | null;
+    detailText?: string | null;
+    colors?: ProductColor[];
+};
+
+type ProductSize = {
+    id: string;
+    name: string;
+    stock: number;
+};
+
+type QuickProductDetails = {
+    id: string;
+    name: string;
+    slug: string | null;
+    description?: string | null;
+    detailText?: string | null;
+    price: number;
+    originalPrice?: number | null;
+    image: string | null;
+    primaryImage: string | null;
+    secondaryImage?: string | null;
+    colors: Array<{
+        id: string;
+        name: string;
+        hexCode?: string | null;
         images: string[];
+        variants: Array<{
+            id: string;
+            variantCode?: string | null;
+            colorId: string;
+            sizeId: string;
+            stock: number;
+            price?: number | null;
+        }>;
     }>;
+    sizes: ProductSize[];
 };
 
 function formatPriceTRY(value: number) {
@@ -47,10 +95,12 @@ function SectionTitle({
 
 function ProductTile({
     product,
-    onClick,
+    onNavigate,
+    onQuickAdd,
 }: {
     product: RecommendedProduct;
-    onClick?: () => void;
+    onNavigate?: () => void;
+    onQuickAdd: (product: RecommendedProduct) => void;
 }) {
     const productImage =
         product.colors?.[0]?.images?.[0] ||
@@ -59,29 +109,73 @@ function ProductTile({
         "/placeholder.jpg";
 
     const productUrl = product.slug ? `/products/${product.slug}` : `/product/${product.id}`;
+    const hasDiscount = !!product.originalPrice && product.originalPrice > product.price;
 
     return (
-        <Link
-            href={productUrl}
-            onClick={onClick}
-            className="group block w-[180px] shrink-0"
-            aria-label={product.name}
-        >
-            <div className="relative aspect-3/4 overflow-hidden rounded-2xl bg-gray-100 ring-1 ring-black/5">
+        <article className="group w-42 shrink-0" aria-label={product.name}>
+            <div className="relative aspect-3/4 overflow-hidden rounded-xl bg-[#f3f1ed]">
+                <Link href={productUrl} onClick={onNavigate} className="absolute inset-0 z-10" aria-label={product.name} />
                 <Image
                     src={productImage}
                     alt={product.name}
                     fill
-                    className="object-cover transition-transform duration-300 group-hover:scale-[1.04]"
-                    sizes="200px"
+                    className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                    sizes="168px"
                     unoptimized
                 />
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-1/2 bg-linear-to-t from-black/55 via-black/15 to-transparent opacity-80 transition-opacity duration-300 group-hover:opacity-100" />
+                <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-2 opacity-0 transition-all duration-300 group-hover:opacity-100">
+                    <button
+                        type="button"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            onQuickAdd(product);
+                        }}
+                        className="h-9 min-w-30 rounded-full bg-white/95 px-4 text-[11px] font-semibold tracking-[0.12em] text-black"
+                    >
+                        SEPETE EKLE
+                    </button>
+                    <Link
+                        href={productUrl}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onNavigate?.();
+                        }}
+                        className="flex h-9 min-w-30 items-center justify-center rounded-full border border-white/85 bg-black/20 px-4 text-[11px] font-semibold tracking-[0.12em] text-white"
+                    >
+                        DETAYI GOR
+                    </Link>
+                </div>
             </div>
-            <div className="mt-3 space-y-1">
-                <p className="line-clamp-2 text-sm font-light text-gray-900">{product.name}</p>
-                <p className="text-sm font-medium text-black">{formatPriceTRY(product.price)}</p>
+
+            <div className="mt-2.5 space-y-1">
+                <Link href={productUrl} onClick={onNavigate} className="block line-clamp-2 text-[18px] leading-5 font-light text-[#242424]">
+                    {product.name}
+                </Link>
+                <div className="flex items-center gap-1.5 text-[22px] font-semibold text-[#242424]">
+                    <span>{formatPriceTRY(product.price)}</span>
+                    {hasDiscount ? (
+                        <span className="text-[12px] font-medium text-[#919191] line-through">
+                            {formatPriceTRY(product.originalPrice!)}
+                        </span>
+                    ) : null}
+                </div>
+                {product.colors && product.colors.length > 0 ? (
+                    <div className="flex items-center gap-1 pt-1">
+                        {product.colors.slice(0, 4).map((color) => (
+                            <span
+                                key={color.id}
+                                className="h-3.5 w-3.5 rounded-full border border-[#d2d2d2]"
+                                style={{ backgroundColor: color.hexCode || "#d8d8d8" }}
+                                title={color.name}
+                            />
+                        ))}
+                        {product.colors.length > 4 ? <span className="text-[11px] text-[#8e8e8e]">+{product.colors.length - 4}</span> : null}
+                    </div>
+                ) : null}
             </div>
-        </Link>
+        </article>
     );
 }
 
@@ -94,11 +188,23 @@ export default function CartPage() {
     const hydrate = useCartStore((state) => state.hydrate);
     const updateQuantity = useCartStore((state) => state.updateQuantity);
     const removeItem = useCartStore((state) => state.removeItem);
+    const addItemOptimistic = useCartStore((state) => state.addItemOptimistic);
 
     const [freeShippingThreshold, setFreeShippingThreshold] = useState(99);
     const [recommendedProducts, setRecommendedProducts] = useState<RecommendedProduct[]>([]);
     const [recentlyViewedProducts, setRecentlyViewedProducts] = useState<RecommendedProduct[]>([]);
     const [activeTab, setActiveTab] = useState<"recommended" | "recent">("recommended");
+    const [sliderProgress, setSliderProgress] = useState(0);
+
+    const [quickModalOpen, setQuickModalOpen] = useState(false);
+    const [quickLoading, setQuickLoading] = useState(false);
+    const [quickSubmitting, setQuickSubmitting] = useState(false);
+    const [quickProduct, setQuickProduct] = useState<RecommendedProduct | null>(null);
+    const [quickProductDetails, setQuickProductDetails] = useState<QuickProductDetails | null>(null);
+    const [quickSelectedColorId, setQuickSelectedColorId] = useState<string | null>(null);
+    const [quickSelectedSizeId, setQuickSelectedSizeId] = useState<string | null>(null);
+    const [quickQuantity, setQuickQuantity] = useState(1);
+    const [quickImageIndex, setQuickImageIndex] = useState(0);
 
     const router = useRouter();
 
@@ -110,6 +216,216 @@ export default function CartPage() {
         if (!el) return;
         const amount = 320;
         el.scrollBy({ left: dir === "left" ? -amount : amount, behavior: "smooth" });
+    };
+
+    const parseImages = (images: unknown) => {
+        if (Array.isArray(images)) return images.filter((img): img is string => typeof img === "string" && !!img);
+        if (typeof images === "string") {
+            try {
+                const parsed = JSON.parse(images);
+                if (Array.isArray(parsed)) return parsed.filter((img): img is string => typeof img === "string" && !!img);
+                return images ? [images] : [];
+            } catch {
+                return images ? [images] : [];
+            }
+        }
+        return [];
+    };
+
+    const buildQuickImages = (product: QuickProductDetails) => {
+        const selectedColor = product.colors.find((c) => c.id === quickSelectedColorId);
+        const list: string[] = [];
+        if (selectedColor?.images?.length) {
+            selectedColor.images.forEach((img) => {
+                if (img && !list.includes(img)) list.push(img);
+            });
+        }
+        [product.primaryImage, product.secondaryImage, product.image].forEach((img) => {
+            if (img && !list.includes(img)) list.push(img);
+        });
+        if (list.length === 0) list.push("/placeholder.jpg");
+        return list;
+    };
+
+    const getSwatchStyle = (color: { name: string; hexCode?: string | null; images?: string[] }) => {
+        if (color.hexCode) {
+            return { backgroundColor: color.hexCode };
+        }
+
+        const normalized = (color.name || "")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase()
+            .replace(/ı/g, "i")
+            .replace(/ğ/g, "g")
+            .replace(/ü/g, "u")
+            .replace(/ş/g, "s")
+            .replace(/ö/g, "o")
+            .replace(/ç/g, "c")
+            .replace(/[^a-z0-9 ]/g, " ")
+            .replace(/\s+/g, " ")
+            .trim();
+
+        const toneMap: Array<{ keys: string[]; hex: string }> = [
+            { keys: ["siyah", "black"], hex: "#000000" },
+            { keys: ["ekru", "ecru", "krem", "ivory"], hex: "#e8e1cf" },
+            { keys: ["beyaz", "white"], hex: "#f6f6f6" },
+            { keys: ["gri", "gray", "grey"], hex: "#a8a8a8" },
+            { keys: ["antrasit", "anthracite", "koyu gri"], hex: "#4a4f56" },
+            { keys: ["lacivert", "navy"], hex: "#1f2d4f" },
+            { keys: ["mavi", "blue"], hex: "#3f5f9f" },
+            { keys: ["bej", "beige", "tas"], hex: "#cdbca6" },
+            { keys: ["vizon", "kum", "nude"], hex: "#c8b5a1" },
+            { keys: ["kahve", "camel", "taba", "brown"], hex: "#8a6642" },
+            { keys: ["pembe", "pink", "gul"], hex: "#dba9af" },
+            { keys: ["kirmizi", "red", "bordo", "burgundy"], hex: "#8d2f3c" },
+            { keys: ["yesil", "green", "haki", "khaki"], hex: "#6d7b52" },
+            { keys: ["sari", "yellow", "hardal", "gold"], hex: "#b7923a" },
+            { keys: ["mor", "purple", "lila", "lavanta"], hex: "#816d9b" },
+            { keys: ["turuncu", "orange", "kiremit", "terracotta"], hex: "#b76846" },
+        ];
+
+        const match = toneMap.find((item) => item.keys.some((key) => normalized.includes(key)));
+        if (match) {
+            return { backgroundColor: match.hex };
+        }
+
+        if (color.images?.[0]) {
+            return {
+                backgroundImage: `url(${color.images[0]})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+            };
+        }
+
+        return { backgroundColor: "#d3d3d3" };
+    };
+
+    const getSizeStockForColor = (product: QuickProductDetails, colorId: string | null, sizeId: string) => {
+        if (!colorId) {
+            const found = product.sizes.find((s) => s.id === sizeId);
+            return found?.stock ?? 0;
+        }
+        const selectedColor = product.colors.find((c) => c.id === colorId);
+        if (!selectedColor) {
+            const found = product.sizes.find((s) => s.id === sizeId);
+            return found?.stock ?? 0;
+        }
+        const colorVariant = selectedColor.variants.find((v) => v.sizeId === sizeId);
+        if (colorVariant) return colorVariant.stock;
+        const found = product.sizes.find((s) => s.id === sizeId);
+        return found?.stock ?? 0;
+    };
+
+    const openQuickModal = async (product: RecommendedProduct) => {
+        setQuickProduct(product);
+        setQuickModalOpen(true);
+        setQuickLoading(true);
+        setQuickSubmitting(false);
+        setQuickQuantity(1);
+        setQuickImageIndex(0);
+        setQuickSelectedColorId(null);
+        setQuickSelectedSizeId(null);
+        try {
+            const res = await fetch(`/api/products/${product.id}`);
+            if (!res.ok) {
+                toast.error("Urun bilgisi yuklenemedi");
+                setQuickProductDetails(null);
+                return;
+            }
+            const data = await res.json();
+            const details: QuickProductDetails = {
+                id: data.id,
+                name: data.name,
+                slug: data.slug || null,
+                description: data.description || null,
+                detailText: data.detailText || null,
+                price: data.price,
+                originalPrice: data.originalPrice || null,
+                image: data.image || null,
+                primaryImage: data.primaryImage || null,
+                secondaryImage: data.secondaryImage || null,
+                colors: (data.colors || []).map((color: any) => ({
+                    id: color.id,
+                    name: color.name,
+                    hexCode: color.hexCode || null,
+                    images: parseImages(color.images),
+                    variants: Array.isArray(color.variants) ? color.variants : [],
+                })),
+                sizes: (data.sizes || []).map((size: any) => ({
+                    id: size.id,
+                    name: size.name,
+                    stock: typeof size.stock === "number" ? size.stock : 0,
+                })),
+            };
+            setQuickProductDetails(details);
+
+            const initialColorId = details.colors[0]?.id || null;
+            setQuickSelectedColorId(initialColorId);
+
+            const firstAvailableSize = details.sizes.find((size) => getSizeStockForColor(details, initialColorId, size.id) > 0);
+            setQuickSelectedSizeId(firstAvailableSize?.id || null);
+        } catch {
+            toast.error("Urun bilgisi yuklenemedi");
+            setQuickProductDetails(null);
+        } finally {
+            setQuickLoading(false);
+        }
+    };
+
+    const handleQuickAddToCart = async () => {
+        if (!quickProduct || !quickProductDetails) return;
+        if (quickSubmitting) return;
+
+        const selectedColor = quickProductDetails.colors.find((c) => c.id === quickSelectedColorId) || null;
+        const hasSizes = quickProductDetails.sizes.length > 0;
+        const selectedSize = quickProductDetails.sizes.find((s) => s.id === quickSelectedSizeId) || null;
+
+        if (hasSizes && !selectedSize) {
+            toast.error("Lutfen beden seciniz");
+            return;
+        }
+
+        setQuickSubmitting(true);
+        try {
+            const productImage = selectedColor?.images?.[0] || quickProductDetails.primaryImage || quickProductDetails.image;
+            await addItemOptimistic({
+                productId: quickProduct.id,
+                colorId: selectedColor?.id || null,
+                sizeId: selectedSize?.id || null,
+                quantity: quickQuantity,
+                product: {
+                    id: quickProduct.id,
+                    name: quickProductDetails.name || quickProduct.name,
+                    image: productImage || "/placeholder.jpg",
+                    price: quickProductDetails.price ?? quickProduct.price,
+                    originalPrice: quickProductDetails.originalPrice || null,
+                },
+                color: selectedColor ? { id: selectedColor.id, name: selectedColor.name } : null,
+                size: selectedSize ? { id: selectedSize.id, name: selectedSize.name } : null,
+            });
+            toast.success("Urun sepete eklendi");
+            setQuickModalOpen(false);
+        } catch {
+            toast.error("Sepete eklenirken bir hata olustu");
+        } finally {
+            setQuickSubmitting(false);
+        }
+    };
+
+    const updateSliderProgress = () => {
+        const ref = activeTab === "recommended" ? filledRecommendedRef : emptySliderRef;
+        const el = ref.current;
+        if (!el) {
+            setSliderProgress(0);
+            return;
+        }
+        const max = el.scrollWidth - el.clientWidth;
+        if (max <= 0) {
+            setSliderProgress(100);
+            return;
+        }
+        setSliderProgress((el.scrollLeft / max) * 100);
     };
 
     const handleCreateOrder = () => {
@@ -221,6 +537,11 @@ export default function CartPage() {
             }
         }
     }, [activeTab, cartItems]);
+
+    useEffect(() => {
+        const timeout = setTimeout(() => updateSliderProgress(), 80);
+        return () => clearTimeout(timeout);
+    }, [activeTab, recommendedProducts.length, recentlyViewedProducts.length]);
 
     const totalPrice = useMemo(() => {
         return cartItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
@@ -525,10 +846,11 @@ export default function CartPage() {
                         <div className="relative">
                             <div
                                 ref={activeTab === "recommended" ? filledRecommendedRef : emptySliderRef}
-                                className="flex gap-6 overflow-x-auto pb-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                                onScroll={updateSliderProgress}
+                                className="flex gap-4 overflow-x-auto pb-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                             >
                                 {activeList.map((p) => (
-                                    <ProductTile key={p.id} product={p} />
+                                    <ProductTile key={p.id} product={p} onNavigate={() => undefined} onQuickAdd={openQuickModal} />
                                 ))}
                                 {activeList.length === 0 && (
                                     <div className="text-gray-500 py-4 w-full text-center">
@@ -536,11 +858,204 @@ export default function CartPage() {
                                     </div>
                                 )}
                             </div>
+                            {activeList.length > 0 ? (
+                                <div className="mt-1 flex items-center gap-2 px-1">
+                                    <button
+                                        type="button"
+                                        onClick={() => scrollSlider(activeTab === "recommended" ? filledRecommendedRef : emptySliderRef, "left")}
+                                        className="h-5 w-5 shrink-0 rounded-full text-gray-500 hover:text-black"
+                                        aria-label="Sola kaydir"
+                                    >
+                                        <ChevronLeft className="h-4 w-4" />
+                                    </button>
+                                    <div className="relative h-2 flex-1 rounded-full bg-gray-200">
+                                        <span
+                                            className="absolute left-0 top-0 h-2 rounded-full bg-gray-500 transition-all duration-200"
+                                            style={{ width: `${Math.min(100, Math.max(12, sliderProgress))}%` }}
+                                        />
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => scrollSlider(activeTab === "recommended" ? filledRecommendedRef : emptySliderRef, "right")}
+                                        className="h-5 w-5 shrink-0 rounded-full text-gray-500 hover:text-black"
+                                        aria-label="Saga kaydir"
+                                    >
+                                        <ChevronRight className="h-4 w-4" />
+                                    </button>
+                                </div>
+                            ) : null}
                         </div>
                     </div>
                 )}
 
             </div>
+
+            <Dialog open={quickModalOpen} onOpenChange={setQuickModalOpen}>
+                <DialogContent className="max-w-[92vw] sm:max-w-245 p-0 overflow-hidden border border-[#e9e9e9] rounded-2xl">
+                    <DialogTitle className="sr-only">Urun Detayi</DialogTitle>
+                    <div className="grid grid-cols-1 md:grid-cols-[1.05fr_1fr] bg-white">
+                        <div className="relative min-h-85 md:min-h-155 bg-[#f4f1ed]">
+                            {(() => {
+                                const images = quickProductDetails ? buildQuickImages(quickProductDetails) : [quickProduct?.primaryImage || quickProduct?.image || "/placeholder.jpg"];
+                                const image = images[quickImageIndex] || images[0] || "/placeholder.jpg";
+                                return (
+                                    <>
+                                        <Image
+                                            src={image}
+                                            alt={quickProductDetails?.name || quickProduct?.name || "Urun"}
+                                            fill
+                                            className="object-cover"
+                                            sizes="(max-width: 768px) 100vw, 48vw"
+                                            unoptimized
+                                        />
+                                        <div className="absolute left-4 bottom-4 flex items-center gap-2">
+                                            {images.slice(0, 4).map((thumb, idx) => (
+                                                <button
+                                                    key={`${thumb}-${idx}`}
+                                                    type="button"
+                                                    onClick={() => setQuickImageIndex(idx)}
+                                                    className={`relative h-10 w-10 overflow-hidden rounded border ${quickImageIndex === idx ? "border-black" : "border-[#d7d7d7]"}`}
+                                                >
+                                                    <Image src={thumb} alt="thumb" fill className="object-cover" sizes="40px" unoptimized />
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </>
+                                );
+                            })()}
+                        </div>
+
+                        <div className="p-5 md:p-7">
+                            {quickLoading ? (
+                                <div className="space-y-4">
+                                    <div className="h-4 w-24 rounded bg-gray-100 animate-pulse" />
+                                    <div className="h-8 w-56 rounded bg-gray-100 animate-pulse" />
+                                    <div className="h-5 w-24 rounded bg-gray-100 animate-pulse" />
+                                    <div className="h-20 w-full rounded bg-gray-100 animate-pulse" />
+                                </div>
+                            ) : quickProductDetails ? (
+                                <div>
+                                    <p className="text-[12px] font-semibold tracking-[0.16em] text-[#b9ae99] uppercase">Kombin Tamamla</p>
+                                    <h3 className="mt-2 text-[36px] leading-10 font-light text-[#292929]">
+                                        {quickProductDetails.name}
+                                    </h3>
+                                    <div className="mt-2 flex items-center gap-2">
+                                        <span className="text-[32px] font-semibold text-[#252525]">{formatPriceTRY(quickProductDetails.price)}</span>
+                                        {quickProductDetails.originalPrice && quickProductDetails.originalPrice > quickProductDetails.price ? (
+                                            <span className="text-sm text-[#8f8f8f] line-through">{formatPriceTRY(quickProductDetails.originalPrice)}</span>
+                                        ) : null}
+                                    </div>
+
+                                    {(quickProductDetails.description || quickProductDetails.detailText) ? (
+                                        <p className="mt-4 text-sm leading-6 text-[#666] line-clamp-4">
+                                            {quickProductDetails.description || quickProductDetails.detailText}
+                                        </p>
+                                    ) : null}
+
+                                    {quickProductDetails.colors.length > 0 ? (
+                                        <div className="mt-6">
+                                            <div className="flex items-center justify-between">
+                                                <p className="text-xs font-semibold tracking-[0.14em] text-[#585858] uppercase">Renk</p>
+                                                <span className="text-sm text-[#8a8a8a]">
+                                                    {quickProductDetails.colors.find((c) => c.id === quickSelectedColorId)?.name || "Seciniz"}
+                                                </span>
+                                            </div>
+                                            <div className="mt-3 flex items-center gap-2.5">
+                                                {quickProductDetails.colors.map((color) => (
+                                                    <button
+                                                        key={color.id}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setQuickSelectedColorId(color.id);
+                                                            const available = quickProductDetails.sizes.find((size) => getSizeStockForColor(quickProductDetails, color.id, size.id) > 0);
+                                                            setQuickSelectedSizeId(available?.id || null);
+                                                            setQuickImageIndex(0);
+                                                        }}
+                                                        className={`h-7 w-7 rounded-full border-2 p-0.5 ${quickSelectedColorId === color.id ? "border-[#4d5562]" : "border-[#e6e6e6]"}`}
+                                                        aria-label={color.name}
+                                                    >
+                                                        <span className="block h-full w-full rounded-full" style={getSwatchStyle(color)} />
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ) : null}
+
+                                    {quickProductDetails.sizes.length > 0 ? (
+                                        <div className="mt-5">
+                                            <div className="flex items-center justify-between">
+                                                <p className="text-xs font-semibold tracking-[0.14em] text-[#585858] uppercase">Beden</p>
+                                                <Link
+                                                    href={quickProductDetails.slug ? `/products/${quickProductDetails.slug}` : `/product/${quickProductDetails.id}`}
+                                                    className="text-xs text-[#888] underline underline-offset-2"
+                                                >
+                                                    Beden Rehberi
+                                                </Link>
+                                            </div>
+                                            <div className="mt-3 flex flex-wrap gap-2">
+                                                {quickProductDetails.sizes.map((size) => {
+                                                    const stock = getSizeStockForColor(quickProductDetails, quickSelectedColorId, size.id);
+                                                    const soldOut = stock <= 0;
+                                                    const active = quickSelectedSizeId === size.id;
+                                                    return (
+                                                        <button
+                                                            key={size.id}
+                                                            type="button"
+                                                            disabled={soldOut}
+                                                            onClick={() => setQuickSelectedSizeId(size.id)}
+                                                            className={`h-9 min-w-11 rounded border px-3 text-sm ${active ? "border-black bg-black text-white" : soldOut ? "border-[#ececec] text-[#c5c5c5] line-through" : "border-[#dbdbdb] text-[#555] hover:border-black"}`}
+                                                        >
+                                                            {size.name}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    ) : null}
+
+                                    <div className="mt-5 flex items-center gap-3">
+                                        <div className="inline-flex items-center rounded border border-[#dfdfdf] bg-white">
+                                            <button
+                                                type="button"
+                                                onClick={() => setQuickQuantity((prev) => Math.max(1, prev - 1))}
+                                                className="h-9 w-9 grid place-items-center text-[#888] hover:text-black"
+                                            >
+                                                <Minus className="h-4 w-4" />
+                                            </button>
+                                            <span className="w-8 text-center text-sm">{quickQuantity}</span>
+                                            <button
+                                                type="button"
+                                                onClick={() => setQuickQuantity((prev) => prev + 1)}
+                                                className="h-9 w-9 grid place-items-center text-[#888] hover:text-black"
+                                            >
+                                                <Plus className="h-4 w-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-6 space-y-2.5">
+                                        <Button
+                                            onClick={handleQuickAddToCart}
+                                            disabled={quickSubmitting}
+                                            className="h-12 w-full rounded-none bg-black text-white hover:bg-black/90 tracking-[0.15em] text-xs"
+                                        >
+                                            {quickSubmitting ? "EKLENIYOR" : "SEPETE EKLE"}
+                                        </Button>
+                                        <Link
+                                            href={quickProductDetails.slug ? `/products/${quickProductDetails.slug}` : `/product/${quickProductDetails.id}`}
+                                            className="flex h-11 w-full items-center justify-center border border-[#dddddd] text-xs tracking-[0.15em] text-[#808080]"
+                                        >
+                                            URUNU INCELE
+                                        </Link>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="py-10 text-sm text-[#777]">Urun bilgisi bulunamadi.</div>
+                            )}
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

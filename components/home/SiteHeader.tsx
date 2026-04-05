@@ -295,7 +295,7 @@ export default function SiteHeader() {
 
 
   return (
-    <div className="relative flex flex-col z-[50]">
+    <div className="relative flex flex-col z-50">
       <AnnouncementBanner variant={bannerVariant} position="static" />
 
       <header
@@ -348,7 +348,7 @@ export default function SiteHeader() {
                     <Menu className="w-5 h-5" />
                   </button>
                 </SheetTrigger>
-                <SheetContent side="left" className="w-[300px] p-0 flex flex-col">
+                <SheetContent side="left" className="w-75 p-0 flex flex-col">
                   <SheetHeader className="px-6 pt-6 pb-4 border-b">
                     <SheetTitle className="text-lg font-light uppercase tracking-wide text-[#111] text-left">
                       {mobileMenuState === "main" ? "Menü" :
@@ -602,7 +602,7 @@ export default function SiteHeader() {
 
                 
                 {mega[openMenu].rightPromo && (
-                  <div className="w-[260px] bg-gray-50 border-l border-gray-100 pl-8 flex flex-col justify-center">
+                  <div className="w-65 bg-gray-50 border-l border-gray-100 pl-8 flex flex-col justify-center">
                     <Link href={mega[openMenu].rightPromo!.href} className="group block" onClick={() => setOpenMenu(null)}>
                       <div className="relative group/promo overflow-hidden aspect-3/4 mb-6">
                         <Image

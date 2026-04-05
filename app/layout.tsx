@@ -8,6 +8,7 @@ import OrganizationSchema from "@/components/seo/OrganizationSchema";
 import WebSiteSchema from "@/components/seo/WebSiteSchema";
 import AnalyticsScripts from "@/components/seo/AnalyticsScripts";
 import ConditionalFooter from "@/components/structure/ConditionalFooter";
+import ScrollToTopButton from "@/components/structure/ScrollToTopButton";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
@@ -107,6 +108,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SessionWrapper>
           <SiteHeader />
           <main id="main-content" className="flex-1">{children}</main>
+          <ScrollToTopButton />
           <ConditionalFooter />
           <ToasterWrapper />
         </SessionWrapper>

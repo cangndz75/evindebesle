@@ -13,7 +13,13 @@ function formatProduct(product: any) {
         images = [color.images as string];
       }
     }
-    return { ...color, images };
+    return {
+      id: color.id,
+      name: color.name,
+      hexCode: color.hexCode || null,
+      images,
+      variants: Array.isArray(color.variants) ? color.variants : [],
+    };
   });
 
   return {
@@ -56,7 +62,21 @@ export async function GET(request: NextRequest) {
       where: { productId: { in: ids } },
       include: {
         relatedProduct: {
-          include: { colors: { take: 1 } },
+          include: {
+            colors: {
+              take: 5,
+              include: {
+                variants: {
+                  select: {
+                    id: true,
+                    variantCode: true,
+                    colorId: true,
+                  },
+                  take: 1,
+                },
+              },
+            },
+          },
         },
       },
     });
@@ -81,7 +101,21 @@ export async function GET(request: NextRequest) {
           gender: { in: genders as any },
           categoryId: { in: categoryIds },
         },
-        include: { colors: { take: 1 } },
+        include: {
+          colors: {
+            take: 5,
+            include: {
+              variants: {
+                select: {
+                  id: true,
+                  variantCode: true,
+                  colorId: true,
+                },
+                take: 1,
+              },
+            },
+          },
+        },
         orderBy: { createdAt: "desc" },
         take: TARGET_COUNT - results.length,
       });
@@ -99,7 +133,21 @@ export async function GET(request: NextRequest) {
           price: { gt: 0 },
           gender: { in: genders as any },
         },
-        include: { colors: { take: 1 } },
+        include: {
+          colors: {
+            take: 5,
+            include: {
+              variants: {
+                select: {
+                  id: true,
+                  variantCode: true,
+                  colorId: true,
+                },
+                take: 1,
+              },
+            },
+          },
+        },
         orderBy: { createdAt: "desc" },
         take: TARGET_COUNT - results.length,
       });
@@ -116,7 +164,21 @@ export async function GET(request: NextRequest) {
           isActive: true,
           price: { gt: 0 },
         },
-        include: { colors: { take: 1 } },
+        include: {
+          colors: {
+            take: 5,
+            include: {
+              variants: {
+                select: {
+                  id: true,
+                  variantCode: true,
+                  colorId: true,
+                },
+                take: 1,
+              },
+            },
+          },
+        },
         orderBy: { createdAt: "desc" },
         take: TARGET_COUNT - results.length,
       });

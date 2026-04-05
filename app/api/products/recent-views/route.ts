@@ -19,11 +19,20 @@ export async function GET(req: NextRequest) {
         },
         include: {
           colors: {
-            take: 1,
+            take: 5,
             select: {
               id: true,
               name: true,
+              hexCode: true,
               images: true,
+              variants: {
+                select: {
+                  id: true,
+                  variantCode: true,
+                  colorId: true,
+                },
+                take: 1,
+              },
             },
           },
         },
@@ -37,11 +46,20 @@ export async function GET(req: NextRequest) {
           product: {
             include: {
               colors: {
-                take: 1,
+                take: 5,
                 select: {
                   id: true,
                   name: true,
+                  hexCode: true,
                   images: true,
+                  variants: {
+                    select: {
+                      id: true,
+                      variantCode: true,
+                      colorId: true,
+                    },
+                    take: 1,
+                  },
                 },
               },
             },

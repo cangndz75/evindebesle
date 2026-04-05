@@ -12,7 +12,6 @@ import {
   LogOut,
   Menu,
   User,
-  PawPrint,
   Briefcase,
   Home,
   List,
@@ -41,10 +40,10 @@ export default function AdminMobileMenu({ name }: { name?: string }) {
             <Menu className="w-5 h-5" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="w-[260px] p-4">
+        <SheetContent side="left" className="w-65 p-4">
           <SheetHeader>
             <SheetTitle className="flex items-center gap-2 text-lg">
-              <PawPrint className="w-5 h-5 text-violet-700" />
+              <Briefcase className="w-5 h-5 text-violet-700" />
               Dark Velvet
             </SheetTitle>
           </SheetHeader>
@@ -69,8 +68,8 @@ export default function AdminMobileMenu({ name }: { name?: string }) {
               Kullanıcılar
             </Link>
             <Link href="/pets" className="flex items-center gap-2 hover:text-primary">
-              <PawPrint className="w-4 h-4" />
-              Evcil Hayvanlar
+              <Briefcase className="w-4 h-4" />
+              Hizmetler
             </Link>
             <Link href="/security" className="flex items-center gap-2 hover:text-primary">
               <List className="w-4 h-4" />

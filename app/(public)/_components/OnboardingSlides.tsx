@@ -4,14 +4,14 @@ import { useState, useEffect } from "react";
 
 const slides = [
   {
-    title: "Evde Hayvan Bakımı",
-    desc: "Evcil dostlarınıza en iyi bakımı sağlamak için buradayız.",
+    title: "Stilini Keşfet",
+    desc: "Tarzına uygun seçkilerle alışveriş deneyimini kolaylaştırıyoruz.",
     image:
       "https://res.cloudinary.com/dlahfchej/image/upload/v1752619387/15_iaalt8.png",
   },
   {
-    title: "Güvenli ve Sevgi Dolu",
-    desc: "Ev ortamında, sevgi dolu bakıcılarla tanışın.",
+    title: "Güvenli ve Hızlı",
+    desc: "Güvenli ödeme ve hızlı süreçlerle kesintisiz deneyim yaşayın.",
     image:
       "https://res.cloudinary.com/dlahfchej/image/upload/v1752619398/6_umwbmf.png",
   },

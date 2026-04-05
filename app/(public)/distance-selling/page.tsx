@@ -19,7 +19,7 @@ export default function DistanceSellingPage() {
               1.1. Hizmet Sağlayıcı (Satıcı)
             </h3>
             <p>
-              <strong>Ünvan:</strong> Dogo Petshop LTD. ŞTİ.
+              <strong>Ünvan:</strong> Dark Velvet Tekstil LTD. ŞTİ.
               <br />
               <strong>Adres:</strong> Uptwins Blok, Orta, Yalnız Selvi Cd. No :
               5AB, 34880 Kartal/İstanbul
@@ -68,8 +68,8 @@ export default function DistanceSellingPage() {
                 dark-velvet.com
               </a>{" "}
               internet sitesi üzerinden elektronik ortamda satın aldığı, aşağıda
-              nitelikleri ve satış fiyatı belirtilen evcil hayvan bakım
-              hizmetlerinin (örneğin, evde besleme, gezdirme, bakım) sunulması
+              nitelikleri ve satış fiyatı belirtilen ürün ve hizmetlerin
+              sunulması
               ile ilgili olarak 6502 sayılı Tüketicinin Korunması Hakkında Kanun
               ve Mesafeli Sözleşmelere Dair Yönetmelik hükümleri gereğince
               tarafların hak ve yükümlülüklerini düzenler.
@@ -91,8 +91,7 @@ export default function DistanceSellingPage() {
               internet sitesinde yer aldığı şekliyle ve Alıcı tarafından sipariş
               esnasında onaylanan şekilde aşağıda belirtilmiştir:
               <br />
-              <strong>Hizmet Türü:</strong> [Örnek: Evde Evcil Hayvan Besleme ve
-              Gezdirme]
+              <strong>Hizmet Türü:</strong> [Örnek: Kişisel Stil Danışmanlığı]
               <br />
               <strong>Hizmet Süresi:</strong> [Örnek: 5 Gün, Günde 2 Ziyaret]
               <br />
@@ -100,8 +99,7 @@ export default function DistanceSellingPage() {
               <br />
               <strong>Hizmet Bitiş Tarihi:</strong> [Bitiş Tarihi]
               <br />
-              <strong>Evcil Hayvan Bilgileri:</strong> [Evcil Hayvan Türü, Adı,
-              Özel İhtiyaçlar]
+              <strong>Hizmet Detayları:</strong> [Seçilen Paket, Özel Notlar]
               <br />
               <strong>Hizmet Ücreti:</strong> [Hizmet Ücreti] TL (KDV Dahil)
               <br />
@@ -127,20 +125,20 @@ export default function DistanceSellingPage() {
               <br />
               5.2. Hizmet, Satıcı’nın profesyonel personeli veya anlaşmalı
               hizmet sağlayıcıları tarafından sunulur. Alıcı, hizmetin
-              sağlanacağı adresin erişilebilir olduğunu ve evcil hayvanın sağlık
-              durumunun hizmete uygun olduğunu garanti eder.
+              sağlanacağı adresin erişilebilir olduğunu ve hizmet koşullarının
+              uygun olduğunu garanti eder.
               <br />
-              5.3. Alıcı, hizmet öncesinde evcil hayvanın özel ihtiyaçlarını
-              (örneğin, diyet, ilaç, davranış özellikleri) Satıcı’ya yazılı
+              5.3. Alıcı, hizmet öncesinde özel ihtiyaçlarını
+              (örneğin, zamanlama, teslimat notu, iletişim tercihleri) Satıcı’ya yazılı
               olarak bildirmekle yükümlüdür.
               <br />
               5.4. Hizmetin sağlanamaması durumunda (örneğin, Alıcı’nın
-              adresinde bulunmaması veya evcil hayvana erişilememesi), Satıcı
+              adresinde bulunmaması veya hizmete erişim sağlanamaması), Satıcı
               edimini tam ve eksiksiz olarak yerine getirmiş sayılır.
               <br />
-              5.5. Satıcı, hizmet sırasında evcil hayvanın güvenliği ve sağlığı
-              için gerekli özeni gösterir. Ancak, evcil hayvanın mevcut sağlık
-              sorunlarından veya öngörülemeyen durumlardan kaynaklanan zararlar
+              5.5. Satıcı, hizmet sırasında süreç güvenliği ve kalite
+              için gerekli özeni gösterir. Ancak, önceden bildirilmeyen
+              koşullardan veya öngörülemeyen durumlardan kaynaklanan zararlar
               Satıcı’nın sorumluluğunda değildir.
             </p>
           </section>
@@ -182,7 +180,7 @@ export default function DistanceSellingPage() {
               bildirmelidir. Satıcı, şikayeti inceleyerek telafi edici bir
               hizmet sunabilir veya ücreti iade edebilir.
               <br />
-              7.3. Alıcı’nın, evcil hayvanın özel ihtiyaçlarını veya adres
+              7.3. Alıcı’nın, hizmete ilişkin özel ihtiyaçları veya adres
               bilgilerini doğru şekilde bildirmemesi durumunda, hizmetin eksik
               sunulmasından Satıcı sorumlu tutulamaz.
             </p>
@@ -201,7 +199,7 @@ export default function DistanceSellingPage() {
               yükümlüdür.
               <br />
               8.3. Alıcı, hizmetin sağlanacağı adresin erişilebilirliğini ve
-              evcil hayvanın sağlık durumunun hizmete uygun olduğunu sağlamakla
+              hizmet koşullarının uygun olduğunu sağlamakla
               yükümlüdür.
               <br />
               8.4. Alıcı, hizmet sırasında kullanılacak anahtar veya erişim
@@ -221,7 +219,7 @@ export default function DistanceSellingPage() {
               hakkında açık ve anlaşılır şekilde bilgilendirmekle yükümlüdür.
               <br />
               
-              9.3. Satıcı, hizmet sırasında evcil hayvanın güvenliği ve sağlığı
+              9.3. Satıcı, hizmet sırasında süreç güvenliği ve kalite
               için gerekli özeni gösterir.
             </p>
           </section>

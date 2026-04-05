@@ -229,7 +229,7 @@ export default function EditBlogPostPage({ params }: { params: Promise<{ id: str
                                 <Label htmlFor="category">Kategori</Label>
                                 <Input
                                     id="category"
-                                    placeholder="Örn: Evcil Hayvan Bakımı"
+                                    placeholder="Örn: Stil Önerileri"
                                     value={formData.category}
                                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                                 />
@@ -238,7 +238,7 @@ export default function EditBlogPostPage({ params }: { params: Promise<{ id: str
                                 <Label htmlFor="tags">Etiketler (Virgülle ayırın)</Label>
                                 <Input
                                     id="tags"
-                                    placeholder="kedi, bakim, mama..."
+                                    placeholder="stil, kombin, sezon..."
                                     value={formData.tags}
                                     onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
                                 />

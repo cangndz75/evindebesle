@@ -3,16 +3,15 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { Rocket, Paintbrush, Code } from "lucide-react";
-import { PawPrint, Users, ShieldCheck } from "lucide-react";
+import { Rocket, Users, ShieldCheck } from "lucide-react";
 
 const features = [
   {
     step: "Adım 1",
     title: "Talebini Oluştur",
     content:
-      "Evcil hayvanın için bakım, konaklama ya da gezdirme ihtiyacını seçerek birkaç saniyede talep oluştur.",
-    icon: PawPrint,
+      "İhtiyacına uygun hizmeti seçerek birkaç saniyede talep oluştur.",
+    icon: Rocket,
     image:
       "https://res.cloudinary.com/dlahfchej/image/upload/v1752619388/8_kkoxpr.png",
   },
@@ -27,9 +26,9 @@ const features = [
   },
   {
     step: "Adım 3",
-    title: "Evcil Dostun Güvende",
+    title: "Süreç Güvende",
     content:
-      "Bakıcın evcil hayvanına özenle bakar. Sen de dilediğin zaman fotoğraf ve gelişmeleri takip edebilirsin.",
+      "Ekibimiz süreci özenle yürütür. Sen de dilediğin zaman fotoğraf ve gelişmeleri takip edebilirsin.",
     icon: ShieldCheck,
     image:
       "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?q=80&w=2070&auto=format&fit=crop",
@@ -71,7 +70,7 @@ export default function HowItWorksSection() {
         <div className="mx-auto mb-12 max-w-2xl text-center">
           <h2 className="text-4xl font-bold md:text-5xl">Nasıl Çalışır?</h2>
           <p className="mt-3 text-muted-foreground">
-            Evcil hayvanın için en iyi bakımı sağlamak çok kolay!
+            Hizmeti başlatmak ve süreci takip etmek çok kolay.
           </p>
         </div>
 
@@ -129,7 +128,7 @@ export default function HowItWorksSection() {
           </div>
 
           
-          <div className="relative order-1 h-[200px] md:order-2 md:h-[300px] lg:h-[400px] overflow-hidden rounded-xl border border-primary/20 shadow-xl">
+          <div className="relative order-1 h-50 md:order-2 md:h-75 lg:h-100 overflow-hidden rounded-xl border border-primary/20 shadow-xl">
             <AnimatePresence mode="wait">
               {features.map(
                 (feature, index) =>
@@ -147,7 +146,7 @@ export default function HowItWorksSection() {
                         alt={feature.title}
                         className="h-full w-full object-cover transition-transform hover:scale-105"
                       />
-                      <div className="absolute bottom-0 left-0 right-0 h-2/3 bg-gradient-to-t from-background via-background/60 to-transparent" />
+                      <div className="absolute bottom-0 left-0 right-0 h-2/3 bg-linear-to-t from-background via-background/60 to-transparent" />
                       <div className="absolute bottom-4 left-4 rounded-md bg-background/80 px-2 py-1 text-xs font-medium text-primary backdrop-blur-sm shadow">
                         {feature.step}
                       </div>

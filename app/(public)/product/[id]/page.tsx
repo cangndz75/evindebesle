@@ -135,7 +135,7 @@ export async function generateMetadata({
       categoryName,
       product.brand || "",
       product.fabricType || "",
-      "evcil hayvan",
+      "moda",
       "online alışveriş",
     ].filter(Boolean),
     openGraph: {

@@ -10,7 +10,7 @@ import clsx from "clsx";
 
 const tabs = [
   { label: "Kişisel Bilgilerim", href: "/profile/personal-info" },
-  { label: "Evcil Hayvanlarım", href: "/profile/pets" },
+  { label: "Hizmet Tercihlerim", href: "/profile/pets" },
   { label: "Siparişlerim", href: "/profile/orders" },
   { label: "Favorilerim", href: "/profile/favorites" },
   { label: "İndirim Kuponlarım", href: "/profile/coupons" },
@@ -43,7 +43,7 @@ export default function ProfileMobileHeader() {
         </Button>
       </div>
       <div className="overflow-x-auto no-scrollbar px-4 -mx-4">
-        <div className="flex gap-3 min-w-[500px] max-w-none">
+        <div className="flex gap-3 min-w-125 max-w-none">
           {tabs.map((tab) => (
             <Link
               key={tab.href}

@@ -1,9 +1,9 @@
 ﻿import CategoryCard from "./CategoryCard";
 
 const categories = [
-  "Evcil Hayvan Bakımı",
-  "Evcil Hayvan Besleme",
-  "Mama ve Aksesuar",
+  "Günlük Stil",
+  "Yeni Sezon",
+  "Aksesuar",
 ];
 
 export default function CategorySection() {

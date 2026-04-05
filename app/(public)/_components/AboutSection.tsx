@@ -10,15 +10,15 @@ const steps = [
     number: "01",
     title: "Randevunu Planla",
     description:
-      "Evcil dostunuz için uygun tarihi ve hizmet türünü seçerek kolayca randevu oluşturun.",
+      "Size en uygun tarih ve hizmet detaylarını seçerek kolayca plan oluşturun.",
     image:
       "https://res.cloudinary.com/dlahfchej/image/upload/v1752621182/18_jx1kqp.png",
   },
   {
     number: "02",
-    title: "Dogo Pet Uzmanı Kapınızda",
+    title: "Uzman Ekip Yanınızda",
     description:
-      "Alanında eğitimli Dogo Pet bakıcımız, belirttiğiniz saatte evinize gelir.",
+      "Alanında deneyimli ekibimiz, belirttiğiniz saatte süreci başlatır.",
     image:
       "https://res.cloudinary.com/dlahfchej/image/upload/v1752621180/17_a2tgt3.png",
   },
@@ -26,7 +26,7 @@ const steps = [
     number: "03",
     title: "Hizmet Anında Fotoğraf ve Video Desteği",
     description:
-      "Mama verme, tuvalet temizliği veya yürüyüş sırasında anlık fotoğraf ve videolarla sizi bilgilendiririz.",
+      "Süreç boyunca anlık fotoğraf ve video paylaşımlarıyla sizi bilgilendiririz.",
     image:
       "https://plus.unsplash.com/premium_photo-1707353401897-da9ba223f807?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
   },

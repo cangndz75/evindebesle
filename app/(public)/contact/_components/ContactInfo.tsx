@@ -6,8 +6,8 @@ export default function ContactInfo() {
           İletişim Bilgileri
         </h2>
         <p className="text-gray-500 leading-relaxed max-w-md">
-          Dark Velvet olarak, evcil hayvanlarınıza en iyi dokunuşu sunmak için
-          buradayız. Herhangi bir sorunuz, öneriniz veya hizmetlerimiz hakkında
+          Dark Velvet olarak, size en iyi alışveriş deneyimini sunmak için
+          buradayız. Herhangi bir sorunuz, öneriniz veya ürünlerimiz hakkında
           bilgi almak için bizimle iletişime geçebilirsiniz.
         </p>
       </div>

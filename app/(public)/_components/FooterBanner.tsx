@@ -12,7 +12,7 @@ export default function FooterBanner() {
             width={160}
             height={40}
           />
-          <div className="hidden md:block h-20 border-l-[1px] border-[#d5ff4b]" />
+          <div className="hidden md:block h-20 border-l border-[#d5ff4b]" />
         </div>
 
         <div className="text-center md:text-left text-lg md:text-2xl font-medium leading-snug max-w-3xl">

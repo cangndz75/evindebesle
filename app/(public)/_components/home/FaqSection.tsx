@@ -10,32 +10,32 @@ type FaqItem = {
 
 const defaultFaqs: FaqItem[] = [
   {
-    question: "Evde hayvan bakımı nasıl gerçekleşiyor?",
+    question: "Hizmet süreci nasıl ilerliyor?",
     answer: [
-      "Bakıcılarımız, belirttiğiniz gün ve saatlerde adresinize gelir.",
-      "Mama, su, oyun, temizlik ve özel isteklerinizi uygular.",
+      "Ekibimiz, belirttiğiniz gün ve saatlerde süreci başlatır.",
+      "Sipariş detayları, teslimat ve özel talepleriniz plan doğrultusunda uygulanır.",
       "İsteğe bağlı olarak kamera ve fotoğraf ile hizmet raporu gönderilir.",
     ],
   },
   {
     question: "Hangi hizmetleri sunuyorsunuz?",
     answer: [
-      "Evde besleme, oyun ve sosyalleşme, hijyen/temizlik takibi.",
-      "Her hayvana özel planlama yapılır, ekstra ücret sürprizi yoktur.",
+      "Stil danışmanlığı, ürün önerisi, sipariş ve teslimat destek süreçleri.",
+      "Her talep için net planlama yapılır, ekstra ücret sürprizi yoktur.",
     ],
   },
   {
-    question: "Bakıcılar güvenilir mi?",
+    question: "Ekip güvenilir mi?",
     answer: [
-      "Tüm bakıcılarımız referanslı, eğitimli ve detaylı şekilde değerlendirilmiştir.",
+      "Tüm ekip üyelerimiz deneyimli ve detaylı şekilde değerlendirilmiştir.",
       "Sürekli geri bildirim ve kalite kontrol süreci ile güvenliği sağlıyoruz.",
     ],
   },
   {
-    question: "Evcil hayvanım özel ilgi gerektiriyor, bunu belirtmeli miyim?",
+    question: "Özel taleplerimi belirtmeli miyim?",
     answer: [
-      "Evet. Tırnak kesim hassasiyeti, ilaç alerjisi gibi tüm özel notlar formda alınır.",
-      "Bu bilgiler bakıcınıza önceden iletilir ve hizmet buna göre planlanır.",
+      "Evet. Özel notlar ve beklentileriniz form üzerinden alınır.",
+      "Bu bilgiler ekibe önceden iletilir ve süreç buna göre planlanır.",
     ],
   },
 ];
@@ -74,7 +74,7 @@ export default function FaqSection({ faqs = defaultFaqs }: { faqs?: FaqItem[] })
         <div>
           <h2 className="text-4xl font-bold mb-4">Sıkça Sorulan Sorular</h2>
           <p className="text-gray-600 mb-8">
-            Evcil dostlarınızla ilgili aklınıza takılan soruları yanıtladık.
+            Alışveriş ve hizmet süreciyle ilgili aklınıza takılan soruları yanıtladık.
           </p>
 
           <div className="space-y-4">
@@ -122,7 +122,7 @@ export default function FaqSection({ faqs = defaultFaqs }: { faqs?: FaqItem[] })
         </div>
 
         <div className="space-y-4">
-          <div className="rounded-xl overflow-hidden shadow-lg aspect-[9/16] w-full max-w-sm mx-auto">
+          <div className="rounded-xl overflow-hidden shadow-lg aspect-9/16 w-full max-w-sm mx-auto">
             <video
               src="https://res.cloudinary.com/dlahfchej/video/upload/v1753710168/VIDEO-2025-07-07-19-18-39_wse3zv.mp4"
               controls

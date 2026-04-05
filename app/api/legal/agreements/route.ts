@@ -84,7 +84,7 @@ function preInfoTemplate(data: any) {
   } = data;
 
   const sellerDefaults = {
-    title: "Dogo Petshop LTD. ŞTİ.",
+    title: "Dark Velvet Tekstil LTD. ŞTİ.",
     tax: "Yakacık VD | VKN: 3021119045 • MERSİS: 0302111904500001",
     address: "Uptwins Blok, Orta, Yalnız Selvi Cd. No: 5AB, 34880 Kartal/İstanbul",
     phone: "+90 216 519 26 00",
@@ -141,7 +141,7 @@ function distanceSalesTemplate(data: any) {
   } = data;
 
   const sellerDefaults = {
-    title: "Dogo Petshop LTD. ŞTİ.",
+    title: "Dark Velvet Tekstil LTD. ŞTİ.",
     tax: "Yakacık VD | VKN: 3021119045 • MERSİS: 0302111904500001",
     address: "Uptwins Blok, Orta, Yalnız Selvi Cd. No: 5AB, 34880 Kartal/İstanbul",
     phone: "+90 216 519 26 00",

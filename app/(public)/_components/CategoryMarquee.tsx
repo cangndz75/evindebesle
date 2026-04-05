@@ -5,19 +5,19 @@ import Image from "next/image";
 
 const items = [
   {
-    label: "Evcil Hayvan Bakımı",
+    label: "Şehir Stili",
     color: "text-green-800",
-    img: "/cat.jpg",
+    img: "https://images.unsplash.com/photo-1487222477894-8943e31ef7b2?q=80&w=800&auto=format&fit=crop",
   },
   {
-    label: "Evcil Hayvan Besleme",
+    label: "Minimal Koleksiyon",
     color: "text-orange-500",
-    img: "/feeding.jpg",
+    img: "https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=800&auto=format&fit=crop",
   },
   {
-    label: "Mama ve Aksesuar",
+    label: "Aksesuar Dünyası",
     color: "text-gray-600",
-    img: "/activities.jpg",
+    img: "https://images.unsplash.com/photo-1445205170230-053b83016050?q=80&w=800&auto=format&fit=crop",
   },
 ];
 

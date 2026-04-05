@@ -34,15 +34,15 @@ interface SearchModalProps {
 const collections: Collection[] = [
   {
     id: "1",
-    title: "Köpek Hizmetleri",
-    href: "/category/dogs",
-    image: "https://images.unsplash.com/photo-1541599540903-216a46ca1df0?q=80&w=600&auto=format&fit=crop",
+    title: "Kadın Koleksiyonu",
+    href: "/category/women",
+    image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=600&auto=format&fit=crop",
   },
   {
     id: "2",
-    title: "Kedi Hizmetleri",
-    href: "/category/cats",
-    image: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?q=80&w=600&auto=format&fit=crop",
+    title: "Erkek Koleksiyonu",
+    href: "/category/men",
+    image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=600&auto=format&fit=crop",
   },
   {
     id: "3",
@@ -225,16 +225,6 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
     );
   }, [searchQuery]);
 
-  const detectedCategory = useMemo(() => {
-    if (!searchQuery) return null;
-    const query = searchQuery.toLowerCase();
-    if (query.includes("köpek") || query.includes("dog") || query.includes("kedi") || query.includes("cat")) {
-      if (query.includes("köpek") || query.includes("dog")) return "dogs";
-      if (query.includes("kedi") || query.includes("cat")) return "cats";
-    }
-    return null;
-  }, [searchQuery]);
-
   if (!isOpen) return null;
 
   return (
@@ -243,10 +233,10 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
       role="dialog"
       aria-modal="true"
       aria-label="Arama"
-      className="fixed inset-0 z-[100] bg-white flex flex-col"
+      className="fixed inset-0 z-100 bg-white flex flex-col"
     >
       
-      <div className="bg-black text-white px-4 md:px-8 py-6 flex-shrink-0">
+      <div className="bg-black text-white px-4 md:px-8 py-6 shrink-0">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center gap-4">
             <div className="flex-1 relative">
@@ -291,14 +281,6 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
       <div className="flex-1 overflow-y-auto bg-gray-50 overscroll-contain">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
           
-          {detectedCategory && (
-            <div className="mb-6">
-              <span className="inline-block px-4 py-2 bg-black text-white text-sm uppercase tracking-wide">
-                {detectedCategory === "dogs" ? "KÖPEK" : "KEDİ"}
-              </span>
-            </div>
-          )}
-
           
           {filteredCollections.length > 0 && (
             <div className="mb-8">
@@ -317,9 +299,9 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
                     key={collection.id}
                     href={collection.href}
                     onClick={onClose}
-                    className="group bg-white p-3 hover:shadow-md transition-shadow flex-shrink-0 w-48"
+                    className="group bg-white p-3 hover:shadow-md transition-shadow shrink-0 w-48"
                   >
-                    <div className="relative aspect-[4/3] mb-2 overflow-hidden bg-gray-100">
+                    <div className="relative aspect-4/3 mb-2 overflow-hidden bg-gray-100">
                       <Image
                         src={collection.image}
                         alt={collection.title}
@@ -370,7 +352,7 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
           
           <div className="flex gap-6">
             
-            <div className="hidden md:block w-56 flex-shrink-0">
+            <div className="hidden md:block w-56 shrink-0">
               <div className="bg-white p-4 border border-gray-200">
                 <h3 className="text-xs font-light uppercase tracking-wide mb-4">FİLTRELER</h3>
                 <div className="space-y-4">
@@ -397,18 +379,18 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
                           Tümü
                         </button>
                         <button
-                          onClick={() => setSelectedCategory("dogs")}
-                          className={`block w-full text-left text-xs py-1 ${selectedCategory === "dogs" ? "font-medium text-black" : "text-gray-600"
+                          onClick={() => setSelectedCategory("women")}
+                          className={`block w-full text-left text-xs py-1 ${selectedCategory === "women" ? "font-medium text-black" : "text-gray-600"
                             }`}
                         >
-                          Köpek
+                          Kadın
                         </button>
                         <button
-                          onClick={() => setSelectedCategory("cats")}
-                          className={`block w-full text-left text-xs py-1 ${selectedCategory === "cats" ? "font-medium text-black" : "text-gray-600"
+                          onClick={() => setSelectedCategory("men")}
+                          className={`block w-full text-left text-xs py-1 ${selectedCategory === "men" ? "font-medium text-black" : "text-gray-600"
                             }`}
                         >
-                          Kedi
+                          Erkek
                         </button>
                       </div>
                     )}
@@ -548,7 +530,7 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
                       onClick={onClose}
                       className="group"
                     >
-                      <div className="relative aspect-[3/4] mb-4 overflow-hidden bg-gray-100">
+                      <div className="relative aspect-3/4 mb-4 overflow-hidden bg-gray-100">
                         <Image
                           src={product.image}
                           alt={product.title}

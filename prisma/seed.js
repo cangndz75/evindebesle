@@ -2,14 +2,12 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function main() {
-  await prisma.pet.createMany({
+  await prisma.category.createMany({
     data: [
       {
         id: "1",
-        name: "Kedi",
-        species: "Cat",
-        breed: "Tekir",
-        image: null,
+        name: "Yeni Sezon",
+        slug: "yeni-sezon",
       },
     ],
   });

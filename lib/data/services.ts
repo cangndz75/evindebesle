@@ -1,36 +1,36 @@
 export const serviceGroups = [
   {
-    title: "Bakıcının evinde hizmetler",
+    title: "Uzaktan stil hizmetleri",
     items: [
       {
-        icon: "🏠",
-        title: "Evde Konaklama",
-        description: "24 saatlik bakım, evcil hayvanınız bakıcının evinde konaklar.",
+        icon: "💻",
+        title: "Online Stil Danışmanlığı",
+        description: "Canlı görüşme ile kombin, renk ve ürün önerileri alın.",
       },
       {
-        icon: "🌞",
-        title: "Gündüz Bakımı",
-        description: "Gündüz saatlerinde bakıcının evinde günlük bakım hizmeti.",
+        icon: "🧾",
+        title: "Dolap Analizi",
+        description: "Mevcut parçalarınıza göre yeni kombin planı hazırlanır.",
       },
     ],
   },
   {
-    title: "Sizin evinizde hizmetler",
+    title: "Yerinde destek hizmetleri",
     items: [
       {
         icon: "🚶‍♂️",
-        title: "Köpek Gezdirme",
-        description: "En az 30 dakikalık yürüyüş ile köpeğinizin enerjisi atılır.",
+        title: "Kişisel Alışveriş Desteği",
+        description: "Mağaza veya online alışverişte birlikte doğru ürün seçimi yapılır.",
       },
       {
-        icon: "🛏️",
-        title: "Evde Konaklama",
-        description: "24 saatlik bakım, bakıcı sizin evinize gelir.",
+        icon: "🧥",
+        title: "Özel Kombin Kurgusu",
+        description: "Özel günler için bütünlüklü kombin önerileri sunulur.",
       },
       {
         icon: "🔑",
-        title: "Ev Ziyareti",
-        description: "Günde 1 veya 2 defa kısa süreli ev ziyareti ile temel ihtiyaçlar karşılanır.",
+        title: "Wardrobe Refresh",
+        description: "Mevsime göre gardırop düzenleme ve eksik parça listesi oluşturulur.",
       },
     ],
   },

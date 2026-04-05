@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import type { Product } from "@/lib/homeData";
 import { addToGuestCart } from "@/lib/cart-utils";
+import { resolveSwatchHex } from "@/lib/color-swatch";
 
 interface TabbedProductCarouselProps {
   newArrivals: Product[];
@@ -977,7 +978,7 @@ function ProductCarouselContent({
                               ) : (
                                 <div
                                   className="w-full h-full"
-                                  style={{ backgroundColor: color.hexCode || "#000000" }}
+                                  style={{ backgroundColor: resolveSwatchHex({ name: color.name, hexCode: color.hexCode }) }}
                                 />
                               )}
                               {isSelected && (

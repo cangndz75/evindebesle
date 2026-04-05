@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { Metadata } from "next";
 import { unstable_cache } from "next/cache";
 import { Suspense } from "react";
+import { resolveSwatchHex } from "@/lib/color-swatch";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://darkvelvet.com";
 
@@ -93,7 +94,7 @@ const getInitialProducts = unstable_cache(
             const cImages = parseImages(c.images);
             return {
               name: c.name,
-              value: c.hexCode || "#000000",
+              value: resolveSwatchHex({ name: c.name, hexCode: c.hexCode }),
               image: cImages[0] || primaryImg || "/placeholder.png",
             };
           }),

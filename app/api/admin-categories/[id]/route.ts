@@ -21,6 +21,12 @@ export async function GET(
     const category = await prisma.category.findUnique({
       where: { id },
       include: {
+        defaultSizeGuide: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
         _count: {
           select: {
             products: true, // Deprecated ama çalışıyor
@@ -55,7 +61,7 @@ export async function PATCH(
 
     const { id } = await params;
     const body = await request.json();
-    const { name, description, isActive, image, gender, group, showOnHome, showOnMen, showOnWomen } = body;
+    const { name, description, isActive, image, gender, group, showOnHome, showOnMen, showOnWomen, defaultSizeGuideId } = body;
 
     const updateData: any = {};
 
@@ -96,6 +102,7 @@ export async function PATCH(
     if (showOnHome !== undefined) updateData.showOnHome = showOnHome;
     if (showOnMen !== undefined) updateData.showOnMen = showOnMen;
     if (showOnWomen !== undefined) updateData.showOnWomen = showOnWomen;
+    if (defaultSizeGuideId !== undefined) updateData.defaultSizeGuideId = defaultSizeGuideId || null;
 
     const oldCategory = await prisma.category.findUnique({ where: { id } });
 

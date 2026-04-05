@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/select";
 import HoverImageSlider from "@/components/product/HoverImageSlider";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { resolveSwatchHex } from "@/lib/color-swatch";
 
 type ProductColor = {
     name: string;
@@ -894,7 +895,7 @@ export default function CategoryProductsPage({
                                                             : "border-gray-300"
                                                             }`}
                                                         style={{
-                                                            backgroundColor: color.hexCode || "#ccc",
+                                                            backgroundColor: resolveSwatchHex({ name: color.name, hexCode: color.hexCode }),
                                                         }}
                                                         aria-label={`${color.name} renk seçeneği`}
                                                     />

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import type { Product } from "@/lib/homeData";
+import { resolveSwatchHex } from "@/lib/color-swatch";
 
 interface ProductCarouselProps {
   title: string;
@@ -130,7 +131,9 @@ export default function ProductCarousel({ title, products, viewAllLink }: Produc
                     {product.colors && product.colors.length > 0 && (
                       <div className="flex justify-center gap-1.5 mt-2">
                           {product.colors.slice(0, 4).map((color: any, idx: number) => {
-                            const colorValue = typeof color === 'string' ? color : color.value || color.hexCode;
+                            const colorValue = typeof color === 'string'
+                              ? resolveSwatchHex({ value: color })
+                              : resolveSwatchHex({ name: color.name, hexCode: color.hexCode, value: color.value });
                             return (
                               <div
                                 key={idx}

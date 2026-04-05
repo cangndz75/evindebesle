@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import ProductFilters from "./ProductFilters";
 import HoverImageSlider from "@/components/product/HoverImageSlider";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { resolveSwatchHex } from "@/lib/color-swatch";
 
 type ProductColor = {
   name: string;
@@ -385,7 +386,7 @@ export default function CollectionProductsPage({
                         onMouseLeave={() => setHoveredColor(null)}
                         onClick={() => setSelectedColor({ productId: p.id, colorImage: c.images[0] })}
                         className={`w-3 h-3 rounded-full border transition-all duration-200 ${selectedColor?.productId === p.id && selectedColor.colorImage === c.images[0] ? "border-[#111] scale-110" : "border-gray-200"}`}
-                        style={{ backgroundColor: c.hexCode || "#000000" }}
+                        style={{ backgroundColor: resolveSwatchHex({ name: c.name, hexCode: c.hexCode }) }}
                         aria-label={`${c.name} renk seçeneği`}
                       />
                     ))}

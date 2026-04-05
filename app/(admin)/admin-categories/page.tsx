@@ -84,6 +84,16 @@ type Category = {
   showOnHome: boolean;
   showOnMen: boolean;
   showOnWomen: boolean;
+  defaultSizeGuideId?: string | null;
+  defaultSizeGuide?: {
+    id: string;
+    title: string;
+  } | null;
+};
+
+type SizeGuideOption = {
+  id: string;
+  title: string;
 };
 
 function SortableRow({ id, children }: { id: string; children: React.ReactNode }) {
@@ -135,6 +145,7 @@ export default function CategoriesPage() {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [reordering, setReordering] = useState(false);
+  const [sizeGuideOptions, setSizeGuideOptions] = useState<SizeGuideOption[]>([]);
 
   const [formName, setFormName] = useState("");
   const [formDescription, setFormDescription] = useState("");
@@ -145,6 +156,7 @@ export default function CategoriesPage() {
   const [formShowOnHome, setFormShowOnHome] = useState(false);
   const [formShowOnMen, setFormShowOnMen] = useState(false);
   const [formShowOnWomen, setFormShowOnWomen] = useState(false);
+  const [formDefaultSizeGuideId, setFormDefaultSizeGuideId] = useState("none");
   const [uploadingImage, setUploadingImage] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -171,8 +183,22 @@ export default function CategoriesPage() {
     }
   };
 
+  const fetchSizeGuides = async () => {
+    try {
+      const res = await fetch("/api/admin/size-guides");
+      if (!res.ok) throw new Error("Beden rehberleri yüklenemedi");
+      const guides = await res.json();
+      setSizeGuideOptions(Array.isArray(guides) ? guides : []);
+    } catch (error) {
+      console.error("Beden rehberleri yüklenirken hata:", error);
+      setSizeGuideOptions([]);
+      toast.error("Beden rehberleri yüklenirken bir hata oluştu");
+    }
+  };
+
   useEffect(() => {
     fetchCategories();
+    fetchSizeGuides();
   }, []);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -224,6 +250,7 @@ export default function CategoriesPage() {
     setFormShowOnHome(false);
     setFormShowOnMen(false);
     setFormShowOnWomen(false);
+    setFormDefaultSizeGuideId("none");
     setAddDialogOpen(true);
   };
 
@@ -238,6 +265,7 @@ export default function CategoriesPage() {
     setFormShowOnHome(category.showOnHome || false);
     setFormShowOnMen(category.showOnMen || false);
     setFormShowOnWomen(category.showOnWomen || false);
+    setFormDefaultSizeGuideId(category.defaultSizeGuideId || "none");
     setEditDialogOpen(true);
   };
 
@@ -267,6 +295,7 @@ export default function CategoriesPage() {
           showOnHome: formShowOnHome,
           showOnMen: formShowOnMen,
           showOnWomen: formShowOnWomen,
+          defaultSizeGuideId: formDefaultSizeGuideId === "none" ? null : formDefaultSizeGuideId,
         }),
       });
 
@@ -403,6 +432,15 @@ export default function CategoriesPage() {
       header: "Slug",
       cell: ({ row }) => (
         <div className="text-sm text-gray-500">{row.getValue("slug")}</div>
+      ),
+    },
+    {
+      accessorKey: "defaultSizeGuide",
+      header: "Varsayılan Rehber",
+      cell: ({ row }) => (
+        <div className="text-sm text-gray-600">
+          {row.original.defaultSizeGuide?.title || "-"}
+        </div>
       ),
     },
     {
@@ -635,6 +673,9 @@ export default function CategoriesPage() {
                         <div className="text-sm text-gray-500">{category.slug}</div>
                       </TableCell>
                       <TableCell>
+                        <div className="text-sm text-gray-600">{category.defaultSizeGuide?.title || "-"}</div>
+                      </TableCell>
+                      <TableCell>
                         <div className="text-sm">{category._count?.products || 0}</div>
                       </TableCell>
                       <TableCell>
@@ -761,6 +802,22 @@ export default function CategoriesPage() {
                     <SelectItem value="MALE">Erkek</SelectItem>
                     <SelectItem value="FEMALE">Kadın</SelectItem>
                     <SelectItem value="UNISEX">Unisex</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="add-default-size-guide">Varsayılan Beden Rehberi</Label>
+                <Select value={formDefaultSizeGuideId} onValueChange={setFormDefaultSizeGuideId}>
+                  <SelectTrigger id="add-default-size-guide" className="mt-1">
+                    <SelectValue placeholder="Seçiniz" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Seçim Yok</SelectItem>
+                    {sizeGuideOptions.map((guide) => (
+                      <SelectItem key={guide.id} value={guide.id}>
+                        {guide.title}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -918,6 +975,22 @@ export default function CategoriesPage() {
                     <SelectItem value="MALE">Erkek</SelectItem>
                     <SelectItem value="FEMALE">Kadın</SelectItem>
                     <SelectItem value="UNISEX">Unisex</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="edit-default-size-guide">Varsayılan Beden Rehberi</Label>
+                <Select value={formDefaultSizeGuideId} onValueChange={setFormDefaultSizeGuideId}>
+                  <SelectTrigger id="edit-default-size-guide" className="mt-1">
+                    <SelectValue placeholder="Seçiniz" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Seçim Yok</SelectItem>
+                    {sizeGuideOptions.map((guide) => (
+                      <SelectItem key={guide.id} value={guide.id}>
+                        {guide.title}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

@@ -113,6 +113,126 @@ function slugify(text: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
+const COLOR_TOKENS = new Set([
+  "siyah", "black", "ekru", "ecru", "beyaz", "white", "krem", "ivory", "gri", "gray", "grey",
+  "antrasit", "lacivert", "navy", "mavi", "blue", "bej", "beige", "tas", "vizon", "kum", "nude",
+  "kahve", "camel", "taba", "brown", "pembe", "pink", "gul", "kirmizi", "red", "bordo", "yesil", "green",
+  "haki", "khaki", "sari", "yellow", "hardal", "mor", "purple", "lila", "turuncu", "orange",
+]);
+
+function normalizeColorToken(value: string): string {
+  return String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/ı/g, "i")
+    .replace(/ğ/g, "g")
+    .replace(/ü/g, "u")
+    .replace(/ş/g, "s")
+    .replace(/ö/g, "o")
+    .replace(/ç/g, "c")
+    .replace(/[^a-z0-9 ]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+async function validateImportedProductsColorConsistency(productIds: string[]) {
+  if (productIds.length === 0) {
+    return { checkedCount: 0, mismatchCount: 0, mismatches: [] as Array<{ productId: string; productName: string; mismatchedColors: string[] }> };
+  }
+
+  const products = await prisma.product.findMany({
+    where: { id: { in: productIds } },
+    select: {
+      id: true,
+      name: true,
+      colors: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  });
+
+  const mismatches: Array<{ productId: string; productName: string; mismatchedColors: string[] }> = [];
+
+  for (const product of products) {
+    const firstWord = normalizeColorToken(String(product.name || "").split(/\s+/)[0] || "");
+    if (!COLOR_TOKENS.has(firstWord)) continue;
+
+    const badColors = product.colors
+      .map((c) => normalizeColorToken(c.name))
+      .filter((colorName) => colorName && colorName !== firstWord);
+
+    if (badColors.length > 0) {
+      mismatches.push({
+        productId: product.id,
+        productName: product.name,
+        mismatchedColors: Array.from(new Set(badColors)),
+      });
+    }
+  }
+
+  return {
+    checkedCount: products.length,
+    mismatchCount: mismatches.length,
+    mismatches,
+  };
+}
+
+function normalizeForKey(text: string): string {
+  return String(text || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/ı/g, "i")
+    .replace(/ğ/g, "g")
+    .replace(/ü/g, "u")
+    .replace(/ş/g, "s")
+    .replace(/ö/g, "o")
+    .replace(/ç/g, "c")
+    .replace(/[^a-z0-9 ]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function stripLeadingColorFromName(name: string, color?: string): string {
+  const normalizedName = normalizeForKey(name);
+  const normalizedColor = normalizeForKey(color || "");
+  if (normalizedColor && normalizedName.startsWith(`${normalizedColor} `)) {
+    return normalizedName.slice(normalizedColor.length + 1).trim();
+  }
+
+  const knownColors = [
+    "siyah", "black", "ekru", "ecru", "beyaz", "white", "krem", "ivory",
+    "gri", "gray", "grey", "antrasit", "lacivert", "navy", "mavi", "blue",
+    "bej", "beige", "tas", "vizon", "kum", "nude", "kahve", "camel", "taba",
+    "brown", "pembe", "pink", "gul", "kirmizi", "red", "bordo", "yesil", "green",
+    "haki", "khaki", "sari", "yellow", "hardal", "mor", "purple", "lila", "turuncu", "orange",
+  ];
+
+  for (const token of knownColors) {
+    if (normalizedName.startsWith(`${token} `)) {
+      return normalizedName.slice(token.length + 1).trim();
+    }
+  }
+
+  return normalizedName;
+}
+
+function buildProductIdentityKey(row: ExcelRow): string {
+  const baseName = stripLeadingColorFromName(row.name, row.color) || normalizeForKey(row.name);
+  const modelKey = normalizeForKey(row.modelCode || "");
+  const brandKey = normalizeForKey(row.brand || "");
+  const categoryKey = normalizeForKey(row.category || "");
+
+  if (modelKey) {
+    return `${modelKey}::${baseName}`;
+  }
+
+  return [baseName, brandKey, categoryKey].filter(Boolean).join("|");
+}
+
 interface ExcelRow {
   barcode: string;
   modelCode: string;
@@ -220,9 +340,9 @@ function parseRows(data: any[]): ExcelRow[] {
 function groupRows(rows: ExcelRow[]): Map<string, ExcelRow[]> {
   const map = new Map<string, ExcelRow[]>();
   for (const row of rows) {
-    const key = row.modelCode
-      || [row.name, row.brand, row.category].filter(Boolean).join("|")
-      || row.barcode;
+    const key = buildProductIdentityKey(row)
+      || row.barcode
+      || [row.name, row.brand, row.category].filter(Boolean).join("|");
     if (!key) continue;
     if (!map.has(key)) map.set(key, []);
     map.get(key)!.push(row);
@@ -282,6 +402,7 @@ export async function POST(req: NextRequest) {
     let createdVariants = 0;
     let updatedVariants = 0;
     const errors: { group: string; error: string }[] = [];
+    const touchedProductIds = new Set<string>();
 
     for (const [groupKey, groupRows] of groups) {
       try {
@@ -293,12 +414,27 @@ export async function POST(req: NextRequest) {
         const categoryId = await getCategoryId(first.category);
         const gender = normalizeGender(first.gender);
 
-        const stockCode = first.modelCode || first.supplierCode || first.barcode || groupKey;
+        const identityKey = buildProductIdentityKey(first) || groupKey;
+        const stockCode = identityKey;
+        const legacyStockCode = first.modelCode || first.supplierCode || first.barcode || groupKey;
 
         let product = await prisma.product.findFirst({
-          where: { stockCode },
-          select: { id: true },
+          where: {
+            OR: [
+              { stockCode },
+              { stockCode: legacyStockCode },
+            ],
+          },
+          select: { id: true, name: true, stockCode: true },
         });
+
+        if (product) {
+          const importedBaseName = stripLeadingColorFromName(first.name, first.color);
+          const existingBaseName = stripLeadingColorFromName(product.name, "");
+          if (importedBaseName && existingBaseName && importedBaseName !== existingBaseName) {
+            product = null;
+          }
+        }
 
         if (!product) {
           let slug = generateProductSlug(productName, first.category || null, first.color || null);
@@ -331,6 +467,7 @@ export async function POST(req: NextRequest) {
           await prisma.product.update({
             where: { id: product.id },
             data: {
+              stockCode,
               name: productName,
               modelCode: first.modelCode || undefined,
               description: first.description || undefined,
@@ -349,6 +486,7 @@ export async function POST(req: NextRequest) {
         }
 
         const productId = product.id;
+        touchedProductIds.add(productId);
 
         for (let i = 0; i < first.images.length; i++) {
           const url = first.images[i];
@@ -502,6 +640,8 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const validation = await validateImportedProductsColorConsistency(Array.from(touchedProductIds));
+
     return NextResponse.json({
       totalRows: rows.length,
       totalGroups: groups.size,
@@ -511,6 +651,7 @@ export async function POST(req: NextRequest) {
       updatedVariants,
       createdCategories,
       errors,
+      postImportValidation: validation,
     });
   } catch (error: any) {
     console.error("Import error:", error);

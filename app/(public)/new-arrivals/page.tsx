@@ -22,6 +22,7 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { resolveSwatchHex } from "@/lib/color-swatch";
 
 type ProductColor = {
     id?: string;
@@ -234,7 +235,7 @@ export default function NewArrivalsPage() {
                                                 onMouseEnter={() => setHoveredColor({ productId: product.id, colorImage: color.images?.[0] || "" })}
                                                 onMouseLeave={() => setHoveredColor(null)}
                                                 className={`w-3 h-3 rounded-full border transition-all ${activeColorImage === color.images?.[0] ? "border-[#111] scale-110" : "border-gray-200"}`}
-                                                style={{ backgroundColor: color.hexCode || "#000" }}
+                                                style={{ backgroundColor: resolveSwatchHex({ name: color.name, hexCode: color.hexCode }) }}
                                             />
                                         ))}
                                     </div>

@@ -2,6 +2,7 @@
 import { prisma } from "@/lib/db";
 import ProductDetailPage from "../../_components/ProductDetailPage";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
+import { resolveSwatchHex } from "@/lib/color-swatch";
 
 export const dynamic = "force-dynamic";
 
@@ -330,7 +331,7 @@ export default async function ProductSlugPage({
       return {
         id: c.id,
         name: c.name,
-        value: c.hexCode || "#000000",
+        value: resolveSwatchHex({ name: c.name, hexCode: c.hexCode }),
         description: c.description || "",
         variant: c.variants?.[0]?.variantCode, // İlk variant'ın kodunu al
         images: parsedImages,

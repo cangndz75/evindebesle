@@ -38,6 +38,7 @@ import { womensBrands, mensBrands } from "@/lib/homeData";
 import type { Product } from "@/lib/homeData";
 import TabbedProductCarousel from "@/components/home/TabbedProductCarousel";
 import { prisma } from "@/lib/db";
+import { resolveSwatchHex } from "@/lib/color-swatch";
 
 export const revalidate = 3600;
 
@@ -97,7 +98,7 @@ function formatProduct(product: any, type: "new-arrivals" | "best-sellers" | "fe
         return {
           id: c.id,
           name: c.name || "",
-          value: c.hexCode || "#000000",
+          value: resolveSwatchHex({ name: c.name, hexCode: c.hexCode }),
           image: images[0] || mainImage,
         };
       }),
@@ -145,7 +146,7 @@ const getTabbedProducts = cache(async (tabName: string): Promise<Product[]> => {
         product: {
           include: {
             colors: {
-              take: 1,
+              take: 5,
               select: {
                 id: true,
                 name: true,
@@ -182,7 +183,7 @@ const getShowcaseProducts = cache(async (): Promise<Product[]> => {
         product: {
           include: {
             colors: {
-              take: 1,
+              take: 5,
               select: {
                 id: true,
                 name: true,

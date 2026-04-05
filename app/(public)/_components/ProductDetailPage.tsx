@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import ProductReviews from "./ProductReviews";
 import { sanitizeHtmlForRender } from "@/lib/security/sanitizeHtml";
 import SizeGuideModal from "./SizeGuideModal";
+import FindMySizeModal from "./FindMySizeModal";
 import { addToRecentlyViewed, getRecentlyViewed } from "@/lib/recently-viewed";
 import { useCartStore } from "@/lib/stores/cartStore";
 import { Button } from "@/components/ui/button";
@@ -95,6 +96,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
   const [isFavorite, setIsFavorite] = useState(false);
   const [isLoadingFavorite, setIsLoadingFavorite] = useState(false);
   const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
+  const [findMySizeOpen, setFindMySizeOpen] = useState(false);
   const [liveStock, setLiveStock] = useState<number | null>(null);
   const [isSticky, setIsSticky] = useState(false);
   const selectedColorLabel = product.colors?.[selectedColor]?.name || "";
@@ -969,7 +971,10 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                     Beden Rehberi
                   </button>
                   <span className="text-gray-300">|</span>
-                  <button className="text-gray-600 hover:text-black underline font-light">
+                  <button
+                    onClick={() => setFindMySizeOpen(true)}
+                    className="text-gray-600 hover:text-black underline font-light"
+                  >
                     Bedenimi Bul
                   </button>
                 </div>
@@ -1273,12 +1278,15 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
       <SizeGuideModal
         open={sizeGuideOpen}
         onOpenChange={setSizeGuideOpen}
-        sizeGuide={
-          (product.sizeGuide?.content as any) || {
-            productName: product.name,
-            measurements: [],
-          }
-        }
+        sizeGuide={product.sizeGuide || { productName: product.name, measurements: [] }}
+      />
+
+      <FindMySizeModal
+        open={findMySizeOpen}
+        onOpenChange={setFindMySizeOpen}
+        categorySlug={product.categorySlug}
+        categoryName={product.category}
+        sizeGuide={product.sizeGuide || null}
       />
     </div>
   );

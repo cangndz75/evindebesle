@@ -15,6 +15,12 @@ export async function GET(request: NextRequest) {
     const categories = await prisma.category.findMany({
       orderBy: { sortOrder: "asc" },
       include: {
+        defaultSizeGuide: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
         _count: {
           select: {
             products: true, // Deprecated ama çalışıyor
@@ -41,7 +47,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { name, description, isActive, image, gender, group, showOnHome, showOnMen, showOnWomen } = body;
+    const { name, description, isActive, image, gender, group, showOnHome, showOnMen, showOnWomen, defaultSizeGuideId } = body;
 
     if (!name) {
       return NextResponse.json(
@@ -84,6 +90,7 @@ export async function POST(req: Request) {
         showOnHome: showOnHome !== undefined ? showOnHome : false,
         showOnMen: showOnMen !== undefined ? showOnMen : false,
         showOnWomen: showOnWomen !== undefined ? showOnWomen : false,
+        defaultSizeGuideId: defaultSizeGuideId || null,
         sortOrder: nextSortOrder,
       },
     });

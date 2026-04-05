@@ -221,11 +221,14 @@ model Category {
   showOnHome  Boolean   @default(false)
   showOnMen   Boolean   @default(false)
   showOnWomen Boolean   @default(false)
+  defaultSizeGuideId String?
   products    Product[]
   coupons     Coupon[]
+  defaultSizeGuide SizeGuide? @relation("CategoryDefaultSizeGuide", fields: [defaultSizeGuideId], references: [id])
 
   @@index([slug])
   @@index([sortOrder])
+  @@index([defaultSizeGuideId])
 }
 
 
@@ -1269,6 +1272,7 @@ model SizeGuide {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   products  Product[]
+  categories Category[] @relation("CategoryDefaultSizeGuide")
 
   @@index([isActive])
 }

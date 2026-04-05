@@ -8,6 +8,7 @@ import ProductSchema from "@/components/seo/ProductSchema";
 import BreadcrumbJsonLd from "@/components/seo/BreadcrumbJsonLd";
 import FAQPageSchema from "@/components/seo/FAQPageSchema";
 import { buildProductAbsoluteUrl, buildProductPath } from "@/lib/seo/productPath";
+import { resolveSwatchHex } from "@/lib/color-swatch";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://dark-velvet.com";
 
@@ -50,7 +51,11 @@ const getCanonicalProduct = cache(async (idOrSlug: string) => {
 
 const getProduct = cache(async (idOrSlug: string) => {
   const include = {
-    category: true,
+    category: {
+      include: {
+        defaultSizeGuide: true,
+      },
+    },
     colors: {
       include: {
         productImages: {
@@ -218,7 +223,7 @@ export default async function ProductPage({ params, skipRedirect }: ProductPageP
 
   const colors = product.colors.map((c: { name: string; hexCode: string | null; description?: string; productImages: { url: string }[] }) => ({
     name: c.name,
-    value: c.hexCode || "#000000",
+    value: resolveSwatchHex({ name: c.name, hexCode: c.hexCode }),
     description: c.description || "",
     images: c.productImages.map((img: { url: string }) => img.url),
   }));
@@ -264,7 +269,7 @@ export default async function ProductPage({ params, skipRedirect }: ProductPageP
     washingInstruction: product.washingInstruction,
     deliveryInfo: product.deliveryInfo,
     sizeNote: product.sizeNote,
-    sizeGuide: product.sizeGuide,
+    sizeGuide: product.sizeGuide || product.category?.defaultSizeGuide || null,
     modelInfo: product.modelInfo,
   };
 

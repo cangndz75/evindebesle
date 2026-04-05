@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { resolveSwatchHex } from "@/lib/color-swatch";
 
 type GridColor = {
   id: string;
@@ -130,7 +131,7 @@ export default function CollectionDetailProductsGrid({ products }: Props) {
                           }));
                         }}
                         className={`w-2.5 h-2.5 rounded-full border transition-all ${isSelected ? "border-black scale-110" : "border-black/10"}`}
-                        style={{ backgroundColor: color.hexCode || "#ccc" }}
+                        style={{ backgroundColor: resolveSwatchHex({ name: color.name, hexCode: color.hexCode }) }}
                         aria-label={`${color.name} renk secenegi`}
                       />
                     );

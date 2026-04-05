@@ -8,6 +8,7 @@ import { useCartStore } from "@/lib/stores/cartStore";
 import type { Product, ColorOption } from "@/lib/homeData";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { resolveSwatchHex } from "@/lib/color-swatch";
 
 const isBase64Image = (url: string | undefined | null): boolean => {
   if (!url) return false;
@@ -472,7 +473,7 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                                     ? "border-[#111] scale-125"
                                     : "border-gray-300 hover:scale-110"
                                   }`}
-                                style={{ backgroundColor: color.value }}
+                                style={{ backgroundColor: resolveSwatchHex({ name: color.name, value: color.value }) }}
                                 aria-label={color.name}
                               />
                             );

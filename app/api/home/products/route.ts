@@ -4,6 +4,7 @@ export const dynamic = "force-dynamic";
 import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import type { Product } from "@/lib/homeData";
+import { resolveSwatchHex } from "@/lib/color-swatch";
 
 export const revalidate = 300;
 
@@ -48,9 +49,11 @@ export async function GET(request: NextRequest) {
           primaryImage: true,
           secondaryImage: true,
           colors: {
-            take: 1,
+            take: 5,
             select: {
               id: true,
+              name: true,
+              hexCode: true,
               images: true,
               variants: {
                 select: {
@@ -115,9 +118,11 @@ export async function GET(request: NextRequest) {
           secondaryImage: true,
           createdAt: true,
           colors: {
-            take: 1,
+            take: 5,
             select: {
               id: true,
+              name: true,
+              hexCode: true,
               images: true,
               variants: {
                 select: {
@@ -269,7 +274,7 @@ export async function GET(request: NextRequest) {
             const images = parseImages(c.images);
             return {
               name: (c as any).name || "",
-              value: (c as any).hexCode || "#000000",
+              value: resolveSwatchHex({ name: (c as any).name, hexCode: (c as any).hexCode }),
               image: images[0] || mainImage,
             };
           }),

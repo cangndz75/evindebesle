@@ -11,6 +11,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { resolveSwatchHex } from "@/lib/color-swatch";
 
 type ProductColor = {
   id?: string;
@@ -211,7 +212,7 @@ export default function FavoritesClient({
                           key={idx}
                           className="w-4 h-4 rounded-full border border-gray-300 transition-all duration-200 hover:scale-110"
                           style={{
-                            backgroundColor: color.hexCode || "#ccc",
+                            backgroundColor: resolveSwatchHex({ name: color.name, hexCode: color.hexCode }),
                           }}
                           aria-label={`${color.name} renk seçeneği`}
                         />

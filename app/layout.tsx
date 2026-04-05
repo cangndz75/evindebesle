@@ -6,6 +6,7 @@ import ToasterWrapper from "./(public)/_components/ToasterWrapper";
 import SiteHeader from "@/components/home/SiteHeader";
 import OrganizationSchema from "@/components/seo/OrganizationSchema";
 import WebSiteSchema from "@/components/seo/WebSiteSchema";
+import AnalyticsScripts from "@/components/seo/AnalyticsScripts";
 import ConditionalFooter from "@/components/structure/ConditionalFooter";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -98,6 +99,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen bg-[#F7F5F2] overflow-x-hidden`}>
         <OrganizationSchema />
         <WebSiteSchema />
+        <AnalyticsScripts />
         <SessionWrapper>
           <SiteHeader />
           <main className="flex-1">{children}</main>

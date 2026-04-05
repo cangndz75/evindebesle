@@ -29,6 +29,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import HoverImageSlider from "@/components/product/HoverImageSlider";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 type ProductColor = {
     name: string;
@@ -82,6 +83,10 @@ type ActiveFilter = {
     value: string;
 };
 
+function normalizeColorKey(value: string): string {
+    return value.trim().toLocaleLowerCase("tr-TR");
+}
+
 function FavoriteButton({ productId, productName }: { productId: string; productName: string }) {
     const [isFavorite, setIsFavorite] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -103,13 +108,14 @@ function FavoriteButton({ productId, productName }: { productId: string; product
     const handleToggle = async (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
+        const nextFavorite = !isFavorite;
+        setIsFavorite(nextFavorite);
         setIsLoading(true);
         try {
-            if (isFavorite) {
+            if (!nextFavorite) {
                 await fetch(`/api/favorites?productId=${productId}`, {
                     method: "DELETE",
                 });
-                setIsFavorite(false);
                 toast.success(`${productName} favorilerden çıkarıldı`, {
                     position: "bottom-left",
                 });
@@ -119,7 +125,6 @@ function FavoriteButton({ productId, productName }: { productId: string; product
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ productId }),
                 });
-                setIsFavorite(true);
                 toast.success(`${productName} favorilere eklendi`, {
                     position: "bottom-left",
                 });
@@ -127,6 +132,7 @@ function FavoriteButton({ productId, productName }: { productId: string; product
             // Header'daki favori sayısını güncellemek için event dispatch et
             window.dispatchEvent(new Event("favoriteUpdated"));
         } catch (error) {
+            setIsFavorite(!nextFavorite);
             console.error("Error toggling favorite:", error);
             toast.error("Bir hata oluştu");
         } finally {
@@ -164,6 +170,10 @@ export default function CategoryProductsPage({
     initialProducts = [],
     initialPriceRange = { min: 0, max: 2000 },
 }: CategoryProductsPageProps) {
+    const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
+
     const [products, setProducts] = useState<Product[]>(initialProducts);
     const [loading, setLoading] = useState(false);
     const [filters, setFilters] = useState<FilterState>({
@@ -192,6 +202,28 @@ export default function CategoryProductsPage({
             setPriceRange(initialPriceRange);
         }
     }, [initialPriceRange]);
+
+    useEffect(() => {
+        const sizes = searchParams.getAll("size");
+        const colors = searchParams.getAll("color");
+        const fabricTypes = searchParams.getAll("fabricType");
+        const minPriceRaw = searchParams.get("minPrice");
+        const maxPriceRaw = searchParams.get("maxPrice");
+        const sortRaw = searchParams.get("sort");
+
+        const parsedMin = minPriceRaw ? Number(minPriceRaw) : undefined;
+        const parsedMax = maxPriceRaw ? Number(maxPriceRaw) : undefined;
+
+        setFilters({
+            sizes,
+            colors,
+            fabricTypes,
+            minPrice: Number.isFinite(parsedMin) ? parsedMin : undefined,
+            maxPrice: Number.isFinite(parsedMax) ? parsedMax : undefined,
+        });
+
+        if (sortRaw) setSortOption(sortRaw);
+    }, [searchParams]);
 
     // Debounce filters - 300ms gecikme ile
     useEffect(() => {
@@ -286,17 +318,40 @@ export default function CategoryProductsPage({
         setLoading(swrLoading);
     }, [swrLoading]);
 
+    useEffect(() => {
+        const params = new URLSearchParams();
+
+        if (debouncedFilters.minPrice != null) params.set("minPrice", String(debouncedFilters.minPrice));
+        if (debouncedFilters.maxPrice != null) params.set("maxPrice", String(debouncedFilters.maxPrice));
+        debouncedFilters.sizes.forEach((size) => params.append("size", size));
+        debouncedFilters.colors.forEach((color) => params.append("color", color));
+        debouncedFilters.fabricTypes.forEach((fabricType) => params.append("fabricType", fabricType));
+        if (sortOption && sortOption !== "featured") params.set("sort", sortOption);
+
+        const query = params.toString();
+        const nextUrl = query ? `${pathname}?${query}` : pathname;
+        router.replace(nextUrl, { scroll: false });
+    }, [debouncedFilters, sortOption, pathname, router]);
+
     // Extract available options from products
     const availableOptions = useMemo(() => {
         const sizes = new Set<string>();
-        const colors = new Set<string>();
+        const colors = new Map<string, { name: string; hexCode?: string }>();
         const fabricTypes = new Set<string>();
         let minPrice = Infinity;
         let maxPrice = 0;
 
         products.forEach((product) => {
             product.sizes.forEach((s) => sizes.add(s.name));
-            product.colors.forEach((c) => colors.add(c.name));
+            product.colors.forEach((c) => {
+                const key = normalizeColorKey(c.name);
+                if (!colors.has(key)) {
+                    colors.set(key, {
+                        name: c.name.trim(),
+                        hexCode: c.hexCode,
+                    });
+                }
+            });
             if (product.fabricType) {
                 fabricTypes.add(product.fabricType);
             }
@@ -306,7 +361,7 @@ export default function CategoryProductsPage({
 
         return {
             sizes: Array.from(sizes).sort(),
-            colors: Array.from(colors).sort(),
+            colors: Array.from(colors.values()).sort((a, b) => a.name.localeCompare(b.name)),
             fabricTypes: Array.from(fabricTypes).sort(),
             priceRange: {
                 min: minPrice === Infinity ? 0 : Math.floor(minPrice),
@@ -420,6 +475,8 @@ export default function CategoryProductsPage({
                             activeFilters={activeFilters}
                             onRemoveFilter={handleRemoveFilter}
                             onClearFilters={handleClearFilters}
+                            resultCount={products.length}
+                            isLoading={loading}
                         />
                     </div>
 

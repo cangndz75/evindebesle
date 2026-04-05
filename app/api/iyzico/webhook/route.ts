@@ -4,6 +4,7 @@ import { iyzico, iyzicoCall } from "@/lib/iyzico";
 import { commitReservationToSaleTx } from "@/lib/stock";
 import { finalizePayment } from "@/lib/services/payment";
 import { redactForLog } from "@/lib/security/log";
+import { verifyIyzicoWebhookSignature } from "@/lib/security/webhook-signature";
 // import { createAdminNotification } from "@/lib/admin-notification"; // Removed as it's now internal to finalizePayment
 
 /**
@@ -14,7 +15,14 @@ import { redactForLog } from "@/lib/security/log";
  */
 export async function POST(req: NextRequest) {
     try {
-        const body = await req.json();
+        const rawBody = await req.text();
+        const signatureCheck = verifyIyzicoWebhookSignature(req, rawBody);
+        if (!signatureCheck.ok) {
+            console.warn("Webhook signature rejected", redactForLog(signatureCheck));
+            return NextResponse.json({ error: "INVALID_WEBHOOK_SIGNATURE" }, { status: 401 });
+        }
+
+        const body = JSON.parse(rawBody);
 
         // Iyzico Webhook typically includes iyziEventType and other fields.
         // For standard payment notifications:

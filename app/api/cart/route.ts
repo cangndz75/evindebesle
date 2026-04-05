@@ -1,6 +1,69 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { prisma } from "@/lib/db";
+import {
+  hydrateRedisCart,
+  isRedisCartEnabled,
+  removeRedisCartItem,
+  upsertRedisCartItem,
+  warmRedisCartFromDatabase,
+} from "@/lib/cart-redis";
+
+async function getDbCartItems(userId: string) {
+  const cartItems = await prisma.cartItem.findMany({
+    where: { userId },
+    include: {
+      product: {
+        select: {
+          id: true,
+          name: true,
+          price: true,
+          originalPrice: true,
+          image: true,
+          primaryImage: true,
+          secondaryImage: true,
+          slug: true,
+          description: true,
+          isActive: true,
+          categoryId: true,
+          gender: true,
+        },
+      },
+      color: {
+        select: {
+          id: true,
+          name: true,
+          hexCode: true,
+          images: true,
+        },
+      },
+      size: {
+        select: {
+          id: true,
+          name: true,
+          stock: true,
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return cartItems.map((item: any) => {
+    let colorImages: string[] = [];
+    if (item.color?.images) {
+      try {
+        colorImages = typeof item.color.images === "string" ? JSON.parse(item.color.images) : item.color.images;
+      } catch {
+        colorImages = [item.color.images as string];
+      }
+    }
+
+    return {
+      ...item,
+      color: item.color ? { ...item.color, images: colorImages } : null,
+    };
+  });
+}
 
 // Sepeti getir
 export async function GET() {
@@ -10,61 +73,18 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const cartItems = await prisma.cartItem.findMany({
-      where: { userId: user.id },
-      include: {
-        product: {
-          select: {
-            id: true,
-            name: true,
-            price: true,
-            originalPrice: true,
-            image: true,
-            primaryImage: true,
-            secondaryImage: true,
-            slug: true,
-            description: true,
-            isActive: true,
-            categoryId: true,
-            gender: true,
-          },
-        },
-        color: {
-          select: {
-            id: true,
-            name: true,
-            hexCode: true,
-            images: true,
-          },
-        },
-        size: {
-          select: {
-            id: true,
-            name: true,
-            stock: true,
-          },
-        },
-      },
-      orderBy: { createdAt: "desc" },
-    });
-
-    // Parse color images JSON strings
-    const parsedItems = cartItems.map((item: any) => {
-      // Parse selected color images
-      let colorImages: string[] = [];
-      if (item.color?.images) {
-        try {
-          colorImages = typeof item.color.images === 'string' ? JSON.parse(item.color.images) : item.color.images;
-        } catch {
-          colorImages = [item.color.images as string];
-        }
+    if (isRedisCartEnabled()) {
+      const redisItems = await hydrateRedisCart(user.id);
+      if (redisItems.length > 0) {
+        return NextResponse.json(redisItems);
       }
+    }
 
-      return {
-        ...item,
-        color: item.color ? { ...item.color, images: colorImages } : null,
-      };
-    });
+    const parsedItems = await getDbCartItems(user.id);
+
+    if (isRedisCartEnabled() && parsedItems.length > 0) {
+      await warmRedisCartFromDatabase(user.id);
+    }
 
     return NextResponse.json(parsedItems);
   } catch (error) {
@@ -118,8 +138,28 @@ export async function POST(request: NextRequest) {
       })
       : null;
 
-    // Giriş yapmış kullanıcı için veritabanına kaydet
+    // Giriş yapmış kullanıcı için Redis katmanına yaz (fallback: DB)
     if (user) {
+      if (isRedisCartEnabled()) {
+        const itemId = await upsertRedisCartItem(user.id, {
+          productId,
+          colorId: colorId || null,
+          sizeId: sizeId || null,
+          quantity,
+        });
+
+        const items = await hydrateRedisCart(user.id);
+        const updated = items.find((item: any) => item.id === itemId) ||
+          items.find(
+            (item: any) =>
+              item.productId === productId &&
+              item.colorId === (colorId || null) &&
+              item.sizeId === (sizeId || null)
+          );
+
+        return NextResponse.json(updated || { id: itemId, userId: user.id });
+      }
+
       // Aynı ürün, renk ve beden kombinasyonunu kontrol et
       // findFirst kullan çünkü colorId veya sizeId null olabilir (composite key null kabul etmez)
       const existingItem = await prisma.cartItem.findFirst({
@@ -269,13 +309,25 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Kullanıcının kendi sepetindeki ürünü sil
-    await prisma.cartItem.delete({
-      where: {
-        id: itemId,
-        userId: user.id,
-      },
+    if (isRedisCartEnabled()) {
+      await removeRedisCartItem(user.id, itemId);
+      return NextResponse.json({ success: true });
+    }
+
+    const targetItem = await prisma.cartItem.findFirst({
+      where: { id: itemId, userId: user.id },
+      select: { id: true },
     });
+
+    if (!targetItem) {
+      return NextResponse.json(
+        { error: "Sepet öğesi bulunamadı" },
+        { status: 404 }
+      );
+    }
+
+    // Kullanıcının kendi sepetindeki ürünü sil
+    await prisma.cartItem.delete({ where: { id: targetItem.id } });
 
     return NextResponse.json({ success: true });
   } catch (error) {

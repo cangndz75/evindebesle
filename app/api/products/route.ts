@@ -3,10 +3,60 @@ import { NextRequest, NextResponse } from "next/server";
 
 // Cache için revalidate - 5 dakika
 export const revalidate = 300;
-export const dynamic = 'force-dynamic'; // Filtreler için dynamic
+
+const FILTER_CACHE_TTL_MS = 30_000;
+const FILTER_CACHE_MAX_ENTRIES = 250;
+
+type CachedFilterResponse = {
+  expiresAt: number;
+  payload: any[];
+};
+
+const filterResponseCache = new Map<string, CachedFilterResponse>();
+
+function getFilterCacheKey(searchParams: URLSearchParams) {
+  return searchParams.toString();
+}
+
+function getCachedFilterResponse(key: string) {
+  const cached = filterResponseCache.get(key);
+  if (!cached) return null;
+
+  if (cached.expiresAt <= Date.now()) {
+    filterResponseCache.delete(key);
+    return null;
+  }
+
+  return cached.payload;
+}
+
+function setCachedFilterResponse(key: string, payload: any[]) {
+  if (filterResponseCache.size >= FILTER_CACHE_MAX_ENTRIES) {
+    const firstKey = filterResponseCache.keys().next().value;
+    if (firstKey) filterResponseCache.delete(firstKey);
+  }
+
+  filterResponseCache.set(key, {
+    payload,
+    expiresAt: Date.now() + FILTER_CACHE_TTL_MS,
+  });
+}
 
 export async function GET(request: NextRequest) {
+  const requestStart = performance.now();
   const { searchParams } = new URL(request.url);
+  const cacheKey = getFilterCacheKey(searchParams);
+
+  const cachedPayload = getCachedFilterResponse(cacheKey);
+  if (cachedPayload) {
+    const response = NextResponse.json(cachedPayload);
+    const totalMs = performance.now() - requestStart;
+    response.headers.set("Cache-Control", "public, s-maxage=300, stale-while-revalidate=600");
+    response.headers.set("X-Filter-Cache", "HIT");
+    response.headers.set("X-Response-Time-Ms", totalMs.toFixed(2));
+    response.headers.set("Server-Timing", `app;dur=${totalMs.toFixed(2)}`);
+    return response;
+  }
 
   const genders = searchParams.getAll("gender"); // MALE, FEMALE, UNISEX
   const tag = searchParams.get("tag"); // ProductTag name
@@ -176,14 +226,6 @@ export async function GET(request: NextRequest) {
           name: true,
         },
       },
-      reviews: {
-        where: { isApproved: true },
-        take: 5,
-        orderBy: { createdAt: "desc" },
-        select: {
-          rating: true,
-        },
-      },
     },
     orderBy,
   });
@@ -216,10 +258,17 @@ export async function GET(request: NextRequest) {
     return inStockB - inStockA; // Stokta olanlar önce
   });
 
+  setCachedFilterResponse(cacheKey, parsedProducts);
+
   const response = NextResponse.json(parsedProducts);
+  const totalMs = performance.now() - requestStart;
 
   // Cache headers
   response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
+  response.headers.set("X-Filter-Cache", "MISS");
+  response.headers.set("X-Response-Time-Ms", totalMs.toFixed(2));
+  response.headers.set("X-Result-Count", String(parsedProducts.length));
+  response.headers.set("Server-Timing", `db+app;dur=${totalMs.toFixed(2)}`);
 
   return response;
 }

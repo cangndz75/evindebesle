@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { logAuditAction } from "@/lib/auditLog";
 import { rateLimitCheck } from "@/lib/middleware/rateLimitMiddleware";
+import { revalidatePath } from "next/cache";
 
 // POST: Toplu fiyat güncelleme
 export async function POST(req: NextRequest) {
@@ -116,6 +117,23 @@ export async function POST(req: NextRequest) {
             ipAddress: req.headers.get("x-forwarded-for") || undefined,
             userAgent: req.headers.get("user-agent") || undefined,
         });
+
+        revalidatePath("/home");
+        revalidatePath("/collections");
+
+        const slugs = await prisma.product.findMany({
+            where: { id: { in: productIds } },
+            select: { id: true, slug: true },
+            take: 100,
+        });
+
+        for (const product of slugs) {
+            revalidatePath(`/product/${product.id}`);
+            if (product.slug) {
+                revalidatePath(`/products/${product.slug}`);
+                revalidatePath(`/product/${product.slug}`);
+            }
+        }
 
         return NextResponse.json({
             success: true,

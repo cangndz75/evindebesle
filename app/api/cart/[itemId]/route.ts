@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { prisma } from "@/lib/db";
+import { isRedisCartEnabled, updateRedisCartItemQuantity } from "@/lib/cart-redis";
 
 // Sepetteki ürün miktarını güncelle
 export async function PATCH(
@@ -24,12 +25,33 @@ export async function PATCH(
       );
     }
 
+    if (isRedisCartEnabled()) {
+      const updated = await updateRedisCartItemQuantity(user.id, itemId, quantity);
+      if (!updated) {
+        return NextResponse.json(
+          { error: "Sepet öğesi bulunamadı" },
+          { status: 404 }
+        );
+      }
+
+      return NextResponse.json({ success: true });
+    }
+
     try {
+      const targetItem = await prisma.cartItem.findFirst({
+        where: { id: itemId, userId: user.id },
+        select: { id: true },
+      });
+
+      if (!targetItem) {
+        return NextResponse.json(
+          { error: "Sepet öğesi bulunamadı" },
+          { status: 404 }
+        );
+      }
+
       const updated = await prisma.cartItem.update({
-        where: {
-          id: itemId,
-          userId: user.id,
-        },
+        where: { id: targetItem.id },
         data: { quantity },
         include: {
           product: {

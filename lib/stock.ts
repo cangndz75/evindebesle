@@ -9,22 +9,16 @@ export async function reserveStockTx(orderId: string, items: { variantId: string
     // 3) Order.reservedUntil yaz
     await prisma.$transaction(async (tx: any) => {
         for (const it of items) {
-            const updated = await tx.productVariant.updateMany({
-                where: {
-                    id: it.variantId,
-                    // stockOnHand (stock) - stockReserved >= qty
-                    // Prisma doesn't strictly support `stock - stockReserved >= qty` in where clause easily without raw query
-                    // But for now, we will just increment reserved. 
-                    // Ideally we should do a check first or use raw query.
-                    // For simplicity in this step, we trust the check logic before this call or accept simplistic reservation.
-                    // Better approach: check stock first.
-                },
-                data: { stockReserved: { increment: it.qty } },
-            });
+            const affectedRows = await tx.$executeRaw`
+                UPDATE "ProductVariant"
+                SET "stockReserved" = "stockReserved" + ${it.qty}
+                WHERE "id" = ${it.variantId}
+                  AND ("stock" - "stockReserved") >= ${it.qty}
+            `;
 
-            // Simple implementation: we assume optimistic locking or sufficient stock check happened before. 
-            // Strictly speaking, we should check `count` but updateMany always returns integer even if 0 updated if condition not met? 
-            // Actually updateMany returns BatchPayload { count: number }.
+            if (Number(affectedRows) !== 1) {
+                throw new Error(`INSUFFICIENT_STOCK_FOR_VARIANT:${it.variantId}`);
+            }
 
             await tx.stockReservation.create({
                 data: { orderId, variantId: it.variantId, quantity: it.qty, expiresAt },
@@ -48,10 +42,17 @@ export async function releaseReservationTx(orderId: string) {
         });
 
         for (const r of reservations) {
-            await tx.productVariant.update({
-                where: { id: r.variantId },
+            const result = await tx.productVariant.updateMany({
+                where: {
+                    id: r.variantId,
+                    stockReserved: { gte: r.quantity },
+                },
                 data: { stockReserved: { decrement: r.quantity } },
             });
+
+            if (result.count !== 1) {
+                throw new Error(`INVALID_STOCK_RESERVATION_STATE:${r.variantId}`);
+            }
         }
 
         await tx.stockReservation.updateMany({
@@ -74,13 +75,21 @@ export async function commitReservationToSaleTx(orderId: string) {
         });
 
         for (const r of reservations) {
-            await tx.productVariant.update({
-                where: { id: r.variantId },
+            const result = await tx.productVariant.updateMany({
+                where: {
+                    id: r.variantId,
+                    stock: { gte: r.quantity },
+                    stockReserved: { gte: r.quantity },
+                },
                 data: {
                     stock: { decrement: r.quantity },
                     stockReserved: { decrement: r.quantity },
                 },
             });
+
+            if (result.count !== 1) {
+                throw new Error(`STOCK_COMMIT_CONFLICT:${r.variantId}`);
+            }
         }
 
         await tx.stockReservation.updateMany({

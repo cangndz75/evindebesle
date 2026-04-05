@@ -468,7 +468,9 @@ export async function PATCH(
     revalidatePath("/collections");
     if (updatedProduct?.slug) {
       revalidatePath(`/products/${updatedProduct.slug}`);
+      revalidatePath(`/product/${updatedProduct.slug}`);
     }
+    revalidatePath(`/product/${id}`);
     return NextResponse.json(updatedProduct);
 
   } catch (error: any) {
@@ -605,6 +607,7 @@ export async function DELETE(
     revalidatePath("/women");
     revalidatePath("/new-arrivals");
     revalidatePath("/collections");
+    revalidatePath(`/product/${id}`);
     return NextResponse.json({ success: true, message: "Silme işlemi tamamlandı" });
 
   } catch (error: any) {

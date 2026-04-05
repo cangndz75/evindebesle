@@ -10,8 +10,6 @@ function applyNoStoreHeaders(response: NextResponse) {
 }
 
 export async function middleware(request: NextRequest) {
-  const token = await getToken({ req: request });
-
   const pathname = request.nextUrl.pathname;
   const isApiRoute = pathname.startsWith("/api/");
 
@@ -22,6 +20,7 @@ export async function middleware(request: NextRequest) {
   );
 
   if (isProtectedAdminPath) {
+    const token = await getToken({ req: request });
     if (!token || !token.isAdmin) {
       return applyNoStoreHeaders(NextResponse.redirect(new URL("/", request.url)));
     }
@@ -33,3 +32,7 @@ export async function middleware(request: NextRequest) {
   }
   return response;
 }
+
+export const config = {
+  matcher: ["/api/:path*", "/admin/:path*", "/dashboard/:path*", "/users/:path*"],
+};

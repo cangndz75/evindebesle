@@ -3,11 +3,31 @@ import { prisma } from "@/lib/db";
 import { normalizeIdempotencyKey } from "@/lib/idempotency";
 import { reserveStockTx } from "@/lib/stock";
 import { iyzico, iyzicoCall } from "@/lib/iyzico";
+import { checkRateLimit, getClientIdentifier, RateLimits } from "@/lib/rateLimit";
+import { clearRedisCart, persistRedisCartToDatabase } from "@/lib/cart-redis";
 
 export async function POST(req: Request) {
     try {
+        const ip = getClientIdentifier(req);
+        const rateKey = `checkout:${ip}`;
+        const paymentRate = await checkRateLimit(rateKey, RateLimits.payment);
+        if (!paymentRate.success) {
+            return NextResponse.json(
+                { error: "Çok fazla ödeme denemesi. Lütfen bir dakika sonra tekrar deneyin." },
+                { status: 429 }
+            );
+        }
+
         const idem = normalizeIdempotencyKey(req.headers.get("Idempotency-Key"));
         const body = await req.json();
+
+        if (body.userId) {
+            try {
+                await persistRedisCartToDatabase(body.userId);
+            } catch (persistErr) {
+                console.warn("Checkout cart persist warning:", persistErr);
+            }
+        }
 
         // 1) Idempotent check
         const existing = await prisma.order.findUnique({
@@ -184,6 +204,7 @@ export async function POST(req: Request) {
                 await prisma.cartItem.deleteMany({
                     where: { userId: body.userId }
                 });
+                await clearRedisCart(body.userId);
             }
 
             return NextResponse.json({

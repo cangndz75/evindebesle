@@ -451,9 +451,12 @@ export async function POST(req: Request) {
     revalidatePath("/men");
     revalidatePath("/women");
     revalidatePath("/new-arrivals");
+    revalidatePath("/collections");
     if (productWithRelations?.slug) {
       revalidatePath(`/products/${productWithRelations.slug}`);
+      revalidatePath(`/product/${productWithRelations.slug}`);
     }
+    revalidatePath(`/product/${product.id}`);
     return NextResponse.json(productWithRelations);
   } catch (error: any) {
     console.error("Product creation error:", error);

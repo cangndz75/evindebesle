@@ -1,5 +1,5 @@
 import nextDynamic from "next/dynamic";
-import { Suspense } from "react";
+import { cache } from "react";
 import CampaignStrip from "@/components/home/CampaignStrip";
 import ByltStyleHero from "@/components/home/ByltStyleHero";
 import ProductShowcase from "@/components/home/ProductShowcase";
@@ -42,7 +42,6 @@ import { prisma } from "@/lib/db";
 
 // Performans için ISR - revalidatePath ile tetiklenir
 export const revalidate = 3600;
-export const dynamic = "force-dynamic";
 
 // Helper: JSON string'i array'e çevir
 function parseImages(images: string | null): string[] {
@@ -135,7 +134,7 @@ function formatProduct(product: any, type: "new-arrivals" | "best-sellers" | "fe
   };
 }
 
-async function getTabbedProducts(tabName: string): Promise<Product[]> {
+const getTabbedProducts = cache(async (tabName: string): Promise<Product[]> => {
   try {
     const items = await prisma.tabbedCarouselProduct.findMany({
       where: { tab: tabName },
@@ -168,9 +167,9 @@ async function getTabbedProducts(tabName: string): Promise<Product[]> {
     console.error(`Error fetching ${tabName} products:`, error);
     return [];
   }
-}
+});
 
-async function getShowcaseProducts(): Promise<Product[]> {
+const getShowcaseProducts = cache(async (): Promise<Product[]> => {
   try {
     const items = await prisma.showcase.findMany({
       orderBy: { order: "asc" },
@@ -201,7 +200,7 @@ async function getShowcaseProducts(): Promise<Product[]> {
     console.error("Error fetching showcase products:", error);
     return [];
   }
-}
+});
 
 // Kategorileri getir
 type CategoryForRail = {
@@ -211,7 +210,7 @@ type CategoryForRail = {
   image: string | null;
 };
 
-async function getCategories(): Promise<CategoryForRail[]> {
+const getCategories = cache(async (): Promise<CategoryForRail[]> => {
   try {
     const categories = await prisma.category.findMany({
       where: { isActive: true, showOnHome: true },
@@ -228,7 +227,7 @@ async function getCategories(): Promise<CategoryForRail[]> {
     console.error("Error fetching categories:", error);
     return [];
   }
-}
+});
 
 import { Metadata } from "next";
 

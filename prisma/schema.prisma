@@ -298,6 +298,10 @@ model Product {
   lookItems            LookItem[]
 
   @@index([categoryId])
+  @@index([price])
+  @@index([isActive, price])
+  @@index([isActive, categoryId, gender, createdAt])
+  @@index([fabricType])
 }
 
 model ProductColor {
@@ -317,6 +321,8 @@ model ProductColor {
   variants      ProductVariant[]
 
   @@index([productId])
+  @@index([name])
+  @@index([productId, name])
 }
 
 model ProductImage {
@@ -376,6 +382,9 @@ model ProductVariant {
   @@index([sizeId])
   @@index([barcode])
   @@index([productId, colorId, sizeId])
+  @@index([productId, isActive])
+  @@index([price])
+  @@index([stock, stockReserved])
 }
 
 model ProductSize {
@@ -392,6 +401,7 @@ model ProductSize {
 
   @@unique([productId, name])
   @@index([productId])
+  @@index([name])
 }
 
 model ProductTag {
@@ -504,6 +514,7 @@ model CartItem {
   @@unique([userId, productId, colorId, sizeId])
   @@index([userId])
   @@index([productId])
+  @@index([userId, updatedAt])
 }
 
 model CompanySettings {
@@ -1438,6 +1449,8 @@ model CollectionProduct {
   product      Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([collectionId, productId])
+  @@index([collectionId])
+  @@index([productId])
 }
 
 model NewArrival {

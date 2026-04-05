@@ -24,6 +24,7 @@ import {
 import { Button } from "@/components/ui/button";
 import ProductFilters from "./ProductFilters";
 import HoverImageSlider from "@/components/product/HoverImageSlider";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 type ProductColor = {
   name: string;
@@ -64,6 +65,10 @@ type ActiveFilter = {
   value: string;
 };
 
+function normalizeColorKey(value: string): string {
+  return value.trim().toLocaleLowerCase("tr-TR");
+}
+
 type CategoryBasic = {
   name: string;
   slug: string;
@@ -93,11 +98,12 @@ function FavoriteButton({ productId, productName }: { productId: string; product
   const handleToggle = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    const nextFavorite = !isFavorite;
+    setIsFavorite(nextFavorite);
     setIsLoading(true);
     try {
-      if (isFavorite) {
+      if (!nextFavorite) {
         await fetch(`/api/favorites?productId=${productId}`, { method: "DELETE" });
-        setIsFavorite(false);
         toast.success(`${productName} favorilerden çıkarıldı`, { position: "bottom-left" });
       } else {
         await fetch("/api/favorites", {
@@ -105,11 +111,11 @@ function FavoriteButton({ productId, productName }: { productId: string; product
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ productId }),
         });
-        setIsFavorite(true);
         toast.success(`${productName} favorilere eklendi`, { position: "bottom-left" });
       }
       window.dispatchEvent(new Event("favoriteUpdated"));
     } catch (error) {
+      setIsFavorite(!nextFavorite);
       toast.error("Bir hata oluştu");
     } finally {
       setIsLoading(false);
@@ -132,6 +138,10 @@ export default function CollectionProductsPage({
   initialPriceRange = { min: 0, max: 2000 },
   initialCategories = [],
 }: CollectionProductsPageProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [loading, setLoading] = useState(false);
@@ -149,6 +159,28 @@ export default function CollectionProductsPage({
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    const category = searchParams.get("category") || "All";
+    const sizes = searchParams.getAll("size");
+    const colors = searchParams.getAll("color");
+    const minPriceRaw = searchParams.get("minPrice");
+    const maxPriceRaw = searchParams.get("maxPrice");
+    const sortRaw = searchParams.get("sort");
+
+    const parsedMin = minPriceRaw ? Number(minPriceRaw) : undefined;
+    const parsedMax = maxPriceRaw ? Number(maxPriceRaw) : undefined;
+
+    setSelectedCategory(category);
+    setFilters({
+      sizes,
+      colors,
+      fabricTypes: [],
+      minPrice: Number.isFinite(parsedMin) ? parsedMin : undefined,
+      maxPrice: Number.isFinite(parsedMax) ? parsedMax : undefined,
+    });
+    if (sortRaw) setSortOption(sortRaw);
+  }, [searchParams]);
+
+  useEffect(() => {
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     debounceTimerRef.current = setTimeout(() => {
       setDebouncedFilters(filters);
@@ -161,6 +193,27 @@ export default function CollectionProductsPage({
     if (!res.ok) throw new Error('Failed to fetch');
     return res.json();
   }, []);
+
+  const prefetchCategoryProducts = useCallback((categorySlug: string) => {
+    const params = new URLSearchParams();
+    params.append("inCollections", "true");
+
+    if (categorySlug !== "All") params.append("categorySlug", categorySlug);
+    if (debouncedFilters.minPrice) params.append("minPrice", debouncedFilters.minPrice.toString());
+    if (debouncedFilters.maxPrice) params.append("maxPrice", debouncedFilters.maxPrice.toString());
+    debouncedFilters.sizes.forEach((s) => params.append("size", s));
+    debouncedFilters.colors.forEach((c) => params.append("color", c));
+    if (sortOption !== "featured") params.append("sort", sortOption);
+
+    void fetch(`/api/products?${params.toString()}`, {
+      method: "GET",
+      cache: "force-cache",
+    }).catch(() => undefined);
+  }, [debouncedFilters, sortOption]);
+
+  const prefetchProductRoute = useCallback((href: string) => {
+    router.prefetch(href);
+  }, [router]);
 
   const buildApiUrl = useCallback(() => {
     const params = new URLSearchParams();
@@ -188,19 +241,41 @@ export default function CollectionProductsPage({
 
   useEffect(() => { setLoading(swrLoading); }, [swrLoading]);
 
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (selectedCategory !== "All") params.set("category", selectedCategory);
+    if (debouncedFilters.minPrice != null) params.set("minPrice", String(debouncedFilters.minPrice));
+    if (debouncedFilters.maxPrice != null) params.set("maxPrice", String(debouncedFilters.maxPrice));
+    debouncedFilters.sizes.forEach((size) => params.append("size", size));
+    debouncedFilters.colors.forEach((color) => params.append("color", color));
+    if (sortOption && sortOption !== "featured") params.set("sort", sortOption);
+
+    const query = params.toString();
+    const nextUrl = query ? `${pathname}?${query}` : pathname;
+    router.replace(nextUrl, { scroll: false });
+  }, [selectedCategory, debouncedFilters, sortOption, pathname, router]);
+
   const availableOptions = useMemo(() => {
     const sizes = new Set<string>();
-    const colors = new Set<string>();
+    const colors = new Map<string, { name: string; hexCode?: string }>();
     const fabricTypes = new Set<string>();
 
     products.forEach((p) => {
-      p.colors.forEach((c) => colors.add(c.name));
+      p.colors.forEach((c) => {
+        const key = normalizeColorKey(c.name);
+        if (!colors.has(key)) {
+          colors.set(key, {
+            name: c.name.trim(),
+            hexCode: c.hexCode,
+          });
+        }
+      });
       if (p.fabricType) fabricTypes.add(p.fabricType);
     });
 
     return {
       sizes: Array.from(sizes).sort(),
-      colors: Array.from(colors).sort(),
+      colors: Array.from(colors.values()).sort((a, b) => a.name.localeCompare(b.name)),
       fabricTypes: Array.from(fabricTypes).sort(),
       priceRange: initialPriceRange,
     };
@@ -234,9 +309,9 @@ export default function CollectionProductsPage({
         <h1 className="text-2xl md:text-4xl lg:text-5xl font-light text-[#111] mb-6">Tüm Koleksiyonlar</h1>
 
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide">
-          <button onClick={() => setSelectedCategory("All")} className={`px-4 py-2 text-xs md:text-sm font-light uppercase tracking-wide transition-colors whitespace-nowrap ${selectedCategory === "All" ? "bg-[#111] text-white" : "bg-white text-[#111] border border-[#111]"}`}>TÜMÜ</button>
+          <button onMouseEnter={() => prefetchCategoryProducts("All")} onClick={() => setSelectedCategory("All")} className={`px-4 py-2 text-xs md:text-sm font-light uppercase tracking-wide transition-colors whitespace-nowrap ${selectedCategory === "All" ? "bg-[#111] text-white" : "bg-white text-[#111] border border-[#111]"}`}>TÜMÜ</button>
           {initialCategories.map((cat) => (
-            <button key={cat.slug} onClick={() => setSelectedCategory(cat.slug)} className={`px-4 py-2 text-xs md:text-sm font-light uppercase tracking-wide transition-colors whitespace-nowrap ${selectedCategory === cat.slug ? "bg-[#111] text-white" : "bg-white text-[#111] border border-[#111]"}`}>{cat.name}</button>
+            <button key={cat.slug} onMouseEnter={() => prefetchCategoryProducts(cat.slug)} onClick={() => setSelectedCategory(cat.slug)} className={`px-4 py-2 text-xs md:text-sm font-light uppercase tracking-wide transition-colors whitespace-nowrap ${selectedCategory === cat.slug ? "bg-[#111] text-white" : "bg-white text-[#111] border border-[#111]"}`}>{cat.name}</button>
           ))}
         </div>
 
@@ -257,6 +332,8 @@ export default function CollectionProductsPage({
               setFilters(nf);
             }}
             onClearFilters={() => setFilters({ sizes: [], colors: [], fabricTypes: [] })}
+            resultCount={products.length}
+            isLoading={loading}
           />
           <div className="flex items-center gap-4">
             <span className="text-xs md:text-sm text-[#111]/60 font-light">{products.length} ürün</span>
@@ -277,9 +354,10 @@ export default function CollectionProductsPage({
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
           {products.map((p) => {
              const activeImg = hoveredColor?.productId === p.id ? hoveredColor.colorImage : p.image;
+             const productHref = p.slug ? `/products/${p.slug}` : `/product/${p.id}`;
              return (
               <div key={p.id} className="group">
-                <Link href={`/products/${p.slug}`} className="block">
+                <Link href={productHref} prefetch={true} onMouseEnter={() => prefetchProductRoute(productHref)} className="block">
                   <HoverImageSlider
                     images={[activeImg || "/placeholder.png", p.hoverImage].filter(Boolean) as string[]}
                     alt={p.name}

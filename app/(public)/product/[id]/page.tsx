@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
+import { cache } from "react";
 import ProductDetailPage from "../../_components/ProductDetailPage";
 import ProductSchema from "@/components/seo/ProductSchema";
 import BreadcrumbJsonLd from "@/components/seo/BreadcrumbJsonLd";
@@ -10,88 +11,56 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://evindebesle.com";
 
 // ISR: Her 1 saatte bir yeniden oluştur
 export const revalidate = 3600;
-export const dynamic = "force-dynamic";
 
 interface ProductPageProps {
   params: Promise<{ id: string }>;
 }
 
-// Ürünü DB'den çek
-async function getProduct(idOrSlug: string) {
-  // Önce slug ile dene, sonra id ile
-  let product = await prisma.product.findUnique({
-    where: { slug: idOrSlug },
-    include: {
-      category: true,
-      colors: {
-        include: {
-          productImages: {
-            orderBy: { order: "asc" },
-          },
+// Ürünü DB'den çek ve aynı request içinde tekilleştir
+const getProduct = cache(async (idOrSlug: string) => {
+  const include = {
+    category: true,
+    colors: {
+      include: {
+        productImages: {
+          orderBy: { order: "asc" as const },
         },
       },
-      sizes: true,
-      reviews: {
-        where: { isApproved: true },
-        orderBy: { createdAt: "desc" },
-        take: 20,
-      },
-      variants: {
-        include: {
-          color: true,
-          size: true,
-        },
-      },
-      productImages: {
-        orderBy: { order: "asc" },
-      },
-      washingInstruction: true,
-      deliveryInfo: true,
-      sizeNote: true,
-      sizeGuide: true,
-      modelInfo: true,
     },
+    sizes: true,
+    reviews: {
+      where: { isApproved: true },
+      orderBy: { createdAt: "desc" as const },
+      take: 20,
+    },
+    variants: {
+      include: {
+        color: true,
+        size: true,
+      },
+    },
+    productImages: {
+      orderBy: { order: "asc" as const },
+    },
+    washingInstruction: true,
+    deliveryInfo: true,
+    sizeNote: true,
+    sizeGuide: true,
+    modelInfo: true,
+  };
+
+  const productBySlug = await prisma.product.findUnique({
+    where: { slug: idOrSlug },
+    include,
   });
 
-  // Slug ile bulamazsa id ile dene
-  if (!product) {
-    product = await prisma.product.findUnique({
-      where: { id: idOrSlug },
-      include: {
-        category: true,
-        colors: {
-          include: {
-            productImages: {
-              orderBy: { order: "asc" },
-            },
-          },
-        },
-        sizes: true,
-        reviews: {
-          where: { isApproved: true },
-          orderBy: { createdAt: "desc" },
-          take: 20,
-        },
-        variants: {
-          include: {
-            color: true,
-            size: true,
-          },
-        },
-        productImages: {
-          orderBy: { order: "asc" },
-        },
-        washingInstruction: true,
-        deliveryInfo: true,
-        sizeNote: true,
-        sizeGuide: true,
-        modelInfo: true,
-      },
-    });
-  }
+  if (productBySlug) return productBySlug;
 
-  return product;
-}
+  return prisma.product.findUnique({
+    where: { id: idOrSlug },
+    include,
+  });
+});
 
 // Dynamic SEO Metadata
 export async function generateMetadata({

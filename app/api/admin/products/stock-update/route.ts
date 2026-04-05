@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { prisma } from "@/lib/db";
 import { logAuditAction } from "@/lib/auditLog";
+import { revalidatePath } from "next/cache";
 
 export async function POST(req: NextRequest) {
     try {
@@ -19,16 +20,38 @@ export async function POST(req: NextRequest) {
 
         const newStock = Math.max(0, Number(stock));
 
+        let productForRevalidate: { id: string; slug: string | null } | null = null;
+
         if (isVariant) {
             await prisma.productVariant.update({
                 where: { id: variantId },
                 data: { stock: newStock }
             });
+
+            const variant = await prisma.productVariant.findUnique({
+                where: { id: variantId },
+                select: {
+                    product: {
+                        select: { id: true, slug: true }
+                    }
+                }
+            });
+            productForRevalidate = variant?.product ?? null;
         } else {
             await prisma.productSize.update({
                 where: { id: variantId },
                 data: { stock: newStock }
             });
+
+            const size = await prisma.productSize.findUnique({
+                where: { id: variantId },
+                select: {
+                    product: {
+                        select: { id: true, slug: true }
+                    }
+                }
+            });
+            productForRevalidate = size?.product ?? null;
         }
 
         // Audit log
@@ -45,6 +68,16 @@ export async function POST(req: NextRequest) {
                 type: isVariant ? "variant" : "size"
             }
         });
+
+        revalidatePath("/home");
+        revalidatePath("/collections");
+        if (productForRevalidate) {
+            revalidatePath(`/product/${productForRevalidate.id}`);
+            if (productForRevalidate.slug) {
+                revalidatePath(`/products/${productForRevalidate.slug}`);
+                revalidatePath(`/product/${productForRevalidate.slug}`);
+            }
+        }
 
         return NextResponse.json({ success: true });
     } catch (error) {

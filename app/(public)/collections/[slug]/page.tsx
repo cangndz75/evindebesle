@@ -3,28 +3,16 @@ import { prisma } from "@/lib/db";
 import Image from "next/image";
 import Link from "next/link";
 import { Metadata } from "next";
+import { cache } from "react";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 interface CollectionPageProps {
   params: Promise<{ slug: string }>;
 }
 
-export async function generateMetadata({ params }: CollectionPageProps): Promise<Metadata> {
-  const { slug } = await params;
-  const collection = await prisma.collection.findUnique({
-    where: { slug }
-  });
-
-  return {
-    title: collection ? `${collection.title} Koleksiyonu | Dark Velvet` : "Koleksiyon Bulunamadı",
-    description: collection?.description || "Özel koleksiyonlarımızı keşfedin."
-  };
-}
-
-export default async function CollectionDetailPage({ params }: CollectionPageProps) {
-  const { slug } = await params;
-  const collection = await prisma.collection.findUnique({
+const getCollectionBySlug = cache(async (slug: string) => {
+  return prisma.collection.findUnique({
     where: { slug },
     include: {
       products: {
@@ -40,6 +28,21 @@ export default async function CollectionDetailPage({ params }: CollectionPagePro
       }
     }
   });
+});
+
+export async function generateMetadata({ params }: CollectionPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const collection = await getCollectionBySlug(slug);
+
+  return {
+    title: collection ? `${collection.title} Koleksiyonu | Dark Velvet` : "Koleksiyon Bulunamadı",
+    description: collection?.description || "Özel koleksiyonlarımızı keşfedin."
+  };
+}
+
+export default async function CollectionDetailPage({ params }: CollectionPageProps) {
+  const { slug } = await params;
+  const collection = await getCollectionBySlug(slug);
 
   if (!collection || !collection.isActive) {
     notFound();
@@ -56,7 +59,6 @@ export default async function CollectionDetailPage({ params }: CollectionPagePro
           className="object-cover"
           priority
           sizes="100vw"
-          unoptimized
         />
         <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-center p-6 backdrop-blur-[2px]">
           <div className="max-w-4xl space-y-6">
@@ -96,7 +98,6 @@ export default async function CollectionDetailPage({ params }: CollectionPagePro
                   fill
                   className="object-cover transition-transform duration-1000 group-hover:scale-110"
                   sizes="(max-width: 768px) 50vw, 25vw"
-                  unoptimized
                 />
                 
                 {/* Sale Badge */}
@@ -157,7 +158,6 @@ export default async function CollectionDetailPage({ params }: CollectionPagePro
               alt="Koleksiyon detayı"
               fill
               className="object-cover shadow-2xl"
-              unoptimized
             />
             <div className="absolute -bottom-10 -right-10 w-64 h-80 bg-black/5 -z-10 animate-pulse"></div>
           </div>
@@ -176,7 +176,6 @@ export default async function CollectionDetailPage({ params }: CollectionPagePro
                   alt="Koleksiyon detayı 2"
                   fill
                   className="object-cover grayscale hover:grayscale-0 transition-all duration-1000 shadow-xl"
-                  unoptimized
                 />
             </div>
           </div>

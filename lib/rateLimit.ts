@@ -5,6 +5,7 @@ import { Redis } from "@upstash/redis";
 export const RateLimits = {
     standard: { maxRequests: 20, window: "10 s" },
     strict: { maxRequests: 10, window: "60 s" },
+    payment: { maxRequests: 3, window: "60 s" },
     lenient: { maxRequests: 60, window: "60 s" },
     upload: { maxRequests: 10, window: "60 s" },
 } as const;

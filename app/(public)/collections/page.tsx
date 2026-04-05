@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
+import { unstable_cache } from "next/cache";
 
 export const metadata = {
   title: "Koleksiyonlar | Dark Velvet",
@@ -9,29 +10,31 @@ export const metadata = {
 };
 
 export const revalidate = 3600;
-export const dynamic = "force-dynamic";
-
-async function getCollections() {
-  try {
-    const items = await prisma.collection.findMany({
-      where: { isActive: true },
-      orderBy: { order: "asc" },
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        slug: true,
-        image1: true,
-        image2: true,
-        createdAt: true,
-      }
-    });
-    return items;
-  } catch (e) {
-    console.error(e);
-    return [];
-  }
-}
+const getCollections = unstable_cache(
+  async () => {
+    try {
+      const items = await prisma.collection.findMany({
+        where: { isActive: true },
+        orderBy: { order: "asc" },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          slug: true,
+          image1: true,
+          image2: true,
+          createdAt: true,
+        }
+      });
+      return items;
+    } catch (e) {
+      console.error(e);
+      return [];
+    }
+  },
+  ["collections:active:list"],
+  { revalidate: 3600, tags: ["collections"] }
+);
 
 export default async function CollectionsPage() {
   const collections = await getCollections();
@@ -53,12 +56,14 @@ export default async function CollectionsPage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link 
               href="#koleksiyonlar"
+              prefetch={false}
               className="bg-white text-black px-10 py-4 text-[11px] tracking-[0.2em] uppercase font-bold hover:bg-white/90 transition-all duration-300"
             >
               KOLEKSİYONU KEŞFET
             </Link>
             <Link 
               href="/collections/all"
+              prefetch={true}
               className="border border-white/30 text-white px-10 py-4 text-[11px] tracking-[0.2em] uppercase font-bold hover:bg-white hover:text-black transition-all duration-300"
             >
               TÜM KOLEKSİYONLAR
@@ -134,6 +139,7 @@ export default async function CollectionsPage() {
                       <div className="pt-6">
                         <Link 
                           href={`/collections/${collection.slug}`} 
+                          prefetch={true}
                           className="group/link inline-flex items-center gap-4 text-[11px] tracking-[0.3em] uppercase font-bold text-black border-b border-black/10 pb-2 hover:border-black transition-all duration-500"
                         >
                           KOLEKSİYONU KEŞFET
@@ -156,7 +162,7 @@ export default async function CollectionsPage() {
                       
                       {/* Secondary Accent Image */}
                       {collection.image2 && (
-                        <div className={`absolute bottom-[-10%] ${isEven ? 'right-[-5%] md:right-[-12%]' : 'left-[-5%] md:left-[-12%]'} w-[50%] md:w-[45%] h-[60%] z-10 shadow-2xl overflow-hidden border-[12px] border-white hidden sm:block h-fit`}>
+                        <div className={`absolute bottom-[-10%] ${isEven ? 'right-[-5%] md:right-[-12%]' : 'left-[-5%] md:left-[-12%]'} w-[50%] md:w-[45%] z-10 shadow-2xl overflow-hidden border-[12px] border-white hidden sm:block h-fit`}>
                            <div className="relative aspect-[3/4]">
                               <Image
                                 src={collection.image2}
@@ -193,12 +199,14 @@ export default async function CollectionsPage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
             <Link 
               href="/collections/all"
+              prefetch={true}
               className="bg-black text-white px-10 py-5 text-[11px] tracking-[0.2em] uppercase font-bold hover:bg-black/90 transition-all duration-300 shadow-xl"
             >
               TÜM KOLEKSİYONLAR
             </Link>
             <Link 
               href="/new-arrivals"
+              prefetch={true}
               className="bg-white text-black border border-black/10 px-10 py-5 text-[11px] tracking-[0.2em] uppercase font-bold hover:bg-gray-50 transition-all duration-300"
             >
               YENİ ÜRÜNLERİ GÖR

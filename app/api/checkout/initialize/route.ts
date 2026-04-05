@@ -5,6 +5,8 @@ import { reserveStockTx } from "@/lib/stock";
 import { iyzico, iyzicoCall } from "@/lib/iyzico";
 import { checkRateLimit, getClientIdentifier, RateLimits } from "@/lib/rateLimit";
 import { clearRedisCart, persistRedisCartToDatabase } from "@/lib/cart-redis";
+import { getServerSession } from "next-auth";
+import { authConfig } from "@/lib/auth.config";
 
 export async function POST(req: Request) {
     try {
@@ -20,6 +22,23 @@ export async function POST(req: Request) {
 
         const idem = normalizeIdempotencyKey(req.headers.get("Idempotency-Key"));
         const body = await req.json();
+        const session = await getServerSession(authConfig);
+
+        let resolvedUserId = body.userId || session?.user?.id || null;
+        if (!resolvedUserId && body?.email) {
+            const matchedUser = await prisma.user.findUnique({
+                where: { email: body.email },
+                select: { id: true },
+            });
+            resolvedUserId = matchedUser?.id || null;
+        }
+
+        if (!resolvedUserId) {
+            return NextResponse.json(
+                { error: "Kullanıcı doğrulanamadı. Lütfen tekrar giriş yapın." },
+                { status: 401 }
+            );
+        }
 
         const normalizedPhone = String(body?.billingAddress?.phone || "").replace(/\D/g, "");
         const phoneIsValid = normalizedPhone.startsWith("0")
@@ -41,9 +60,9 @@ export async function POST(req: Request) {
             );
         }
 
-        if (body.userId) {
+        if (resolvedUserId) {
             try {
-                await persistRedisCartToDatabase(body.userId);
+                await persistRedisCartToDatabase(resolvedUserId);
             } catch (persistErr) {
                 console.warn("Checkout cart persist warning:", persistErr);
             }
@@ -74,9 +93,7 @@ export async function POST(req: Request) {
                     sizeId: item.sizeId || null,
                 },
                 include: {
-                    product: {
-                        include: { category: true }
-                    }
+                    product: true,
                 }
             });
 
@@ -84,9 +101,7 @@ export async function POST(req: Request) {
                 variant = await prisma.productVariant.findUnique({
                     where: { id: item.productId },
                     include: {
-                        product: {
-                            include: { category: true }
-                        }
+                        product: true,
                     }
                 });
             }
@@ -99,9 +114,7 @@ export async function POST(req: Request) {
                         ...(item.sizeId ? { sizeId: item.sizeId } : {}),
                     },
                     include: {
-                        product: {
-                            include: { category: true }
-                        }
+                        product: true,
                     }
                 });
             }
@@ -186,7 +199,7 @@ export async function POST(req: Request) {
             const order = await prisma.order.create({
                 data: {
                     orderNumber: `DV-${Date.now()}`,
-                    userId: body.userId ?? null,
+                    userId: resolvedUserId,
                     email: body.email,
                     currency,
                     subtotal,
@@ -236,11 +249,11 @@ export async function POST(req: Request) {
                 }
             }
 
-            if (body.userId) {
+            if (resolvedUserId) {
                 await prisma.cartItem.deleteMany({
-                    where: { userId: body.userId }
+                    where: { userId: resolvedUserId }
                 });
-                await clearRedisCart(body.userId);
+                await clearRedisCart(resolvedUserId);
             }
 
             return NextResponse.json({
@@ -253,7 +266,7 @@ export async function POST(req: Request) {
         const order = await prisma.order.create({
             data: {
                 orderNumber: `DV-${Date.now()}`,
-                userId: body.userId ?? null,
+                userId: resolvedUserId,
                 email: body.email,
                 currency,
                 subtotal,

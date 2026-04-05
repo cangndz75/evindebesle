@@ -353,7 +353,11 @@ export default function CollectionProductsPage({
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
           {products.map((p) => {
-             const activeImg = hoveredColor?.productId === p.id ? hoveredColor.colorImage : p.image;
+             const activeImg = hoveredColor?.productId === p.id
+               ? hoveredColor.colorImage
+               : selectedColor?.productId === p.id
+                 ? selectedColor.colorImage
+                 : p.image;
              const productHref = p.slug ? `/products/${p.slug}` : `/product/${p.id}`;
              return (
               <div key={p.id} className="group">
@@ -368,19 +372,21 @@ export default function CollectionProductsPage({
                   />
                 </Link>
                 <div className="space-y-1">
-                  <h3 className="font-light text-[#111] text-sm truncate">{p.name}</h3>
+                  <h3 className="font-light text-[#111] text-sm line-clamp-2 min-h-10 md:min-h-12">{p.name}</h3>
                   <div className="flex gap-2 items-center">
                     <span className="font-light text-[#111] text-sm">{p.originalPrice && p.originalPrice > p.price ? p.price : p.price} ₺</span>
                     {p.originalPrice && p.originalPrice > p.price && <span className="text-[#111]/40 line-through text-xs font-light">{p.originalPrice} ₺</span>}
                   </div>
                   <div className="flex gap-1 mt-2">
                     {p.colors.map((c, idx) => (
-                      <button 
-                        key={idx} 
+                      <button
+                        key={idx}
                         onMouseEnter={() => setHoveredColor({ productId: p.id, colorImage: c.images[0] })}
                         onMouseLeave={() => setHoveredColor(null)}
-                        className="w-3 h-3 rounded-full border border-gray-200" 
-                        style={{ backgroundColor: c.hexCode || "#000000" }} 
+                        onClick={() => setSelectedColor({ productId: p.id, colorImage: c.images[0] })}
+                        className={`w-3 h-3 rounded-full border transition-all duration-200 ${selectedColor?.productId === p.id && selectedColor.colorImage === c.images[0] ? "border-[#111] scale-110" : "border-gray-200"}`}
+                        style={{ backgroundColor: c.hexCode || "#000000" }}
+                        aria-label={`${c.name} renk seçeneği`}
                       />
                     ))}
                   </div>

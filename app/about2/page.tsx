@@ -158,7 +158,7 @@ export default function About2Page() {
                                 STİLİNİZİ <br /> <span className="italic text-gray-500">YENİDEN</span> TANIMLAYIN
                             </h2>
                             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-                                <Link href="/products">
+                                <Link href="/collections">
                                     <Button size="lg" className="bg-white hover:bg-gray-200 text-black rounded-none px-16 h-16 text-sm font-bold uppercase tracking-[0.2em] transition-all hover:scale-105 active:scale-95 shadow-2xl">
                                         KOLEKSİYONU KEŞFET
                                     </Button>

@@ -843,7 +843,7 @@ export default function CategoryProductsPage({
                                     </Link>
 
                                     <div className="mt-4 text-center">
-                                        <h3 className="text-sm md:text-base font-light text-[#111] mb-1">
+                                        <h3 className="text-sm md:text-base font-light text-[#111] mb-1 line-clamp-2 min-h-12">
                                             {product.name}
                                         </h3>
                                         <div className="flex items-center justify-center gap-2">
@@ -867,16 +867,16 @@ export default function CategoryProductsPage({
                                     
                                     {product.colors.length > 0 && (
                                         <div className="flex items-center justify-center gap-1.5 mt-2">
-                                            {Array.from(new Map(product.colors.filter((c: any) => c.images?.[0]).map((c: any) => [c.hexCode || c.name, c])).values()).map((color: any, idx: number) => {
-                                                const isSelected = selectedColor?.productId === product.id &&
-                                                    product.colors.find((c: any) => Array.isArray(c.images) && c.images.length > 0 && c.images[0] === selectedColor.colorImage)?.name === color.name;
+                                            {Array.from(new Map(product.colors.filter((c: any) => c.images?.[0]).map((c: any) => [c.id || `${c.name}-${c.images?.[0] || ""}`, c])).values()).map((color: any, idx: number) => {
+                                                const colorImage = (Array.isArray(color.images) && color.images.length > 0 ? color.images[0] : null) || currentImage;
+                                                const isSelected = selectedColor?.productId === product.id && selectedColor.colorImage === colorImage;
                                                 return (
                                                     <button
                                                         key={idx}
                                                         onMouseEnter={() =>
                                                             setHoveredColor({
                                                                 productId: product.id,
-                                                                colorImage: (Array.isArray(color.images) && color.images.length > 0 ? color.images[0] : null) || currentImage
+                                                                colorImage
                                                             })
                                                         }
                                                         onMouseLeave={() => setHoveredColor(null)}
@@ -885,7 +885,7 @@ export default function CategoryProductsPage({
                                                             e.stopPropagation();
                                                             setSelectedColor({
                                                                 productId: product.id,
-                                                                colorImage: (Array.isArray(color.images) && color.images.length > 0 ? color.images[0] : null) || currentImage,
+                                                                colorImage,
                                                                 variantCode: color.variant?.variantCode
                                                             });
                                                         }}

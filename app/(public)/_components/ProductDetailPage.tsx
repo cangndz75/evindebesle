@@ -1185,9 +1185,8 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                   <table className="w-full text-sm text-left border-collapse">
                     <thead>
                       <tr className="border-b border-gray-200 text-gray-500 font-light">
-                        <th className="py-2 px-3">Barkod</th>
                         <th className="py-2 px-3">Beden</th>
-                        <th className="py-2 px-3 border-l border-gray-200">Stok</th>
+                        <th className="py-2 px-3">Stok</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1195,14 +1194,13 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                         .filter(v => v.colorId === product.colors?.[selectedColor]?.id)
                         .map((v: any, idx) => (
                         <tr key={idx} className="border-b border-gray-100 last:border-0 hover:bg-gray-50">
-                          <td className="py-2 px-3 font-medium text-gray-900">{v.variantCode}</td>
                           <td className="py-2 px-3 text-gray-700">
                             {(() => {
                                const sz = product.sizes?.find((s: any) => typeof s === 'object' && s.id === v.sizeId);
                                return (sz && typeof sz === 'object') ? sz.name : "-";
                             })()}
                           </td>
-                          <td className="py-2 px-3 border-l border-gray-200 text-gray-700">
+                          <td className="py-2 px-3 text-gray-700">
                             {v.stock > 0 ? (
                                 <span className="text-green-600 font-medium">{v.stock} Adet</span>
                               ) : (

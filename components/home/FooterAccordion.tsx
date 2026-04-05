@@ -150,7 +150,7 @@ function BenefitMarquee() {
               key={i}
               className="flex items-center gap-2.5 md:gap-3 text-[#111] whitespace-nowrap"
             >
-              <div className="flex-shrink-0 w-5 h-5 text-[#111] flex items-center justify-center">
+              <div className="shrink-0 w-5 h-5 text-[#111] flex items-center justify-center">
                 {renderIcon(item.icon)}
               </div>
               <span className="text-[11px] md:text-sm tracking-wide uppercase font-light text-[#111] leading-tight">
@@ -165,6 +165,36 @@ function BenefitMarquee() {
 }
 
 export default function Footer() {
+  const [email, setEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubscribe = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) return;
+
+    try {
+      setIsSubmitting(true);
+      const res = await fetch("/api/newsletter/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: trimmedEmail }),
+      });
+
+      if (res.ok) {
+        setEmail("");
+        import("sonner").then(({ toast }) => toast.success("Bültene başarıyla abone oldunuz!"));
+      } else {
+        const data = await res.json().catch(() => null);
+        import("sonner").then(({ toast }) => toast.error(data?.error || "Abonelik başarısız oldu."));
+      }
+    } catch {
+      import("sonner").then(({ toast }) => toast.error("Bir hata oluştu."));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <footer className="w-full bg-white">
       <BenefitMarquee />
@@ -224,17 +254,21 @@ export default function Footer() {
             <p className="text-sm text-black/70 mb-4">
               Dark Velvet ayrıcalıkları için bültene katıl
             </p>
-            <form className="flex border border-black">
+            <form onSubmit={handleSubscribe} className="flex border border-black">
               <input
                 type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="E-posta adresin"
                 className="flex-1 px-4 py-3 text-sm outline-none"
+                required
               />
               <button
                 type="submit"
+                disabled={isSubmitting}
                 className="px-6 text-sm tracking-wide uppercase bg-black text-white"
               >
-                Gönder
+                {isSubmitting ? "Gönderiliyor" : "Gönder"}
               </button>
             </form>
             <div className="mt-4 flex flex-col gap-3 items-end">

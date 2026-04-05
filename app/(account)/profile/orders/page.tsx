@@ -201,7 +201,7 @@ export default function OrdersPage() {
                 <p className="text-sm text-gray-500 text-center mb-6">
                   İlk siparişinizi vermek için ürünlerimizi inceleyebilirsiniz
                 </p>
-                <Button onClick={() => router.push("/products")}>
+                <Button onClick={() => router.push("/collections")}>
                   Ürünleri İncele
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>

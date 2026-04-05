@@ -185,6 +185,53 @@ function normalizeColorName(name: string): string {
     .replace(/[\u0300-\u036f]/g, "");
 }
 
+const COLOR_NAME_TO_HEX: Record<string, string> = {
+  siyah: "#111111",
+  black: "#111111",
+  beyaz: "#F8F9FA",
+  white: "#F8F9FA",
+  gri: "#9CA3AF",
+  gray: "#9CA3AF",
+  grey: "#9CA3AF",
+  antrasit: "#374151",
+  lacivert: "#1E3A8A",
+  navy: "#1E3A8A",
+  mavi: "#2563EB",
+  blue: "#2563EB",
+  kirmizi: "#B91C1C",
+  "kırmızı": "#B91C1C",
+  red: "#B91C1C",
+  bordo: "#7F1D1D",
+  pembe: "#EC4899",
+  pink: "#EC4899",
+  mor: "#7C3AED",
+  purple: "#7C3AED",
+  yesil: "#166534",
+  "yeşil": "#166534",
+  green: "#166534",
+  sari: "#EAB308",
+  "sarı": "#EAB308",
+  yellow: "#EAB308",
+  turuncu: "#EA580C",
+  orange: "#EA580C",
+  kahverengi: "#7C4A2D",
+  brown: "#7C4A2D",
+  bej: "#C9B79C",
+  beige: "#C9B79C",
+  krem: "#E8DFC8",
+  nude: "#D6B29A",
+  ekru: "#F3E9D7",
+  ecru: "#F3E9D7",
+};
+
+function getColorSwatchStyle(name: string, hexCode?: string) {
+  if (hexCode && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(hexCode.trim())) {
+    return { backgroundColor: hexCode.trim() };
+  }
+  const normalized = normalizeColorName(name);
+  return { backgroundColor: COLOR_NAME_TO_HEX[normalized] || "#D1D5DB" };
+}
+
 type BaseQuery = {
   tag?: string;
   newArrivals?: boolean;
@@ -609,9 +656,12 @@ export default function WomenProductsPage({
     setPendingFilters(clearedFilters);
   };
 
-  const handleColorInteraction = (productId: string, colorImage: string) => {
+  const handleColorHover = (productId: string, colorImage: string) => {
     setHoveredColor({ productId, colorImage });
-    setSelectedColor({ productId, colorImage });
+  };
+
+  const handleColorSelect = (productId: string, colorImage: string, variantCode?: string) => {
+    setSelectedColor({ productId, colorImage, variantCode });
   };
 
   const handleColorLeave = () => {
@@ -814,10 +864,15 @@ export default function WomenProductsPage({
               : selectedColor?.productId === product.id
                 ? selectedColor.colorImage
                 : null;
+            const productUrl = product.slug ? `/products/${product.slug}` : `/product/${product.id}`;
+            const selectedVariantCode = selectedColor?.productId === product.id
+              ? selectedColor.variantCode
+              : product.colors?.[0]?.variant?.variantCode;
+            const finalUrl = selectedVariantCode ? `${productUrl}?variant=${selectedVariantCode}` : productUrl;
 
             return (
               <div key={product.id} className={`group ${isOutOfStock ? "opacity-75" : ""}`}>
-                <Link href={product.slug ? `/products/${product.slug}` : `/product/${product.id}`} className="block relative">
+                <Link href={finalUrl} className="block relative">
                   <HoverImageSlider
                     images={[
                       activeColorImage || product.image || "/placeholder.png",
@@ -876,12 +931,12 @@ export default function WomenProductsPage({
                     return (
                       <button
                         key={idx}
-                        onMouseEnter={() => handleColorInteraction(product.id, colorImg)}
+                        onMouseEnter={() => handleColorHover(product.id, colorImg)}
                         onMouseLeave={handleColorLeave}
-                        onClick={() => handleColorInteraction(product.id, colorImg)}
+                        onClick={() => handleColorSelect(product.id, colorImg, color.variant?.variantCode)}
                         className={`w-3 h-3 rounded-full border transition-all duration-200 shrink-0 ${isActive ? "border-[#111] scale-110" : "border-gray-300"
                           }`}
-                        style={{ backgroundColor: color.hexCode || "#000000" }}
+                        style={getColorSwatchStyle(color.name, color.hexCode)}
                         aria-label={`${color.name} renk seçeneği`}
                       />
                     );
@@ -925,6 +980,11 @@ export default function WomenProductsPage({
               : selectedColor?.productId === product.id
                 ? selectedColor.colorImage
                 : null;
+            const productUrl = product.slug ? `/products/${product.slug}` : `/product/${product.id}`;
+            const selectedVariantCode = selectedColor?.productId === product.id
+              ? selectedColor.variantCode
+              : product.colors?.[0]?.variant?.variantCode;
+            const finalUrl = selectedVariantCode ? `${productUrl}?variant=${selectedVariantCode}` : productUrl;
 
             const currentImage = activeColorImage || product.image || "/placeholder.png";
 
@@ -936,7 +996,7 @@ export default function WomenProductsPage({
 
             return (
               <div key={product.id} className={`group relative overflow-hidden ${isOutOfStock ? "opacity-75" : ""}`} style={gridStyle}>
-                <Link href={product.slug ? `/products/${product.slug}` : `/product/${product.id}`} className="block relative">
+                <Link href={finalUrl} className="block relative">
                   <HoverImageSlider
                     images={[
                       activeColorImage || product.image || "/placeholder.png",
@@ -1077,7 +1137,7 @@ export default function WomenProductsPage({
                 </Link>
 
                 <div className="space-y-1 text-center">
-                  <h3 className="font-light text-[#111] text-xs md:text-sm">
+                  <h3 className="font-light text-[#111] text-xs md:text-sm line-clamp-2 min-h-10 md:min-h-12">
                     {product.name}
                   </h3>
                   <div className="flex items-center justify-center gap-1.5 flex-wrap">
@@ -1100,18 +1160,18 @@ export default function WomenProductsPage({
 
                 
                 <div className="flex items-center justify-center gap-1 mt-2">
-                  {Array.from(new Map(product.colors.filter((c: any) => c.images?.[0]).map((c: any) => [c.hexCode || c.name, c])).values()).map((color: any, idx) => {
+                  {Array.from(new Map(product.colors.map((c: any) => [c.id || `${c.name}-${c.images?.[0] || ""}`, c])).values()).map((color: any, idx) => {
                     const colorImg = color.images?.[0] || "";
                     const isActive = isColorActive && activeColorImage === colorImg;
                     return (
                       <button
                         key={idx}
-                        onMouseEnter={() => handleColorInteraction(product.id, colorImg)}
+                        onMouseEnter={() => handleColorHover(product.id, colorImg)}
                         onMouseLeave={handleColorLeave}
-                        onClick={() => handleColorInteraction(product.id, colorImg)}
+                        onClick={() => handleColorSelect(product.id, colorImg, color.variant?.variantCode)}
                         className={`w-3 h-3 rounded-full border transition-all duration-200 ${isActive ? "border-[#111]" : "border-gray-300"
                           }`}
-                        style={{ backgroundColor: color.hexCode || "#000000" }}
+                        style={getColorSwatchStyle(color.name, color.hexCode)}
                         aria-label={`${color.name} renk seçeneği`}
                       />
                     );

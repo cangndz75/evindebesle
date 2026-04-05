@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Metadata } from "next";
 import { cache } from "react";
+import CollectionDetailProductsGrid from "./CollectionDetailProductsGrid";
 
 export const revalidate = 300;
 
@@ -20,7 +21,18 @@ const getCollectionBySlug = cache(async (slug: string) => {
           product: {
             include: {
               category: true,
-              colors: true,
+              colors: {
+                include: {
+                  variants: {
+                    select: {
+                      id: true,
+                      variantCode: true,
+                      colorId: true,
+                    },
+                    take: 1,
+                  },
+                },
+              },
             }
           }
         },
@@ -47,6 +59,34 @@ export default async function CollectionDetailPage({ params }: CollectionPagePro
   if (!collection || !collection.isActive) {
     notFound();
   }
+
+  const productsForGrid = collection.products.map(({ product }: { product: any }) => ({
+    id: product.id,
+    slug: product.slug,
+    name: product.name,
+    price: product.price,
+    originalPrice: product.originalPrice,
+    primaryImage: product.primaryImage,
+    image: product.image,
+    colors: (product.colors || []).map((color: any) => {
+      const parsedImages = (() => {
+        try {
+          const parsed = typeof color.images === "string" ? JSON.parse(color.images) : color.images;
+          return Array.isArray(parsed) ? parsed : [];
+        } catch {
+          return [];
+        }
+      })();
+
+      return {
+        id: color.id,
+        name: color.name,
+        hexCode: color.hexCode,
+        image: parsedImages[0] || null,
+        variantCode: color.variants?.[0]?.variantCode || null,
+      };
+    }),
+  }));
 
   return (
     <div className="min-h-screen bg-white pb-20">
@@ -84,69 +124,7 @@ export default async function CollectionDetailPage({ params }: CollectionPagePro
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-8 gap-y-16">
-          {collection.products.map(({ product }: { product: any }, idx: number) => (
-            <Link 
-              key={product.id} 
-              href={`/products/${product.slug}`} 
-              className="group"
-            >
-              <div className="relative aspect-3/4 overflow-hidden bg-gray-50 mb-6 group-hover:shadow-2xl transition-all duration-700">
-                <Image
-                  src={product.primaryImage || product.image || "/placeholder.jpg"}
-                  alt={product.name}
-                  fill
-                  className="object-cover transition-transform duration-1000 group-hover:scale-110"
-                  sizes="(max-width: 768px) 50vw, 25vw"
-                />
-                
-                
-                {product.originalPrice && product.originalPrice > product.price && (
-                  <div className="absolute top-4 left-4 bg-black text-white px-3 py-1 text-[10px] uppercase font-bold tracking-widest">
-                    İNDİRİM
-                  </div>
-                )}
-
-                
-                <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
-                  <span className="text-white text-[11px] font-bold tracking-[0.3em] uppercase border-b border-white pb-1">İncele</span>
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <div className="flex justify-between items-start gap-4">
-                  <h3 className="text-sm font-light text-black/80 group-hover:text-black transition-colors uppercase tracking-wide truncate">
-                    {product.name}
-                  </h3>
-                </div>
-                <div className="flex items-baseline gap-3">
-                  <span className="text-base font-medium">{product.price.toLocaleString('tr-TR')} TL</span>
-                  {product.originalPrice && product.originalPrice > product.price && (
-                    <span className="text-xs text-black/30 line-through">
-                      {product.originalPrice.toLocaleString('tr-TR')} TL
-                    </span>
-                  )}
-                </div>
-                
-                
-                {product.colors && product.colors.length > 0 && (
-                  <div className="flex gap-1.5 pt-1">
-                    {product.colors.slice(0, 4).map((color: any) => (
-                      <div 
-                        key={color.id} 
-                        className="w-2 h-2 rounded-full border border-black/5" 
-                        style={{ backgroundColor: color.hexCode || '#ccc' }}
-                      />
-                    ))}
-                    {product.colors.length > 4 && (
-                      <span className="text-[10px] text-black/30">+{product.colors.length - 4}</span>
-                    )}
-                  </div>
-                )}
-              </div>
-            </Link>
-          ))}
-        </div>
+        <CollectionDetailProductsGrid products={productsForGrid} />
       </div>
 
       

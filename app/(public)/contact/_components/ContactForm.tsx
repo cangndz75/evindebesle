@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useState, useTransition } from "react";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function ContactForm() {
   const router = useRouter();
@@ -20,24 +21,56 @@ export default function ContactForm() {
 
   const [statusText, setStatusText] = useState("İletişime Geç");
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    if (!form.name.trim()) {
+      toast.error("Lütfen ad soyad girin");
+      return;
+    }
+
+    if (!form.email.trim()) {
+      toast.error("Lütfen e-posta adresinizi girin");
+      return;
+    }
+
+    if (!form.message.trim()) {
+      toast.error("Lütfen mesajınızı girin");
+      return;
+    }
+
     setStatusText("Gönderiliyor...");
 
-    fetch("/api/contact", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    }).then((res) => {
-      if (res.ok) {
-        setStatusText("Mesajınız iletildi");
-        setForm({ name: "", email: "", phone: "", message: "" });
-        startTransition(() => {
-          setTimeout(() => router.refresh(), 1500);
-        });
-      } else {
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
         setStatusText("Hata oluştu");
+        toast.error(data?.error || "Mesaj gönderilemedi");
+        return;
       }
-    });
+
+      setStatusText("Mesajınız iletildi");
+      toast.success("Mesajınız alındı, en kısa sürede dönüş yapacağız.");
+      setForm({ name: "", email: "", phone: "", message: "" });
+
+      startTransition(() => {
+        setTimeout(() => {
+          if (data?.ticketId) {
+            router.push(`/profile/support/${data.ticketId}`);
+            return;
+          }
+          router.refresh();
+        }, 600);
+      });
+    } catch {
+      setStatusText("Hata oluştu");
+      toast.error("Mesaj gönderilemedi");
+    }
   };
 
   return (

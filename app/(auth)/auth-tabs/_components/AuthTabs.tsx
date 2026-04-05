@@ -54,22 +54,17 @@ export default function AuthTabs() {
   const handleLogin = () => {
     startTransition(async () => {
       try {
-        console.log('ğŸ” Starting login attempt for:', email);
-
         const res = await signIn("credentials", {
           redirect: false,
           email,
           password,
         });
 
-        console.log('✅ SignIn response:', res);
-
         if (res?.error) {
           const message =
             res.error === "CredentialsSignin"
               ? "E-posta adresi veya şifre hatalı."
               : res.error;
-          console.error('âŒ Login failed:', res.error);
           toast.error(message);
           return;
         }
@@ -77,10 +72,8 @@ export default function AuthTabs() {
         await new Promise((r) => setTimeout(r, 500));
 
         const session = await getSession();
-        console.log('ğŸ‘¤ Session retrieved:', session);
 
         if (!session) {
-          console.error('âŒ No session returned after login');
           toast.error("Oturum alınamadı. Lütfen tekrar deneyin.");
           return;
         }
@@ -88,10 +81,8 @@ export default function AuthTabs() {
         toast.success("Giriş başarılı!");
         const isAdmin = session.user?.isAdmin === true;
         const redirectUrl = isAdmin ? "/dashboard" : "/home";
-        console.log('ğŸš€ Redirecting to:', redirectUrl);
         window.location.href = redirectUrl;
-      } catch (error) {
-        console.error('ğŸ’¥ Login exception:', error);
+      } catch {
         toast.error("Giriş sırasında bir hata oluştu. Lütfen tekrar deneyin.");
       }
     });

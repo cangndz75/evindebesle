@@ -147,7 +147,7 @@ export default function FavoritesClient({
           <div className="text-center py-12 text-[#111]/60">
             <p className="text-lg mb-4">Henüz favori ürününüz yok</p>
             <Link
-              href="/men"
+              href="/home"
               className="text-[#111] underline hover:opacity-70"
             >
               Alışverişe başla

@@ -9,7 +9,7 @@ export async function GET(
 ) {
     try {
         const session = await getServerSession(authConfig);
-        if (!session?.user?.email) {
+        if (!session?.user?.id) {
             return new NextResponse("Unauthorized", { status: 401 });
         }
 
@@ -48,7 +48,7 @@ export async function POST(
 ) {
     try {
         const session = await getServerSession(authConfig);
-        if (!session?.user?.email) {
+        if (!session?.user?.id) {
             return new NextResponse("Unauthorized", { status: 401 });
         }
 

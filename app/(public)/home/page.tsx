@@ -41,6 +41,15 @@ import { prisma } from "@/lib/db";
 
 export const revalidate = 3600;
 
+function isMissingTableError(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: string }).code === "P2021"
+  );
+}
+
 function parseImages(images: string | null): string[] {
   if (!images) return [];
   try {
@@ -157,6 +166,9 @@ const getTabbedProducts = cache(async (tabName: string): Promise<Product[]> => {
 
     return items.map((item: any) => formatProduct(item.product, "featured"));
   } catch (error) {
+    if (isMissingTableError(error)) {
+      return [];
+    }
     console.error(`Error fetching ${tabName} products:`, error);
     return [];
   }
@@ -190,6 +202,9 @@ const getShowcaseProducts = cache(async (): Promise<Product[]> => {
     });
     return items.map((item: any) => formatProduct(item.product, "featured"));
   } catch (error) {
+    if (isMissingTableError(error)) {
+      return [];
+    }
     console.error("Error fetching showcase products:", error);
     return [];
   }

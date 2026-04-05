@@ -517,6 +517,26 @@ function ProductCarouselContent({
     return [];
   };
 
+  const getSortedAvailableSizes = (product: Product) => {
+    const sizes = getAvailableSizes(product);
+    return [...sizes].sort((a, b) => {
+      const aName = (typeof a === "string" ? a : a.name || "").trim().toUpperCase();
+      const bName = (typeof b === "string" ? b : b.name || "").trim().toUpperCase();
+
+      const aCup = aName.match(/^(\d+)([A-Z]+)$/);
+      const bCup = bName.match(/^(\d+)([A-Z]+)$/);
+
+      if (aCup && bCup) {
+        if (aCup[2] !== bCup[2]) {
+          return aCup[2].localeCompare(bCup[2], "tr", { sensitivity: "base" });
+        }
+        return Number(aCup[1]) - Number(bCup[1]);
+      }
+
+      return aName.localeCompare(bName, "tr", { numeric: true, sensitivity: "base" });
+    });
+  };
+
   const getSizeStock = (product: Product, sizeId: string | null) => {
     if (!sizeId) {
       return 0;
@@ -991,7 +1011,7 @@ function ProductCarouselContent({
                     </p>
                     <div className="grid grid-cols-4 gap-2">
                       {(() => {
-                        const availableSizes = getAvailableSizes(selectedProduct);
+                        const availableSizes = getSortedAvailableSizes(selectedProduct);
                         if (availableSizes.length > 0) {
                           return availableSizes.map((size) => {
                             const sizeName = typeof size === "string" ? size : size.name;
@@ -1009,7 +1029,7 @@ function ProductCarouselContent({
                                   }
                                 }}
                                 disabled={isOutOfStock}
-                                className={`px-4 py-3 text-sm font-light border transition-all ${isSelected
+                                className={`min-w-0 px-2 py-3 text-[13px] leading-none whitespace-nowrap text-center font-light border transition-all ${isSelected
                                   ? "border-[#111] bg-[#111] text-white"
                                   : isOutOfStock
                                     ? "border-gray-200 text-gray-400 line-through cursor-not-allowed bg-white"

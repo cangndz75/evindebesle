@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client'
 import { Pool } from 'pg'
 import { PrismaPg } from '@prisma/adapter-pg'
 import dotenv from 'dotenv'
+import { normalizeDatabaseUrlForPg } from './lib/normalize-database-url.js'
 
 dotenv.config()
 
@@ -11,21 +12,7 @@ if (!connectionString) {
     process.exit(1)
 }
 
-function normalizeConnectionString(connStr: string): string {
-    try {
-        const url = new URL(connStr)
-        const sslMode = url.searchParams.get('sslmode')
-        if (!sslMode || ['prefer', 'require', 'verify-ca'].includes(sslMode)) {
-            url.searchParams.set('sslmode', 'verify-full')
-            return url.toString()
-        }
-        return connStr
-    } catch {
-        return connStr
-    }
-}
-
-const normalized = normalizeConnectionString(connectionString)
+const normalized = normalizeDatabaseUrlForPg(connectionString)
 const pool = new Pool({ connectionString: normalized })
 const adapter = new PrismaPg(pool as any)
 const prisma = new PrismaClient({ adapter } as any)

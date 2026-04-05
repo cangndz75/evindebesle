@@ -1,9 +1,12 @@
 ﻿import { Pool } from "pg";
 import { config } from "dotenv";
+import { normalizeDatabaseUrlForPg } from "../lib/normalize-database-url.js";
 
 config();
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const pool = new Pool({
+  connectionString: normalizeDatabaseUrlForPg(process.env.DATABASE_URL),
+});
 
 async function main() {
   console.log("ğŸ”„ ProductColor images alanlarını JSON string'e dönüştürülüyor...");

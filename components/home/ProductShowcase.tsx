@@ -365,7 +365,7 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                       className="object-cover object-center transition-opacity duration-300"
                       sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                       loading="lazy"
-                      quality={90}
+                      quality={85}
                     />
                     {product.hoverImage && filterBase64Images(product.hoverImage) && (
                       <Image
@@ -375,7 +375,7 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                         className="object-cover object-center opacity-0 transition-opacity duration-300 group-hover:opacity-100 absolute inset-0"
                         sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                         loading="lazy"
-                        quality={90}
+                        quality={85}
                       />
                     )}
                     {product.badge && (

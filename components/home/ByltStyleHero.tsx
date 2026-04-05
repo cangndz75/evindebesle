@@ -13,7 +13,7 @@ export default function DarkVelvetHero() {
           alt="Dark Velvet Hero"
           fill
           priority
-          quality={100}
+          quality={85}
           sizes="100vw"
           className="object-cover object-center"
         />

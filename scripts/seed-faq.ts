@@ -2,10 +2,13 @@
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
 import * as dotenv from "dotenv";
+import { normalizeDatabaseUrlForPg } from "../lib/normalize-database-url.js";
 
 dotenv.config();
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const pool = new Pool({
+    connectionString: normalizeDatabaseUrlForPg(process.env.DATABASE_URL),
+});
 const adapter = new PrismaPg(pool as any);
 const prisma = new PrismaClient({ adapter } as any);
 

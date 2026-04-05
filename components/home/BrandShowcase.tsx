@@ -88,7 +88,7 @@ export default function BrandShowcase({ title, items }: BrandShowcaseProps) {
                 href={item.href}
                 className="flex-shrink-0 w-full md:w-1/3 group"
               >
-                <div className="relative aspect-[3/4] overflow-hidden bg-gray-100">
+                <div className="relative aspect-3/4 overflow-hidden bg-gray-100">
                   <Image
                     src={item.image}
                     alt={item.title}

@@ -54,7 +54,7 @@ export default function HomeCategoryRail({ categories }: HomeCategoryRailProps) 
                             className="group flex-shrink-0 w-[85vw] sm:w-[45vw] md:w-[calc(100vw/4)] lg:w-[calc(100vw/5)] xl:w-[calc(100vw/6)] relative"
                         >
                             
-                            <div className="relative aspect-[3/4] overflow-hidden bg-gray-100">
+                            <div className="relative aspect-3/4 overflow-hidden bg-gray-100">
                                 {category.image ? (
                                     <Image
                                         src={category.image}

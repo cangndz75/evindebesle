@@ -229,7 +229,7 @@ export default function OrderDetailPage() {
                                 {order.items.map((item) => (
                                     <div key={item.id} className="p-4 md:p-6 flex gap-4 md:gap-6 group hover:bg-gray-50 transition-colors">
                                         
-                                        <div className="w-20 h-24 md:w-24 md:h-32 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden border">
+                                        <div className="w-20 h-24 md:w-24 md:h-32 bg-gray-100 rounded-lg shrink-0 overflow-hidden border">
                                             {(item.image || item.product.image) ? (
                                                 <img
                                                     src={item.image || item.product.image || ""}

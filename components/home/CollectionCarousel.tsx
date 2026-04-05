@@ -181,7 +181,7 @@ export default function CollectionCarousel() {
                   }
                 }}
               >
-                <div className="relative aspect-[3/4] mb-6 overflow-hidden bg-white">
+                <div className="relative aspect-3/4 mb-6 overflow-hidden bg-white">
                   <Image
                     src={collection.image}
                     alt={collection.title}

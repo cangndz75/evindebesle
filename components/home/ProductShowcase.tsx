@@ -357,7 +357,7 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                   className="group flex flex-col bg-white snap-start w-[85vw] sm:w-[50vw] md:w-[calc(33.333%-16px)] lg:w-[calc(25%-18px)] flex-shrink-0"
                 >
                   
-                  <Link href={productUrl} className="relative w-full aspect-[3/4] overflow-hidden bg-gray-100 mb-4 group">
+                  <Link href={productUrl} className="relative w-full aspect-3/4 overflow-hidden bg-gray-100 mb-4 group">
                     <Image
                       src={currentImage}
                       alt={product.title}

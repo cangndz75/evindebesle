@@ -284,7 +284,7 @@ export default function LookEditor({ initialData }: LookEditorProps) {
                         className={`group relative bg-white border rounded-3xl p-4 transition-all duration-500 hover:shadow-2xl cursor-pointer overflow-hidden ${mainProduct?.id === p.id ? 'border-black ring-1 ring-black shadow-xl ring-offset-4' : 'border-gray-100 hover:border-black/20'}`}
                         onClick={() => handleSelectMainProduct(p)}
                       >
-                         <div className="relative aspect-[3/4] rounded-2xl overflow-hidden mb-4">
+                         <div className="relative aspect-3/4 rounded-2xl overflow-hidden mb-4">
                             <img src={getProductImage(p)} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                          </div>
                          <p className="font-bold text-sm text-left truncate">{p.name}</p>
@@ -382,7 +382,7 @@ export default function LookEditor({ initialData }: LookEditorProps) {
                         className={`group relative bg-white border rounded-3xl p-4 transition-all duration-500 hover:shadow-2xl cursor-pointer overflow-hidden ${lookItems.some(i => i.id === p.id) ? 'border-black ring-1 ring-black bg-gray-50/50' : 'border-gray-100'}`}
                         onClick={() => handleToggleItem(p)}
                       >
-                         <div className="relative aspect-[3/4] rounded-2xl overflow-hidden mb-4">
+                         <div className="relative aspect-3/4 rounded-2xl overflow-hidden mb-4">
                             <img src={getProductImage(p)} className="w-full h-full object-cover" />
                             {lookItems.some(i => i.id === p.id) && (
                               <div className="absolute inset-0 bg-black/40 flex items-center justify-center animate-in fade-in zoom-in duration-300">

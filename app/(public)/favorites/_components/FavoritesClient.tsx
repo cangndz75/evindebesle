@@ -170,7 +170,7 @@ export default function FavoritesClient({
               return (
                 <div key={favorite.id} className="group relative overflow-hidden">
                   <Link href={productUrl} className="block">
-                    <div className="relative aspect-[3/4] mb-4 overflow-hidden bg-gray-100">
+                    <div className="relative aspect-3/4 mb-4 overflow-hidden bg-gray-100">
                       <Image
                         src={productImage}
                         alt={product.name}
@@ -378,7 +378,7 @@ export default function FavoritesClient({
                 return (
                   <div key={product.id} className="group">
                     <Link href={productUrl} className="block">
-                      <div className="relative aspect-[3/4] mb-4 overflow-hidden bg-gray-100">
+                      <div className="relative aspect-3/4 mb-4 overflow-hidden bg-gray-100">
                         <Image
                           src={productImage}
                           alt={product.name}

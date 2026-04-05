@@ -36,7 +36,7 @@ export default function ProductCategories() {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 md:gap-8">
           {categories.map((category, index) => (
             <div key={index} className="group cursor-pointer">
-              <div className="relative aspect-[3/4] mb-4 overflow-hidden bg-gray-200">
+              <div className="relative aspect-3/4 mb-4 overflow-hidden bg-gray-200">
                 {category.image ? (
                   <Image
                     src={category.image}

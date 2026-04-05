@@ -173,7 +173,7 @@ export default function NewArrivalsPage() {
                 {isLoading ? (
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
                         {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                            <div key={i} className="animate-pulse bg-gray-50 aspect-[3/4] rounded-sm" />
+                            <div key={i} className="animate-pulse bg-gray-50 aspect-3/4 rounded-sm" />
                         ))}
                     </div>
                 ) : !products || products.length === 0 ? (

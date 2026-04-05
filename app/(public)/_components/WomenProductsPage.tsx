@@ -929,7 +929,7 @@ export default function WomenProductsPage({
             const currentImage = activeColorImage || product.image || "/placeholder.png";
 
             const isLarge = gridPos && (gridPos.span.row > 1 || gridPos.span.col > 1);
-            const aspectClass = isLarge ? "aspect-square" : "aspect-[3/4]";
+            const aspectClass = isLarge ? "aspect-square" : "aspect-3/4";
 
             const totalStock = getProductTotalStock(product);
             const isOutOfStock = totalStock === 0;

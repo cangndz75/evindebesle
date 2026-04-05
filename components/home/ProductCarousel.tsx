@@ -72,7 +72,7 @@ export default function ProductCarousel({ title, products, viewAllLink }: Produc
                   className="flex-shrink-0 w-64 md:w-72 snap-start group"
                 >
                   <Link href={`/product/${product.id}`} className="block">
-                    <div className="relative aspect-[3/4] mb-4 overflow-hidden bg-gray-200">
+                    <div className="relative aspect-3/4 mb-4 overflow-hidden bg-gray-200">
                       {product.hoverImage ? (
                         <>
                           <Image

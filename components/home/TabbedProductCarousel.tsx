@@ -696,7 +696,7 @@ function ProductCarouselContent({
               
               <div className="hidden md:flex md:w-[45%] md:sticky md:top-0 md:self-start md:flex-col md:items-center md:justify-start md:p-8 md:py-12 md:bg-gray-50 md:gap-4">
                 
-                <div className="relative w-full aspect-[3/4] bg-gray-100">
+                <div className="relative w-full aspect-3/4 bg-gray-100">
                   {productImages.length > 0 && productImages[selectedImageIndex] ? (
                     <>
                       <Image
@@ -776,7 +776,7 @@ function ProductCarouselContent({
               </div>
 
               
-              <div className="md:hidden relative aspect-[3/4] bg-gray-100 w-full">
+              <div className="md:hidden relative aspect-3/4 bg-gray-100 w-full">
                 {productImages.length > 0 && productImages[selectedImageIndex] ? (
                   <>
                     <Image

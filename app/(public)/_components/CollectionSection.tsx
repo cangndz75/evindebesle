@@ -168,7 +168,7 @@ export default function CollectionSection() {
             {gridImages.map((src, index) => (
               <div
                 key={index}
-                className="relative aspect-[3/4] overflow-hidden group cursor-pointer"
+                className="relative aspect-3/4 overflow-hidden group cursor-pointer"
               >
                 <Image
                   src={src}

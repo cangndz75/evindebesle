@@ -91,7 +91,7 @@ export default async function CollectionDetailPage({ params }: CollectionPagePro
               href={`/products/${product.slug}`} 
               className="group"
             >
-              <div className="relative aspect-[3/4] overflow-hidden bg-gray-50 mb-6 group-hover:shadow-2xl transition-all duration-700">
+              <div className="relative aspect-3/4 overflow-hidden bg-gray-50 mb-6 group-hover:shadow-2xl transition-all duration-700">
                 <Image
                   src={product.primaryImage || product.image || "/placeholder.jpg"}
                   alt={product.name}
@@ -170,7 +170,7 @@ export default async function CollectionDetailPage({ params }: CollectionPagePro
                  Koleksiyonun her bir parçası, kumaş kalitesinden dikiş detayına kadar Dark Velvet standartlarında tasarlandı.
                </p>
             </div>
-            <div className="relative aspect-[3/4] w-full max-w-sm ml-auto overflow-hidden">
+            <div className="relative aspect-3/4 w-full max-w-sm ml-auto overflow-hidden">
                 <Image
                   src={collection.image3}
                   alt="Koleksiyon detayı 2"

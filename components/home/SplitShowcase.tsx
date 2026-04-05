@@ -98,7 +98,7 @@ export default function SplitShowcase() {
               className="flex-shrink-0 w-[85vw] snap-center group"
             >
               
-              <div className="relative aspect-[3/4] overflow-hidden rounded-lg bg-gray-100">
+              <div className="relative aspect-3/4 overflow-hidden rounded-lg bg-gray-100">
                 <Image
                   src={item.image}
                   alt={item.title}

@@ -95,7 +95,7 @@ export default function ProductGrid() {
           {products.map((product) => (
             <div key={product.id} className="group cursor-pointer">
               
-              <div className="relative aspect-[3/4] mb-4 overflow-hidden bg-gray-100">
+              <div className="relative aspect-3/4 mb-4 overflow-hidden bg-gray-100">
                 {product.image ? (
                   <Image
                     src={product.image}

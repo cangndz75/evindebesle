@@ -10,12 +10,13 @@ export default function MarketingConsentToggle() {
 
   useEffect(() => {
     fetch("/api/user/me").then(res => res.json()).then(data => {
-      setConsent(data.marketingEmailConsent)
+      setConsent(Boolean(data?.user?.marketingEmailConsent))
       setLoading(false)
     })
   }, [])
 
   const handleChange = async (val: boolean) => {
+    const prev = consent
     setConsent(val)
     const res = await fetch("/api/user/update-consent", {
       method: "POST",
@@ -24,7 +25,10 @@ export default function MarketingConsentToggle() {
     })
 
     if (res.ok) toast.success("Tercihiniz güncellendi.")
-    else toast.error("Bir hata oluştu.")
+    else {
+      setConsent(prev)
+      toast.error("Bir hata oluştu.")
+    }
   }
 
   if (loading) return null

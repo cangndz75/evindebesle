@@ -604,7 +604,7 @@ export default function SiteHeader() {
                 {mega[openMenu].rightPromo && (
                   <div className="w-[260px] bg-gray-50 border-l border-gray-100 pl-8 flex flex-col justify-center">
                     <Link href={mega[openMenu].rightPromo!.href} className="group block" onClick={() => setOpenMenu(null)}>
-                      <div className="relative group/promo overflow-hidden aspect-[3/4] mb-6">
+                      <div className="relative group/promo overflow-hidden aspect-3/4 mb-6">
                         <Image
                           src={mega[openMenu].rightPromo!.image}
                           alt={mega[openMenu].rightPromo!.title}

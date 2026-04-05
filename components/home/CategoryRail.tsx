@@ -15,7 +15,7 @@ export default function CategoryRail() {
               href={category.href}
               className="flex-shrink-0 w-48 md:w-56 group snap-start"
             >
-              <div className="relative aspect-[3/4] mb-4 overflow-hidden bg-gray-200">
+              <div className="relative aspect-3/4 mb-4 overflow-hidden bg-gray-200">
                 <Image
                   src={category.image}
                   alt={category.label}

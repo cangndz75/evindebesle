@@ -74,7 +74,7 @@ function ProductTile({
       className="group block w-[112px] shrink-0"
       aria-label={product.name}
     >
-      <div className="relative aspect-[3/4] overflow-hidden rounded-md bg-[#f5f5f5] ring-1 ring-black/5">
+      <div className="relative aspect-3/4 overflow-hidden rounded-md bg-[#f5f5f5] ring-1 ring-black/5">
         <Image
           src={productImage}
           alt={product.name}

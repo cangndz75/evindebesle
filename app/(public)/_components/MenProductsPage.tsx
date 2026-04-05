@@ -247,7 +247,7 @@ export default function MenProductsPage() {
             return (
               <div key={product.id} className="group">
                 <Link href={`/product/${product.id}`} className="block">
-                  <div className="relative aspect-[3/4] mb-4 overflow-hidden bg-gray-100">
+                  <div className="relative aspect-3/4 mb-4 overflow-hidden bg-gray-100">
                     <Image
                       src={currentImage}
                       alt={product.name}

@@ -502,7 +502,7 @@ export default function HomeHeader() {
                                 </div>
                                 <div className="col-span-2">
                                     <Link href={mega[openMenu].rightPromo.href} className="group block">
-                                        <div className="relative aspect-[3/4] overflow-hidden bg-gray-100 mb-2">
+                                        <div className="relative aspect-3/4 overflow-hidden bg-gray-100 mb-2">
                                             <Image
                                                 src={mega[openMenu].rightPromo.image}
                                                 alt={mega[openMenu].rightPromo.title}

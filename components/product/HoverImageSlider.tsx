@@ -64,7 +64,7 @@ export default function HoverImageSlider({
         onImageChange?.(0);
     }, [onImageChange]);
 
-    const aspectClass = aspectRatio === "square" ? "aspect-square" : "aspect-[3/4]";
+    const aspectClass = aspectRatio === "square" ? "aspect-square" : "aspect-3/4";
 
     return (
         <div

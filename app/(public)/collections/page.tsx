@@ -161,7 +161,7 @@ export default async function CollectionsPage() {
                       
                       {collection.image2 && (
                         <div className={`absolute bottom-[-10%] ${isEven ? 'right-[-5%] md:right-[-12%]' : 'left-[-5%] md:left-[-12%]'} w-[50%] md:w-[45%] z-10 shadow-2xl overflow-hidden border-[12px] border-white hidden sm:block h-fit`}>
-                           <div className="relative aspect-[3/4]">
+                           <div className="relative aspect-3/4">
                               <Image
                                 src={collection.image2}
                                 alt={`${collection.title} detail`}

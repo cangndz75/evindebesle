@@ -71,7 +71,7 @@ export default function BestSellersCarousel() {
                   className="min-w-full flex-shrink-0 px-2"
                 >
                   <div className="max-w-sm mx-auto">
-                    <div className="relative aspect-[3/4] mb-4 overflow-hidden group cursor-pointer">
+                    <div className="relative aspect-3/4 mb-4 overflow-hidden group cursor-pointer">
                       <Image
                         src={product.image}
                         alt={product.name}

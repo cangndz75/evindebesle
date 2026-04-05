@@ -196,7 +196,7 @@ export default function ProductSelectionModal({ selectedIds, onSelect, trigger }
                                                     {isSelected && <Check className="w-3.5 h-3.5 text-white" />}
                                                 </div>
 
-                                                <div className="aspect-[3/4] relative bg-gray-100">
+                                                <div className="aspect-3/4 relative bg-gray-100">
                                                     {product.image ? (
                                                         <Image src={product.image} alt={product.name} fill className="object-cover" />
                                                     ) : (

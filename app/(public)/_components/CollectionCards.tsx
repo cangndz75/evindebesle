@@ -32,7 +32,7 @@ export default function CollectionCards() {
           {collections.map((collection, index) => (
             <div
               key={index}
-              className="relative group cursor-pointer overflow-hidden rounded-lg aspect-[3/4]"
+              className="relative group cursor-pointer overflow-hidden rounded-lg aspect-3/4"
             >
               
               <div className="absolute inset-0">

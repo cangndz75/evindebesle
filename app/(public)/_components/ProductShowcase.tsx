@@ -53,7 +53,7 @@ export default function ProductShowcase() {
           {products.map((product) => (
             <div
               key={product.id}
-              className="relative aspect-[3/4] overflow-hidden group cursor-pointer"
+              className="relative aspect-3/4 overflow-hidden group cursor-pointer"
             >
               <Image
                 src={product.image}

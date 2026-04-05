@@ -13,6 +13,20 @@ type User = {
   phone: string;
 };
 
+function normalizePhoneInput(raw: string) {
+  const digits = raw.replace(/\D/g, "");
+  if (!digits) return "";
+  if (digits.startsWith("0")) return digits.slice(0, 11);
+  return digits.slice(0, 10);
+}
+
+function isValidPhone(phone: string) {
+  const digits = phone.replace(/\D/g, "");
+  if (!digits) return true;
+  if (digits.startsWith("0")) return digits.length === 11;
+  return /^[1-9]\d{9}$/.test(digits);
+}
+
 export default function ProfileDetails() {
   const [user, setUser] = useState<User | null>(null);
   const [initialUser, setInitialUser] = useState<User | null>(null);
@@ -47,10 +61,15 @@ export default function ProfileDetails() {
     if (!user) return;
 
     const normalizedName = user.name.trim();
-    const normalizedPhone = user.phone.trim();
+    const normalizedPhone = normalizePhoneInput(user.phone);
 
     if (!normalizedName) {
       toast.error("Ad soyad boş olamaz");
+      return;
+    }
+
+    if (!isValidPhone(normalizedPhone)) {
+      toast.error("Telefon numarası 0 ile başlıyorsa 11 hane, 1-9 ile başlıyorsa 10 hane olmalıdır.");
       return;
     }
 
@@ -156,10 +175,13 @@ export default function ProfileDetails() {
         </label>
         <Input
           value={user.phone || ""}
-          onChange={(e) => setUser({ ...user, phone: e.target.value })}
+          onChange={(e) => setUser({ ...user, phone: normalizePhoneInput(e.target.value) })}
           className="h-11 border-gray-300 focus:border-black focus:ring-black rounded-lg"
           placeholder="5XX XXX XX XX"
           type="tel"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          maxLength={user.phone?.startsWith("0") ? 11 : 10}
         />
         <p className="mt-1.5 text-xs text-gray-500 font-light">
           Sipariş ve teslimat bilgilendirmeleri için kullanılacaktır.

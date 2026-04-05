@@ -14,17 +14,21 @@ type User = {
 };
 
 function normalizePhoneInput(raw: string) {
-  const digits = raw.replace(/\D/g, "");
+  let digits = raw.replace(/\D/g, "");
+  if (digits.startsWith("90")) {
+    digits = digits.slice(2);
+  }
+  if (digits.startsWith("0")) {
+    digits = digits.slice(1);
+  }
   if (!digits) return "";
-  if (digits.startsWith("0")) return digits.slice(0, 11);
   return digits.slice(0, 10);
 }
 
 function isValidPhone(phone: string) {
   const digits = phone.replace(/\D/g, "");
   if (!digits) return true;
-  if (digits.startsWith("0")) return digits.length === 11;
-  return /^[1-9]\d{9}$/.test(digits);
+  return /^5\d{9}$/.test(digits);
 }
 
 export default function ProfileDetails() {
@@ -43,7 +47,7 @@ export default function ProfileDetails() {
         const mappedUser: User = {
           name: source?.name ?? "",
           email: source?.email ?? "",
-          phone: source?.phone ?? "",
+          phone: normalizePhoneInput(source?.phone ?? ""),
         };
 
         setUser(mappedUser);
@@ -69,7 +73,7 @@ export default function ProfileDetails() {
     }
 
     if (!isValidPhone(normalizedPhone)) {
-      toast.error("Telefon numarası 0 ile başlıyorsa 11 hane, 1-9 ile başlıyorsa 10 hane olmalıdır.");
+      toast.error("Telefon numarası 5 ile başlamalı ve 10 hane olmalıdır. Örn: 5554443322");
       return;
     }
 
@@ -173,16 +177,19 @@ export default function ProfileDetails() {
         <label className="block text-sm font-medium text-black mb-2">
           Telefon Numarası
         </label>
-        <Input
-          value={user.phone || ""}
-          onChange={(e) => setUser({ ...user, phone: normalizePhoneInput(e.target.value) })}
-          className="h-11 border-gray-300 focus:border-black focus:ring-black rounded-lg"
-          placeholder="5XX XXX XX XX"
-          type="tel"
-          inputMode="numeric"
-          pattern="[0-9]*"
-          maxLength={user.phone?.startsWith("0") ? 11 : 10}
-        />
+        <div className="flex items-center h-11 border border-gray-300 focus-within:border-black focus-within:ring-1 focus-within:ring-black rounded-lg overflow-hidden">
+          <span className="px-3 text-sm text-gray-600 border-r border-gray-200">+90</span>
+          <Input
+            value={user.phone || ""}
+            onChange={(e) => setUser({ ...user, phone: normalizePhoneInput(e.target.value) })}
+            className="h-full border-0 focus-visible:ring-0 rounded-none"
+            placeholder="5554443322"
+            type="tel"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            maxLength={10}
+          />
+        </div>
         <p className="mt-1.5 text-xs text-gray-500 font-light">
           Sipariş ve teslimat bilgilendirmeleri için kullanılacaktır.
         </p>

@@ -41,6 +41,7 @@ export default function CheckoutPage() {
     const [couponLoading, setCouponLoading] = useState(false);
 
     const [paymentMethod, setPaymentMethod] = useState<"CREDIT_CARD" | "TEST">("CREDIT_CARD");
+    const [newsletterConsent, setNewsletterConsent] = useState(true);
 
     useEffect(() => {
         const init = async () => {
@@ -139,6 +140,14 @@ export default function CheckoutPage() {
         setLoading(true);
 
         try {
+            if (newsletterConsent) {
+                await fetch("/api/user/update-consent", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ consent: true }),
+                }).catch(() => undefined);
+            }
+
             const idempotencyKey = crypto.randomUUID();
 
             const res = await fetch("/api/checkout/initialize", {
@@ -259,7 +268,13 @@ export default function CheckoutPage() {
                         </div>
                         <input
                             type="email"
-                            name="email"
+                            <input
+                                type="checkbox"
+                                id="newsletter"
+                                className="rounded border-gray-300"
+                                checked={newsletterConsent}
+                                onChange={(e) => setNewsletterConsent(e.target.checked)}
+                            />
                             placeholder="E-posta adresi"
                             value={formData.email}
                             onChange={handleChange}

@@ -2,6 +2,7 @@
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { prisma } from "@/lib/db";
 import {
+  getRedisCartSnapshot,
   hydrateRedisCart,
   isRedisCartEnabled,
   removeRedisCartItem,
@@ -156,6 +157,33 @@ export async function POST(request: NextRequest) {
           sizeId: sizeId || null,
           quantity,
         });
+
+        const existingDbItem = await prisma.cartItem.findFirst({
+          where: {
+            userId: user.id,
+            productId,
+            colorId: colorId || null,
+            sizeId: sizeId || null,
+          },
+          select: { id: true, quantity: true },
+        });
+
+        if (existingDbItem) {
+          await prisma.cartItem.update({
+            where: { id: existingDbItem.id },
+            data: { quantity: existingDbItem.quantity + quantity },
+          });
+        } else {
+          await prisma.cartItem.create({
+            data: {
+              userId: user.id,
+              productId,
+              colorId: colorId || null,
+              sizeId: sizeId || null,
+              quantity,
+            },
+          });
+        }
 
         const items = await hydrateRedisCart(user.id);
         const updated = items.find((item: any) => item.id === itemId) ||
@@ -312,7 +340,29 @@ export async function DELETE(request: NextRequest) {
     }
 
     if (isRedisCartEnabled()) {
+      const snapshot = await getRedisCartSnapshot(user.id);
+      const target = snapshot.find((item) => item.id === itemId);
+
       await removeRedisCartItem(user.id, itemId);
+
+      if (target) {
+        await prisma.cartItem.deleteMany({
+          where: {
+            userId: user.id,
+            productId: target.productId,
+            colorId: target.colorId,
+            sizeId: target.sizeId,
+          },
+        });
+      } else {
+        await prisma.cartItem.deleteMany({
+          where: {
+            userId: user.id,
+            id: itemId,
+          },
+        });
+      }
+
       return NextResponse.json({ success: true });
     }
 

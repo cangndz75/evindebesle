@@ -14,7 +14,7 @@ export const useCollections = () => {
   useEffect(() => {
     const fetchCollections = async () => {
       try {
-        const res = await fetch("/api/admin-collections"); // Assuming this exists or works for public too
+        const res = await fetch("/api/collections/public");
         if (res.ok) {
           const data = await res.json();
           setCollections(data.filter((c: Collection) => c.isActive));

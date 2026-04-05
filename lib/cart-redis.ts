@@ -116,7 +116,17 @@ export async function updateRedisCartItemQuantity(userId: string, itemId: string
 
 export async function removeRedisCartItem(userId: string, itemId: string) {
   const items = await getRedisCartSnapshot(userId);
-  const next = items.filter((item) => item.id !== itemId);
+  const target = items.find((item) => item.id === itemId);
+  const next = target
+    ? items.filter(
+        (item) =>
+          !(
+            item.productId === target.productId &&
+            item.colorId === target.colorId &&
+            item.sizeId === target.sizeId
+          )
+      )
+    : items.filter((item) => item.id !== itemId);
   await setRedisCartSnapshot(userId, next);
 }
 

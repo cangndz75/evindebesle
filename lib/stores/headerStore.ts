@@ -1,5 +1,6 @@
 ﻿import { create } from "zustand";
 import { getGuestCartCount } from "@/lib/cart-utils";
+import { useCartStore } from "@/lib/stores/cartStore";
 
 type HeaderState = {
   cartCount: number;
@@ -73,6 +74,13 @@ export const useHeaderStore = create<HeaderState>((set, get) => ({
     if (!session?.user) {
       const guestCount = getGuestCartCount();
       set({ cartCount: guestCount });
+      return;
+    }
+
+    const cartState = useCartStore.getState();
+    if (cartState.isReady) {
+      const total = cartState.items.reduce((sum, item) => sum + item.quantity, 0);
+      set({ cartCount: total });
       return;
     }
 

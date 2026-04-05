@@ -356,6 +356,43 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
     return found?.stock ?? 0;
   };
 
+  const getSizeRank = (sizeName: string) => {
+    const normalized = sizeName.toUpperCase().replace(/\s+/g, "");
+    const rankMap: Record<string, number> = {
+      XXS: 1,
+      XS: 2,
+      S: 3,
+      M: 4,
+      L: 5,
+      XL: 6,
+      XXL: 7,
+      "2XL": 7,
+      "3XL": 8,
+      "4XL": 9,
+    };
+
+    if (rankMap[normalized] !== undefined) {
+      return rankMap[normalized];
+    }
+
+    if (/^\d+$/.test(normalized)) {
+      return 100 + Number(normalized);
+    }
+
+    return 1000;
+  };
+
+  const getVisibleSortedSizes = (product: QuickProductDetails, colorId: string | null) => {
+    return product.sizes
+      .filter((size) => getSizeStockForColor(product, colorId, size.id) > 0)
+      .sort((a, b) => {
+        const rankA = getSizeRank(a.name);
+        const rankB = getSizeRank(b.name);
+        if (rankA !== rankB) return rankA - rankB;
+        return a.name.localeCompare(b.name, "tr");
+      });
+  };
+
   const buildQuickImages = (product: QuickProductDetails) => {
     const selectedColor = product.colors.find((c) => c.id === quickSelectedColorId);
     const list: string[] = [];
@@ -421,7 +458,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
 
       const initialColorId = details.colors[0]?.id || null;
       setQuickSelectedColorId(initialColorId);
-      const firstAvailableSize = details.sizes.find((size) => getSizeStockForColor(details, initialColorId, size.id) > 0);
+      const firstAvailableSize = getVisibleSortedSizes(details, initialColorId)[0];
       setQuickSelectedSizeId(firstAvailableSize?.id || null);
       setQuickModalOpen(true);
     } catch {
@@ -437,7 +474,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
     try {
       const details = await fetchQuickProductDetails(product.id);
       const initialColor = details.colors[0] || null;
-      const initialSize = details.sizes.find((size) => getSizeStockForColor(details, initialColor?.id || null, size.id) > 0) || null;
+      const initialSize = getVisibleSortedSizes(details, initialColor?.id || null)[0] || null;
       const productImage = initialColor?.images?.[0] || details.primaryImage || details.image;
 
       await addItemOptimistic({
@@ -1143,7 +1180,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                             type="button"
                             onClick={() => {
                               setQuickSelectedColorId(color.id);
-                              const available = quickProductDetails.sizes.find((size) => getSizeStockForColor(quickProductDetails, color.id, size.id) > 0);
+                              const available = getVisibleSortedSizes(quickProductDetails, color.id)[0];
                               setQuickSelectedSizeId(available?.id || null);
                               setQuickImageIndex(0);
                             }}
@@ -1170,17 +1207,14 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                         </Link>
                       </div>
                       <div className="mt-3 flex flex-wrap gap-2">
-                        {quickProductDetails.sizes.map((size) => {
-                          const stock = getSizeStockForColor(quickProductDetails, quickSelectedColorId, size.id);
-                          const soldOut = stock <= 0;
+                        {getVisibleSortedSizes(quickProductDetails, quickSelectedColorId).map((size) => {
                           const active = quickSelectedSizeId === size.id;
                           return (
                             <button
                               key={size.id}
                               type="button"
-                              disabled={soldOut}
                               onClick={() => setQuickSelectedSizeId(size.id)}
-                              className={`h-9 min-w-11 rounded border px-3 text-sm ${active ? "border-black bg-black text-white" : soldOut ? "border-[#ececec] text-[#c5c5c5] line-through" : "border-[#dbdbdb] text-[#555] hover:border-black"}`}
+                              className={`h-9 min-w-11 rounded border px-3 text-sm ${active ? "border-black bg-black text-white" : "border-[#dbdbdb] text-[#555] hover:border-black"}`}
                             >
                               {size.name}
                             </button>

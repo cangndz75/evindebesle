@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { useHeaderStore } from "@/lib/stores/headerStore";
 
 type CartPreviewProps = {
@@ -22,25 +21,13 @@ export default function CartPreview({ cartIconRef, headerBottom }: CartPreviewPr
   const popupRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const router = useRouter();
-  const { data: session } = useSession();
 
-  const { cartCount, refreshCartCount } = useHeaderStore();
-
-  useEffect(() => {
-    const handleCartUpdate = () => {
-      refreshCartCount(session);
-    };
-
-    window.addEventListener("cartUpdated", handleCartUpdate);
-    return () => window.removeEventListener("cartUpdated", handleCartUpdate);
-  }, [session, refreshCartCount]);
+  const { cartCount } = useHeaderStore();
 
   useEffect(() => {
     const handleItemAdded = (e: CustomEvent) => {
       const { product, size, color } = e.detail;
       setPopup({ product, size, color });
-
-      refreshCartCount(session);
 
       if (timerRef.current) {
         clearTimeout(timerRef.current);
@@ -58,7 +45,7 @@ export default function CartPreview({ cartIconRef, headerBottom }: CartPreviewPr
         clearTimeout(timerRef.current);
       }
     };
-  }, [session]);
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {

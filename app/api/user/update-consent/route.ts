@@ -21,27 +21,25 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Kullanıcı e-posta bilgisi bulunamadı" }, { status: 400 })
   }
 
-  await prisma.$transaction(async (tx) => {
-    await tx.user.update({
+  const operations = [
+    prisma.user.update({
       where: { id: session.user.id },
       data: {
         marketingEmailConsent: consent,
       },
-    })
+    }),
+    consent
+      ? prisma.subscriber.upsert({
+          where: { email: currentUser.email },
+          update: { isActive: true },
+          create: { email: currentUser.email, isActive: true },
+        })
+      : prisma.subscriber.deleteMany({
+          where: { email: currentUser.email },
+        }),
+  ]
 
-    if (consent) {
-      await tx.subscriber.upsert({
-        where: { email: currentUser.email },
-        update: { isActive: true },
-        create: { email: currentUser.email, isActive: true },
-      })
-      return
-    }
-
-    await tx.subscriber.deleteMany({
-      where: { email: currentUser.email },
-    })
-  })
+  await prisma.$transaction(operations)
 
   return NextResponse.json({ success: true })
 }

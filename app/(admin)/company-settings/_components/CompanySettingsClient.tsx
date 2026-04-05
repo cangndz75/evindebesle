@@ -7,6 +7,15 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Edit2, Plus, RefreshCw, Trash2 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 
 interface CompanySettings {
   freeShippingThreshold: number;
@@ -19,7 +28,36 @@ interface CompanySettings {
   email?: string | null;
   logoUrl?: string | null;
   website?: string | null;
+  deliveryTimes?: DeliveryTime[];
 }
+
+type DeliveryTime = {
+  title: string;
+  time: string;
+  note: string;
+};
+
+type FAQItem = {
+  id: string;
+  question: string;
+  answer: string;
+  category: string;
+  isActive: boolean;
+};
+
+type FAQDraft = {
+  question: string;
+  answer: string;
+};
+
+const faqCategories = [
+  { value: "order", label: "Sipariş" },
+  { value: "payment", label: "Ödeme" },
+  { value: "shipping", label: "Kargo" },
+  { value: "return", label: "İade" },
+  { value: "product", label: "Ürün" },
+  { value: "account", label: "Hesap" },
+];
 
 export default function CompanySettingsClient() {
   const [settings, setSettings] = useState<CompanySettings>({
@@ -33,9 +71,32 @@ export default function CompanySettingsClient() {
     email: "",
     logoUrl: "",
     website: "",
+    deliveryTimes: [
+      {
+        title: "İstanbul İçi",
+        time: "1-2 iş günü",
+        note: "Saat 14:00'e kadar verilen siparişler aynı gün kargoya verilir.",
+      },
+      {
+        title: "Büyükşehirler",
+        time: "2-3 iş günü",
+        note: "Ankara, İzmir, Bursa, Antalya ve diğer büyükşehirler.",
+      },
+      {
+        title: "Diğer İller",
+        time: "3-5 iş günü",
+        note: "Kırsal bölgelerde teslimat süreleri uzayabilir.",
+      },
+    ],
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [faqLoading, setFaqLoading] = useState(false);
+  const [faqSaving, setFaqSaving] = useState(false);
+  const [faqList, setFaqList] = useState<FAQItem[]>([]);
+  const [faqCategory, setFaqCategory] = useState("order");
+  const [faqDrafts, setFaqDrafts] = useState<FAQDraft[]>([{ question: "", answer: "" }]);
+  const [editingFaqId, setEditingFaqId] = useState<string | null>(null);
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -55,6 +116,25 @@ export default function CompanySettingsClient() {
             email: data.email || "",
             logoUrl: data.logoUrl || "",
             website: data.website || "",
+            deliveryTimes: Array.isArray(data.deliveryTimes) && data.deliveryTimes.length > 0
+              ? data.deliveryTimes
+              : [
+                  {
+                    title: "İstanbul İçi",
+                    time: "1-2 iş günü",
+                    note: "Saat 14:00'e kadar verilen siparişler aynı gün kargoya verilir.",
+                  },
+                  {
+                    title: "Büyükşehirler",
+                    time: "2-3 iş günü",
+                    note: "Ankara, İzmir, Bursa, Antalya ve diğer büyükşehirler.",
+                  },
+                  {
+                    title: "Diğer İller",
+                    time: "3-5 iş günü",
+                    note: "Kırsal bölgelerde teslimat süreleri uzayabilir.",
+                  },
+                ],
           });
         }
       } catch (error) {
@@ -66,6 +146,27 @@ export default function CompanySettingsClient() {
     };
 
     loadSettings();
+  }, []);
+
+  const loadFaqs = async () => {
+    try {
+      setFaqLoading(true);
+      const res = await fetch("/api/admin/faq?admin=true");
+      if (!res.ok) {
+        toast.error("SSS listesi alınamadı");
+        return;
+      }
+      const data = await res.json();
+      setFaqList(data.faqs || []);
+    } catch {
+      toast.error("SSS listesi alınamadı");
+    } finally {
+      setFaqLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadFaqs();
   }, []);
 
   const handleSave = async () => {
@@ -98,6 +199,150 @@ export default function CompanySettingsClient() {
 
   const handleChange = (field: keyof CompanySettings, value: string | number) => {
     setSettings(prev => ({ ...prev, [field]: value }));
+  };
+
+  const updateDeliveryTime = (index: number, field: keyof DeliveryTime, value: string) => {
+    setSettings((prev) => {
+      const current = Array.isArray(prev.deliveryTimes) ? prev.deliveryTimes : [];
+      return {
+        ...prev,
+        deliveryTimes: current.map((item, i) => (i === index ? { ...item, [field]: value } : item)),
+      };
+    });
+  };
+
+  const addDeliveryTime = () => {
+    setSettings((prev) => {
+      const current = Array.isArray(prev.deliveryTimes) ? prev.deliveryTimes : [];
+      return {
+        ...prev,
+        deliveryTimes: [...current, { title: "", time: "", note: "" }],
+      };
+    });
+  };
+
+  const removeDeliveryTime = (index: number) => {
+    setSettings((prev) => {
+      const current = Array.isArray(prev.deliveryTimes) ? prev.deliveryTimes : [];
+      if (current.length <= 1) return prev;
+      return {
+        ...prev,
+        deliveryTimes: current.filter((_, i) => i !== index),
+      };
+    });
+  };
+
+  const updateDraft = (index: number, field: keyof FAQDraft, value: string) => {
+    setFaqDrafts((prev) => prev.map((draft, i) => (i === index ? { ...draft, [field]: value } : draft)));
+  };
+
+  const addDraft = () => {
+    setFaqDrafts((prev) => [...prev, { question: "", answer: "" }]);
+  };
+
+  const removeDraft = (index: number) => {
+    setFaqDrafts((prev) => {
+      if (prev.length === 1) return prev;
+      return prev.filter((_, i) => i !== index);
+    });
+  };
+
+  const resetDrafts = () => {
+    setFaqDrafts([{ question: "", answer: "" }]);
+    setEditingFaqId(null);
+  };
+
+  const saveFaqs = async () => {
+    const validItems = faqDrafts
+      .map((item) => ({
+        question: item.question.trim(),
+        answer: item.answer.trim(),
+      }))
+      .filter((item) => item.question && item.answer);
+
+    if (validItems.length === 0) {
+      toast.error("En az bir soru ve cevap girin");
+      return;
+    }
+
+    try {
+      setFaqSaving(true);
+      const isEditMode = Boolean(editingFaqId);
+      const res = await fetch("/api/admin/faq", {
+        method: isEditMode ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: isEditMode
+          ? JSON.stringify({
+              id: editingFaqId,
+              category: faqCategory,
+              question: validItems[0].question,
+              answer: validItems[0].answer,
+            })
+          : JSON.stringify({
+              category: faqCategory,
+              isActive: true,
+              items: validItems,
+            }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data?.error || "SSS kayıtları eklenemedi");
+        return;
+      }
+
+      await loadFaqs();
+      resetDrafts();
+      toast.success(isEditMode ? "SSS kaydı güncellendi" : "SSS kayıtları eklendi");
+    } catch {
+      toast.error("SSS kayıtları eklenemedi");
+    } finally {
+      setFaqSaving(false);
+    }
+  };
+
+  const startEditFaq = (faq: FAQItem) => {
+    setEditingFaqId(faq.id);
+    setFaqCategory(faq.category);
+    setFaqDrafts([{ question: faq.question, answer: faq.answer }]);
+  };
+
+  const toggleFaqActive = async (faq: FAQItem, isActive: boolean) => {
+    try {
+      const res = await fetch("/api/admin/faq", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: faq.id, isActive }),
+      });
+
+      if (!res.ok) {
+        toast.error("Durum güncellenemedi");
+        return;
+      }
+
+      setFaqList((prev) => prev.map((item) => (item.id === faq.id ? { ...item, isActive } : item)));
+      toast.success("SSS durumu güncellendi");
+    } catch {
+      toast.error("Durum güncellenemedi");
+    }
+  };
+
+  const deleteFaq = async (id: string) => {
+    try {
+      const res = await fetch(`/api/admin/faq?id=${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        toast.error("SSS silinemedi");
+        return;
+      }
+
+      setFaqList((prev) => prev.filter((item) => item.id !== id));
+      if (editingFaqId === id) {
+        resetDrafts();
+      }
+      toast.success("SSS silindi");
+    } catch {
+      toast.error("SSS silinemedi");
+    }
   };
 
   if (isLoading) {
@@ -275,7 +520,169 @@ export default function CompanySettingsClient() {
           </div>
         </div>
 
-        
+        <Separator />
+
+        <div className="space-y-4">
+          <div>
+            <h2 className="text-xl font-semibold">Teslimat Süreleri</h2>
+            <p className="text-sm text-gray-600 mt-1">/shipping sayfasında görünen teslimat sürelerini buradan yönetin.</p>
+          </div>
+
+          <div className="space-y-4">
+            {(settings.deliveryTimes || []).map((item, index) => (
+              <div key={index} className="rounded-lg border p-4 space-y-3 bg-white">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label>Bölge / Başlık</Label>
+                    <Input
+                      value={item.title}
+                      onChange={(e) => updateDeliveryTime(index, "title", e.target.value)}
+                      placeholder="Örn: İstanbul İçi"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Süre</Label>
+                    <Input
+                      value={item.time}
+                      onChange={(e) => updateDeliveryTime(index, "time", e.target.value)}
+                      placeholder="Örn: 1-2 iş günü"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Açıklama</Label>
+                  <Textarea
+                    value={item.note}
+                    onChange={(e) => updateDeliveryTime(index, "note", e.target.value)}
+                    placeholder="Açıklama"
+                    rows={2}
+                  />
+                </div>
+                <div className="flex justify-end">
+                  <Button type="button" variant="outline" size="sm" onClick={() => removeDeliveryTime(index)}>
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Sil
+                  </Button>
+                </div>
+              </div>
+            ))}
+
+            <Button type="button" variant="outline" onClick={addDeliveryTime}>
+              <Plus className="w-4 h-4 mr-2" />
+              Teslimat Satırı Ekle
+            </Button>
+          </div>
+        </div>
+
+        <Separator />
+
+        <div className="space-y-4">
+          <div>
+            <h2 className="text-xl font-semibold">FAQ Yönetimi</h2>
+            <p className="text-sm text-gray-600 mt-1">
+              Kategori seçip birden fazla soru-cevap ekleyin. Kayıtlar /faq sayfasında otomatik görünür.
+            </p>
+          </div>
+
+          <div className="space-y-2 max-w-xs">
+            <Label>Kategori</Label>
+            <Select value={faqCategory} onValueChange={setFaqCategory}>
+              <SelectTrigger>
+                <SelectValue placeholder="Kategori seçin" />
+              </SelectTrigger>
+              <SelectContent>
+                {faqCategories.map((cat) => (
+                  <SelectItem key={cat.value} value={cat.value}>
+                    {cat.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-4">
+            {faqDrafts.map((draft, index) => (
+              <div key={index} className="rounded-lg border p-4 space-y-3 bg-white">
+                <div className="space-y-2">
+                  <Label>Soru {index + 1}</Label>
+                  <Input
+                    value={draft.question}
+                    onChange={(e) => updateDraft(index, "question", e.target.value)}
+                    placeholder="Soru metni"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Cevap {index + 1}</Label>
+                  <Textarea
+                    value={draft.answer}
+                    onChange={(e) => updateDraft(index, "answer", e.target.value)}
+                    placeholder="Cevap metni"
+                    rows={3}
+                  />
+                </div>
+                <div className="flex justify-end">
+                  <Button type="button" variant="outline" size="sm" onClick={() => removeDraft(index)}>
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Sil
+                  </Button>
+                </div>
+              </div>
+            ))}
+
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" onClick={addDraft}>
+                <Plus className="w-4 h-4 mr-2" />
+                Soru Ekle
+              </Button>
+              <Button type="button" onClick={saveFaqs} disabled={faqSaving}>
+                {faqSaving ? "Kaydediliyor..." : editingFaqId ? "Kaydı Güncelle" : "Kategoriye Kaydet"}
+              </Button>
+              <Button type="button" variant="ghost" onClick={loadFaqs}>
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Yenile
+              </Button>
+              {editingFaqId && (
+                <Button type="button" variant="outline" onClick={resetDrafts}>
+                  Düzenlemeyi İptal Et
+                </Button>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Kayıtlı Sorular</Label>
+            <div className="rounded-lg border bg-white max-h-80 overflow-auto">
+              {faqLoading ? (
+                <div className="p-4 text-sm text-gray-500">Yükleniyor...</div>
+              ) : faqList.length === 0 ? (
+                <div className="p-4 text-sm text-gray-500">Kayıtlı soru yok.</div>
+              ) : (
+                <div className="divide-y">
+                  {faqList.map((faq) => (
+                    <div key={faq.id} className="p-3 flex items-start justify-between gap-3">
+                      <div>
+                        <div className="text-xs text-gray-500 mb-1">
+                          {faqCategories.find((c) => c.value === faq.category)?.label || faq.category}
+                        </div>
+                        <div className="font-medium text-sm">{faq.question}</div>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Switch checked={faq.isActive} onCheckedChange={(val) => toggleFaqActive(faq, val)} />
+                        <Button type="button" variant="outline" size="sm" onClick={() => startEditFaq(faq)}>
+                          <Edit2 className="w-4 h-4" />
+                        </Button>
+                        <Button type="button" variant="outline" size="sm" onClick={() => deleteFaq(faq.id)}>
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
         <div className="pt-4">
           <Button
             onClick={handleSave}

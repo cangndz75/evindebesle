@@ -530,6 +530,7 @@ model CompanySettings {
   email          String?
   logoUrl        String?
   website        String?
+  deliveryTimes  Json?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

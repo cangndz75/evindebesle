@@ -39,7 +39,7 @@ export default function About2Page() {
             <main className="overflow-hidden">
                 
                 <section className="relative pt-20 pb-32 md:pt-40 md:pb-60 flex flex-col items-center px-4 overflow-hidden">
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1200px] h-[800px] bg-white/5 blur-[150px] rounded-full pointer-events-none" />
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-300 h-200 bg-white/5 blur-[150px] rounded-full pointer-events-none" />
 
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
@@ -50,7 +50,7 @@ export default function About2Page() {
                         <Badge className="mb-8 bg-white/10 text-white border-white/20 hover:bg-white/20 px-6 py-2 transition-all text-[10px] tracking-[0.3em] uppercase rounded-none">
                             VİZYONUMUZ
                         </Badge>
-                        <h1 className="text-6xl md:text-9xl font-serif font-light mb-10 leading-[1] tracking-tight text-white uppercase">
+                        <h1 className="text-6xl md:text-9xl font-serif font-light mb-10 leading-none tracking-tight text-white uppercase">
                             MODADA <br /> <span className="italic text-gray-400 font-normal">Kusursuz</span> DOKUNUŞ
                         </h1>
                         <p className="text-gray-400 text-lg md:text-2xl max-w-3xl mx-auto leading-relaxed font-light tracking-wide">
@@ -64,7 +64,7 @@ export default function About2Page() {
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.4, duration: 1.2 }}
-                        className="mt-20 relative w-full max-w-7xl aspect-[21/9] overflow-hidden shadow-3xl shadow-black border border-white/5"
+                        className="mt-20 relative w-full max-w-7xl aspect-21/9 overflow-hidden shadow-3xl shadow-black border border-white/5"
                     >
                         <Image
                             src="https://images.unsplash.com/photo-1590736704728-f472d58e3bb5?q=80&w=2000"
@@ -72,7 +72,7 @@ export default function About2Page() {
                             fill
                             className="object-cover opacity-70 scale-105"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-transparent to-transparent" />
+                        <div className="absolute inset-0 bg-linear-to-t from-[#0A0A0A] via-transparent to-transparent" />
                         <div className="absolute bottom-10 left-10 md:left-20">
                             <span className="text-[10px] tracking-[0.4em] uppercase text-white/50">EST. 2024</span>
                         </div>
@@ -115,7 +115,7 @@ export default function About2Page() {
 
                 
                 <section className="py-32 relative overflow-hidden">
-                    <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-white/5 blur-[120px] rounded-full" />
+                    <div className="absolute bottom-0 right-0 w-150 h-150 bg-white/5 blur-[120px] rounded-full" />
 
                     <div className="max-w-7xl mx-auto px-4">
                         <div className="text-center mb-20 space-y-6">
@@ -128,7 +128,7 @@ export default function About2Page() {
                                 <motion.div
                                     key={i}
                                     whileHover={{ y: -15 }}
-                                    className="group p-10 bg-white/[0.02] border border-white/5 hover:border-white/20 transition-all duration-700 relative"
+                                    className="group p-10 bg-white/2 border border-white/5 hover:border-white/20 transition-all duration-700 relative"
                                 >
                                     <div className="w-16 h-16 bg-white/5 flex items-center justify-center mb-10 group-hover:bg-white/10 transition-colors border border-white/10">
                                         {value.icon}
@@ -151,7 +151,7 @@ export default function About2Page() {
                             fill
                             className="object-cover opacity-20 transition-transform duration-[3s] group-hover:scale-110 select-none pointer-events-none grayscale"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-b from-[#0A0A0A]/80 to-[#0A0A0A]" />
+                        <div className="absolute inset-0 bg-linear-to-b from-[#0A0A0A]/80 to-[#0A0A0A]" />
 
                         <div className="relative z-10 space-y-12">
                             <h2 className="text-5xl md:text-8xl font-serif font-light leading-[1.1] uppercase tracking-tighter">

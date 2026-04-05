@@ -52,7 +52,41 @@ export async function POST(req: NextRequest) {
         }
 
         const body = await req.json();
-        const { question, answer, category, order, isActive } = body;
+        const { question, answer, category, order, isActive, items } = body;
+
+        if (Array.isArray(items)) {
+            if (!category) {
+                return NextResponse.json({ error: "Kategori zorunlu" }, { status: 400 });
+            }
+
+            const validItems = items
+                .map((item: any) => ({
+                    question: typeof item?.question === "string" ? item.question.trim() : "",
+                    answer: typeof item?.answer === "string" ? item.answer.trim() : "",
+                    order: typeof item?.order === "number" ? item.order : undefined,
+                }))
+                .filter((item: any) => item.question && item.answer);
+
+            if (validItems.length === 0) {
+                return NextResponse.json({ error: "En az bir geçerli soru-cevap girin" }, { status: 400 });
+            }
+
+            const created = await prisma.$transaction(
+                validItems.map((item: any, index: number) =>
+                    prisma.fAQ.create({
+                        data: {
+                            question: item.question,
+                            answer: item.answer,
+                            category,
+                            order: item.order ?? index,
+                            isActive: isActive !== false,
+                        },
+                    })
+                )
+            );
+
+            return NextResponse.json({ createdCount: created.length, faqs: created });
+        }
 
         if (!question || !answer || !category) {
             return NextResponse.json({ error: "Soru, cevap ve kategori zorunlu" }, { status: 400 });

@@ -18,11 +18,18 @@ export default async function ShippingPage() {
     }
     const threshold = settings?.freeShippingThreshold || 99;
     const shippingPrice = settings?.shippingPrice || 49.90;
+    const deliveryTimes = Array.isArray(settings?.deliveryTimes) && settings.deliveryTimes.length > 0
+        ? settings.deliveryTimes
+        : [
+            { title: "İstanbul İçi", time: "1-2 iş günü", note: "Saat 14:00'e kadar verilen siparişler aynı gün kargoya verilir." },
+            { title: "Büyükşehirler", time: "2-3 iş günü", note: "Ankara, İzmir, Bursa, Antalya ve diğer büyükşehirler." },
+            { title: "Diğer İller", time: "3-5 iş günü", note: "Kırsal bölgelerde teslimat süreleri uzayabilir." },
+        ];
 
     return (
         <div className="min-h-screen bg-gray-50">
             
-            <div className="bg-gradient-to-br from-gray-900 to-gray-800 text-white py-16 px-4">
+            <div className="bg-linear-to-br from-gray-900 to-gray-800 text-white py-16 px-4">
                 <div className="max-w-4xl mx-auto text-center">
                     <div className="inline-flex items-center justify-center w-16 h-16 bg-white/10 rounded-full mb-6">
                         <Truck className="w-8 h-8" />
@@ -64,19 +71,16 @@ export default async function ShippingPage() {
                                 <tr className="border-b border-gray-200">
                                     <th className="py-3 px-4 text-sm font-semibold text-gray-900">Sipariş Tutarı</th>
                                     <th className="py-3 px-4 text-sm font-semibold text-gray-900">Standart Kargo</th>
-                                    <th className="py-3 px-4 text-sm font-semibold text-gray-900">Hızlı Kargo</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr className="border-b border-gray-100">
                                     <td className="py-3 px-4 text-gray-700">0₺ – {(threshold - 1)}₺</td>
                                     <td className="py-3 px-4 text-gray-700">{shippingPrice.toFixed(2)}₺</td>
-                                    <td className="py-3 px-4 text-gray-700">79,90₺</td>
                                 </tr>
                                 <tr className="bg-green-50">
                                     <td className="py-3 px-4 text-gray-700 font-medium">{threshold}₺ ve üzeri</td>
                                     <td className="py-3 px-4 text-green-700 font-medium">Ücretsiz</td>
-                                    <td className="py-3 px-4 text-gray-700">29,90₺</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -92,11 +96,7 @@ export default async function ShippingPage() {
                         <h2 className="text-xl font-bold text-gray-900">Teslimat Süreleri</h2>
                     </div>
                     <ul className="space-y-4">
-                        {[
-                            { title: "İstanbul İçi", time: "1-2 iş günü", note: "Saat 14:00'e kadar verilen siparişler aynı gün kargoya verilir." },
-                            { title: "Büyükşehirler", time: "2-3 iş günü", note: "Ankara, İzmir, Bursa, Antalya ve diğer büyükşehirler." },
-                            { title: "Diğer İller", time: "3-5 iş günü", note: "Kırsal bölgelerde teslimat süreleri uzayabilir." },
-                        ].map((item, i) => (
+                        {deliveryTimes.map((item: any, i: number) => (
                             <li key={i} className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl">
                                 <div className="w-20 text-center shrink-0">
                                     <span className="text-lg font-bold text-gray-900">{item.time}</span>
@@ -156,7 +156,7 @@ export default async function ShippingPage() {
                 </section>
 
                 
-                <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-8 text-center">
+                <div className="bg-linear-to-br from-indigo-50 to-purple-50 rounded-2xl p-8 text-center">
                     <h3 className="text-lg font-bold text-gray-900 mb-2">Kargonuzla ilgili sorunuz mu var?</h3>
                     <p className="text-gray-600 mb-4">
                         Siparişinizi takip etmek veya kargo ile ilgili destek almak için bize ulaşabilirsiniz.

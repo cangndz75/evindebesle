@@ -21,7 +21,7 @@ export default function TrackPage() {
     return (
         <div className="min-h-screen bg-gray-50">
             
-            <div className="bg-gradient-to-br from-gray-900 to-gray-800 text-white py-16 px-4">
+            <div className="bg-linear-to-br from-gray-900 to-gray-800 text-white py-16 px-4">
                 <div className="max-w-4xl mx-auto text-center">
                     <div className="inline-flex items-center justify-center w-16 h-16 bg-white/10 rounded-full mb-6">
                         <Truck className="w-8 h-8" />
@@ -90,22 +90,7 @@ export default function TrackPage() {
                 </section>
 
                 
-                <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
-                    <h2 className="text-xl font-bold text-gray-900 mb-3">Hesabınızdan Takip Edin</h2>
-                    <p className="text-gray-600 mb-6">
-                        Dark Velvet hesabınıza giriş yaparak tüm siparişlerinizi detaylı olarak takip edebilirsiniz.
-                    </p>
-                    <Link
-                        href="/profile/orders"
-                        className="inline-flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition-colors font-medium"
-                    >
-                        <Package className="w-4 h-4" />
-                        Siparişlerim
-                    </Link>
-                </section>
-
-                
-                <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-8 text-center">
+                <div className="bg-linear-to-br from-indigo-50 to-purple-50 rounded-2xl p-8 text-center">
                     <h3 className="text-lg font-bold text-gray-900 mb-2">Siparişinizle ilgili bir sorun mu var?</h3>
                     <p className="text-gray-600 mb-4">Destek ekibimiz size yardımcı olmaktan mutluluk duyar.</p>
                     <Link

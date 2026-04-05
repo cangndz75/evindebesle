@@ -86,7 +86,7 @@ export default function SSSPage() {
     return (
         <div className="min-h-screen bg-gray-50">
             
-            <div className="bg-gradient-to-br from-gray-900 to-gray-800 text-white py-16 px-4">
+            <div className="bg-linear-to-br from-gray-900 to-gray-800 text-white py-16 px-4">
                 <div className="max-w-4xl mx-auto text-center">
                     <div className="inline-flex items-center justify-center w-16 h-16 bg-white/10 rounded-full mb-6">
                         <HelpCircle className="w-8 h-8" />
@@ -187,7 +187,7 @@ export default function SSSPage() {
                 )}
 
                 
-                <div className="mt-12 p-6 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl text-center">
+                <div className="mt-12 p-6 bg-linear-to-br from-indigo-50 to-purple-50 rounded-2xl text-center">
                     <h3 className="text-lg font-bold text-gray-900 mb-2">Aradığınızı bulamadınız mı?</h3>
                     <p className="text-gray-600 mb-4">Destek ekibimiz size yardımcı olmaktan mutluluk duyar.</p>
                     <a

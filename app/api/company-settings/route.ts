@@ -11,6 +11,31 @@ export async function GET() {
       return NextResponse.json({
         freeShippingThreshold: 99.0,
         shippingPrice: 49.90,
+        companyName: "Dark Velvet",
+        companyAddress: "",
+        taxOffice: "",
+        taxNumber: "",
+        phone: "",
+        email: "",
+        logoUrl: "",
+        website: "",
+        deliveryTimes: [
+          {
+            title: "İstanbul İçi",
+            time: "1-2 iş günü",
+            note: "Saat 14:00'e kadar verilen siparişler aynı gün kargoya verilir.",
+          },
+          {
+            title: "Büyükşehirler",
+            time: "2-3 iş günü",
+            note: "Ankara, İzmir, Bursa, Antalya ve diğer büyükşehirler.",
+          },
+          {
+            title: "Diğer İller",
+            time: "3-5 iş günü",
+            note: "Kırsal bölgelerde teslimat süreleri uzayabilir.",
+          },
+        ],
       });
     }
 
@@ -32,7 +57,19 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { freeShippingThreshold, shippingPrice } = body;
+    const {
+      freeShippingThreshold,
+      shippingPrice,
+      companyName,
+      companyAddress,
+      taxOffice,
+      taxNumber,
+      phone,
+      email,
+      logoUrl,
+      website,
+      deliveryTimes,
+    } = body;
 
     let settings = await prisma.companySettings.findFirst();
     const oldSettings = settings ? { ...settings } : null;
@@ -42,6 +79,15 @@ export async function PATCH(request: NextRequest) {
         data: {
           freeShippingThreshold: freeShippingThreshold || 99.0,
           shippingPrice: shippingPrice || 49.90,
+          companyName: companyName ?? "Dark Velvet",
+          companyAddress: companyAddress ?? "",
+          taxOffice: taxOffice ?? "",
+          taxNumber: taxNumber ?? "",
+          phone: phone ?? "",
+          email: email ?? "",
+          logoUrl: logoUrl ?? "",
+          website: website ?? "",
+          deliveryTimes: Array.isArray(deliveryTimes) ? deliveryTimes : [],
         },
       });
     } else {
@@ -50,6 +96,15 @@ export async function PATCH(request: NextRequest) {
         data: {
           freeShippingThreshold: freeShippingThreshold ?? settings.freeShippingThreshold,
           shippingPrice: shippingPrice ?? settings.shippingPrice,
+          companyName: companyName ?? settings.companyName,
+          companyAddress: companyAddress ?? settings.companyAddress,
+          taxOffice: taxOffice ?? settings.taxOffice,
+          taxNumber: taxNumber ?? settings.taxNumber,
+          phone: phone ?? settings.phone,
+          email: email ?? settings.email,
+          logoUrl: logoUrl ?? settings.logoUrl,
+          website: website ?? settings.website,
+          deliveryTimes: Array.isArray(deliveryTimes) ? deliveryTimes : settings.deliveryTimes,
         },
       });
     }

@@ -1,4 +1,4 @@
-
+﻿
 import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
@@ -8,7 +8,6 @@ import { toOrderListDTO } from "@/lib/api/dto/order";
 
 export const dynamic = "force-dynamic";
 
-// GENERIC ORDER FETCH
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authConfig);
@@ -40,10 +39,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST DISABLE/RESTRICTION
 export async function POST(request: NextRequest) {
-  // 🚨 SECURITY: Direct Order Creation is disabled to enforce Stock Reservation flow via /checkout/initialize
-  // Only Admin or special internal calls might be allowed, but for now we block public access.
 
   const session = await getServerSession(authConfig);
   if (!session?.user?.isAdmin) {
@@ -53,8 +49,6 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // If admin really needs to create order, they should probably go through a similar flow or we implement reserveStockTx here too.
-  // For now, returning 403 is the safest fix for the High Risk issue.
   return jsonNoStore(
     { error: "Endpoint deprecated for direct calling. Use /api/checkout/initialize" },
     { status: 400 }

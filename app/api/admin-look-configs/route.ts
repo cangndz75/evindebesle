@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { jsonNoStore, requireAdmin } from "@/lib/api/policy";
@@ -75,7 +75,7 @@ export async function GET(req: Request) {
     });
     return jsonNoStore(configs);
   } catch (error) {
-    return jsonNoStore({ error: "Veriler alınamadı" }, { status: 500 });
+    return jsonNoStore({ error: "Veriler alÄ±namadÄ±" }, { status: 500 });
   }
 }
 
@@ -97,7 +97,6 @@ export async function POST(req: Request) {
       items 
     } = body;
 
-    // Create or Update Configuration
     const config = await prisma.lookConfiguration.upsert({
       where: { mainProductId },
       create: {
@@ -121,9 +120,7 @@ export async function POST(req: Request) {
       }
     });
 
-    // Handle Items
     if (items && Array.isArray(items)) {
-      // Clear existing items and re-add to maintain order and selection
       await prisma.lookItem.deleteMany({
         where: { lookConfigurationId: config.id }
       });

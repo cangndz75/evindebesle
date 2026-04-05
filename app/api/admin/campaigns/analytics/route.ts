@@ -1,8 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 
-// GET: Campaign analytics data
 export async function GET(req: NextRequest) {
     try {
         const user = await getCurrentUser();
@@ -17,7 +16,6 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ error: "Campaign ID required" }, { status: 400 });
         }
 
-        // Get campaign with related data
         const campaign = await prisma.campaign.findUnique({
             where: { id: campaignId },
             include: {
@@ -34,7 +32,6 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ error: "Campaign not found" }, { status: 404 });
         }
 
-        // Calculate stats
         const totalSent = campaign.emailSends.filter((s: any) => s.status === "sent").length;
         const totalOpened = campaign.emailSends.filter((s: any) => s.openedAt !== null).length;
         const totalClicked = campaign.emailSends.filter((s: any) => s.clickedAt !== null).length;
@@ -45,7 +42,6 @@ export async function GET(req: NextRequest) {
         const clickRate = totalOpened > 0 ? (totalClicked / totalOpened) * 100 : 0;
         const clickToSendRate = totalSent > 0 ? (totalClicked / totalSent) * 100 : 0;
 
-        // Get event timeline data (hourly)
         const events = await prisma.emailEvent.findMany({
             where: {
                 emailSend: {
@@ -55,7 +51,6 @@ export async function GET(req: NextRequest) {
             orderBy: { createdAt: "asc" },
         });
 
-        // Group events by hour
         const timelineMap = new Map<string, { opens: number; clicks: number }>();
         events.forEach((event: any) => {
             const hour = new Date(event.createdAt).toISOString().slice(0, 13); // YYYY-MM-DDTHH
@@ -73,7 +68,6 @@ export async function GET(req: NextRequest) {
             clicks: data.clicks,
         }));
 
-        // Get recipients with status
         const recipients = campaign.emailSends.map((send: any) => ({
             id: send.id,
             email: send.email,
@@ -83,7 +77,6 @@ export async function GET(req: NextRequest) {
             clickedAt: send.clickedAt,
         }));
 
-        // Get link clicks
         const links = campaign.emailLinks.map((link: any) => ({
             id: link.id,
             url: link.originalUrl,

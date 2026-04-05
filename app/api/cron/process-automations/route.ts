@@ -1,16 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { resend } from "@/lib/resend";
 
 export const dynamic = 'force-dynamic'; // Ensure not cached
 
-// GET /api/cron/process-automations
-// Protected by CRON_SECRET
 export async function GET(req: NextRequest) {
     try {
         const authHeader = req.headers.get("authorization");
         if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-            // Allow local development without secret if needed, or strictly enforce
             if (process.env.NODE_ENV === "production") {
                 return new NextResponse("Unauthorized", { status: 401 });
             }
@@ -31,7 +28,6 @@ export async function GET(req: NextRequest) {
     }
 }
 
-// 1. Check Triggers
 async function checkTriggers() {
     const results = {
         welcome: 0,
@@ -39,8 +35,6 @@ async function checkTriggers() {
     };
 
     try {
-        // A. Welcome Series (New Users)
-        // Find users created in last 24h who aren't in Welcome Flow
         const welcomeAutomation = await prisma.automation.findFirst({
             where: { triggerType: "WELCOME", isActive: true },
         });
@@ -71,8 +65,6 @@ async function checkTriggers() {
             }
         }
 
-        // B. Abandoned Cart
-        // Active carts updated 1h-24h ago, no order since then
         const cartAutomation = await prisma.automation.findFirst({
             where: { triggerType: "ABANDONED_CART", isActive: true },
         });
@@ -81,7 +73,6 @@ async function checkTriggers() {
             const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
             const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-            // Find users with carts updated recently
             const candidateUsers = await prisma.user.findMany({
                 where: {
                     cartItems: {
@@ -89,7 +80,6 @@ async function checkTriggers() {
                             updatedAt: { gte: twentyFourHoursAgo, lte: oneHourAgo }
                         }
                     },
-                    // And ignore if they are already in this automation recently
                     userAutomations: {
                         none: {
                             automationId: cartAutomation.id,
@@ -128,7 +118,6 @@ async function checkTriggers() {
     return results;
 }
 
-// 2. Process Active Flows
 async function processActiveFlows() {
     let processedCount = 0;
 
@@ -148,7 +137,6 @@ async function processActiveFlows() {
         const currentStepIndex = flow.currentStep;
 
         if (currentStepIndex >= steps.length) {
-            // Already done
             await prisma.userAutomation.update({
                 where: { id: flow.id },
                 data: { status: "COMPLETED" }
@@ -168,19 +156,11 @@ async function processActiveFlows() {
                 shouldAdvance = true;
             }
         } else if (step.type === "EMAIL") {
-            // Send Email
             if (step.template) {
                 try {
-                    // 1. Create (or find) a Campaign record for this automation
-                    // This groups all sends for this automation under one Campaign entity
                     const campaignId = `automation-${flow.automation.id}`;
 
-                    // Ensure campaign exists (safely)
-                    // We use upsert-like logic or just connectOrCreate in EmailSend... 
-                    // but connectOrCreate is inside nested write. 
-                    // To reduce DB load, maybe we assume it exists? No, safer to ensure.
 
-                    // 2. Create EmailSend record to generate trackingId
                     const emailSend = await prisma.emailSend.create({
                         data: {
                             campaign: {
@@ -191,17 +171,12 @@ async function processActiveFlows() {
                                         name: flow.automation.name,
                                         status: "sending", // Special status
                                         createdById: flow.user.id, // Linking to user receiving it? No, needs Admin. 
-                                        // If we don't have an admin ID, this is problematic.
-                                        // Lets link to the user itself IF the schema allows User to be creator (it does)
-                                        // OR better: hardcode a system admin ID if known, or findFirst admin.
-                                        // For now, I'll link to the user to satisfy schema, assuming 'User' can create campaigns.
                                     }
                                 }
                             },
                             userId: flow.userId,
                             email: flow.user.email,
                             status: "sent",
-                            // trackingId is auto-generated
                         }
                     });
 

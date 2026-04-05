@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { prisma } from "@/lib/db";
@@ -9,21 +9,19 @@ export async function GET(req: NextRequest) {
     const session = await getServerSession(authConfig);
 
     if (!session?.user?.isAdmin) {
-      return NextResponse.json({ error: "Yetkisiz erişim" }, { status: 403 });
+      return NextResponse.json({ error: "Yetkisiz eriÅŸim" }, { status: 403 });
     }
 
-    // Prisma client kontrolü
     if (!prisma || !prisma.order) {
-      console.error("Prisma client veya order modeli bulunamadı");
+      console.error("Prisma client veya order modeli bulunamadÄ±");
       return NextResponse.json(
-        { error: "Veritabanı bağlantı hatası", items: [] },
+        { error: "VeritabanÄ± baÄŸlantÄ± hatasÄ±", items: [] },
         { status: 500 }
       );
     }
 
     const oneHourAgo = subHours(new Date(), 1);
 
-    // Bekleyen siparişler (sadece PAID - ödendi ama henüz hazırlanmaya başlanmamış)
     const pendingOrders = await prisma.order.count({
       where: {
         status: "PAID",
@@ -31,7 +29,6 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    // Kargoya hazır siparişler
     const readyToShip = await prisma.order.count({
       where: {
         status: "PREPARING",
@@ -39,7 +36,6 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    // Ödeme hatası olan siparişler
     const paymentFailed = await prisma.order.count({
       where: {
         paymentStatus: "FAILED",
@@ -47,7 +43,6 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    // Düşük stoklu ürünler (< 3 adet)
     const lowStockProducts = await prisma.product.findMany({
       where: {
         isActive: true,
@@ -64,7 +59,6 @@ export async function GET(req: NextRequest) {
 
     const lowStockCount = lowStockProducts.length;
 
-    // Tükenen stoklu ürünler
     const outOfStockProducts = await prisma.product.findMany({
       where: {
         isActive: true,
@@ -89,7 +83,6 @@ export async function GET(req: NextRequest) {
 
     const outOfStockCount = outOfStockProducts.length;
 
-    // İade talepleri
     const refundRequests = await prisma.order.count({
       where: {
         status: "CANCELLED",
@@ -109,21 +102,21 @@ export async function GET(req: NextRequest) {
         ...(pendingOrders > 0 ? [{
           type: "pending_orders",
           count: pendingOrders,
-          label: `${pendingOrders} bekleyen sipariş`,
+          label: `${pendingOrders} bekleyen sipariÅŸ`,
           action: "/admin-orders?status=PAID",
           priority: "high",
         }] : []),
         ...(readyToShip > 0 ? [{
           type: "ready_to_ship",
           count: readyToShip,
-          label: `${readyToShip} sipariş kargoya hazır`,
+          label: `${readyToShip} sipariÅŸ kargoya hazÄ±r`,
           action: "/admin-orders?status=PREPARING",
           priority: "high",
         }] : []),
         ...(paymentFailed > 0 ? [{
           type: "payment_failed",
           count: paymentFailed,
-          label: `${paymentFailed} ödeme hatası / fraud şüphesi`,
+          label: `${paymentFailed} Ã¶deme hatasÄ± / fraud ÅŸÃ¼phesi`,
           action: "/admin-orders?paymentStatus=FAILED",
           priority: "high",
         }] : []),
@@ -137,7 +130,7 @@ export async function GET(req: NextRequest) {
         ...(outOfStockCount > 0 ? [{
           type: "out_of_stock",
           count: outOfStockCount,
-          label: `${outOfStockCount} ürün tükendi`,
+          label: `${outOfStockCount} Ã¼rÃ¼n tÃ¼kendi`,
           action: "/admin-products?stockStatus=outOfStock",
           priority: "high",
         }] : []),
@@ -154,7 +147,7 @@ export async function GET(req: NextRequest) {
   } catch (error: any) {
     console.error("Action inbox error:", error);
     return NextResponse.json(
-      { error: error.message || "Action inbox yüklenirken bir hata oluştu" },
+      { error: error.message || "Action inbox yÃ¼klenirken bir hata oluÅŸtu" },
       { status: 500 }
     );
   }

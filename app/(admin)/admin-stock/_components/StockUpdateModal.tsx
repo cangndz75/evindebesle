@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import {
@@ -63,16 +63,11 @@ export default function StockUpdateModal({
     const fetchProductDetails = async () => {
         setLoading(true);
         try {
-            // Create a specific endpoint or re-use existing one. 
-            // For simplicity, reusing a detail endpoint or fetching directly.
-            // Let's create a quick specific fetch here via a new flexible endpoint or reusing product get
-            // But admin products API usually returns full details.
             const res = await fetch(`/api/admin/products/${productId}`);
             if (res.ok) {
                 const data = await res.json();
                 setProduct(data.product);
 
-                // Initialize stock updates
                 const initialStocks: Record<string, number> = {};
                 if (data.product.variants.length > 0) {
                     data.product.variants.forEach((v: any) => initialStocks[v.id] = v.stock);
@@ -82,7 +77,7 @@ export default function StockUpdateModal({
                 setStockUpdates(initialStocks);
             }
         } catch (error) {
-            toast.error("Ürün detayları yüklenemedi");
+            toast.error("ÃœrÃ¼n detaylarÄ± yÃ¼klenemedi");
         } finally {
             setLoading(false);
         }
@@ -99,8 +94,6 @@ export default function StockUpdateModal({
         setSaving(true);
         try {
             const updates = Object.entries(stockUpdates).map(([id, stock]) => {
-                // Determine if it's a variant or size based on product structure
-                // This logic mirrors the main page logic
                 const isVariant = product?.variants && product.variants.length > 0;
                 return {
                     variantId: id,
@@ -109,10 +102,6 @@ export default function StockUpdateModal({
                 };
             });
 
-            // Sequential updates or bulk API? 
-            // We made a single update API. Let's loop for now or make a bulk one.
-            // For UX, a bulk endpoint is better. Let's make the API accept array or loop here.
-            // Looping is fine for now as items won't be huge (MAX 50 variants usually)
 
             const promises = updates.map(u =>
                 fetch("/api/admin/products/stock-update", {
@@ -124,10 +113,10 @@ export default function StockUpdateModal({
 
             await Promise.all(promises);
 
-            toast.success("Stoklar güncellendi");
+            toast.success("Stoklar gÃ¼ncellendi");
             onClose();
         } catch (error) {
-            toast.error("Güncelleme sırasında hata");
+            toast.error("GÃ¼ncelleme sÄ±rasÄ±nda hata");
         } finally {
             setSaving(false);
         }
@@ -139,9 +128,9 @@ export default function StockUpdateModal({
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle>Stok Güncelleme</DialogTitle>
+                    <DialogTitle>Stok GÃ¼ncelleme</DialogTitle>
                     <DialogDescription>
-                        {product?.name} varyant stoklarını düzenleyin.
+                        {product?.name} varyant stoklarÄ±nÄ± dÃ¼zenleyin.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -150,7 +139,7 @@ export default function StockUpdateModal({
                         <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
                     </div>
                 ) : !product ? (
-                    <div className="text-center p-4">Ürün yüklenemedi</div>
+                    <div className="text-center p-4">ÃœrÃ¼n yÃ¼klenemedi</div>
                 ) : (
                     <div className="space-y-6 py-4">
                         {/* If product has colors, group by Color */}
@@ -182,7 +171,6 @@ export default function StockUpdateModal({
                                 </div>
                             ))
                         ) : (
-                            // Size only product
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                                 {product.sizes.map(size => (
                                     <div key={size.id} className="bg-white p-3 rounded border">
@@ -204,11 +192,11 @@ export default function StockUpdateModal({
 
                 <DialogFooter>
                     <Button variant="outline" onClick={onClose} disabled={saving}>
-                        İptal
+                        Ä°ptal
                     </Button>
                     <Button onClick={handleSave} disabled={saving || loading}>
                         {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                        Değişiklikleri Kaydet
+                        DeÄŸiÅŸiklikleri Kaydet
                     </Button>
                 </DialogFooter>
             </DialogContent>

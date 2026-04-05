@@ -1,6 +1,6 @@
-"use client";
+﻿"use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { X, Search, Filter, ChevronDown, Heart, ChevronRight, Plus, Minus, Loader2 } from "lucide-react";
@@ -31,11 +31,10 @@ interface SearchModalProps {
   initialQuery?: string;
 }
 
-// Sample collections - TODO: Veritabanından çekilecek
 const collections: Collection[] = [
   {
     id: "1",
-    title: "Köpek Hizmetleri",
+    title: "KÃ¶pek Hizmetleri",
     href: "/category/dogs",
     image: "https://images.unsplash.com/photo-1541599540903-216a46ca1df0?q=80&w=600&auto=format&fit=crop",
   },
@@ -47,13 +46,14 @@ const collections: Collection[] = [
   },
   {
     id: "3",
-    title: "Tüm Hizmetler",
+    title: "TÃ¼m Hizmetler",
     href: "/services",
     image: "https://images.unsplash.com/photo-1551730459-92db2a308d6a?q=80&w=600&auto=format&fit=crop",
   },
 ];
 
 export default function SearchModal({ isOpen, onClose, initialQuery = "" }: SearchModalProps) {
+  const modalRef = useRef<HTMLDivElement | null>(null);
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState("relevance");
@@ -67,7 +67,6 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 5000]);
 
-  // API state
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -78,7 +77,6 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
     }
   }, [isOpen, initialQuery]);
 
-  // Debounced search function
   const searchProducts = useCallback(async (query: string) => {
     if (!query || query.length < 1) {
       setProducts([]);
@@ -112,14 +110,12 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
       if (data.products) {
         setProducts(data.products);
 
-        // Track search event for analytics
         if (typeof window !== 'undefined') {
           import('@/lib/analytics-tracker').then(({ trackSearchEvent }) => {
             trackSearchEvent(query, data.products.length);
           });
         }
 
-        // Suggestions oluştur - ürün adlarından ve etiketlerden
         const uniqueSuggestions = new Set<string>();
         data.products.forEach((product: Product) => {
           if (product.title.toLowerCase().includes(query.toLowerCase())) {
@@ -145,7 +141,6 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
     }
   }, [sortBy, selectedCategory, priceRange, selectedSizes, selectedColors]);
 
-  // Debounce search
   useEffect(() => {
     const timer = setTimeout(() => {
       searchProducts(searchQuery);
@@ -156,15 +151,12 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
 
   useEffect(() => {
     if (isOpen) {
-      // Body scroll'unu engelle
       document.body.style.overflow = "hidden";
-      // Scroll pozisyonunu kaydet
       const scrollY = window.scrollY;
       document.body.style.position = "fixed";
       document.body.style.top = `-${scrollY}px`;
       document.body.style.width = "100%";
     } else {
-      // Scroll pozisyonunu geri yükle
       const scrollY = document.body.style.top;
       document.body.style.position = "";
       document.body.style.top = "";
@@ -175,7 +167,6 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
       }
     }
     return () => {
-      // Cleanup
       document.body.style.position = "";
       document.body.style.top = "";
       document.body.style.width = "";
@@ -183,12 +174,49 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
     };
   }, [isOpen]);
 
-  // Filter products based on local filters (category, price, size, color already applied in API)
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose();
+        return;
+      }
+
+      if (event.key !== "Tab") return;
+
+      const root = modalRef.current;
+      if (!root) return;
+
+      const focusable = root.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      );
+
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+
+      if (event.shiftKey) {
+        if (active === first || !root.contains(active)) {
+          event.preventDefault();
+          last.focus();
+        }
+      } else if (active === last || !root.contains(active)) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
   const filteredProducts = useMemo(() => {
     return products;
   }, [products]);
 
-  // Filter collections
   const filteredCollections = useMemo(() => {
     if (!searchQuery || searchQuery.length < 1) return [];
     const query = searchQuery.toLowerCase();
@@ -197,12 +225,11 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
     );
   }, [searchQuery]);
 
-  // Detect category from search query
   const detectedCategory = useMemo(() => {
     if (!searchQuery) return null;
     const query = searchQuery.toLowerCase();
-    if (query.includes("köpek") || query.includes("dog") || query.includes("kedi") || query.includes("cat")) {
-      if (query.includes("köpek") || query.includes("dog")) return "dogs";
+    if (query.includes("kÃ¶pek") || query.includes("dog") || query.includes("kedi") || query.includes("cat")) {
+      if (query.includes("kÃ¶pek") || query.includes("dog")) return "dogs";
       if (query.includes("kedi") || query.includes("cat")) return "cats";
     }
     return null;
@@ -211,7 +238,13 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] bg-white flex flex-col">
+    <div
+      ref={modalRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Arama"
+      className="fixed inset-0 z-[100] bg-white flex flex-col"
+    >
       {/* Top Search Bar */}
       <div className="bg-black text-white px-4 md:px-8 py-6 flex-shrink-0">
         <div className="max-w-7xl mx-auto">
@@ -222,7 +255,7 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Ürün, Renk, Stil..."
+                placeholder="ÃœrÃ¼n, Renk, Stil..."
                 className="w-full bg-transparent border-b border-white/30 pl-12 pr-4 py-3 text-white placeholder:text-white/50 focus:outline-none focus:border-white transition-colors"
                 autoFocus
               />
@@ -239,7 +272,7 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
           {/* Suggestions */}
           {suggestions.length > 0 && searchQuery.length >= 2 && (
             <div className="mt-4 flex items-center gap-2 flex-wrap">
-              <span className="text-sm text-white/70">Öneriler:</span>
+              <span className="text-sm text-white/70">Ã–neriler:</span>
               {suggestions.map((suggestion, idx) => (
                 <button
                   key={idx}
@@ -261,7 +294,7 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
           {detectedCategory && (
             <div className="mb-6">
               <span className="inline-block px-4 py-2 bg-black text-white text-sm uppercase tracking-wide">
-                {detectedCategory === "dogs" ? "KÖPEK" : "KEDİ"}
+                {detectedCategory === "dogs" ? "KÃ–PEK" : "KEDÄ°"}
               </span>
             </div>
           )}
@@ -275,7 +308,7 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
                   href="/collections"
                   className="text-xs text-gray-600 hover:text-black transition-colors"
                 >
-                  Tümünü Gör
+                  TÃ¼mÃ¼nÃ¼ GÃ¶r
                 </Link>
               </div>
               <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
@@ -312,22 +345,22 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
               {loading ? (
                 <span className="flex items-center gap-2">
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Aranıyor...
+                  AranÄ±yor...
                 </span>
               ) : (
-                `Ürünler: ${filteredProducts.length > 0 ? `${filteredProducts.length} sonuç gösteriliyor` : "Sonuç bulunamadı"}`
+                `ÃœrÃ¼nler: ${filteredProducts.length > 0 ? `${filteredProducts.length} sonuÃ§ gÃ¶steriliyor` : "SonuÃ§ bulunamadÄ±"}`
               )}
             </h2>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600 hidden sm:inline">Sırala:</span>
+              <span className="text-sm text-gray-600 hidden sm:inline">SÄ±rala:</span>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
                 className="text-sm bg-transparent border-none focus:outline-none cursor-pointer"
               >
-                <option value="relevance">Öne Çıkanlar</option>
-                <option value="price-low">Fiyat: Düşükten Yükseğe</option>
-                <option value="price-high">Fiyat: Yüksekten Düşüğe</option>
+                <option value="relevance">Ã–ne Ã‡Ä±kanlar</option>
+                <option value="price-low">Fiyat: DÃ¼ÅŸÃ¼kten YÃ¼kseÄŸe</option>
+                <option value="price-high">Fiyat: YÃ¼ksekten DÃ¼ÅŸÃ¼ÄŸe</option>
                 <option value="newest">En Yeni</option>
               </select>
               <ChevronDown className="w-4 h-4" />
@@ -339,7 +372,7 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
             {/* Filters Sidebar */}
             <div className="hidden md:block w-56 flex-shrink-0">
               <div className="bg-white p-4 border border-gray-200">
-                <h3 className="text-xs font-light uppercase tracking-wide mb-4">FİLTRELER</h3>
+                <h3 className="text-xs font-light uppercase tracking-wide mb-4">FÄ°LTRELER</h3>
                 <div className="space-y-4">
                   {/* Category Filter */}
                   <div>
@@ -347,7 +380,7 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
                       onClick={() => setOpenFilters(prev => ({ ...prev, category: !prev.category }))}
                       className="flex items-center justify-between w-full text-xs font-light mb-2 hover:opacity-70 transition-opacity"
                     >
-                      <span>KATEGORİ</span>
+                      <span>KATEGORÄ°</span>
                       {openFilters.category ? (
                         <Minus className="w-3 h-3" />
                       ) : (
@@ -361,14 +394,14 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
                           className={`block w-full text-left text-xs py-1 ${selectedCategory === null ? "font-medium text-black" : "text-gray-600"
                             }`}
                         >
-                          Tümü
+                          TÃ¼mÃ¼
                         </button>
                         <button
                           onClick={() => setSelectedCategory("dogs")}
                           className={`block w-full text-left text-xs py-1 ${selectedCategory === "dogs" ? "font-medium text-black" : "text-gray-600"
                             }`}
                         >
-                          Köpek
+                          KÃ¶pek
                         </button>
                         <button
                           onClick={() => setSelectedCategory("cats")}
@@ -438,7 +471,7 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
                           { name: "Navy", value: "#1E3A8A" },
                           { name: "Bej", value: "#E8D5C4" },
                           { name: "Kahverengi", value: "#8B4513" },
-                          { name: "Kırmızı", value: "#DC2626" },
+                          { name: "KÄ±rmÄ±zÄ±", value: "#DC2626" },
                           { name: "Mavi", value: "#2563EB" },
                         ].map((color) => (
                           <button
@@ -468,7 +501,7 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
                       onClick={() => setOpenFilters(prev => ({ ...prev, price: !prev.price }))}
                       className="flex items-center justify-between w-full text-xs font-light mb-2 hover:opacity-70 transition-opacity"
                     >
-                      <span>FİYAT</span>
+                      <span>FÄ°YAT</span>
                       {openFilters.price ? (
                         <Minus className="w-3 h-3" />
                       ) : (
@@ -495,7 +528,7 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
                           />
                         </div>
                         <div className="text-xs text-gray-600">
-                          {priceRange[0]}₺ - {priceRange[1]}₺
+                          {priceRange[0]}â‚º - {priceRange[1]}â‚º
                         </div>
                       </div>
                     )}
@@ -558,12 +591,12 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
                       <div className="flex items-center gap-2">
                         {product.originalPrice && product.originalPrice > product.price ? (
                           <>
-                            <p className="text-sm font-light text-black">{product.price} ₺</p>
-                            <p className="text-xs font-light text-gray-500 line-through">{product.originalPrice} ₺</p>
+                            <p className="text-sm font-light text-black">{product.price} â‚º</p>
+                            <p className="text-xs font-light text-gray-500 line-through">{product.originalPrice} â‚º</p>
                           </>
                         ) : (
                           <p className="text-sm font-light text-black">
-                            {product.originalPrice ? product.originalPrice : product.price} ₺
+                            {product.originalPrice ? product.originalPrice : product.price} â‚º
                           </p>
                         )}
                       </div>
@@ -572,11 +605,11 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
                 </div>
               ) : searchQuery.length > 0 ? (
                 <div className="text-center py-12">
-                  <p className="text-gray-600 font-light">Aradığınız kriterlere uygun ürün bulunamadı.</p>
+                  <p className="text-gray-600 font-light">AradÄ±ÄŸÄ±nÄ±z kriterlere uygun Ã¼rÃ¼n bulunamadÄ±.</p>
                 </div>
               ) : (
                 <div className="text-center py-12">
-                  <p className="text-gray-600 font-light">Arama yapmak için yukarıdaki alana yazın.</p>
+                  <p className="text-gray-600 font-light">Arama yapmak iÃ§in yukarÄ±daki alana yazÄ±n.</p>
                 </div>
               )}
             </div>

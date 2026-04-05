@@ -1,4 +1,4 @@
-import crypto from "crypto";
+﻿import crypto from "crypto";
 
 export const TAMI = {
   BASE_URL: process.env.TAMI_BASE_URL ?? "",
@@ -23,9 +23,6 @@ function ensureEnv() {
   if (miss.length) throw new Error(`Missing env for TAMI: ${miss.join(", ")}`);
 }
 
-/**
- * PG-Auth-Token = merchantId:terminalId:Base64(SHA256(merchantId + terminalId + secretKey))
- */
 export function buildPgAuthToken(): string {
   ensureEnv();
   const preimage = `${TAMI.MERCHANT_ID}${TAMI.TERMINAL_ID}${TAMI.SECRET_KEY}`;
@@ -33,9 +30,6 @@ export function buildPgAuthToken(): string {
   return `${TAMI.MERCHANT_ID}:${TAMI.TERMINAL_ID}:${digest}`;
 }
 
-/**
- * CorrelationId → her zaman unique UUID
- */
 export function newCorrelationId(): string {
   return `Correlation-${crypto.randomUUID()}`;
 }

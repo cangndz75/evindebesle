@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { prisma } from "@/lib/db";
@@ -9,12 +9,11 @@ export async function GET(req: NextRequest) {
     const session = await getServerSession(authConfig);
 
     if (!session?.user?.isAdmin) {
-      return NextResponse.json({ error: "Yetkisiz erişim" }, { status: 403 });
+      return NextResponse.json({ error: "Yetkisiz eriÅŸim" }, { status: 403 });
     }
 
-    // Prisma client kontrolü
     if (!prisma || !prisma.order) {
-      console.error("Prisma client veya order modeli bulunamadı");
+      console.error("Prisma client veya order modeli bulunamadÄ±");
       return NextResponse.json(
         {
           total: 0,
@@ -30,14 +29,12 @@ export async function GET(req: NextRequest) {
     const last7Days = subDays(now, 7);
     const last30Days = subDays(now, 30);
 
-    // Toplam müşteri sayısı
     const totalCustomers = await prisma.user.count({
       where: {
         isAdmin: false,
       },
     });
 
-    // Son 7 günde kayıt olanlar
     const newCustomers7Days = await prisma.user.count({
       where: {
         isAdmin: false,
@@ -45,7 +42,6 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    // Son 30 günde kayıt olanlar
     const newCustomers30Days = await prisma.user.count({
       where: {
         isAdmin: false,
@@ -53,7 +49,6 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    // En çok sipariş veren müşteriler
     let topCustomers: any[] = [];
     try {
       const allCustomers = await prisma.order.groupBy({
@@ -65,13 +60,11 @@ export async function GET(req: NextRequest) {
           total: true,
         },
       });
-      // Sipariş sayısına göre sırala ve ilk 5'ini al
       topCustomers = allCustomers
         .sort((a: any, b: any) => (b._count.id || 0) - (a._count.id || 0))
         .slice(0, 5);
     } catch (groupByError) {
-      console.error("groupBy hatası:", groupByError);
-      // Hata durumunda boş array döndür
+      console.error("groupBy hatasÄ±:", groupByError);
       topCustomers = [];
     }
 
@@ -115,7 +108,7 @@ export async function GET(req: NextRequest) {
   } catch (error: any) {
     console.error("Dashboard customers error:", error);
     return NextResponse.json(
-      { error: error.message || "Müşteri bilgileri yüklenirken bir hata oluştu" },
+      { error: error.message || "MÃ¼ÅŸteri bilgileri yÃ¼klenirken bir hata oluÅŸtu" },
       { status: 500 }
     );
   }

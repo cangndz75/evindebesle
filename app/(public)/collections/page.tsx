@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/db";
+﻿import { prisma } from "@/lib/db";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
@@ -6,7 +6,7 @@ import { unstable_cache } from "next/cache";
 
 export const metadata = {
   title: "Koleksiyonlar | Dark Velvet",
-  description: "Her koleksiyon, kendine özgü bir hikaye anlatır. Doku, siluet ve ruh halinin kusursuz uyumu.",
+  description: "Her koleksiyon, kendine Ã¶zgÃ¼ bir hikaye anlatÄ±r. Doku, siluet ve ruh halinin kusursuz uyumu.",
 };
 
 export const revalidate = 3600;
@@ -45,13 +45,13 @@ export default async function CollectionsPage() {
       <section className="relative w-full h-[85vh] min-h-[600px] bg-black flex flex-col items-center justify-center text-center px-6 overflow-hidden pt-20">
         <div className="z-10 max-w-4xl animate-in fade-in slide-in-from-bottom-8 duration-1000">
           <span className="text-[10px] md:text-xs tracking-[0.5em] uppercase text-white/60 mb-6 block font-light">
-            YENİ SEZON
+            YENÄ° SEZON
           </span>
           <h1 className="text-6xl md:text-8xl lg:text-9xl font-extralight text-white tracking-tighter mb-8 leading-tight">
             Koleksiyonlar
           </h1>
           <p className="text-sm md:text-lg text-white/70 max-w-2xl mx-auto font-light leading-relaxed mb-12">
-            Her koleksiyon, kendine özgü bir hikaye anlatır. Doku, siluet ve ruh halinin kusursuz uyumu.
+            Her koleksiyon, kendine Ã¶zgÃ¼ bir hikaye anlatÄ±r. Doku, siluet ve ruh halinin kusursuz uyumu.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link 
@@ -59,14 +59,14 @@ export default async function CollectionsPage() {
               prefetch={false}
               className="bg-white text-black px-10 py-4 text-[11px] tracking-[0.2em] uppercase font-bold hover:bg-white/90 transition-all duration-300"
             >
-              KOLEKSİYONU KEŞFET
+              KOLEKSÄ°YONU KEÅFET
             </Link>
             <Link 
               href="/collections/all"
               prefetch={true}
               className="border border-white/30 text-white px-10 py-4 text-[11px] tracking-[0.2em] uppercase font-bold hover:bg-white hover:text-black transition-all duration-300"
             >
-              TÜM KOLEKSİYONLAR
+              TÃœM KOLEKSÄ°YONLAR
             </Link>
           </div>
         </div>
@@ -80,14 +80,14 @@ export default async function CollectionsPage() {
       {/* 2. MIDDLE TEXT SECTION (White Background) */}
       <section className="py-24 md:py-40 px-6 max-w-7xl mx-auto text-center border-b border-gray-100">
         <span className="text-[10px] md:text-xs tracking-[0.4em] uppercase text-gray-400 mb-6 block font-bold">
-          KURGULANMIŞ HİKAYELER
+          KURGULANMIÅ HÄ°KAYELER
         </span>
         <h2 className="text-4xl md:text-6xl font-serif font-extralight tracking-tight text-black mb-10 italic">
           Her koleksiyon, bir ruh hali
         </h2>
         <p className="text-base md:text-lg text-gray-500 max-w-3xl mx-auto font-light leading-relaxed">
-           DARK VELVET'in her koleksiyonu, özgün bir estetik dil konuşur. Kumaş, kesim ve atmosferin 
-           özenle tasarlandığı dünyalara adım atın. Her parça, kendine ait bir hikaye anlatır.
+           DARK VELVET'in her koleksiyonu, Ã¶zgÃ¼n bir estetik dil konuÅŸur. KumaÅŸ, kesim ve atmosferin 
+           Ã¶zenle tasarlandÄ±ÄŸÄ± dÃ¼nyalara adÄ±m atÄ±n. Her parÃ§a, kendine ait bir hikaye anlatÄ±r.
         </p>
       </section>
 
@@ -102,16 +102,15 @@ export default async function CollectionsPage() {
               const isEven = idx % 2 === 0;
               const year = collection.createdAt.getFullYear();
               
-              // Dummy data for "Ruh" and "Malzeme" if not matched by specific titles
               let ruh = "Zarif & Modern";
-              let malzeme = "Premium Kumaş";
+              let malzeme = "Premium KumaÅŸ";
               
               if (collection.title.toLowerCase().includes("midnight")) {
                 ruh = "Romantik & Zarif";
-                malzeme = "Fransız Dantel";
+                malzeme = "FransÄ±z Dantel";
               } else if (collection.title.toLowerCase().includes("satin")) {
                 ruh = "Cesur & Modern";
-                malzeme = "İpek Saten";
+                malzeme = "Ä°pek Saten";
               }
 
               return (
@@ -133,7 +132,7 @@ export default async function CollectionsPage() {
 
 
                       <p className="text-base text-gray-500 font-light leading-relaxed max-w-md">
-                        {collection.description || `${collection.title} koleksiyonu, her detayıyla zarafeti ve modernliği simgeliyor.`}
+                        {collection.description || `${collection.title} koleksiyonu, her detayÄ±yla zarafeti ve modernliÄŸi simgeliyor.`}
                       </p>
 
                       <div className="pt-6">
@@ -142,7 +141,7 @@ export default async function CollectionsPage() {
                           prefetch={true}
                           className="group/link inline-flex items-center gap-4 text-[11px] tracking-[0.3em] uppercase font-bold text-black border-b border-black/10 pb-2 hover:border-black transition-all duration-500"
                         >
-                          KOLEKSİYONU KEŞFET
+                          KOLEKSÄ°YONU KEÅFET
                           <ArrowRight className="w-4 h-4 transition-transform duration-500 group-hover/link:translate-x-2" />
                         </Link>
                       </div>
@@ -191,10 +190,10 @@ export default async function CollectionsPage() {
       <section className="py-32 md:py-48 px-6 bg-gray-50 text-center">
         <div className="max-w-4xl mx-auto space-y-12">
           <h2 className="text-5xl md:text-7xl font-serif font-extralight tracking-tight text-black italic">
-            Kendi hikayenizi yazın
+            Kendi hikayenizi yazÄ±n
           </h2>
           <p className="text-gray-500 font-light text-lg max-w-2xl mx-auto leading-relaxed">
-             Her koleksiyon, farklı bir duyguya dokunur. Size uygun olanı keşfedin.
+             Her koleksiyon, farklÄ± bir duyguya dokunur. Size uygun olanÄ± keÅŸfedin.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
             <Link 
@@ -202,14 +201,14 @@ export default async function CollectionsPage() {
               prefetch={true}
               className="bg-black text-white px-10 py-5 text-[11px] tracking-[0.2em] uppercase font-bold hover:bg-black/90 transition-all duration-300 shadow-xl"
             >
-              TÜM KOLEKSİYONLAR
+              TÃœM KOLEKSÄ°YONLAR
             </Link>
             <Link 
               href="/new-arrivals"
               prefetch={true}
               className="bg-white text-black border border-black/10 px-10 py-5 text-[11px] tracking-[0.2em] uppercase font-bold hover:bg-gray-50 transition-all duration-300"
             >
-              YENİ ÜRÜNLERİ GÖR
+              YENÄ° ÃœRÃœNLERÄ° GÃ–R
             </Link>
           </div>
         </div>

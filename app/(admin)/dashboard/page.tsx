@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
@@ -237,7 +237,6 @@ export default function AdminDashboard() {
 
       if (stockRes.ok) {
         const stockData = await stockRes.json();
-        // Stok verilerini düşük ve tükenen olarak ayır
         const lowStock = stockData.filter((p: any) => p.stock > 0 && p.stock <= 10);
         const outOfStock = stockData.filter((p: any) => p.stock === 0);
         setLowStockProducts(lowStock.map((p: any) => ({
@@ -245,7 +244,7 @@ export default function AdminDashboard() {
           name: p.name,
           image: p.image ?? null,
           stock: p.stock,
-          minStock: 5, // Varsayılan min stock
+          minStock: 5, // VarsayÄ±lan min stock
         })));
         setOutOfStockProducts(outOfStock.map((p: any) => ({
           id: p.id,
@@ -266,7 +265,6 @@ export default function AdminDashboard() {
         setActionInbox(actionInboxData.items || []);
       }
 
-      // Son siparişler, ürünler ve top ürünler
       const [recentOrdersRes, recentProductsRes, topProductsRes] = await Promise.all([
         fetch("/api/admin/dashboard-orders?limit=5"),
         fetch("/api/admin/dashboard-products?type=recent"),
@@ -304,7 +302,6 @@ export default function AdminDashboard() {
   };
 
 
-  // Verileri yeni component'lere uygun formata dönüştür
   const smartActions = useMemo(() => actionInbox.map((item) => ({
     type: item.type.includes("order") || item.type.includes("ship") || item.type.includes("payment") || item.type.includes("refund")
       ? ("order" as const)
@@ -320,7 +317,7 @@ export default function AdminDashboard() {
   const orderOperationsData = useMemo(() => orders.map((order) => ({
     id: order.id,
     orderNumber: order.orderNumber || `#${order.id.slice(0, 8)}`,
-    customerName: order.user?.name || "Bilinmeyen Müşteri",
+    customerName: order.user?.name || "Bilinmeyen MÃ¼ÅŸteri",
     total: order.total || 0,
     status: order.status as "PENDING" | "PREPARING" | "SHIPPED" | "DELIVERED" | "CANCELLED" | "REFUNDED",
     createdAt: order.createdAt?.toString() || new Date().toISOString(),
@@ -373,7 +370,7 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-8 p-6 bg-gradient-to-br from-gray-50 via-white to-gray-50 min-h-screen">
 
-      {/* 🟥 1.1 KPI ŞERİDİ (YENİ) */}
+      {/* ğŸŸ¥ 1.1 KPI ÅERÄ°DÄ° (YENÄ°) */}
       {kpiData && stats ? (
         <KPIStrip
           data={{
@@ -394,7 +391,7 @@ export default function AdminDashboard() {
             },
             conversion: {
               value: `%${kpiData.conversionRate.rate}`,
-              tooltip: "Ziyaret -> Sipariş Dönüşümü",
+              tooltip: "Ziyaret -> SipariÅŸ DÃ¶nÃ¼ÅŸÃ¼mÃ¼",
             },
             abandonedCart: {
               value: kpiData.abandonedCart.count,
@@ -422,13 +419,13 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* 🟦 A) SMART ACTION BAR (ÜST KISIM) */}
+      {/* ğŸŸ¦ A) SMART ACTION BAR (ÃœST KISIM) */}
       <SmartActionBar actions={smartActions} />
 
 
-      {/* 🟩 B) OPERASYON + İÇGÖRÜ (ANA GÖVDE) */}
+      {/* ğŸŸ© B) OPERASYON + Ä°Ã‡GÃ–RÃœ (ANA GÃ–VDE) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* 1️⃣ Sipariş Operasyon Alanı (SOL PANEL - Kompakt) */}
+        {/* 1ï¸âƒ£ SipariÅŸ Operasyon AlanÄ± (SOL PANEL - Kompakt) */}
         <div className="lg:col-span-2 space-y-6">
           {loading ? (
             <Card className="border-0 shadow-sm bg-white/50 backdrop-blur-sm">
@@ -447,7 +444,7 @@ export default function AdminDashboard() {
             />
           )}
 
-          {/* Stok & Ürün Sağlığı (Alt kısım) */}
+          {/* Stok & ÃœrÃ¼n SaÄŸlÄ±ÄŸÄ± (Alt kÄ±sÄ±m) */}
           {loading ? (
             <Card className="border-0 shadow-sm bg-white/50 backdrop-blur-sm">
               <CardContent className="p-12">
@@ -466,7 +463,7 @@ export default function AdminDashboard() {
           )}
         </div>
 
-        {/* 2️⃣ Action Inbox (SAĞ PANEL) */}
+        {/* 2ï¸âƒ£ Action Inbox (SAÄ PANEL) */}
         <div>
           {loading ? (
             <Card className="border-0 shadow-sm bg-white/50 backdrop-blur-sm">
@@ -484,7 +481,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* 🟨 C) BUSINESS SNAPSHOT (ALT KISIM - SEKMELİ) */}
+      {/* ğŸŸ¨ C) BUSINESS SNAPSHOT (ALT KISIM - SEKMELÄ°) */}
       <Card className="border-0 shadow-sm bg-white/50 backdrop-blur-sm">
         <CardHeader className="pb-4 border-b border-gray-100">
           <div className="flex gap-2 p-1 bg-gray-100 rounded-lg">
@@ -511,9 +508,9 @@ export default function AdminDashboard() {
         <CardContent className="p-6">
           {activeTab === "ops" ? (
             <div className="space-y-6">
-              {/* Ops içeriği - şu an boş, ileride eklenebilir */}
+              {/* Ops iÃ§eriÄŸi - ÅŸu an boÅŸ, ileride eklenebilir */}
               <div className="text-center py-12">
-                <p className="text-sm text-gray-500">Operasyon detayları burada gösterilecek</p>
+                <p className="text-sm text-gray-500">Operasyon detaylarÄ± burada gÃ¶sterilecek</p>
               </div>
             </div>
           ) : (
@@ -560,21 +557,21 @@ export default function AdminDashboard() {
         </CardContent>
       </Card>
 
-      {/* Bildirim Gönder Modal */}
+      {/* Bildirim GÃ¶nder Modal */}
       <Dialog open={notificationModalOpen} onOpenChange={setNotificationModalOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Toplu Bildirim Gönder</DialogTitle>
+            <DialogTitle>Toplu Bildirim GÃ¶nder</DialogTitle>
             <DialogDescription>
-              Tüm kullanıcılara veya belirli bir gruba bildirim gönderebilirsiniz.
+              TÃ¼m kullanÄ±cÄ±lara veya belirli bir gruba bildirim gÃ¶nderebilirsiniz.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <Label htmlFor="notification-message">Bildirim Mesajı</Label>
+              <Label htmlFor="notification-message">Bildirim MesajÄ±</Label>
               <Textarea
                 id="notification-message"
-                placeholder="Bildirim mesajınızı buraya yazın..."
+                placeholder="Bildirim mesajÄ±nÄ±zÄ± buraya yazÄ±n..."
                 value={notificationMessage}
                 onChange={(e) => setNotificationMessage(e.target.value)}
                 className="mt-2 min-h-[120px]"
@@ -587,67 +584,67 @@ export default function AdminDashboard() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Tüm Kullanıcılar</SelectItem>
-                  <SelectItem value="premium">Premium Üyeler</SelectItem>
-                  <SelectItem value="active">Aktif Kullanıcılar</SelectItem>
+                  <SelectItem value="all">TÃ¼m KullanÄ±cÄ±lar</SelectItem>
+                  <SelectItem value="premium">Premium Ãœyeler</SelectItem>
+                  <SelectItem value="active">Aktif KullanÄ±cÄ±lar</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setNotificationModalOpen(false)}>
-              İptal
+              Ä°ptal
             </Button>
             <Button
               onClick={() => {
-                toast.success("Bildirim gönderildi!");
+                toast.success("Bildirim gÃ¶nderildi!");
                 setNotificationModalOpen(false);
                 setNotificationMessage("");
               }}
             >
-              Gönder
+              GÃ¶nder
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Rapor İndir Modal */}
+      {/* Rapor Ä°ndir Modal */}
       <Dialog open={reportModalOpen} onOpenChange={setReportModalOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Rapor İndir</DialogTitle>
+            <DialogTitle>Rapor Ä°ndir</DialogTitle>
             <DialogDescription>
-              İstediğiniz rapor türünü seçin ve indirin.
+              Ä°stediÄŸiniz rapor tÃ¼rÃ¼nÃ¼ seÃ§in ve indirin.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <Label>Rapor Türü</Label>
+              <Label>Rapor TÃ¼rÃ¼</Label>
               <Select value={reportType} onValueChange={setReportType}>
                 <SelectTrigger className="mt-2">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="sales">Satış Raporu</SelectItem>
-                  <SelectItem value="products">Ürün Raporu</SelectItem>
-                  <SelectItem value="customers">Müşteri Raporu</SelectItem>
-                  <SelectItem value="orders">Sipariş Raporu</SelectItem>
+                  <SelectItem value="sales">SatÄ±ÅŸ Raporu</SelectItem>
+                  <SelectItem value="products">ÃœrÃ¼n Raporu</SelectItem>
+                  <SelectItem value="customers">MÃ¼ÅŸteri Raporu</SelectItem>
+                  <SelectItem value="orders">SipariÅŸ Raporu</SelectItem>
                   <SelectItem value="revenue">Gelir Raporu</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label>Tarih Aralığı</Label>
+              <Label>Tarih AralÄ±ÄŸÄ±</Label>
               <Select value={dateRange} onValueChange={setDateRange}>
                 <SelectTrigger className="mt-2">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="today">Bugün</SelectItem>
-                  <SelectItem value="7days">Son 7 Gün</SelectItem>
-                  <SelectItem value="30days">Son 30 Gün</SelectItem>
-                  <SelectItem value="90days">Son 90 Gün</SelectItem>
-                  <SelectItem value="custom">Özel Tarih Aralığı</SelectItem>
+                  <SelectItem value="today">BugÃ¼n</SelectItem>
+                  <SelectItem value="7days">Son 7 GÃ¼n</SelectItem>
+                  <SelectItem value="30days">Son 30 GÃ¼n</SelectItem>
+                  <SelectItem value="90days">Son 90 GÃ¼n</SelectItem>
+                  <SelectItem value="custom">Ã–zel Tarih AralÄ±ÄŸÄ±</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -667,7 +664,7 @@ export default function AdminDashboard() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setReportModalOpen(false)}>
-              İptal
+              Ä°ptal
             </Button>
             <Button
               onClick={() => {
@@ -676,7 +673,7 @@ export default function AdminDashboard() {
               }}
             >
               <Download className="w-4 h-4 mr-2" />
-              İndir
+              Ä°ndir
             </Button>
           </DialogFooter>
         </DialogContent>

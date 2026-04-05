@@ -1,10 +1,9 @@
-"use client";
+﻿"use client";
 import useSWR from "swr";
 
 const fetcher = async (url: string) => {
   const res = await fetch(url, { credentials: "include" });
   
-  // API artık session yoksa 200 döndürüyor, bu yüzden sadece ok kontrolü yapıyoruz
   if (!res.ok) {
     throw new Error(`HTTP error! status: ${res.status}`);
   }

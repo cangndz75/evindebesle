@@ -1,4 +1,5 @@
-import type { NextConfig } from "next";
+﻿import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
   eslint: {
@@ -37,42 +38,31 @@ const nextConfig: NextConfig = {
     qualities: [75, 85],
     minimumCacheTTL: 3600,
   },
-  // Performans optimizasyonları
   compress: true,
   poweredByHeader: false,
   reactStrictMode: true,
-  // Experimental optimizasyonlar
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-dialog', '@radix-ui/react-select'],
   },
   serverExternalPackages: ["iyzipay"],
 
-  // Security Headers
   async headers() {
     return [
       {
         source: '/:path*',
         headers: [
-          // Clickjacking koruması
           { key: 'X-Frame-Options', value: 'DENY' },
-          // MIME sniffing koruması
           { key: 'X-Content-Type-Options', value: 'nosniff' },
-          // XSS koruması
           { key: 'X-XSS-Protection', value: '1; mode=block' },
-          // Referrer politikası
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-          // HTTPS zorunluluğu (1 yıl)
           { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains; preload' },
-          // İzin politikası
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), payment=(self)' },
-          // DNS Prefetch
           { key: 'X-DNS-Prefetch-Control', value: 'on' },
-          // Content Security Policy
           {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self';",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://sandbox-api.iyzipay.com https://checkout.iyzipay.com;",
+              "script-src 'self' 'unsafe-inline' https://sandbox-api.iyzipay.com https://checkout.iyzipay.com;",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;",
               "img-src 'self' blob: data: res.cloudinary.com images.unsplash.com plus.unsplash.com images.pexels.com cdn.dsmcdn.com https://*.iyzipay.com;",
               "font-src 'self' https://fonts.gstatic.com;",
@@ -85,7 +75,6 @@ const nextConfig: NextConfig = {
           },
         ],
       },
-      // API routes için ek güvenlik
       {
         source: '/api/:path*',
         headers: [
@@ -97,4 +86,11 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  silent: true,
+  disableLogger: true,
+  widenClientFileUpload: true,
+  telemetry: false,
+});

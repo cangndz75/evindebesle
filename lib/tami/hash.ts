@@ -1,8 +1,6 @@
-// lib/tami/hash.ts
-import crypto from "crypto";
+﻿import crypto from "crypto";
 import { CompactSign } from "jose";
 
-// kid ve k değerlerini .env’den doğrudan al, hashleme
 function getJwkResource() {
   const kid = (process.env.TAMI_FIXED_KID_VALUE || "").trim();
   const k = (process.env.TAMI_FIXED_K_VALUE || "").trim();
@@ -14,9 +12,6 @@ function getJwkResource() {
   return { kid, k };
 }
 
-/**
- * JWS / HS512 securityHash üretimi (AUTH için)
- */
 export async function generateSecurityHashV2(input: any): Promise<string> {
   const { kid, k } = getJwkResource();
 
@@ -36,9 +31,6 @@ export async function generateSecurityHashV2(input: any): Promise<string> {
   return jws;
 }
 
-/**
- * 3DS complete için securityHash → JWS/HS512 (dökümana uygun, orderId ile)
- */
 export async function securityHashForComplete(orderId: string): Promise<string> {
   const payload = { orderId };
   return generateSecurityHashV2(payload);

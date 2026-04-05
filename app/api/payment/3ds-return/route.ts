@@ -1,5 +1,4 @@
-// app/api/payment/3ds-return/route.ts
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { PaymentSessionStatus } from "@prisma/client";
 import { finalizeAppointmentFromDraftInternal } from "@/lib/payment";

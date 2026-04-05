@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
@@ -37,7 +37,6 @@ export default function AdminShowcasePage() {
   const [loading, setLoading] = useState(false);
   const [searching, setSearching] = useState(false);
 
-  // Debounced Search & Filter
   useEffect(() => {
     const timer = setTimeout(() => {
       if (search.length >= 2 || selectedCategoryId !== "all" || selectedGender !== "all") {
@@ -99,7 +98,7 @@ export default function AdminShowcasePage() {
       }
     } catch (e) {
       console.error(e);
-      toast.error("Vitrin listesi yüklenemedi");
+      toast.error("Vitrin listesi yÃ¼klenemedi");
     } finally {
       setLoading(false);
     }
@@ -107,7 +106,7 @@ export default function AdminShowcasePage() {
 
   const handleAdd = async (product: ProductBasics) => {
     if (showcaseItems.length >= 8) {
-      toast.error("En fazla 8 ürün eklenebilir.");
+      toast.error("En fazla 8 Ã¼rÃ¼n eklenebilir.");
       return;
     }
     try {
@@ -119,14 +118,13 @@ export default function AdminShowcasePage() {
 
       if (res.ok) {
         toast.success("Vitrine eklendi!");
-        // Arama ve sonuçları SI-FIR-LA-MI-YO-RUZ (Kullanıcı istediği için)
         fetchShowcaseItems();
       } else {
         const err = await res.json();
-        toast.error(err.error || "Hata oluştu");
+        toast.error(err.error || "Hata oluÅŸtu");
       }
     } catch (e) {
-      toast.error("Bir hata oluştu");
+      toast.error("Bir hata oluÅŸtu");
     }
   };
 
@@ -134,13 +132,13 @@ export default function AdminShowcasePage() {
     try {
       const res = await fetch(`/api/admin-showcase?productId=${productId}`, { method: "DELETE" });
       if (res.ok) {
-        toast.success("Vitrinden çıkarıldı!");
+        toast.success("Vitrinden Ã§Ä±karÄ±ldÄ±!");
         fetchShowcaseItems();
       } else {
         toast.error("Silinemedi");
       }
     } catch (e) {
-      toast.error("Bir hata oluştu");
+      toast.error("Bir hata oluÅŸtu");
     }
   };
 
@@ -151,16 +149,13 @@ export default function AdminShowcasePage() {
     const newItems = [...showcaseItems];
     const swapIndex = direction === 'up' ? index - 1 : index + 1;
     
-    // Swap order
     const tempOrder = newItems[index].order;
     newItems[index].order = newItems[swapIndex].order;
     newItems[swapIndex].order = tempOrder;
 
-    // Swap position in array for instant UI update
     [newItems[index], newItems[swapIndex]] = [newItems[swapIndex], newItems[index]];
     setShowcaseItems([...newItems]);
 
-    // Send update to API
     try {
       const reorderPayload = newItems.map(item => ({ id: item.id, order: item.order }));
       const res = await fetch("/api/admin-showcase", {
@@ -170,13 +165,13 @@ export default function AdminShowcasePage() {
       });
 
       if (!res.ok) {
-        toast.error("Sıralama güncellenemedi");
+        toast.error("SÄ±ralama gÃ¼ncellenemedi");
         fetchShowcaseItems(); // revert
       } else {
-        toast.success("Sıralama güncellendi");
+        toast.success("SÄ±ralama gÃ¼ncellendi");
       }
     } catch (e) {
-      toast.error("Sıralama yüklenirken hata oluştu");
+      toast.error("SÄ±ralama yÃ¼klenirken hata oluÅŸtu");
     }
   };
 
@@ -197,23 +192,23 @@ export default function AdminShowcasePage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Ana Sayfa Vitrini (Showcase)</h1>
         <p className="text-muted-foreground mt-2">
-          Ana sayfadaki ilk büyük slider'da (Product Showcase) görünecek en fazla 8 ürünü yönetin ve sırasını belirleyin.
+          Ana sayfadaki ilk bÃ¼yÃ¼k slider'da (Product Showcase) gÃ¶rÃ¼necek en fazla 8 Ã¼rÃ¼nÃ¼ yÃ¶netin ve sÄ±rasÄ±nÄ± belirleyin.
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Ürün Arama */}
+        {/* ÃœrÃ¼n Arama */}
         <Card>
           <CardHeader>
-            <CardTitle>Ürün Ara ve Ekle</CardTitle>
-            <CardDescription>İsme veya stok koduna göre arama yapabilirsiniz</CardDescription>
+            <CardTitle>ÃœrÃ¼n Ara ve Ekle</CardTitle>
+            <CardDescription>Ä°sme veya stok koduna gÃ¶re arama yapabilirsiniz</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Ürün adı veya kodu yazın..."
+                  placeholder="ÃœrÃ¼n adÄ± veya kodu yazÄ±n..."
                   className="pl-9"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -226,9 +221,9 @@ export default function AdminShowcasePage() {
                     <SelectValue placeholder="Cinsiyet" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Tüm Cinsiyetler</SelectItem>
+                    <SelectItem value="all">TÃ¼m Cinsiyetler</SelectItem>
                     <SelectItem value="male">Erkek</SelectItem>
-                    <SelectItem value="female">Kadın</SelectItem>
+                    <SelectItem value="female">KadÄ±n</SelectItem>
                     <SelectItem value="unisex">Unisex</SelectItem>
                   </SelectContent>
                 </Select>
@@ -238,7 +233,7 @@ export default function AdminShowcasePage() {
                     <SelectValue placeholder="Kategori" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Tüm Kategoriler</SelectItem>
+                    <SelectItem value="all">TÃ¼m Kategoriler</SelectItem>
                     {categories.map((cat) => (
                       <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
                     ))}
@@ -249,7 +244,7 @@ export default function AdminShowcasePage() {
 
             {(search.length >= 2 || selectedCategoryId !== "all" || selectedGender !== "all") && searchResults.length === 0 && !searching && (
               <div className="text-center py-8 text-sm text-gray-400 font-light italic">
-                Sonuç bulunamadı
+                SonuÃ§ bulunamadÄ±
               </div>
             )}
 
@@ -302,26 +297,26 @@ export default function AdminShowcasePage() {
         <Card>
           <CardHeader>
              <CardTitle className="flex justify-between items-center">
-                Vitrindeki Ürünler
+                Vitrindeki ÃœrÃ¼nler
                 <span className="text-sm font-normal text-muted-foreground bg-gray-100 px-2 py-1 rounded">
                    {showcaseItems.length} / 8 Eklendi
                 </span>
              </CardTitle>
-             <CardDescription>Vitrindeki ürünleri ve sırasını görüntüleyin</CardDescription>
+             <CardDescription>Vitrindeki Ã¼rÃ¼nleri ve sÄ±rasÄ±nÄ± gÃ¶rÃ¼ntÃ¼leyin</CardDescription>
           </CardHeader>
           <CardContent>
              {loading ? (
-                <div className="text-center py-4 text-sm text-gray-500">Yükleniyor...</div>
+                <div className="text-center py-4 text-sm text-gray-500">YÃ¼kleniyor...</div>
              ) : showcaseItems.length === 0 ? (
-                <div className="text-center py-4 text-sm text-gray-500">Vitrinde henüz ürün yok.</div>
+                <div className="text-center py-4 text-sm text-gray-500">Vitrinde henÃ¼z Ã¼rÃ¼n yok.</div>
              ) : (
                 <Table>
                    <TableHeader>
                       <TableRow>
-                         <TableHead>Sıra</TableHead>
+                         <TableHead>SÄ±ra</TableHead>
                          <TableHead>Resim</TableHead>
-                         <TableHead>Ürün Adı</TableHead>
-                         <TableHead className="text-right">İşlem</TableHead>
+                         <TableHead>ÃœrÃ¼n AdÄ±</TableHead>
+                         <TableHead className="text-right">Ä°ÅŸlem</TableHead>
                       </TableRow>
                    </TableHeader>
                    <TableBody>

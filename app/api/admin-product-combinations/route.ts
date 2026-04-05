@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 
@@ -25,7 +25,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Check if combo already exists
     const existing = await prisma.productCombination.findUnique({
       where: {
         productId_relatedProductId: {
@@ -42,7 +41,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Create the combination
     const combo = await prisma.productCombination.create({
       data: {
         productId,

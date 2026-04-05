@@ -1,9 +1,8 @@
-import { prisma } from "@/lib/db";
+﻿import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 
-// GET: Sipariş detayını getir
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -16,7 +15,6 @@ export async function GET(
 
     const { id } = await params;
 
-    // Admin kontrolü
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: { isAdmin: true },
@@ -103,7 +101,7 @@ export async function GET(
 
     if (!order) {
       return NextResponse.json(
-        { error: "Sipariş bulunamadı" },
+        { error: "SipariÅŸ bulunamadÄ±" },
         { status: 404 }
       );
     }
@@ -112,13 +110,12 @@ export async function GET(
   } catch (error: any) {
     console.error("Order detail fetch error:", error);
     return NextResponse.json(
-      { error: "Sipariş detayı yüklenirken bir hata oluştu." },
+      { error: "SipariÅŸ detayÄ± yÃ¼klenirken bir hata oluÅŸtu." },
       { status: 500 }
     );
   }
 }
 
-// PATCH: Sipariş durumunu güncelle
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -133,7 +130,6 @@ export async function PATCH(
     const body = await request.json();
     const { status, trackingNumber, adminNote } = body;
 
-    // Admin kontrolü
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: { isAdmin: true },
@@ -143,7 +139,6 @@ export async function PATCH(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // Get old order for audit log
     const oldOrder = await prisma.order.findUnique({
       where: { id },
       select: { status: true, adminNote: true },
@@ -152,7 +147,6 @@ export async function PATCH(
     const updateData: any = {};
     if (status) {
       updateData.status = status;
-      // Durum değişikliklerine göre tarihleri güncelle
       if (status === "SHIPPED") {
         updateData.shippedAt = new Date();
       } else if (status === "DELIVERED") {
@@ -190,7 +184,7 @@ export async function PATCH(
   } catch (error: any) {
     console.error("Order update error:", error);
     return NextResponse.json(
-      { error: "Sipariş güncellenirken bir hata oluştu." },
+      { error: "SipariÅŸ gÃ¼ncellenirken bir hata oluÅŸtu." },
       { status: 500 }
     );
   }

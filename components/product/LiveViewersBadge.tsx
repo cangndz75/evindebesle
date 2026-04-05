@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { Eye } from "lucide-react";
@@ -13,7 +13,6 @@ export default function LiveViewersBadge({ productId, className = "" }: LiveView
     const [show, setShow] = useState(false);
 
     useEffect(() => {
-        // İlk yükleme - ürün görüntüleme kaydı
         const registerView = async () => {
             try {
                 await fetch("/api/products/live-viewers", {
@@ -28,14 +27,13 @@ export default function LiveViewersBadge({ productId, className = "" }: LiveView
 
         registerView();
 
-        // Aktif görüntüleyici sayısını al
         const fetchViewers = async () => {
             try {
                 const res = await fetch(`/api/products/live-viewers?productId=${productId}`);
                 if (res.ok) {
                     const data = await res.json();
                     setViewers(data.count || 0);
-                    setShow(data.count > 1); // 1'den fazla kişi varsa göster
+                    setShow(data.count > 1); // 1'den fazla kiÅŸi varsa gÃ¶ster
                 }
             } catch (error) {
                 console.error("Failed to fetch viewers:", error);
@@ -44,7 +42,6 @@ export default function LiveViewersBadge({ productId, className = "" }: LiveView
 
         fetchViewers();
 
-        // Her 30 saniyede güncelle
         const interval = setInterval(fetchViewers, 30000);
 
         return () => clearInterval(interval);
@@ -61,7 +58,7 @@ export default function LiveViewersBadge({ productId, className = "" }: LiveView
                 <span className="absolute -top-1 -right-1 w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
             </div>
             <span className="text-sm font-medium">
-                {viewers} kişi şu an bakıyor
+                {viewers} kiÅŸi ÅŸu an bakÄ±yor
             </span>
         </div>
     );

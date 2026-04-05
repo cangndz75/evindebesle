@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+﻿import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -15,7 +15,6 @@ async function main() {
         });
 
         if (!existing) {
-            // Check if slug exists to avoid unique constraint error on slug
             const slugExists = await prisma.category.findUnique({
                 where: { slug: cat.slug },
             });

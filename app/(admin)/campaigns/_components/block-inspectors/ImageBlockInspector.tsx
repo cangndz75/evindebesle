@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { Block } from "../../types";
@@ -43,15 +43,13 @@ export default function ImageBlockInspector({
         const file = e.target.files?.[0];
         if (!file) return;
 
-        // Check file type
         if (!file.type.startsWith("image/")) {
-            toast.error("Lütfen bir görsel dosyası seçin");
+            toast.error("LÃ¼tfen bir gÃ¶rsel dosyasÄ± seÃ§in");
             return;
         }
 
-        // Check file size (max 5MB)
         if (file.size > 5 * 1024 * 1024) {
-            toast.error("Dosya boyutu 5MB'dan küçük olmalıdır");
+            toast.error("Dosya boyutu 5MB'dan kÃ¼Ã§Ã¼k olmalÄ±dÄ±r");
             return;
         }
 
@@ -71,10 +69,10 @@ export default function ImageBlockInspector({
 
             const data = await response.json();
             updateContent("imageUrl", data.url);
-            toast.success("Görsel yüklendi");
+            toast.success("GÃ¶rsel yÃ¼klendi");
         } catch (error) {
             console.error("Upload error:", error);
-            toast.error("Görsel yüklenirken hata oluştu");
+            toast.error("GÃ¶rsel yÃ¼klenirken hata oluÅŸtu");
         } finally {
             setIsUploading(false);
         }
@@ -82,9 +80,9 @@ export default function ImageBlockInspector({
 
     return (
         <div className="space-y-4">
-            {/* Görsel URL */}
+            {/* GÃ¶rsel URL */}
             <div>
-                <Label className="text-xs font-medium text-gray-700">Görsel URL</Label>
+                <Label className="text-xs font-medium text-gray-700">GÃ¶rsel URL</Label>
                 <div className="flex gap-2 mt-1">
                     <Input
                         value={block.content.imageUrl || ""}
@@ -114,7 +112,7 @@ export default function ImageBlockInspector({
                     </label>
                 </div>
                 {isUploading && (
-                    <p className="text-xs text-gray-500 mt-1">Yükleniyor...</p>
+                    <p className="text-xs text-gray-500 mt-1">YÃ¼kleniyor...</p>
                 )}
             </div>
 
@@ -137,7 +135,7 @@ export default function ImageBlockInspector({
                 <Input
                     value={block.content.altText || ""}
                     onChange={(e) => updateContent("altText", e.target.value)}
-                    placeholder="Görsel açıklaması..."
+                    placeholder="GÃ¶rsel aÃ§Ä±klamasÄ±..."
                     className="mt-1"
                 />
             </div>
@@ -169,15 +167,15 @@ export default function ImageBlockInspector({
                     <SelectContent>
                         <SelectItem value="left">Sol</SelectItem>
                         <SelectItem value="center">Orta</SelectItem>
-                        <SelectItem value="right">Sağ</SelectItem>
+                        <SelectItem value="right">SaÄŸ</SelectItem>
                     </SelectContent>
                 </Select>
             </div>
 
-            {/* Maksimum Genişlik */}
+            {/* Maksimum GeniÅŸlik */}
             <div>
                 <Label className="text-xs font-medium text-gray-700">
-                    Maksimum Genişlik: {block.style.maxWidth || 100}%
+                    Maksimum GeniÅŸlik: {block.style.maxWidth || 100}%
                 </Label>
                 <Slider
                     value={[block.style.maxWidth || 100]}
@@ -192,7 +190,7 @@ export default function ImageBlockInspector({
             {/* Dikey Padding */}
             <div>
                 <Label className="text-xs font-medium text-gray-700">
-                    Dikey Boşluk: {block.style.paddingY || 16}px
+                    Dikey BoÅŸluk: {block.style.paddingY || 16}px
                 </Label>
                 <Slider
                     value={[block.style.paddingY || 16]}

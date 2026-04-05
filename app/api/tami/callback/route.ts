@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { PaymentSessionStatus } from "@prisma/client";
 import { finalizeAppointmentFromDraftInternal } from "@/lib/payment";
@@ -18,12 +18,11 @@ export async function POST(req: NextRequest) {
     const ps = await prisma.paymentSession.findFirst({ where: { orderId } });
     if (!ps) {
       return NextResponse.json(
-        { error: "paymentSession bulunamadı" },
+        { error: "paymentSession bulunamadÄ±" },
         { status: 404 }
       );
     }
 
-    // 3DS sonucu güncelle
     await prisma.paymentSession.update({
       where: { id: ps.id },
       data: {
@@ -36,7 +35,6 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Başarısızsa direkt redirect
     if (!success) {
       const url = `${
         process.env.NEXT_PUBLIC_SITE_URL || process.env.FRONTEND_BASE_URL
@@ -44,7 +42,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.redirect(url);
     }
 
-    // --- Complete-3DS çağrısı ---
     const payload = {
       orderId,
       securityHash: securityHashForComplete(orderId),
@@ -71,7 +68,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.redirect(url);
     }
 
-    // Başarılı → Appointment finalize et
     const appointment = await finalizeAppointmentFromDraftInternal({
       draftAppointmentId: ps.draftId!,
       userId: ps.userId,

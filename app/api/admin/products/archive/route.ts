@@ -1,9 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { logAuditAction } from "@/lib/auditLog";
 
-// POST: Ürünleri arşivle (soft delete)
 export async function POST(req: NextRequest) {
     try {
         const user = await getCurrentUser();
@@ -15,14 +14,14 @@ export async function POST(req: NextRequest) {
 
         if (!productIds || !Array.isArray(productIds) || productIds.length === 0) {
             return NextResponse.json(
-                { error: "Ürün ID'leri gerekli" },
+                { error: "ÃœrÃ¼n ID'leri gerekli" },
                 { status: 400 }
             );
         }
 
         if (!["archive", "restore", "delete"].includes(action)) {
             return NextResponse.json(
-                { error: "Geçersiz işlem. archive, restore veya delete olmalı" },
+                { error: "GeÃ§ersiz iÅŸlem. archive, restore veya delete olmalÄ±" },
                 { status: 400 }
             );
         }
@@ -30,22 +29,18 @@ export async function POST(req: NextRequest) {
         let updatedCount = 0;
 
         if (action === "archive") {
-            // Soft delete - isActive = false
             const result = await prisma.product.updateMany({
                 where: { id: { in: productIds } },
                 data: { isActive: false },
             });
             updatedCount = result.count;
         } else if (action === "restore") {
-            // Restore - isActive = true
             const result = await prisma.product.updateMany({
                 where: { id: { in: productIds } },
                 data: { isActive: true },
             });
             updatedCount = result.count;
         } else if (action === "delete") {
-            // Hard delete - permanently remove
-            // First check if any products have orders
             const productsWithOrders = await prisma.product.findMany({
                 where: {
                     id: { in: productIds },
@@ -57,14 +52,13 @@ export async function POST(req: NextRequest) {
             if (productsWithOrders.length > 0) {
                 return NextResponse.json(
                     {
-                        error: "Siparişi olan ürünler silinemez. Bunun yerine arşivleyin.",
+                        error: "SipariÅŸi olan Ã¼rÃ¼nler silinemez. Bunun yerine arÅŸivleyin.",
                         products: productsWithOrders.map((p: any) => p.name),
                     },
                     { status: 400 }
                 );
             }
 
-            // Delete products without orders
             const deleteIds = productIds.filter(
                 (id: string) => !productsWithOrders.find((p: any) => p.id === id)
             );
@@ -77,7 +71,6 @@ export async function POST(req: NextRequest) {
             }
         }
 
-        // Audit log
         await logAuditAction({
             action: "PRODUCT_UPDATE",
             adminId: user.id,
@@ -93,20 +86,20 @@ export async function POST(req: NextRequest) {
         });
 
         const actionText = ({
-            archive: "arşivlendi",
-            restore: "geri yüklendi",
+            archive: "arÅŸivlendi",
+            restore: "geri yÃ¼klendi",
             delete: "silindi",
         } as any)[action];
 
         return NextResponse.json({
             success: true,
-            message: `${updatedCount} ürün ${actionText}`,
+            message: `${updatedCount} Ã¼rÃ¼n ${actionText}`,
             count: updatedCount,
         });
     } catch (error) {
         console.error("Error in archive operation:", error);
         return NextResponse.json(
-            { error: "İşlem sırasında bir hata oluştu" },
+            { error: "Ä°ÅŸlem sÄ±rasÄ±nda bir hata oluÅŸtu" },
             { status: 500 }
         );
     }

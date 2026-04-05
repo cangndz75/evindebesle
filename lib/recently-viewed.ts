@@ -1,5 +1,4 @@
-// Son görüntülenen ürünler için localStorage yardımcı fonksiyonları
-
+﻿
 export interface RecentlyViewedProduct {
   id: string;
   productId: string;
@@ -12,9 +11,8 @@ export interface RecentlyViewedProduct {
 }
 
 const STORAGE_KEY = "recentlyViewedProducts";
-const MAX_ITEMS = 20; // Maksimum 20 ürün sakla
+const MAX_ITEMS = 20; // Maksimum 20 Ã¼rÃ¼n sakla
 
-// localStorage'dan son görüntülenen ürünleri getir
 export function getRecentlyViewed(): RecentlyViewedProduct[] {
   if (typeof window === "undefined") return [];
   try {
@@ -22,7 +20,6 @@ export function getRecentlyViewed(): RecentlyViewedProduct[] {
     if (!stored) return [];
     
     const products: RecentlyViewedProduct[] = JSON.parse(stored);
-    // Tarih sırasına göre sırala (en yeni önce)
     return products.sort((a, b) => b.viewedAt - a.viewedAt);
   } catch (error) {
     console.error("Error reading recently viewed products:", error);
@@ -30,7 +27,6 @@ export function getRecentlyViewed(): RecentlyViewedProduct[] {
   }
 }
 
-// localStorage'a son görüntülenen ürün ekle
 export function addToRecentlyViewed(product: {
   id: string;
   name: string;
@@ -44,10 +40,8 @@ export function addToRecentlyViewed(product: {
   try {
     const products = getRecentlyViewed();
     
-    // Aynı ürünü kaldır (varsa)
     const filtered = products.filter((p) => p.productId !== product.id);
     
-    // Yeni ürünü ekle
     const newProduct: RecentlyViewedProduct = {
       id: `view-${Date.now()}-${Math.random()}`,
       productId: product.id,
@@ -59,23 +53,18 @@ export function addToRecentlyViewed(product: {
       viewedAt: Date.now(),
     };
     
-    // En başa ekle
     filtered.unshift(newProduct);
     
-    // Maksimum sayıyı aşmamak için son elemanları kaldır
     const limited = filtered.slice(0, MAX_ITEMS);
     
-    // localStorage'a kaydet
     localStorage.setItem(STORAGE_KEY, JSON.stringify(limited));
     
-    // Event dispatch et (diğer componentler güncellenebilsin)
     window.dispatchEvent(new Event("recentlyViewedUpdated"));
   } catch (error) {
     console.error("Error saving recently viewed product:", error);
   }
 }
 
-// Son görüntülenen ürünleri temizle
 export function clearRecentlyViewed(): void {
   if (typeof window === "undefined") return;
   try {
@@ -86,7 +75,6 @@ export function clearRecentlyViewed(): void {
   }
 }
 
-// Belirli bir ürünü kaldır
 export function removeFromRecentlyViewed(productId: string): void {
   if (typeof window === "undefined") return;
   

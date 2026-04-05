@@ -1,11 +1,4 @@
-/**
- * Input Sanitization Utilities
- * Protect against XSS and injection attacks
- */
-
-/**
- * Escape HTML special characters
- */
+﻿
 export function escapeHtml(str: string): string {
     const htmlEscapes: Record<string, string> = {
         "&": "&amp;",
@@ -21,17 +14,10 @@ export function escapeHtml(str: string): string {
     return str.replace(/[&<>"'`=/]/g, (char) => htmlEscapes[char]);
 }
 
-/**
- * Remove HTML tags from string
- */
 export function stripHtml(str: string): string {
     return str.replace(/<[^>]*>/g, "");
 }
 
-/**
- * Sanitize string for safe database storage
- * Removes null bytes and trims whitespace
- */
 export function sanitizeString(str: string): string {
     if (typeof str !== "string") return "";
     return str
@@ -39,9 +25,6 @@ export function sanitizeString(str: string): string {
         .trim();
 }
 
-/**
- * Sanitize object keys and string values recursively
- */
 export function sanitizeObject<T extends Record<string, unknown>>(obj: T): T {
     const result: Record<string, unknown> = {};
 
@@ -68,9 +51,6 @@ export function sanitizeObject<T extends Record<string, unknown>>(obj: T): T {
     return result as T;
 }
 
-/**
- * Validate and sanitize email
- */
 export function sanitizeEmail(email: string): string | null {
     const sanitized = sanitizeString(email).toLowerCase();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -82,14 +62,9 @@ export function sanitizeEmail(email: string): string | null {
     return sanitized;
 }
 
-/**
- * Validate and sanitize phone number (Turkish format)
- */
 export function sanitizePhone(phone: string): string | null {
-    // Remove all non-digits
     const digits = phone.replace(/\D/g, "");
 
-    // Turkish phone: 10 or 11 digits (with or without leading 0)
     if (digits.length === 10) {
         return `0${digits}`;
     } else if (digits.length === 11 && digits.startsWith("0")) {
@@ -101,13 +76,9 @@ export function sanitizePhone(phone: string): string | null {
     return null;
 }
 
-/**
- * Sanitize URL
- */
 export function sanitizeUrl(url: string): string | null {
     const sanitized = sanitizeString(url);
 
-    // Check for javascript: or data: schemes
     const lowered = sanitized.toLowerCase();
     if (
         lowered.startsWith("javascript:") ||
@@ -118,11 +89,9 @@ export function sanitizeUrl(url: string): string | null {
     }
 
     try {
-        // Validate URL format
         new URL(sanitized);
         return sanitized;
     } catch {
-        // If not absolute URL, check if it's a valid relative path
         if (sanitized.startsWith("/") && !sanitized.startsWith("//")) {
             return sanitized;
         }
@@ -130,9 +99,6 @@ export function sanitizeUrl(url: string): string | null {
     }
 }
 
-/**
- * Sanitize slug (URL-friendly string)
- */
 export function sanitizeSlug(str: string): string {
     return sanitizeString(str)
         .toLowerCase()
@@ -141,9 +107,6 @@ export function sanitizeSlug(str: string): string {
         .replace(/^-|-$/g, ""); // Remove leading/trailing hyphens
 }
 
-/**
- * Validate price (positive number with max 2 decimal places)
- */
 export function sanitizePrice(value: unknown): number | null {
     const num = typeof value === "string" ? parseFloat(value) : value;
 
@@ -151,13 +114,9 @@ export function sanitizePrice(value: unknown): number | null {
         return null;
     }
 
-    // Round to 2 decimal places
     return Math.round(num * 100) / 100;
 }
 
-/**
- * Validate positive integer
- */
 export function sanitizePositiveInt(value: unknown): number | null {
     const num = typeof value === "string" ? parseInt(value, 10) : value;
 

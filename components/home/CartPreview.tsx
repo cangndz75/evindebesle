@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
@@ -24,10 +24,8 @@ export default function CartPreview({ cartIconRef, headerBottom }: CartPreviewPr
   const router = useRouter();
   const { data: session } = useSession();
 
-  // Header store'dan cart count'u al
   const { cartCount, refreshCartCount } = useHeaderStore();
 
-  // Sepet güncellemelerini dinle
   useEffect(() => {
     const handleCartUpdate = () => {
       refreshCartCount(session);
@@ -42,15 +40,12 @@ export default function CartPreview({ cartIconRef, headerBottom }: CartPreviewPr
       const { product, size, color } = e.detail;
       setPopup({ product, size, color });
 
-      // Sepet sayısını güncelle
       refreshCartCount(session);
 
-      // Önceki timer'ı temizle
       if (timerRef.current) {
         clearTimeout(timerRef.current);
       }
 
-      // 6 saniye sonra otomatik kapat
       timerRef.current = setTimeout(() => {
         setPopup(null);
       }, 6000);
@@ -65,7 +60,6 @@ export default function CartPreview({ cartIconRef, headerBottom }: CartPreviewPr
     };
   }, [session]);
 
-  // Click outside to close
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
@@ -85,7 +79,6 @@ export default function CartPreview({ cartIconRef, headerBottom }: CartPreviewPr
     }
   }, [popup]);
 
-  // ESC to close
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape" && popup) {
@@ -149,7 +142,7 @@ export default function CartPreview({ cartIconRef, headerBottom }: CartPreviewPr
               {popup.color && <span>{popup.color}</span>}
             </p>
             <p className="text-sm font-light text-[#111]">
-              ₺{(popup.product.originalPrice ?? popup.product.price).toFixed(2)}
+              â‚º{(popup.product.originalPrice ?? popup.product.price).toFixed(2)}
             </p>
           </div>
         </div>
@@ -162,12 +155,11 @@ export default function CartPreview({ cartIconRef, headerBottom }: CartPreviewPr
               if (timerRef.current) {
                 clearTimeout(timerRef.current);
               }
-              // Sepet penceresini aç
               window.dispatchEvent(new Event("openCart"));
             }}
             className="w-full px-4 py-2.5 border border-[#111] bg-white text-[#111] font-light text-xs uppercase tracking-wider hover:bg-[#111] hover:text-white transition-colors text-center"
           >
-            Sepeti Görüntüle {cartCount > 0 && `(${cartCount})`}
+            Sepeti GÃ¶rÃ¼ntÃ¼le {cartCount > 0 && `(${cartCount})`}
           </button>
           <Link
             href="/checkout/summary"
@@ -179,7 +171,7 @@ export default function CartPreview({ cartIconRef, headerBottom }: CartPreviewPr
             }}
             className="w-full px-4 py-2.5 bg-[#111] text-white font-light text-xs uppercase tracking-wider hover:bg-[#333] transition-colors text-center block"
           >
-            Ödeme Adımına Geç
+            Ã–deme AdÄ±mÄ±na GeÃ§
           </Link>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import nextDynamic from "next/dynamic";
+﻿import nextDynamic from "next/dynamic";
 import { cache } from "react";
 import CampaignStrip from "@/components/home/CampaignStrip";
 import ByltStyleHero from "@/components/home/ByltStyleHero";
@@ -7,7 +7,6 @@ import ProductShowcase from "@/components/home/ProductShowcase";
 import CategoryShowcase from "@/components/home/CategoryShowcase";
 import HomeCategoryRail from "@/components/home/HomeCategoryRail";
 
-// Lazy load büyük componentler
 const EditorialBanner = nextDynamic(() => import("@/components/home/EditorialBanner"), {
   loading: () => <div className="h-64 bg-gray-100 animate-pulse" />,
 });
@@ -40,10 +39,8 @@ import type { Product } from "@/lib/homeData";
 import TabbedProductCarousel from "@/components/home/TabbedProductCarousel";
 import { prisma } from "@/lib/db";
 
-// Performans için ISR - revalidatePath ile tetiklenir
 export const revalidate = 3600;
 
-// Helper: JSON string'i array'e çevir
 function parseImages(images: string | null): string[] {
   if (!images) return [];
   try {
@@ -54,18 +51,15 @@ function parseImages(images: string | null): string[] {
   }
 }
 
-// Helper: Product'ı formatla
 function formatProduct(product: any, type: "new-arrivals" | "best-sellers" | "featured"): Product {
   const firstColor = product.colors[0];
   const colorImages = firstColor?.images ? parseImages(firstColor.images) : [];
   const mainImage = product.primaryImage || product.image || colorImages[0] || "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop";
 
-  // Hover image için: önce secondaryImage, sonra ilk rengin 2. görseli, sonra diğer renklerin görselleri
   let hoverImage = product.secondaryImage;
   if (!hoverImage && colorImages.length > 1) {
     hoverImage = colorImages[1];
   }
-  // Eğer hala yoksa, diğer renklerden ilk görseli al
   if (!hoverImage && product.colors && product.colors.length > 1) {
     for (let i = 1; i < product.colors.length; i++) {
       const otherColorImages = product.colors[i]?.images ? parseImages(product.colors[i].images) : [];
@@ -75,7 +69,6 @@ function formatProduct(product: any, type: "new-arrivals" | "best-sellers" | "fe
       }
     }
   }
-  // Son çare olarak mainImage
   if (!hoverImage) {
     hoverImage = mainImage;
   }
@@ -202,7 +195,6 @@ const getShowcaseProducts = cache(async (): Promise<Product[]> => {
   }
 });
 
-// Kategorileri getir
 type CategoryForRail = {
   id: string;
   name: string;
@@ -234,24 +226,24 @@ import { Metadata } from "next";
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://darkvelvet.com";
 
 export const metadata: Metadata = {
-  title: "Dark Velvet | Premium İç ve Dış Giyim Koleksiyonu",
-  description: "Türkiye'nin önde gelen premium iç giyim markası. Kadın ve erkek için kaliteli iç çamaşırı, külot, sütyen, boxer, sweat koleksiyonları. Ücretsiz kargo, hızlı teslimat.",
+  title: "Dark Velvet | Premium Ä°Ã§ ve DÄ±ÅŸ Giyim Koleksiyonu",
+  description: "TÃ¼rkiye'nin Ã¶nde gelen premium iÃ§ giyim markasÄ±. KadÄ±n ve erkek iÃ§in kaliteli iÃ§ Ã§amaÅŸÄ±rÄ±, kÃ¼lot, sÃ¼tyen, boxer, sweat koleksiyonlarÄ±. Ãœcretsiz kargo, hÄ±zlÄ± teslimat.",
   keywords: [
-    "iç çamaşırı",
-    "kadın iç çamaşırı",
-    "erkek iç çamaşırı",
-    "külot",
-    "sütyen",
+    "iÃ§ Ã§amaÅŸÄ±rÄ±",
+    "kadÄ±n iÃ§ Ã§amaÅŸÄ±rÄ±",
+    "erkek iÃ§ Ã§amaÅŸÄ±rÄ±",
+    "kÃ¼lot",
+    "sÃ¼tyen",
     "boxer",
     "sweat",
     "Dark Velvet",
-    "premium iç giyim",
-    "online iç çamaşırı",
-    "iç giyim mağazası"
+    "premium iÃ§ giyim",
+    "online iÃ§ Ã§amaÅŸÄ±rÄ±",
+    "iÃ§ giyim maÄŸazasÄ±"
   ],
   openGraph: {
-    title: "Dark Velvet - Premium İç Giyim",
-    description: "Türkiye'nin önde gelen premium iç giyim markası. Kaliteli ve şık tasarımlar.",
+    title: "Dark Velvet - Premium Ä°Ã§ Giyim",
+    description: "TÃ¼rkiye'nin Ã¶nde gelen premium iÃ§ giyim markasÄ±. Kaliteli ve ÅŸÄ±k tasarÄ±mlar.",
     url: `${BASE_URL}/home`,
     type: "website",
     locale: "tr_TR",
@@ -261,14 +253,14 @@ export const metadata: Metadata = {
         url: `${BASE_URL}/og-home.jpg`,
         width: 1200,
         height: 630,
-        alt: "Dark Velvet Premium İç Giyim"
+        alt: "Dark Velvet Premium Ä°Ã§ Giyim"
       }
     ]
   },
   twitter: {
     card: "summary_large_image",
-    title: "Dark Velvet - Premium İç Giyim",
-    description: "Türkiye'nin önde gelen premium iç giyim markası"
+    title: "Dark Velvet - Premium Ä°Ã§ Giyim",
+    description: "TÃ¼rkiye'nin Ã¶nde gelen premium iÃ§ giyim markasÄ±"
   },
   alternates: {
     canonical: `${BASE_URL}/home`
@@ -276,7 +268,6 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  // Paralel olarak tüm verileri çek (performans için)
   const [newArrivalsTab, bestSellersTab, recommendedTab, showcaseProducts, categories] = await Promise.all([
     getTabbedProducts("new-arrivals"),
     getTabbedProducts("best-sellers"),

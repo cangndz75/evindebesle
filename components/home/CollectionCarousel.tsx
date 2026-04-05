@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -84,7 +84,6 @@ export default function CollectionCarousel() {
     }
   };
 
-  // Mouse drag handlers
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!scrollContainerRef.current) return;
     setIsDragging(true);
@@ -118,7 +117,6 @@ export default function CollectionCarousel() {
     scrollContainerRef.current.scrollLeft = scrollLeft - walk;
   };
 
-  // Touch handlers for mobile
   const handleTouchStart = (e: React.TouchEvent) => {
     if (!scrollContainerRef.current) return;
     setTouchStart(e.touches[0].pageX);
@@ -138,10 +136,10 @@ export default function CollectionCarousel() {
         {/* Header */}
         <div className="mb-12 text-center">
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-light text-[#111] mb-3">
-            ZAMANSIZ İKONLAR
+            ZAMANSIZ Ä°KONLAR
           </h2>
           <p className="text-sm md:text-base text-[#111]/70 font-light">
-            Her kadının sahip olması gereken zamansız ayakkabıları keşfedin.
+            Her kadÄ±nÄ±n sahip olmasÄ± gereken zamansÄ±z ayakkabÄ±larÄ± keÅŸfedin.
           </p>
         </div>
 
@@ -165,9 +163,7 @@ export default function CollectionCarousel() {
                 href={collection.href}
                 className="flex-shrink-0 w-[280px] md:w-[320px] group"
                 onMouseDown={(e) => {
-                  // Prevent link navigation if user starts dragging
                   if (e.button === 0) {
-                    // Left mouse button
                     const link = e.currentTarget;
                     let moved = false;
                     const handleMove = () => {
@@ -199,7 +195,7 @@ export default function CollectionCarousel() {
                   {collection.title}
                 </h3>
                 <p className="text-xs md:text-sm text-[#111]/60 font-light text-center hover:text-[#111] transition-colors">
-                  ŞİMDİ KEŞFET
+                  ÅÄ°MDÄ° KEÅFET
                 </p>
               </Link>
             ))}
@@ -210,7 +206,7 @@ export default function CollectionCarousel() {
             onClick={scrollPrev}
             disabled={!canScrollPrev}
             className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 md:-translate-x-6 bg-white border border-gray-300 p-2 md:p-4 hover:bg-gray-50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111] focus-visible:ring-offset-2 shadow-lg z-10"
-            aria-label="Önceki"
+            aria-label="Ã–nceki"
           >
             <ChevronLeft className="w-4 h-4 md:w-6 md:h-6" />
           </button>

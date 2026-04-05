@@ -1,9 +1,8 @@
-import { prisma } from "@/lib/db";
+﻿import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 
-// POST: Yorum yap
 export async function POST(request: NextRequest) {
     try {
         const session = await getServerSession(authConfig);
@@ -16,24 +15,20 @@ export async function POST(request: NextRequest) {
 
         if (!productId || !rating) {
             return NextResponse.json(
-                { error: "Ürün ve puan zorunludur" },
+                { error: "ÃœrÃ¼n ve puan zorunludur" },
                 { status: 400 }
             );
         }
 
-        // Kullanıcının daha önce bu ürüne yorum yapıp yapmadığını kontrol et
-        // İsteğe bağlı: Bir kullanıcı bir ürüne birden fazla yorum yapabilir mi?
-        // Genellikle bir sipariş için bir yorum istenir veya bir ürün için bir yorum.
-        // Şimdilik kısıtlama koymuyoruz, proje gereksiniminde belirtilmedi.
 
         const review = await prisma.productReview.create({
             data: {
                 productId,
                 userId: session.user.id,
-                userName: session.user.name || "Kullanıcı",
+                userName: session.user.name || "KullanÄ±cÄ±",
                 rating: Number(rating),
                 comment: comment || "",
-                isApproved: true, // Geliştirme aşamasında otomatik onay
+                isApproved: true, // GeliÅŸtirme aÅŸamasÄ±nda otomatik onay
             },
         });
 
@@ -41,24 +36,22 @@ export async function POST(request: NextRequest) {
     } catch (error: any) {
         console.error("Review creation error:", error);
         return NextResponse.json(
-            { error: error.message || "Yorum gönderilirken bir hata oluştu" },
+            { error: error.message || "Yorum gÃ¶nderilirken bir hata oluÅŸtu" },
             { status: 500 }
         );
     }
 }
 
-// GET: Yorumları getir veya kullanıcının yorumunu kontrol et
 export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url);
         const productId = searchParams.get("productId");
-        const checkUser = searchParams.get("checkUser"); // "true" ise kullanıcının yorumunu kontrol et
+        const checkUser = searchParams.get("checkUser"); // "true" ise kullanÄ±cÄ±nÄ±n yorumunu kontrol et
 
         if (!productId) {
             return NextResponse.json({ error: "Product ID required" }, { status: 400 });
         }
 
-        // Kullanıcının bu ürün için yorum yapıp yapmadığını kontrol et
         if (checkUser === "true") {
             const session = await getServerSession(authConfig);
             if (!session?.user?.id) {
@@ -75,7 +68,6 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ hasReviewed: !!review, review });
         }
 
-        // Ürünün onaylanmış yorumlarını getir
         const reviews = await prisma.productReview.findMany({
             where: {
                 productId,
@@ -88,7 +80,7 @@ export async function GET(request: NextRequest) {
     } catch (error: any) {
         console.error("Review fetch error:", error);
         return NextResponse.json(
-            { error: error.message || "Yorumlar yüklenirken bir hata oluştu" },
+            { error: error.message || "Yorumlar yÃ¼klenirken bir hata oluÅŸtu" },
             { status: 500 }
         );
     }

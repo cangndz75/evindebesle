@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { prisma } from "@/lib/db";
@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
     const session = await getServerSession(authConfig);
 
     if (!session?.user?.isAdmin) {
-      return NextResponse.json({ error: "Yetkisiz erişim" }, { status: 403 });
+      return NextResponse.json({ error: "Yetkisiz eriÅŸim" }, { status: 403 });
     }
 
     const searchParams = req.nextUrl.searchParams;
@@ -48,7 +48,6 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    // Zaman farkını hesapla
     const ordersWithTime = orders.map((order: any) => {
       const createdAt = new Date(order.createdAt);
       const now = new Date();
@@ -58,11 +57,11 @@ export async function GET(req: NextRequest) {
 
       let timeAgo = "";
       if (diffHours > 0) {
-        timeAgo = `${diffHours} saat önce`;
+        timeAgo = `${diffHours} saat Ã¶nce`;
       } else if (diffMinutes > 0) {
-        timeAgo = `${diffMinutes} dakika önce`;
+        timeAgo = `${diffMinutes} dakika Ã¶nce`;
       } else {
-        timeAgo = "Az önce";
+        timeAgo = "Az Ã¶nce";
       }
 
       return {
@@ -75,7 +74,7 @@ export async function GET(req: NextRequest) {
   } catch (error: any) {
     console.error("Dashboard orders error:", error);
     return NextResponse.json(
-      { error: error.message || "Siparişler yüklenirken bir hata oluştu" },
+      { error: error.message || "SipariÅŸler yÃ¼klenirken bir hata oluÅŸtu" },
       { status: 500 }
     );
   }

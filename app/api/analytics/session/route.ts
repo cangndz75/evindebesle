@@ -1,7 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 
-// POST: Create or update analytics session
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
@@ -21,13 +20,11 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Check if session already exists
         const existing = await prisma.analyticsSession.findUnique({
             where: { sessionId },
         });
 
         if (existing) {
-            // Update existing session
             await prisma.analyticsSession.update({
                 where: { sessionId },
                 data: {
@@ -35,7 +32,6 @@ export async function POST(req: NextRequest) {
                 },
             });
         } else {
-            // Create new session
             await prisma.analyticsSession.create({
                 data: {
                     sessionId,
@@ -56,7 +52,6 @@ export async function POST(req: NextRequest) {
     }
 }
 
-// POST to /session-end: Mark session as ended
 export async function PUT(req: NextRequest) {
     try {
         const body = await req.json();

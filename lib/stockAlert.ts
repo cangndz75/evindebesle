@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/db";
+﻿import { prisma } from "@/lib/db";
 
 interface LowStockProduct {
     productId: string;
@@ -9,18 +9,13 @@ interface LowStockProduct {
     threshold: number;
 }
 
-/**
- * Check for products below stock threshold
- */
 export async function checkLowStockProducts(): Promise<LowStockProduct[]> {
     const lowStockItems: LowStockProduct[] = [];
 
-    // Get stock alerts with their thresholds
     const alerts = await prisma.stockAlert.findMany({
         where: { isEnabled: true },
     });
 
-    // Create lookup map for thresholds
     const thresholdMap = new Map<string, number>();
     alerts.forEach((alert: any) => {
         const key = alert.variantId
@@ -29,10 +24,8 @@ export async function checkLowStockProducts(): Promise<LowStockProduct[]> {
         thresholdMap.set(key, alert.threshold);
     });
 
-    // Default threshold for products without specific alerts
     const defaultThreshold = 5;
 
-    // Check variants
     const variants = await prisma.productVariant.findMany({
         where: { isActive: true },
         include: {
@@ -63,9 +56,6 @@ export async function checkLowStockProducts(): Promise<LowStockProduct[]> {
     return lowStockItems;
 }
 
-/**
- * Set stock alert threshold for a product/variant
- */
 export async function setStockAlert(
     productId: string,
     threshold: number,
@@ -91,9 +81,6 @@ export async function setStockAlert(
     });
 }
 
-/**
- * Disable stock alert for a product/variant
- */
 export async function disableStockAlert(
     productId: string,
     variantId?: string
@@ -107,22 +94,16 @@ export async function disableStockAlert(
     });
 }
 
-/**
- * Get stock summary for dashboard
- */
 export async function getStockSummary() {
-    // Total products
     const totalProducts = await prisma.product.count({
         where: { isActive: true },
     });
 
-    // Products with low stock (any variant below 5)
     const lowStockProducts = await checkLowStockProducts();
     const uniqueLowStockProducts = new Set(
         lowStockProducts.map((p: any) => p.productId)
     );
 
-    // Out of stock (0 stock in all variants)
     const outOfStockVariants = await prisma.productVariant.groupBy({
         by: ["productId"],
         where: { isActive: true },

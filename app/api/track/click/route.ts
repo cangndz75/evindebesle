@@ -1,7 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
-// GET: Track click and redirect
 export async function GET(req: NextRequest) {
     try {
         const url = new URL(req.url);
@@ -15,10 +14,8 @@ export async function GET(req: NextRequest) {
 
         const decodedUrl = decodeURIComponent(originalUrl);
 
-        // Track the click
         if (campaignId) {
             try {
-                // Find or create the EmailLink
                 let emailLink = await prisma.emailLink.findFirst({
                     where: {
                         campaignId,
@@ -35,20 +32,17 @@ export async function GET(req: NextRequest) {
                     });
                 }
 
-                // Increment click count
                 await prisma.emailLink.update({
                     where: { id: emailLink.id },
                     data: { clickCount: { increment: 1 } },
                 });
 
-                // If we have a tracking ID, update the email send and create event
                 if (trackingId) {
                     const emailSend = await prisma.emailSend.findUnique({
                         where: { trackingId },
                     });
 
                     if (emailSend) {
-                        // Update first click timestamp
                         if (!emailSend.clickedAt) {
                             await prisma.emailSend.update({
                                 where: { id: emailSend.id },
@@ -56,7 +50,6 @@ export async function GET(req: NextRequest) {
                             });
                         }
 
-                        // Create event record
                         await prisma.emailEvent.create({
                             data: {
                                 emailSendId: emailSend.id,
@@ -71,11 +64,9 @@ export async function GET(req: NextRequest) {
                 }
             } catch (trackError) {
                 console.error("Error tracking click:", trackError);
-                // Continue to redirect even if tracking fails
             }
         }
 
-        // Redirect to the original URL
         return NextResponse.redirect(decodedUrl);
     } catch (error) {
         console.error("Error in click tracking:", error);

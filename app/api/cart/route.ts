@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { prisma } from "@/lib/db";
 import {
@@ -65,7 +65,6 @@ async function getDbCartItems(userId: string) {
   });
 }
 
-// Sepeti getir
 export async function GET() {
   try {
     const user = await getCurrentUser();
@@ -96,7 +95,6 @@ export async function GET() {
   }
 }
 
-// Sepete ürün ekle
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
@@ -110,7 +108,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Ürün bilgilerini getir (giriş yapmadan da gerekli)
     const product = await prisma.product.findUnique({
       where: { id: productId },
       include: {
@@ -126,7 +123,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Renk ve beden bilgilerini getir
     const color = colorId
       ? await prisma.productColor.findUnique({
         where: { id: colorId },
@@ -138,7 +134,6 @@ export async function POST(request: NextRequest) {
       })
       : null;
 
-    // Giriş yapmış kullanıcı için Redis katmanına yaz (fallback: DB)
     if (user) {
       if (isRedisCartEnabled()) {
         const itemId = await upsertRedisCartItem(user.id, {
@@ -160,8 +155,6 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(updated || { id: itemId, userId: user.id });
       }
 
-      // Aynı ürün, renk ve beden kombinasyonunu kontrol et
-      // findFirst kullan çünkü colorId veya sizeId null olabilir (composite key null kabul etmez)
       const existingItem = await prisma.cartItem.findFirst({
         where: {
           userId: user.id,
@@ -172,7 +165,6 @@ export async function POST(request: NextRequest) {
       });
 
       if (existingItem) {
-        // Varsa miktarı artır
         const updated = await prisma.cartItem.update({
           where: { id: existingItem.id },
           data: { quantity: existingItem.quantity + quantity },
@@ -212,7 +204,6 @@ export async function POST(request: NextRequest) {
         });
         return NextResponse.json({ ...updated, userId: user.id });
       } else {
-        // Yoksa yeni ekle
         const newItem = await prisma.cartItem.create({
           data: {
             userId: user.id,
@@ -258,8 +249,6 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ ...newItem, userId: user.id });
       }
     } else {
-      // Giriş yapmamış kullanıcı için sadece ürün bilgilerini döndür
-      // Frontend localStorage'a kaydedecek
       return NextResponse.json({
         id: `guest-${Date.now()}`,
         userId: null,
@@ -291,7 +280,6 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Sepetten ürün sil
 export async function DELETE(request: NextRequest) {
   try {
     const user = await getCurrentUser();
@@ -321,12 +309,11 @@ export async function DELETE(request: NextRequest) {
 
     if (!targetItem) {
       return NextResponse.json(
-        { error: "Sepet öğesi bulunamadı" },
+        { error: "Sepet Ã¶ÄŸesi bulunamadÄ±" },
         { status: 404 }
       );
     }
 
-    // Kullanıcının kendi sepetindeki ürünü sil
     await prisma.cartItem.delete({ where: { id: targetItem.id } });
 
     return NextResponse.json({ success: true });

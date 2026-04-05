@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { prisma } from "@/lib/db";
@@ -8,14 +8,13 @@ export async function GET(req: NextRequest) {
     const session = await getServerSession(authConfig);
 
     if (!session?.user?.isAdmin) {
-      return NextResponse.json({ error: "Yetkisiz erişim" }, { status: 403 });
+      return NextResponse.json({ error: "Yetkisiz eriÅŸim" }, { status: 403 });
     }
 
     const searchParams = req.nextUrl.searchParams;
     const type = searchParams.get("type") || "best-selling"; // "best-selling", "recent", "low-stock"
 
     if (type === "best-selling") {
-      // En çok satan ürünler (siparişlerden)
       const bestSelling = await prisma.orderItem.groupBy({
         by: ["productId"],
         _sum: {
@@ -53,7 +52,6 @@ export async function GET(req: NextRequest) {
 
       return NextResponse.json(productsWithSales.sort((a: any, b: any) => b.totalSold - a.totalSold));
     } else if (type === "recent") {
-      // Son eklenen ürünler
       const recentProducts = await prisma.product.findMany({
         where: {
           isActive: true,
@@ -74,7 +72,6 @@ export async function GET(req: NextRequest) {
 
       return NextResponse.json(recentProducts);
     } else if (type === "low-stock") {
-      // Düşük stoklu ürünler
       const lowStockProducts = await prisma.product.findMany({
         where: {
           isActive: true,
@@ -112,7 +109,7 @@ export async function GET(req: NextRequest) {
   } catch (error: any) {
     console.error("Dashboard products error:", error);
     return NextResponse.json(
-      { error: error.message || "Ürünler yüklenirken bir hata oluştu" },
+      { error: error.message || "ÃœrÃ¼nler yÃ¼klenirken bir hata oluÅŸtu" },
       { status: 500 }
     );
   }

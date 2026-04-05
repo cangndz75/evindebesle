@@ -1,10 +1,9 @@
-import { prisma } from "@/lib/db";
+﻿import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { logAuditAction } from "@/lib/auditLog";
 
-// POST: Toplu sıralama güncellemesi
 export async function POST(request: NextRequest) {
     try {
         const session = await getServerSession(authConfig);
@@ -17,12 +16,11 @@ export async function POST(request: NextRequest) {
 
         if (!Array.isArray(items) || items.length === 0) {
             return NextResponse.json(
-                { error: "Geçersiz sıralama verisi" },
+                { error: "GeÃ§ersiz sÄ±ralama verisi" },
                 { status: 400 }
             );
         }
 
-        // Toplu güncelleme
         const updates = items.map((item: { id: string; sortOrder: number }) =>
             prisma.category.update({
                 where: { id: item.id },
@@ -32,7 +30,6 @@ export async function POST(request: NextRequest) {
 
         await prisma.$transaction(updates);
 
-        // Audit Log
         await logAuditAction({
             action: "CATEGORY_UPDATE",
             adminId: session.user.id,
@@ -46,7 +43,6 @@ export async function POST(request: NextRequest) {
             userAgent: request.headers.get("user-agent") || undefined,
         });
 
-        // Önbelleği temizle
         const { revalidatePath } = await import("next/cache");
         revalidatePath("/");
         revalidatePath("/(public)/category/[slug]", "page");
@@ -55,7 +51,7 @@ export async function POST(request: NextRequest) {
     } catch (error: any) {
         console.error("Category reorder error:", error);
         return NextResponse.json(
-            { error: error.message || "Sıralama güncellenirken bir hata oluştu" },
+            { error: error.message || "SÄ±ralama gÃ¼ncellenirken bir hata oluÅŸtu" },
             { status: 500 }
         );
     }

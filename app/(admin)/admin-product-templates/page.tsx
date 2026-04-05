@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -34,11 +34,9 @@ export default function AdminProductTemplatesPage() {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Yeni Ekleme State
   const [newTitle, setNewTitle] = useState("");
   const [newContent, setNewContent] = useState("");
 
-  // Atama Modal State
   const [assignModalOpen, setAssignModalOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -49,7 +47,6 @@ export default function AdminProductTemplatesPage() {
     fetchTemplates(activeTab);
   }, [activeTab]);
 
-  // Debounced Arama
   useEffect(() => {
     const timer = setTimeout(() => {
       if (searchQuery.length >= 2) {
@@ -70,7 +67,7 @@ export default function AdminProductTemplatesPage() {
         setTemplates(data);
       }
     } catch (e) {
-      toast.error("Şablonlar yüklenirken hata oluştu");
+      toast.error("Åablonlar yÃ¼klenirken hata oluÅŸtu");
     } finally {
       setLoading(false);
     }
@@ -78,7 +75,7 @@ export default function AdminProductTemplatesPage() {
 
   const handleCreate = async () => {
     if (!newTitle || !newContent) {
-      toast.error("Başlık ve içerik gereklidir.");
+      toast.error("BaÅŸlÄ±k ve iÃ§erik gereklidir.");
       return;
     }
     try {
@@ -88,15 +85,15 @@ export default function AdminProductTemplatesPage() {
         body: JSON.stringify({ type: activeTab, title: newTitle, content: newContent }),
       });
       if (res.ok) {
-        toast.success("Şablon oluşturuldu!");
+        toast.success("Åablon oluÅŸturuldu!");
         setNewTitle("");
         setNewContent("");
         fetchTemplates(activeTab);
       } else {
-        toast.error("Şablon oluşturulamadı");
+        toast.error("Åablon oluÅŸturulamadÄ±");
       }
     } catch (e) {
-      toast.error("Bir hata oluştu");
+      toast.error("Bir hata oluÅŸtu");
     }
   };
 
@@ -105,13 +102,13 @@ export default function AdminProductTemplatesPage() {
     try {
       const res = await fetch(`/api/admin-product-templates?type=${activeTab}&id=${id}`, { method: "DELETE" });
       if (res.ok) {
-        toast.success("Şablon silindi!");
+        toast.success("Åablon silindi!");
         fetchTemplates(activeTab);
       } else {
         toast.error("Silinemedi");
       }
     } catch (e) {
-      toast.error("Bir hata oluştu");
+      toast.error("Bir hata oluÅŸtu");
     }
   };
 
@@ -157,29 +154,29 @@ export default function AdminProductTemplatesPage() {
 
       if (res.ok) {
         const data = await res.json();
-        toast.success(`${data.count} ürüne başarıyla atandı!`);
+        toast.success(`${data.count} Ã¼rÃ¼ne baÅŸarÄ±yla atandÄ±!`);
         setAssignModalOpen(false);
       } else {
-        toast.error("Atama sırasında hata oluştu");
+        toast.error("Atama sÄ±rasÄ±nda hata oluÅŸtu");
       }
     } catch (e) {
-      toast.error("Bir hata oluştu");
+      toast.error("Bir hata oluÅŸtu");
     }
   };
 
   return (
     <div className="space-y-6 lg:p-6 p-4">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Ürün Detay Şablonları</h1>
+        <h1 className="text-3xl font-bold tracking-tight">ÃœrÃ¼n Detay ÅablonlarÄ±</h1>
         <p className="text-muted-foreground mt-2">
-          Ürünlerde gösterilen Yıkama Talimatı, Teslimat Bilgisi ve Beden Notlarını tek yerden yönetin ve ürünlere atayın.
+          ÃœrÃ¼nlerde gÃ¶sterilen YÄ±kama TalimatÄ±, Teslimat Bilgisi ve Beden NotlarÄ±nÄ± tek yerden yÃ¶netin ve Ã¼rÃ¼nlere atayÄ±n.
         </p>
       </div>
 
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TemplateType)}>
         <TabsList className="grid w-full grid-cols-3 max-w-md">
-          <TabsTrigger value="WASHING">Yıkama Talimatı</TabsTrigger>
-          <TabsTrigger value="DELIVERY">Teslimat & İade</TabsTrigger>
+          <TabsTrigger value="WASHING">YÄ±kama TalimatÄ±</TabsTrigger>
+          <TabsTrigger value="DELIVERY">Teslimat & Ä°ade</TabsTrigger>
           <TabsTrigger value="SIZENOTE">Beden Notu</TabsTrigger>
         </TabsList>
 
@@ -187,24 +184,24 @@ export default function AdminProductTemplatesPage() {
           {/* Sol Kolon: Yeni Ekleme Formu */}
           <Card className="lg:col-span-1 h-fit">
             <CardHeader>
-              <CardTitle>Yeni Şablon Ekle</CardTitle>
+              <CardTitle>Yeni Åablon Ekle</CardTitle>
               <CardDescription>
-                {activeTab === "WASHING" && "Yıkama talimatı ekleyin"}
-                {activeTab === "DELIVERY" && "Teslimat detayı ekleyin"}
+                {activeTab === "WASHING" && "YÄ±kama talimatÄ± ekleyin"}
+                {activeTab === "DELIVERY" && "Teslimat detayÄ± ekleyin"}
                 {activeTab === "SIZENOTE" && "Bedenle ilgili not ekleyin"}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="text-sm font-medium mb-1 block">Başlık</label>
-                <Input value={newTitle} onChange={(e) => setNewTitle(e.target.value)} placeholder="Örn: Pamuklu Yıkama" />
+                <label className="text-sm font-medium mb-1 block">BaÅŸlÄ±k</label>
+                <Input value={newTitle} onChange={(e) => setNewTitle(e.target.value)} placeholder="Ã–rn: Pamuklu YÄ±kama" />
               </div>
               <div>
-                <label className="text-sm font-medium mb-1 block">İçerik</label>
+                <label className="text-sm font-medium mb-1 block">Ä°Ã§erik</label>
                 <Textarea
                   value={newContent}
                   onChange={(e) => setNewContent(e.target.value)}
-                  placeholder="Detaylı talimat buraya..."
+                  placeholder="DetaylÄ± talimat buraya..."
                   className="min-h-[150px]"
                 />
               </div>
@@ -214,24 +211,24 @@ export default function AdminProductTemplatesPage() {
             </CardContent>
           </Card>
 
-          {/* Sağ Kolon: Liste */}
+          {/* SaÄŸ Kolon: Liste */}
           <Card className="lg:col-span-2">
             <CardHeader>
-              <CardTitle>Mevcut Şablonlar</CardTitle>
+              <CardTitle>Mevcut Åablonlar</CardTitle>
             </CardHeader>
             <CardContent>
               {loading ? (
-                <p className="text-sm text-muted-foreground">Yükleniyor...</p>
+                <p className="text-sm text-muted-foreground">YÃ¼kleniyor...</p>
               ) : templates.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Henüz kayıt bulunmuyor.</p>
+                <p className="text-sm text-muted-foreground">HenÃ¼z kayÄ±t bulunmuyor.</p>
               ) : (
                 <div className="rounded-md border overflow-hidden">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Başlık</TableHead>
-                        <TableHead>İçerik Özeti</TableHead>
-                        <TableHead className="text-right">İşlemler</TableHead>
+                        <TableHead>BaÅŸlÄ±k</TableHead>
+                        <TableHead>Ä°Ã§erik Ã–zeti</TableHead>
+                        <TableHead className="text-right">Ä°ÅŸlemler</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -264,14 +261,14 @@ export default function AdminProductTemplatesPage() {
       <Dialog open={assignModalOpen} onOpenChange={setAssignModalOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
           <DialogHeader>
-            <DialogTitle>Ürünlere Ata: {selectedTemplate?.title}</DialogTitle>
+            <DialogTitle>ÃœrÃ¼nlere Ata: {selectedTemplate?.title}</DialogTitle>
           </DialogHeader>
 
           <div className="flex-1 overflow-y-auto space-y-4 py-4 min-h-0">
             <div className="relative">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Ürün adı veya kodu ile ara..."
+                placeholder="ÃœrÃ¼n adÄ± veya kodu ile ara..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9"
@@ -279,10 +276,10 @@ export default function AdminProductTemplatesPage() {
             </div>
 
             <div className="space-y-2">
-              <div className="text-sm font-medium mb-2">Seçili Ürünler: {selectedProductIds.size}</div>
+              <div className="text-sm font-medium mb-2">SeÃ§ili ÃœrÃ¼nler: {selectedProductIds.size}</div>
               
               {searchResults.length === 0 && searchQuery.length >= 2 ? (
-                <p className="text-sm text-muted-foreground">Sonuç bulunamadı</p>
+                <p className="text-sm text-muted-foreground">SonuÃ§ bulunamadÄ±</p>
               ) : (
                 <div className="space-y-2 max-h-[40vh] overflow-y-auto pr-2">
                   {searchResults.map((p) => (
@@ -310,10 +307,10 @@ export default function AdminProductTemplatesPage() {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setAssignModalOpen(false)}>
-              İptal
+              Ä°ptal
             </Button>
             <Button onClick={handleBulkAssign} disabled={selectedProductIds.size === 0}>
-              Atamayı Tamamla
+              AtamayÄ± Tamamla
             </Button>
           </DialogFooter>
         </DialogContent>

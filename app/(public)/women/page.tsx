@@ -1,4 +1,4 @@
-import WomenProductsPage from "../_components/WomenProductsPage";
+﻿import WomenProductsPage from "../_components/WomenProductsPage";
 import { prisma } from "@/lib/db";
 import { Metadata } from "next";
 import CollectionPageSchema from "@/components/seo/CollectionPageSchema";
@@ -6,21 +6,21 @@ import CollectionPageSchema from "@/components/seo/CollectionPageSchema";
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://darkvelvet.com";
 
 export const metadata: Metadata = {
-  title: "Kadın İç Giyim - Premium Külot, Sütyen ve İç Çamaşırı | Dark Velvet",
-  description: "Dark Velvet kadın iç giyim koleksiyonu. Premium kalitede külot, sütyen, iç çamaşırı ve daha fazlası. Ücretsiz kargo ve hızlı teslimat ile tüm kadın ürünlerimizi keşfedin.",
+  title: "KadÄ±n Ä°Ã§ Giyim - Premium KÃ¼lot, SÃ¼tyen ve Ä°Ã§ Ã‡amaÅŸÄ±rÄ± | Dark Velvet",
+  description: "Dark Velvet kadÄ±n iÃ§ giyim koleksiyonu. Premium kalitede kÃ¼lot, sÃ¼tyen, iÃ§ Ã§amaÅŸÄ±rÄ± ve daha fazlasÄ±. Ãœcretsiz kargo ve hÄ±zlÄ± teslimat ile tÃ¼m kadÄ±n Ã¼rÃ¼nlerimizi keÅŸfedin.",
   keywords: [
-    "kadın iç çamaşırı",
-    "kadın külot",
-    "kadın sütyen",
-    "kadın iç giyim",
-    "premium iç çamaşırı",
-    "kadın sweat",
-    "kadın pijama",
-    "online iç çamaşırı"
+    "kadÄ±n iÃ§ Ã§amaÅŸÄ±rÄ±",
+    "kadÄ±n kÃ¼lot",
+    "kadÄ±n sÃ¼tyen",
+    "kadÄ±n iÃ§ giyim",
+    "premium iÃ§ Ã§amaÅŸÄ±rÄ±",
+    "kadÄ±n sweat",
+    "kadÄ±n pijama",
+    "online iÃ§ Ã§amaÅŸÄ±rÄ±"
   ],
   openGraph: {
-    title: "Kadın İç Giyim Koleksiyonu - Dark Velvet",
-    description: "Premium kalitede kadın iç çamaşırı, külot, sütyen ve daha fazlası.",
+    title: "KadÄ±n Ä°Ã§ Giyim Koleksiyonu - Dark Velvet",
+    description: "Premium kalitede kadÄ±n iÃ§ Ã§amaÅŸÄ±rÄ±, kÃ¼lot, sÃ¼tyen ve daha fazlasÄ±.",
     url: `${BASE_URL}/women`,
     type: "website",
     locale: "tr_TR",
@@ -30,14 +30,14 @@ export const metadata: Metadata = {
         url: `${BASE_URL}/og-women.jpg`,
         width: 1200,
         height: 630,
-        alt: "Dark Velvet Kadın İç Giyim"
+        alt: "Dark Velvet KadÄ±n Ä°Ã§ Giyim"
       }
     ]
   },
   twitter: {
     card: "summary_large_image",
-    title: "Kadın İç Giyim - Dark Velvet",
-    description: "Premium kadın iç çamaşırı koleksiyonu"
+    title: "KadÄ±n Ä°Ã§ Giyim - Dark Velvet",
+    description: "Premium kadÄ±n iÃ§ Ã§amaÅŸÄ±rÄ± koleksiyonu"
   },
   alternates: {
     canonical: `${BASE_URL}/women`
@@ -48,11 +48,9 @@ export const metadata: Metadata = {
   }
 };
 
-// ISR - 5 dakikada bir yenilenir
 export const revalidate = 300;
 export const dynamic = "force-dynamic";
 
-// Helper: JSON string'i array'e çevir
 function parseImages(images: string | null): string[] {
   if (!images) return [];
   try {
@@ -128,7 +126,7 @@ async function getInitialProducts() {
         },
       },
       orderBy: { createdAt: "desc" },
-      take: 100, // İlk yükleme için yeterli
+      take: 100, // Ä°lk yÃ¼kleme iÃ§in yeterli
     });
 
     return products.map((p: any) => {
@@ -136,9 +134,8 @@ async function getInitialProducts() {
       const primaryImg = p.primaryImage || p.image;
       const secondaryImg = p.secondaryImage || p.image;
 
-      // Yeni ürün mü kontrol et (tag'lere göre)
       const isNew = p.tags.some((tag: any) =>
-        ["yeni ürün", "yeni", "yeni gelenler", "new", "new arrival"].includes(tag.name.toLowerCase())
+        ["yeni Ã¼rÃ¼n", "yeni", "yeni gelenler", "new", "new arrival"].includes(tag.name.toLowerCase())
       );
 
       return {
@@ -149,7 +146,7 @@ async function getInitialProducts() {
         originalPrice: p.originalPrice ?? undefined,
         image: primaryImg ?? undefined,
         hoverImage: secondaryImg ?? undefined,
-        badge: isNew ? "Yeni" : (p.originalPrice && p.originalPrice > p.price ? "İndirim" : undefined),
+        badge: isNew ? "Yeni" : (p.originalPrice && p.originalPrice > p.price ? "Ä°ndirim" : undefined),
         colors: p.colors.map((c: any) => {
           const cImages = parseImages(c.images);
           return {
@@ -212,14 +209,12 @@ async function getCategories() {
 }
 
 export default async function WomenPage() {
-  // Paralel olarak tüm verileri çek
   const [initialProducts, priceRange, categories] = await Promise.all([
     getInitialProducts(),
     getPriceRange(),
     getCategories()
   ]);
 
-  // Format products for schema
   const schemaProducts = initialProducts.slice(0, 12).map((p: any) => ({
     id: p.id,
     name: p.name,
@@ -231,8 +226,8 @@ export default async function WomenPage() {
   return (
     <>
       <CollectionPageSchema
-        name="Kadın İç Giyim Koleksiyonu"
-        description="Dark Velvet premium kadın iç çamaşırı, külot, sütyen ve daha fazlası"
+        name="KadÄ±n Ä°Ã§ Giyim Koleksiyonu"
+        description="Dark Velvet premium kadÄ±n iÃ§ Ã§amaÅŸÄ±rÄ±, kÃ¼lot, sÃ¼tyen ve daha fazlasÄ±"
         url={`${BASE_URL}/women`}
         products={schemaProducts}
         minPrice={priceRange.min}

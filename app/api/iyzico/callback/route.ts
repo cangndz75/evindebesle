@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { iyzico, iyzicoCall } from "@/lib/iyzico";
 import { commitReservationToSaleTx, releaseReservationTx } from "@/lib/stock";
@@ -37,34 +37,26 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Payment record not found" }, { status: 404 });
         }
 
-        // Idempotency: skip if already succeeded
         if (payment.status === "SUCCEEDED") {
             return NextResponse.redirect(`${process.env.NEXT_PUBLIC_BASE_URL || ""}/checkout/success?orderId=${orderId}`);
         }
 
-        // Update status to callback received
         await prisma.paymentAttempt.update({
             where: { orderId },
             data: { status: "CALLBACK_RECEIVED", token }
         });
 
-        // Retrieve payment result from Iyzico
         const retrieveReq = {
             locale: "tr",
             conversationId: orderId,
             token: token
         };
 
-        // Depending on the iyzico node library version, the method name might be checkoutForm.retrieve
-        // But the prompt specifically suggested checkoutFormAuth (usually used for Auth, 
-        // retrieve is for the general detail). 
-        // In CF akışı, usually people call retrieve.
         const retrieveRes: any = await iyzicoCall<any>(iyzico.checkoutForm.retrieve.bind(iyzico.checkoutForm), retrieveReq);
 
         const isSuccess = retrieveRes.status === "success" && retrieveRes.paymentStatus === "SUCCESS";
 
         if (isSuccess) {
-            // Use centralized payment finalization
             await finalizePayment({
                 orderId,
                 paymentId: retrieveRes.paymentId,
@@ -74,10 +66,8 @@ export async function POST(req: NextRequest) {
 
             return NextResponse.redirect(`${process.env.NEXT_PUBLIC_BASE_URL || ""}/checkout/success?orderId=${orderId}`);
         } else {
-            // 1) Release stock
             await releaseReservationTx(orderId);
 
-            // 2) Update Order and Payment status
             await prisma.$transaction([
                 prisma.order.update({
                     where: { id: orderId },

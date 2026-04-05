@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { normalizeIdempotencyKey } from "@/lib/idempotency";
 import { reserveStockTx } from "@/lib/stock";
@@ -13,7 +13,7 @@ export async function POST(req: Request) {
         const paymentRate = await checkRateLimit(rateKey, RateLimits.payment);
         if (!paymentRate.success) {
             return NextResponse.json(
-                { error: "Çok fazla ödeme denemesi. Lütfen bir dakika sonra tekrar deneyin." },
+                { error: "Ã‡ok fazla Ã¶deme denemesi. LÃ¼tfen bir dakika sonra tekrar deneyin." },
                 { status: 429 }
             );
         }
@@ -29,7 +29,6 @@ export async function POST(req: Request) {
             }
         }
 
-        // 1) Idempotent check
         const existing = await prisma.order.findUnique({
             where: { idempotencyKey: idem },
             include: { payment: true, items: true },
@@ -44,7 +43,6 @@ export async function POST(req: Request) {
             });
         }
 
-        // 2) Verify products and prices
         const orderItemsData = [];
         let subtotal = 0;
 
@@ -63,16 +61,14 @@ export async function POST(req: Request) {
             });
 
             if (!variant) {
-                return NextResponse.json({ error: `Ürün varyantı bulunamadı: ${item.productId}` }, { status: 400 });
+                return NextResponse.json({ error: `ÃœrÃ¼n varyantÄ± bulunamadÄ±: ${item.productId}` }, { status: 400 });
             }
 
-            // Stok Kontrolü
             if (variant.product.isTrackInventory && !variant.product.allowBackorders) {
-                // Varyant stoğunu kontrol et (variant.stock - variant.stockReserved)
                 const availableStock = variant.stock - (variant.stockReserved || 0);
                 if (availableStock < item.quantity) {
                     return NextResponse.json({
-                        error: `"${variant.product.name}" için yeterli stok yok. Mevcut: ${availableStock}`
+                        error: `"${variant.product.name}" iÃ§in yeterli stok yok. Mevcut: ${availableStock}`
                     }, { status: 400 });
                 }
             }
@@ -93,14 +89,12 @@ export async function POST(req: Request) {
                 totalPrice: lineTotal,
                 categoryId: variant.product.categoryId,
                 gender: variant.product.gender,
-                // variantId is internal, we don't save it to OrderItem directly but we use it for stock reservation
                 _variantId: variant.id
             });
         }
 
         const shipping = Number(body.shippingPrice || 0);
 
-        // Coupon logic
         let discount = 0;
         let couponId: string | null = null;
 
@@ -109,14 +103,12 @@ export async function POST(req: Request) {
                 where: { code: body.couponCode }
             });
 
-            // Strict validity check
             const isExpired = coupon?.expiresAt && coupon.expiresAt < new Date();
             const isMaxed = coupon?.maxUsage && coupon.usageCount >= coupon.maxUsage;
 
             if (coupon && coupon.isActive && !isExpired && !isMaxed) {
                 couponId = coupon.id;
 
-                // Filter items that satisfy the coupon conditions
                 const eligibleItems = orderItemsData.filter((item: any) => {
                     const catMatch = coupon.categoryId ? item.categoryId === coupon.categoryId : true;
                     const genderMatch = coupon.gender ? item.gender === coupon.gender : true;
@@ -135,8 +127,7 @@ export async function POST(req: Request) {
 
                 if (discount > eligibleSubtotal) discount = eligibleSubtotal;
             } else if (body.couponCode) {
-                // If code was provided but coupon is invalid/expired/not found
-                return NextResponse.json({ error: "Böyle bir kupon yoktur" }, { status: 400 });
+                return NextResponse.json({ error: "BÃ¶yle bir kupon yoktur" }, { status: 400 });
             }
         }
 
@@ -173,14 +164,12 @@ export async function POST(req: Request) {
                 include: { items: true, payment: true },
             });
 
-            // Reserve Stock 
             await reserveStockTx(
                 order.id,
                 orderItemsData.map((i: any) => ({ variantId: i._variantId, qty: i.quantity })),
                 15
             );
 
-            // Attribution
             if (body.email) {
                 try {
                     const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
@@ -199,7 +188,6 @@ export async function POST(req: Request) {
                 }
             }
 
-            // Clear Cart for User
             if (body.userId) {
                 await prisma.cartItem.deleteMany({
                     where: { userId: body.userId }
@@ -214,7 +202,6 @@ export async function POST(req: Request) {
             });
         }
 
-        // 3) Create Order (Iyzico Flow)
         const order = await prisma.order.create({
             data: {
                 orderNumber: `DV-${Date.now()}`,
@@ -236,10 +223,8 @@ export async function POST(req: Request) {
             include: { items: true, payment: true },
         });
 
-        // 3.5) Attribution: Check if user has clicked an email recently
         if (body.email) {
             try {
-                // Find last clicked email within 24 hours
                 const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
                 const lastClick = await prisma.emailSend.findFirst({
                     where: {
@@ -260,18 +245,15 @@ export async function POST(req: Request) {
                 }
             } catch (e) {
                 console.error("Attribution Error:", e);
-                // Don't block checkout
             }
         }
 
-        // 4) Reserve Stock (15 mins)
         await reserveStockTx(
             order.id,
             orderItemsData.map((i: any) => ({ variantId: i._variantId, qty: i.quantity })),
             15
         );
 
-        // 5) Iyzico Request
         const conversationId = order.id;
         const buyerIp = req.headers.get("x-forwarded-for") || "127.0.0.1";
 
@@ -288,7 +270,7 @@ export async function POST(req: Request) {
             buyer: {
                 id: order.userId ?? order.email,
                 name: body.billingAddress?.firstName || "Misafir",
-                surname: body.billingAddress?.lastName || "Kullanıcı",
+                surname: body.billingAddress?.lastName || "KullanÄ±cÄ±",
                 gsmNumber: body.billingAddress?.phone || "+905555555555",
                 email: body.email,
                 identityNumber: "11111111111", // Required by Iyzico
@@ -326,8 +308,6 @@ export async function POST(req: Request) {
         const initRes: any = await iyzicoCall<any>((iyzico as any).checkoutFormInitialize.bind(iyzico), iyzicoReq);
 
         if (initRes.status !== "success") {
-            // payment failed, unreserve stock? Or just wait for expiry? 
-            // Better to fail fast.
             await prisma.paymentAttempt.update({
                 where: { orderId: order.id },
                 data: { status: "FAILED", rawResult: initRes },
@@ -340,7 +320,6 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: initRes.errorMessage || "Iyzico init failed" }, { status: 400 });
         }
 
-        // Success - save token
         await prisma.paymentAttempt.update({
             where: { orderId: order.id },
             data: {

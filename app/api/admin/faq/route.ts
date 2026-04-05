@@ -1,16 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 
-// GET: Aktif SSS listesi (public) veya tümü (admin)
 export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const category = searchParams.get("category");
     const isAdmin = searchParams.get("admin") === "true";
 
     try {
-        // Admin için auth kontrolü
         if (isAdmin) {
             const session = await getServerSession(authConfig);
             if (!session?.user?.isAdmin) {
@@ -28,7 +26,6 @@ export async function GET(req: NextRequest) {
             orderBy: [{ category: "asc" }, { order: "asc" }],
         });
 
-        // Kategorilere göre grupla (public için)
         if (!isAdmin) {
             const grouped: Record<string, typeof faqs> = {};
             for (const faq of faqs) {
@@ -47,7 +44,6 @@ export async function GET(req: NextRequest) {
     }
 }
 
-// POST: Yeni SSS ekle (admin only)
 export async function POST(req: NextRequest) {
     try {
         const session = await getServerSession(authConfig);
@@ -79,7 +75,6 @@ export async function POST(req: NextRequest) {
     }
 }
 
-// PUT: SSS güncelle (admin only)
 export async function PUT(req: NextRequest) {
     try {
         const session = await getServerSession(authConfig);
@@ -106,7 +101,6 @@ export async function PUT(req: NextRequest) {
     }
 }
 
-// DELETE: SSS sil (admin only)
 export async function DELETE(req: NextRequest) {
     try {
         const session = await getServerSession(authConfig);

@@ -1,5 +1,4 @@
-// app/blog/_components/BlogRecentPosts.tsx
-import Image from "next/image";
+﻿import Image from "next/image";
 import Link from "next/link";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
@@ -12,7 +11,6 @@ export default async function BlogRecentPosts() {
     .slice()
     .sort((a, b) => +new Date(b.date) - +new Date(a.date));
 
-  // slug'a göre tekilleştir
   const unique = Array.from(new Map(sorted.map((p) => [p.slug, p])).values());
 
   const recent = unique.slice(0, 3);
@@ -24,7 +22,7 @@ export default async function BlogRecentPosts() {
           id="recent-posts-heading"
           className="text-lg font-semibold text-slate-800"
         >
-          Son Yazılar
+          Son YazÄ±lar
         </h3>
         <div className="mt-2 h-[3px] w-14 rounded-full bg-indigo-600" />
       </div>

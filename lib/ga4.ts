@@ -1,4 +1,4 @@
-type GA4Item = {
+﻿type GA4Item = {
     item_id: string;
     item_name: string;
     price: number;
@@ -21,7 +21,6 @@ declare global {
 export function dlPush(event: string, ecommerce: Record<string, any>) {
     if (typeof window === "undefined") return;
     window.dataLayer = window.dataLayer || [];
-    // GA4 recommendation: clear ecommerce object first
     window.dataLayer.push({ ecommerce: null });
     window.dataLayer.push({ event, ecommerce });
 }

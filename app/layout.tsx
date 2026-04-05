@@ -1,4 +1,4 @@
-import "./globals.css";
+﻿import "./globals.css";
 import { Geist, Geist_Mono } from "next/font/google";
 import type { Metadata } from "next";
 import SessionWrapper from "./(public)/_components/SessionWrapper";
@@ -13,37 +13,37 @@ const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Dark Velvet - Premium İç ve Dış Giyim Koleksiyonu",
-  description: "Türkiye'nin önde gelen premium iç giyim markası. Kadın ve erkek için kaliteli iç çamaşırı, külot, sütyen, boxer, sweat ve daha fazlası. Ücretsiz kargo ve hızlı teslimat.",
+  title: "Dark Velvet - Premium Ä°Ã§ ve DÄ±ÅŸ Giyim Koleksiyonu",
+  description: "TÃ¼rkiye'nin Ã¶nde gelen premium iÃ§ giyim markasÄ±. KadÄ±n ve erkek iÃ§in kaliteli iÃ§ Ã§amaÅŸÄ±rÄ±, kÃ¼lot, sÃ¼tyen, boxer, sweat ve daha fazlasÄ±. Ãœcretsiz kargo ve hÄ±zlÄ± teslimat.",
   applicationName: "Dark Velvet",
   keywords: [
-    "iç çamaşırı",
-    "kadın iç çamaşırı",
-    "erkek iç çamaşırı",
-    "külot",
-    "sütyen",
+    "iÃ§ Ã§amaÅŸÄ±rÄ±",
+    "kadÄ±n iÃ§ Ã§amaÅŸÄ±rÄ±",
+    "erkek iÃ§ Ã§amaÅŸÄ±rÄ±",
+    "kÃ¼lot",
+    "sÃ¼tyen",
     "boxer",
     "sweat",
-    "iç giyim",
-    "dış giyim",
-    "premium iç çamaşırı",
+    "iÃ§ giyim",
+    "dÄ±ÅŸ giyim",
+    "premium iÃ§ Ã§amaÅŸÄ±rÄ±",
     "Dark Velvet",
-    "online iç çamaşırı",
-    "kaliteli iç giyim"
+    "online iÃ§ Ã§amaÅŸÄ±rÄ±",
+    "kaliteli iÃ§ giyim"
   ],
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || "https://darkvelvet.com"),
   openGraph: {
     type: "website",
     locale: "tr_TR",
     siteName: "Dark Velvet",
-    title: "Dark Velvet - Premium İç ve Dış Giyim",
-    description: "Türkiye'nin önde gelen premium iç giyim markası. Kadın ve erkek için kaliteli iç çamaşırı.",
+    title: "Dark Velvet - Premium Ä°Ã§ ve DÄ±ÅŸ Giyim",
+    description: "TÃ¼rkiye'nin Ã¶nde gelen premium iÃ§ giyim markasÄ±. KadÄ±n ve erkek iÃ§in kaliteli iÃ§ Ã§amaÅŸÄ±rÄ±.",
     images: [
       {
         url: "/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "Dark Velvet Premium İç Giyim"
+        alt: "Dark Velvet Premium Ä°Ã§ Giyim"
       }
     ]
   },
@@ -64,8 +64,6 @@ export const metadata: Metadata = {
     }
   },
   verification: {
-    // google: "your-google-verification-code",
-    // yandex: "your-yandex-verification-code",
   },
   alternates: {
     canonical: process.env.NEXT_PUBLIC_BASE_URL || "https://darkvelvet.com"
@@ -97,12 +95,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="manifest" href="/manifest.json" />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen bg-[#F7F5F2] overflow-x-hidden`}>
+        <a
+          href="#main-content"
+          className="dv-skip-link"
+        >
+          Iceriye atla
+        </a>
         <OrganizationSchema />
         <WebSiteSchema />
         <AnalyticsScripts />
         <SessionWrapper>
           <SiteHeader />
-          <main className="flex-1">{children}</main>
+          <main id="main-content" className="flex-1">{children}</main>
           <ConditionalFooter />
           <ToasterWrapper />
         </SessionWrapper>

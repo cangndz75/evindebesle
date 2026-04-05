@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/db";
+﻿import { prisma } from "@/lib/db";
 
 export type AuditAction =
     | "PRODUCT_CREATE"
@@ -29,16 +29,12 @@ interface AuditLogData {
     userAgent?: string;
 }
 
-/**
- * Log admin action for audit trail
- */
 export async function logAuditAction(data: AuditLogData): Promise<void> {
     try {
         await prisma.auditLog.create({
             data: {
                 action: data.action,
                 performedById: data.adminId, // mapped from adminId
-                // adminEmail not stored in schema currently, maybe in details if needed
                 entityType: data.targetType, // mapped from targetType
                 entityId: data.targetId,     // mapped from targetId
                 details: data.details,       // passed naturally as Json
@@ -47,14 +43,10 @@ export async function logAuditAction(data: AuditLogData): Promise<void> {
             },
         });
     } catch (error) {
-        // Don't throw - audit logging should not break the main operation
         console.error("Failed to create audit log:", error);
     }
 }
 
-/**
- * Get recent audit logs (for admin dashboard)
- */
 export async function getRecentAuditLogs(limit = 50) {
     return prisma.auditLog.findMany({
         orderBy: { createdAt: "desc" },
@@ -73,9 +65,6 @@ export async function getRecentAuditLogs(limit = 50) {
     });
 }
 
-/**
- * Get audit logs for a specific target
- */
 export async function getAuditLogsForTarget(targetType: string, targetId: string) {
     return prisma.auditLog.findMany({
         where: {

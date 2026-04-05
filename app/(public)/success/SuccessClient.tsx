@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -15,10 +15,8 @@ export default function SuccessClient() {
     const [countdown, setCountdown] = useState(10);
 
     useEffect(() => {
-        // Clear the cart immediately upon landing on success page
         clearCart();
 
-        // Fire confetti
         const duration = 3 * 1000;
         const animationEnd = Date.now() + duration;
         const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
@@ -47,7 +45,6 @@ export default function SuccessClient() {
             });
         }, 250);
 
-        // Auto redirect countdown
         const timer = setInterval(() => {
             setCountdown((prev) => {
                 if (prev <= 1) {
@@ -75,14 +72,14 @@ export default function SuccessClient() {
                 <CheckCircle className="w-12 h-12 text-green-600" />
             </div>
 
-            <h1 className="text-4xl font-serif mb-4">Siparişiniz Alındı!</h1>
+            <h1 className="text-4xl font-serif mb-4">SipariÅŸiniz AlÄ±ndÄ±!</h1>
             <p className="text-gray-600 max-w-md mb-8 text-lg">
-                Siparişiniz başarıyla oluşturuldu. Sipariş numaranız ile sipariş takibi yapabilirsiniz.
+                SipariÅŸiniz baÅŸarÄ±yla oluÅŸturuldu. SipariÅŸ numaranÄ±z ile sipariÅŸ takibi yapabilirsiniz.
             </p>
 
             {orderId && (
                 <div className="bg-gray-50 px-6 py-3 rounded-lg border border-gray-200 mb-8">
-                    <p className="text-sm text-gray-500 uppercase tracking-wider mb-1">Sipariş No</p>
+                    <p className="text-sm text-gray-500 uppercase tracking-wider mb-1">SipariÅŸ No</p>
                     <p className="font-mono font-bold text-xl">{orderId}</p>
                 </div>
             )}
@@ -94,20 +91,20 @@ export default function SuccessClient() {
                     onClick={() => router.push("/")}
                 >
                     <ShoppingBag className="w-4 h-4 mr-2" />
-                    Alışverişe Dön
+                    AlÄ±ÅŸveriÅŸe DÃ¶n
                 </Button>
 
                 <Button
                     className="flex-1 py-6 text-base bg-black hover:bg-gray-800"
                     onClick={() => orderId ? router.push(`/profile/orders/product/${orderId}`) : router.push("/profile/orders")}
                 >
-                    Sipariş Detayı
+                    SipariÅŸ DetayÄ±
                     <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
             </div>
 
             <p className="mt-8 text-sm text-gray-400">
-                {countdown} saniye içinde sipariş detayına yönlendirileceksiniz...
+                {countdown} saniye iÃ§inde sipariÅŸ detayÄ±na yÃ¶nlendirileceksiniz...
             </p>
         </div>
     );

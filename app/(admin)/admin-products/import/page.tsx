@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef, useCallback } from "react";
 import { Upload, FileSpreadsheet, X, CheckCircle, AlertCircle, Loader2, Package } from "lucide-react";
@@ -48,20 +48,19 @@ export default function ProductImportPage() {
 
   const handleFile = useCallback(async (f: File) => {
     if (!f.name.endsWith(".xlsx")) {
-      toast.error("Lütfen bir Excel dosyası (.xlsx) seçin");
+      toast.error("LÃ¼tfen bir Excel dosyasÄ± (.xlsx) seÃ§in");
       return;
     }
     setFile(f);
     setPreviewData(null);
     setImportResult(null);
-    // Otomatik preview
     setPreviewing(true);
     try {
       const fd = new FormData();
       fd.append("file", f);
       const res = await fetch("/api/admin-products/import", { method: "PUT", body: fd });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Preview hatası");
+      if (!res.ok) throw new Error(data.error || "Preview hatasÄ±");
       setPreviewData(data);
     } catch (err: any) {
       toast.error(err.message);
@@ -88,9 +87,9 @@ export default function ProductImportPage() {
       fd.append("file", file);
       const res = await fetch("/api/admin-products/import", { method: "POST", body: fd });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Import hatası");
+      if (!res.ok) throw new Error(data.error || "Import hatasÄ±");
       setImportResult(data);
-      toast.success(`Import tamamlandı: ${data.created} oluşturuldu, ${data.updated} güncellendi`);
+      toast.success(`Import tamamlandÄ±: ${data.created} oluÅŸturuldu, ${data.updated} gÃ¼ncellendi`);
     } catch (err: any) {
       toast.error(err.message);
     } finally {
@@ -107,13 +106,13 @@ export default function ProductImportPage() {
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6">
-      {/* Başlık */}
+      {/* BaÅŸlÄ±k */}
       <div className="flex items-center gap-3">
         <FileSpreadsheet className="w-7 h-7 text-green-600" />
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Excel ile Ürün Import</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Excel ile ÃœrÃ¼n Import</h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            Trendyol formatındaki Excel dosyasını yükleyin, ürünler otomatik oluşturulsun
+            Trendyol formatÄ±ndaki Excel dosyasÄ±nÄ± yÃ¼kleyin, Ã¼rÃ¼nler otomatik oluÅŸturulsun
           </p>
         </div>
       </div>
@@ -121,12 +120,12 @@ export default function ProductImportPage() {
       {/* Bilgi kutusu */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800 space-y-1">
         <p className="font-semibold">Desteklenen Format</p>
-        <p>• Trendyol ürün listesi formatı (.xlsx)</p>
-        <p>• Aynı Model Koduna sahip satırlar tek ürün olarak gruplandırılır</p>
-        <p>• Daha önce import edilmiş ürünler (aynı stok kodu) güncellenir</p>
+        <p>â€¢ Trendyol Ã¼rÃ¼n listesi formatÄ± (.xlsx)</p>
+        <p>â€¢ AynÄ± Model Koduna sahip satÄ±rlar tek Ã¼rÃ¼n olarak gruplandÄ±rÄ±lÄ±r</p>
+        <p>â€¢ Daha Ã¶nce import edilmiÅŸ Ã¼rÃ¼nler (aynÄ± stok kodu) gÃ¼ncellenir</p>
       </div>
 
-      {/* Dosya Yükleme Alanı */}
+      {/* Dosya YÃ¼kleme AlanÄ± */}
       {!file && (
         <div
           onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
@@ -140,8 +139,8 @@ export default function ProductImportPage() {
           }`}
         >
           <Upload className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-          <p className="text-lg font-medium text-gray-700">Excel dosyasını buraya sürükleyin</p>
-          <p className="text-sm text-gray-500 mt-1">veya tıklayın ve seçin</p>
+          <p className="text-lg font-medium text-gray-700">Excel dosyasÄ±nÄ± buraya sÃ¼rÃ¼kleyin</p>
+          <p className="text-sm text-gray-500 mt-1">veya tÄ±klayÄ±n ve seÃ§in</p>
           <p className="text-xs text-gray-400 mt-3">.xlsx</p>
           <input
             ref={fileInputRef}
@@ -153,7 +152,7 @@ export default function ProductImportPage() {
         </div>
       )}
 
-      {/* Dosya seçildi */}
+      {/* Dosya seÃ§ildi */}
       {file && (
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -169,25 +168,25 @@ export default function ProductImportPage() {
         </div>
       )}
 
-      {/* Preview yükleniyor */}
+      {/* Preview yÃ¼kleniyor */}
       {previewing && (
         <div className="flex items-center gap-3 text-gray-600">
           <Loader2 className="w-5 h-5 animate-spin" />
-          <span className="text-sm">Excel dosyası analiz ediliyor...</span>
+          <span className="text-sm">Excel dosyasÄ± analiz ediliyor...</span>
         </div>
       )}
 
-      {/* Preview Sonuçları */}
+      {/* Preview SonuÃ§larÄ± */}
       {previewData && !importResult && (
         <div className="space-y-4">
           <div className="grid grid-cols-3 gap-4">
             <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
               <p className="text-3xl font-bold text-gray-900">{previewData.totalRows}</p>
-              <p className="text-sm text-gray-500 mt-1">Toplam Satır</p>
+              <p className="text-sm text-gray-500 mt-1">Toplam SatÄ±r</p>
             </div>
             <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
               <p className="text-3xl font-bold text-green-600">{previewData.totalProducts}</p>
-              <p className="text-sm text-gray-500 mt-1">Benzersiz Ürün</p>
+              <p className="text-sm text-gray-500 mt-1">Benzersiz ÃœrÃ¼n</p>
             </div>
             <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
               <p className="text-3xl font-bold text-blue-600">
@@ -201,8 +200,8 @@ export default function ProductImportPage() {
           <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
             <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
               <h2 className="font-semibold text-gray-900">
-                Ürün Önizlemesi
-                <span className="text-xs text-gray-400 font-normal ml-2">(ilk 30 ürün)</span>
+                ÃœrÃ¼n Ã–nizlemesi
+                <span className="text-xs text-gray-400 font-normal ml-2">(ilk 30 Ã¼rÃ¼n)</span>
               </h2>
             </div>
             <div className="overflow-x-auto">
@@ -210,24 +209,24 @@ export default function ProductImportPage() {
                 <thead className="bg-gray-50 text-xs text-gray-500 uppercase">
                   <tr>
                     <th className="px-4 py-3 text-left">Model Kodu</th>
-                    <th className="px-4 py-3 text-left">Ürün Adı</th>
+                    <th className="px-4 py-3 text-left">ÃœrÃ¼n AdÄ±</th>
                     <th className="px-4 py-3 text-left">Marka</th>
                     <th className="px-4 py-3 text-left">Kategori</th>
                     <th className="px-4 py-3 text-right">Fiyat</th>
                     <th className="px-4 py-3 text-center">Cinsiyet</th>
                     <th className="px-4 py-3 text-center">Varyant</th>
-                    <th className="px-4 py-3 text-center">Görsel</th>
+                    <th className="px-4 py-3 text-center">GÃ¶rsel</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {previewData.preview.map((p) => (
                     <tr key={p.modelCode} className="hover:bg-gray-50">
                       <td className="px-4 py-3 font-mono text-xs text-gray-600">{p.modelCode}</td>
-                      <td className="px-4 py-3 font-medium text-gray-900 max-w-[180px] truncate">{p.name || "—"}</td>
-                      <td className="px-4 py-3 text-gray-600">{p.brand || "—"}</td>
-                      <td className="px-4 py-3 text-gray-600">{p.category || "—"}</td>
+                      <td className="px-4 py-3 font-medium text-gray-900 max-w-[180px] truncate">{p.name || "â€”"}</td>
+                      <td className="px-4 py-3 text-gray-600">{p.brand || "â€”"}</td>
+                      <td className="px-4 py-3 text-gray-600">{p.category || "â€”"}</td>
                       <td className="px-4 py-3 text-right font-medium">
-                        {p.price > 0 ? `₺${p.price.toFixed(2)}` : "—"}
+                        {p.price > 0 ? `â‚º${p.price.toFixed(2)}` : "â€”"}
                       </td>
                       <td className="px-4 py-3 text-center">
                         <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
@@ -236,7 +235,7 @@ export default function ProductImportPage() {
                           p.gender === "UNISEX" ? "bg-purple-100 text-purple-700" :
                           "bg-gray-100 text-gray-600"
                         }`}>
-                          {p.gender === "FEMALE" ? "Kadın" : p.gender === "MALE" ? "Erkek" : p.gender === "UNISEX" ? "Unisex" : "—"}
+                          {p.gender === "FEMALE" ? "KadÄ±n" : p.gender === "MALE" ? "Erkek" : p.gender === "UNISEX" ? "Unisex" : "â€”"}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-center">
@@ -248,7 +247,7 @@ export default function ProductImportPage() {
                         <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
                           p.imageCount > 0 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"
                         }`}>
-                          {p.imageCount > 0 ? `${p.imageCount} görsel` : "Yok"}
+                          {p.imageCount > 0 ? `${p.imageCount} gÃ¶rsel` : "Yok"}
                         </span>
                       </td>
                     </tr>
@@ -270,37 +269,37 @@ export default function ProductImportPage() {
               ) : (
                 <Package className="w-5 h-5" />
               )}
-              {importing ? "Import ediliyor..." : `${previewData.totalProducts} Ürünü Import Et`}
+              {importing ? "Import ediliyor..." : `${previewData.totalProducts} ÃœrÃ¼nÃ¼ Import Et`}
             </button>
             <button
               onClick={reset}
               disabled={importing}
               className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
             >
-              İptal
+              Ä°ptal
             </button>
           </div>
         </div>
       )}
 
-      {/* Import Sonuç */}
+      {/* Import SonuÃ§ */}
       {importResult && (
         <div className="space-y-4">
           <div className="grid grid-cols-4 gap-4">
             <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
               <CheckCircle className="w-8 h-8 text-green-500 mx-auto mb-2" />
               <p className="text-3xl font-bold text-green-700">{importResult.created}</p>
-              <p className="text-sm text-green-600 mt-1">Oluşturuldu</p>
+              <p className="text-sm text-green-600 mt-1">OluÅŸturuldu</p>
             </div>
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
               <Package className="w-8 h-8 text-blue-500 mx-auto mb-2" />
               <p className="text-3xl font-bold text-blue-700">{importResult.updated}</p>
-              <p className="text-sm text-blue-600 mt-1">Güncellendi</p>
+              <p className="text-sm text-blue-600 mt-1">GÃ¼ncellendi</p>
             </div>
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
               <X className="w-8 h-8 text-gray-400 mx-auto mb-2" />
               <p className="text-3xl font-bold text-gray-600">{importResult.skipped}</p>
-              <p className="text-sm text-gray-500 mt-1">Atlandı</p>
+              <p className="text-sm text-gray-500 mt-1">AtlandÄ±</p>
             </div>
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
               <AlertCircle className="w-8 h-8 text-red-400 mx-auto mb-2" />
@@ -328,7 +327,7 @@ export default function ProductImportPage() {
               className="flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-colors"
             >
               <Package className="w-5 h-5" />
-              Ürün Listesine Git
+              ÃœrÃ¼n Listesine Git
             </a>
             <button
               onClick={reset}

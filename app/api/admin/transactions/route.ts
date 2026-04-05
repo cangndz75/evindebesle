@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
@@ -18,7 +18,6 @@ export async function GET(req: Request) {
         const status = searchParams.get("status") || "all";
         const skip = (page - 1) * limit;
 
-        // Build filter
         const where: any = {};
 
         if (search) {
@@ -34,7 +33,6 @@ export async function GET(req: Request) {
             where.paymentStatus = status;
         }
 
-        // Get transactions (orders)
         const [transactions, total] = await Promise.all([
             prisma.order.findMany({
                 where,

@@ -1,9 +1,8 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 
-// GET: List user's return requests
 export async function GET(req: Request) {
     try {
         const session = await getServerSession(authConfig);
@@ -47,7 +46,6 @@ export async function GET(req: Request) {
     }
 }
 
-// POST: Create a new return request
 export async function POST(req: Request) {
     try {
         const session = await getServerSession(authConfig);
@@ -63,7 +61,6 @@ export async function POST(req: Request) {
             return new NextResponse("Missing required fields", { status: 400 });
         }
 
-        // Verify the order belongs to the user and is delivered
         const order = await prisma.order.findUnique({
             where: {
                 id: orderId,
@@ -82,7 +79,6 @@ export async function POST(req: Request) {
             return new NextResponse("Only delivered orders can be returned", { status: 400 });
         }
 
-        // Check if a return request already exists for this order
         const existingReturn = await prisma.returnRequest.findFirst({
             where: {
                 orderId,
@@ -96,7 +92,6 @@ export async function POST(req: Request) {
             return new NextResponse("A return request already exists for this order", { status: 400 });
         }
 
-        // Validate items belong to the order
         const orderItemIds = order.items.map((item: { id: string }) => item.id);
         for (const item of items as { orderItemId: string; quantity: number; reason?: string }[]) {
             if (!orderItemIds.includes(item.orderItemId)) {
@@ -104,7 +99,6 @@ export async function POST(req: Request) {
             }
         }
 
-        // Create the return request with items
         const returnRequest = await prisma.returnRequest.create({
             data: {
                 orderId,
@@ -126,8 +120,6 @@ export async function POST(req: Request) {
             },
         });
 
-        // TODO: Send notification email to user
-        // TODO: Create admin notification
 
         return NextResponse.json(returnRequest);
     } catch (error) {

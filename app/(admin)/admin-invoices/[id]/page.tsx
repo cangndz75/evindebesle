@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -54,12 +54,12 @@ export default function InvoiceDetailPage() {
                     const data = await res.json();
                     setInvoice(data);
                 } else {
-                    toast.error("Fatura bulunamadı");
+                    toast.error("Fatura bulunamadÄ±");
                     router.push("/admin-invoices");
                 }
             } catch (error) {
                 console.error("Error fetching invoice:", error);
-                toast.error("Bir hata oluştu");
+                toast.error("Bir hata oluÅŸtu");
             } finally {
                 setLoading(false);
             }
@@ -85,17 +85,14 @@ export default function InvoiceDetailPage() {
 
     if (!invoice) return null;
 
-    // Hardcoded Metadata (as per request/example)
     const OZELLESTIRME_NO = "TR1.2";
     const SENARYO = "EARSIVFATURA";
     const FATURA_TIPI = "SATIS";
 
-    // ETTN (Using UUID part of ID for demo purposes if not separate field)
     const ETTN = invoice.id;
 
-    // Company Data with Fallbacks
-    const companyName = invoice.companyDetails?.companyName || "EVİNDEBESLE E-TİC.";
-    const companyAddress = invoice.companyDetails?.companyAddress || "Merkez Mah. Örnek Cad. No:1 İstanbul";
+    const companyName = invoice.companyDetails?.companyName || "EVÄ°NDEBESLE E-TÄ°C.";
+    const companyAddress = invoice.companyDetails?.companyAddress || "Merkez Mah. Ã–rnek Cad. No:1 Ä°stanbul";
     const companyPhone = invoice.companyDetails?.phone || "+90 212 111 22 33";
     const companyEmail = invoice.companyDetails?.email || "info@dark-velvet.com";
     const taxOffice = invoice.companyDetails?.taxOffice || "Marmara Kurumlar";
@@ -111,12 +108,12 @@ export default function InvoiceDetailPage() {
                     <Button variant="outline" size="icon" onClick={() => router.back()}>
                         <ArrowLeft className="w-4 h-4" />
                     </Button>
-                    <h1 className="text-xl font-bold">Fatura Önizleme</h1>
+                    <h1 className="text-xl font-bold">Fatura Ã–nizleme</h1>
                 </div>
                 <div className="flex gap-2">
                     <Button onClick={handlePrint}>
                         <Printer className="w-4 h-4 mr-2" />
-                        Yazdır
+                        YazdÄ±r
                     </Button>
                 </div>
             </div>
@@ -139,7 +136,7 @@ export default function InvoiceDetailPage() {
                         </div>
                         <div className="mt-2 text-gray-700">
                             <p>Vergi Dairesi: {taxOffice}</p>
-                            <p>Vergi Kimlik Numarası: {taxNumber}</p>
+                            <p>Vergi Kimlik NumarasÄ±: {taxNumber}</p>
                             <p>Mersis No: {mersisNo}</p>
                         </div>
                     </div>
@@ -150,13 +147,13 @@ export default function InvoiceDetailPage() {
                             {logoUrl ? (
                                 <img src={logoUrl} alt="Logo" className="h-12 w-auto object-contain" />
                             ) : (
-                                <h1 className="text-2xl font-bold text-orange-600">EVİNDEBESLE</h1>
+                                <h1 className="text-2xl font-bold text-orange-600">EVÄ°NDEBESLE</h1>
                             )}
                         </div>
                         <div className="flex flex-col items-center">
                             {/* Signature Image Placeholder */}
                             {/* <img src="/signature.png" className="h-10 w-auto mb-1 opacity-50" /> */}
-                            <span className="font-bold text-sm">e-Arşiv Fatura</span>
+                            <span className="font-bold text-sm">e-ArÅŸiv Fatura</span>
                         </div>
 
                         {/* Page Number */}
@@ -203,7 +200,7 @@ export default function InvoiceDetailPage() {
                         <table className="w-full text-xs">
                             <tbody>
                                 <tr>
-                                    <td className="font-bold py-0.5">Özelleştirme No:</td>
+                                    <td className="font-bold py-0.5">Ã–zelleÅŸtirme No:</td>
                                     <td>{OZELLESTIRME_NO}</td>
                                 </tr>
                                 <tr>
@@ -223,15 +220,15 @@ export default function InvoiceDetailPage() {
                                     <td>{invoice.issuedAt ? format(new Date(invoice.issuedAt), "dd-MM-yyyy", { locale: tr }) : "-"}</td>
                                 </tr>
                                 <tr>
-                                    <td className="font-bold py-0.5">Son Ödeme Tarihi:</td>
+                                    <td className="font-bold py-0.5">Son Ã–deme Tarihi:</td>
                                     <td>{invoice.dueDate ? format(new Date(invoice.dueDate), "dd-MM-yyyy", { locale: tr }) : "-"}</td>
                                 </tr>
                                 <tr>
-                                    <td className="font-bold py-0.5">Oluşma Zamanı:</td>
+                                    <td className="font-bold py-0.5">OluÅŸma ZamanÄ±:</td>
                                     <td>{invoice.createdAt ? format(new Date(invoice.createdAt), "HH:mm:ss", { locale: tr }) : "-"}</td>
                                 </tr>
                                 <tr>
-                                    <td className="font-bold py-0.5">Sipariş No:</td>
+                                    <td className="font-bold py-0.5">SipariÅŸ No:</td>
                                     <td>{invoice.order.orderNumber}</td>
                                 </tr>
                             </tbody>
@@ -247,7 +244,7 @@ export default function InvoiceDetailPage() {
 
                 {/* Note (Dispatch List) */}
                 <div className="my-2 text-xs">
-                    <p className="font-bold mb-1">İrsaliye Listesi</p>
+                    <p className="font-bold mb-1">Ä°rsaliye Listesi</p>
                     <div className="border border-gray-300 p-1 inline-block">
                         {invoice.issuedAt ? format(new Date(invoice.issuedAt), "dd-MM-yyyy", { locale: tr }) : "-"} {invoice.order.orderNumber}
                     </div>
@@ -258,26 +255,21 @@ export default function InvoiceDetailPage() {
                     <table className="w-full border-collapse text-[10px]">
                         <thead>
                             <tr className="bg-gray-100 border-y border-gray-300">
-                                <th className="py-1 px-2 text-left border-r border-gray-300 w-8">Sıra No</th>
+                                <th className="py-1 px-2 text-left border-r border-gray-300 w-8">SÄ±ra No</th>
                                 <th className="py-1 px-2 text-left border-r border-gray-300 w-24">Mal Hizmet Kodu</th>
-                                <th className="py-1 px-2 text-left border-r border-gray-300">Mal Hizmet Adı</th>
+                                <th className="py-1 px-2 text-left border-r border-gray-300">Mal Hizmet AdÄ±</th>
                                 <th className="py-1 px-2 text-center border-r border-gray-300 w-16">Miktar</th>
                                 <th className="py-1 px-2 text-right border-r border-gray-300 w-20">Birim Fiyat</th>
-                                <th className="py-1 px-2 text-right border-r border-gray-300 w-20">Mal Hizmet Tutarı</th>
-                                <th className="py-1 px-2 text-center border-r border-gray-300 w-12">KDV Oranı</th>
-                                <th className="py-1 px-2 text-right w-20">KDV Tutarı</th>
+                                <th className="py-1 px-2 text-right border-r border-gray-300 w-20">Mal Hizmet TutarÄ±</th>
+                                <th className="py-1 px-2 text-center border-r border-gray-300 w-12">KDV OranÄ±</th>
+                                <th className="py-1 px-2 text-right w-20">KDV TutarÄ±</th>
                             </tr>
                         </thead>
                         <tbody>
                             {invoice.items.map((item, index) => {
-                                // Calculate tax per item (assuming 20% standard if not specified)
                                 const taxRate = item.taxRate || 20;
                                 const itemTotal = item.totalPrice;
-                                // Back-calculate base price if needed, but usually we store totals
-                                // Let's assume item.unitPrice is Tax Included for display simplicity or handled by backend?
-                                // Standard: Unit Price (Excl Tax) | Total (Excl Tax) | Tax Rate | Tax Amount
 
-                                // Simplified for demo as backend data might vary:
                                 const taxAmount = (itemTotal * taxRate) / (100 + taxRate);
                                 const exTaxTotal = itemTotal - taxAmount;
                                 const exTaxUnit = exTaxTotal / item.quantity;
@@ -314,23 +306,23 @@ export default function InvoiceDetailPage() {
                             <p className="font-bold text-xs uppercase mb-1">*{numberToTurkishText(invoice.totalAmount)}*</p>
 
                             <div className="text-[9px] mt-2 space-y-1 text-gray-700">
-                                <p>*{invoice.order.orderNumber} nolu sipariş faturası</p>
-                                <p>*İrsaliye yerine geçer.</p>
-                                <p>*İşletme Merkezi: İstanbul</p>
-                                <p>*Bu satış internet üzerinden yapılmıştır.</p>
-                                <p>*Ürün iadesi ve değişimi için kesinlikle ürünün faturası veya irsaliyesiyle birlikte başvurulması gerekmektedir.</p>
-                                <p>*İşbu faturanin tanziminde yapılan herhangi bir hatadan mütevellit haklarımız mahfuzdur.</p>
+                                <p>*{invoice.order.orderNumber} nolu sipariÅŸ faturasÄ±</p>
+                                <p>*Ä°rsaliye yerine geÃ§er.</p>
+                                <p>*Ä°ÅŸletme Merkezi: Ä°stanbul</p>
+                                <p>*Bu satÄ±ÅŸ internet Ã¼zerinden yapÄ±lmÄ±ÅŸtÄ±r.</p>
+                                <p>*ÃœrÃ¼n iadesi ve deÄŸiÅŸimi iÃ§in kesinlikle Ã¼rÃ¼nÃ¼n faturasÄ± veya irsaliyesiyle birlikte baÅŸvurulmasÄ± gerekmektedir.</p>
+                                <p>*Ä°ÅŸbu faturanin tanziminde yapÄ±lan herhangi bir hatadan mÃ¼tevellit haklarÄ±mÄ±z mahfuzdur.</p>
                             </div>
                         </div>
 
                         {/* Bank Info */}
                         <div className="mt-4 text-[9px] flex gap-8">
                             <div>
-                                <span className="font-bold underline block mb-1">BANKA BİLGİLERİ</span>
+                                <span className="font-bold underline block mb-1">BANKA BÄ°LGÄ°LERÄ°</span>
                                 <div className="grid grid-cols-[60px_1fr] gap-x-2">
                                     <span>Garanti</span>
                                     <span>TR00 0000 0000 0000 0000 0000 00</span>
-                                    <span>Yapı Kredi</span>
+                                    <span>YapÄ± Kredi</span>
                                     <span>TR00 0000 0000 0000 0000 0000 00</span>
                                 </div>
                             </div>
@@ -346,7 +338,7 @@ export default function InvoiceDetailPage() {
                                     <td className="p-1 text-right font-bold border-b border-gray-300 border-l">{(invoice.subtotal).toFixed(2)} TRY</td>
                                 </tr>
                                 <tr>
-                                    <td className="p-1 border-b border-gray-300">Vergi Hariç Tutar:</td>
+                                    <td className="p-1 border-b border-gray-300">Vergi HariÃ§ Tutar:</td>
                                     <td className="p-1 text-right font-bold border-b border-gray-300 border-l">{(invoice.subtotal).toFixed(2)} TRY</td>
                                 </tr>
                                 <tr>
@@ -365,7 +357,7 @@ export default function InvoiceDetailPage() {
                                     <td className="p-1 text-right font-bold border-b border-gray-300 border-l">{invoice.totalAmount.toFixed(2)} TRY</td>
                                 </tr>
                                 <tr className="bg-gray-100">
-                                    <td className="p-1 font-bold">Ödenecek Tutar:</td>
+                                    <td className="p-1 font-bold">Ã–denecek Tutar:</td>
                                     <td className="p-1 text-right font-bold border-l">{invoice.totalAmount.toFixed(2)} TRY</td>
                                 </tr>
                             </tbody>
@@ -376,28 +368,28 @@ export default function InvoiceDetailPage() {
                 {/* Bottom Footer Info Table */}
                 <div className="mt-8 border-t border-b border-gray-300 py-1 text-[10px]">
                     <div className="grid grid-cols-4 gap-2 font-bold text-center uppercase">
-                        <div>Ödeme Şekli</div>
-                        <div>Taşıyıcı VKN/TCKN</div>
-                        <div>Ödeme Aracısı Adı</div>
-                        <div>Gönderim Tarihi</div>
+                        <div>Ã–deme Åekli</div>
+                        <div>TaÅŸÄ±yÄ±cÄ± VKN/TCKN</div>
+                        <div>Ã–deme AracÄ±sÄ± AdÄ±</div>
+                        <div>GÃ¶nderim Tarihi</div>
                     </div>
                     <div className="grid grid-cols-4 gap-2 text-center mt-1 uppercase">
                         <div>KREDI KARTI / IYZICO</div>
                         <div>0720039666</div>
-                        <div>Aras Kargo A.Ş.</div>
+                        <div>Aras Kargo A.Å.</div>
                         <div>{invoice.issuedAt ? format(new Date(invoice.issuedAt), "dd.MM.yyyy", { locale: tr }) : "-"}</div>
                     </div>
                 </div>
 
                 <div className="flex justify-between mt-1 text-[10px] font-bold uppercase">
-                    <div className="w-1/2 text-center">MALI İADE EDEN</div>
-                    <div className="w-1/2 text-center">İADE EDİLEN</div>
+                    <div className="w-1/2 text-center">MALI Ä°ADE EDEN</div>
+                    <div className="w-1/2 text-center">Ä°ADE EDÄ°LEN</div>
                 </div>
                 <div className="flex justify-between mt-8 text-[10px]">
                     <div className="w-1/2 px-4 space-y-1">
-                        <p>Adı Soyadı: .......................................</p>
+                        <p>AdÄ± SoyadÄ±: .......................................</p>
                         <p>Adresi: ............................................</p>
-                        <p className="mt-4">İmza: ............................................</p>
+                        <p className="mt-4">Ä°mza: ............................................</p>
                     </div>
                     <div className="w-1/2 px-4 space-y-1 text-right">
                         <div className="flex justify-end gap-2"><span className="w-20 text-left">Cinsi:</span> <span className="w-32 border-b border-gray-300"></span></div>

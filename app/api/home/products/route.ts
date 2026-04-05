@@ -1,14 +1,12 @@
-export const runtime = "nodejs";
+﻿export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import type { Product } from "@/lib/homeData";
 
-// Performans için cache - 5 dakika
 export const revalidate = 300;
 
-// Helper: JSON string'i array'e çevir
 function parseImages(images: string | null): string[] {
   if (!images) return [];
   try {
@@ -36,7 +34,7 @@ export async function GET(request: NextRequest) {
           tags: {
             some: {
               name: {
-                in: ["yeni ürün", "yeni", "yeni gelenler", "new", "new arrival"],
+                in: ["yeni Ã¼rÃ¼n", "yeni", "yeni gelenler", "new", "new arrival"],
               },
             },
           },
@@ -95,7 +93,7 @@ export async function GET(request: NextRequest) {
               tags: {
                 some: {
                   name: {
-                    in: ["çok satan", "best seller", "bestseller", "en çok satan"],
+                    in: ["Ã§ok satan", "best seller", "bestseller", "en Ã§ok satan"],
                   },
                 },
               },
@@ -158,7 +156,6 @@ export async function GET(request: NextRequest) {
         take: limit,
       });
 
-      // Sipariş sayısına göre sırala
       products.sort((a: any, b: any) => {
         const aCount = a._count.orderItems;
         const bCount = b._count.orderItems;
@@ -176,7 +173,7 @@ export async function GET(request: NextRequest) {
               tags: {
                 some: {
                   name: {
-                    in: ["öne çıkan", "featured", "trend", "popüler"],
+                    in: ["Ã¶ne Ã§Ä±kan", "featured", "trend", "popÃ¼ler"],
                   },
                 },
               },
@@ -240,7 +237,6 @@ export async function GET(request: NextRequest) {
         take: limit,
       });
 
-      // Sipariş sayısına göre sırala
       products.sort((a: any, b: any) => {
         const aCount = a._count.orderItems;
         const bCount = b._count.orderItems;
@@ -251,12 +247,11 @@ export async function GET(request: NextRequest) {
       });
     } else {
       return NextResponse.json(
-        { error: "Geçersiz type parametresi" },
+        { error: "GeÃ§ersiz type parametresi" },
         { status: 400 }
       );
     }
 
-    // Format products for frontend
     const formattedProducts = products.map((product: any) => {
       const firstColor = product.colors[0];
       const colorImages = firstColor?.images || [];
@@ -296,7 +291,7 @@ export async function GET(request: NextRequest) {
         originalPrice: product.originalPrice || undefined,
         image: mainImage,
         hoverImage: hoverImage !== mainImage ? hoverImage : undefined,
-        badge: product.originalPrice ? "İndirim" : "Yeni",
+        badge: product.originalPrice ? "Ä°ndirim" : "Yeni",
         colors: product.colors.map((c: any) => {
           const images = parseImages(c.images);
           return images[0] || "";
@@ -313,13 +308,12 @@ export async function GET(request: NextRequest) {
     });
 
     const response = NextResponse.json(formattedProducts);
-    // Cache headers
     response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
     return response;
   } catch (error) {
     console.error("Error fetching home products:", error);
     return NextResponse.json(
-      { error: "Ürünler yüklenirken bir hata oluştu" },
+      { error: "ÃœrÃ¼nler yÃ¼klenirken bir hata oluÅŸtu" },
       { status: 500 }
     );
   }

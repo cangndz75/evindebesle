@@ -1,12 +1,12 @@
-export function numberToTurkishText(amount: number): string {
-    if (amount === 0) return "SIFIR TÜRK LİRASI";
+﻿export function numberToTurkishText(amount: number): string {
+    if (amount === 0) return "SIFIR TÃœRK LÄ°RASI";
 
     const integerPart = Math.floor(amount);
     const decimalPart = Math.round((amount - integerPart) * 100);
 
-    const ones = ["", "BİR", "İKİ", "ÜÇ", "DÖRT", "BEŞ", "ALTI", "YEDİ", "SEKİZ", "DOKUZ"];
-    const tens = ["", "ON", "YİRMİ", "OTUZ", "KIRK", "ELLİ", "ALTMIŞ", "YETMİŞ", "SEKSEN", "DOKSAN"];
-    const groups = ["", "BİN", "MİLYON", "MİLYAR", "TRİLYON"];
+    const ones = ["", "BÄ°R", "Ä°KÄ°", "ÃœÃ‡", "DÃ–RT", "BEÅ", "ALTI", "YEDÄ°", "SEKÄ°Z", "DOKUZ"];
+    const tens = ["", "ON", "YÄ°RMÄ°", "OTUZ", "KIRK", "ELLÄ°", "ALTMIÅ", "YETMÄ°Å", "SEKSEN", "DOKSAN"];
+    const groups = ["", "BÄ°N", "MÄ°LYON", "MÄ°LYAR", "TRÄ°LYON"];
 
     function convertGroup(num: number): string {
         if (num === 0) return "";
@@ -17,8 +17,8 @@ export function numberToTurkishText(amount: number): string {
 
         let result = "";
 
-        if (h === 1) result += "YÜZ ";
-        else if (h > 1) result += ones[h] + " YÜZ ";
+        if (h === 1) result += "YÃœZ ";
+        else if (h > 1) result += ones[h] + " YÃœZ ";
 
         result += tens[t] + " ";
         result += ones[o] + " ";
@@ -39,7 +39,6 @@ export function numberToTurkishText(amount: number): string {
             if (groupValue > 0) {
                 let groupText = convertGroup(groupValue);
 
-                // Special case for "BİR BİN" -> "BİN"
                 if (groupIndex === 1 && groupValue === 1) {
                     groupText = "";
                 }
@@ -57,9 +56,9 @@ export function numberToTurkishText(amount: number): string {
     const integerText = convertInteger(integerPart);
     const decimalText = decimalPart > 0 ? convertInteger(decimalPart) : "SIFIR";
 
-    let result = integerText + " TÜRK LİRASI";
+    let result = integerText + " TÃœRK LÄ°RASI";
     if (decimalPart > 0) {
-        result += " " + decimalText + " KURUŞ";
+        result += " " + decimalText + " KURUÅ";
     }
 
     return result;

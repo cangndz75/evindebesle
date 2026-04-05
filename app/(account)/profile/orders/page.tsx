@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -63,7 +63,6 @@ export default function OrdersPage() {
   const [loadingOrders, setLoadingOrders] = useState(true);
   const router = useRouter();
 
-  // Review Modal State
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [selectedReviewProduct, setSelectedReviewProduct] = useState<{
     id: string;
@@ -71,7 +70,6 @@ export default function OrdersPage() {
     image: string | null;
   } | null>(null);
 
-  // Return Modal State
   const [returnModalOpen, setReturnModalOpen] = useState(false);
   const [selectedReturnOrder, setSelectedReturnOrder] = useState<ProductOrder | null>(null);
 
@@ -81,7 +79,6 @@ export default function OrdersPage() {
   };
 
   useEffect(() => {
-    // Ürün siparişlerini yükle
     fetch("/api/orders")
       .then((res) => res.json())
       .then((data) => setProductOrders(data))
@@ -98,7 +95,7 @@ export default function OrdersPage() {
       const response = await fetch(`/api/orders/${orderId}/invoice`);
 
       if (!response.ok) {
-        throw new Error("Fatura oluşturulamadı");
+        throw new Error("Fatura oluÅŸturulamadÄ±");
       }
 
       const blob = await response.blob();
@@ -112,7 +109,7 @@ export default function OrdersPage() {
       document.body.removeChild(a);
     } catch (error) {
       console.error("Invoice download error:", error);
-      toast.error("Fatura indirirken bir hata oluştu. Lütfen tekrar deneyin.");
+      toast.error("Fatura indirirken bir hata oluÅŸtu. LÃ¼tfen tekrar deneyin.");
     }
   };
 
@@ -126,7 +123,7 @@ export default function OrdersPage() {
         icon: <Clock className="w-3 h-3" />,
       },
       PREPARING: {
-        label: "Hazırlanıyor",
+        label: "HazÄ±rlanÄ±yor",
         className: "bg-blue-100 text-blue-800 border-blue-200",
         icon: <Package className="w-3 h-3" />,
       },
@@ -141,7 +138,7 @@ export default function OrdersPage() {
         icon: <CheckCircle className="w-3 h-3" />,
       },
       CANCELLED: {
-        label: "İptal Edildi",
+        label: "Ä°ptal Edildi",
         className: "bg-red-100 text-red-800 border-red-200",
         icon: <XCircle className="w-3 h-3" />,
       },
@@ -171,15 +168,15 @@ export default function OrdersPage() {
   return (
     <div className="max-w-6xl mx-auto w-full">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Siparişlerim</h1>
-        <p className="text-gray-600">Tüm siparişlerinizi buradan görüntüleyebilirsiniz</p>
+        <h1 className="text-3xl font-bold mb-2">SipariÅŸlerim</h1>
+        <p className="text-gray-600">TÃ¼m sipariÅŸlerinizi buradan gÃ¶rÃ¼ntÃ¼leyebilirsiniz</p>
       </div>
 
       <Tabs defaultValue="products" className="w-full">
         <TabsList className="grid w-full grid-cols-1 mb-6">
           <TabsTrigger value="products" className="flex items-center gap-2">
             <Package className="w-4 h-4" />
-            Ürün Siparişleri
+            ÃœrÃ¼n SipariÅŸleri
             {productOrders.length > 0 && (
               <Badge variant="secondary" className="ml-2">
                 {productOrders.length}
@@ -188,7 +185,7 @@ export default function OrdersPage() {
           </TabsTrigger>
         </TabsList>
 
-        {/* Ürün Siparişleri */}
+        {/* ÃœrÃ¼n SipariÅŸleri */}
         <TabsContent value="products" className="space-y-4">
           {loadingOrders ? (
             <div className="space-y-4">
@@ -200,12 +197,12 @@ export default function OrdersPage() {
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <Package className="w-16 h-16 text-gray-300 mb-4" />
-                <p className="text-lg font-medium text-gray-600 mb-2">Henüz siparişiniz yok</p>
+                <p className="text-lg font-medium text-gray-600 mb-2">HenÃ¼z sipariÅŸiniz yok</p>
                 <p className="text-sm text-gray-500 text-center mb-6">
-                  İlk siparişinizi vermek için ürünlerimizi inceleyebilirsiniz
+                  Ä°lk sipariÅŸinizi vermek iÃ§in Ã¼rÃ¼nlerimizi inceleyebilirsiniz
                 </p>
                 <Button onClick={() => router.push("/products")}>
-                  Ürünleri İncele
+                  ÃœrÃ¼nleri Ä°ncele
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </CardContent>
@@ -221,7 +218,7 @@ export default function OrdersPage() {
                           {order.orderNumber.slice(-3)}
                         </div>
                         <div>
-                          <CardTitle className="text-lg">Sipariş No: {order.orderNumber}</CardTitle>
+                          <CardTitle className="text-lg">SipariÅŸ No: {order.orderNumber}</CardTitle>
                           <p className="text-sm text-gray-600 mt-1">
                             {format(new Date(order.createdAt), "dd MMMM yyyy, HH:mm", { locale: tr })}
                           </p>
@@ -237,7 +234,7 @@ export default function OrdersPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {/* Ürünler */}
+                      {/* ÃœrÃ¼nler */}
                       <div className="space-y-3">
                         {order.items.map((item) => (
                           <div
@@ -287,13 +284,13 @@ export default function OrdersPage() {
                                 <Link
                                   href={`/product/${item.product.slug}`}
                                   className="text-blue-600 hover:text-blue-700 flex-shrink-0"
-                                  title="Ürünü Görüntüle"
+                                  title="ÃœrÃ¼nÃ¼ GÃ¶rÃ¼ntÃ¼le"
                                 >
                                   <Eye className="w-5 h-5" />
                                 </Link>
                               )}
 
-                              {/* Sipariş teslim edildiyse yorum yap butonu göster */}
+                              {/* SipariÅŸ teslim edildiyse yorum yap butonu gÃ¶ster */}
                               {order.status === "DELIVERED" && (
                                 <Button
                                   variant="outline"
@@ -319,7 +316,7 @@ export default function OrdersPage() {
                         <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
                           <Truck className="w-5 h-5 text-blue-600" />
                           <div className="flex-1">
-                            <p className="text-sm font-medium text-blue-900">Kargo Takip Numarası</p>
+                            <p className="text-sm font-medium text-blue-900">Kargo Takip NumarasÄ±</p>
                             <p className="text-sm text-blue-700">{order.trackingNumber}</p>
                           </div>
                         </div>
@@ -335,9 +332,9 @@ export default function OrdersPage() {
                         </div>
                       )}
 
-                      {/* Detay ve Fatura Butonları */}
+                      {/* Detay ve Fatura ButonlarÄ± */}
                       <div className="flex flex-wrap justify-end gap-2 pt-2 border-t">
-                        {/* İade Talep Et - Sadece teslim edilmiş siparişler için */}
+                        {/* Ä°ade Talep Et - Sadece teslim edilmiÅŸ sipariÅŸler iÃ§in */}
                         {order.status === "DELIVERED" && (
                           <Button
                             variant="outline"
@@ -345,11 +342,11 @@ export default function OrdersPage() {
                             className="flex items-center gap-2"
                           >
                             <RotateCcw className="w-4 h-4" />
-                            İade Talep Et
+                            Ä°ade Talep Et
                           </Button>
                         )}
 
-                        {/* Fatura İndir - Sadece ödeme yapılmış siparişler için */}
+                        {/* Fatura Ä°ndir - Sadece Ã¶deme yapÄ±lmÄ±ÅŸ sipariÅŸler iÃ§in */}
                         {(order.paymentStatus === "PAID" || order.paymentStatus === "SUCCEEDED") && (
                           <Button
                             variant="outline"
@@ -357,7 +354,7 @@ export default function OrdersPage() {
                             className="flex items-center gap-2"
                           >
                             <FileDown className="w-4 h-4" />
-                            Fatura İndir
+                            Fatura Ä°ndir
                           </Button>
                         )}
 
@@ -366,7 +363,7 @@ export default function OrdersPage() {
                           onClick={() => router.push(`/profile/orders/product/${order.id}`)}
                           className="flex items-center gap-2"
                         >
-                          Detayları Görüntüle
+                          DetaylarÄ± GÃ¶rÃ¼ntÃ¼le
                           <ArrowRight className="w-4 h-4" />
                         </Button>
                       </div>
@@ -388,7 +385,6 @@ export default function OrdersPage() {
           productName={selectedReviewProduct.name}
           productImage={selectedReviewProduct.image}
           onReviewSubmitted={() => {
-            // İsteğe bağlı: Başarılı işlem sonrası bir şeyler yap
           }}
         />
       )}
@@ -399,7 +395,6 @@ export default function OrdersPage() {
         onClose={() => setReturnModalOpen(false)}
         order={selectedReturnOrder}
         onSuccess={() => {
-          // Refresh orders after successful return request
           fetch("/api/orders")
             .then((res) => res.json())
             .then((data) => setProductOrders(data));

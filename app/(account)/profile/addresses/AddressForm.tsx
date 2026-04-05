@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
@@ -12,7 +12,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-// Prop tipi güncellendi: districtId ve fullAddress isteğe bağlı oldu
 interface AddressFormProps {
   districtId?: string;
   fullAddress?: string;
@@ -37,7 +36,6 @@ export default function AddressForm({
     setAddress(fullAddress || "");
   }, [districtId, fullAddress]);
 
-  // İlçeleri getir
   useEffect(() => {
     fetch("/api/districts")
       .then((res) => res.json())
@@ -53,10 +51,10 @@ export default function AddressForm({
   return (
     <form className="space-y-4" onSubmit={handleSubmit}>
       <div className="space-y-2">
-        <Label>İlçe</Label>
+        <Label>Ä°lÃ§e</Label>
         <Select value={selectedDistrict} onValueChange={setSelectedDistrict}>
           <SelectTrigger className="w-full">
-            <SelectValue placeholder="İlçe Seçiniz" />
+            <SelectValue placeholder="Ä°lÃ§e SeÃ§iniz" />
           </SelectTrigger>
           <SelectContent>
             {districts.map((d) => (
@@ -69,9 +67,9 @@ export default function AddressForm({
       </div>
 
       <div className="space-y-2">
-        <Label>Adres Detayı</Label>
+        <Label>Adres DetayÄ±</Label>
         <Input
-          placeholder="Açık adresinizi girin"
+          placeholder="AÃ§Ä±k adresinizi girin"
           value={address}
           onChange={(e) => setAddress(e.target.value)}
         />
@@ -100,7 +98,7 @@ export default function AddressForm({
             />
           </svg>
         ) : districtId ? (
-          "Güncelle"
+          "GÃ¼ncelle"
         ) : (
           "Kaydet"
         )}

@@ -1,7 +1,6 @@
-import { prisma } from "@/lib/db";
+﻿import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 
-// Cache için revalidate - 5 dakika
 export const revalidate = 300;
 
 const FILTER_CACHE_TTL_MS = 30_000;
@@ -95,12 +94,10 @@ export async function GET(request: NextRequest) {
     };
   }
 
-  // Gender filter
   if (genders.length > 0) {
     where.gender = { in: genders };
   }
 
-  // Tag filter
   if (tag) {
     where.tags = {
       some: {
@@ -112,7 +109,6 @@ export async function GET(request: NextRequest) {
     };
   }
 
-  // Price filter
   if (minPrice || maxPrice) {
     where.price = {};
     if (minPrice) {
@@ -123,7 +119,6 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // Size filter
   if (sizes.length > 0) {
     where.sizes = {
       some: {
@@ -134,7 +129,6 @@ export async function GET(request: NextRequest) {
     };
   }
 
-  // Color filter
   if (colors.length > 0) {
     where.colors = {
       some: {
@@ -146,7 +140,6 @@ export async function GET(request: NextRequest) {
     };
   }
 
-  // Fabric type filter
   if (fabricType) {
     where.fabricType = {
       contains: fabricType,
@@ -154,7 +147,6 @@ export async function GET(request: NextRequest) {
     };
   }
 
-  // Category filter
   if (categoryId) {
     where.categoryId = categoryId;
   } else if (categorySlug) {
@@ -230,7 +222,6 @@ export async function GET(request: NextRequest) {
     orderBy,
   });
 
-  // Parse color images JSON strings
   const parsedProducts = products.map((product: any) => {
     const colors = product.colors.map((color: any) => {
       let images: string[] = [];
@@ -247,7 +238,6 @@ export async function GET(request: NextRequest) {
     return { ...product, colors };
   });
 
-  // Stokta olmayanları listenin en altına taşı
   parsedProducts.sort((a: any, b: any) => {
     const totalStockA = a.colors.reduce((sum: number, c: any) => 
       sum + (c.variants?.reduce((vs: number, v: any) => vs + (v.stock || 0), 0) || 0), 0);
@@ -255,7 +245,7 @@ export async function GET(request: NextRequest) {
       sum + (c.variants?.reduce((vs: number, v: any) => vs + (v.stock || 0), 0) || 0), 0);
     const inStockA = totalStockA > 0 ? 1 : 0;
     const inStockB = totalStockB > 0 ? 1 : 0;
-    return inStockB - inStockA; // Stokta olanlar önce
+    return inStockB - inStockA; // Stokta olanlar Ã¶nce
   });
 
   setCachedFilterResponse(cacheKey, parsedProducts);
@@ -263,7 +253,6 @@ export async function GET(request: NextRequest) {
   const response = NextResponse.json(parsedProducts);
   const totalMs = performance.now() - requestStart;
 
-  // Cache headers
   response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
   response.headers.set("X-Filter-Cache", "MISS");
   response.headers.set("X-Response-Time-Ms", totalMs.toFixed(2));

@@ -1,4 +1,4 @@
-import { create } from "zustand";
+﻿import { create } from "zustand";
 import { getGuestCartCount } from "@/lib/cart-utils";
 
 type HeaderState = {
@@ -25,15 +25,12 @@ export const useHeaderStore = create<HeaderState>((set, get) => ({
   setFreeShippingThreshold: (threshold) => set({ freeShippingThreshold: threshold }),
 
   hydrate: async (session) => {
-    // Guard: Zaten hydrate edildiyse tekrar etme
     if (get().isHydrated) return;
 
-    // Önce localStorage'dan guest cart sayısını göster (anında)
     if (!session?.user) {
       const guestCount = getGuestCartCount();
       set({ cartCount: guestCount, favoriteCount: 0, isHydrated: true });
     } else {
-      // Giriş yapmış kullanıcı için API'den yükle
       try {
         const [cartRes, favoritesRes, settingsRes] = await Promise.all([
           fetch("/api/cart"),

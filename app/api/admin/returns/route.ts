@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/db";
+﻿import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
@@ -10,7 +10,6 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        // Admin check
         const user = await prisma.user.findUnique({
             where: { id: session.user.id },
             select: { isAdmin: true },
@@ -56,7 +55,7 @@ export async function GET(request: NextRequest) {
     } catch (error: any) {
         console.error("Returns fetch error:", error);
         return NextResponse.json(
-            { error: "İade talepleri yüklenirken hata oluştu" },
+            { error: "Ä°ade talepleri yÃ¼klenirken hata oluÅŸtu" },
             { status: 500 }
         );
     }

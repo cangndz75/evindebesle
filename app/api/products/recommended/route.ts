@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
 const TARGET_COUNT = 12;
@@ -27,7 +27,6 @@ function formatProduct(product: any) {
   };
 }
 
-// Akıllı öneri: kombin > aynı cinsiyet+kategori > aynı cinsiyet > genel
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -42,19 +41,17 @@ export async function GET(request: NextRequest) {
       return NextResponse.json([]);
     }
 
-    // Sepetteki ürünlerin cinsiyet ve kategorilerini al
     const cartProducts = await prisma.product.findMany({
       where: { id: { in: ids } },
       select: { id: true, gender: true, categoryId: true },
     });
 
-    const genders = [...new Set(cartProducts.map((p) => p.gender).filter(Boolean))];
-    const categoryIds = [...new Set(cartProducts.map((p) => p.categoryId).filter(Boolean))] as string[];
+    const genders = [...new Set(cartProducts.map((p: { gender: string | null }) => p.gender).filter(Boolean))];
+    const categoryIds = [...new Set(cartProducts.map((p: { categoryId: string | null }) => p.categoryId).filter(Boolean))] as string[];
 
     const excludeIds = new Set(ids);
     const results: any[] = [];
 
-    // 1) Kombin ürünleri (mevcut mantık)
     const combinations = await prisma.productCombination.findMany({
       where: { productId: { in: ids } },
       include: {
@@ -75,7 +72,6 @@ export async function GET(request: NextRequest) {
       if (results.length >= TARGET_COUNT) break;
     }
 
-    // 2) Aynı cinsiyet + aynı kategori
     if (results.length < TARGET_COUNT && genders.length > 0 && categoryIds.length > 0) {
       const sameBoth = await prisma.product.findMany({
         where: {
@@ -95,7 +91,6 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 3) Aynı cinsiyet (farklı kategori olabilir)
     if (results.length < TARGET_COUNT && genders.length > 0) {
       const sameGender = await prisma.product.findMany({
         where: {
@@ -114,7 +109,6 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 4) Genel fallback (cinsiyet/kategori eşleşmezse veya yetersizse)
     if (results.length < TARGET_COUNT) {
       const general = await prisma.product.findMany({
         where: {

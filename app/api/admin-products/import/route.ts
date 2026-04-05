@@ -1,46 +1,51 @@
-import { prisma } from "@/lib/db";
+﻿import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { generateVariantCode, generateProductSlug } from "@/lib/slug";
+import { Readable } from "node:stream";
 import ExcelJS from "exceljs";
 
 export const dynamic = "force-dynamic";
 
-// ─── Kolon eşlemeleri ────────────────────────────────────────────────────────
+function toExcelBuffer(data: ArrayBuffer | Buffer): Buffer<ArrayBuffer> {
+  return data instanceof ArrayBuffer
+    ? Buffer.from(new Uint8Array(data))
+    : Buffer.from(data);
+}
+
 const COL = {
   PARTNER_ID:     "Partner ID",
   BARCODE:        "Barkod",
-  COMMISSION:     "Komisyon Oranı",
+  COMMISSION:     "Komisyon OranÄ±",
   MODEL_CODE:     "Model Kodu",
-  COLOR:          "Ürün Rengi",
+  COLOR:          "ÃœrÃ¼n Rengi",
   SIZE:           "Beden",
   DIMENSION:      "Boyut/Ebat",
   GENDER:         "Cinsiyet",
   BRAND:          "Marka",
-  CATEGORY:       "Kategori İsmi",
-  SUPPLIER_CODE:  "Tedarikçi Stok Kodu",
-  NAME:           "Ürün Adı",
-  DESCRIPTION:    "Ürün Açıklaması",
-  MARKET_PRICE:   "Piyasa Satış Fiyatı (KDV Dahil)",
-  SALE_PRICE:     "Trendyol'da Satılacak Fiyat",
-  BUYBOX_PRICE:   "BuyBox Fiyatı",
-  STOCK:          "Ürün Stok Adedi",
-  VAT_RATE:       "KDV Oranı",
-  OTV_RATE:       "ÖTV Oranı",
+  CATEGORY:       "Kategori Ä°smi",
+  SUPPLIER_CODE:  "TedarikÃ§i Stok Kodu",
+  NAME:           "ÃœrÃ¼n AdÄ±",
+  DESCRIPTION:    "ÃœrÃ¼n AÃ§Ä±klamasÄ±",
+  MARKET_PRICE:   "Piyasa SatÄ±ÅŸ FiyatÄ± (KDV Dahil)",
+  SALE_PRICE:     "Trendyol'da SatÄ±lacak Fiyat",
+  BUYBOX_PRICE:   "BuyBox FiyatÄ±",
+  STOCK:          "ÃœrÃ¼n Stok Adedi",
+  VAT_RATE:       "KDV OranÄ±",
+  OTV_RATE:       "Ã–TV OranÄ±",
   SHIPMENT_TYPE:  "Sevkiyat Tipi",
-  IMAGE1:         "Görsel 1",
-  IMAGE2:         "Görsel 2",
-  IMAGE3:         "Görsel 3",
-  IMAGE4:         "Görsel 4",
-  IMAGE5:         "Görsel 5",
-  IMAGE6:         "Görsel 6",
-  IMAGE7:         "Görsel 7",
-  IMAGE8:         "Görsel 8",
+  IMAGE1:         "GÃ¶rsel 1",
+  IMAGE2:         "GÃ¶rsel 2",
+  IMAGE3:         "GÃ¶rsel 3",
+  IMAGE4:         "GÃ¶rsel 4",
+  IMAGE5:         "GÃ¶rsel 5",
+  IMAGE6:         "GÃ¶rsel 6",
+  IMAGE7:         "GÃ¶rsel 7",
+  IMAGE8:         "GÃ¶rsel 8",
   TRENDYOL_LINK:  "Trendyol Linki",
 };
 
-// ─── Yardımcı fonksiyonlar ───────────────────────────────────────────────────
 function str(row: any, key: string): string {
   const v = row[key];
   if (v === undefined || v === null) return "";
@@ -62,7 +67,7 @@ function cleanUrl(url: string | undefined): string | null {
 
 function normalizeGender(val: string): "FEMALE" | "MALE" | "UNISEX" | undefined {
   const v = val.toLowerCase();
-  if (v.includes("kadın") || v.includes("kız") || v.includes("female")) return "FEMALE";
+  if (v.includes("kadÄ±n") || v.includes("kÄ±z") || v.includes("female")) return "FEMALE";
   if (v.includes("erkek") || v.includes("male")) return "MALE";
   if (v.includes("unisex")) return "UNISEX";
   return undefined;
@@ -71,13 +76,12 @@ function normalizeGender(val: string): "FEMALE" | "MALE" | "UNISEX" | undefined 
 function slugify(text: string): string {
   return text
     .toLowerCase()
-    .replace(/ğ/g, "g").replace(/ü/g, "u").replace(/ş/g, "s")
-    .replace(/ı/g, "i").replace(/ö/g, "o").replace(/ç/g, "c")
+    .replace(/ÄŸ/g, "g").replace(/Ã¼/g, "u").replace(/ÅŸ/g, "s")
+    .replace(/Ä±/g, "i").replace(/Ã¶/g, "o").replace(/Ã§/g, "c")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 }
 
-// ─── Excel satır tipi ────────────────────────────────────────────────────────
 interface ExcelRow {
   barcode: string;
   modelCode: string;
@@ -118,7 +122,7 @@ function normalizeCellValue(value: unknown): string {
 
 async function readExcelRowsFromBuffer(buffer: Buffer): Promise<any[]> {
   const workbook = new ExcelJS.Workbook();
-  await workbook.xlsx.load(buffer);
+  await workbook.xlsx.read(Readable.from([toExcelBuffer(buffer)]));
   const worksheet = workbook.worksheets[0];
 
   if (!worksheet) return [];
@@ -180,7 +184,6 @@ function parseRows(data: any[]): ExcelRow[] {
   }));
 }
 
-// Gruplama: modelCode → yoksa name+brand+category
 function groupRows(rows: ExcelRow[]): Map<string, ExcelRow[]> {
   const map = new Map<string, ExcelRow[]>();
   for (const row of rows) {
@@ -194,7 +197,6 @@ function groupRows(rows: ExcelRow[]): Map<string, ExcelRow[]> {
   return map;
 }
 
-// ─── POST — Ana import ───────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authConfig);
@@ -204,17 +206,16 @@ export async function POST(req: NextRequest) {
 
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
-    if (!file) return NextResponse.json({ error: "Dosya bulunamadı" }, { status: 400 });
+    if (!file) return NextResponse.json({ error: "Dosya bulunamadÄ±" }, { status: 400 });
 
-    const buffer = Buffer.from(await file.arrayBuffer());
+    const buffer = toExcelBuffer(await file.arrayBuffer());
     const rawData = await readExcelRowsFromBuffer(buffer);
 
-    if (!rawData.length) return NextResponse.json({ error: "Excel dosyası boş" }, { status: 400 });
+    if (!rawData.length) return NextResponse.json({ error: "Excel dosyasÄ± boÅŸ" }, { status: 400 });
 
     const rows = parseRows(rawData);
     const groups = groupRows(rows);
 
-    // Kategori önbelleği
     const catCache = new Map<string, string>();
     let createdCategories = 0;
 
@@ -259,7 +260,6 @@ export async function POST(req: NextRequest) {
         const categoryId = await getCategoryId(first.category);
         const gender = normalizeGender(first.gender);
 
-        // Ürünü bul veya oluştur (stockCode = modelCode || supplierCode || barcode)
         const stockCode = first.modelCode || first.supplierCode || first.barcode || groupKey;
 
         let product = await prisma.product.findFirst({
@@ -295,7 +295,6 @@ export async function POST(req: NextRequest) {
           });
           createdProducts++;
         } else {
-          // Ürünü güncelle
           await prisma.product.update({
             where: { id: product.id },
             data: {
@@ -318,7 +317,6 @@ export async function POST(req: NextRequest) {
 
         const productId = product.id;
 
-        // Görselleri yaz (primary + secondary ayrımı)
         for (let i = 0; i < first.images.length; i++) {
           const url = first.images[i];
           const exists = await prisma.productImage.findFirst({
@@ -339,7 +337,6 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        // Renk haritası (lowercase → db id)
         const colorMap = new Map<string, string>();
         const existingColors = await prisma.productColor.findMany({
           where: { productId },
@@ -347,7 +344,6 @@ export async function POST(req: NextRequest) {
         });
         for (const c of existingColors) colorMap.set(c.name.trim().toLowerCase(), c.id);
 
-        // Beden haritası
         const sizeMap = new Map<string, string>();
         const existingSizes = await prisma.productSize.findMany({
           where: { productId },
@@ -355,10 +351,8 @@ export async function POST(req: NextRequest) {
         });
         for (const s of existingSizes) sizeMap.set(s.name.trim().toLowerCase(), s.id);
 
-        // Her satır → bağımsız varyant
         for (const row of groupRows) {
           try {
-            // Renk upsert
             let colorId: string | null = null;
             if (row.color) {
               const ck = row.color.trim().toLowerCase();
@@ -372,7 +366,6 @@ export async function POST(req: NextRequest) {
               colorId = colorMap.get(ck)!;
             }
 
-            // Beden upsert
             let sizeId: string | null = null;
             if (row.size) {
               const sk = row.size.trim().toLowerCase();
@@ -383,7 +376,6 @@ export async function POST(req: NextRequest) {
                 });
                 sizeMap.set(sk, newSize.id);
               } else {
-                // Stoğu güncelle
                 await prisma.productSize.update({
                   where: { id: sizeMap.get(sk)! },
                   data: { stock: row.stock },
@@ -392,8 +384,6 @@ export async function POST(req: NextRequest) {
               sizeId = sizeMap.get(sk)!;
             }
 
-            // Varyant bul veya oluştur
-            // Önce barkod ile ara, yoksa productId+colorId+sizeId+dimension ile
             let existingVariant: { id: string } | null = null;
             if (row.barcode) {
               existingVariant = await prisma.productVariant.findFirst({
@@ -446,7 +436,7 @@ export async function POST(req: NextRequest) {
               createdVariants++;
             }
           } catch (rowErr: any) {
-            errors.push({ group: groupKey, error: `Satır (${row.barcode || row.size}): ${rowErr.message}` });
+            errors.push({ group: groupKey, error: `SatÄ±r (${row.barcode || row.size}): ${rowErr.message}` });
           }
         }
       } catch (groupErr: any) {
@@ -466,11 +456,10 @@ export async function POST(req: NextRequest) {
     });
   } catch (error: any) {
     console.error("Import error:", error);
-    return NextResponse.json({ error: error.message || "Import hatası" }, { status: 500 });
+    return NextResponse.json({ error: error.message || "Import hatasÄ±" }, { status: 500 });
   }
 }
 
-// ─── PUT — Önizleme ──────────────────────────────────────────────────────────
 export async function PUT(req: NextRequest) {
   try {
     const session = await getServerSession(authConfig);
@@ -480,9 +469,9 @@ export async function PUT(req: NextRequest) {
 
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
-    if (!file) return NextResponse.json({ error: "Dosya bulunamadı" }, { status: 400 });
+    if (!file) return NextResponse.json({ error: "Dosya bulunamadÄ±" }, { status: 400 });
 
-    const buffer = Buffer.from(await file.arrayBuffer());
+    const buffer = toExcelBuffer(await file.arrayBuffer());
     const rawData = await readExcelRowsFromBuffer(buffer);
 
     const rows = parseRows(rawData);

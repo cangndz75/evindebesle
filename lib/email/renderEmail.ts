@@ -1,4 +1,4 @@
-import { Block } from "@/app/(admin)/campaigns/types";
+﻿import { Block } from "@/app/(admin)/campaigns/types";
 
 interface RenderOptions {
   baseUrl: string;
@@ -6,10 +6,6 @@ interface RenderOptions {
   campaignId?: string;
 }
 
-/**
- * Renders email blocks to HTML for email clients
- * Uses table-based layout for maximum compatibility
- */
 export function renderEmailHtml(blocks: Block[], options: RenderOptions): string {
   const { baseUrl, trackingId, campaignId } = options;
 
@@ -17,7 +13,6 @@ export function renderEmailHtml(blocks: Block[], options: RenderOptions): string
     .map((block) => renderBlock(block, options))
     .join("\n");
 
-  // Tracking pixel for open tracking
   const trackingPixel = trackingId
     ? `<img src="${baseUrl}/api/track/open/${trackingId}" width="1" height="1" style="display:block;width:1px;height:1px;border:0;" alt="" />`
     : "";
@@ -175,7 +170,7 @@ function renderCouponBlock(block: Block): string {
       <td style="background-color: ${bgColor}; padding: 32px; text-align: center;">
         <div style="display: inline-block; border: 2px dashed ${borderColor}; padding: 24px 48px; border-radius: 8px;">
           ${discountText ? `<p style="margin: 0 0 8px; font-size: 18px; font-weight: bold; color: ${borderColor};">${discountText}</p>` : ""}
-          <p style="margin: 0 0 8px; font-size: 12px; color: #6b7280;">İndirim Kodu</p>
+          <p style="margin: 0 0 8px; font-size: 12px; color: #6b7280;">Ä°ndirim Kodu</p>
           <p style="margin: 0 0 12px; font-size: 28px; font-family: monospace; font-weight: bold; color: ${borderColor}; background-color: #f3f4f6; padding: 8px 16px; border-radius: 4px;">
             ${couponCode}
           </p>
@@ -190,10 +185,9 @@ function renderCtaBlock(block: Block, options: RenderOptions): string {
   const bgColor = block.style.backgroundColor || "#ffffff";
   const buttonColor = block.style.buttonColor || "#000000";
   const buttonTextColor = block.style.buttonTextColor || "#ffffff";
-  const text = block.content.buttonText || "Tıkla";
+  const text = block.content.buttonText || "TÄ±kla";
   let url = block.content.linkUrl || "#";
 
-  // Wrap URL for tracking if campaign Id exists
   if (options.campaignId && url !== "#") {
     url = `${options.baseUrl}/api/track/click?campaignId=${options.campaignId}&url=${encodeURIComponent(url)}`;
   }
@@ -252,7 +246,6 @@ function renderProductBlock(block: Block, options: RenderOptions): string {
     })
     .join("");
 
-  // Split products into rows
   const rows: string[] = [];
   const cellArray = productCells.split("</td>").filter((c: string) => c.trim() !== "");
 
@@ -283,7 +276,6 @@ function renderImageBlock(block: Block, options: RenderOptions): string {
 
   if (!imageUrl) return "";
 
-  // Wrap URL for tracking
   if (options.campaignId && linkUrl) {
     linkUrl = `${options.baseUrl}/api/track/click?campaignId=${options.campaignId}&url=${encodeURIComponent(linkUrl)}`;
   }
@@ -330,7 +322,7 @@ function renderFooterBlock(block: Block, options: RenderOptions): string {
   const companyName = block.content.companyName || "";
   const companyAddress = block.content.companyAddress || "";
   const siteLink = block.content.siteLink || "";
-  const unsubscribeText = block.content.unsubscribeText || "Abonelikten çık";
+  const unsubscribeText = block.content.unsubscribeText || "Abonelikten Ã§Ä±k";
 
   const unsubscribeLink = options.trackingId
     ? `${options.baseUrl}/unsubscribe?id=${options.trackingId}`
@@ -350,9 +342,6 @@ function renderFooterBlock(block: Block, options: RenderOptions): string {
   `;
 }
 
-/**
- * Replace personalization variables in content
- */
 export function replaceVariables(
   html: string,
   variables: Record<string, string>

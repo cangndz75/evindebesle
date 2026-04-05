@@ -1,5 +1,4 @@
-// Sepet yardımcı fonksiyonları - localStorage için
-
+﻿
 export interface GuestCartItem {
   id: string;
   productId: string;
@@ -25,7 +24,6 @@ export interface GuestCartItem {
   } | null;
 }
 
-// localStorage'dan sepeti getir
 export function getGuestCart(): GuestCartItem[] {
   if (typeof window === "undefined") return [];
   try {
@@ -36,12 +34,10 @@ export function getGuestCart(): GuestCartItem[] {
   }
 }
 
-// localStorage'a sepeti kaydet
 export function saveGuestCart(items: GuestCartItem[]): void {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem("guestCart", JSON.stringify(items));
-    // Sepet güncelleme event'ini tetikle (next tick'te)
     setTimeout(() => {
       window.dispatchEvent(new Event("cartUpdated"));
     }, 0);
@@ -50,7 +46,6 @@ export function saveGuestCart(items: GuestCartItem[]): void {
   }
 }
 
-// Sepete ürün ekle (localStorage için)
 export function addToGuestCart(
   productId: string,
   colorId: string | null,
@@ -70,7 +65,6 @@ export function addToGuestCart(
 ): GuestCartItem {
   const cart = getGuestCart();
 
-  // Aynı ürün, renk ve beden kombinasyonunu kontrol et
   const existingIndex = cart.findIndex(
     (item) =>
       item.productId === productId &&
@@ -79,12 +73,10 @@ export function addToGuestCart(
   );
 
   if (existingIndex >= 0) {
-    // Varsa miktarı artır
     cart[existingIndex].quantity += quantity;
     saveGuestCart(cart);
     return cart[existingIndex];
   } else {
-    // Yoksa yeni ekle
     const newItem: GuestCartItem = {
       id: `guest-${Date.now()}-${Math.random()}`,
       productId,
@@ -101,14 +93,12 @@ export function addToGuestCart(
   }
 }
 
-// Sepetten ürün sil
 export function removeFromGuestCart(itemId: string): void {
   const cart = getGuestCart();
   const filtered = cart.filter((item) => item.id !== itemId);
   saveGuestCart(filtered);
 }
 
-// Sepet sayısını hesapla
 export function getGuestCartCount(): number {
   const cart = getGuestCart();
   return cart.reduce((sum, item) => sum + item.quantity, 0);

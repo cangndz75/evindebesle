@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import useSWR from "swr";
@@ -26,7 +26,6 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Search, Filter, Eye } from "lucide-react";
 
-// Fetcher
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 interface AdminTicket {
@@ -66,13 +65,13 @@ export default function AdminSupportPage() {
     const getStatusBadge = (status: string) => {
         switch (status) {
             case "open":
-                return <Badge className="bg-green-500 hover:bg-green-600">Açık</Badge>;
+                return <Badge className="bg-green-500 hover:bg-green-600">AÃ§Ä±k</Badge>;
             case "pending":
                 return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200">Beklemede</Badge>;
             case "resolved":
-                return <Badge variant="secondary" className="bg-blue-100 text-blue-800 hover:bg-blue-200">Çözüldü</Badge>;
+                return <Badge variant="secondary" className="bg-blue-100 text-blue-800 hover:bg-blue-200">Ã‡Ã¶zÃ¼ldÃ¼</Badge>;
             case "closed":
-                return <Badge variant="outline" className="text-gray-500 border-gray-300">Kapalı</Badge>;
+                return <Badge variant="outline" className="text-gray-500 border-gray-300">KapalÄ±</Badge>;
             default:
                 return <Badge variant="outline">{status}</Badge>;
         }
@@ -98,11 +97,11 @@ export default function AdminSupportPage() {
                                         <SelectValue placeholder="Durum Filtrele" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="all">Tümü</SelectItem>
-                                        <SelectItem value="open">Açık</SelectItem>
+                                        <SelectItem value="all">TÃ¼mÃ¼</SelectItem>
+                                        <SelectItem value="open">AÃ§Ä±k</SelectItem>
                                         <SelectItem value="pending">Beklemede</SelectItem>
-                                        <SelectItem value="resolved">Çözüldü</SelectItem>
-                                        <SelectItem value="closed">Kapalı</SelectItem>
+                                        <SelectItem value="resolved">Ã‡Ã¶zÃ¼ldÃ¼</SelectItem>
+                                        <SelectItem value="closed">KapalÄ±</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -121,18 +120,18 @@ export default function AdminSupportPage() {
                                     <TableRow>
                                         <TableHead>ID</TableHead>
                                         <TableHead>Konu</TableHead>
-                                        <TableHead>Kullanıcı</TableHead>
+                                        <TableHead>KullanÄ±cÄ±</TableHead>
                                         <TableHead>Kategori</TableHead>
                                         <TableHead>Durum</TableHead>
-                                        <TableHead>Son Güncelleme</TableHead>
-                                        <TableHead className="text-right">İşlemler</TableHead>
+                                        <TableHead>Son GÃ¼ncelleme</TableHead>
+                                        <TableHead className="text-right">Ä°ÅŸlemler</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {data?.tickets.length === 0 ? (
                                         <TableRow>
                                             <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                                                Kayıt bulunamadı.
+                                                KayÄ±t bulunamadÄ±.
                                             </TableCell>
                                         </TableRow>
                                     ) : (
@@ -151,7 +150,7 @@ export default function AdminSupportPage() {
                                                 </TableCell>
                                                 <TableCell>
                                                     <div className="flex flex-col">
-                                                        <span className="text-sm font-medium">{ticket.user.name || "İsimsiz"}</span>
+                                                        <span className="text-sm font-medium">{ticket.user.name || "Ä°simsiz"}</span>
                                                         <span className="text-xs text-muted-foreground">{ticket.user.email}</span>
                                                     </div>
                                                 </TableCell>
@@ -164,7 +163,7 @@ export default function AdminSupportPage() {
                                                     <Link href={`/admin-support/${ticket.id}`}>
                                                         <Button variant="ghost" size="sm">
                                                             <Eye className="h-4 w-4 mr-2" />
-                                                            İncele
+                                                            Ä°ncele
                                                         </Button>
                                                     </Link>
                                                 </TableCell>

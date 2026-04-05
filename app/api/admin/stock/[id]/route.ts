@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { prisma } from "@/lib/db";
@@ -24,7 +24,6 @@ export async function PATCH(
       );
     }
 
-    // Size stokunu güncelle
     await prisma.productSize.update({
       where: { id: sizeId },
       data: { stock: parseInt(stock) },
@@ -34,7 +33,7 @@ export async function PATCH(
   } catch (error: any) {
     console.error("Stock update error:", error);
     return NextResponse.json(
-      { error: error.message || "Stok güncellenirken bir hata oluştu" },
+      { error: error.message || "Stok gÃ¼ncellenirken bir hata oluÅŸtu" },
       { status: 500 }
     );
   }

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -19,38 +19,37 @@ import { Truck, RotateCcw, Star, Smartphone, Map, X } from "lucide-react";
 
 const footerSections = [
   {
-    title: "Müşteri Hizmetleri",
+    title: "MÃ¼ÅŸteri Hizmetleri",
     links: [
-      { label: "Sık Sorulan Sorular", href: "/faq" },
-      { label: "İade & Değişim", href: "/returns" },
-      { label: "İletişim", href: "/contact" },
-      { label: "Siparişimi Takip Et", href: "/track" },
+      { label: "SÄ±k Sorulan Sorular", href: "/faq" },
+      { label: "Ä°ade & DeÄŸiÅŸim", href: "/returns" },
+      { label: "Ä°letiÅŸim", href: "/contact" },
+      { label: "SipariÅŸimi Takip Et", href: "/track" },
     ],
   },
   {
     title: "Bilgilendirme",
     links: [
-      { label: "Kargo Politikaları", href: "/shipping" },
-      { label: "Gizlilik Politikası", href: "/privacy" },
-      { label: "K.V.K.K. Aydınlatma Metni", href: "/kvkk" },
+      { label: "Kargo PolitikalarÄ±", href: "/shipping" },
+      { label: "Gizlilik PolitikasÄ±", href: "/privacy" },
+      { label: "K.V.K.K. AydÄ±nlatma Metni", href: "/kvkk" },
     ],
   },
   {
     title: "Kurumsal",
     links: [
-      { label: "Hakkımızda", href: "/about" },
+      { label: "HakkÄ±mÄ±zda", href: "/about" },
       { label: "Blog", href: "/blog" },
     ],
   },
 ];
 
 const staticBenefits = [
-  { icon: "app", text: "Uygulamayı indir, erken erişim kazan" },
-  { icon: "medal", text: "Dark Velvet Rewards ile ücretsiz iade" },
-  { icon: "clock", text: "30 gün içinde kolay iade" },
+  { icon: "app", text: "UygulamayÄ± indir, erken eriÅŸim kazan" },
+  { icon: "medal", text: "Dark Velvet Rewards ile Ã¼cretsiz iade" },
+  { icon: "clock", text: "30 gÃ¼n iÃ§inde kolay iade" },
 ];
 
-// İkonlar için özel SVG'ler (resimdeki gibi minimal line art)
 const AppIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <rect x="4" y="4" width="12" height="12" rx="1.5" />
@@ -96,13 +95,13 @@ function BenefitMarquee() {
         const threshold = data.freeShippingThreshold ?? 999;
         setBenefits([
           ...staticBenefits,
-          { icon: "truck", text: `${threshold}₺ üzeri ücretsiz hızlı kargo` },
+          { icon: "truck", text: `${threshold}â‚º Ã¼zeri Ã¼cretsiz hÄ±zlÄ± kargo` },
         ]);
       })
       .catch(() => {
         setBenefits([
           ...staticBenefits,
-          { icon: "truck", text: "999₺ üzeri ücretsiz hızlı kargo" },
+          { icon: "truck", text: "999â‚º Ã¼zeri Ã¼cretsiz hÄ±zlÄ± kargo" },
         ]);
       });
   }, []);
@@ -220,10 +219,10 @@ export default function Footer() {
 
           <div>
             <h3 className="text-xs uppercase tracking-[0.18em] font-light mb-5">
-              %20’ye Varan İndirim
+              %20â€™ye Varan Ä°ndirim
             </h3>
             <p className="text-sm text-black/70 mb-4">
-              Dark Velvet ayrıcalıkları için bültene katıl
+              Dark Velvet ayrÄ±calÄ±klarÄ± iÃ§in bÃ¼ltene katÄ±l
             </p>
             <form className="flex border border-black">
               <input
@@ -235,18 +234,18 @@ export default function Footer() {
                 type="submit"
                 className="px-6 text-sm tracking-wide uppercase bg-black text-white"
               >
-                Gönder
+                GÃ¶nder
               </button>
             </form>
             <div className="mt-4 flex flex-col gap-3 items-end">
               <img
                 src="/logo_band_colored@2x.png"
-                alt="Ödeme yöntemleri"
+                alt="Ã–deme yÃ¶ntemleri"
                 className="h-6 w-auto object-contain"
               />
               <img
                 src="/iyzico_ile_ode_colored_horizontal.png"
-                alt="iyzico ile öde"
+                alt="iyzico ile Ã¶de"
                 className="h-5 w-auto object-contain"
               />
             </div>
@@ -255,59 +254,59 @@ export default function Footer() {
 
         <div className="mt-16 pt-6 border-t border-black/10 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-xs text-black/60">
-            © 2026 Dark Velvet. Tüm hakları saklıdır.
+            Â© 2026 Dark Velvet. TÃ¼m haklarÄ± saklÄ±dÄ±r.
           </p>
 
-          {/* Site Haritası Link & Modal */}
+          {/* Site HaritasÄ± Link & Modal */}
           <Dialog>
             <DialogTrigger asChild>
               <button className="flex items-center gap-2 text-xs text-black/60 hover:text-black transition-colors group">
                 <Map className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                <span className="uppercase tracking-[0.15em]">Site Haritası</span>
+                <span className="uppercase tracking-[0.15em]">Site HaritasÄ±</span>
               </button>
             </DialogTrigger>
             <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto bg-white p-0">
               <DialogHeader className="sticky top-0 bg-white z-10 px-8 py-6 border-b border-black/10">
                 <DialogTitle className="text-xl font-light uppercase tracking-[0.2em] text-center">
-                  Site Haritası
+                  Site HaritasÄ±
                 </DialogTitle>
               </DialogHeader>
 
               <div className="px-8 py-8">
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-                  {/* Alışveriş */}
+                  {/* AlÄ±ÅŸveriÅŸ */}
                   <div className="space-y-4">
-                    <h5 className="text-xs uppercase tracking-[0.2em] font-medium text-black border-b border-black/10 pb-2">Alışveriş</h5>
+                    <h5 className="text-xs uppercase tracking-[0.2em] font-medium text-black border-b border-black/10 pb-2">AlÄ±ÅŸveriÅŸ</h5>
                     <ul className="space-y-3">
                       <li><Link href="/men/new" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Yeni Gelenler</Link></li>
-                      <li><Link href="/women" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Kadın</Link></li>
+                      <li><Link href="/women" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">KadÄ±n</Link></li>
                       <li><Link href="/men" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Erkek</Link></li>
                       <li><Link href="/women" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Koleksiyonlar</Link></li>
-                      <li><Link href="/category/sale" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">İndirimler</Link></li>
+                      <li><Link href="/category/sale" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Ä°ndirimler</Link></li>
                     </ul>
                   </div>
 
-                  {/* Hesabım */}
+                  {/* HesabÄ±m */}
                   <div className="space-y-4">
-                    <h5 className="text-xs uppercase tracking-[0.2em] font-medium text-black border-b border-black/10 pb-2">Hesabım</h5>
+                    <h5 className="text-xs uppercase tracking-[0.2em] font-medium text-black border-b border-black/10 pb-2">HesabÄ±m</h5>
                     <ul className="space-y-3">
-                      <li><Link href="/auth-tabs" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Giriş Yap</Link></li>
-                      <li><Link href="/auth-tabs" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Üye Ol</Link></li>
+                      <li><Link href="/auth-tabs" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">GiriÅŸ Yap</Link></li>
+                      <li><Link href="/auth-tabs" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Ãœye Ol</Link></li>
                       <li><Link href="/profile/personal-info" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Profilim</Link></li>
-                      <li><Link href="/profile/orders" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Siparişlerim</Link></li>
+                      <li><Link href="/profile/orders" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">SipariÅŸlerim</Link></li>
                       <li><Link href="/favorites" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Favorilerim</Link></li>
                       <li><Link href="/profile/addresses" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Adreslerim</Link></li>
                     </ul>
                   </div>
 
-                  {/* Müşteri Hizmetleri */}
+                  {/* MÃ¼ÅŸteri Hizmetleri */}
                   <div className="space-y-4">
-                    <h5 className="text-xs uppercase tracking-[0.2em] font-medium text-black border-b border-black/10 pb-2">Müşteri Hizmetleri</h5>
+                    <h5 className="text-xs uppercase tracking-[0.2em] font-medium text-black border-b border-black/10 pb-2">MÃ¼ÅŸteri Hizmetleri</h5>
                     <ul className="space-y-3">
-                      <li><Link href="/faq" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Sık Sorulan Sorular</Link></li>
-                      <li><Link href="/returns" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">İade & Değişim</Link></li>
-                      <li><Link href="/contact" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">İletişim</Link></li>
-                      <li><Link href="/track" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Siparişimi Takip Et</Link></li>
+                      <li><Link href="/faq" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">SÄ±k Sorulan Sorular</Link></li>
+                      <li><Link href="/returns" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Ä°ade & DeÄŸiÅŸim</Link></li>
+                      <li><Link href="/contact" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Ä°letiÅŸim</Link></li>
+                      <li><Link href="/track" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">SipariÅŸimi Takip Et</Link></li>
                     </ul>
                   </div>
 
@@ -315,9 +314,9 @@ export default function Footer() {
                   <div className="space-y-4">
                     <h5 className="text-xs uppercase tracking-[0.2em] font-medium text-black border-b border-black/10 pb-2">Bilgilendirme</h5>
                     <ul className="space-y-3">
-                      <li><Link href="/shipping" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Kargo Politikaları</Link></li>
-                      <li><Link href="/privacy" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Gizlilik Politikası</Link></li>
-                      <li><Link href="/kvkk" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">K.V.K.K. Aydınlatma Metni</Link></li>
+                      <li><Link href="/shipping" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Kargo PolitikalarÄ±</Link></li>
+                      <li><Link href="/privacy" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Gizlilik PolitikasÄ±</Link></li>
+                      <li><Link href="/kvkk" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">K.V.K.K. AydÄ±nlatma Metni</Link></li>
                     </ul>
                   </div>
 
@@ -325,7 +324,7 @@ export default function Footer() {
                   <div className="space-y-4">
                     <h5 className="text-xs uppercase tracking-[0.2em] font-medium text-black border-b border-black/10 pb-2">Kurumsal</h5>
                     <ul className="space-y-3">
-                      <li><Link href="/about" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Hakkımızda</Link></li>
+                      <li><Link href="/about" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">HakkÄ±mÄ±zda</Link></li>
                       <li><Link href="/blog" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Blog</Link></li>
                     </ul>
                   </div>
@@ -346,7 +345,7 @@ export default function Footer() {
           </Dialog>
 
           <div className="text-xs text-black/60">
-            Türkiye (TRY ₺)
+            TÃ¼rkiye (TRY â‚º)
           </div>
         </div>
       </div>

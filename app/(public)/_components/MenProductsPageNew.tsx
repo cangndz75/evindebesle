@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -117,7 +117,6 @@ function FavoriteButton({ productId, productName }: { productId: string; product
   const [isFavorite, setIsFavorite] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Favori durumunu kontrol et
   useEffect(() => {
     const checkFavorite = async () => {
       try {
@@ -141,7 +140,7 @@ function FavoriteButton({ productId, productName }: { productId: string; product
           method: "DELETE",
         });
         setIsFavorite(false);
-        toast.success(`${productName} favorilerden çıkarıldı`, {
+        toast.success(`${productName} favorilerden Ã§Ä±karÄ±ldÄ±`, {
           position: "bottom-left",
         });
       } else {
@@ -155,11 +154,10 @@ function FavoriteButton({ productId, productName }: { productId: string; product
           position: "bottom-left",
         });
       }
-      // Header'daki favori sayısını güncellemek için event dispatch et
       window.dispatchEvent(new Event("favoriteUpdated"));
     } catch (error) {
       console.error("Error toggling favorite:", error);
-      toast.error("Bir hata oluştu");
+      toast.error("Bir hata oluÅŸtu");
     } finally {
       setIsLoading(false);
     }
@@ -170,7 +168,7 @@ function FavoriteButton({ productId, productName }: { productId: string; product
       className="absolute top-3 right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center transition-all hover:scale-110 z-10 disabled:opacity-50 shadow-sm"
       onClick={handleToggle}
       disabled={isLoading}
-      aria-label={isFavorite ? "Favorilerden Çıkar" : "Favorilere Ekle"}
+      aria-label={isFavorite ? "Favorilerden Ã‡Ä±kar" : "Favorilere Ekle"}
     >
       <Heart
         className={`w-4 h-4 transition-colors ${isFavorite ? "fill-[#111] text-[#111]" : "text-[#111]"
@@ -212,14 +210,12 @@ export default function MenProductsPage({
   } | null>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Fiyat aralığı zaten server-side'da çekildi, sadece güncelleme gerekirse
   useEffect(() => {
     if (initialPriceRange.min !== 0 || initialPriceRange.max !== 2000) {
       setPriceRange(initialPriceRange);
     }
   }, [initialPriceRange]);
 
-  // Debounce filters - 300ms gecikme ile
   useEffect(() => {
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
@@ -236,14 +232,12 @@ export default function MenProductsPage({
     };
   }, [filters]);
 
-  // SWR için fetcher function
   const fetcher = useCallback(async (url: string) => {
     const res = await fetch(url);
     if (!res.ok) throw new Error('Failed to fetch');
     return res.json();
   }, []);
 
-  // Build API URL with filters (debounced filters kullan)
   const buildApiUrl = useCallback(() => {
     const hasBaseQuery = Boolean(baseQuery?.tag || baseQuery?.newArrivals || baseQuery?.categorySlug);
     const hasFilters =
@@ -305,19 +299,17 @@ export default function MenProductsPage({
 
   const apiUrl = buildApiUrl();
 
-  // SWR ile data fetching
   const { data: fetchedProducts, error, isLoading: swrLoading } = useSWR<Product[]>(
     apiUrl,
     fetcher,
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: true,
-      dedupingInterval: 2000, // 2 saniye içinde aynı request'i tekrar etme
+      dedupingInterval: 2000, // 2 saniye iÃ§inde aynÄ± request'i tekrar etme
       fallbackData: initialProducts.length > 0 && !apiUrl ? initialProducts : undefined,
     }
   );
 
-  // Products state'i güncelle
   useEffect(() => {
     if (fetchedProducts) {
       setProducts(fetchedProducts);
@@ -326,12 +318,10 @@ export default function MenProductsPage({
     }
   }, [fetchedProducts, apiUrl, initialProducts]);
 
-  // Loading state
   useEffect(() => {
     setLoading(swrLoading);
   }, [swrLoading]);
 
-  // Extract available options from products
   const availableOptions = useMemo(() => {
     const sizes = new Set<string>();
     const colors = new Map<string, { name: string; hexCode?: string }>();
@@ -369,17 +359,16 @@ export default function MenProductsPage({
     };
   }, [products]);
 
-  // Active filters for display
   const activeFilters = useMemo<ActiveFilter[]>(() => {
     const result: ActiveFilter[] = [];
 
     if (filters.minPrice || filters.maxPrice) {
       const label =
         filters.minPrice && filters.maxPrice
-          ? `₺${filters.minPrice} - ₺${filters.maxPrice}`
+          ? `â‚º${filters.minPrice} - â‚º${filters.maxPrice}`
           : filters.minPrice
-            ? `₺${filters.minPrice}+`
-            : `₺${filters.maxPrice}-`;
+            ? `â‚º${filters.minPrice}+`
+            : `â‚º${filters.maxPrice}-`;
       result.push({
         type: "price",
         label,
@@ -487,7 +476,7 @@ export default function MenProductsPage({
                 : "bg-white text-[#111] border border-[#111] hover:bg-[#111] hover:text-white"
             }`}
           >
-            TÜMÜ
+            TÃœMÃœ
           </button>
           {initialCategories.map((category) => (
             <button
@@ -523,44 +512,44 @@ export default function MenProductsPage({
             />
           </div>
 
-          {/* Sırala - Sağ */}
+          {/* SÄ±rala - SaÄŸ */}
           <div className="flex items-center gap-4">
             <span className="text-sm text-[#111]/60 font-light hidden md:inline">
-              {products.length} ürün
+              {products.length} Ã¼rÃ¼n
             </span>
 
-            {/* Mobil: Sırala Butonu */}
+            {/* Mobil: SÄ±rala Butonu */}
             <button
               onClick={() => setSortDialogOpen(true)}
               className="md:hidden flex items-center gap-2 px-4 py-2 text-sm font-light text-[#111] border border-[#111] hover:bg-[#111] hover:text-white transition-colors"
             >
               <ArrowUpDown className="w-4 h-4" />
-              <span>Sırala</span>
+              <span>SÄ±rala</span>
             </button>
 
-            {/* Desktop: Sırala Dropdown */}
+            {/* Desktop: SÄ±rala Dropdown */}
             <div className="hidden md:flex items-center gap-2">
-              <span className="text-sm text-[#111] font-light">Sırala:</span>
+              <span className="text-sm text-[#111] font-light">SÄ±rala:</span>
               <Select value={sortOption} onValueChange={setSortOption}>
                 <SelectTrigger className="w-[200px] border-none bg-transparent text-sm font-light text-[#111] focus:ring-0 focus:ring-offset-0">
                   <SelectValue>
-                    {sortOption === "featured" && "Öne çıkan"}
-                    {sortOption === "bestseller" && "En çok satan"}
+                    {sortOption === "featured" && "Ã–ne Ã§Ä±kan"}
+                    {sortOption === "bestseller" && "En Ã§ok satan"}
                     {sortOption === "az" && "Alfabetik olarak, A-Z"}
                     {sortOption === "za" && "Alfabetik olarak, Z-A"}
-                    {sortOption === "price-low" && "Fiyat, düşükten yükseğe"}
-                    {sortOption === "price-high" && "Fiyat, yüksekten düşüğe"}
+                    {sortOption === "price-low" && "Fiyat, dÃ¼ÅŸÃ¼kten yÃ¼kseÄŸe"}
+                    {sortOption === "price-high" && "Fiyat, yÃ¼ksekten dÃ¼ÅŸÃ¼ÄŸe"}
                     {sortOption === "date-old" && "Tarih, eskiden yeniye"}
                     {sortOption === "date-new" && "Tarih, yeniden eskiye"}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="featured">Öne çıkan</SelectItem>
-                  <SelectItem value="bestseller">En çok satan</SelectItem>
+                  <SelectItem value="featured">Ã–ne Ã§Ä±kan</SelectItem>
+                  <SelectItem value="bestseller">En Ã§ok satan</SelectItem>
                   <SelectItem value="az">Alfabetik olarak, A-Z</SelectItem>
                   <SelectItem value="za">Alfabetik olarak, Z-A</SelectItem>
-                  <SelectItem value="price-low">Fiyat, düşükten yükseğe</SelectItem>
-                  <SelectItem value="price-high">Fiyat, yüksekten düşüğe</SelectItem>
+                  <SelectItem value="price-low">Fiyat, dÃ¼ÅŸÃ¼kten yÃ¼kseÄŸe</SelectItem>
+                  <SelectItem value="price-high">Fiyat, yÃ¼ksekten dÃ¼ÅŸÃ¼ÄŸe</SelectItem>
                   <SelectItem value="date-old">Tarih, eskiden yeniye</SelectItem>
                   <SelectItem value="date-new">Tarih, yeniden eskiye</SelectItem>
                 </SelectContent>
@@ -569,23 +558,23 @@ export default function MenProductsPage({
           </div>
         </div>
 
-        {/* Mobil Sırala Modal */}
+        {/* Mobil SÄ±rala Modal */}
         <Dialog open={sortDialogOpen} onOpenChange={setSortDialogOpen}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle className="text-left">Sırala</DialogTitle>
+              <DialogTitle className="text-left">SÄ±rala</DialogTitle>
             </DialogHeader>
             <RadioGroup value={sortOption} onValueChange={setSortOption} className="mt-4">
               <div className="flex items-center space-x-2 py-3 border-b">
                 <RadioGroupItem value="featured" id="featured" />
                 <Label htmlFor="featured" className="flex-1 cursor-pointer font-normal">
-                  Öne çıkan
+                  Ã–ne Ã§Ä±kan
                 </Label>
               </div>
               <div className="flex items-center space-x-2 py-3 border-b">
                 <RadioGroupItem value="bestseller" id="bestseller" />
                 <Label htmlFor="bestseller" className="flex-1 cursor-pointer font-normal">
-                  En çok satan
+                  En Ã§ok satan
                 </Label>
               </div>
               <div className="flex items-center space-x-2 py-3 border-b">
@@ -603,13 +592,13 @@ export default function MenProductsPage({
               <div className="flex items-center space-x-2 py-3 border-b">
                 <RadioGroupItem value="price-low" id="price-low" />
                 <Label htmlFor="price-low" className="flex-1 cursor-pointer font-normal">
-                  Fiyat, düşükten yükseğe
+                  Fiyat, dÃ¼ÅŸÃ¼kten yÃ¼kseÄŸe
                 </Label>
               </div>
               <div className="flex items-center space-x-2 py-3 border-b">
                 <RadioGroupItem value="price-high" id="price-high" />
                 <Label htmlFor="price-high" className="flex-1 cursor-pointer font-normal">
-                  Fiyat, yüksekten düşüğe
+                  Fiyat, yÃ¼ksekten dÃ¼ÅŸÃ¼ÄŸe
                 </Label>
               </div>
               <div className="flex items-center space-x-2 py-3 border-b">
@@ -630,7 +619,7 @@ export default function MenProductsPage({
                 onClick={() => setSortDialogOpen(false)}
                 className="bg-[#800020] hover:bg-[#5C1A1A] text-white px-8"
               >
-                BİTTİ
+                BÄ°TTÄ°
               </Button>
             </div>
           </DialogContent>
@@ -638,10 +627,10 @@ export default function MenProductsPage({
 
         {/* Product Grid */}
         {loading ? (
-          <div className="text-center py-12">Yükleniyor...</div>
+          <div className="text-center py-12">YÃ¼kleniyor...</div>
         ) : products.length === 0 ? (
           <div className="text-center py-12 text-[#111]/60">
-            Ürün bulunamadı
+            ÃœrÃ¼n bulunamadÄ±
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
@@ -657,33 +646,26 @@ export default function MenProductsPage({
                 gridClass = "col-span-1";
               }
 
-              // İlk açılışta ana renk (ilk renk) göster
               const defaultColor = product.colors?.[0];
 
-              // Seçili renk varsa onu kullan, yoksa ana renk
               const selectedColorForProduct = selectedColor?.productId === product.id && product.colors
                 ? product.colors.find(c => c.images?.[0] === selectedColor.colorImage)
                 : null;
 
-              // Aktif renk: seçili renk veya ana renk
               const activeColorObj = selectedColorForProduct || defaultColor;
 
-              // Hover durumunda hover'daki renk, yoksa aktif renk
               const hoveredColorObj = hoveredColor?.productId === product.id && product.colors
                 ? product.colors.find(c => c.images?.[0] === hoveredColor.colorImage)
                 : null;
 
-              // Görüntülenecek renk: hover varsa hover, yoksa aktif renk
               const displayColorObj = hoveredColorObj || activeColorObj;
 
-              // Ana görsel: aktif renge göre
               const currentImage =
                 (displayColorObj?.images && Array.isArray(displayColorObj.images) && displayColorObj.images.length > 0 ? displayColorObj.images[0] : null) ||
                 product.primaryImage ||
                 product.image ||
                 "/placeholder.jpg";
 
-              // Hover görseli: aktif renge göre (sadece 2+ resim varsa)
               const hasMultipleImages = displayColorObj?.images && Array.isArray(displayColorObj.images) && displayColorObj.images.length > 1;
               const hoverImage = hasMultipleImages
                 ? (Array.isArray(displayColorObj.images) && displayColorObj.images.length > 1 ? displayColorObj.images[1] : null)
@@ -692,18 +674,15 @@ export default function MenProductsPage({
                 product.primaryImage ||
                 currentImage;
 
-              // URL oluştur - slug varsa slug kullan, yoksa id
               const productUrl = product.slug
                 ? `/products/${product.slug}`
                 : `/product/${product.id}`;
 
-              // Seçili renge göre variant ekle
               const variant = selectedColor?.productId === product.id
                 ? selectedColor.variantCode
                 : product.colors?.[0]?.variant?.variantCode;
               const finalUrl = variant ? `${productUrl}?variant=${variant}` : productUrl;
 
-              // Stok durumu kontrolü
               const totalStock = product.sizes?.reduce((sum, s) => sum + (s.stock || 0), 0) || 0;
               const isOutOfStock = totalStock === 0;
 
@@ -719,7 +698,7 @@ export default function MenProductsPage({
                       alt={product.name}
                       sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                       className="mb-4"
-                      badge={product.originalPrice && product.originalPrice > product.price ? "İndirim" : null}
+                      badge={product.originalPrice && product.originalPrice > product.price ? "Ä°ndirim" : null}
                       favoriteButton={<FavoriteButton productId={product.id} productName={product.name} />}
                       isOutOfStock={isOutOfStock}
                     />
@@ -727,7 +706,7 @@ export default function MenProductsPage({
                     {!isOutOfStock && (
                     <div className="hidden md:block absolute bottom-4 left-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                       <div className="bg-white/95 backdrop-blur-sm border border-gray-200 p-3">
-                        <p className="text-[10px] tracking-[0.2em] font-light text-[#111]/40 uppercase mb-3 text-center">Hızlı ekle</p>
+                        <p className="text-[10px] tracking-[0.2em] font-light text-[#111]/40 uppercase mb-3 text-center">HÄ±zlÄ± ekle</p>
                         <div className="flex flex-wrap gap-2 justify-center">
                           {(() => {
                             const availableSizes = product.sizes && product.sizes.length > 0
@@ -737,7 +716,7 @@ export default function MenProductsPage({
                                 : [];
 
                             if (availableSizes.length === 0) {
-                              return <p className="text-[10px] text-gray-400">Beden seçeneği yok</p>;
+                              return <p className="text-[10px] text-gray-400">Beden seÃ§eneÄŸi yok</p>;
                             }
 
                             const currentColorId = displayColorObj?.id || product.colors?.[0]?.id;
@@ -768,7 +747,7 @@ export default function MenProductsPage({
                             });
 
                             if (inStockSizes.length === 0) {
-                              return <p className="text-[10px] text-gray-400">Tükendi</p>;
+                              return <p className="text-[10px] text-gray-400">TÃ¼kendi</p>;
                             }
 
                             return inStockSizes.map(({ size, sizeName, sizeId, finalStock }: any, sizeIdx: number) => {
@@ -824,10 +803,10 @@ export default function MenProductsPage({
                                           );
                                       } else {
                                           const errorData = await res.json();
-                                          toast.error(errorData.error || "Hata oluştu");
+                                          toast.error(errorData.error || "Hata oluÅŸtu");
                                       }
                                     } catch (error) {
-                                      toast.error("Hata oluştu");
+                                      toast.error("Hata oluÅŸtu");
                                     }
                                   }}
                                   disabled={isOutOfStock}
@@ -856,21 +835,21 @@ export default function MenProductsPage({
                       {product.originalPrice && product.originalPrice > product.price ? (
                         <>
                           <span className="text-sm md:text-base font-light text-[#111]">
-                            {product.price.toFixed(2)} ₺
+                            {product.price.toFixed(2)} â‚º
                           </span>
                           <span className="text-sm text-[#111]/60 line-through">
-                            {product.originalPrice.toFixed(2)} ₺
+                            {product.originalPrice.toFixed(2)} â‚º
                           </span>
                         </>
                       ) : (
                         <span className="text-sm md:text-base font-light text-[#111]">
-                          {product.price.toFixed(2)} ₺
+                          {product.price.toFixed(2)} â‚º
                         </span>
                       )}
                     </div>
                   </div>
 
-                  {/* Renk Seçenekleri */}
+                  {/* Renk SeÃ§enekleri */}
                   {product.colors.length > 0 && (
                     <div className="flex items-center justify-center gap-1.5 mt-2">
                       {Array.from(new Map(product.colors.filter((c: any) => c.images?.[0]).map((c: any) => [c.hexCode || c.name, c])).values()).map((color: any, idx) => {
@@ -892,7 +871,7 @@ export default function MenProductsPage({
                                 style={{
                                   backgroundColor: color.hexCode || "#ccc",
                                 }}
-                                aria-label={`${color.name} renk seçeneği`}
+                                aria-label={`${color.name} renk seÃ§eneÄŸi`}
                               />
                             </TooltipTrigger>
                             <TooltipContent>

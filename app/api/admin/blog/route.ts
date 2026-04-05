@@ -1,14 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 
-// GET: List blogs
 export async function GET(req: NextRequest) {
     try {
         const user = await getCurrentUser();
-        // Allow public access for published blogs? Or this is admin route?
-        // Route path says /admin/blog, so restrict to admin.
         if (!user?.isAdmin) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
@@ -24,7 +21,6 @@ export async function GET(req: NextRequest) {
     }
 }
 
-// POST: Create blog
 export async function POST(req: NextRequest) {
     try {
         const user = await getCurrentUser();
@@ -35,8 +31,6 @@ export async function POST(req: NextRequest) {
         const body = await req.json();
         const { title, content, excerpt, coverImage, tags, isPublished, metaTitle, metaDescription, category } = body;
 
-        // Generate a temporary ID or use a placeholder to create
-        // Actually we can create first then update slug to be safe with CUID
         const post = await prisma.blogPost.create({
             data: {
                 title,
@@ -54,11 +48,9 @@ export async function POST(req: NextRequest) {
             }
         });
 
-        // Generate the real slug using the actual ID
         const { generateBlogSlug } = await import("@/lib/slug");
         const finalSlug = generateBlogSlug(title, post.id);
 
-        // Update the post with the real slug
         const updatedPost = await prisma.blogPost.update({
             where: { id: post.id },
             data: { slug: finalSlug }

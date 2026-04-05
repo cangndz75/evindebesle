@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/db";
+﻿import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
 import CategoryProductsPage from "../../_components/CategoryProductsPage";
 import { Metadata } from "next";
@@ -10,7 +10,6 @@ type Props = {
     params: Promise<{ slug: string }>;
 };
 
-// Helper: JSON string'i array'e çevir
 function parseImages(images: string | null): string[] {
     if (!images) return [];
     try {
@@ -126,7 +125,6 @@ async function getInitialProducts(categorySlug: string, gender?: any) {
             tags: p.tags.map((t: any) => ({ name: t.name })),
         }));
 
-        // Stokta olmayanları listenin en altına taşı
         mapped.sort((a: any, b: any) => {
             const totalStockA = a.colors.reduce((sum: number, c: any) =>
                 sum + (c.variants?.reduce((vs: number, v: any) => vs + (v.stock || 0), 0) || 0), 0);
@@ -171,13 +169,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
     if (!category) {
         return {
-            title: "Kategori Bulunamadı",
+            title: "Kategori BulunamadÄ±",
         };
     }
 
     return {
         title: `${category.name} - Dark Velvet`,
-        description: category.description || `${category.name} kategorisindeki ürünleri keşfedin.`,
+        description: category.description || `${category.name} kategorisindeki Ã¼rÃ¼nleri keÅŸfedin.`,
         alternates: {
             canonical: `${process.env.NEXT_PUBLIC_BASE_URL || "https://darkvelvet.com"}/category/${slug}`
         }

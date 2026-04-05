@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import {
   Dialog,
@@ -34,9 +34,8 @@ export default function SizeGuideModal({
   onOpenChange,
   sizeGuide,
 }: SizeGuideModalProps) {
-  // Varsayılan/Fallback veri
   const defaultSizeGuide: SizeGuideData = {
-    productName: "Ürün",
+    productName: "ÃœrÃ¼n",
     measurements: [
       { size: "S", chest: 64, length: 69.5, arm: 57.5 },
       { size: "M", chest: 66, length: 71.5, arm: 58.5 },
@@ -45,13 +44,12 @@ export default function SizeGuideModal({
       { size: "2XL", chest: 72, length: 77.5, arm: 61.5 },
       { size: "3XL", chest: 74, length: 79.5, arm: 62.5 },
     ],
-    disclaimer: "Kumaşın pamuk likralı özelliğinden dolayı beden ölçülerinde +/- 2cm farklılık görülebilir. Tüm hakları saklıdır.",
+    disclaimer: "KumaÅŸÄ±n pamuk likralÄ± Ã¶zelliÄŸinden dolayÄ± beden Ã¶lÃ§Ã¼lerinde +/- 2cm farklÄ±lÄ±k gÃ¶rÃ¼lebilir. TÃ¼m haklarÄ± saklÄ±dÄ±r.",
   };
 
   const guide = sizeGuide || defaultSizeGuide;
   const title = guide.title || guide.productName || "Beden Tablosu";
 
-  // Content JSON ise ve headers/rows varsa onu kullan
   const hasDynamicTable = guide.content && guide.content.headers && guide.content.rows;
 
   return (
@@ -64,7 +62,7 @@ export default function SizeGuideModal({
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Görsel Alanı */}
+          {/* GÃ¶rsel AlanÄ± */}
           {guide.imageUrl ? (
             <div className="relative w-full aspect-video bg-gray-50 flex items-center justify-center border overflow-hidden rounded-lg">
               <Image
@@ -75,7 +73,6 @@ export default function SizeGuideModal({
               />
             </div>
           ) : (
-            /* Varsayılan Çizim (Eğer görsel yoksa ve measurements varsa/default ise) */
             (!guide.imageUrl && !hasDynamicTable && guide.measurements) && (
               <div className="relative w-full h-64 bg-gray-50 flex items-center justify-center border">
                 <svg
@@ -83,7 +80,7 @@ export default function SizeGuideModal({
                   className="w-full h-full"
                   xmlns="http://www.w3.org/2000/svg"
                 >
-                  {/* Hoodie gövde */}
+                  {/* Hoodie gÃ¶vde */}
                   <rect
                     x="50"
                     y="80"
@@ -93,7 +90,7 @@ export default function SizeGuideModal({
                     stroke="#000"
                     strokeWidth="2"
                   />
-                  {/* Kapüşon */}
+                  {/* KapÃ¼ÅŸon */}
                   <path
                     d="M 50 80 Q 50 40 100 40 Q 150 40 150 80"
                     fill="none"
@@ -119,8 +116,8 @@ export default function SizeGuideModal({
                     stroke="#000"
                     strokeWidth="2"
                   />
-                  {/* Ölçü çizgileri */}
-                  {/* Göğüs */}
+                  {/* Ã–lÃ§Ã¼ Ã§izgileri */}
+                  {/* GÃ¶ÄŸÃ¼s */}
                   <line
                     x1="50"
                     y1="140"
@@ -131,7 +128,7 @@ export default function SizeGuideModal({
                     strokeDasharray="5,5"
                   />
                   <text x="100" y="135" textAnchor="middle" fontSize="10" fill="#666">
-                    GÖĞÜS (CHEST)
+                    GÃ–ÄÃœS (CHEST)
                   </text>
                   {/* Boy */}
                   <line
@@ -164,7 +161,7 @@ export default function SizeGuideModal({
             )
           )}
 
-          {/* Ölçü Tablosu */}
+          {/* Ã–lÃ§Ã¼ Tablosu */}
           <div className="overflow-x-auto">
             <table className="w-full border-collapse border border-gray-300">
               {hasDynamicTable ? (
@@ -191,7 +188,6 @@ export default function SizeGuideModal({
                   </tbody>
                 </>
               ) : (
-                /* Varsayılan Tablo Yapısı */
                 guide.measurements && (
                   <>
                     <thead>
@@ -200,7 +196,7 @@ export default function SizeGuideModal({
                           Beden
                         </th>
                         <th className="border border-gray-300 px-4 py-2 text-left font-semibold">
-                          GÖĞÜS (CHEST)
+                          GÃ–ÄÃœS (CHEST)
                         </th>
                         <th className="border border-gray-300 px-4 py-2 text-left font-semibold">
                           BOY (LENGTH)
@@ -234,7 +230,7 @@ export default function SizeGuideModal({
             </table>
           </div>
 
-          {/* Uyarı */}
+          {/* UyarÄ± */}
           {guide.disclaimer && (
             <p className="text-xs text-gray-600 text-center mt-4">
               {guide.disclaimer}

@@ -1,14 +1,8 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { checkRateLimit, getClientIdentifier, RateLimits } from "@/lib/rateLimit";
 
 type RateLimitPreset = keyof typeof RateLimits;
 
-/**
- * Rate limit middleware wrapper for API routes
- * @param handler The API route handler
- * @param preset Rate limit preset to use
- * @returns Wrapped handler with rate limiting
- */
 export function withRateLimit<T extends Request>(
     handler: (req: T) => Promise<Response>,
     preset: RateLimitPreset = "standard"
@@ -37,10 +31,8 @@ export function withRateLimit<T extends Request>(
             );
         }
 
-        // Add rate limit headers to response
         const response = await handler(req);
 
-        // Clone response to add headers
         const newResponse = new Response(response.body, response);
         newResponse.headers.set("X-RateLimit-Limit", String(limit.maxRequests));
         newResponse.headers.set("X-RateLimit-Remaining", String(result.remaining));
@@ -50,10 +42,6 @@ export function withRateLimit<T extends Request>(
     };
 }
 
-/**
- * Simple rate limit check for use in existing handlers
- * Returns NextResponse with 429 if rate limited, null otherwise
- */
 export async function rateLimitCheck(
     request: Request,
     preset: RateLimitPreset = "standard"
@@ -66,7 +54,7 @@ export async function rateLimitCheck(
     if (!result.success) {
         return NextResponse.json(
             {
-                error: "Çok fazla istek gönderdiniz. Lütfen bekleyin.",
+                error: "Ã‡ok fazla istek gÃ¶nderdiniz. LÃ¼tfen bekleyin.",
                 retryAfter: Math.ceil((result.resetTime - Date.now()) / 1000),
             },
             {

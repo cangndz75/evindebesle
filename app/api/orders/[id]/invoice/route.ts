@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import puppeteer from "puppeteer";
@@ -20,7 +20,6 @@ export async function GET(
             return jsonNoStore({ error: "Unauthorized" }, { status: 401 });
         }
 
-        // Sipariş bilgilerini getir
         const order = await prisma.order.findUnique({
             where: { id },
             include: {
@@ -53,12 +52,10 @@ export async function GET(
             return jsonNoStore({ error: "Order not found" }, { status: 404 });
         }
 
-        // Yetki kontrolü: Sadece sipariş sahibi veya admin
         if (order.userId !== user.id && !user.isAdmin) {
             return jsonNoStore({ error: "Forbidden" }, { status: 403 });
         }
 
-        // Sadece ödeme yapılmış siparişler için fatura
         if (order.paymentStatus !== "PAID" && order.paymentStatus !== "SUCCEEDED") {
             return jsonNoStore(
                 { error: "Invoice only available for paid orders" },
@@ -66,10 +63,8 @@ export async function GET(
             );
         }
 
-        // Şirket bilgilerini getir
         const companySettings = await prisma.companySettings.findFirst();
 
-        // HTML render et
         const html = renderInvoiceHTML({
             order: toInvoiceDTO(order),
             company: companySettings || {
@@ -84,7 +79,6 @@ export async function GET(
             },
         });
 
-        // Puppeteer ile PDF oluştur
         console.log("Starting debug invoice generation...");
         let browser;
         try {
@@ -121,7 +115,6 @@ export async function GET(
             await browser.close();
             console.log("Browser closed.");
 
-            // PDF'i döndür - Convert Buffer to Uint8Array for proper type
             return new NextResponse(Buffer.from(pdf), {
                 headers: {
                     "Content-Type": "application/pdf",

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
 export async function GET(
@@ -11,7 +11,6 @@ export async function GET(
     const colorId = searchParams.get("colorId");
     const sizeId = searchParams.get("sizeId");
 
-    // Önce variant'tan stok kontrolü yap
     if (colorId && sizeId) {
       const variant = await prisma.productVariant.findFirst({
         where: {
@@ -29,7 +28,6 @@ export async function GET(
       }
     }
 
-    // Variant yoksa size'tan stok kontrolü yap
     if (sizeId) {
       const size = await prisma.productSize.findFirst({
         where: {
@@ -46,7 +44,6 @@ export async function GET(
       }
     }
 
-    // Hiçbiri yoksa ürünün toplam stokunu döndür
     const product = await prisma.product.findUnique({
       where: { id },
       include: {
@@ -55,7 +52,7 @@ export async function GET(
     });
 
     if (!product) {
-      return NextResponse.json({ error: "Ürün bulunamadı" }, { status: 404 });
+      return NextResponse.json({ error: "ÃœrÃ¼n bulunamadÄ±" }, { status: 404 });
     }
 
     const totalStock = product.sizes.reduce((sum: number, s: any) => sum + s.stock, 0);
@@ -63,7 +60,7 @@ export async function GET(
   } catch (error: any) {
     console.error("Stock check error:", error);
     return NextResponse.json(
-      { error: error.message || "Stok kontrolü yapılırken bir hata oluştu" },
+      { error: error.message || "Stok kontrolÃ¼ yapÄ±lÄ±rken bir hata oluÅŸtu" },
       { status: 500 }
     );
   }

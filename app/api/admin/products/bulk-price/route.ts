@@ -1,14 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { logAuditAction } from "@/lib/auditLog";
 import { rateLimitCheck } from "@/lib/middleware/rateLimitMiddleware";
 import { revalidatePath } from "next/cache";
 
-// POST: Toplu fiyat güncelleme
 export async function POST(req: NextRequest) {
     try {
-        // Rate limit check
         const rateLimitError = await rateLimitCheck(req, "upload");
         if (rateLimitError) return rateLimitError;
 
@@ -21,26 +19,25 @@ export async function POST(req: NextRequest) {
 
         if (!productIds || !Array.isArray(productIds) || productIds.length === 0) {
             return NextResponse.json(
-                { error: "Ürün ID'leri gerekli" },
+                { error: "ÃœrÃ¼n ID'leri gerekli" },
                 { status: 400 }
             );
         }
 
         if (!updateType || !["PERCENT_INCREASE", "PERCENT_DECREASE", "FIXED_INCREASE", "FIXED_DECREASE", "SET_PRICE"].includes(updateType)) {
             return NextResponse.json(
-                { error: "Geçersiz güncelleme tipi" },
+                { error: "GeÃ§ersiz gÃ¼ncelleme tipi" },
                 { status: 400 }
             );
         }
 
         if (typeof value !== "number" || value < 0) {
             return NextResponse.json(
-                { error: "Geçerli bir değer giriniz" },
+                { error: "GeÃ§erli bir deÄŸer giriniz" },
                 { status: 400 }
             );
         }
 
-        // Get current products
         const products = await prisma.product.findMany({
             where: { id: { in: productIds } },
             select: { id: true, price: true, originalPrice: true },
@@ -48,12 +45,11 @@ export async function POST(req: NextRequest) {
 
         if (products.length === 0) {
             return NextResponse.json(
-                { error: "Ürün bulunamadı" },
+                { error: "ÃœrÃ¼n bulunamadÄ±" },
                 { status: 404 }
             );
         }
 
-        // Calculate new prices
         const updates = products.map((product: any) => {
             let newPrice = product.price;
 
@@ -75,21 +71,18 @@ export async function POST(req: NextRequest) {
                     break;
             }
 
-            // Round to 2 decimal places
             newPrice = Math.round(newPrice * 100) / 100;
 
             return {
                 id: product.id,
                 oldPrice: product.price,
                 newPrice,
-                // Keep original price for discount display if increasing price
                 originalPrice: updateType === "PERCENT_DECREASE" || updateType === "FIXED_DECREASE"
                     ? product.originalPrice || product.price
                     : product.originalPrice,
             };
         });
 
-        // Update products in transaction
         await prisma.$transaction(
             updates.map((update: any) =>
                 prisma.product.update({
@@ -102,7 +95,6 @@ export async function POST(req: NextRequest) {
             )
         );
 
-        // Audit log
         await logAuditAction({
             action: "BULK_PRICE_UPDATE",
             adminId: user.id,
@@ -137,7 +129,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({
             success: true,
-            message: `${products.length} ürün fiyatı güncellendi`,
+            message: `${products.length} Ã¼rÃ¼n fiyatÄ± gÃ¼ncellendi`,
             updates: updates.map((u: any) => ({
                 id: u.id,
                 oldPrice: u.oldPrice,
@@ -147,7 +139,7 @@ export async function POST(req: NextRequest) {
     } catch (error) {
         console.error("Error in bulk price update:", error);
         return NextResponse.json(
-            { error: "İşlem sırasında bir hata oluştu" },
+            { error: "Ä°ÅŸlem sÄ±rasÄ±nda bir hata oluÅŸtu" },
             { status: 500 }
         );
     }

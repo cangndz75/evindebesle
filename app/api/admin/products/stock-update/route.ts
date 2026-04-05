@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { prisma } from "@/lib/db";
@@ -54,7 +54,6 @@ export async function POST(req: NextRequest) {
             productForRevalidate = size?.product ?? null;
         }
 
-        // Audit log
         const user = session.user as any;
         await logAuditAction({
             action: "STOCK_UPDATE",
@@ -83,7 +82,7 @@ export async function POST(req: NextRequest) {
     } catch (error) {
         console.error("Stock update error:", error);
         return NextResponse.json(
-            { error: "Stok güncellenemedi" },
+            { error: "Stok gÃ¼ncellenemedi" },
             { status: 500 }
         );
     }

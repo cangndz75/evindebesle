@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/db";
+﻿import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { generateVariantCode, generateProductSlug } from "@/lib/slug";
@@ -64,10 +64,8 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Stok ve sıralama filtreleri (JavaScript tarafında)
     let filteredProducts = products;
 
-    // Stok durumu filtresi
     if (stockStatus && stockStatus !== "all") {
       filteredProducts = products.filter((product: any) => {
         const totalStock = (product.sizes || []).reduce((sum: number, s: any) => sum + (s.stock || 0), 0);
@@ -78,7 +76,6 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Min/Max stok filtresi
     if (minStock || maxStock) {
       filteredProducts = filteredProducts.filter((product: any) => {
         const totalStock = (product.sizes || []).reduce((sum: number, s: any) => sum + (s.stock || 0), 0);
@@ -88,7 +85,6 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Sıralama
     let sortedProducts = [...filteredProducts];
     if (sortBy === "name") {
       sortedProducts.sort((a: any, b: any) => a.name.localeCompare(b.name, "tr"));
@@ -108,9 +104,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(sortedProducts);
   } catch (error: any) {
-    console.error("Ürünler yüklenirken hata:", error);
+    console.error("ÃœrÃ¼nler yÃ¼klenirken hata:", error);
     return NextResponse.json(
-      { error: error.message || "Ürünler yüklenirken bir hata oluştu" },
+      { error: error.message || "ÃœrÃ¼nler yÃ¼klenirken bir hata oluÅŸtu" },
       { status: 500 }
     );
   }
@@ -150,26 +146,22 @@ export async function POST(req: Request) {
       weight
     } = body;
 
-    // Unique Barcode kontrolü
     let finalBarcode = barcode;
     if (finalBarcode) {
       const existing = await prisma.product.findFirst({ where: { barcode: finalBarcode } });
       if (existing) {
-        throw new Error(`Barkod (${finalBarcode}) zaten kullanımda.`);
+        throw new Error(`Barkod (${finalBarcode}) zaten kullanÄ±mda.`);
       }
     }
 
-    // Gender normalization (handle "Unisex" -> "UNISEX")
     const genderKey = gender ? gender.toUpperCase() : undefined;
     const validGenders = ["MALE", "FEMALE", "UNISEX"];
     const finalGender = validGenders.includes(genderKey) ? genderKey : undefined;
 
-    // SizeType normalization (handle "letter" -> "LETTER")
     const sizeTypeKey = sizeType ? sizeType.toUpperCase() : undefined;
     const validSizeTypes = ["LETTER", "NUMBER", "CUP"];
     const finalSizeType = validSizeTypes.includes(sizeTypeKey) ? sizeTypeKey : undefined;
 
-    // Kategori kontrolü
     let categoryName: string | null = null;
     if (categoryId) {
       const category = await prisma.category.findUnique({
@@ -179,14 +171,12 @@ export async function POST(req: Request) {
       categoryName = category?.name || null;
     }
 
-    // Slug oluşturma
     const firstColorName = colors && colors.length > 0 ? colors[0].name : null;
     let finalSlug = slug;
     if (!finalSlug) {
       finalSlug = generateProductSlug(name, categoryName, firstColorName);
     }
 
-    // Unique Slug kontrolü
     if (finalSlug) {
       const existing = await prisma.product.findFirst({ where: { slug: finalSlug } });
       if (existing) {
@@ -200,7 +190,6 @@ export async function POST(req: Request) {
       }
     }
 
-    // Unique StockCode kontrolü
     let finalStockCode = stockCode;
     if (finalStockCode) {
       const existing = await prisma.product.findFirst({ where: { stockCode: finalStockCode } });
@@ -215,7 +204,6 @@ export async function POST(req: Request) {
       }
     }
 
-    // 1. Ürünü ve doğrudan ilişkili verileri oluştur
     const product = await prisma.product.create({
       data: {
         name,
@@ -272,7 +260,6 @@ export async function POST(req: Request) {
       },
     });
 
-    // 2. ProductImage kayıtlarını toplu oluştur
     const productImagesToCreate: any[] = [];
     let imageOrder = 0;
 
@@ -284,7 +271,7 @@ export async function POST(req: Request) {
         isPrimary: true,
         isSecondary: false,
         order: imageOrder++,
-        alt: `${name} - Ana Görsel`,
+        alt: `${name} - Ana GÃ¶rsel`,
       });
     }
 
@@ -295,11 +282,10 @@ export async function POST(req: Request) {
         isPrimary: false,
         isSecondary: true,
         order: imageOrder++,
-        alt: `${name} - İkinci Görsel`,
+        alt: `${name} - Ä°kinci GÃ¶rsel`,
       });
     }
 
-    // 3. Renkleri toplu oluştur
     if (colors && colors.length > 0) {
       const colorData = colors.map((c: any) => ({
         productId: product.id,
@@ -340,7 +326,6 @@ export async function POST(req: Request) {
       });
     }
 
-    // 4. Varyantları toplu oluştur
     const variantsToCreate: any[] = [];
 
     if (colors && colors.length > 0) {
@@ -409,7 +394,6 @@ export async function POST(req: Request) {
       });
     }
 
-    // Audit Log
     await logAuditAction({
       action: "PRODUCT_CREATE",
       adminId: session.user.id,
@@ -461,7 +445,7 @@ export async function POST(req: Request) {
   } catch (error: any) {
     console.error("Product creation error:", error);
     return NextResponse.json(
-      { error: error.message || "Ürün oluşturulurken bir hata oluştu" },
+      { error: error.message || "ÃœrÃ¼n oluÅŸturulurken bir hata oluÅŸtu" },
       { status: 500 }
     );
   }

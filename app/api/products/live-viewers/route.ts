@@ -1,8 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { subMinutes } from "date-fns";
 
-// GET: Aktif görüntüleyici sayısını al
 export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const productId = searchParams.get("productId");
@@ -12,7 +11,6 @@ export async function GET(req: NextRequest) {
     }
 
     try {
-        // Son 5 dakika içinde görüntüleyenleri say
         const fiveMinutesAgo = subMinutes(new Date(), 5);
 
         const count = await prisma.productViewHistory.count({
@@ -22,7 +20,6 @@ export async function GET(req: NextRequest) {
             },
         });
 
-        // Minimum 1-3 arası random sayı ekle (social proof için)
         const displayCount = count + Math.floor(Math.random() * 3) + 1;
 
         return NextResponse.json({ count: displayCount });
@@ -32,7 +29,6 @@ export async function GET(req: NextRequest) {
     }
 }
 
-// POST: Görüntüleme kaydet
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
@@ -42,7 +38,6 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "productId gerekli" }, { status: 400 });
         }
 
-        // Görüntüleme kaydı oluştur (userId yoksa anonim)
         await prisma.productViewHistory.create({
             data: {
                 productId,

@@ -1,11 +1,11 @@
-"use client";
+﻿"use client";
 
 import Marquee from "react-fast-marquee";
 import Image from "next/image";
 
 const items = [
   {
-    label: "Evcil Hayvan Bakımı",
+    label: "Evcil Hayvan BakÄ±mÄ±",
     color: "text-green-800",
     img: "/cat.jpg",
   },
@@ -19,16 +19,6 @@ const items = [
     color: "text-gray-600",
     img: "/activities.jpg",
   },
-//   {
-//     label: "cat whisperers",
-//     color: "text-gray-700",
-//     img: "/cat.jpg",
-//   },
-//   {
-//     label: "dementia care",
-//     color: "text-pink-400",
-//     img: "/elder.jpg",
-//   },
 ];
 
 export default function CategoryMarquee() {

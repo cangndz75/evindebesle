@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { rateLimit } from "@/lib/rateLimit";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
@@ -9,20 +9,19 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { name, email, password } = body;
 
-    // Rate Limiting
     const ip = req.headers.get("x-forwarded-for") || "127.0.0.1";
     const { success } = await rateLimit(ip);
     if (!success) {
-      return NextResponse.json({ error: "Çok fazla istek gönderdiniz. Lütfen daha sonra tekrar deneyin." }, { status: 429 });
+      return NextResponse.json({ error: "Ã‡ok fazla istek gÃ¶nderdiniz. LÃ¼tfen daha sonra tekrar deneyin." }, { status: 429 });
     }
 
     if (!name || !email || !password) {
-      return NextResponse.json({ error: "Tüm alanlar zorunludur." }, { status: 400 });
+      return NextResponse.json({ error: "TÃ¼m alanlar zorunludur." }, { status: 400 });
     }
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
-      return NextResponse.json({ error: "Bu email adresi zaten kayıtlı." }, { status: 409 });
+      return NextResponse.json({ error: "Bu email adresi zaten kayÄ±tlÄ±." }, { status: 409 });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -38,11 +37,10 @@ export async function POST(req: Request) {
     await createAdminNotification({
       type: "NEW_USER",
       userId: newUser.id,
-      message: `Yeni kullanıcı kaydı: ${newUser.name} (${newUser.email})`,
+      message: `Yeni kullanÄ±cÄ± kaydÄ±: ${newUser.name} (${newUser.email})`,
     });
     console.log("[REGISTER_SUCCESS]", newUser.id);
 
-    // Track signup event for analytics
     try {
       await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/analytics/track`, {
         method: 'POST',
@@ -60,7 +58,6 @@ export async function POST(req: Request) {
         }),
       });
     } catch (err) {
-      // Don't fail registration if analytics fails
       console.error('[ANALYTICS_TRACK_ERROR]', err);
     }
 
@@ -68,6 +65,6 @@ export async function POST(req: Request) {
 
   } catch (error) {
     console.error("[REGISTER_ERROR]", error);
-    return NextResponse.json({ error: "Sunucu hatası." }, { status: 500 });
+    return NextResponse.json({ error: "Sunucu hatasÄ±." }, { status: 500 });
   }
 }

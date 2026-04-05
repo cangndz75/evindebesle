@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import {
@@ -25,15 +25,14 @@ import { Loader2, Package, ChevronRight, ChevronLeft, Check, AlertCircle } from 
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-// Return reason options
 const RETURN_REASONS = [
-    { value: "WRONG_SIZE", label: "Beden uygun değil" },
-    { value: "WRONG_COLOR", label: "Renk beklediğim gibi değil" },
-    { value: "DAMAGED", label: "Ürün hasarlı geldi" },
-    { value: "WRONG_PRODUCT", label: "Yanlış ürün gönderildi" },
-    { value: "NOT_AS_DESCRIBED", label: "Ürün açıklamayla uyuşmuyor" },
-    { value: "CHANGED_MIND", label: "Fikir değişikliği" },
-    { value: "OTHER", label: "Diğer" },
+    { value: "WRONG_SIZE", label: "Beden uygun deÄŸil" },
+    { value: "WRONG_COLOR", label: "Renk beklediÄŸim gibi deÄŸil" },
+    { value: "DAMAGED", label: "ÃœrÃ¼n hasarlÄ± geldi" },
+    { value: "WRONG_PRODUCT", label: "YanlÄ±ÅŸ Ã¼rÃ¼n gÃ¶nderildi" },
+    { value: "NOT_AS_DESCRIBED", label: "ÃœrÃ¼n aÃ§Ä±klamayla uyuÅŸmuyor" },
+    { value: "CHANGED_MIND", label: "Fikir deÄŸiÅŸikliÄŸi" },
+    { value: "OTHER", label: "DiÄŸer" },
 ];
 
 interface OrderItem {
@@ -81,7 +80,6 @@ export default function ReturnRequestModal({
     const [description, setDescription] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Reset state when modal opens/closes
     useEffect(() => {
         if (!isOpen) {
             setStep(1);
@@ -135,14 +133,14 @@ export default function ReturnRequestModal({
 
             if (!response.ok) {
                 const errorText = await response.text();
-                throw new Error(errorText || "Bir hata oluştu");
+                throw new Error(errorText || "Bir hata oluÅŸtu");
             }
 
-            toast.success("İade talebiniz başarıyla oluşturuldu");
+            toast.success("Ä°ade talebiniz baÅŸarÄ±yla oluÅŸturuldu");
             onSuccess?.();
             onClose();
         } catch (error: any) {
-            toast.error(error.message || "İade talebi oluşturulurken hata oluştu");
+            toast.error(error.message || "Ä°ade talebi oluÅŸturulurken hata oluÅŸtu");
         } finally {
             setIsSubmitting(false);
         }
@@ -159,10 +157,10 @@ export default function ReturnRequestModal({
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <Package className="h-5 w-5" />
-                        İade Talebi Oluştur
+                        Ä°ade Talebi OluÅŸtur
                     </DialogTitle>
                     <DialogDescription>
-                        Sipariş No: <span className="font-semibold">{order.orderNumber}</span>
+                        SipariÅŸ No: <span className="font-semibold">{order.orderNumber}</span>
                     </DialogDescription>
                 </DialogHeader>
 
@@ -199,7 +197,7 @@ export default function ReturnRequestModal({
                     <div className="space-y-4">
                         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
                             <AlertCircle className="h-4 w-4" />
-                            İade etmek istediğiniz ürünleri seçin
+                            Ä°ade etmek istediÄŸiniz Ã¼rÃ¼nleri seÃ§in
                         </div>
                         <div className="space-y-3 max-h-[350px] overflow-y-auto pr-2">
                             {order.items.map((item) => {
@@ -284,7 +282,7 @@ export default function ReturnRequestModal({
                                                             onValueChange={(v) => updateItemReason(item.id, v)}
                                                         >
                                                             <SelectTrigger className="flex-1 h-8">
-                                                                <SelectValue placeholder="Seçiniz (opsiyonel)" />
+                                                                <SelectValue placeholder="SeÃ§iniz (opsiyonel)" />
                                                             </SelectTrigger>
                                                             <SelectContent>
                                                                 {RETURN_REASONS.map((r) => (
@@ -309,10 +307,10 @@ export default function ReturnRequestModal({
                 {step === 2 && (
                     <div className="space-y-4">
                         <div>
-                            <Label className="mb-2 block">Genel İade Nedeni *</Label>
+                            <Label className="mb-2 block">Genel Ä°ade Nedeni *</Label>
                             <Select value={generalReason} onValueChange={setGeneralReason}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="İade nedeninizi seçin" />
+                                    <SelectValue placeholder="Ä°ade nedeninizi seÃ§in" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {RETURN_REASONS.map((r) => (
@@ -324,11 +322,11 @@ export default function ReturnRequestModal({
                             </Select>
                         </div>
                         <div>
-                            <Label className="mb-2 block">Açıklama (Opsiyonel)</Label>
+                            <Label className="mb-2 block">AÃ§Ä±klama (Opsiyonel)</Label>
                             <Textarea
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
-                                placeholder="İade talebiniz hakkında detaylı bilgi verebilirsiniz..."
+                                placeholder="Ä°ade talebiniz hakkÄ±nda detaylÄ± bilgi verebilirsiniz..."
                                 className="min-h-[120px]"
                             />
                         </div>
@@ -339,7 +337,7 @@ export default function ReturnRequestModal({
                 {step === 3 && (
                     <div className="space-y-4">
                         <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-                            <h4 className="font-semibold text-sm">İade Özeti</h4>
+                            <h4 className="font-semibold text-sm">Ä°ade Ã–zeti</h4>
                             <div className="space-y-2">
                                 {selectedItems.map((si) => {
                                     const item = order.items.find((i) => i.id === si.orderItemId);
@@ -354,14 +352,14 @@ export default function ReturnRequestModal({
                             </div>
                             <div className="pt-3 border-t space-y-1 text-sm">
                                 <div className="flex justify-between">
-                                    <span className="text-gray-500">İade Nedeni:</span>
+                                    <span className="text-gray-500">Ä°ade Nedeni:</span>
                                     <span className="font-medium">
                                         {RETURN_REASONS.find((r) => r.value === generalReason)?.label}
                                     </span>
                                 </div>
                                 {description && (
                                     <div className="pt-2">
-                                        <span className="text-gray-500 block mb-1">Açıklama:</span>
+                                        <span className="text-gray-500 block mb-1">AÃ§Ä±klama:</span>
                                         <p className="text-gray-700 text-sm bg-white p-2 rounded border">{description}</p>
                                     </div>
                                 )}
@@ -370,7 +368,7 @@ export default function ReturnRequestModal({
                         <div className="flex items-start gap-2 bg-yellow-50 text-yellow-800 p-3 rounded-lg text-sm">
                             <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                             <p>
-                                İade talebiniz onaylandıktan sonra size kargo bilgileri ile birlikte e-posta gönderilecektir.
+                                Ä°ade talebiniz onaylandÄ±ktan sonra size kargo bilgileri ile birlikte e-posta gÃ¶nderilecektir.
                             </p>
                         </div>
                     </div>
@@ -395,7 +393,7 @@ export default function ReturnRequestModal({
                             disabled={step === 1 ? !canProceedStep1 : !canProceedStep2}
                             className="w-full sm:w-auto"
                         >
-                            İleri
+                            Ä°leri
                             <ChevronRight className="h-4 w-4 ml-1" />
                         </Button>
                     ) : (
@@ -407,12 +405,12 @@ export default function ReturnRequestModal({
                             {isSubmitting ? (
                                 <>
                                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                    Gönderiliyor...
+                                    GÃ¶nderiliyor...
                                 </>
                             ) : (
                                 <>
                                     <Check className="h-4 w-4 mr-2" />
-                                    Talebi Gönder
+                                    Talebi GÃ¶nder
                                 </>
                             )}
                         </Button>

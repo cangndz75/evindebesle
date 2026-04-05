@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import { useState, useEffect } from "react";
@@ -9,10 +9,10 @@ const heroSlides = [
     image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=2070&auto=format&fit=crop",
     title: "WINTER E",
     subtitle: "Online",
-    subtitle2: "Mağazalarda",
-    cta1: "YENİ SEZONU KEŞFET",
-    cta2: "TAKIMLARI GÖR",
-    note: "*stoklarla sınırlı",
+    subtitle2: "MaÄŸazalarda",
+    cta1: "YENÄ° SEZONU KEÅFET",
+    cta2: "TAKIMLARI GÃ–R",
+    note: "*stoklarla sÄ±nÄ±rlÄ±",
   },
 ];
 
@@ -41,7 +41,6 @@ export default function FashionHero() {
     setTimeout(() => setIsTransitioning(false), 500);
   };
 
-  // Otomatik geçiş
   useEffect(() => {
     if (heroSlides.length <= 1) return;
     const interval = setInterval(() => {
@@ -58,7 +57,7 @@ export default function FashionHero() {
 
   return (
     <section className="relative w-full h-[70vh] sm:h-[75vh] md:h-[80vh] lg:h-[85vh] xl:h-[90vh] overflow-hidden bg-gray-100">
-      {/* Arka Plan Görseli */}
+      {/* Arka Plan GÃ¶rseli */}
       <div className="absolute inset-0">
         <Image
           src={current.image}
@@ -72,30 +71,30 @@ export default function FashionHero() {
         />
       </div>
 
-      {/* İçerik - Sol Tarafta */}
+      {/* Ä°Ã§erik - Sol Tarafta */}
       <div className="relative z-10 h-full flex items-center">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 w-full">
           <div className="max-w-xl lg:max-w-2xl">
             {/* Tag */}
             <div className="mb-4 sm:mb-5 md:mb-6">
               <span className="inline-block px-3 py-1 sm:px-4 sm:py-1.5 bg-gray-200/90 backdrop-blur-sm text-gray-700 text-[10px] sm:text-xs md:text-sm font-light tracking-wider rounded-full">
-                YENİ KOLEKSİYON
+                YENÄ° KOLEKSÄ°YON
               </span>
             </div>
 
-            {/* Başlık */}
+            {/* BaÅŸlÄ±k */}
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-serif font-light text-black mb-3 sm:mb-4 leading-tight">
               {current.title}
             </h1>
 
-            {/* Alt Başlıklar */}
+            {/* Alt BaÅŸlÄ±klar */}
             <div className="flex items-center gap-4 mb-6 sm:mb-7 md:mb-8">
               <p className="text-sm sm:text-base md:text-lg text-gray-700 font-light">
                 {current.subtitle}
               </p>
               {current.subtitle2 && (
                 <>
-                  <span className="text-gray-400">•</span>
+                  <span className="text-gray-400">â€¢</span>
                   <p className="text-sm sm:text-base md:text-lg text-gray-700 font-light">
                     {current.subtitle2}
                   </p>
@@ -103,7 +102,7 @@ export default function FashionHero() {
               )}
             </div>
 
-            {/* CTA Butonları */}
+            {/* CTA ButonlarÄ± */}
             <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 mb-6 sm:mb-7 md:mb-8">
               <button className="px-5 py-2 sm:px-6 sm:py-2.5 md:px-8 md:py-3 border border-gray-800 text-gray-800 font-light tracking-wide hover:bg-gray-800 hover:text-white transition-all duration-300 text-xs sm:text-sm md:text-base bg-transparent whitespace-nowrap">
                 {current.cta1}
@@ -113,7 +112,7 @@ export default function FashionHero() {
               </button>
             </div>
 
-            {/* Not - Alt Sol Köşe */}
+            {/* Not - Alt Sol KÃ¶ÅŸe */}
             <p className="text-[10px] sm:text-xs md:text-sm text-gray-600 font-light">
               {current.note}
             </p>
@@ -121,13 +120,13 @@ export default function FashionHero() {
         </div>
       </div>
 
-      {/* Navigasyon Okları */}
+      {/* Navigasyon OklarÄ± */}
       {heroSlides.length > 1 && (
         <>
           <button
             onClick={prevSlide}
             className="absolute left-2 sm:left-4 md:left-6 lg:left-8 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white backdrop-blur-sm text-gray-800 p-2 sm:p-2.5 md:p-3 rounded-full transition-all duration-300 shadow-sm"
-            aria-label="Önceki slide"
+            aria-label="Ã–nceki slide"
           >
             <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
           </button>

@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/db";
+﻿import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = 'force-dynamic';
@@ -19,7 +19,6 @@ export async function GET(request: NextRequest) {
       isActive: true,
     };
 
-    // Search query - ürün adı, açıklama, etiketler, kategori, renk adı gibi alanlarda arama
     const searchConditions: any[] = [];
     if (query && query.length > 0) {
       searchConditions.push(
@@ -58,14 +57,12 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Gender filter
     if (category === "men") {
       where.gender = "MALE";
     } else if (category === "women") {
       where.gender = "FEMALE";
     }
 
-    // Price filter
     if (minPrice || maxPrice) {
       where.price = {};
       if (minPrice) {
@@ -76,7 +73,6 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Size filter
     if (sizes.length > 0) {
       const sizeConditions: any[] = [
         {
@@ -100,7 +96,6 @@ export async function GET(request: NextRequest) {
       ];
 
       if (searchConditions.length > 0) {
-        // Hem arama hem beden filtresi varsa AND kullan
         where.AND = [
           { OR: searchConditions },
           { OR: sizeConditions },
@@ -112,7 +107,6 @@ export async function GET(request: NextRequest) {
       where.OR = searchConditions;
     }
 
-    // Color filter
     if (colors.length > 0) {
       where.colors = {
         some: {
@@ -124,7 +118,6 @@ export async function GET(request: NextRequest) {
       };
     }
 
-    // Order by
     let orderBy: any = {};
     if (sortBy === "price-low") {
       orderBy = { price: "asc" };
@@ -133,7 +126,6 @@ export async function GET(request: NextRequest) {
     } else if (sortBy === "newest") {
       orderBy = { createdAt: "desc" };
     } else {
-      // relevance - önce yeni ürünler, sonra diğerleri
       orderBy = [
         { createdAt: "desc" },
         { name: "asc" },
@@ -171,7 +163,6 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Parse color images and format response
     const formattedProducts = products.map((product: any) => {
       let hoverImage: string | undefined;
       if (product.colors.length > 0 && product.colors[0].images) {
@@ -183,19 +174,17 @@ export async function GET(request: NextRequest) {
             hoverImage = images[1];
           }
         } catch {
-          // Ignore parse errors
         }
       }
 
-      // Badge logic - yeni ürün kontrolü
       let badge: string | undefined;
       const isNew = product.tags.some((tag: any) =>
-        ["yeni", "new", "yeni ürün", "yeni gelenler", "new arrival"].includes(tag.name.toLowerCase())
+        ["yeni", "new", "yeni Ã¼rÃ¼n", "yeni gelenler", "new arrival"].includes(tag.name.toLowerCase())
       );
       if (isNew) {
         badge = "Yeni";
       } else if (product.originalPrice && product.originalPrice > product.price) {
-        badge = "İndirim";
+        badge = "Ä°ndirim";
       }
 
       return {
@@ -219,7 +208,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Search error:", error);
     return NextResponse.json(
-      { error: "Arama sırasında bir hata oluştu", products: [], total: 0 },
+      { error: "Arama sÄ±rasÄ±nda bir hata oluÅŸtu", products: [], total: 0 },
       { status: 500 }
     );
   }

@@ -1,8 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { jsonNoStore, requireAdmin } from '@/lib/api/policy';
 
-// GET: List all funnels
 export async function GET() {
     const admin = await requireAdmin();
     if (!admin.ok) return admin.response;
@@ -27,7 +26,6 @@ export async function GET() {
     }
 }
 
-// POST: Create new funnel
 export async function POST(req: NextRequest) {
     const admin = await requireAdmin();
     if (!admin.ok) return admin.response;

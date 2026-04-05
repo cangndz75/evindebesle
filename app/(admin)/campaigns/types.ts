@@ -1,5 +1,4 @@
-// Kampanya ve blok tipleri
-
+﻿
 export type CampaignStatus = "draft" | "ready" | "scheduled" | "sent";
 
 export interface CampaignDraft {

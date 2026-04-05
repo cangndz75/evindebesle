@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/db";
+﻿import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 export const dynamic = "force-dynamic";
@@ -8,7 +8,6 @@ import { authConfig } from "@/lib/auth.config";
 import { logAuditAction } from "@/lib/auditLog";
 
 
-// GET: Ürün detayını getir
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -53,14 +52,14 @@ export async function GET(
     });
 
     if (!product) {
-      return NextResponse.json({ error: "Ürün bulunamadı" }, { status: 404 });
+      return NextResponse.json({ error: "ÃœrÃ¼n bulunamadÄ±" }, { status: 404 });
     }
 
     return NextResponse.json(product);
   } catch (error: any) {
     console.error("Product fetch error:", error);
     return NextResponse.json(
-      { error: error.message || "Ürün yüklenirken bir hata oluştu" },
+      { error: error.message || "ÃœrÃ¼n yÃ¼klenirken bir hata oluÅŸtu" },
       { status: 500 }
     );
   }
@@ -106,7 +105,6 @@ export async function PATCH(
       categoryId,
     } = body;
 
-    // Önce mevcut ürünü al
     const existingProduct = await prisma.product.findUnique({
       where: { id },
       include: {
@@ -124,10 +122,9 @@ export async function PATCH(
     });
 
     if (!existingProduct) {
-      return NextResponse.json({ error: "Ürün bulunamadı" }, { status: 404 });
+      return NextResponse.json({ error: "ÃœrÃ¼n bulunamadÄ±" }, { status: 404 });
     }
 
-    // Kategori bilgisini al
     let categoryName: string | null = existingProduct.category?.name || null;
     if (categoryId && categoryId !== existingProduct.categoryId) {
       const category = await prisma.category.findUnique({
@@ -137,16 +134,12 @@ export async function PATCH(
       categoryName = category?.name || null;
     }
 
-    // İlk renk adını al
     const firstColorName = colors && colors.length > 0 ? colors[0].name : (existingProduct.colors[0]?.name || null);
 
-    // Slug oluştur veya kullanıcının verdiği slug'ı kullan
     let finalSlug = slug;
     if (!finalSlug && name && name !== existingProduct.name) {
-      // Ürün adı değiştiyse veya slug yoksa otomatik oluştur
       finalSlug = generateProductSlug(name, categoryName, firstColorName);
     } else if (!finalSlug) {
-      // Slug yoksa mevcut bilgilerle oluştur
       finalSlug = generateProductSlug(
         existingProduct.name,
         categoryName,
@@ -154,13 +147,11 @@ export async function PATCH(
       );
     }
 
-    // Slug kontrolü - unique olmalı
     if (finalSlug && finalSlug !== existingProduct.slug) {
       const existing = await prisma.product.findFirst({
         where: { slug: finalSlug },
       });
       if (existing) {
-        // Eğer slug varsa, sonuna sayı ekle
         let counter = 1;
         const baseSlug = finalSlug;
         while (existing) {
@@ -174,19 +165,17 @@ export async function PATCH(
       }
     }
 
-    // Temel alanları güncelle
     const updateData: any = {};
     if (name !== undefined) updateData.name = name;
     if (slug !== undefined) updateData.slug = finalSlug;
     if (slug !== undefined) updateData.slug = finalSlug;
     if (stockCode !== undefined) updateData.stockCode = stockCode;
 
-    // Barcode update and unique check
     if (body.barcode !== undefined) {
       if (body.barcode && body.barcode !== existingProduct.barcode) {
         const existing = await prisma.product.findFirst({ where: { barcode: body.barcode } });
         if (existing) {
-          throw new Error(`Barkod (${body.barcode}) zaten kullanımda.`);
+          throw new Error(`Barkod (${body.barcode}) zaten kullanÄ±mda.`);
         }
       }
       updateData.barcode = body.barcode || null;
@@ -210,8 +199,6 @@ export async function PATCH(
     if (body.isTrackInventory !== undefined) updateData.isTrackInventory = body.isTrackInventory;
     if (body.allowBackorders !== undefined) updateData.allowBackorders = body.allowBackorders;
 
-    // SEO alanları (şimdilik JSON olarak saklanabilir veya schema'ya eklenebilir)
-    // TODO: Schema'ya metaTitle, metaDescription, canonicalUrl alanları eklendiğinde burayı güncelle
 
     const product = await prisma.product.update({
       where: { id },
@@ -245,17 +232,13 @@ export async function PATCH(
       },
     });
 
-    // Renkleri güncelle
     if (colors !== undefined) {
-      // Mevcut renkleri sil
       await prisma.productColor.deleteMany({
         where: { productId: id },
       });
 
-      // Yeni renkleri ekle
       if (colors && colors.length > 0) {
         for (const c of colors) {
-          // Aynı ürün için aynı renk adı kontrolü
           let existing = await prisma.productColor.findFirst({
             where: {
               productId: id,
@@ -263,7 +246,6 @@ export async function PATCH(
             },
           });
 
-          // Eğer aynı renk zaten varsa, atla
           if (existing) {
             continue;
           }
@@ -281,14 +263,11 @@ export async function PATCH(
       }
     }
 
-    // Bedenleri güncelle
     if (sizes !== undefined) {
-      // Mevcut bedenleri sil
       await prisma.productSize.deleteMany({
         where: { productId: id },
       });
 
-      // Yeni bedenleri ekle
       if (sizes && sizes.length > 0) {
         await prisma.productSize.createMany({
           data: sizes.map((s: any) => ({
@@ -300,14 +279,11 @@ export async function PATCH(
       }
     }
 
-    // Variantları yeniden oluştur (renk ve beden değiştiyse)
     if (colors !== undefined || sizes !== undefined) {
-      // Mevcut variantları sil
       await prisma.productVariant.deleteMany({
         where: { productId: id },
       });
 
-      // Yeni variantları oluştur
       const updatedColors = await prisma.productColor.findMany({
         where: { productId: id },
       });
@@ -319,7 +295,6 @@ export async function PATCH(
         for (const color of updatedColors) {
           const colorData = colors?.find((c: any) => c.name === color.name);
 
-          // Renge özel bedenler varsa onları kullan, yoksa tüm bedenleri kullan
           const colorSizes = colorData?.sizes && colorData.sizes.length > 0
             ? updatedSizes.filter((s: any) => colorData.sizes.includes(s.name))
             : updatedSizes;
@@ -353,7 +328,6 @@ export async function PATCH(
           }
         }
       } else if (updatedSizes.length > 0) {
-        // Renk yoksa, sadece beden bazlı variant oluştur
         for (const size of updatedSizes) {
           const variantCode = generateVariantCode();
           await prisma.productVariant.create({
@@ -368,7 +342,6 @@ export async function PATCH(
       }
     }
 
-    // Etiketleri güncelle
     if (tags !== undefined) {
       await prisma.productTag.deleteMany({
         where: { productId: id },
@@ -383,7 +356,6 @@ export async function PATCH(
       }
     }
 
-    // Beden seçeneklerini güncelle
     if (sizeOptions !== undefined) {
       await prisma.productSizeOption.deleteMany({
         where: { productId: id },
@@ -398,7 +370,6 @@ export async function PATCH(
       }
     }
 
-    // Kombinleri güncelle
     if (combinations !== undefined) {
       await prisma.productCombination.deleteMany({
         where: { productId: id },
@@ -414,7 +385,6 @@ export async function PATCH(
       }
     }
 
-    // Güncellenmiş ürünü döndür
     const updatedProduct = await prisma.product.findUnique({
       where: { id },
       include: {
@@ -446,7 +416,6 @@ export async function PATCH(
       },
     });
 
-    // Audit Log
     await logAuditAction({
       action: "PRODUCT_UPDATE",
       adminId: session.user.id,
@@ -476,13 +445,12 @@ export async function PATCH(
   } catch (error: any) {
     console.error("Product update error:", error);
     return NextResponse.json(
-      { error: error.message || "Ürün güncellenirken bir hata oluştu" },
+      { error: error.message || "ÃœrÃ¼n gÃ¼ncellenirken bir hata oluÅŸtu" },
       { status: 500 }
     );
   }
 }
 
-// DELETE: Ürünü sil (renk seçimi ile)
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -497,7 +465,6 @@ export async function DELETE(
     const body = await request.json().catch(() => ({}));
     const { colorIds, deleteAll } = body;
 
-    // Ürünü ve renklerini çek
     const product = await prisma.product.findUnique({
       where: { id },
       include: {
@@ -511,22 +478,20 @@ export async function DELETE(
     });
 
     if (!product) {
-      return NextResponse.json({ error: "Ürün bulunamadı" }, { status: 404 });
+      return NextResponse.json({ error: "ÃœrÃ¼n bulunamadÄ±" }, { status: 404 });
     }
 
-    // Siparişi olan ürünler silinemez
     const hasOrders = await prisma.orderItem.count({
       where: { productId: id },
     });
 
     if (hasOrders > 0) {
       return NextResponse.json(
-        { error: "Siparişi olan ürünler silinemez. Bunun yerine arşivleyin." },
+        { error: "SipariÅŸi olan Ã¼rÃ¼nler silinemez. Bunun yerine arÅŸivleyin." },
         { status: 400 }
       );
     }
 
-    // Audit Log Payload preparation
     const auditDetails = {
       product: product,
       deleteAll: deleteAll,
@@ -534,16 +499,12 @@ export async function DELETE(
     };
 
 
-    // Tümünü sil veya seçilen renkleri sil
     if (deleteAll) {
-      // Tüm ürünü ve ilişkili tüm verileri sil (CASCADE ile otomatik silinir)
       await prisma.product.delete({
         where: { id },
       });
     } else if (colorIds && Array.isArray(colorIds) && colorIds.length > 0) {
-      // Seçilen renkleri ve ilişkili verileri sil
       for (const colorId of colorIds) {
-        // Renk ile ilişkili tüm verileri sil
         await prisma.productVariant.deleteMany({
           where: { colorId },
         });
@@ -560,13 +521,11 @@ export async function DELETE(
           where: { colorId },
         });
 
-        // Renkleri sil
         await prisma.productColor.delete({
           where: { id: colorId },
         });
       }
 
-      // Eğer tüm renkler silindiyse ve başka ilişkili veri yoksa ürünü de sil
       const remainingColors = await prisma.productColor.count({
         where: { productId: id },
       });
@@ -577,7 +536,6 @@ export async function DELETE(
         });
 
         if (hasSizes === 0) {
-          // Ürünü de sil
           await prisma.product.delete({
             where: { id },
           });
@@ -585,12 +543,11 @@ export async function DELETE(
       }
     } else {
       return NextResponse.json(
-        { error: "Lütfen silinecek renkleri seçin veya tümünü sil seçeneğini işaretleyin" },
+        { error: "LÃ¼tfen silinecek renkleri seÃ§in veya tÃ¼mÃ¼nÃ¼ sil seÃ§eneÄŸini iÅŸaretleyin" },
         { status: 400 }
       );
     }
 
-    // Audit Log
     await logAuditAction({
       action: "PRODUCT_DELETE",
       adminId: session.user.id,
@@ -608,12 +565,12 @@ export async function DELETE(
     revalidatePath("/new-arrivals");
     revalidatePath("/collections");
     revalidatePath(`/product/${id}`);
-    return NextResponse.json({ success: true, message: "Silme işlemi tamamlandı" });
+    return NextResponse.json({ success: true, message: "Silme iÅŸlemi tamamlandÄ±" });
 
   } catch (error: any) {
     console.error("Product delete error:", error);
     return NextResponse.json(
-      { error: error.message || "Ürün silinirken bir hata oluştu" },
+      { error: error.message || "ÃœrÃ¼n silinirken bir hata oluÅŸtu" },
       { status: 500 }
     );
   }

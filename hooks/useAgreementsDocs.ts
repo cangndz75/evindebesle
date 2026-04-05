@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useEffect, useState } from "react";
 
 type LineItem = { description:string; quantity:number; unitPrice:number; subtotal?:number };
@@ -43,7 +43,6 @@ export function useAgreementsDocs(input: {
       }
     })();
     return () => { ignore = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(input)]);
 
   return { loading, preInfoHTML, distanceSalesHTML };

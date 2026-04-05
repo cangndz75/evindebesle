@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -16,7 +16,6 @@ interface ProductSizeStockProps {
     setSizeType: (value: SizeType) => void;
     mainStock: { [size: string]: number };
     setMainStock: (value: { [size: string]: number }) => void;
-    // New Props for "Main Variant" logic
     isVariable: boolean;
     mainColorName: string | undefined;
     setMainColorName: (value: string) => void;
@@ -49,7 +48,7 @@ export function ProductSizeStock({
 
     return (
         <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-            <h2 className="text-lg font-semibold mb-4 text-gray-900">Beden ve Stok Yönetimi</h2>
+            <h2 className="text-lg font-semibold mb-4 text-gray-900">Beden ve Stok YÃ¶netimi</h2>
 
             {/* Size Type Selection */}
             <div className="mb-6">
@@ -81,16 +80,16 @@ export function ProductSizeStock({
                     {/* Always ask for Main Color Name & Hex */}
                     <div className="mb-4 p-4 bg-gray-50 border border-gray-100 rounded-md">
                         <Label className="text-sm font-semibold text-gray-900 mb-2 block">
-                            Ana Ürün Rengi ve Kodu
+                            Ana ÃœrÃ¼n Rengi ve Kodu
                         </Label>
                         <p className="text-xs text-gray-500 mb-3">
-                            Ürün tek renk olsa bile, ileride varyant eklenmesi durumunda bu bilgiler kullanılacaktır.
+                            ÃœrÃ¼n tek renk olsa bile, ileride varyant eklenmesi durumunda bu bilgiler kullanÄ±lacaktÄ±r.
                         </p>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <Label className="text-xs mb-1.5 block font-medium">Renk Adı</Label>
+                                <Label className="text-xs mb-1.5 block font-medium">Renk AdÄ±</Label>
                                 <Input
-                                    placeholder="Örn: Siyah, Lacivert"
+                                    placeholder="Ã–rn: Siyah, Lacivert"
                                     value={mainColorName || ""}
                                     onChange={(e) => setMainColorName(e.target.value)}
                                     className="bg-white text-black"
@@ -110,7 +109,6 @@ export function ProductSizeStock({
                                         value={mainColorHex || "#"}
                                         onChange={(e) => {
                                             let val = e.target.value;
-                                            // Enforce logical max length
                                             if (val.length > 7) return;
                                             setMainColorHex(val);
                                         }}
@@ -122,7 +120,7 @@ export function ProductSizeStock({
                     </div>
 
                     <Label className="text-sm font-medium mb-3 block">
-                        {isVariable ? `Stok Adetleri (${mainColorName || "Ana Renk"})` : "Ürün Stok Adetleri"}
+                        {isVariable ? `Stok Adetleri (${mainColorName || "Ana Renk"})` : "ÃœrÃ¼n Stok Adetleri"}
                     </Label>
 
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
@@ -141,7 +139,7 @@ export function ProductSizeStock({
                     </div>
                 </div>
             ) : (
-                <p className="text-sm text-gray-500 italic">Stok takibi kapalı.</p>
+                <p className="text-sm text-gray-500 italic">Stok takibi kapalÄ±.</p>
             )}
         </div>
     );

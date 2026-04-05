@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -7,38 +7,37 @@ import Image from "next/image";
 const CARDS = [
     {
         id: 1,
-        category: "Çorap",
-        title: "Gün Boyu Konfor Tarzını Tamamlayan Çoraplar",
+        category: "Ã‡orap",
+        title: "GÃ¼n Boyu Konfor TarzÄ±nÄ± Tamamlayan Ã‡oraplar",
         image: "https://res.cloudinary.com/dlahfchej/image/upload/v1771709822/banner2_jcc5j9.png",
-        content: "Ayak sağlığınızı ön planda tutan, nefes alabilen kumaş yapısıyla gün boyu konfor sunan çorap koleksiyonumuz. Yumuşak dokusu ve şık tasarımlarıyla tarzınızı tamamlayın.",
+        content: "Ayak saÄŸlÄ±ÄŸÄ±nÄ±zÄ± Ã¶n planda tutan, nefes alabilen kumaÅŸ yapÄ±sÄ±yla gÃ¼n boyu konfor sunan Ã§orap koleksiyonumuz. YumuÅŸak dokusu ve ÅŸÄ±k tasarÄ±mlarÄ±yla tarzÄ±nÄ±zÄ± tamamlayÄ±n.",
     },
     {
         id: 2,
-        category: "İç Giyim",
-        title: "Zarafetin ve Rahatlığın Buluştuğu Siyah Body",
+        category: "Ä°Ã§ Giyim",
+        title: "Zarafetin ve RahatlÄ±ÄŸÄ±n BuluÅŸtuÄŸu Siyah Body",
         image: "https://res.cloudinary.com/dlahfchej/image/upload/v1771759838/3_org_zoom_dlegrk.webp",
-        content: "Vücudu saran esnek yapısı ve sofistike tasarımıyla öne çıkan siyah body koleksiyonumuz. Her anınıza şıklık katan, ikinci cildiniz gibi hissettiren premium kalite.",
+        content: "VÃ¼cudu saran esnek yapÄ±sÄ± ve sofistike tasarÄ±mÄ±yla Ã¶ne Ã§Ä±kan siyah body koleksiyonumuz. Her anÄ±nÄ±za ÅŸÄ±klÄ±k katan, ikinci cildiniz gibi hissettiren premium kalite.",
     },
     {
         id: 3,
-        category: "Erkek İç Giyim",
-        title: "Sıfır Dikiş Teknolojisiyle Beyaz İçlik",
+        category: "Erkek Ä°Ã§ Giyim",
+        title: "SÄ±fÄ±r DikiÅŸ Teknolojisiyle Beyaz Ä°Ã§lik",
         image: "https://res.cloudinary.com/dlahfchej/image/upload/v1771759811/format_webp_2_pc9mhe.webp",
-        content: "Sıfır dikiş teknolojisi ve antibakteriyel kumaşıyla tüm gün tazelik sunan erkek içlik koleksiyonu. Slim-fit kesimi sayesinde kıyafetlerinizin altında görünmez.",
+        content: "SÄ±fÄ±r dikiÅŸ teknolojisi ve antibakteriyel kumaÅŸÄ±yla tÃ¼m gÃ¼n tazelik sunan erkek iÃ§lik koleksiyonu. Slim-fit kesimi sayesinde kÄ±yafetlerinizin altÄ±nda gÃ¶rÃ¼nmez.",
     },
     {
         id: 4,
         category: "Korse",
-        title: "Doğal Duruş ve Özgüvenli Silüet",
+        title: "DoÄŸal DuruÅŸ ve Ã–zgÃ¼venli SilÃ¼et",
         image: "https://res.cloudinary.com/dlahfchej/image/upload/v1771759818/bloomfitkorse_vu0myy.webp",
-        content: "Yüksek bel tasarımı ve esnek kumaş yapısıyla vücudunuzu nazikçe şekillendiren korse koleksiyonumuz. Rahat kullanımı ile günlük hayatta özgüvenle hareket edin.",
+        content: "YÃ¼ksek bel tasarÄ±mÄ± ve esnek kumaÅŸ yapÄ±sÄ±yla vÃ¼cudunuzu nazikÃ§e ÅŸekillendiren korse koleksiyonumuz. Rahat kullanÄ±mÄ± ile gÃ¼nlÃ¼k hayatta Ã¶zgÃ¼venle hareket edin.",
     }
 ];
 
 export default function EditorialGrid() {
     const [selectedId, setSelectedId] = useState<number | null>(null);
 
-    // Kart açıkken sayfanın kaymasını engelle
     useEffect(() => {
         if (selectedId) document.body.style.overflow = "hidden";
         else document.body.style.overflow = "auto";
@@ -46,7 +45,7 @@ export default function EditorialGrid() {
 
     return (
         <div className="w-full">
-            {/* Grid Yapısı */}
+            {/* Grid YapÄ±sÄ± */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {CARDS.map((card) => (
                     <motion.div
@@ -82,7 +81,7 @@ export default function EditorialGrid() {
                 ))}
             </div>
 
-            {/* Genişleyen Kart (Overlay) */}
+            {/* GeniÅŸleyen Kart (Overlay) */}
             <AnimatePresence>
                 {selectedId && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8">
@@ -108,7 +107,7 @@ export default function EditorialGrid() {
                                 </svg>
                             </button>
 
-                            {/* Üst: Görsel (Taller) */}
+                            {/* Ãœst: GÃ¶rsel (Taller) */}
                             <div className="relative w-full h-[400px] md:h-[500px]">
                                 <Image
                                     src={CARDS.find(c => c.id === selectedId)?.image || ""}
@@ -135,7 +134,7 @@ export default function EditorialGrid() {
                                 </div>
                             </div>
 
-                            {/* Alt: İçerik (Dark) */}
+                            {/* Alt: Ä°Ã§erik (Dark) */}
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -146,7 +145,7 @@ export default function EditorialGrid() {
                                     {CARDS.find(c => c.id === selectedId)?.content}
                                 </p>
                                 <button className="w-full md:w-auto px-8 bg-white text-black hover:bg-gray-200 py-4 rounded-xl font-bold text-sm tracking-widest uppercase transition-all transform hover:scale-[1.02] active:scale-[0.98]">
-                                    Keşfetmeye Başla
+                                    KeÅŸfetmeye BaÅŸla
                                 </button>
                             </motion.div>
                         </motion.div>

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useRef, useState } from "react";
 import Image from "next/image";
@@ -52,7 +52,7 @@ export default function ProductCarousel({ title, products, viewAllLink }: Produc
               href={viewAllLink}
               className="text-sm font-light text-[#111] hover:opacity-70 transition-opacity uppercase tracking-wide hidden sm:inline-block"
             >
-              Tümünü Gör
+              TÃ¼mÃ¼nÃ¼ GÃ¶r
             </Link>
           )}
         </div>
@@ -123,7 +123,7 @@ export default function ProductCarousel({ title, products, viewAllLink }: Produc
                         {product.title}
                       </h3>
                       <p className="text-base font-light text-[#111] mb-1">
-                        {product.price.toFixed(2)} ₺
+                        {product.price.toFixed(2)} â‚º
                       </p>
                     </div>
 
@@ -136,7 +136,7 @@ export default function ProductCarousel({ title, products, viewAllLink }: Produc
                                 key={idx}
                                 className="w-3 h-3 rounded-full border border-gray-300"
                                 style={{ backgroundColor: colorValue }}
-                                aria-label={`Renk seçeneği ${idx + 1}`}
+                                aria-label={`Renk seÃ§eneÄŸi ${idx + 1}`}
                               />
                             );
                           })}
@@ -148,11 +148,11 @@ export default function ProductCarousel({ title, products, viewAllLink }: Produc
                       </div>
                     )}
 
-                    {/* Hızlı Ekle Bölümü - Hover'da açılır */}
+                    {/* HÄ±zlÄ± Ekle BÃ¶lÃ¼mÃ¼ - Hover'da aÃ§Ä±lÄ±r */}
                     <div className="hidden md:grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-all duration-300 ease-in-out opacity-0 group-hover:opacity-100">
                       <div className="overflow-hidden">
                         <div className="mt-4 pt-4 border-t border-gray-100 px-4">
-                          <p className="text-[10px] tracking-[0.2em] font-light text-[#111]/40 uppercase mb-3 text-center">Hızlı ekle</p>
+                          <p className="text-[10px] tracking-[0.2em] font-light text-[#111]/40 uppercase mb-3 text-center">HÄ±zlÄ± ekle</p>
                           <div className="flex flex-wrap gap-2 justify-center">
                           {(() => {
                             const availableSizes = product.sizes && product.sizes.length > 0
@@ -163,7 +163,7 @@ export default function ProductCarousel({ title, products, viewAllLink }: Produc
                             
                             if (availableSizes.length === 0) {
                               return (
-                                <p className="text-xs text-gray-500">Beden seçeneği bulunmuyor</p>
+                                <p className="text-xs text-gray-500">Beden seÃ§eneÄŸi bulunmuyor</p>
                               );
                             }
 
@@ -195,7 +195,7 @@ export default function ProductCarousel({ title, products, viewAllLink }: Produc
                             });
 
                             if (inStockSizes.length === 0) {
-                              return <p className="text-[10px] text-gray-400">Tükendi</p>;
+                              return <p className="text-[10px] text-gray-400">TÃ¼kendi</p>;
                             }
 
                             return inStockSizes.map(({ size, sizeName, sizeId, finalStock }, sizeIdx) => {
@@ -230,7 +230,6 @@ export default function ProductCarousel({ title, products, viewAllLink }: Produc
                                       if (res.ok) {
                                         const result = await res.json();
                                         
-                                        // Giriş yapmamış kullanıcı için localStorage'a kaydet
                                         if (!result.userId && result.product) {
                                           const { addToGuestCart } = await import("@/lib/cart-utils");
                                           addToGuestCart(
@@ -260,19 +259,19 @@ export default function ProductCarousel({ title, products, viewAllLink }: Produc
                                                 price: product.price || 0,
                                               },
                                               size: sizeName || "",
-                                              color: "", // Home data'da renk ismi yok, boş bırakılabilir
+                                              color: "", // Home data'da renk ismi yok, boÅŸ bÄ±rakÄ±labilir
                                             },
                                           })
                                         );
                                       } else {
                                         const error = await res.json();
-                                        toast.error(error.error || "Sepete eklenirken bir hata oluştu", {
+                                        toast.error(error.error || "Sepete eklenirken bir hata oluÅŸtu", {
                                           position: "bottom-left",
                                         });
                                       }
                                     } catch (error) {
                                       console.error("Error adding to cart:", error);
-                                      toast.error("Sepete eklenirken bir hata oluştu", {
+                                      toast.error("Sepete eklenirken bir hata oluÅŸtu", {
                                         position: "bottom-left",
                                       });
                                     }
@@ -304,7 +303,7 @@ export default function ProductCarousel({ title, products, viewAllLink }: Produc
             onClick={scrollPrev}
             disabled={!canScrollPrev}
             className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 md:-translate-x-4 bg-white border border-gray-300 p-2 md:p-3 hover:bg-gray-50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111] focus-visible:ring-offset-2 shadow-lg z-10"
-            aria-label="Önceki"
+            aria-label="Ã–nceki"
           >
             <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
           </button>

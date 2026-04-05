@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
@@ -64,15 +64,15 @@ export default function StockMovementsPage() {
     const getTypeBadge = (type: string) => {
         switch (type) {
             case "PURCHASE":
-                return <Badge className="bg-green-100 text-green-800">Alım</Badge>;
+                return <Badge className="bg-green-100 text-green-800">AlÄ±m</Badge>;
             case "SALE":
-                return <Badge className="bg-blue-100 text-blue-800">Satış</Badge>;
+                return <Badge className="bg-blue-100 text-blue-800">SatÄ±ÅŸ</Badge>;
             case "RETURN":
-                return <Badge className="bg-purple-100 text-purple-800">İade</Badge>;
+                return <Badge className="bg-purple-100 text-purple-800">Ä°ade</Badge>;
             case "ADJUSTMENT":
-                return <Badge className="bg-gray-100 text-gray-800">Düzeltme</Badge>;
+                return <Badge className="bg-gray-100 text-gray-800">DÃ¼zeltme</Badge>;
             case "DAMAGED":
-                return <Badge className="bg-red-100 text-red-800">Hasarlı</Badge>;
+                return <Badge className="bg-red-100 text-red-800">HasarlÄ±</Badge>;
             default:
                 return <Badge variant="outline">{type}</Badge>;
         }
@@ -80,16 +80,8 @@ export default function StockMovementsPage() {
 
     const getQuantityDisplay = (type: string, qty: number) => {
         const isPositive = type === "PURCHASE" || type === "RETURN";
-        // Adjust logic if RETURN means 'Customer returned to us' (Stock increases)
 
-        // Typically:
-        // PURCHASE -> +
-        // SALE -> -
-        // RETURN (from customer) -> +
-        // ADJUSTMENT -> could be +/- (stored as signed or unsigned?)
-        // DAMAGED -> -
 
-        // Assuming stored as unsigned quantity in DB, and type determines direction visually
         const sign = (type === "PURCHASE" || type === "RETURN") ? "+" : "-";
         const color = (type === "PURCHASE" || type === "RETURN") ? "text-green-600" : "text-red-600";
         const Icon = (type === "PURCHASE" || type === "RETURN") ? ArrowUpCircle : ArrowDownCircle;
@@ -109,8 +101,8 @@ export default function StockMovementsPage() {
                     <ArrowLeft className="w-5 h-5" />
                 </Button>
                 <div>
-                    <h1 className="text-2xl font-bold">Stok Geçmişi</h1>
-                    <p className="text-sm text-gray-600">Ürün hareket kayıtları</p>
+                    <h1 className="text-2xl font-bold">Stok GeÃ§miÅŸi</h1>
+                    <p className="text-sm text-gray-600">ÃœrÃ¼n hareket kayÄ±tlarÄ±</p>
                 </div>
             </div>
 
@@ -121,18 +113,18 @@ export default function StockMovementsPage() {
                             {[1, 2, 3].map(i => <Skeleton key={i} className="h-12 w-full" />)}
                         </div>
                     ) : movements.length === 0 ? (
-                        <div className="p-12 text-center text-gray-500">Kayıt bulunamadı.</div>
+                        <div className="p-12 text-center text-gray-500">KayÄ±t bulunamadÄ±.</div>
                     ) : (
                         <Table>
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Tarih</TableHead>
-                                    <TableHead>Ürün</TableHead>
+                                    <TableHead>ÃœrÃ¼n</TableHead>
                                     <TableHead>Varyant</TableHead>
-                                    <TableHead>İşlem</TableHead>
+                                    <TableHead>Ä°ÅŸlem</TableHead>
                                     <TableHead>Miktar</TableHead>
-                                    <TableHead>Açıklama</TableHead>
-                                    <TableHead>Kullanıcı</TableHead>
+                                    <TableHead>AÃ§Ä±klama</TableHead>
+                                    <TableHead>KullanÄ±cÄ±</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>

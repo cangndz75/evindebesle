@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import useSWR from "swr";
@@ -31,7 +31,6 @@ import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-// Fetcher for SWR
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 interface AdminNotification {
@@ -48,7 +47,6 @@ export function AdminNotificationBell() {
     const router = useRouter();
     const [isOpen, setIsOpen] = useState(false);
 
-    // Poll every 30 seconds for new notifications
     const { data, mutate } = useSWR<{ notifications: AdminNotification[]; unreadCount: number }>(
         "/api/admin/notifications?limit=20",
         fetcher,
@@ -69,7 +67,6 @@ export function AdminNotificationBell() {
                 body: JSON.stringify({ id }),
             });
 
-            // Optimistic update
             mutate();
 
             if (link) {
@@ -89,9 +86,9 @@ export function AdminNotificationBell() {
                 body: JSON.stringify({ markAllRead: true }),
             });
             mutate();
-            toast.success("Tüm bildirimler okundu olarak işaretlendi");
+            toast.success("TÃ¼m bildirimler okundu olarak iÅŸaretlendi");
         } catch (error) {
-            toast.error("Bir hata oluştu");
+            toast.error("Bir hata oluÅŸtu");
         }
     };
 
@@ -124,13 +121,6 @@ export function AdminNotificationBell() {
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
                         </span>
-                        // Alternative Badge Style if preferred:
-                        // <Badge 
-                        //   variant="destructive" 
-                        //   className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-[10px] rounded-full border-2 border-gray-900"
-                        // >
-                        //   {unreadCount > 9 ? "9+" : unreadCount}
-                        // </Badge>
                     )}
                 </Button>
             </DropdownMenuTrigger>
@@ -148,7 +138,7 @@ export function AdminNotificationBell() {
                             className="h-auto px-2 py-0.5 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                         >
                             <CheckCheck className="mr-1 h-3 w-3" />
-                            Tümünü Okundu İşaretle
+                            TÃ¼mÃ¼nÃ¼ Okundu Ä°ÅŸaretle
                         </Button>
                     )}
                 </DropdownMenuLabel>
@@ -157,7 +147,7 @@ export function AdminNotificationBell() {
                     {notifications.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-40 text-gray-500">
                             <Bell className="h-8 w-8 mb-2 opacity-20" />
-                            <p className="text-sm">Henüz bildirim yok.</p>
+                            <p className="text-sm">HenÃ¼z bildirim yok.</p>
                         </div>
                     ) : (
                         <div className="flex flex-col p-1">

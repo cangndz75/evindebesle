@@ -1,28 +1,18 @@
-import { prisma } from "@/lib/db";
+﻿import { prisma } from "@/lib/db";
 
-/**
- * SKU (Stock Keeping Unit) Generator
- * Format: CAT-BRAND-COLORCODE-SIZE-RANDOM
- * Example: KADIN-DARK-A1B2C3-M-X9Y8
- */
 
 interface SKUOptions {
-    categoryPrefix?: string; // K = Kadın, E = Erkek, U = Unisex
+    categoryPrefix?: string; // K = KadÄ±n, E = Erkek, U = Unisex
     brandPrefix?: string;    // First 4 chars of brand
     colorCode?: string;      // Color identifier
     sizeCode?: string;       // Size (S, M, L, 36, 38, etc.)
 }
 
-/**
- * Generate a unique SKU for a product variant
- */
 export function generateSKU(options: SKUOptions = {}): string {
     const parts: string[] = [];
 
-    // Category prefix (default: PRD for Product)
     parts.push(options.categoryPrefix || "PRD");
 
-    // Brand prefix (max 4 chars, uppercase)
     if (options.brandPrefix) {
         parts.push(
             options.brandPrefix
@@ -32,26 +22,20 @@ export function generateSKU(options: SKUOptions = {}): string {
         );
     }
 
-    // Color code (max 6 chars)
     if (options.colorCode) {
         parts.push(options.colorCode.slice(0, 6).toUpperCase());
     }
 
-    // Size code
     if (options.sizeCode) {
         parts.push(options.sizeCode.toUpperCase());
     }
 
-    // Random suffix for uniqueness (4 chars)
     const randomSuffix = generateRandomCode(4);
     parts.push(randomSuffix);
 
     return parts.join("-");
 }
 
-/**
- * Generate random alphanumeric code
- */
 function generateRandomCode(length: number): string {
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // Exclude confusing chars (0, O, 1, I)
     let result = "";
@@ -61,10 +45,6 @@ function generateRandomCode(length: number): string {
     return result;
 }
 
-/**
- * Generate a unique product stock code
- * Checks database for uniqueness
- */
 export async function generateUniqueStockCode(
     options: SKUOptions = {}
 ): Promise<string> {
@@ -74,7 +54,6 @@ export async function generateUniqueStockCode(
     while (attempts < maxAttempts) {
         const sku = generateSKU(options);
 
-        // Check if exists in database
         const existing = await prisma.product.findUnique({
             where: { stockCode: sku },
             select: { id: true },
@@ -87,13 +66,9 @@ export async function generateUniqueStockCode(
         attempts++;
     }
 
-    // If all attempts fail, add timestamp
     return `${generateSKU(options)}-${Date.now().toString(36).toUpperCase()}`;
 }
 
-/**
- * Generate unique variant code
- */
 export async function generateUniqueVariantCode(
     productId: string,
     colorId?: string,
@@ -125,9 +100,6 @@ export async function generateUniqueVariantCode(
     return `${productId.slice(-4)}-${Date.now().toString(36)}`;
 }
 
-/**
- * Generate stock codes for all products without one
- */
 export async function generateMissingStockCodes(): Promise<{
     updated: number;
     failed: string[];

@@ -1,7 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
-// POST: Fiyat bildirimi oluştur
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
@@ -11,13 +10,11 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "productId ve email zorunlu" }, { status: 400 });
         }
 
-        // E-posta format kontrolü
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            return NextResponse.json({ error: "Geçersiz e-posta adresi" }, { status: 400 });
+            return NextResponse.json({ error: "GeÃ§ersiz e-posta adresi" }, { status: 400 });
         }
 
-        // Aynı ürün için bekleyen bildirim var mı kontrol et
         const existing = await prisma.priceAlert.findFirst({
             where: {
                 productId,
@@ -27,7 +24,6 @@ export async function POST(req: NextRequest) {
         });
 
         if (existing) {
-            // Mevcut bildirimi güncelle
             await prisma.priceAlert.update({
                 where: { id: existing.id },
                 data: {
@@ -35,10 +31,9 @@ export async function POST(req: NextRequest) {
                     currentPrice,
                 },
             });
-            return NextResponse.json({ success: true, message: "Bildirim güncellendi" });
+            return NextResponse.json({ success: true, message: "Bildirim gÃ¼ncellendi" });
         }
 
-        // Yeni bildirim oluştur
         await prisma.priceAlert.create({
             data: {
                 productId,

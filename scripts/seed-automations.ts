@@ -1,18 +1,15 @@
-import "dotenv/config";
+﻿import "dotenv/config";
 import { prisma } from "../lib/db";
 
 async function main() {
     console.log("Seeding automations...");
 
-    // 1. Welcome Series
-    // Use upsert or findFirst logic. Since we changed to findFirst in previous edit, let's keep it safe.
 
-    // Welcome
     let welcome = await prisma.automation.findFirst({ where: { triggerType: "WELCOME" } });
     if (!welcome) {
         await prisma.automation.create({
             data: {
-                name: "Hoşgeldin Serisi",
+                name: "HoÅŸgeldin Serisi",
                 triggerType: "WELCOME",
                 isActive: true,
                 steps: {
@@ -23,8 +20,8 @@ async function main() {
                             template: {
                                 create: {
                                     name: "Welcome Email",
-                                    subject: "Aramıza Hoşgeldin! 👋",
-                                    bodyJson: "<h1>Hoşgeldin!</h1><p>Evinde Besle ailesine katıldığın için teşekkürler.</p>"
+                                    subject: "AramÄ±za HoÅŸgeldin! ğŸ‘‹",
+                                    bodyJson: "<h1>HoÅŸgeldin!</h1><p>Evinde Besle ailesine katÄ±ldÄ±ÄŸÄ±n iÃ§in teÅŸekkÃ¼rler.</p>"
                                 }
                             }
                         },
@@ -40,7 +37,7 @@ async function main() {
                                 create: {
                                     name: "Brand Story",
                                     subject: "Biz Kimiz?",
-                                    bodyJson: "<h1>Hikayemiz</h1><p>Doğal ve taze...</p>"
+                                    bodyJson: "<h1>Hikayemiz</h1><p>DoÄŸal ve taze...</p>"
                                 }
                             }
                         },
@@ -55,8 +52,8 @@ async function main() {
                             template: {
                                 create: {
                                     name: "First Discount",
-                                    subject: "Sana Özel %10 İndirim 🎁",
-                                    bodyJson: "<h1>Kupon Kodun: WELCOME10</h1><p>İlk siparişinde kullanabilirsin.</p>"
+                                    subject: "Sana Ã–zel %10 Ä°ndirim ğŸ",
+                                    bodyJson: "<h1>Kupon Kodun: WELCOME10</h1><p>Ä°lk sipariÅŸinde kullanabilirsin.</p>"
                                 }
                             }
                         }
@@ -67,7 +64,6 @@ async function main() {
         console.log("Created Welcome Series");
     }
 
-    // Abandoned Cart
     let cart = await prisma.automation.findFirst({ where: { triggerType: "ABANDONED_CART" } });
     if (!cart) {
         await prisma.automation.create({
@@ -83,8 +79,8 @@ async function main() {
                             template: {
                                 create: {
                                     name: "Cart Reminder",
-                                    subject: "Sepetindekileri Unutma! 🛒",
-                                    bodyJson: "<h1>Sepetin seni bekliyor</h1><p>Tükenmeden al.</p>"
+                                    subject: "Sepetindekileri Unutma! ğŸ›’",
+                                    bodyJson: "<h1>Sepetin seni bekliyor</h1><p>TÃ¼kenmeden al.</p>"
                                 }
                             }
                         }
@@ -95,12 +91,11 @@ async function main() {
         console.log("Created Cart Series");
     }
 
-    // Win-back
     let winback = await prisma.automation.findFirst({ where: { triggerType: "WINBACK" } });
     if (!winback) {
         await prisma.automation.create({
             data: {
-                name: "Geri Kazanım (Win-back)",
+                name: "Geri KazanÄ±m (Win-back)",
                 triggerType: "WINBACK",
                 isActive: true,
                 steps: {
@@ -111,8 +106,8 @@ async function main() {
                             template: {
                                 create: {
                                     name: "We Miss You",
-                                    subject: "Seni Özledik 😢",
-                                    bodyJson: "<h1>Uzun zaman oldu...</h1><p>Seni tekrar aramızda görmek istiyoruz.</p>"
+                                    subject: "Seni Ã–zledik ğŸ˜¢",
+                                    bodyJson: "<h1>Uzun zaman oldu...</h1><p>Seni tekrar aramÄ±zda gÃ¶rmek istiyoruz.</p>"
                                 }
                             }
                         }
@@ -123,12 +118,11 @@ async function main() {
         console.log("Created Win-back Series");
     }
 
-    // Review Request
     let review = await prisma.automation.findFirst({ where: { triggerType: "REVIEW_REQUEST" } });
     if (!review) {
         await prisma.automation.create({
             data: {
-                name: "Ürün Yorumu İsteği",
+                name: "ÃœrÃ¼n Yorumu Ä°steÄŸi",
                 triggerType: "REVIEW_REQUEST",
                 isActive: true,
                 steps: {
@@ -144,8 +138,8 @@ async function main() {
                             template: {
                                 create: {
                                     name: "Review Request",
-                                    subject: "Siparişinden memnun kaldın mı?",
-                                    bodyJson: "<h1>Fikrin bizim için önemli</h1><p>Aldığın ürünleri değerlendir.</p>"
+                                    subject: "SipariÅŸinden memnun kaldÄ±n mÄ±?",
+                                    bodyJson: "<h1>Fikrin bizim iÃ§in Ã¶nemli</h1><p>AldÄ±ÄŸÄ±n Ã¼rÃ¼nleri deÄŸerlendir.</p>"
                                 }
                             }
                         }
@@ -161,10 +155,6 @@ async function main() {
 
 main()
     .then(async () => {
-        // Disconnect logic is handled in db.ts or pool, but explicit disconnect on script end is good.
-        // Since we import 'prisma' from lib/db, we don't own the connection lifecycle fully, 
-        // but for a script it's fine to just exit.
-        // await prisma.$disconnect(); 
         process.exit(0);
     })
     .catch(async (e) => {

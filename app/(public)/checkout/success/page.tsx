@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
@@ -26,7 +26,6 @@ function SuccessContent() {
                     setOrder(data);
                     if (data.paymentStatus === "SUCCEEDED" || data.orderStatus === "PAID") {
                         setStatus("success");
-                        // GA4 Purchase Event
                         const sentKey = `ga4_sent_${orderId}`;
                         if (!localStorage.getItem(sentKey)) {
                             dlPush("purchase", {
@@ -46,7 +45,6 @@ function SuccessContent() {
                     } else if (data.paymentStatus === "FAILED") {
                         setStatus("failed");
                     } else {
-                        // Polling if still pending
                         setTimeout(checkStatus, 3000);
                     }
                 } else {
@@ -65,7 +63,7 @@ function SuccessContent() {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh]">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-                <h2 className="text-xl font-medium">Ödeme sonucunuz kontrol ediliyor...</h2>
+                <h2 className="text-xl font-medium">Ã–deme sonucunuz kontrol ediliyor...</h2>
             </div>
         );
     }
@@ -73,9 +71,9 @@ function SuccessContent() {
     if (status === "failed") {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
-                <div className="text-red-500 text-6xl mb-4">✕</div>
-                <h1 className="text-3xl font-bold mb-2">Ödeme Başarısız</h1>
-                <p className="text-gray-600 mb-8">İşleminiz sırasında bir hata oluştu. Lütfen tekrar deneyin.</p>
+                <div className="text-red-500 text-6xl mb-4">âœ•</div>
+                <h1 className="text-3xl font-bold mb-2">Ã–deme BaÅŸarÄ±sÄ±z</h1>
+                <p className="text-gray-600 mb-8">Ä°ÅŸleminiz sÄ±rasÄ±nda bir hata oluÅŸtu. LÃ¼tfen tekrar deneyin.</p>
                 <Link href="/checkout" className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
                     Tekrar Dene
                 </Link>
@@ -85,17 +83,17 @@ function SuccessContent() {
 
     return (
         <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
-            <div className="text-green-500 text-6xl mb-4">✓</div>
-            <h1 className="text-3xl font-bold mb-2">Siparişiniz Alındı!</h1>
+            <div className="text-green-500 text-6xl mb-4">âœ“</div>
+            <h1 className="text-3xl font-bold mb-2">SipariÅŸiniz AlÄ±ndÄ±!</h1>
             <p className="text-gray-600 mb-8">
-                Sipariş numaranız: <span className="font-mono font-bold text-black">{order?.orderNo}</span>
+                SipariÅŸ numaranÄ±z: <span className="font-mono font-bold text-black">{order?.orderNo}</span>
             </p>
             <div className="flex gap-4">
                 <Link href="/" className="text-blue-600 hover:underline">
-                    Alışverişe Devam Et
+                    AlÄ±ÅŸveriÅŸe Devam Et
                 </Link>
                 <Link href="/profile/orders" className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
-                    Siparişlerim
+                    SipariÅŸlerim
                 </Link>
             </div>
         </div>
@@ -107,7 +105,7 @@ export default function CheckoutSuccessPage() {
         <Suspense fallback={
             <div className="flex flex-col items-center justify-center min-h-[60vh]">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-                <h2 className="text-xl font-medium">Yükleniyor...</h2>
+                <h2 className="text-xl font-medium">YÃ¼kleniyor...</h2>
             </div>
         }>
             <SuccessContent />

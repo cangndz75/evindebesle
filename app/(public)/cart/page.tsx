@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Minus, Plus, ShoppingBag, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
@@ -88,7 +88,6 @@ function ProductTile({
 export default function CartPage() {
     const { data: session } = useSession();
 
-    // Store'dan cart items, state ve actions al
     const cartItems = useCartStore((state) => state.items);
     const hydrated = useCartStore((state) => state.hydrated);
     const isReady = useCartStore((state) => state.isReady);
@@ -115,7 +114,7 @@ export default function CartPage() {
 
     const handleCreateOrder = () => {
         if (cartItems.length === 0) {
-            toast.error("Sepetiniz boş");
+            toast.error("Sepetiniz boÅŸ");
             return;
         }
         router.push("/checkout");
@@ -161,14 +160,12 @@ export default function CartPage() {
             const localProducts = getRecentlyViewed();
             const localIds = localProducts.map((p) => p.productId || p.id).filter(Boolean);
 
-            // Eğer local data yoksa ve giriş yapmamışsa, boş döndür
             if (localIds.length === 0 && !session?.user) {
                 setRecentlyViewedProducts([]);
                 return;
             }
 
             try {
-                // API'ye local ID'leri de gönder (validasyon için)
                 const idsQuery = localIds.length > 0 ? `?ids=${localIds.join(",")}` : "";
                 const res = await fetch(`/api/products/recent-views${idsQuery}`);
 
@@ -189,9 +186,6 @@ export default function CartPage() {
 
                     setRecentlyViewedProducts(apiFormatted);
                 } else {
-                    // API hata verirse fallback olarak local data'yı göster (ama bu durumda stale data riski var)
-                    // Yine de hiç göstermemektense, local data'yı göstermeyi deneyebiliriz veya boş bırakabiliriz.
-                    // Task isteği "yoksa gösterme" olduğu için, API hatası durumunda boş bırakmak daha güvenli olabilir.
                     console.error("Failed to fetch recent views");
                     setRecentlyViewedProducts([]);
                 }
@@ -296,7 +290,7 @@ export default function CartPage() {
                         <div>
                             <h1 className="text-2xl font-serif text-black">Sepetim</h1>
                             <p className="text-sm text-gray-500 mt-1">
-                                {cartItems.length > 0 ? `${itemCount} ürün` : "Henüz ürün yok"}
+                                {cartItems.length > 0 ? `${itemCount} Ã¼rÃ¼n` : "HenÃ¼z Ã¼rÃ¼n yok"}
                             </p>
                         </div>
                     </div>
@@ -328,11 +322,11 @@ export default function CartPage() {
                                                 <p className="text-sm text-gray-800">
                                                     {qualifiesForFreeShipping ? (
                                                         <span className="font-medium text-black">
-                                                            Ücretsiz kargo için yeterli tutara ulaştınız.
+                                                            Ãœcretsiz kargo iÃ§in yeterli tutara ulaÅŸtÄ±nÄ±z.
                                                         </span>
                                                     ) : (
                                                         <>
-                                                            Ücretsiz kargo için{" "}
+                                                            Ãœcretsiz kargo iÃ§in{" "}
                                                             <span className="font-medium text-black">
                                                                 {formatPriceTRY(remainingForFreeShipping)}
                                                             </span>{" "}
@@ -358,16 +352,16 @@ export default function CartPage() {
                                             <ShoppingBag className="w-10 h-10 text-gray-400" />
                                         </div>
                                         <h2 className="text-xl font-medium text-black mb-2">
-                                            Sepetiniz Boş
+                                            Sepetiniz BoÅŸ
                                         </h2>
                                         <p className="text-gray-500 mb-8 max-w-sm mx-auto">
-                                            Ürünlere göz atın ve favorilerinizi sepete ekleyin.
+                                            ÃœrÃ¼nlere gÃ¶z atÄ±n ve favorilerinizi sepete ekleyin.
                                         </p>
                                         <Button
                                             onClick={() => router.push("/")}
                                             className="rounded-full px-8 py-6 text-base bg-black hover:bg-black/80"
                                         >
-                                            Alışverişe Başla
+                                            AlÄ±ÅŸveriÅŸe BaÅŸla
                                         </Button>
                                     </div>
                                 ) : (
@@ -408,7 +402,7 @@ export default function CartPage() {
                                                             </button>
                                                         </div>
                                                         <p className="mt-1 text-sm text-gray-500">
-                                                            {item.color?.name || "Renk"} • {item.size?.name || "Beden"}
+                                                            {item.color?.name || "Renk"} â€¢ {item.size?.name || "Beden"}
                                                         </p>
                                                     </div>
 
@@ -458,21 +452,21 @@ export default function CartPage() {
                                             <span className="text-xl font-serif text-black">{formatPriceTRY(totalPrice)}</span>
                                         </div>
                                         <p className="text-xs text-gray-500 text-right mb-6">
-                                            Vergiler ve kargo ödeme adımında hesaplanır.
+                                            Vergiler ve kargo Ã¶deme adÄ±mÄ±nda hesaplanÄ±r.
                                         </p>
                                         <div className="flex flex-col gap-3">
                                             <Button
                                                 onClick={handleCreateOrder}
                                                 className="w-full h-14 rounded-2xl bg-black text-white hover:bg-black/90 text-lg"
                                             >
-                                                Sepeti Onayla ve Satın Al
+                                                Sepeti Onayla ve SatÄ±n Al
                                             </Button>
                                             <Button
                                                 variant="outline"
                                                 onClick={() => router.push("/")}
                                                 className="w-full h-12 rounded-2xl border-gray-200"
                                             >
-                                                Alışverişe Devam Et
+                                                AlÄ±ÅŸveriÅŸe Devam Et
                                             </Button>
                                         </div>
                                     </div>
@@ -496,7 +490,7 @@ export default function CartPage() {
                                             : "text-gray-500 hover:text-black",
                                     ].join(" ")}
                                 >
-                                    Özellikle Sizin İçin
+                                    Ã–zellikle Sizin Ä°Ã§in
                                 </button>
                                 <button
                                     onClick={() => setActiveTab("recent")}
@@ -507,7 +501,7 @@ export default function CartPage() {
                                             : "text-gray-500 hover:text-black",
                                     ].join(" ")}
                                 >
-                                    Son Görüntülenenler
+                                    Son GÃ¶rÃ¼ntÃ¼lenenler
                                 </button>
                             </div>
                             <div className="hidden sm:flex items-center gap-2">
@@ -538,7 +532,7 @@ export default function CartPage() {
                                 ))}
                                 {activeList.length === 0 && (
                                     <div className="text-gray-500 py-4 w-full text-center">
-                                        Bu kategori için öneri bulunamadı.
+                                        Bu kategori iÃ§in Ã¶neri bulunamadÄ±.
                                     </div>
                                 )}
                             </div>

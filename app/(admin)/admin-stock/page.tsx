@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, Fragment } from "react";
 import { useRouter } from "next/navigation";
@@ -78,7 +78,7 @@ export default function StockManagementPage() {
       }
     } catch (error) {
       console.error("Error fetching stock data:", error);
-      toast.error("Stok verileri yüklenirken bir hata oluştu");
+      toast.error("Stok verileri yÃ¼klenirken bir hata oluÅŸtu");
     } finally {
       setLoading(false);
     }
@@ -96,9 +96,6 @@ export default function StockManagementPage() {
 
   const handleQuickUpdate = async (variantId: string, isVariant: boolean, newStock: number) => {
     try {
-      // Determine if update is for ProductVariant or ProductSize
-      // We can use a unified endpoint or existing one
-      // For now let's assume specific endpoint for variant update
 
       const res = await fetch(`/api/admin/products/stock-update`, {
         method: "POST",
@@ -111,13 +108,13 @@ export default function StockManagementPage() {
       });
 
       if (res.ok) {
-        toast.success("Stok güncellendi");
+        toast.success("Stok gÃ¼ncellendi");
         fetchStockData();
       } else {
-        throw new Error("Güncelleme başarısız");
+        throw new Error("GÃ¼ncelleme baÅŸarÄ±sÄ±z");
       }
     } catch (error) {
-      toast.error("Güncelleme hatası");
+      toast.error("GÃ¼ncelleme hatasÄ±");
       console.error(error);
     }
   };
@@ -141,18 +138,18 @@ export default function StockManagementPage() {
         <div>
           <h1 className="text-2xl md:text-3xl font-bold">Stok ve Tedarik</h1>
           <p className="text-sm text-gray-600 mt-1">
-            Ürün varyantlarını hızlıca yönetin
+            ÃœrÃ¼n varyantlarÄ±nÄ± hÄ±zlÄ±ca yÃ¶netin
           </p>
         </div>
         <div>
           <Button variant="outline" onClick={() => router.push("/admin-stock/movements")}>
             <Package className="w-4 h-4 mr-2" />
-            Geçmiş Hareketler
+            GeÃ§miÅŸ Hareketler
           </Button>
         </div>
       </div>
 
-      {/* Özet Kartlar */}
+      {/* Ã–zet Kartlar */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-3">
@@ -166,7 +163,7 @@ export default function StockManagementPage() {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 text-amber-500" />
-              Düşük Stok
+              DÃ¼ÅŸÃ¼k Stok
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -177,7 +174,7 @@ export default function StockManagementPage() {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
               <Package className="w-4 h-4 text-red-500" />
-              Tükenen Stok
+              TÃ¼kenen Stok
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -189,7 +186,7 @@ export default function StockManagementPage() {
       {/* Filtreler */}
       <div className="flex flex-col md:flex-row gap-4">
         <Input
-          placeholder="Ürün adı, renk veya stok kodu..."
+          placeholder="ÃœrÃ¼n adÄ±, renk veya stok kodu..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="flex-1"
@@ -199,9 +196,9 @@ export default function StockManagementPage() {
             <SelectValue placeholder="Filtrele" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tümü</SelectItem>
-            <SelectItem value="lowStock">Düşük Stok</SelectItem>
-            <SelectItem value="outOfStock">Tükenen Stok</SelectItem>
+            <SelectItem value="all">TÃ¼mÃ¼</SelectItem>
+            <SelectItem value="lowStock">DÃ¼ÅŸÃ¼k Stok</SelectItem>
+            <SelectItem value="outOfStock">TÃ¼kenen Stok</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -215,7 +212,7 @@ export default function StockManagementPage() {
         </div>
       ) : filteredItems.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
-          Kayıt bulunamadı
+          KayÄ±t bulunamadÄ±
         </div>
       ) : (
         <Card>
@@ -227,13 +224,13 @@ export default function StockManagementPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Ürün</TableHead>
+                    <TableHead>ÃœrÃ¼n</TableHead>
                     <TableHead>Renk</TableHead>
                     <TableHead>Stok Kodu</TableHead>
                     <TableHead>Toplam Stok</TableHead>
                     <TableHead>Durum</TableHead>
                     <TableHead className="w-[50px]"></TableHead>
-                    <TableHead className="text-right">İşlemler</TableHead>
+                    <TableHead className="text-right">Ä°ÅŸlemler</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -272,7 +269,7 @@ export default function StockManagementPage() {
                           </TableCell>
                           <TableCell>
                             {isOutOfStock ? (
-                              <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Tükendi</Badge>
+                              <Badge className="bg-red-100 text-red-800 hover:bg-red-100">TÃ¼kendi</Badge>
                             ) : isLowStock ? (
                               <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">Kritik</Badge>
                             ) : (
@@ -295,7 +292,7 @@ export default function StockManagementPage() {
                               variant="default"
                               onClick={() => setSelectedProductForModal(item.productId)}
                             >
-                              Stok Güncelle
+                              Stok GÃ¼ncelle
                             </Button>
                           </TableCell>
                         </TableRow>

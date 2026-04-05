@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { prisma } from "@/lib/db";
@@ -10,7 +10,7 @@ export const runtime = "nodejs";
 type Card = { number: string; name: string; expireMonth: string; expireYear: string; cvc: string };
 type Body = {
   draftAppointmentId: string;
-  amount: number; // TL cinsinden (ör: 1650)
+  amount: number; // TL cinsinden (Ã¶r: 1650)
   currency?: "TRY";
   card: Card;
   buyer?: any;
@@ -37,23 +37,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Eksik parametre" }, { status: 400 });
     }
 
-    // PaymentSession oluştur
     const ps = await prisma.paymentSession.create({
       data: {
         userId: session.user.id,
         draftId: input.draftAppointmentId,
-        amount: Math.round(Number(input.amount) * 100), // kuruş saklıyoruz
+        amount: Math.round(Number(input.amount) * 100), // kuruÅŸ saklÄ±yoruz
         currency: input.currency || "TRY",
         status: PaymentSessionStatus.INIT,
       },
     });
 
-    // Tami için orderId ve correlationId
     const orderId = ps.id;
     const correlationId = newCorrelationId();
     const callbackUrl = `${TAMI.APP_BASE_URL}/api/payment/3ds-return?sid=${ps.id}`;
 
-    // Body (securityHash yok artık)
     const tamiBody: any = {
       amount: Number(input.amount),
       orderId,
@@ -75,23 +72,23 @@ export async function POST(req: NextRequest) {
         emailAddress: session.user.email || "noreply@example.com",
         ipAddress: getClientIp(req),
         buyerId: session.user.id,
-        name: session.user.name || "Müşteri",
-        surName: "—",
+        name: session.user.name || "MÃ¼ÅŸteri",
+        surName: "â€”",
         phoneNumber: "0000000000",
       },
 
       billingAddress: input.billingAddress ?? {
         address: "N/A",
-        city: "İstanbul",
-        country: "Türkiye",
-        contactName: session.user.name || "Müşteri",
+        city: "Ä°stanbul",
+        country: "TÃ¼rkiye",
+        contactName: session.user.name || "MÃ¼ÅŸteri",
       },
 
       shippingAddress: input.shippingAddress ?? {
         address: "N/A",
-        city: "İstanbul",
-        country: "Türkiye",
-        contactName: session.user.name || "Müşteri",
+        city: "Ä°stanbul",
+        country: "TÃ¼rkiye",
+        contactName: session.user.name || "MÃ¼ÅŸteri",
       },
 
       basket: input.basket ?? {
@@ -135,7 +132,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "TAMI_AUTH_FAILED", detail: data }, { status: 400 });
     }
 
-    // 3DS HTML içerik
     const html = Buffer.from(
       data?.threeDSHtmlContent ?? data?.threeDSHtml ?? data?.html,
       "base64"

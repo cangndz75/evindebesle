@@ -1,8 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 
-// GET: Kullanıcının ticket'larını veya admin için tüm ticket'ları listele
 export async function GET(req: NextRequest) {
     try {
         const user = await getCurrentUser();
@@ -16,13 +15,11 @@ export async function GET(req: NextRequest) {
 
         let where: any = {};
 
-        // Admin tüm ticket'ları görebilir
         if (user.isAdmin) {
             if (status && status !== "all") {
                 where.status = status;
             }
         } else {
-            // Normal kullanıcı sadece kendi ticket'larını görebilir
             where.userId = user.id;
         }
 
@@ -44,7 +41,6 @@ export async function GET(req: NextRequest) {
             take: limit,
         });
 
-        // Duruma göre sayılar
         const counts = user.isAdmin
             ? await prisma.supportTicket.groupBy({
                 by: ["status"],
@@ -59,7 +55,6 @@ export async function GET(req: NextRequest) {
     }
 }
 
-// POST: Yeni ticket oluştur
 export async function POST(req: NextRequest) {
     try {
         const user = await getCurrentUser();
@@ -101,7 +96,6 @@ export async function POST(req: NextRequest) {
     }
 }
 
-// PUT: Ticket güncelle (status, priority, mesaj ekle)
 export async function PUT(req: NextRequest) {
     try {
         const user = await getCurrentUser();
@@ -116,21 +110,18 @@ export async function PUT(req: NextRequest) {
             return NextResponse.json({ error: "ticketId zorunlu" }, { status: 400 });
         }
 
-        // Ticket'ı kontrol et
         const ticket = await prisma.supportTicket.findUnique({
             where: { id: ticketId },
         });
 
         if (!ticket) {
-            return NextResponse.json({ error: "Ticket bulunamadı" }, { status: 404 });
+            return NextResponse.json({ error: "Ticket bulunamadÄ±" }, { status: 404 });
         }
 
-        // Yetki kontrolü
         if (!user.isAdmin && ticket.userId !== user.id) {
             return NextResponse.json({ error: "Yetkisiz" }, { status: 403 });
         }
 
-        // Durumu sadece admin değiştirebilir (closed hariç)
         const updateData: any = { updatedAt: new Date() };
         if (user.isAdmin && status) {
             updateData.status = status;
@@ -139,18 +130,15 @@ export async function PUT(req: NextRequest) {
             updateData.priority = priority;
         }
 
-        // Kullanıcı çözülmüş ticket'ı kapatabilir
         if (!user.isAdmin && status === "closed" && ticket.status === "resolved") {
             updateData.status = "closed";
         }
 
-        // Ticket'ı güncelle
         await prisma.supportTicket.update({
             where: { id: ticketId },
             data: updateData,
         });
 
-        // Mesaj varsa ekle
         if (message) {
             await prisma.ticketMessage.create({
                 data: {
@@ -161,7 +149,6 @@ export async function PUT(req: NextRequest) {
                 },
             });
 
-            // Kullanıcı cevap verdiyse durumu "pending" yap
             if (!user.isAdmin && ticket.status === "resolved") {
                 await prisma.supportTicket.update({
                     where: { id: ticketId },
@@ -170,7 +157,6 @@ export async function PUT(req: NextRequest) {
             }
         }
 
-        // Güncel ticket'ı döndür
         const updatedTicket = await prisma.supportTicket.findUnique({
             where: { id: ticketId },
             include: {

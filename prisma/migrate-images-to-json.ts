@@ -1,17 +1,14 @@
-import { Pool } from "pg";
+﻿import { Pool } from "pg";
 import { config } from "dotenv";
 
-// .env dosyasını yükle
 config();
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 async function main() {
-  console.log("🔄 ProductColor images alanlarını JSON string'e dönüştürülüyor...");
+  console.log("ğŸ”„ ProductColor images alanlarÄ±nÄ± JSON string'e dÃ¶nÃ¼ÅŸtÃ¼rÃ¼lÃ¼yor...");
 
   try {
-    // PostgreSQL'de direkt SQL ile güncelleme yap
-    // PostgreSQL array'i JSON string'e dönüştür
     const result = await pool.query(`
       UPDATE "ProductColor"
       SET images = CASE
@@ -24,9 +21,8 @@ async function main() {
         AND images::text NOT LIKE '{%'
     `);
 
-    console.log(`✅ ${result.rowCount} kayıt güncellendi`);
+    console.log(`âœ… ${result.rowCount} kayÄ±t gÃ¼ncellendi`);
 
-    // Şimdi array tipindeki verileri JSON string'e çevir
     const arrayResult = await pool.query(`
       UPDATE "ProductColor"
       SET images = to_json(images)::text
@@ -34,10 +30,9 @@ async function main() {
         AND pg_typeof(images) = 'text[]'::regtype
     `);
 
-    console.log(`✅ ${arrayResult.rowCount} array kayıt JSON'a dönüştürüldü`);
+    console.log(`âœ… ${arrayResult.rowCount} array kayÄ±t JSON'a dÃ¶nÃ¼ÅŸtÃ¼rÃ¼ldÃ¼`);
   } catch (error: any) {
-    // Eğer yukarıdaki sorgu çalışmazsa, manuel olarak yap
-    console.log("⚠️  Otomatik dönüştürme başarısız, manuel dönüştürme deneniyor...");
+    console.log("âš ï¸  Otomatik dÃ¶nÃ¼ÅŸtÃ¼rme baÅŸarÄ±sÄ±z, manuel dÃ¶nÃ¼ÅŸtÃ¼rme deneniyor...");
     
     const colors = await pool.query(`
       SELECT id, images
@@ -45,25 +40,22 @@ async function main() {
       WHERE images IS NOT NULL
     `);
 
-    console.log(`📊 ${colors.rows.length} renk kaydı bulundu`);
+    console.log(`ğŸ“Š ${colors.rows.length} renk kaydÄ± bulundu`);
 
     let updated = 0;
     let skipped = 0;
 
     for (const color of colors.rows) {
       try {
-        // Eğer zaten JSON string ise, atla
         if (typeof color.images === "string" && color.images.startsWith("[")) {
           try {
             JSON.parse(color.images);
             skipped++;
             continue;
           } catch {
-            // JSON değilse devam et
           }
         }
 
-        // PostgreSQL array'i JSON string'e çevir
         const jsonResult = await pool.query(
           `SELECT to_json($1::text[])::text as json_string`,
           [color.images]
@@ -78,18 +70,18 @@ async function main() {
 
         updated++;
       } catch (err) {
-        console.error(`❌ Hata (id: ${color.id}):`, err);
+        console.error(`âŒ Hata (id: ${color.id}):`, err);
       }
     }
 
-    console.log(`✅ ${updated} kayıt güncellendi`);
-    console.log(`⏭️  ${skipped} kayıt atlandı (zaten JSON)`);
+    console.log(`âœ… ${updated} kayÄ±t gÃ¼ncellendi`);
+    console.log(`â­ï¸  ${skipped} kayÄ±t atlandÄ± (zaten JSON)`);
   }
 }
 
 main()
   .catch((e) => {
-    console.error("❌ Hata:", e);
+    console.error("âŒ Hata:", e);
     process.exit(1);
   })
   .finally(async () => {

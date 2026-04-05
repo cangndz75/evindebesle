@@ -1,9 +1,8 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 
-// Get ticket detail for admin
 export async function GET(
     req: Request,
     { params }: { params: Promise<{ id: string }> }
@@ -54,7 +53,6 @@ export async function GET(
     }
 }
 
-// Update status or reply
 export async function PATCH(
     req: Request,
     { params }: { params: Promise<{ id: string }> }
@@ -74,7 +72,6 @@ export async function PATCH(
         if (status) updateData.status = status;
         if (priority) updateData.priority = priority;
 
-        // If admin is replying
         if (adminReply) {
             await prisma.ticketMessage.create({
                 data: {
@@ -84,11 +81,8 @@ export async function PATCH(
                     userId: session.user.id, // Optional depending on schema, but good for tracking
                 },
             });
-            // Update ticket timestamp
             updateData.updatedAt = new Date();
 
-            // If replying, maybe set status to 'pending' (waiting for user)?
-            // Or keep it open.
         }
 
         const ticket = await prisma.supportTicket.update({
@@ -96,7 +90,6 @@ export async function PATCH(
             data: updateData,
         });
 
-        // Send email notification to user about reply? (TODO for later)
 
         return NextResponse.json(ticket);
     } catch (error) {

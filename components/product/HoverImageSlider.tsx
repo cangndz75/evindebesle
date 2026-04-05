@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useCallback, useMemo } from "react";
 import Image from "next/image";
@@ -30,7 +30,6 @@ export default function HoverImageSlider({
 }: HoverImageSliderProps) {
     const [activeIndex, setActiveIndex] = useState(0);
 
-    // En az 1 resim olmasını garanti et
     const validImages = useMemo(() => {
         const filtered = images.filter((img) => img && img.trim() !== "");
         return filtered.length > 0
@@ -40,7 +39,6 @@ export default function HoverImageSlider({
 
     const imageCount = validImages.length;
 
-    // Mouse pozisyonuna göre aktif resmi hesapla
     const handleMouseMove = useCallback(
         (e: React.MouseEvent<HTMLDivElement>) => {
             if (imageCount <= 1) return;
@@ -74,7 +72,7 @@ export default function HoverImageSlider({
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
         >
-            {/* Tüm resimleri render et, sadece aktif olanı göster */}
+            {/* TÃ¼m resimleri render et, sadece aktif olanÄ± gÃ¶ster */}
             {validImages.map((img, idx) => (
                 <Image
                     key={idx}
@@ -110,7 +108,7 @@ export default function HoverImageSlider({
                 </div>
             )}
 
-            {/* Alt kısımda resim sayısını gösteren dot indicator'lar */}
+            {/* Alt kÄ±sÄ±mda resim sayÄ±sÄ±nÄ± gÃ¶steren dot indicator'lar */}
             {imageCount > 1 && (
                 <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-1.5 z-10">
                     {validImages.map((_, idx) => (

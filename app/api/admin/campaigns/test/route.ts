@@ -1,10 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { resend } from "@/lib/resend";
 import { renderEmailHtml, replaceVariables } from "@/lib/email/renderEmail";
 
-// POST: Test email gönder
 export async function POST(req: NextRequest) {
   try {
     const user = await getCurrentUser();
@@ -18,7 +17,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Email address required" }, { status: 400 });
     }
 
-    // If campaignId provided, get campaign from DB for fallbacks
     let campaignBlocks = blocks;
     let campaignSubject = subject;
     let senderName = fromName;
@@ -39,7 +37,6 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Default fallbacks
     campaignSubject = campaignSubject || "Test Email";
     senderName = senderName || "Test";
     senderEmail = senderEmail || "info@dark-velvet.com";
@@ -48,24 +45,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No blocks to render" }, { status: 400 });
     }
 
-    // Base URL for tracking (not used in test emails)
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://evindebesle.com";
 
-    // Render HTML without tracking for test emails
     const html = renderEmailHtml(campaignBlocks, {
       baseUrl,
-      // No trackingId - this is just a test
     });
 
-    // Replace variables with test values
     const personalizedHtml = replaceVariables(html, {
-      user_name: "Test Kullanıcı",
+      user_name: "Test KullanÄ±cÄ±",
       user_email: email,
       user_first_name: "Test",
       coupon_code: "TESTKODU",
     });
 
-    // Send test email via Resend
     const { data, error } = await resend.emails.send({
       from: `${senderName} <${senderEmail}>`,
       to: email,

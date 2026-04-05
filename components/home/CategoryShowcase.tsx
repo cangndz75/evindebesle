@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -24,7 +24,6 @@ export default function CategoryShowcase({
   ],
   products = [],
 }: CategoryShowcaseProps) {
-  // Eğer products varsa, onları kullan ama categories'deki linkleri kullan
   const displayItems = products.length >= 4
     ? products.slice(0, 4).map((product, idx) => ({
       label: categories[idx]?.label || product.title,

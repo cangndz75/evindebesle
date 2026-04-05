@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+﻿import { Suspense } from "react";
 import { Home } from "lucide-react";
 import { Metadata } from "next";
 import Script from "next/script";
@@ -35,7 +35,6 @@ function PaginationSkeleton() {
   );
 }
 
-// Mobile header: breadcrumb + başlık
 function BlogMobileHeader() {
   return (
     <div className="md:hidden rounded-xl bg-gradient-to-r from-primary/5 to-transparent">
@@ -43,17 +42,16 @@ function BlogMobileHeader() {
         <nav className="flex items-center gap-1 text-xs">
           <Home className="w-4 h-4" />
           <span className="text-muted-foreground">Ana Sayfa</span>
-          <span className="text-muted-foreground">›</span>
+          <span className="text-muted-foreground">â€º</span>
           <span className="font-semibold text-primary">Blog</span>
         </nav>
         <hr className="my-3 border-border" />
-        <h1 className="text-2xl font-extrabold">Blog Yazıları</h1>
+        <h1 className="text-2xl font-extrabold">Blog YazÄ±larÄ±</h1>
       </div>
     </div>
   );
 }
 
-/* --- SEO: metadata (Next 15: searchParams Promise) --- */
 export async function generateMetadata({
   searchParams,
 }: {
@@ -70,20 +68,19 @@ export async function generateMetadata({
 
   let title = "Moda ve Stil Blogu | Dark Velvet";
   let description =
-    "En son moda trendleri, stil önerileri ve koleksiyon haberleri için blogumuzu takip edin.";
+    "En son moda trendleri, stil Ã¶nerileri ve koleksiyon haberleri iÃ§in blogumuzu takip edin.";
 
   if (tag) {
-    title = `${tag} Hakkında Stil Yazıları | Dark Velvet`;
-    description = `${tag} ile ilgili en güncel moda yazılarını okuyun.`;
+    title = `${tag} HakkÄ±nda Stil YazÄ±larÄ± | Dark Velvet`;
+    description = `${tag} ile ilgili en gÃ¼ncel moda yazÄ±larÄ±nÄ± okuyun.`;
   } else if (category) {
-    title = `${category} Kategorisi Moda Yazıları | Dark Velvet`;
-    description = `${category} kategorisinde stil ve tasarım üzerine yazılar.`;
+    title = `${category} Kategorisi Moda YazÄ±larÄ± | Dark Velvet`;
+    description = `${category} kategorisinde stil ve tasarÄ±m Ã¼zerine yazÄ±lar.`;
   } else if (q) {
-    title = `"${q}" Arama Sonuçları | Dark Velvet Blog`;
-    description = `"${q}" ile ilgili blog sonuçlarını görüntüleyin.`;
+    title = `"${q}" Arama SonuÃ§larÄ± | Dark Velvet Blog`;
+    description = `"${q}" ile ilgili blog sonuÃ§larÄ±nÄ± gÃ¶rÃ¼ntÃ¼leyin.`;
   }
 
-  // Filtre/arama sayfalarını index dışı bırakıyoruz
   const noIndex = !!q || !!tag || !!category;
 
   return {
@@ -94,7 +91,6 @@ export async function generateMetadata({
   };
 }
 
-/* --- Page (Next 15: searchParams Promise) --- */
 export default async function BlogHomePage({
   searchParams,
 }: {
@@ -144,7 +140,7 @@ export default async function BlogHomePage({
     "@type": "Blog",
     name: "Dark Velvet Blog",
     description:
-      "Moda, stil ve yaşam üzerine en güncel blog yazıları.",
+      "Moda, stil ve yaÅŸam Ã¼zerine en gÃ¼ncel blog yazÄ±larÄ±.",
     url: `${baseUrl}/blog`,
     blogPost: pageItems.map((post: any) => ({
       "@type": "BlogPosting",
@@ -186,7 +182,7 @@ export default async function BlogHomePage({
           <div className="lg:col-span-8 space-y-10">
             {pageItems.length === 0 ? (
               <div className="rounded-xl border p-6 text-sm text-muted-foreground">
-                Aramanızla eşleşen yazı bulunamadı. Filtreleri temizleyip
+                AramanÄ±zla eÅŸleÅŸen yazÄ± bulunamadÄ±. Filtreleri temizleyip
                 yeniden deneyin.
               </div>
             ) : (

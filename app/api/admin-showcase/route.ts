@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { jsonNoStore, requireAdmin } from "@/lib/api/policy";
@@ -12,7 +12,6 @@ export async function GET(request: Request) {
     const productId = searchParams.get("productId");
 
     if (productId) {
-      // Sadece belirli bir showcase kaydını getir
       const item = await prisma.showcase.findUnique({
         where: { productId },
         include: { product: true }
@@ -20,7 +19,6 @@ export async function GET(request: Request) {
       return jsonNoStore(item || null);
     }
 
-    // Tüm showcase listesini sıralı şekilde getir
     const items = await prisma.showcase.findMany({
       orderBy: { order: "asc" },
       include: {
@@ -59,19 +57,17 @@ export async function POST(request: Request) {
       return jsonNoStore({ error: "Product ID gerekli" }, { status: 400 });
     }
 
-    // Mevcut sayıyı al
     const count = await prisma.showcase.count();
     if (count >= 8) {
-      return jsonNoStore({ error: "Vitrine en fazla 8 ürün eklenebilir." }, { status: 400 });
+      return jsonNoStore({ error: "Vitrine en fazla 8 Ã¼rÃ¼n eklenebilir." }, { status: 400 });
     }
 
-    // Ürün zaten var mı kontrol et
     const existing = await prisma.showcase.findUnique({
       where: { productId }
     });
 
     if (existing) {
-      return jsonNoStore({ error: "Bu ürün zaten vitrinde!" }, { status: 400 });
+      return jsonNoStore({ error: "Bu Ã¼rÃ¼n zaten vitrinde!" }, { status: 400 });
     }
 
     const item = await prisma.showcase.create({
@@ -105,7 +101,6 @@ export async function DELETE(request: Request) {
       where: { productId }
     });
 
-    // Kalanların sıralamasını düzelt (isteğe bağlı ama faydalı)
     const remaining = await prisma.showcase.findMany({ orderBy: { order: "asc" } });
     for (let i = 0; i < remaining.length; i++) {
       await prisma.showcase.update({
@@ -131,10 +126,9 @@ export async function PUT(request: Request) {
     const { items } = body; // [{ id: string, order: number }]
 
     if (!Array.isArray(items)) {
-      return jsonNoStore({ error: "Geçersiz liste numarası." }, { status: 400 });
+      return jsonNoStore({ error: "GeÃ§ersiz liste numarasÄ±." }, { status: 400 });
     }
 
-    // Toplu update
     for (const item of items) {
        await prisma.showcase.update({
          where: { id: item.id },

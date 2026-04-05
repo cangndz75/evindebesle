@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server"
+﻿import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authConfig } from "@/lib/auth.config"
 import { prisma } from "@/lib/db"
@@ -36,7 +36,6 @@ export async function PATCH(
       },
     })
 
-    // Audit Log
     await logAuditAction({
       action: "COUPON_UPDATE",
       adminId: session.user.id,
@@ -55,7 +54,7 @@ export async function PATCH(
 
   } catch (error) {
     console.error("PATCH /coupons/[id] error:", error)
-    return NextResponse.json({ error: "Güncelleme başarısız" }, { status: 500 })
+    return NextResponse.json({ error: "GÃ¼ncelleme baÅŸarÄ±sÄ±z" }, { status: 500 })
   }
 }
 
@@ -74,7 +73,6 @@ export async function DELETE(
     const coupon = await prisma.coupon.findUnique({ where: { id } })
     await prisma.coupon.delete({ where: { id } })
 
-    // Audit Log
     await logAuditAction({
       action: "COUPON_DELETE",
       adminId: session.user.id,
@@ -92,6 +90,6 @@ export async function DELETE(
 
   } catch (error) {
     console.error("DELETE /coupons/[id] error:", error)
-    return NextResponse.json({ error: "Silme başarısız" }, { status: 500 })
+    return NextResponse.json({ error: "Silme baÅŸarÄ±sÄ±z" }, { status: 500 })
   }
 }

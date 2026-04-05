@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { signIn, getSession } from "next-auth/react";
 
-// Basit Footer Component
 function AuthFooter() {
   return (
     <footer className="lg:hidden w-full bg-white border-t border-gray-200 py-6 px-6">
@@ -16,20 +15,20 @@ function AuthFooter() {
         <div className="flex flex-col gap-4 text-xs text-gray-600">
           <div className="flex flex-wrap gap-x-4 gap-y-2 justify-center">
             <Link href="/privacy" className="hover:text-black transition-colors">
-              Gizlilik Politikası
+              Gizlilik PolitikasÄ±
             </Link>
             <Link href="/terms" className="hover:text-black transition-colors">
-              Kullanım Koşulları
+              KullanÄ±m KoÅŸullarÄ±
             </Link>
             <Link href="/contact" className="hover:text-black transition-colors">
-              İletişim
+              Ä°letiÅŸim
             </Link>
             <Link href="/kvkk" className="hover:text-black transition-colors">
               KVKK
             </Link>
           </div>
           <p className="text-center text-gray-500">
-            © 2026 Dark Velvet. Tüm hakları saklıdır.
+            Â© 2026 Dark Velvet. TÃ¼m haklarÄ± saklÄ±dÄ±r.
           </p>
         </div>
       </div>
@@ -41,13 +40,11 @@ export default function AuthTabs() {
   const router = useRouter();
   const [tab, setTab] = useState<"login" | "register">("login");
 
-  // Login states
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [pending, startTransition] = useTransition();
 
-  // Register states
   const [name, setName] = useState("");
   const [registerEmail, setRegisterEmail] = useState("");
   const [registerPassword, setRegisterPassword] = useState("");
@@ -57,7 +54,7 @@ export default function AuthTabs() {
   const handleLogin = () => {
     startTransition(async () => {
       try {
-        console.log('🔐 Starting login attempt for:', email);
+        console.log('ğŸ” Starting login attempt for:', email);
 
         const res = await signIn("credentials", {
           redirect: false,
@@ -65,14 +62,14 @@ export default function AuthTabs() {
           password,
         });
 
-        console.log('✅ SignIn response:', res);
+        console.log('âœ… SignIn response:', res);
 
         if (res?.error) {
           const message =
             res.error === "CredentialsSignin"
-              ? "E-posta adresi veya şifre hatalı."
+              ? "E-posta adresi veya ÅŸifre hatalÄ±."
               : res.error;
-          console.error('❌ Login failed:', res.error);
+          console.error('âŒ Login failed:', res.error);
           toast.error(message);
           return;
         }
@@ -80,22 +77,22 @@ export default function AuthTabs() {
         await new Promise((r) => setTimeout(r, 500));
 
         const session = await getSession();
-        console.log('👤 Session retrieved:', session);
+        console.log('ğŸ‘¤ Session retrieved:', session);
 
         if (!session) {
-          console.error('❌ No session returned after login');
-          toast.error("Oturum alınamadı. Lütfen tekrar deneyin.");
+          console.error('âŒ No session returned after login');
+          toast.error("Oturum alÄ±namadÄ±. LÃ¼tfen tekrar deneyin.");
           return;
         }
 
-        toast.success("Giriş başarılı!");
+        toast.success("GiriÅŸ baÅŸarÄ±lÄ±!");
         const isAdmin = session.user?.isAdmin === true;
         const redirectUrl = isAdmin ? "/dashboard" : "/home";
-        console.log('🚀 Redirecting to:', redirectUrl);
+        console.log('ğŸš€ Redirecting to:', redirectUrl);
         window.location.href = redirectUrl;
       } catch (error) {
-        console.error('💥 Login exception:', error);
-        toast.error("Giriş sırasında bir hata oluştu. Lütfen tekrar deneyin.");
+        console.error('ğŸ’¥ Login exception:', error);
+        toast.error("GiriÅŸ sÄ±rasÄ±nda bir hata oluÅŸtu. LÃ¼tfen tekrar deneyin.");
       }
     });
   };
@@ -112,7 +109,7 @@ export default function AuthTabs() {
         const data = await res.json();
 
         if (!res.ok) {
-          toast.error(data.error || "Kayıt başarısız.");
+          toast.error(data.error || "KayÄ±t baÅŸarÄ±sÄ±z.");
           return;
         }
 
@@ -123,21 +120,21 @@ export default function AuthTabs() {
         });
 
         if (!otpRes.ok) {
-          toast.error("Kod gönderilemedi.");
+          toast.error("Kod gÃ¶nderilemedi.");
           return;
         }
 
-        toast.success("Kayıt başarılı! Kod gönderildi.");
+        toast.success("KayÄ±t baÅŸarÄ±lÄ±! Kod gÃ¶nderildi.");
         router.push(`/verify?email=${registerEmail}`);
       } catch {
-        toast.error("Bir hata oluştu.");
+        toast.error("Bir hata oluÅŸtu.");
       }
     });
   };
 
   return (
     <div className="h-screen w-full flex flex-col lg:flex-row overflow-hidden bg-white">
-      {/* Mobil: Üstte Banner */}
+      {/* Mobil: Ãœstte Banner */}
 
 
       {/* Sol Taraf - Login/Register Form */}
@@ -153,7 +150,7 @@ export default function AuthTabs() {
               onClick={() => setTab("login")}
               type="button"
             >
-              Giriş Yap
+              GiriÅŸ Yap
             </button>
             <button
               className={`flex-1 py-3 text-sm font-semibold uppercase tracking-wider transition border-b-2 ${tab === "register"
@@ -163,7 +160,7 @@ export default function AuthTabs() {
               onClick={() => setTab("register")}
               type="button"
             >
-              Üye Ol
+              Ãœye Ol
             </button>
           </div>
 
@@ -190,11 +187,11 @@ export default function AuthTabs() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 ml-1">Şifre</label>
+                  <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 ml-1">Åifre</label>
                   <div className="relative">
                     <Input
                       type={showPassword ? "text" : "password"}
-                      placeholder="Şifreniz"
+                      placeholder="Åifreniz"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       className="bg-gray-50 border-gray-200 h-12 rounded-none focus-visible:ring-1 focus-visible:ring-gray-400"
@@ -206,7 +203,7 @@ export default function AuthTabs() {
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-gray-400 hover:text-gray-600 uppercase tracking-tighter"
                       onClick={() => setShowPassword((prev) => !prev)}
                     >
-                      {showPassword ? "Gizle" : "Göster"}
+                      {showPassword ? "Gizle" : "GÃ¶ster"}
                     </button>
                   </div>
                 </div>
@@ -216,7 +213,7 @@ export default function AuthTabs() {
                   disabled={pending}
                   className="w-full h-12 bg-[#111] text-white hover:bg-[#333] uppercase tracking-wider text-sm font-semibold rounded-none mt-2"
                 >
-                  {pending ? "Giriş yapılıyor..." : "Giriş Yap"}
+                  {pending ? "GiriÅŸ yapÄ±lÄ±yor..." : "GiriÅŸ Yap"}
                 </Button>
               </form>
 
@@ -229,20 +226,20 @@ export default function AuthTabs() {
                   }}
                   className="text-[#111] font-semibold hover:opacity-70 transition-opacity"
                 >
-                  Hesap Oluştur
+                  Hesap OluÅŸtur
                 </Link>
                 <Link
                   href="/forgot-password"
                   className="text-gray-500 hover:text-black transition-colors"
                 >
-                  Şifrenizi mi Unuttunuz?
+                  Åifrenizi mi Unuttunuz?
                 </Link>
               </div>
             </div>
           ) : (
             <div className="space-y-6">
               <h2 className="text-xl font-bold text-[#111] uppercase tracking-wide mb-6">
-                Yeni Müşteriler
+                Yeni MÃ¼ÅŸteriler
               </h2>
 
               <form
@@ -253,10 +250,10 @@ export default function AuthTabs() {
                 className="space-y-4"
               >
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 ml-1">Adınız</label>
+                  <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 ml-1">AdÄ±nÄ±z</label>
                   <Input
                     type="text"
-                    placeholder="Adınız ve Soyadınız"
+                    placeholder="AdÄ±nÄ±z ve SoyadÄ±nÄ±z"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className="bg-gray-50 border-gray-200 h-12 rounded-none focus-visible:ring-1 focus-visible:ring-gray-400"
@@ -279,11 +276,11 @@ export default function AuthTabs() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 ml-1">Şifre</label>
+                  <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 ml-1">Åifre</label>
                   <div className="relative">
                     <Input
                       type={showRegisterPassword ? "text" : "password"}
-                      placeholder="Güçlü Bir Şifre"
+                      placeholder="GÃ¼Ã§lÃ¼ Bir Åifre"
                       value={registerPassword}
                       onChange={(e) => setRegisterPassword(e.target.value)}
                       className="bg-gray-50 border-gray-200 h-12 rounded-none focus-visible:ring-1 focus-visible:ring-gray-400"
@@ -295,7 +292,7 @@ export default function AuthTabs() {
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-gray-400 hover:text-gray-600 uppercase tracking-tighter"
                       onClick={() => setShowRegisterPassword((prev) => !prev)}
                     >
-                      {showRegisterPassword ? "Gizle" : "Göster"}
+                      {showRegisterPassword ? "Gizle" : "GÃ¶ster"}
                     </button>
                   </div>
                 </div>
@@ -305,7 +302,7 @@ export default function AuthTabs() {
                   disabled={registerPending}
                   className="w-full h-12 bg-[#111] text-white hover:bg-[#333] uppercase tracking-wider text-sm font-semibold rounded-none mt-2"
                 >
-                  {registerPending ? "Kayıt olunuyor..." : "Hesap Oluştur"}
+                  {registerPending ? "KayÄ±t olunuyor..." : "Hesap OluÅŸtur"}
                 </Button>
               </form>
 
@@ -318,7 +315,7 @@ export default function AuthTabs() {
                   }}
                   className="text-gray-500 hover:text-black transition-colors"
                 >
-                  Zaten hesabınız var mı? <span className="text-[#111] font-semibold underline">Giriş Yap</span>
+                  Zaten hesabÄ±nÄ±z var mÄ±? <span className="text-[#111] font-semibold underline">GiriÅŸ Yap</span>
                 </Link>
               </div>
             </div>
@@ -326,7 +323,7 @@ export default function AuthTabs() {
         </div>
       </div>
 
-      {/* Sağ Taraf - Promosyon Banner */}
+      {/* SaÄŸ Taraf - Promosyon Banner */}
       <div
         className="hidden lg:flex lg:w-1/2 relative items-center justify-center px-12 overflow-hidden bg-cover bg-center"
         style={{
@@ -336,13 +333,13 @@ export default function AuthTabs() {
         <div className="absolute inset-0 bg-black/40" />
         <div className="relative z-10 flex flex-col items-center justify-center max-w-md text-center">
           <div className="text-xs uppercase tracking-[0.3em] mb-4 text-white/80 font-medium">
-            HOŞGELDİNİZ
+            HOÅGELDÄ°NÄ°Z
           </div>
           <h2 className="text-6xl md:text-7xl font-bold mb-6 text-white leading-[1.1] tracking-tight">
             DARK<br />VELVET
           </h2>
           <p className="text-base md:text-lg text-white/90 mb-10 font-light leading-relaxed">
-            Her alışverişte mağaza kredisi kazanın ve özel ödüllerin kilidini açın.
+            Her alÄ±ÅŸveriÅŸte maÄŸaza kredisi kazanÄ±n ve Ã¶zel Ã¶dÃ¼llerin kilidini aÃ§Ä±n.
           </p>
           <Button
             variant="outline"
@@ -353,7 +350,7 @@ export default function AuthTabs() {
         </div>
       </div>
 
-      {/* Mobil Footer (Sadece küçük ekranda) */}
+      {/* Mobil Footer (Sadece kÃ¼Ã§Ã¼k ekranda) */}
       <AuthFooter />
     </div>
   );

@@ -1,4 +1,4 @@
-interface InvoiceData {
+﻿interface InvoiceData {
     order: any;
     company: {
         companyName?: string | null;
@@ -18,7 +18,6 @@ export function renderInvoiceHTML({ order, company }: InvoiceData): string {
         ? new Date(order.paidAt).toLocaleDateString("tr-TR")
         : invoiceDate;
 
-    // KDV hesaplama (%20 Türkiye için)
     const taxRate = 0.20;
     const subtotalWithoutTax = order.subtotal / (1 + taxRate);
     const taxAmount = order.subtotal - subtotalWithoutTax;
@@ -261,7 +260,7 @@ export function renderInvoiceHTML({ order, company }: InvoiceData): string {
         <span>${invoiceDate}</span>
       </div>
       <div class="invoice-meta-item">
-        <strong>Ödeme Tarihi:</strong>
+        <strong>Ã–deme Tarihi:</strong>
         <span>${paidDate}</span>
       </div>
     </div>
@@ -287,7 +286,7 @@ export function renderInvoiceHTML({ order, company }: InvoiceData): string {
           <p>${order.shippingAddress.fullAddress}</p>
           <p>${order.shippingAddress.district.name}, ${order.shippingAddress.district.city}</p>
         `
-            : "<p>Fatura adresi ile aynı</p>"
+            : "<p>Fatura adresi ile aynÄ±</p>"
         }
         ${order.trackingNumber ? `<p><strong>Kargo Takip:</strong> ${order.trackingNumber}</p>` : ""}
       </div>
@@ -297,7 +296,7 @@ export function renderInvoiceHTML({ order, company }: InvoiceData): string {
     <table>
       <thead>
         <tr>
-          <th>Ürün</th>
+          <th>ÃœrÃ¼n</th>
           <th class="text-center">Renk/Beden</th>
           <th class="text-center">Adet</th>
           <th class="text-right">Birim Fiyat</th>
@@ -314,8 +313,8 @@ export function renderInvoiceHTML({ order, company }: InvoiceData): string {
               ${item.colorName || ""} ${item.colorName && item.sizeName ? "/" : ""} ${item.sizeName || ""}
             </td>
             <td class="text-center">${item.quantity}</td>
-            <td class="text-right">${item.unitPrice.toFixed(2)} ₺</td>
-            <td class="text-right">${item.totalPrice.toFixed(2)} ₺</td>
+            <td class="text-right">${item.unitPrice.toFixed(2)} â‚º</td>
+            <td class="text-right">${item.totalPrice.toFixed(2)} â‚º</td>
           </tr>
         `
             )
@@ -326,29 +325,29 @@ export function renderInvoiceHTML({ order, company }: InvoiceData): string {
     <!-- Totals -->
     <div class="totals">
       <div class="totals-row subtotal">
-        <span>Ara Toplam (KDV Hariç):</span>
-        <span>${subtotalWithoutTax.toFixed(2)} ₺</span>
+        <span>Ara Toplam (KDV HariÃ§):</span>
+        <span>${subtotalWithoutTax.toFixed(2)} â‚º</span>
       </div>
       <div class="totals-row">
         <span>KDV (%20):</span>
-        <span>${taxAmount.toFixed(2)} ₺</span>
+        <span>${taxAmount.toFixed(2)} â‚º</span>
       </div>
       <div class="totals-row">
         <span>Kargo:</span>
-        <span>${order.shippingCost.toFixed(2)} ₺</span>
+        <span>${order.shippingCost.toFixed(2)} â‚º</span>
       </div>
       ${order.discount > 0
             ? `
         <div class="totals-row">
-          <span>İndirim:</span>
-          <span>-${order.discount.toFixed(2)} ₺</span>
+          <span>Ä°ndirim:</span>
+          <span>-${order.discount.toFixed(2)} â‚º</span>
         </div>
       `
             : ""
         }
       <div class="totals-row total">
         <span>GENEL TOPLAM:</span>
-        <span>${order.total.toFixed(2)} ₺</span>
+        <span>${order.total.toFixed(2)} â‚º</span>
       </div>
     </div>
     
@@ -356,7 +355,7 @@ export function renderInvoiceHTML({ order, company }: InvoiceData): string {
     ${order.customerNote
             ? `
       <div class="notes">
-        <strong>Müşteri Notu:</strong>
+        <strong>MÃ¼ÅŸteri Notu:</strong>
         <p>${order.customerNote}</p>
       </div>
     `
@@ -365,9 +364,9 @@ export function renderInvoiceHTML({ order, company }: InvoiceData): string {
     
     <!-- Footer -->
     <div class="footer">
-      <p>Bu fatura elektronik ortamda oluşturulmuştur.</p>
-      <p>Alışverişiniz için teşekkür ederiz!</p>
-      ${company.email ? `<p>Sorularınız için: ${company.email}</p>` : ""}
+      <p>Bu fatura elektronik ortamda oluÅŸturulmuÅŸtur.</p>
+      <p>AlÄ±ÅŸveriÅŸiniz iÃ§in teÅŸekkÃ¼r ederiz!</p>
+      ${company.email ? `<p>SorularÄ±nÄ±z iÃ§in: ${company.email}</p>` : ""}
     </div>
   </div>
 </body>

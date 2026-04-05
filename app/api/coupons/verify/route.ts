@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
 export async function POST(req: Request) {
@@ -6,28 +6,27 @@ export async function POST(req: Request) {
         const { code } = await req.json();
 
         if (!code) {
-            return NextResponse.json({ valid: false, message: "Kupon kodu boş olamaz" }, { status: 400 });
+            return NextResponse.json({ valid: false, message: "Kupon kodu boÅŸ olamaz" }, { status: 400 });
         }
 
         const coupon = await prisma.coupon.findUnique({
             where: { code: code },
         });
 
-        // "Böyle bir kupon kodu bulunmamaktadır" is the requested generic error
         if (!coupon) {
-            return NextResponse.json({ valid: false, message: "Böyle bir kupon yoktur" });
+            return NextResponse.json({ valid: false, message: "BÃ¶yle bir kupon yoktur" });
         }
 
         if (!coupon.isActive) {
-            return NextResponse.json({ valid: false, message: "Böyle bir kupon yoktur" });
+            return NextResponse.json({ valid: false, message: "BÃ¶yle bir kupon yoktur" });
         }
 
         if (coupon.expiresAt && coupon.expiresAt < new Date()) {
-            return NextResponse.json({ valid: false, message: "Böyle bir kupon yoktur" });
+            return NextResponse.json({ valid: false, message: "BÃ¶yle bir kupon yoktur" });
         }
 
         if (coupon.maxUsage && coupon.usageCount >= coupon.maxUsage) {
-            return NextResponse.json({ valid: false, message: "Böyle bir kupon yoktur" });
+            return NextResponse.json({ valid: false, message: "BÃ¶yle bir kupon yoktur" });
         }
 
         return NextResponse.json({
@@ -42,6 +41,6 @@ export async function POST(req: Request) {
 
     } catch (error) {
         console.error("Coupon Verify Error:", error);
-        return NextResponse.json({ valid: false, message: "Sunucu hatası" }, { status: 500 });
+        return NextResponse.json({ valid: false, message: "Sunucu hatasÄ±" }, { status: 500 });
     }
 }

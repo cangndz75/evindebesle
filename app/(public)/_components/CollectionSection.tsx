@@ -1,10 +1,9 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 
-// Hero görselleri - iki panelli
 const heroImages = [
   {
     left: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=2070&auto=format&fit=crop",
@@ -16,7 +15,6 @@ const heroImages = [
   },
 ];
 
-// Grid görselleri - 24 adet
 const gridImages = [
   "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=500&auto=format&fit=crop",
   "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=500&auto=format&fit=crop",
@@ -62,7 +60,6 @@ export default function CollectionSection() {
     setTimeout(() => setIsTransitioning(false), 500);
   };
 
-  // Otomatik geçiş (opsiyonel - 5 saniyede bir)
   useEffect(() => {
     if (heroImages.length <= 1) return;
     const interval = setInterval(() => {
@@ -77,14 +74,14 @@ export default function CollectionSection() {
 
   return (
     <section className="w-full bg-white">
-      {/* Hero Bölümü - İki Panelli */}
+      {/* Hero BÃ¶lÃ¼mÃ¼ - Ä°ki Panelli */}
       <div className="relative w-full">
         <div className="relative flex h-[70vh] md:h-[85vh] overflow-hidden">
           {/* Sol Panel */}
           <div className="relative w-1/2 h-full overflow-hidden group">
             <Image
               src={heroImages[currentHeroIndex].left}
-              alt="Koleksiyon görseli sol"
+              alt="Koleksiyon gÃ¶rseli sol"
               fill
               className={`object-cover transition-all duration-700 group-hover:scale-105 ${isTransitioning ? "opacity-0" : "opacity-100"
                 }`}
@@ -93,11 +90,11 @@ export default function CollectionSection() {
             />
           </div>
 
-          {/* Sağ Panel */}
+          {/* SaÄŸ Panel */}
           <div className="relative w-1/2 h-full overflow-hidden group">
             <Image
               src={heroImages[currentHeroIndex].right}
-              alt="Koleksiyon görseli sağ"
+              alt="Koleksiyon gÃ¶rseli saÄŸ"
               fill
               className={`object-cover transition-all duration-700 group-hover:scale-105 ${isTransitioning ? "opacity-0" : "opacity-100"
                 }`}
@@ -106,20 +103,20 @@ export default function CollectionSection() {
             />
           </div>
 
-          {/* Navigasyon Okları */}
+          {/* Navigasyon OklarÄ± */}
           {heroImages.length > 1 && (
             <>
               <button
                 onClick={prevHero}
                 className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-black/20 hover:bg-black/40 text-white p-3 rounded-full transition-all duration-300 backdrop-blur-sm"
-                aria-label="Önceki görsel"
+                aria-label="Ã–nceki gÃ¶rsel"
               >
                 <ChevronLeft className="w-6 h-6" />
               </button>
               <button
                 onClick={nextHero}
                 className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-black/20 hover:bg-black/40 text-white p-3 rounded-full transition-all duration-300 backdrop-blur-sm"
-                aria-label="Sonraki görsel"
+                aria-label="Sonraki gÃ¶rsel"
               >
                 <ChevronRight className="w-6 h-6" />
               </button>
@@ -129,17 +126,17 @@ export default function CollectionSection() {
           {/* Alt Metin */}
           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-center z-10 animate-fade-in">
             <p className="text-sm md:text-base tracking-wider text-black/80 font-light mb-1">
-              YENİ
+              YENÄ°
             </p>
             <p className="text-lg md:text-2xl tracking-widest text-black font-light mb-1">
-              DARK VELVET KOLEKSİYONU
+              DARK VELVET KOLEKSÄ°YONU
             </p>
             <p className="text-xs md:text-sm tracking-wider text-black/70 font-light">
-              YENİ SEZON
+              YENÄ° SEZON
             </p>
           </div>
 
-          {/* İndikatörler */}
+          {/* Ä°ndikatÃ¶rler */}
           {heroImages.length > 1 && (
             <div className="absolute bottom-20 left-1/2 -translate-x-1/2 flex gap-2 z-10">
               {heroImages.map((_, index) => (
@@ -156,7 +153,7 @@ export default function CollectionSection() {
                       ? "w-8 bg-black"
                       : "w-1.5 bg-black/30 hover:bg-black/50"
                     }`}
-                  aria-label={`Görsel ${index + 1}`}
+                  aria-label={`GÃ¶rsel ${index + 1}`}
                 />
               ))}
             </div>
@@ -164,7 +161,7 @@ export default function CollectionSection() {
         </div>
       </div>
 
-      {/* Grid Bölümü - 24 Görsel */}
+      {/* Grid BÃ¶lÃ¼mÃ¼ - 24 GÃ¶rsel */}
       <div className="w-full bg-white py-8 md:py-12">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7 gap-0">
@@ -175,7 +172,7 @@ export default function CollectionSection() {
               >
                 <Image
                   src={src}
-                  alt={`Koleksiyon görseli ${index + 1}`}
+                  alt={`Koleksiyon gÃ¶rseli ${index + 1}`}
                   fill
                   className="object-cover transition-transform duration-500 group-hover:scale-110"
                   sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 16vw, 14vw"

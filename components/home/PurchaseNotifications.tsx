@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { ShoppingBag, X } from "lucide-react";
@@ -20,7 +20,6 @@ export default function PurchaseNotifications() {
     const [dismissed, setDismissed] = useState(false);
 
     useEffect(() => {
-        // Son satışları al
         const fetchRecentPurchases = async () => {
             try {
                 const res = await fetch("/api/products/recent-purchases");
@@ -39,12 +38,10 @@ export default function PurchaseNotifications() {
     useEffect(() => {
         if (notifications.length === 0 || dismissed) return;
 
-        // İlk bildirimi 5 saniye sonra göster
         const showTimeout = setTimeout(() => {
             setVisible(true);
         }, 5000);
 
-        // Her 15 saniyede bir sıradaki bildirimi göster
         const interval = setInterval(() => {
             if (dismissed) return;
 
@@ -55,7 +52,6 @@ export default function PurchaseNotifications() {
             }, 500);
         }, 15000);
 
-        // 5 saniye sonra bildirimi gizle
         const hideTimeout = setTimeout(() => {
             setVisible(false);
         }, 10000);
@@ -94,7 +90,7 @@ export default function PurchaseNotifications() {
                     <p className="text-sm text-gray-900 font-medium truncate">
                         {current.buyerName}, {current.city}
                     </p>
-                    <p className="text-sm text-gray-600 truncate">{current.productName} satın aldı</p>
+                    <p className="text-sm text-gray-600 truncate">{current.productName} satÄ±n aldÄ±</p>
                     <p className="text-xs text-gray-400 mt-1">{current.timeAgo}</p>
                 </div>
                 <button

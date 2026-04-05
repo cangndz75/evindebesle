@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,7 +9,6 @@ import React from "react";
 
 import { SIZE_OPTIONS, SizeType } from "./ProductSizeStock";
 
-// Re-using types
 export type { SizeType };
 
 export interface VariantImage {
@@ -99,7 +98,7 @@ export function ProductVariants({
     return (
         <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-gray-900">Diğer Varyant Seçenekleri</h2>
+                <h2 className="text-lg font-semibold text-gray-900">DiÄŸer Varyant SeÃ§enekleri</h2>
                 <div className="flex items-center space-x-2">
                     <Checkbox
                         id="isVariable"
@@ -107,7 +106,7 @@ export function ProductVariants({
                         onCheckedChange={(c) => setIsVariable(c as boolean)}
                     />
                     <Label htmlFor="isVariable" className="text-sm font-medium cursor-pointer">
-                        Bu ürünün varyantları var (renk, beden)
+                        Bu Ã¼rÃ¼nÃ¼n varyantlarÄ± var (renk, beden)
                     </Label>
                 </div>
             </div>
@@ -116,10 +115,10 @@ export function ProductVariants({
                 <div className="space-y-8 animate-in fade-in slide-in-from-top-4 duration-300">
                     {/* 2. Add Colors */}
                     <div>
-                        <Label className="mb-2 block font-semibold text-gray-700">Diğer Renkleri Ekle</Label>
+                        <Label className="mb-2 block font-semibold text-gray-700">DiÄŸer Renkleri Ekle</Label>
                         <div className="flex gap-2">
                             <Input
-                                placeholder="Renk adı (örn. Lacivert)"
+                                placeholder="Renk adÄ± (Ã¶rn. Lacivert)"
                                 value={newColorName}
                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewColorName(e.target.value)}
                                 onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === "Enter" && addColor()}
@@ -149,7 +148,7 @@ export function ProductVariants({
 
                         {colors.length === 0 && (
                             <div className="text-center py-8 text-gray-400 bg-gray-50 rounded border border-dashed">
-                                Başlamak için yukarıdan bir renk ekleyin.
+                                BaÅŸlamak iÃ§in yukarÄ±dan bir renk ekleyin.
                             </div>
                         )}
                     </div>
@@ -159,7 +158,6 @@ export function ProductVariants({
     );
 }
 
-// Memoized Variant Item Component to prevent re-renders of all items when dragging color picker
 interface VariantItemProps {
     color: Color;
     index: number;
@@ -194,7 +192,7 @@ const VariantItem = React.memo(({
                     <div className="w-4 h-4 rounded-full border border-gray-300 shadow-sm" style={{ backgroundColor: color.hexCode || "#000000" }} />
                     <span className="font-semibold text-gray-900">{color.name}</span>
                     <span className="text-xs text-gray-500">
-                        ({(color.sizes || sizes).length} beden, {(color.images || []).length} görsel)
+                        ({(color.sizes || sizes).length} beden, {(color.images || []).length} gÃ¶rsel)
                     </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -216,7 +214,7 @@ const VariantItem = React.memo(({
                     {/* Color Config */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <Label className="text-xs mb-1.5 block">Görünen İsim</Label>
+                            <Label className="text-xs mb-1.5 block">GÃ¶rÃ¼nen Ä°sim</Label>
                             <Input
                                 value={color.name}
                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateColor(index, { name: e.target.value })}
@@ -228,7 +226,6 @@ const VariantItem = React.memo(({
                                 <Input
                                     type="color"
                                     className="w-12 h-10 p-1 cursor-pointer"
-                                    // FIX: Ensure always valid hex map, fallback to black if empty
                                     value={(/^#[0-9A-Fa-f]{6}$/.test(color.hexCode || "")) ? color.hexCode : "#000000"}
                                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateColor(index, { hexCode: e.target.value })}
                                 />
@@ -255,7 +252,7 @@ const VariantItem = React.memo(({
                                 onCheckedChange={(c) => updateColor(index, { useMainPrice: c as boolean })}
                             />
                             <Label htmlFor={`use-main-${color.id}`} className="text-sm font-medium cursor-pointer">
-                                Ana ürün fiyatlarını kullan ({mainPrice} TL / {mainOriginalPrice || "-"} TL)
+                                Ana Ã¼rÃ¼n fiyatlarÄ±nÄ± kullan ({mainPrice} TL / {mainOriginalPrice || "-"} TL)
                             </Label>
                         </div>
 
@@ -272,7 +269,7 @@ const VariantItem = React.memo(({
                                     />
                                 </div>
                                 <div>
-                                    <Label className="text-xs mb-1 block">İndirimsiz (Liste) Fiyat</Label>
+                                    <Label className="text-xs mb-1 block">Ä°ndirimsiz (Liste) Fiyat</Label>
                                     <Input
                                         type="number"
                                         placeholder="0.00"
@@ -288,7 +285,7 @@ const VariantItem = React.memo(({
                     {/* Images */}
                     <div>
                         <div className="flex items-center justify-between mb-2">
-                            <Label className="text-sm font-medium">Varyant Görselleri</Label>
+                            <Label className="text-sm font-medium">Varyant GÃ¶rselleri</Label>
                             <div className="relative">
                                 <LinkButtonOnClick />
                                 {/* Hacky way to handle upload button click without ref mess in map */}
@@ -305,14 +302,14 @@ const VariantItem = React.memo(({
                                         className="absolute inset-0 opacity-0 cursor-pointer"
                                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => e.target.files && onColorImageUpload(e.target.files, index)}
                                     />
-                                    <UploadIcon /> Yükle
+                                    <UploadIcon /> YÃ¼kle
                                 </Button>
                             </div>
                         </div>
 
                         <div className="flex gap-2 overflow-x-auto py-2 bg-gray-50 rounded p-2">
                             {(!color.images || color.images.length === 0) ? (
-                                <span className="text-xs text-gray-400 italic p-2">Bu renk için henüz görsel seçilmedi.</span>
+                                <span className="text-xs text-gray-400 italic p-2">Bu renk iÃ§in henÃ¼z gÃ¶rsel seÃ§ilmedi.</span>
                             ) : (
                                 color.images.map((img, i) => (
                                     <div key={i} className="relative w-16 h-16 shrink-0 border rounded overflow-hidden group">

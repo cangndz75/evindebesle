@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import {
   Dialog,
@@ -36,8 +36,8 @@ type Color = {
   hexCode: string;
   description?: string;
   images: string[];
-  price?: number; // Renk bazlı fiyat (opsiyonel)
-  sizeStocks?: { [sizeName: string]: number }; // Her beden için stok
+  price?: number; // Renk bazlÄ± fiyat (opsiyonel)
+  sizeStocks?: { [sizeName: string]: number }; // Her beden iÃ§in stok
 };
 
 type Size = {
@@ -76,7 +76,6 @@ export function EditProductModal({
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(false);
 
-  // Temel bilgiler
   const [name, setName] = useState(product.name);
   const [stockCode, setStockCode] = useState(product.stockCode || "");
   const [description, setDescription] = useState(product.description || "");
@@ -85,7 +84,6 @@ export function EditProductModal({
   const [originalPrice, setOriginalPrice] = useState(((product as any).originalPrice || "").toString());
   const [image, setImage] = useState(product.image || "");
   const [uploadedImages, setUploadedImages] = useState<string[]>(() => {
-    // Mevcut fotoğrafları başlangıç değeri olarak ekle
     const images: string[] = [];
     if (product.image) images.push(product.image);
     if ((product as any).primaryImage && !images.includes((product as any).primaryImage)) {
@@ -103,25 +101,20 @@ export function EditProductModal({
   const [fabricType, setFabricType] = useState((product as any).fabricType || "");
   const [isActive, setIsActive] = useState(product.isActive);
 
-  // Renkler
   const [colors, setColors] = useState<Color[]>([]);
   const [newColorName, setNewColorName] = useState("");
   const [newColorHex, setNewColorHex] = useState("");
 
-  // Bedenler
   const [sizes, setSizes] = useState<Size[]>([]);
   const [newSizeName, setNewSizeName] = useState("");
   const [newSizeStock, setNewSizeStock] = useState("0");
 
-  // Beden seçenekleri
   const [sizeOptions, setSizeOptions] = useState<SizeOption[]>([]);
   const [selectedSizeOptions, setSelectedSizeOptions] = useState<string[]>([]);
 
-  // Etiketler
   const [tags, setTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState("");
 
-  // Ürün kombinleri
   const [combinations, setCombinations] = useState<string[]>([]);
   const [searchProduct, setSearchProduct] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -130,7 +123,6 @@ export function EditProductModal({
     name: string;
   };
 
-  // Modal açıldığında tam veriyi yükle
   useEffect(() => {
     if (open) {
       loadProductData();
@@ -156,7 +148,6 @@ export function EditProductModal({
         setSizeType(fullProduct.sizeType || "");
         setIsActive(fullProduct.isActive);
 
-        // Variant'ları renk bazlı grupla
         const variantsByColor: { [colorId: string]: any[] } = {};
         (fullProduct.variants || []).forEach((v: any) => {
           if (v.colorId) {
@@ -173,7 +164,6 @@ export function EditProductModal({
             const sizeStocks: { [sizeName: string]: number } = {};
             let colorPrice: number | undefined = undefined;
 
-            // Variant'lardan fiyat ve stok bilgilerini çıkar
             colorVariants.forEach((v: any) => {
               if (v.price) {
                 colorPrice = v.price;
@@ -183,7 +173,6 @@ export function EditProductModal({
               }
             });
 
-            // images'ı array'e dönüştür (JSON string ise parse et, array ise olduğu gibi kullan)
             let imagesArray: string[] = [];
             if (c.images) {
               if (typeof c.images === 'string') {
@@ -191,7 +180,7 @@ export function EditProductModal({
                   const parsed = JSON.parse(c.images);
                   imagesArray = Array.isArray(parsed) ? parsed : [];
                 } catch {
-                  imagesArray = [c.images]; // Tek bir string ise array'e çevir
+                  imagesArray = [c.images]; // Tek bir string ise array'e Ã§evir
                 }
               } else if (Array.isArray(c.images)) {
                 imagesArray = c.images;
@@ -218,14 +207,12 @@ export function EditProductModal({
 
         setTags((fullProduct.tags || []).map((t: any) => t.name));
 
-        // Beden seçeneklerini yükle
         if (fullProduct.sizeType === "LETTER") {
           setSizeOptions(letterSizes.map(s => ({ name: s })));
         } else if (fullProduct.sizeType === "NUMBER") {
           setSizeOptions(numberSizes.map(s => ({ name: s })));
         }
 
-        // Seçili bedenleri yükle
         setSelectedSizeOptions((fullProduct.sizeOptions || []).map((so: any) => so.name));
 
         setCombinations(
@@ -233,7 +220,7 @@ export function EditProductModal({
         );
       }
     } catch (error) {
-      console.error("Ürün verisi yüklenirken hata:", error);
+      console.error("ÃœrÃ¼n verisi yÃ¼klenirken hata:", error);
     } finally {
       setLoadingData(false);
     }
@@ -251,21 +238,17 @@ export function EditProductModal({
   };
 
   const uploadFiles = async (files: File[]): Promise<string[]> => {
-    // Tüm dosyaları paralel olarak yükle
     const uploadPromises = files.map(async (file) => {
       return await uploadFileToCloudinary(file);
     });
 
-    // Tüm yüklemeleri paralel olarak bekle
     const results = await Promise.all(uploadPromises);
 
-    // Null değerleri filtrele
     return results.filter((url): url is string => url !== null);
   };
 
 
   const addColorImage = async (colorIndex: number, imageUrl?: string, files?: File[]) => {
-    // Base64 görsel kontrolü ve yükleme
     if (imageUrl && imageUrl.startsWith("data:image")) {
       setLoading(true);
       try {
@@ -285,18 +268,17 @@ export function EditProductModal({
             return updated;
           });
         } else {
-          toast.error("Görsel Cloudinary'e yüklenemedi");
+          toast.error("GÃ¶rsel Cloudinary'e yÃ¼klenemedi");
         }
       } catch (error) {
         console.error("Upload error:", error);
-        toast.error("Görsel yüklenirken hata oluştu");
+        toast.error("GÃ¶rsel yÃ¼klenirken hata oluÅŸtu");
       } finally {
         setLoading(false);
       }
       return;
     }
 
-    // Normal URL ekleme
     if (imageUrl) {
       setColors((prev) => {
         const updated = [...prev];
@@ -314,7 +296,6 @@ export function EditProductModal({
       return;
     }
 
-    // Dosya yükleme (çoklu)
     if (files && files.length > 0) {
       setLoading(true);
       try {
@@ -336,7 +317,7 @@ export function EditProductModal({
         }
       } catch (error) {
         console.error("Upload error:", error);
-        toast.error("Fotoğraflar yüklenirken hata oluştu");
+        toast.error("FotoÄŸraflar yÃ¼klenirken hata oluÅŸtu");
       } finally {
         setLoading(false);
       }
@@ -400,28 +381,26 @@ export function EditProductModal({
     setLoading(true);
 
     try {
-      // Base64 görselleri Cloudinary'e yükle
       let finalImage = image;
       let finalPrimaryImage = primaryImage;
       let finalSecondaryImage = secondaryImage;
 
       if (image?.startsWith("data:image")) {
         const url = await uploadBase64ToCloudinary(image);
-        if (!url) throw new Error("Ana görsel yüklenemedi");
+        if (!url) throw new Error("Ana gÃ¶rsel yÃ¼klenemedi");
         finalImage = url;
       }
       if (primaryImage?.startsWith("data:image")) {
         const url = await uploadBase64ToCloudinary(primaryImage);
-        if (!url) throw new Error("Birinci görsel yüklenemedi");
+        if (!url) throw new Error("Birinci gÃ¶rsel yÃ¼klenemedi");
         finalPrimaryImage = url;
       }
       if (secondaryImage?.startsWith("data:image")) {
         const url = await uploadBase64ToCloudinary(secondaryImage);
-        if (!url) throw new Error("İkinci görsel yüklenemedi");
+        if (!url) throw new Error("Ä°kinci gÃ¶rsel yÃ¼klenemedi");
         finalSecondaryImage = url;
       }
 
-      // Renk görsellerindeki base64'leri yükle
       const processedColors = await Promise.all(
         colors.map(async (c) => {
           if (!Array.isArray(c.images)) return c;
@@ -431,7 +410,7 @@ export function EditProductModal({
               if (img.startsWith("data:image")) {
                 const url = await uploadBase64ToCloudinary(img);
                 if (!url) {
-                  throw new Error(`${c.name} rengi için görsel yüklenemedi`);
+                  throw new Error(`${c.name} rengi iÃ§in gÃ¶rsel yÃ¼klenemedi`);
                 }
                 return url;
               }
@@ -494,13 +473,12 @@ export function EditProductModal({
       }
     } catch (error: any) {
       console.error("Hata:", error);
-      toast.error(error.message || "Ürün güncellenirken bir hata oluştu");
+      toast.error(error.message || "ÃœrÃ¼n gÃ¼ncellenirken bir hata oluÅŸtu");
     } finally {
       setLoading(false);
     }
   };
 
-  // Beden seçenekleri
   const letterSizes = ["XS", "S", "M", "L", "XL", "XXL"];
   const numberSizes = ["30", "32", "34", "36", "38", "40", "42", "44", "46"];
 
@@ -510,15 +488,15 @@ export function EditProductModal({
         <DialogTrigger asChild>
           {trigger || (
             <Button variant="outline" size="sm">
-              Düzenle
+              DÃ¼zenle
             </Button>
           )}
         </DialogTrigger>
         <DialogContent className="max-w-4xl max-h-[90vh]">
           <DialogHeader>
-            <DialogTitle>Ürünü Düzenle</DialogTitle>
+            <DialogTitle>ÃœrÃ¼nÃ¼ DÃ¼zenle</DialogTitle>
           </DialogHeader>
-          <div className="p-4">Yükleniyor...</div>
+          <div className="p-4">YÃ¼kleniyor...</div>
         </DialogContent>
       </Dialog>
     );
@@ -529,14 +507,14 @@ export function EditProductModal({
       <DialogTrigger asChild>
         {trigger || (
           <Button variant="outline" size="sm">
-            Düzenle
+            DÃ¼zenle
           </Button>
         )}
       </DialogTrigger>
 
       <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle>Ürünü Düzenle</DialogTitle>
+          <DialogTitle>ÃœrÃ¼nÃ¼ DÃ¼zenle</DialogTitle>
         </DialogHeader>
 
         <Tabs defaultValue="basic" className="w-full flex-1 flex flex-col overflow-hidden">
@@ -550,11 +528,11 @@ export function EditProductModal({
 
           <TabsContent value="basic" className="space-y-4 mt-4 flex-1 overflow-y-auto">
             <div>
-              <Label>Ürün Adı *</Label>
+              <Label>ÃœrÃ¼n AdÄ± *</Label>
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Ürün adı"
+                placeholder="ÃœrÃ¼n adÄ±"
                 disabled={loading}
               />
             </div>
@@ -570,11 +548,11 @@ export function EditProductModal({
             <div>
               <Label>Slug (URL)</Label>
               <p className="text-sm text-muted-foreground mt-1 p-2 bg-gray-50 rounded border">
-                {(product as any).slug || generateSlug(name) || "Ürün adı girildiğinde otomatik oluşturulacak"}
+                {(product as any).slug || generateSlug(name) || "ÃœrÃ¼n adÄ± girildiÄŸinde otomatik oluÅŸturulacak"}
               </p>
               {name !== product.name && (
                 <p className="text-xs text-amber-600 mt-1">
-                  Ürün adı değiştiğinde slug otomatik güncellenecek
+                  ÃœrÃ¼n adÄ± deÄŸiÅŸtiÄŸinde slug otomatik gÃ¼ncellenecek
                 </p>
               )}
             </div>
@@ -591,7 +569,7 @@ export function EditProductModal({
                 />
               </div>
               <div>
-                <Label>Orijinal Fiyat (İndirimli ürünler için)</Label>
+                <Label>Orijinal Fiyat (Ä°ndirimli Ã¼rÃ¼nler iÃ§in)</Label>
                 <Input
                   type="number"
                   step="0.01"
@@ -602,7 +580,7 @@ export function EditProductModal({
                 />
                 {originalPrice && price && parseFloat(originalPrice) > parseFloat(price) && (
                   <p className="text-xs text-gray-500 mt-1">
-                    İndirim: %{Math.round(((parseFloat(originalPrice) - parseFloat(price)) / parseFloat(originalPrice)) * 100)}
+                    Ä°ndirim: %{Math.round(((parseFloat(originalPrice) - parseFloat(price)) / parseFloat(originalPrice)) * 100)}
                   </p>
                 )}
               </div>
@@ -612,11 +590,11 @@ export function EditProductModal({
                 <Label>Cinsiyet</Label>
                 <Select value={gender} onValueChange={(v: any) => setGender(v)} disabled={loading}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Seçiniz" />
+                    <SelectValue placeholder="SeÃ§iniz" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="MALE">Erkek</SelectItem>
-                    <SelectItem value="FEMALE">Kadın</SelectItem>
+                    <SelectItem value="FEMALE">KadÄ±n</SelectItem>
                     <SelectItem value="UNISEX">Unisex</SelectItem>
                   </SelectContent>
                 </Select>
@@ -628,7 +606,6 @@ export function EditProductModal({
                 <Select value={sizeType} onValueChange={(v: any) => {
                   const oldSizeType = sizeType;
                   setSizeType(v);
-                  // Eğer sizeType değiştiyse, seçili bedenleri temizle
                   if (oldSizeType !== v) {
                     setSelectedSizeOptions([]);
                   }
@@ -639,7 +616,7 @@ export function EditProductModal({
                   }
                 }} disabled={loading}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Seçiniz" />
+                    <SelectValue placeholder="SeÃ§iniz" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="LETTER">Harf (XS, S, M, L, XL)</SelectItem>
@@ -648,18 +625,18 @@ export function EditProductModal({
                 </Select>
               </div>
               <div>
-                <Label>Kumaş Tipi</Label>
+                <Label>KumaÅŸ Tipi</Label>
                 <Input
                   value={fabricType}
                   onChange={(e) => setFabricType(e.target.value)}
-                  placeholder="Örn: Pamuk, Polyester"
+                  placeholder="Ã–rn: Pamuk, Polyester"
                   disabled={loading}
                 />
               </div>
             </div>
             {sizeType && (
               <div>
-                <Label>Beden Seçenekleri</Label>
+                <Label>Beden SeÃ§enekleri</Label>
                 <div className="flex flex-wrap gap-2 mt-2">
                   {(sizeType === "LETTER" ? letterSizes : numberSizes).map((size) => (
                     <div key={size} className="flex items-center space-x-2">
@@ -684,17 +661,17 @@ export function EditProductModal({
               </div>
             )}
             <div>
-              <Label>Kısa Açıklama</Label>
+              <Label>KÄ±sa AÃ§Ä±klama</Label>
               <Textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Kısa ürün açıklaması"
+                placeholder="KÄ±sa Ã¼rÃ¼n aÃ§Ä±klamasÄ±"
                 rows={3}
                 disabled={loading}
               />
             </div>
             <div>
-              <Label>Ana Görsel</Label>
+              <Label>Ana GÃ¶rsel</Label>
               <div className="space-y-2">
                 <div className="flex gap-2">
                   <div className="relative flex-1">
@@ -718,7 +695,7 @@ export function EditProductModal({
                             }
                           } catch (error) {
                             console.error("Upload error:", error);
-                            toast.error("Fotoğraflar yüklenirken hata oluştu");
+                            toast.error("FotoÄŸraflar yÃ¼klenirken hata oluÅŸtu");
                           } finally {
                             setLoading(false);
                             e.target.value = "";
@@ -747,7 +724,7 @@ export function EditProductModal({
                           d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                         />
                       </svg>
-                      {loading ? "Yükleniyor..." : "Fotoğraf Yükle (Çoklu Seçim)"}
+                      {loading ? "YÃ¼kleniyor..." : "FotoÄŸraf YÃ¼kle (Ã‡oklu SeÃ§im)"}
                     </Button>
                   </div>
                 </div>
@@ -756,7 +733,6 @@ export function EditProductModal({
                   onChange={async (e) => {
                     const value = e.target.value;
 
-                    // Base64 görsel kontrolü
                     if (value.startsWith("data:image")) {
                       setLoading(true);
                       try {
@@ -766,38 +742,37 @@ export function EditProductModal({
                           if (!uploadedImages.includes(cloudinaryUrl)) {
                             setUploadedImages((prev) => [...prev, cloudinaryUrl]);
                           }
-                          toast.success("Görsel Cloudinary'e yüklendi");
+                          toast.success("GÃ¶rsel Cloudinary'e yÃ¼klendi");
                         } else {
-                          toast.error("Görsel yüklenemedi");
+                          toast.error("GÃ¶rsel yÃ¼klenemedi");
                         }
                       } catch (error) {
                         console.error("Upload error:", error);
-                        toast.error("Görsel yüklenirken hata oluştu");
+                        toast.error("GÃ¶rsel yÃ¼klenirken hata oluÅŸtu");
                       } finally {
                         setLoading(false);
                       }
                     } else {
-                      // Normal URL
                       setImage(value);
                       if (value && !uploadedImages.includes(value)) {
                         setUploadedImages((prev) => [...prev, value]);
                       }
                     }
                   }}
-                  placeholder="veya Görsel URL girin (base64 desteklenir)..."
+                  placeholder="veya GÃ¶rsel URL girin (base64 desteklenir)..."
                   className="text-sm"
                   disabled={loading}
                 />
                 {uploadedImages.length > 0 && (
                   <div className="mt-4 space-y-4">
-                    <p className="text-sm font-medium">Yüklenen Fotoğraflar:</p>
+                    <p className="text-sm font-medium">YÃ¼klenen FotoÄŸraflar:</p>
                     <div className="grid grid-cols-3 gap-4">
                       {uploadedImages.map((imgUrl, index) => (
                         <div key={index} className="space-y-2">
                           <div className="relative aspect-square">
                             <img
                               src={imgUrl}
-                              alt={`Fotoğraf ${index + 1}`}
+                              alt={`FotoÄŸraf ${index + 1}`}
                               className="w-full h-full object-cover rounded border"
                             />
                             {primaryImage === imgUrl ? (
@@ -806,7 +781,7 @@ export function EditProductModal({
                               </div>
                             ) : secondaryImage === imgUrl ? (
                               <div className="absolute top-1 left-1 bg-blue-500 text-white text-xs px-2 py-1 rounded z-10">
-                                İkinci Foto
+                                Ä°kinci Foto
                               </div>
                             ) : null}
                           </div>
@@ -820,19 +795,16 @@ export function EditProductModal({
                                   e.preventDefault();
                                   if (loading) return;
                                   if (primaryImage === imgUrl) {
-                                    // Zaten seçiliyse kaldır
                                     setPrimaryImage("");
                                   } else {
-                                    // Eğer bu fotoğraf ikinci foto olarak seçiliyse, önce onu kaldır
                                     if (secondaryImage === imgUrl) {
-                                      toast.warning("Bir fotoğraf hem ana hem ikinci fotoğraf olamaz!");
+                                      toast.warning("Bir fotoÄŸraf hem ana hem ikinci fotoÄŸraf olamaz!");
                                       return;
                                     }
-                                    // Yeni seçim yap
                                     setPrimaryImage(imgUrl);
                                   }
                                 }}
-                                onChange={() => { }} // onChange boş, onClick kullanıyoruz
+                                onChange={() => { }} // onChange boÅŸ, onClick kullanÄ±yoruz
                                 className="w-4 h-4 cursor-pointer accent-green-600"
                                 style={{
                                   width: '16px',
@@ -841,7 +813,7 @@ export function EditProductModal({
                                 disabled={loading}
                               />
                               <span className={primaryImage === imgUrl ? "font-semibold text-green-600" : ""}>
-                                Ana foto olarak seç
+                                Ana foto olarak seÃ§
                               </span>
                             </label>
                             <label className="flex items-center gap-2 text-sm cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors">
@@ -853,24 +825,20 @@ export function EditProductModal({
                                   e.preventDefault();
                                   if (loading) return;
                                   if (secondaryImage === imgUrl) {
-                                    // Zaten seçiliyse kaldır
                                     setSecondaryImage("");
                                   } else {
-                                    // Ana foto seçilmiş mi kontrol et
                                     if (!primaryImage) {
-                                      toast.warning("Önce ana fotoğraf seçmelisiniz!");
+                                      toast.warning("Ã–nce ana fotoÄŸraf seÃ§melisiniz!");
                                       return;
                                     }
-                                    // Eğer bu fotoğraf ana foto olarak seçiliyse, önce onu kaldır
                                     if (primaryImage === imgUrl) {
-                                      toast.warning("Bir fotoğraf hem ana hem ikinci fotoğraf olamaz!");
+                                      toast.warning("Bir fotoÄŸraf hem ana hem ikinci fotoÄŸraf olamaz!");
                                       return;
                                     }
-                                    // Yeni seçim yap
                                     setSecondaryImage(imgUrl);
                                   }
                                 }}
-                                onChange={() => { }} // onChange boş, onClick kullanıyoruz
+                                onChange={() => { }} // onChange boÅŸ, onClick kullanÄ±yoruz
                                 className="w-4 h-4 cursor-pointer accent-blue-600"
                                 style={{
                                   width: '16px',
@@ -879,7 +847,7 @@ export function EditProductModal({
                                 disabled={loading}
                               />
                               <span className={secondaryImage === imgUrl ? "font-semibold text-blue-600" : ""}>
-                                İkinci fotoğraf olarak seç
+                                Ä°kinci fotoÄŸraf olarak seÃ§
                               </span>
                             </label>
                             <Button
@@ -926,7 +894,7 @@ export function EditProductModal({
               <Label>Yeni Renk Ekle</Label>
               <div className="flex gap-2 flex-wrap">
                 <Input
-                  placeholder="Renk adı (örn: Kırmızı)"
+                  placeholder="Renk adÄ± (Ã¶rn: KÄ±rmÄ±zÄ±)"
                   value={newColorName}
                   onChange={(e) => setNewColorName(e.target.value)}
                   disabled={loading}
@@ -938,7 +906,7 @@ export function EditProductModal({
                     value={newColorHex || "#FF0000"}
                     onChange={(e) => setNewColorHex(e.target.value)}
                     className="w-12 h-10 rounded border cursor-pointer"
-                    title="Renk seç"
+                    title="Renk seÃ§"
                     disabled={loading}
                   />
                   <Input
@@ -978,12 +946,12 @@ export function EditProductModal({
                           disabled={loading}
                         >
                           <Trash2 className="w-4 h-4 mr-2" />
-                          Rengi Kaldır
+                          Rengi KaldÄ±r
                         </Button>
                       </div>
 
                       <div className="space-y-2">
-                        <Label>Renk Açıklaması ({color.name})</Label>
+                        <Label>Renk AÃ§Ä±klamasÄ± ({color.name})</Label>
                         <Textarea
                           value={color.description || ""}
                           onChange={(e) => {
@@ -991,7 +959,7 @@ export function EditProductModal({
                             newColors[index] = { ...color, description: e.target.value };
                             setColors(newColors);
                           }}
-                          placeholder={`${color.name} için özel açıklama...`}
+                          placeholder={`${color.name} iÃ§in Ã¶zel aÃ§Ä±klama...`}
                           rows={3}
                           disabled={loading}
                         />
@@ -1012,7 +980,7 @@ export function EditProductModal({
                               };
                               setColors(newColors);
                             }}
-                            placeholder="Ana fiyatı kullanmak için boş bırakın"
+                            placeholder="Ana fiyatÄ± kullanmak iÃ§in boÅŸ bÄ±rakÄ±n"
                             disabled={loading}
                           />
                         </div>
@@ -1020,7 +988,7 @@ export function EditProductModal({
 
                       {sizeType && selectedSizeOptions.length > 0 && (
                         <div className="space-y-3">
-                          <Label className="text-sm font-semibold">Beden Stokları ({color.name})</Label>
+                          <Label className="text-sm font-semibold">Beden StoklarÄ± ({color.name})</Label>
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                             {selectedSizeOptions.map((size) => {
                               const sizeStock = color.sizeStocks?.[size] || 0;
@@ -1054,7 +1022,7 @@ export function EditProductModal({
                       )}
 
                       <div className="space-y-3">
-                        <Label>Fotoğraflar</Label>
+                        <Label>FotoÄŸraflar</Label>
                         <div className="space-y-2">
                           <div className="relative">
                             <Input
@@ -1080,11 +1048,11 @@ export function EditProductModal({
                               disabled={loading}
                             >
                               <Plus className="w-4 h-4 mr-2" />
-                              Fotoğraf Yükle
+                              FotoÄŸraf YÃ¼kle
                             </Button>
                           </div>
                           <Input
-                            placeholder="veya Fotoğraf URL girin..."
+                            placeholder="veya FotoÄŸraf URL girin..."
                             className="text-sm"
                             disabled={loading}
                             onKeyDown={(e) => {
@@ -1131,17 +1099,17 @@ export function EditProductModal({
           </TabsContent>
 
           <TabsContent value="stock" className="space-y-4 mt-4 flex-1 overflow-y-auto">
-            {/* Ana Ürün Stok ve Fiyat */}
+            {/* Ana ÃœrÃ¼n Stok ve Fiyat */}
             <div className="space-y-4 border-b pb-4">
               <div>
-                <Label className="text-lg font-semibold">Ana Ürün</Label>
-                <p className="text-sm text-muted-foreground mb-4">Ana ürün için genel stok ve fiyat ayarları</p>
+                <Label className="text-lg font-semibold">Ana ÃœrÃ¼n</Label>
+                <p className="text-sm text-muted-foreground mb-4">Ana Ã¼rÃ¼n iÃ§in genel stok ve fiyat ayarlarÄ±</p>
               </div>
 
-              {/* Ana Ürün Fiyat */}
+              {/* Ana ÃœrÃ¼n Fiyat */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>Fiyat (Ana Ürün)</Label>
+                  <Label>Fiyat (Ana ÃœrÃ¼n)</Label>
                   <Input
                     type="number"
                     step="0.01"
@@ -1153,10 +1121,10 @@ export function EditProductModal({
                 </div>
               </div>
 
-              {/* Ana Ürün Beden Stokları */}
+              {/* Ana ÃœrÃ¼n Beden StoklarÄ± */}
               {sizeType && selectedSizeOptions.length > 0 && (
                 <div>
-                  <Label>Beden Stokları (Ana Ürün)</Label>
+                  <Label>Beden StoklarÄ± (Ana ÃœrÃ¼n)</Label>
                   <div className="space-y-2 mt-2">
                     {selectedSizeOptions.map((size) => {
                       const sizeStock = sizes.find(s => s.name === size)?.stock || 0;
@@ -1189,7 +1157,7 @@ export function EditProductModal({
               )}
               {sizeType && selectedSizeOptions.length === 0 && (
                 <p className="text-sm text-muted-foreground">
-                  Önce "Temel" tab'ında beden seçeneklerini seçin.
+                  Ã–nce "Temel" tab'Ä±nda beden seÃ§eneklerini seÃ§in.
                 </p>
               )}
             </div>
@@ -1217,16 +1185,16 @@ export function EditProductModal({
                         };
                         setColors(newColors);
                       }}
-                      placeholder="Ana ürün fiyatı"
+                      placeholder="Ana Ã¼rÃ¼n fiyatÄ±"
                       disabled={loading}
                     />
                   </div>
                 </div>
 
-                {/* Renk Beden Stokları */}
+                {/* Renk Beden StoklarÄ± */}
                 {sizeType && selectedSizeOptions.length > 0 && (
                   <div>
-                    <Label>Beden Stokları ({color.name})</Label>
+                    <Label>Beden StoklarÄ± ({color.name})</Label>
                     <div className="space-y-2 mt-2">
                       {selectedSizeOptions.map((size) => {
                         const sizeStock = color.sizeStocks?.[size] || 0;
@@ -1263,7 +1231,7 @@ export function EditProductModal({
 
             {colors.length === 0 && (
               <p className="text-sm text-muted-foreground text-center py-8">
-                Önce renk ekleyin, sonra stok yönetimi yapabilirsiniz.
+                Ã–nce renk ekleyin, sonra stok yÃ¶netimi yapabilirsiniz.
               </p>
             )}
           </TabsContent>
@@ -1274,7 +1242,7 @@ export function EditProductModal({
               <Textarea
                 value={detailText}
                 onChange={(e) => setDetailText(e.target.value)}
-                placeholder="<p>Kalın yazı</p><p>Normal yazı</p>"
+                placeholder="<p>KalÄ±n yazÄ±</p><p>Normal yazÄ±</p>"
                 rows={10}
                 className="font-mono"
                 disabled={loading}
@@ -1284,7 +1252,7 @@ export function EditProductModal({
               <Label>Etiketler</Label>
               <div className="flex gap-2">
                 <Input
-                  placeholder="Etiket adı (örn: Moda)"
+                  placeholder="Etiket adÄ± (Ã¶rn: Moda)"
                   value={newTag}
                   onChange={(e) => setNewTag(e.target.value)}
                   onKeyDown={(e) => {
@@ -1324,9 +1292,9 @@ export function EditProductModal({
 
           <TabsContent value="combinations" className="space-y-4 mt-4 flex-1 overflow-y-auto">
             <div>
-              <Label>Ürün Ara</Label>
+              <Label>ÃœrÃ¼n Ara</Label>
               <Input
-                placeholder="Ürün adı ile ara..."
+                placeholder="ÃœrÃ¼n adÄ± ile ara..."
                 value={searchProduct}
                 onChange={(e) => {
                   setSearchProduct(e.target.value);
@@ -1352,7 +1320,7 @@ export function EditProductModal({
               )}
             </div>
             <div>
-              <Label>Seçili Ürünler</Label>
+              <Label>SeÃ§ili ÃœrÃ¼nler</Label>
               <div className="space-y-2 mt-2">
                 {combinations.map((productId) => (
                   <div
@@ -1378,7 +1346,7 @@ export function EditProductModal({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)} disabled={loading}>
-            İptal
+            Ä°ptal
           </Button>
           <Button
             disabled={loading || !name || !price}

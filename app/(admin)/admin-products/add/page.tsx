@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
@@ -8,7 +8,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Save } from "lucide-react";
 
-// Components
 import { ProductInfo } from "./components/ProductInfo";
 import { ProductPricingInventory } from "./components/ProductPricingInventory";
 import { ProductMedia } from "./components/ProductMedia";
@@ -16,7 +15,6 @@ import { ProductVariants, Color } from "./components/ProductVariants";
 import { ProductSizeStock, SizeType, SIZE_OPTIONS } from "./components/ProductSizeStock";
 import { ProductSidebar } from "./components/ProductSidebar";
 
-// Utils & Schema
 import { generateProductSlug } from "@/lib/slug";
 import { productSchema, type ProductFormValues } from "./schema";
 import { uploadFileToCloudinary } from "@/lib/cloudinary";
@@ -37,13 +35,12 @@ export default function AddProductPage() {
         }
       } catch (error) {
         console.error("Failed to fetch categories", error);
-        toast.error("Kategoriler yüklenemedi");
+        toast.error("Kategoriler yÃ¼klenemedi");
       }
     }
     fetchCategories();
   }, []);
 
-  // Initialize Form
   const methods = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema) as any,
     defaultValues: {
@@ -73,7 +70,6 @@ export default function AddProductPage() {
 
   const { watch, setValue, handleSubmit, formState: { errors } } = methods;
 
-  // Watch values for UI updates
   const name = watch("name");
   const isVariable = watch("isVariable");
   const sizeType = watch("sizeType");
@@ -82,7 +78,6 @@ export default function AddProductPage() {
   const brand = watch("brand");
   const slug = watch("slug");
 
-  // Slug Auto-Generation
   const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
   const [slugSuffix] = useState(() => Math.random().toString(36).substring(2, 8));
 
@@ -90,10 +85,9 @@ export default function AddProductPage() {
     if (!name || isSlugManuallyEdited) return;
     const baseSlug = generateProductSlug(name);
     setValue("slug", `${baseSlug}-${slugSuffix}`);
-    setValue("seoTitle", `${name} - ${brand || "Mağaza"}`);
+    setValue("seoTitle", `${name} - ${brand || "MaÄŸaza"}`);
   }, [name, brand, isSlugManuallyEdited, slugSuffix, setValue]);
 
-  // --- handlers ---
 
   const handleMediaUpload = (files: FileList) => {
     const newUrls: string[] = [];
@@ -111,7 +105,6 @@ export default function AddProductPage() {
 
     setValue("uploadedImages", updatedImages);
 
-    // Auto-set primary/secondary
     if (!watch("primaryImage") && updatedImages.length > 0) {
       setValue("primaryImage", updatedImages[0]);
     }
@@ -119,12 +112,10 @@ export default function AddProductPage() {
       setValue("secondaryImage", updatedImages[1]);
     }
 
-    toast.success(`${newUrls.length} görsel eklendi`);
+    toast.success(`${newUrls.length} gÃ¶rsel eklendi`);
   };
 
   const handleColorImageUpload = (files: FileList, colorIndex: number) => {
-    // Need to handle this carefully as variants is an array of objects
-    // We will assume variants exist
     const currentVariants = watch("variants") || [];
     const variant = currentVariants[colorIndex];
     const newUrls: string[] = [];
@@ -146,10 +137,9 @@ export default function AddProductPage() {
     newVariants[colorIndex] = updatedVariant;
     setValue("variants", newVariants);
 
-    toast.success("Varyant görselleri güncellendi");
+    toast.success("Varyant gÃ¶rselleri gÃ¼ncellendi");
   };
 
-  // Upload Logic Helper
   const processImageUpload = async (url: string): Promise<string> => {
     if (!url) return "";
 
@@ -157,10 +147,10 @@ export default function AddProductPage() {
       if (fileMap.has(url)) {
         const file = fileMap.get(url)!;
         const uploadedUrl = await uploadFileToCloudinary(file);
-        if (!uploadedUrl) throw new Error("Görsel yüklenemedi (Upload failed)");
+        if (!uploadedUrl) throw new Error("GÃ¶rsel yÃ¼klenemedi (Upload failed)");
         return uploadedUrl;
       } else {
-        throw new Error("Görsel bulunamadı (File map miss). Lütfen sayfayı yenileyip tekrar deneyin.");
+        throw new Error("GÃ¶rsel bulunamadÄ± (File map miss). LÃ¼tfen sayfayÄ± yenileyip tekrar deneyin.");
       }
     }
     return url; // Already a remote URL
@@ -168,10 +158,9 @@ export default function AddProductPage() {
 
   const onSubmit = async (data: ProductFormValues) => {
     setLoading(true);
-    const toastId = toast.loading("Ürün oluşturuluyor & görseller yükleniyor...");
+    const toastId = toast.loading("ÃœrÃ¼n oluÅŸturuluyor & gÃ¶rseller yÃ¼kleniyor...");
 
     try {
-      // 1. Upload Global Images
       const processedImages: string[] = [];
       for (const imgResult of data.uploadedImages) {
         const realUrl = await processImageUpload(imgResult);
@@ -181,7 +170,6 @@ export default function AddProductPage() {
       const realPrimary = await processImageUpload(data.primaryImage || "");
       const realSecondary = await processImageUpload(data.secondaryImage || "");
 
-      // 2. Upload Variant Images (if variable)
       const processedVariants = await Promise.all((data.variants || []).map(async (v) => {
         const vImages = await Promise.all(v.images.map(img => processImageUpload(img)));
         return {
@@ -190,13 +178,11 @@ export default function AddProductPage() {
         };
       }));
 
-      // Construct API Payload - Adapting to existing API expectation
       const payload = {
         ...data,
         uploadedImages: processedImages,
         primaryImage: realPrimary || (processedImages.length > 0 ? processedImages[0] : null),
         secondaryImage: realSecondary || (processedImages.length > 1 ? processedImages[1] : null),
-        // Map 'variants' back to 'colors' structure expected by API/Legacy logic
         colors: data.isVariable ? processedVariants.map(v => ({
           name: v.colorName,
           hexCode: v.hexCode,
@@ -205,7 +191,6 @@ export default function AddProductPage() {
           stock: v.stock,
           sizeStocks: v.stock
         })) :
-          // If simple product BUT has main color defined, send it as a single color variant
           (data.mainColorName && data.mainColorHex) ? [{
             name: data.mainColorName,
             hexCode: data.mainColorHex,
@@ -214,13 +199,11 @@ export default function AddProductPage() {
             stock: data.simpleStock,
             sizeStocks: data.simpleStock
           }] : [],
-        // Simple product mapping
         sizes: !data.isVariable
           ? Object.entries(data.simpleStock || {}).map(([name, stock]) => ({ name, stock }))
           : [],
         stockCode: data.sku,
         image: realPrimary || (processedImages.length > 0 ? processedImages[0] : null), // Legacy field
-        // Ensure numbers
         price: Number(data.price),
         originalPrice: data.originalPrice ? Number(data.originalPrice) : null,
         isActive: data.status === 'published',
@@ -234,11 +217,11 @@ export default function AddProductPage() {
 
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.error || "Sunucu hatası");
+        throw new Error(err.error || "Sunucu hatasÄ±");
       }
 
       toast.dismiss(toastId);
-      toast.success("Ürün başarıyla yayınlandı!");
+      toast.success("ÃœrÃ¼n baÅŸarÄ±yla yayÄ±nlandÄ±!");
       router.push("/admin-products");
 
     } catch (error: any) {
@@ -250,10 +233,7 @@ export default function AddProductPage() {
     }
   };
 
-  // --- Render Helpers ---
 
-  // We pass explicit props to children to minimize their refactoring needs for now
-  // But we derive them from react-hook-form
 
   return (
     <div className="min-h-screen bg-gray-50/50 pb-20">
@@ -265,23 +245,23 @@ export default function AddProductPage() {
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>
-              <h1 className="text-xl font-bold text-gray-900 leading-none">Yeni Ürün Ekle</h1>
-              <p className="text-xs text-gray-500 mt-1">{isVariable ? "Varyantlı Ürün" : "Tekil Ürün"}</p>
+              <h1 className="text-xl font-bold text-gray-900 leading-none">Yeni ÃœrÃ¼n Ekle</h1>
+              <p className="text-xs text-gray-500 mt-1">{isVariable ? "VaryantlÄ± ÃœrÃ¼n" : "Tekil ÃœrÃ¼n"}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <Button variant="outline" className="text-gray-600 border-gray-300" onClick={() => toast.info("Taslak (frontend only) kaydedildi")}>
-              Taslağı Kaydet
+              TaslaÄŸÄ± Kaydet
             </Button>
             <Button
               onClick={handleSubmit(onSubmit, (invalid) => {
                 console.log("Validation Errors:", invalid);
-                toast.error("Lütfen formdaki hataları giderin.");
+                toast.error("LÃ¼tfen formdaki hatalarÄ± giderin.");
               })}
               disabled={loading}
               className="bg-gray-900 text-white hover:bg-black shadow-md transition-all active:scale-95"
             >
-              {loading ? "Görseller Yükleniyor..." : "Ürünü Yayınla"}
+              {loading ? "GÃ¶rseller YÃ¼kleniyor..." : "ÃœrÃ¼nÃ¼ YayÄ±nla"}
             </Button>
           </div>
         </header>
@@ -347,7 +327,6 @@ export default function AddProductPage() {
                 isVariable={watch("isVariable")} setIsVariable={(val) => setValue("isVariable", val)}
                 sizeType={watch("sizeType")} setSizeType={(val) => setValue("sizeType", val)}
                 availableSizes={SIZE_OPTIONS[watch("sizeType")]}
-                /* Use custom mapping for UI Component which expects different structure */
                 colors={(watch("variants") || []).map(v => ({
                   id: Math.random().toString(36).substring(7),
                   name: v.colorName,
@@ -361,7 +340,6 @@ export default function AddProductPage() {
                   useMainPrice: v.useMainPrice ?? true
                 })) as any}
                 setColors={(newColors) => {
-                  // Convert UI 'color' objects back to schema 'variant' objects
                   const variants = newColors.map((c: any) => ({
                     colorName: c.name,
                     hexCode: c.hexCode,
@@ -416,9 +394,6 @@ export default function AddProductPage() {
     </div>
   );
 
-  // Fake constant for categories if not fetched
-  // In real implementation this might be fetched via Server Component or swr
-  // We keep the state consistent with original file
 }
 
 

@@ -1,26 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { resend } from "@/lib/resend";
 
-/**
- * GET /api/cron/abandoned-cart
- * 
- * Scheduled task to find abandoned carts and send recovery emails.
- * Recommended schedule: Every 30 or 60 minutes.
- */
 export async function GET(req: NextRequest) {
     try {
-        // Auth check for Cron (typically a secret header)
-        // const authHeader = req.headers.get("Authorization");
-        // if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-        //     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        // }
 
         const now = new Date();
         const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
         const fourHoursAgo = new Date(now.getTime() - 4 * 60 * 60 * 1000);
 
-        // 1) Find abandoned orders
         const abandonedOrders = await prisma.order.findMany({
             where: {
                 status: "PENDING_PAYMENT",
@@ -36,7 +24,6 @@ export async function GET(req: NextRequest) {
         const results = [];
 
         for (const order of abandonedOrders) {
-            // 2) Check if already sent
             const alreadySent = await prisma.emailLog.findFirst({
                 where: {
                     userId: order.userId || "guest",
@@ -48,7 +35,6 @@ export async function GET(req: NextRequest) {
 
             if (alreadySent) continue;
 
-            // 3) Create a unique coupon for this user
             const couponCode = `WELCOME10-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
             const coupon = await prisma.coupon.create({
                 data: {
@@ -62,26 +48,24 @@ export async function GET(req: NextRequest) {
                 },
             });
 
-            // 4) Send Email
             const checkoutUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/checkout?orderId=${order.id}`;
             const emailContent = `
                 <h2>Sepetiniz Sizi Bekliyor!</h2>
-                <p>Merhaba, sepetinizde unuttuğunuz ürünler olduğunu fark ettik.</p>
-                <p>Alışverişinizi tamamlamanız için size özel indirim kodu tanımladık: <strong>${couponCode}</strong></p>
-                <p>Bu kod ile %10 indirim kazanın.</p>
-                <a href="${checkoutUrl}" style="background: #111; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Alışverişi Tamamla</a>
-                <p>Sipariş ID: ${order.id}</p>
+                <p>Merhaba, sepetinizde unuttuÄŸunuz Ã¼rÃ¼nler olduÄŸunu fark ettik.</p>
+                <p>AlÄ±ÅŸveriÅŸinizi tamamlamanÄ±z iÃ§in size Ã¶zel indirim kodu tanÄ±mladÄ±k: <strong>${couponCode}</strong></p>
+                <p>Bu kod ile %10 indirim kazanÄ±n.</p>
+                <a href="${checkoutUrl}" style="background: #111; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 5px;">AlÄ±ÅŸveriÅŸi Tamamla</a>
+                <p>SipariÅŸ ID: ${order.id}</p>
             `;
 
             const { error } = await resend.emails.send({
                 from: "Evinde Besle <newsletter@evindebesle.com>",
                 to: order.email!,
-                subject: "Sepetinizde Size Özel Bir Teklif Var!",
+                subject: "Sepetinizde Size Ã–zel Bir Teklif Var!",
                 html: emailContent,
             });
 
             if (!error) {
-                // 5) Log success
                 await prisma.emailLog.create({
                     data: {
                         userId: order.userId || "guest",

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -24,14 +24,14 @@ const splitItems: SplitItem[] = [
   {
     id: "tee",
     title: "Premium Temeller",
-    subtitle: "Lüks Dokunuş, Her Gün",
+    subtitle: "LÃ¼ks DokunuÅŸ, Her GÃ¼n",
     href: "/collections/men",
     image: "https://res.cloudinary.com/dlahfchej/image/upload/v1771709896/banner4_lwozfs.png",
   },
   {
     id: "jogger",
-    title: "Modern Günlük Stil",
-    subtitle: "Konforunuzu Bir Üst Seviyeye Taşıyın",
+    title: "Modern GÃ¼nlÃ¼k Stil",
+    subtitle: "Konforunuzu Bir Ãœst Seviyeye TaÅŸÄ±yÄ±n",
     href: "/category/pants",
     image: "https://res.cloudinary.com/dlahfchej/image/upload/v1771709884/banner3_wo0qk0.png",
   },
@@ -44,9 +44,6 @@ function StickyMobileCard({ item, index, total }: { item: SplitItem; index: numb
     offset: ["start start", "end end"],
   });
 
-  // Pandora tarzı için: Üstteki kart kaybolurken alttaki kartın gelmesi etkisi
-  // Ancak burada kartlar sticky olduğu için, scroll devam ettikçe bir sonraki kart üstüne gelir.
-  // Biz mevcut kartın scroll ile hafif küçülmesini veya kararmasını sağlayabiliriz.
   const scale = useTransform(scrollYProgress, [0, 1], [1, 0.95]);
   const opacity = useTransform(scrollYProgress, [0, 1], [1, 0.6]);
 
@@ -77,7 +74,7 @@ function StickyMobileCard({ item, index, total }: { item: SplitItem; index: numb
               {item.title}
             </h3>
             <span className="inline-block px-6 py-3 border border-white text-sm tracking-wider uppercase">
-              ŞİMDİ ALIŞVERİŞ YAP
+              ÅÄ°MDÄ° ALIÅVERÄ°Å YAP
             </span>
           </div>
         </Link>
@@ -100,7 +97,7 @@ export default function SplitShowcase() {
               href={item.href}
               className="flex-shrink-0 w-[85vw] snap-center group"
             >
-              {/* Görsel Kart */}
+              {/* GÃ¶rsel Kart */}
               <div className="relative aspect-[3/4] overflow-hidden rounded-lg bg-gray-100">
                 <Image
                   src={item.image}
@@ -113,7 +110,7 @@ export default function SplitShowcase() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
               </div>
 
-              {/* Yazılar - Altta */}
+              {/* YazÄ±lar - Altta */}
               <div className="mt-4 text-center">
                 <h3 className="text-xl font-light text-[#111] mb-1">
                   {item.title}
@@ -122,7 +119,7 @@ export default function SplitShowcase() {
                   {item.subtitle}
                 </p>
                 <span className="inline-block px-5 py-2 border border-[#111] text-xs tracking-wider uppercase text-[#111]">
-                  KEŞFET
+                  KEÅFET
                 </span>
               </div>
             </Link>
@@ -153,7 +150,7 @@ export default function SplitShowcase() {
               {splitItems[0].title}
             </h3>
             <span className="inline-block px-6 py-3 border border-white text-sm tracking-wider uppercase group-hover:bg-white group-hover:text-black transition-all duration-300">
-              ŞİMDİ ALIŞVERİŞ YAP
+              ÅÄ°MDÄ° ALIÅVERÄ°Å YAP
             </span>
           </div>
         </Link>
@@ -181,7 +178,7 @@ export default function SplitShowcase() {
                   {item.title}
                 </h4>
                 <span className="inline-block px-5 py-2.5 border border-white text-xs tracking-wider uppercase group-hover:bg-white group-hover:text-black transition-all duration-300">
-                  ŞİMDİ ALIŞVERİŞ YAP
+                  ÅÄ°MDÄ° ALIÅVERÄ°Å YAP
                 </span>
               </div>
             </Link>

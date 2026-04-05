@@ -1,4 +1,4 @@
-import { create } from "zustand";
+﻿import { create } from "zustand";
 import { getGuestCart, addToGuestCart, saveGuestCart, removeFromGuestCart } from "@/lib/cart-utils";
 
 export type CartItem = {
@@ -61,15 +61,14 @@ type AddItemParams = {
 type CartState = {
   items: CartItem[];
   hydrated: boolean;
-  isReady: boolean; // hydrate tamamlandı ve initial fetch tamamlandı
+  isReady: boolean; // hydrate tamamlandÄ± ve initial fetch tamamlandÄ±
   couponCode: string | null;
   discountAmount: number;
   setItems: (items: CartItem[]) => void;
   hydrate: () => Promise<void>;
-  refreshCart: () => Promise<void>; // API'den cart'ı fetch edip güncelle (hydrate değil)
+  refreshCart: () => Promise<void>; // API'den cart'Ä± fetch edip gÃ¼ncelle (hydrate deÄŸil)
   syncGuestCartToAPI: () => Promise<void>;
-  reset: () => void; // Logout için cart'ı sıfırla
-  // Business logic actions - UI sadece bunları çağırır
+  reset: () => void; // Logout iÃ§in cart'Ä± sÄ±fÄ±rla
   addItemOptimistic: (params: AddItemParams) => Promise<void>;
   updateQuantity: (itemId: string, quantity: number) => void;
   removeItem: (itemId: string) => Promise<void>;
@@ -78,7 +77,6 @@ type CartState = {
   clearCart: () => void;
 };
 
-// Guest cart'ı CartItem formatına dönüştür
 const formatGuestCart = (guestCart: ReturnType<typeof getGuestCart>): CartItem[] => {
   return guestCart.map((item) => ({
     ...item,
@@ -95,7 +93,6 @@ const formatGuestCart = (guestCart: ReturnType<typeof getGuestCart>): CartItem[]
   }));
 };
 
-// Debounce timer'ları ve pending update'leri module-level'da tut
 const updateTimers = new Map<string, NodeJS.Timeout>();
 const pendingUpdates = new Map<string, number>();
 
@@ -109,7 +106,6 @@ export const useCartStore = create<CartState>((set, get) => ({
   setItems: (items) => set({ items, hydrated: true, isReady: true }),
 
   reset: () => {
-    // Logout için cart'ı sıfırla
     set({
       items: [],
       hydrated: false,
@@ -117,7 +113,6 @@ export const useCartStore = create<CartState>((set, get) => ({
       couponCode: null,
       discountAmount: 0,
     });
-    // Guest cart'ı da temizle
     if (typeof window !== "undefined") {
       localStorage.removeItem("guestCart");
       window.dispatchEvent(new Event("cartUpdated"));
@@ -139,10 +134,8 @@ export const useCartStore = create<CartState>((set, get) => ({
   },
 
   hydrate: async () => {
-    // Guard: Zaten hydrate edildiyse tekrar etme
     if (get().hydrated) return;
 
-    // Önce localStorage'dan guest cart'ı göster (anında)
     const guestCart = getGuestCart();
     if (guestCart.length > 0) {
       set({ items: formatGuestCart(guestCart), hydrated: true, isReady: false });
@@ -150,25 +143,21 @@ export const useCartStore = create<CartState>((set, get) => ({
       set({ hydrated: true, isReady: false });
     }
 
-    // Sonra backend'den yükle (arka planda)
     try {
       const res = await fetch("/api/cart");
       if (res.ok) {
         const items = await res.json();
         set({ items, hydrated: true, isReady: true });
       } else if (res.status === 401) {
-        // Guest kullanıcı - localStorage zaten gösterildi
         if (guestCart.length === 0) {
           set({ items: [], hydrated: true, isReady: true });
         } else {
           set({ hydrated: true, isReady: true });
         }
       } else {
-        // Diğer hatalar
         set({ hydrated: true, isReady: true });
       }
     } catch (error) {
-      // Network hatası - guest cart zaten gösterildi
       if (guestCart.length === 0) {
         set({ items: [], hydrated: true, isReady: true });
       } else {
@@ -180,25 +169,21 @@ export const useCartStore = create<CartState>((set, get) => ({
   addItemOptimistic: async (params: AddItemParams) => {
     const { productId, colorId, sizeId, quantity, product, color, size } = params;
 
-    // Snapshot: Rollback için önceki state'i kaydet
     const prevItems = [...get().items];
     const prevGuestCart = [...getGuestCart()];
 
-    // Optimistic ID oluştur (yeni item için)
     const optimisticId = `optimistic-${Date.now()}-${Math.random()}`;
 
-    // OPTİMİSTİK: Store'a geçici item ekle (anında)
     const currentItems = get().items;
     const existingItem = currentItems.find(
       (item) =>
         item.productId === productId &&
         item.colorId === (colorId || null) &&
         item.sizeId === (sizeId || null) &&
-        !item.optimisticId // Sadece gerçek item'ları kontrol et
+        !item.optimisticId // Sadece gerÃ§ek item'larÄ± kontrol et
     );
 
     if (existingItem) {
-      // Varsa miktarı artır (optimisticId ekleme, sadece quantity artır)
       set({
         items: currentItems.map((item) =>
           item.id === existingItem.id
@@ -207,7 +192,6 @@ export const useCartStore = create<CartState>((set, get) => ({
         ),
       });
     } else {
-      // Yoksa yeni ekle (optimistic)
       const optimisticItem: CartItem = {
         id: optimisticId,
         optimisticId,
@@ -235,7 +219,6 @@ export const useCartStore = create<CartState>((set, get) => ({
       set({ items: [...currentItems, optimisticItem] });
     }
 
-    // Guest cart'a ekle (localStorage)
     const guestCart = getGuestCart();
     const existingGuestItem = guestCart.find(
       (item) =>
@@ -251,7 +234,6 @@ export const useCartStore = create<CartState>((set, get) => ({
       addToGuestCart(productId, colorId, sizeId, quantity, product, color, size);
     }
 
-    // UI için event fırlat (CartPreview popup için)
     if (typeof window !== "undefined") {
       window.dispatchEvent(
         new CustomEvent("itemAddedToCart", {
@@ -270,7 +252,6 @@ export const useCartStore = create<CartState>((set, get) => ({
       );
     }
 
-    // API isteğini arka planda başlat
     try {
       const res = await fetch("/api/cart", {
         method: "POST",
@@ -284,22 +265,16 @@ export const useCartStore = create<CartState>((set, get) => ({
       });
 
       if (res.ok) {
-        // Başarılı - API'den güncel cart'ı al (optimistic item otomatik kalkar)
         await get().refreshCart();
       } else if (res.status === 401) {
-        // Guest kullanıcı - zaten localStorage'da, sessizce devam et
       } else {
-        // Hata - rollback yap (snapshot'tan geri yükle)
         set({ items: prevItems });
-        // Guest cart'ı da geri yükle
         if (typeof window !== "undefined") {
           localStorage.setItem("guestCart", JSON.stringify(prevGuestCart));
         }
       }
     } catch (error) {
-      // Network hatası - rollback (snapshot'tan geri yükle)
       set({ items: prevItems });
-      // Guest cart'ı da geri yükle
       if (typeof window !== "undefined") {
         localStorage.setItem("guestCart", JSON.stringify(prevGuestCart));
       }
@@ -310,28 +285,23 @@ export const useCartStore = create<CartState>((set, get) => ({
   updateQuantity: (itemId: string, quantity: number) => {
     if (quantity < 1) return;
 
-    // OPTİMİSTİK: Store'u anında güncelle
     set((state) => ({
       items: state.items.map((item) =>
         item.id === itemId ? { ...item, quantity } : item
       ),
     }));
 
-    // Pending update'i kaydet
     pendingUpdates.set(itemId, quantity);
 
-    // Önceki timer'ı iptal et
     const existingTimer = updateTimers.get(itemId);
     if (existingTimer) {
       clearTimeout(existingTimer);
     }
 
-    // Yeni timer başlat (300ms debounce)
     const timer = setTimeout(async () => {
       const finalQuantity = pendingUpdates.get(itemId);
       if (finalQuantity === undefined) return;
 
-      // Guest cart item'ı kontrolü (isGuest flag ile)
       const currentItem = get().items.find((item) => item.id === itemId);
       if (currentItem?.isGuest) {
         try {
@@ -341,7 +311,6 @@ export const useCartStore = create<CartState>((set, get) => ({
             guestCart[itemIndex].quantity = finalQuantity;
             saveGuestCart(guestCart);
             pendingUpdates.delete(itemId);
-            // Store'u güncelle
             set({ items: formatGuestCart(guestCart) });
             return;
           }
@@ -352,7 +321,6 @@ export const useCartStore = create<CartState>((set, get) => ({
         return;
       }
 
-      // Giriş yapmış kullanıcı için API isteği
       try {
         const res = await fetch(`/api/cart/${itemId}`, {
           method: "PATCH",
@@ -362,10 +330,8 @@ export const useCartStore = create<CartState>((set, get) => ({
 
         if (res.ok) {
           pendingUpdates.delete(itemId);
-          // API'den güncel cart'ı al
           await get().refreshCart();
         } else if (res.status === 401) {
-          // Guest kullanıcı - localStorage'ı güncelle
           try {
             const guestCart = getGuestCart();
             const itemIndex = guestCart.findIndex((item) => item.id === itemId);
@@ -381,12 +347,10 @@ export const useCartStore = create<CartState>((set, get) => ({
           }
           pendingUpdates.delete(itemId);
         } else {
-          // Hata - rollback yap
           pendingUpdates.delete(itemId);
           await get().refreshCart();
         }
       } catch (error) {
-        // Network hatası - rollback
         pendingUpdates.delete(itemId);
         await get().refreshCart();
       } finally {
@@ -398,64 +362,51 @@ export const useCartStore = create<CartState>((set, get) => ({
   },
 
   removeItem: async (itemId: string) => {
-    // OPTİMİSTİK: Store'u anında güncelle
     const currentItem = get().items.find((item) => item.id === itemId);
     set((state) => ({
       items: state.items.filter((item) => item.id !== itemId),
     }));
 
-    // Guest cart item'ı kontrolü (isGuest flag ile)
     if (currentItem?.isGuest) {
       try {
         removeFromGuestCart(itemId);
-        // Event tetikle
         if (typeof window !== "undefined") {
           window.dispatchEvent(new Event("cartUpdated"));
         }
       } catch (e) {
         console.error("Error removing from guest cart:", e);
-        // Hata durumunda refresh
         await get().refreshCart();
       }
       return;
     }
 
-    // Giriş yapmış kullanıcı için API isteği
     try {
       const res = await fetch(`/api/cart?itemId=${itemId}`, { method: "DELETE" });
       if (res.ok) {
-        // API'den güncel cart'ı al
         await get().refreshCart();
-        // Event tetikle
         if (typeof window !== "undefined") {
           window.dispatchEvent(new Event("cartUpdated"));
         }
       } else if (res.status === 401) {
-        // Guest kullanıcı - localStorage'dan sil
         try {
           removeFromGuestCart(itemId);
-          // Event tetikle
           if (typeof window !== "undefined") {
             window.dispatchEvent(new Event("cartUpdated"));
           }
         } catch (e) {
-          // Sessizce devam et
         }
       } else {
-        // Hata - refresh
         await get().refreshCart();
       }
     } catch (error) {
-      // Network hatası - refresh
       console.error("Error removing item:", error);
       await get().refreshCart();
     }
   },
 
   applyCoupon: async (code: string) => {
-    // SADECE 1 TANE KUPON KULLANILABİLİR
     if (get().couponCode) {
-      return { success: false, message: "Zaten bir kupon uygulanmış. Önce mevcut olanı silmelisiniz." };
+      return { success: false, message: "Zaten bir kupon uygulanmÄ±ÅŸ. Ã–nce mevcut olanÄ± silmelisiniz." };
     }
 
     try {
@@ -468,15 +419,9 @@ export const useCartStore = create<CartState>((set, get) => ({
       const data = await res.json();
 
       if (data.valid) {
-        // Calculate discount amount based on type
-        // Note: For percentage, we need the current cart total. 
-        // This logic might be better placed in a getter or updated when items change.
-        // For now, we will just store the coupon details and let the UI/derived state handle the math if possible,
-        // or calculating it here based on current items.
 
         const currentItems = get().items;
 
-        // Filter items that satisfy the coupon conditions
         const eligibleItems = currentItems.filter(item => {
           const catMatch = data.categoryId ? item.product.categoryId === data.categoryId : true;
           const genderMatch = data.gender ? item.product.gender === data.gender : true;
@@ -485,7 +430,7 @@ export const useCartStore = create<CartState>((set, get) => ({
 
         if (eligibleItems.length === 0) {
           set({ couponCode: null, discountAmount: 0 });
-          return { success: false, message: "Kupon bu ürünler için geçerli değil" };
+          return { success: false, message: "Kupon bu Ã¼rÃ¼nler iÃ§in geÃ§erli deÄŸil" };
         }
 
         const eligibleSubtotal = eligibleItems.reduce((acc, item) =>
@@ -496,11 +441,9 @@ export const useCartStore = create<CartState>((set, get) => ({
         if (data.discountType === "PERCENT") {
           discount = (eligibleSubtotal * data.value) / 100;
         } else {
-          // Absolute amount is applied to the eligible subtotal
           discount = data.value;
         }
 
-        // Ensure discount doesn't exceed eligible subtotal
         if (discount > eligibleSubtotal) discount = eligibleSubtotal;
 
         set({
@@ -508,14 +451,14 @@ export const useCartStore = create<CartState>((set, get) => ({
           discountAmount: discount
         });
 
-        return { success: true, message: "Kupon uygulandı" };
+        return { success: true, message: "Kupon uygulandÄ±" };
       } else {
         set({ couponCode: null, discountAmount: 0 });
-        return { success: false, message: data.message || "Geçersiz kupon kodu" };
+        return { success: false, message: data.message || "GeÃ§ersiz kupon kodu" };
       }
     } catch (error) {
       console.error("Coupon apply error:", error);
-      return { success: false, message: "Kupon doğrulanırken bir hata oluştu" };
+      return { success: false, message: "Kupon doÄŸrulanÄ±rken bir hata oluÅŸtu" };
     }
   },
 
@@ -524,31 +467,26 @@ export const useCartStore = create<CartState>((set, get) => ({
   },
 
   refreshCart: async () => {
-    // API'den cart'ı fetch edip güncelle (hydrate değil, sadece refresh)
     try {
       const res = await fetch("/api/cart");
       if (res.ok) {
         const items = await res.json();
         set({ items, isReady: true });
-        // Event tetikle
         if (typeof window !== "undefined") {
           window.dispatchEvent(new Event("cartUpdated"));
         }
       } else if (res.status === 401) {
-        // Guest kullanıcı - localStorage'dan yükle
         const guestCart = getGuestCart();
         if (guestCart.length > 0) {
           set({ items: formatGuestCart(guestCart), isReady: true });
         } else {
           set({ items: [], isReady: true });
         }
-        // Event tetikle
         if (typeof window !== "undefined") {
           window.dispatchEvent(new Event("cartUpdated"));
         }
       }
     } catch (error) {
-      // Network hatası - mevcut state'i koru
       console.error("Error refreshing cart:", error);
     }
   },
@@ -557,7 +495,6 @@ export const useCartStore = create<CartState>((set, get) => ({
     const guestCart = getGuestCart();
     if (guestCart.length === 0) return;
 
-    // Her bir item'ı API'ye ekle
     const syncPromises = guestCart.map(async (item) => {
       try {
         const res = await fetch("/api/cart", {
@@ -586,15 +523,12 @@ export const useCartStore = create<CartState>((set, get) => ({
     const results = await Promise.all(syncPromises);
     const successCount = results.filter((r) => r.success).length;
 
-    // Başarılı olanları localStorage'dan kaldır
     if (successCount > 0) {
       if (successCount === guestCart.length) {
-        // Tümü başarılı - localStorage'ı temizle
         if (typeof window !== "undefined") {
           localStorage.removeItem("guestCart");
         }
       } else {
-        // Bazıları başarısız - sadece başarılı olanları kaldır
         const failedItemIds = results
           .filter((r) => !r.success)
           .map((r) => r.itemId);
@@ -606,7 +540,6 @@ export const useCartStore = create<CartState>((set, get) => ({
         }
       }
 
-      // Sync sonrası mutlaka refreshCart çağır (deterministik state)
       await get().refreshCart();
     }
   },

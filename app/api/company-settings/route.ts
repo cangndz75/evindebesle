@@ -1,15 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { prisma } from "@/lib/db";
 import { logAuditAction } from "@/lib/auditLog";
 
-// Firma ayarlarını getir
 export async function GET() {
   try {
     const settings = await prisma.companySettings.findFirst();
 
     if (!settings) {
-      // Eğer hiç ayar yoksa varsayılanları döndür
       return NextResponse.json({
         freeShippingThreshold: 99.0,
         shippingPrice: 49.90,
@@ -26,7 +24,6 @@ export async function GET() {
   }
 }
 
-// Firma ayarlarını güncelle (sadece admin)
 export async function PATCH(request: NextRequest) {
   try {
     const user = await getCurrentUser();
@@ -37,7 +34,6 @@ export async function PATCH(request: NextRequest) {
     const body = await request.json();
     const { freeShippingThreshold, shippingPrice } = body;
 
-    // İlk ayarları oluştur (yoksa)
     let settings = await prisma.companySettings.findFirst();
     const oldSettings = settings ? { ...settings } : null;
 
@@ -58,7 +54,6 @@ export async function PATCH(request: NextRequest) {
       });
     }
 
-    // Audit Log
     await logAuditAction({
       action: "SETTINGS_UPDATE",
       adminId: user.id,

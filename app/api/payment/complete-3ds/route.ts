@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { TAMI, tamiHeaders } from "@/lib/tami/config";
 import { securityHashForComplete } from "@/lib/tami/hash";
@@ -27,7 +27,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 🔑 securityHash → orderId + secretKey
     const securityHash = securityHashForComplete(ps.orderId!);
 
     const payload = {
@@ -35,7 +34,6 @@ export async function POST(req: NextRequest) {
       securityHash,
     };
 
-    // 👉 Tami çağrısı
     const res = await fetch(`${TAMI.BASE_URL}/payment/complete-3ds`, {
       method: "POST",
       headers: tamiHeaders(),
@@ -57,7 +55,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 📝 Appointment oluştur (Draft ile bağla)
     const appointment = await prisma.appointment.create({
       data: {
         userId: ps.userId,

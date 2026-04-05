@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { logAuditAction } from "@/lib/auditLog";
@@ -18,10 +18,8 @@ interface CSVRow {
     primaryImage?: string;
 }
 
-// POST: Toplu ürün yükleme (CSV)
 export async function POST(req: NextRequest) {
     try {
-        // Rate limit check
         const rateLimitError = await rateLimitCheck(req, "upload");
         if (rateLimitError) return rateLimitError;
 
@@ -35,23 +33,21 @@ export async function POST(req: NextRequest) {
 
         if (!file) {
             return NextResponse.json(
-                { error: "CSV dosyası gerekli" },
+                { error: "CSV dosyasÄ± gerekli" },
                 { status: 400 }
             );
         }
 
-        // Read CSV content
         const csvContent = await file.text();
         const lines = csvContent.split("\n").map((line) => line.trim()).filter(Boolean);
 
         if (lines.length < 2) {
             return NextResponse.json(
-                { error: "CSV dosyası boş veya geçersiz" },
+                { error: "CSV dosyasÄ± boÅŸ veya geÃ§ersiz" },
                 { status: 400 }
             );
         }
 
-        // Parse header
         const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
         const requiredFields = ["name", "price"];
         const missingFields = requiredFields.filter((f) => !headers.includes(f));
@@ -63,7 +59,6 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Parse rows
         const rows: CSVRow[] = [];
         const errors: string[] = [];
 
@@ -75,15 +70,14 @@ export async function POST(req: NextRequest) {
                 row[header] = values[index] || "";
             });
 
-            // Validate required fields
             if (!row.name || !row.price) {
-                errors.push(`Satır ${i + 1}: name ve price zorunlu`);
+                errors.push(`SatÄ±r ${i + 1}: name ve price zorunlu`);
                 continue;
             }
 
             const price = sanitizePrice(row.price);
             if (price === null) {
-                errors.push(`Satır ${i + 1}: Geçersiz fiyat`);
+                errors.push(`SatÄ±r ${i + 1}: GeÃ§ersiz fiyat`);
                 continue;
             }
 
@@ -103,12 +97,11 @@ export async function POST(req: NextRequest) {
 
         if (rows.length === 0) {
             return NextResponse.json(
-                { error: "Geçerli ürün bulunamadı", details: errors },
+                { error: "GeÃ§erli Ã¼rÃ¼n bulunamadÄ±", details: errors },
                 { status: 400 }
             );
         }
 
-        // Get categories for mapping
         const categoryMap = new Map<string, string>();
         const categories = await prisma.category.findMany({
             select: { id: true, name: true, slug: true },
@@ -118,13 +111,11 @@ export async function POST(req: NextRequest) {
             categoryMap.set(c.slug.toLowerCase(), c.id);
         });
 
-        // Create products
         const createdProducts: { id: string; name: string }[] = [];
         const skippedProducts: { name: string; reason: string }[] = [];
 
         for (const row of rows) {
             try {
-                // Generate unique slug
                 let slug = sanitizeSlug(row.name);
                 let counter = 1;
                 while (await prisma.product.findUnique({ where: { slug } })) {
@@ -132,7 +123,6 @@ export async function POST(req: NextRequest) {
                     counter++;
                 }
 
-                // Check duplicate stock code
                 if (row.stockCode) {
                     const existing = await prisma.product.findUnique({
                         where: { stockCode: row.stockCode },
@@ -146,18 +136,15 @@ export async function POST(req: NextRequest) {
                     }
                 }
 
-                // Get category ID
                 const categoryId = row.category
                     ? categoryMap.get(row.category.toLowerCase())
                     : undefined;
 
-                // Parse gender
                 const gender =
                     row.gender === "MALE" || row.gender === "FEMALE" || row.gender === "UNISEX"
                         ? row.gender
                         : undefined;
 
-                // Create product
                 const product = await prisma.product.create({
                     data: {
                         name: row.name,
@@ -185,12 +172,11 @@ export async function POST(req: NextRequest) {
                 console.error(`Error creating product ${row.name}:`, error);
                 skippedProducts.push({
                     name: row.name,
-                    reason: "Oluşturma hatası",
+                    reason: "OluÅŸturma hatasÄ±",
                 });
             }
         }
 
-        // Audit log
         await logAuditAction({
             action: "BULK_PRODUCT_IMPORT",
             adminId: user.id,
@@ -208,7 +194,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({
             success: true,
-            message: `${createdProducts.length} ürün oluşturuldu`,
+            message: `${createdProducts.length} Ã¼rÃ¼n oluÅŸturuldu`,
             created: createdProducts,
             skipped: skippedProducts,
             parseErrors: errors.slice(0, 10), // Return first 10 parse errors
@@ -216,15 +202,12 @@ export async function POST(req: NextRequest) {
     } catch (error) {
         console.error("Error in bulk upload:", error);
         return NextResponse.json(
-            { error: "Yükleme sırasında bir hata oluştu" },
+            { error: "YÃ¼kleme sÄ±rasÄ±nda bir hata oluÅŸtu" },
             { status: 500 }
         );
     }
 }
 
-/**
- * Parse CSV line handling quoted values
- */
 function parseCSVLine(line: string): string[] {
     const result: string[] = [];
     let current = "";

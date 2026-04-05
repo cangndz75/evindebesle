@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
  
 import { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
@@ -76,7 +76,7 @@ function FavoriteButton({ productId, productName }: { productId: string; product
             if (isFavorite) {
                 await fetch(`/api/favorites?productId=${productId}`, { method: "DELETE" });
                 setIsFavorite(false);
-                toast.success(`${productName} favorilerden çıkarıldı`);
+                toast.success(`${productName} favorilerden Ã§Ä±karÄ±ldÄ±`);
             } else {
                 await fetch("/api/favorites", {
                     method: "POST",
@@ -88,7 +88,7 @@ function FavoriteButton({ productId, productName }: { productId: string; product
             }
             window.dispatchEvent(new Event("favoriteUpdated"));
         } catch (error) {
-            toast.error("Bir hata oluştu");
+            toast.error("Bir hata oluÅŸtu");
         } finally {
             setIsLoading(false);
         }
@@ -126,15 +126,15 @@ export default function NewArrivalsPage() {
             <div className="max-w-7xl mx-auto px-4 md:px-8 py-12 pt-20 md:pt-24">
                 <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
                     <div>
-                        <h1 className="text-3xl md:text-5xl font-light text-[#111] mb-4 uppercase tracking-tight">YENİ GELENLER</h1>
+                        <h1 className="text-3xl md:text-5xl font-light text-[#111] mb-4 uppercase tracking-tight">YENÄ° GELENLER</h1>
                         <p className="text-sm text-[#111]/60 font-light max-w-xl">
-                            Sezonun en trend, en çok dikkat çeken yeni parçalarını hemen keşfedin. Tasarım ve konforun buluştuğu en yeni koleksiyonumuz.
+                            Sezonun en trend, en Ã§ok dikkat Ã§eken yeni parÃ§alarÄ±nÄ± hemen keÅŸfedin. TasarÄ±m ve konforun buluÅŸtuÄŸu en yeni koleksiyonumuz.
                         </p>
                     </div>
                     
                     <div className="flex items-center justify-between md:justify-end gap-4 border-t md:border-t-0 pt-4 md:pt-0">
                         <span className="text-sm text-[#111]/60 font-light">
-                            {products?.length || 0} ürün
+                            {products?.length || 0} Ã¼rÃ¼n
                         </span>
                         
                         <button
@@ -146,15 +146,15 @@ export default function NewArrivalsPage() {
                         </button>
 
                         <div className="hidden md:flex items-center gap-2">
-                            <span className="text-sm text-[#111] font-light">Sırala:</span>
+                            <span className="text-sm text-[#111] font-light">SÄ±rala:</span>
                             <Select value={sortOption} onValueChange={setSortOption}>
                                 <SelectTrigger className="w-[200px] border-none bg-transparent text-sm font-light text-[#111] focus:ring-0">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="date-new">En Yeniler</SelectItem>
-                                    <SelectItem value="price-low">Fiyat: Düşükten Yükseğe</SelectItem>
-                                    <SelectItem value="price-high">Fiyat: Yüksekten Düşüğe</SelectItem>
+                                    <SelectItem value="price-low">Fiyat: DÃ¼ÅŸÃ¼kten YÃ¼kseÄŸe</SelectItem>
+                                    <SelectItem value="price-high">Fiyat: YÃ¼ksekten DÃ¼ÅŸÃ¼ÄŸe</SelectItem>
                                     <SelectItem value="date-old">En Eskiler</SelectItem>
                                 </SelectContent>
                             </Select>
@@ -170,7 +170,7 @@ export default function NewArrivalsPage() {
                     </div>
                 ) : !products || products.length === 0 ? (
                     <div className="text-center py-20 text-[#111]/40 font-light">
-                        Henüz yeni gelen ürün bulunmamaktadır.
+                        HenÃ¼z yeni gelen Ã¼rÃ¼n bulunmamaktadÄ±r.
                     </div>
                 ) : (
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-12 md:gap-x-8 md:gap-y-16">
@@ -208,17 +208,17 @@ export default function NewArrivalsPage() {
                                         </h3>
                                         <div className="flex items-center justify-center gap-2">
                                             <span className="text-sm font-light text-[#111]">
-                                                {product.price.toFixed(2)} ₺
+                                                {product.price.toFixed(2)} â‚º
                                             </span>
                                             {product.originalPrice && product.originalPrice > product.price && (
                                                 <span className="text-xs text-[#111]/40 line-through font-light">
-                                                    {product.originalPrice.toFixed(2)} ₺
+                                                    {product.originalPrice.toFixed(2)} â‚º
                                                 </span>
                                             )}
                                         </div>
                                     </div>
 
-                                    {/* Renk Seçenekleri */}
+                                    {/* Renk SeÃ§enekleri */}
                                     <div className="flex items-center justify-center gap-1.5 mt-2">
                                         {Array.from(new Map(product.colors.filter(c => c.images?.[0]).map(c => [c.hexCode || c.name, c])).values()).map((color, idx) => (
                                             <button
@@ -231,11 +231,11 @@ export default function NewArrivalsPage() {
                                         ))}
                                     </div>
 
-                                    {/* Hızlı Ekle (Görsel 5) */}
+                                    {/* HÄ±zlÄ± Ekle (GÃ¶rsel 5) */}
                                     <div className="hidden md:grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-all duration-300 ease-in-out opacity-0 group-hover:opacity-100">
                                         <div className="overflow-hidden">
                                             <div className="mt-4 pt-4 border-t border-gray-100">
-                                                <p className="text-[10px] tracking-[0.2em] font-light text-[#111]/40 uppercase mb-3 text-center">Hızlı ekle</p>
+                                                <p className="text-[10px] tracking-[0.2em] font-light text-[#111]/40 uppercase mb-3 text-center">HÄ±zlÄ± ekle</p>
                                                 <div className="flex flex-wrap gap-2 justify-center">
                                                     {(() => {
                                                         const availableSizes = product.sizes && product.sizes.length > 0
@@ -270,7 +270,7 @@ export default function NewArrivalsPage() {
                                                             return a.sizeName.localeCompare(b.sizeName);
                                                         });
 
-                                                        if (inStockSizes.length === 0) return <p className="text-[10px] text-gray-400">Tükendi</p>;
+                                                        if (inStockSizes.length === 0) return <p className="text-[10px] text-gray-400">TÃ¼kendi</p>;
 
                                                         return inStockSizes.map(({ size, sizeName, sizeId, finalStock }, sIdx) => {
                                                             const isOutOfStock = false;
@@ -308,7 +308,6 @@ export default function NewArrivalsPage() {
                                                                                 const cartStore = await import("@/lib/stores/cartStore");
                                                                                 cartStore.useCartStore.getState().refreshCart();
                                                                                 
-                                                                                // Pop-up event
                                                                                 window.dispatchEvent(
                                                                                     new CustomEvent("itemAddedToCart", {
                                                                                         detail: {
@@ -324,7 +323,7 @@ export default function NewArrivalsPage() {
                                                                                     })
                                                                                 );
                                                                             }
-                                                                        } catch { toast.error("Hata oluştu"); }
+                                                                        } catch { toast.error("Hata oluÅŸtu"); }
                                                                     }}
                                                                     className={`w-9 h-9 flex items-center justify-center text-[10px] font-light border transition-all ${isOutOfStock 
                                                                         ? "text-gray-300 border-gray-100 cursor-not-allowed" 
@@ -353,8 +352,8 @@ export default function NewArrivalsPage() {
                     <RadioGroup value={sortOption} onValueChange={(val) => { setSortOption(val); setSortDialogOpen(false); }} className="mt-4">
                         {[
                             { id: "date-new", label: "En Yeniler" },
-                            { id: "price-low", label: "Fiyat: Düşükten Yükseğe" },
-                            { id: "price-high", label: "Fiyat: Yüksekten Düşüğe" },
+                            { id: "price-low", label: "Fiyat: DÃ¼ÅŸÃ¼kten YÃ¼kseÄŸe" },
+                            { id: "price-high", label: "Fiyat: YÃ¼ksekten DÃ¼ÅŸÃ¼ÄŸe" },
                             { id: "date-old", label: "En Eskiler" }
                         ].map(opt => (
                             <div key={opt.id} className="flex items-center space-x-2 py-4 border-b last:border-0 border-gray-50">

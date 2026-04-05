@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { DataTable } from "./data-table";
@@ -40,9 +40,9 @@ export default function TransactionsClient() {
         <>
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-3xl font-bold tracking-tight">İşlemler</h2>
+                    <h2 className="text-3xl font-bold tracking-tight">Ä°ÅŸlemler</h2>
                     <p className="text-muted-foreground">
-                        Tüm ödeme ve sipariş işlemleri listesi
+                        TÃ¼m Ã¶deme ve sipariÅŸ iÅŸlemleri listesi
                     </p>
                 </div>
             </div>
@@ -53,7 +53,6 @@ export default function TransactionsClient() {
                 data={data}
                 loading={loading}
                 onExport={() => {
-                    // CSV Export logic helper
                     const header = ["Order ID", "Customer", "Email", "Total", "Status", "Date"];
                     const rows = data.map(t => [
                         t.orderNumber,

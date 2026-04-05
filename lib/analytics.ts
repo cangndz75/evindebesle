@@ -1,5 +1,4 @@
-// Google Analytics 4 ve Facebook Pixel entegrasyonu
-
+﻿
 declare global {
     interface Window {
         gtag: (...args: any[]) => void;
@@ -7,7 +6,6 @@ declare global {
     }
 }
 
-// GA4 Events
 export const trackPageView = (url: string) => {
     if (typeof window !== "undefined" && window.gtag) {
         window.gtag("config", process.env.NEXT_PUBLIC_GA4_ID, {
@@ -26,14 +24,12 @@ export const trackEvent = (action: string, category: string, label?: string, val
     }
 };
 
-// E-commerce Events
 export const trackViewItem = (product: {
     id: string;
     name: string;
     price: number;
     category?: string;
 }) => {
-    // GA4
     if (typeof window !== "undefined" && window.gtag) {
         window.gtag("event", "view_item", {
             currency: "TRY",
@@ -49,7 +45,6 @@ export const trackViewItem = (product: {
         });
     }
 
-    // FB Pixel
     if (typeof window !== "undefined" && window.fbq) {
         window.fbq("track", "ViewContent", {
             content_ids: [product.id],
@@ -60,7 +55,6 @@ export const trackViewItem = (product: {
         });
     }
 
-    // Custom Analytics  
     if (typeof window !== "undefined") {
         import('@/lib/analytics-tracker').then(({ trackProductView }) => {
             trackProductView(product);
@@ -75,7 +69,6 @@ export const trackAddToCart = (product: {
     quantity: number;
     category?: string;
 }) => {
-    // GA4
     if (typeof window !== "undefined" && window.gtag) {
         window.gtag("event", "add_to_cart", {
             currency: "TRY",
@@ -92,7 +85,6 @@ export const trackAddToCart = (product: {
         });
     }
 
-    // FB Pixel
     if (typeof window !== "undefined" && window.fbq) {
         window.fbq("track", "AddToCart", {
             content_ids: [product.id],
@@ -103,7 +95,6 @@ export const trackAddToCart = (product: {
         });
     }
 
-    // Custom Analytics
     if (typeof window !== "undefined") {
         import('@/lib/analytics-tracker').then(({ trackAddToCartEvent }) => {
             trackAddToCartEvent(product);
@@ -112,7 +103,6 @@ export const trackAddToCart = (product: {
 };
 
 export const trackBeginCheckout = (items: Array<{ id: string; name: string; price: number; quantity: number }>, total: number) => {
-    // GA4
     if (typeof window !== "undefined" && window.gtag) {
         window.gtag("event", "begin_checkout", {
             currency: "TRY",
@@ -126,7 +116,6 @@ export const trackBeginCheckout = (items: Array<{ id: string; name: string; pric
         });
     }
 
-    // FB Pixel
     if (typeof window !== "undefined" && window.fbq) {
         window.fbq("track", "InitiateCheckout", {
             content_ids: items.map((i) => i.id),
@@ -143,7 +132,6 @@ export const trackPurchase = (order: {
     total: number;
     items: Array<{ id: string; name: string; price: number; quantity: number }>;
 }) => {
-    // GA4
     if (typeof window !== "undefined" && window.gtag) {
         window.gtag("event", "purchase", {
             transaction_id: order.orderId,
@@ -158,7 +146,6 @@ export const trackPurchase = (order: {
         });
     }
 
-    // FB Pixel
     if (typeof window !== "undefined" && window.fbq) {
         window.fbq("track", "Purchase", {
             content_ids: order.items.map((i) => i.id),
@@ -171,14 +158,12 @@ export const trackPurchase = (order: {
 };
 
 export const trackSearch = (searchTerm: string) => {
-    // GA4
     if (typeof window !== "undefined" && window.gtag) {
         window.gtag("event", "search", {
             search_term: searchTerm,
         });
     }
 
-    // FB Pixel
     if (typeof window !== "undefined" && window.fbq) {
         window.fbq("track", "Search", {
             search_string: searchTerm,
@@ -187,21 +172,18 @@ export const trackSearch = (searchTerm: string) => {
 };
 
 export const trackSignUp = () => {
-    // GA4
     if (typeof window !== "undefined" && window.gtag) {
         window.gtag("event", "sign_up", {
             method: "email",
         });
     }
 
-    // FB Pixel
     if (typeof window !== "undefined" && window.fbq) {
         window.fbq("track", "CompleteRegistration");
     }
 };
 
 export const trackLogin = () => {
-    // GA4
     if (typeof window !== "undefined" && window.gtag) {
         window.gtag("event", "login", {
             method: "email",
@@ -210,7 +192,6 @@ export const trackLogin = () => {
 };
 
 export const trackAddToWishlist = (product: { id: string; name: string; price: number }) => {
-    // GA4
     if (typeof window !== "undefined" && window.gtag) {
         window.gtag("event", "add_to_wishlist", {
             currency: "TRY",
@@ -225,7 +206,6 @@ export const trackAddToWishlist = (product: { id: string; name: string; price: n
         });
     }
 
-    // FB Pixel
     if (typeof window !== "undefined" && window.fbq) {
         window.fbq("track", "AddToWishlist", {
             content_ids: [product.id],

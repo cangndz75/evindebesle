@@ -1,9 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { checkLowStockProducts, getStockSummary, setStockAlert, disableStockAlert } from "@/lib/stockAlert";
 
-// GET: Stok uyarılarını ve düşük stok ürünlerini getir
 export async function GET(req: NextRequest) {
     try {
         const user = await getCurrentUser();
@@ -24,7 +23,6 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ products: lowStockProducts });
         }
 
-        // Get all alerts
         const alerts = await prisma.stockAlert.findMany({
             orderBy: { createdAt: "desc" },
         });
@@ -39,7 +37,6 @@ export async function GET(req: NextRequest) {
     }
 }
 
-// POST: Stok uyarısı oluştur/güncelle
 export async function POST(req: NextRequest) {
     try {
         const user = await getCurrentUser();
@@ -51,7 +48,7 @@ export async function POST(req: NextRequest) {
 
         if (!productId || typeof threshold !== "number" || threshold < 0) {
             return NextResponse.json(
-                { error: "Geçersiz parametreler" },
+                { error: "GeÃ§ersiz parametreler" },
                 { status: 400 }
             );
         }
@@ -60,7 +57,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({
             success: true,
-            message: "Stok uyarısı ayarlandı",
+            message: "Stok uyarÄ±sÄ± ayarlandÄ±",
         });
     } catch (error) {
         console.error("Error setting stock alert:", error);
@@ -71,7 +68,6 @@ export async function POST(req: NextRequest) {
     }
 }
 
-// DELETE: Stok uyarısını kaldır
 export async function DELETE(req: NextRequest) {
     try {
         const user = await getCurrentUser();
@@ -94,7 +90,7 @@ export async function DELETE(req: NextRequest) {
 
         return NextResponse.json({
             success: true,
-            message: "Stok uyarısı kaldırıldı",
+            message: "Stok uyarÄ±sÄ± kaldÄ±rÄ±ldÄ±",
         });
     } catch (error) {
         console.error("Error removing stock alert:", error);

@@ -1,8 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { jsonNoStore, requireAdmin } from '@/lib/api/policy';
 
-// GET: Cohort analysis
 export async function GET(req: NextRequest) {
     const admin = await requireAdmin();
     if (!admin.ok) return admin.response;
@@ -16,11 +15,9 @@ export async function GET(req: NextRequest) {
         const periodDays = period === 'weekly' ? 7 : 30;
         const periodsToShow = 12; // Show last 12 periods
 
-        // Get cohort data
         const now = new Date();
         const startDate = new Date(now.getTime() - periodsToShow * periodDays * 24 * 60 * 60 * 1000);
 
-        // Get all users created in the time range
         const users = await prisma.user.findMany({
             where: {
                 createdAt: {
@@ -41,7 +38,6 @@ export async function GET(req: NextRequest) {
             },
         });
 
-        // Group users into cohorts
         const cohorts: Map<string, any[]> = new Map();
 
         users.forEach((user: typeof users[0]) => {
@@ -54,7 +50,6 @@ export async function GET(req: NextRequest) {
             cohorts.get(cohortKey)?.push(user);
         });
 
-        // Build cohort matrix
         const matrix: any[] = [];
         const sortedCohortKeys = Array.from(cohorts.keys()).sort();
 
@@ -68,18 +63,15 @@ export async function GET(req: NextRequest) {
                 periods: [],
             };
 
-            // For each subsequent period, calculate metric
             for (let periodIndex = 0; periodIndex < periodsToShow; periodIndex++) {
                 const periodStart = new Date(cohortStartDate.getTime() + periodIndex * periodDays * 24 * 60 * 60 * 1000);
                 const periodEnd = new Date(periodStart.getTime() + periodDays * 24 * 60 * 60 * 1000);
 
-                // Stop if period is in the future
                 if (periodStart > now) break;
 
                 let value = 0;
 
                 if (metric === 'retention') {
-                    // Count users who had activity in this period
                     const activeUsers = cohortUsers.filter(user => {
                         return user.orders.some((order: any) => {
                             const orderDate = new Date(order.createdAt);
@@ -90,7 +82,6 @@ export async function GET(req: NextRequest) {
                         ? (activeUsers.length / cohortUsers.length) * 100
                         : 0;
                 } else if (metric === 'revenue') {
-                    // Sum revenue for this period
                     const revenue = cohortUsers.reduce((sum, user) => {
                         const periodRevenue = user.orders
                             .filter((order: any) => {
@@ -105,7 +96,6 @@ export async function GET(req: NextRequest) {
                         ? revenue / cohortUsers.length
                         : 0;
                 } else if (metric === 'orders') {
-                    // Count average orders per user
                     const orderCount = cohortUsers.reduce((sum, user) => {
                         const periodOrders = user.orders.filter((order: any) => {
                             const orderDate = new Date(order.createdAt);
@@ -142,7 +132,6 @@ export async function GET(req: NextRequest) {
     }
 }
 
-// Helper function to get cohort period
 function getCohortPeriod(date: Date, periodDays: number): Date {
     const daysSinceEpoch = Math.floor(date.getTime() / (24 * 60 * 60 * 1000));
     const periodsSinceEpoch = Math.floor(daysSinceEpoch / periodDays);

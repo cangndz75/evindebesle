@@ -1,12 +1,8 @@
-import { prisma } from "@/lib/db";
+﻿import { prisma } from "@/lib/db";
 
 export async function reserveStockTx(orderId: string, items: { variantId: string; qty: number }[], ttlMinutes = 15) {
     const expiresAt = new Date(Date.now() + ttlMinutes * 60_000);
 
-    // transaction içinde:
-    // 1) her variant için stockReserved artır (koşullu)
-    // 2) StockReservation kayıtları oluştur
-    // 3) Order.reservedUntil yaz
     await prisma.$transaction(async (tx: any) => {
         for (const it of items) {
             const affectedRows = await tx.$executeRaw`
@@ -34,7 +30,6 @@ export async function reserveStockTx(orderId: string, items: { variantId: string
     return { expiresAt };
 }
 
-// ödeme başarısız ya da timeout: reserved’i düş
 export async function releaseReservationTx(orderId: string) {
     await prisma.$transaction(async (tx: any) => {
         const reservations = await tx.stockReservation.findMany({
@@ -67,7 +62,6 @@ export async function releaseReservationTx(orderId: string) {
     });
 }
 
-// ödeme başarılı: onHand (stock) düş + reserved düş
 export async function commitReservationToSaleTx(orderId: string) {
     await prisma.$transaction(async (tx: any) => {
         const reservations = await tx.stockReservation.findMany({

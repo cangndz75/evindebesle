@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -15,7 +15,6 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-// Fetcher
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 interface Message {
@@ -58,7 +57,6 @@ export default function AdminTicketDetailPage() {
         fetcher
     );
 
-    // Scroll to bottom
     useEffect(() => {
         if (messagesEndRef.current) {
             messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
@@ -76,13 +74,13 @@ export default function AdminTicketDetailPage() {
                 body: JSON.stringify({ adminReply: replyMessage }),
             });
 
-            if (!response.ok) throw new Error("Mesaj gönderilemedi");
+            if (!response.ok) throw new Error("Mesaj gÃ¶nderilemedi");
 
             setReplyMessage("");
-            toast.success("Yanıt gönderildi");
+            toast.success("YanÄ±t gÃ¶nderildi");
             mutate();
         } catch (error) {
-            toast.error("Mesaj gönderilirken hata oluştu");
+            toast.error("Mesaj gÃ¶nderilirken hata oluÅŸtu");
         } finally {
             setIsSending(false);
         }
@@ -97,12 +95,12 @@ export default function AdminTicketDetailPage() {
                 body: JSON.stringify({ status: newStatus }),
             });
 
-            if (!response.ok) throw new Error("Durum güncellenemedi");
+            if (!response.ok) throw new Error("Durum gÃ¼ncellenemedi");
 
-            toast.success("Durum güncellendi");
+            toast.success("Durum gÃ¼ncellendi");
             mutate();
         } catch (error) {
-            toast.error("Durum güncellenirken hata oluştu");
+            toast.error("Durum gÃ¼ncellenirken hata oluÅŸtu");
         } finally {
             setIsUpdatingStatus(false);
         }
@@ -119,9 +117,9 @@ export default function AdminTicketDetailPage() {
     if (!ticket) {
         return (
             <div className="p-8 text-center">
-                <h2 className="text-xl font-semibold">Talep bulunamadı</h2>
+                <h2 className="text-xl font-semibold">Talep bulunamadÄ±</h2>
                 <Link href="/admin-support">
-                    <Button variant="link">Listeye Dön</Button>
+                    <Button variant="link">Listeye DÃ¶n</Button>
                 </Link>
             </div>
         );
@@ -135,7 +133,7 @@ export default function AdminTicketDetailPage() {
                     <Link href="/admin-support">
                         <Button variant="ghost" size="sm" className="mb-2">
                             <ArrowLeft className="h-4 w-4 mr-2" />
-                            Listeye Dön
+                            Listeye DÃ¶n
                         </Button>
                     </Link>
                     <h2 className="font-bold text-lg leading-tight">{ticket.subject}</h2>
@@ -162,23 +160,23 @@ export default function AdminTicketDetailPage() {
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="open">Açık</SelectItem>
+                                <SelectItem value="open">AÃ§Ä±k</SelectItem>
                                 <SelectItem value="pending">Beklemede</SelectItem>
-                                <SelectItem value="resolved">Çözüldü</SelectItem>
-                                <SelectItem value="closed">Kapalı</SelectItem>
+                                <SelectItem value="resolved">Ã‡Ã¶zÃ¼ldÃ¼</SelectItem>
+                                <SelectItem value="closed">KapalÄ±</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
 
                     {/* User Info */}
                     <div>
-                        <label className="text-xs font-semibold text-gray-500 uppercase mb-2 block">Kullanıcı</label>
+                        <label className="text-xs font-semibold text-gray-500 uppercase mb-2 block">KullanÄ±cÄ±</label>
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
                                 <User className="h-5 w-5 text-gray-500" />
                             </div>
                             <div className="overflow-hidden">
-                                <p className="font-medium truncate">{ticket.user.name || "İsimsiz"}</p>
+                                <p className="font-medium truncate">{ticket.user.name || "Ä°simsiz"}</p>
                                 <p className="text-xs text-muted-foreground truncate" title={ticket.user.email}>{ticket.user.email}</p>
                             </div>
                         </div>
@@ -187,7 +185,7 @@ export default function AdminTicketDetailPage() {
                     {/* Related Order */}
                     {ticket.order && (
                         <div>
-                            <label className="text-xs font-semibold text-gray-500 uppercase mb-2 block">İlgili Sipariş</label>
+                            <label className="text-xs font-semibold text-gray-500 uppercase mb-2 block">Ä°lgili SipariÅŸ</label>
                             <Card className="bg-gray-50">
                                 <CardContent className="p-3 text-sm">
                                     <div className="flex justify-between items-center mb-1">
@@ -203,7 +201,7 @@ export default function AdminTicketDetailPage() {
                     )}
 
                     <div className="text-xs text-gray-400 pt-4 border-t">
-                        Oluşturulma: {format(new Date(ticket.createdAt), "d MMMM yyyy HH:mm", { locale: tr })}
+                        OluÅŸturulma: {format(new Date(ticket.createdAt), "d MMMM yyyy HH:mm", { locale: tr })}
                     </div>
                 </div>
             </aside>
@@ -250,7 +248,7 @@ export default function AdminTicketDetailPage() {
                         <Textarea
                             value={replyMessage}
                             onChange={(e) => setReplyMessage(e.target.value)}
-                            placeholder="Yanıtınızı yazın..."
+                            placeholder="YanÄ±tÄ±nÄ±zÄ± yazÄ±n..."
                             className="min-h-[80px] resize-none"
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' && !e.shiftKey) {

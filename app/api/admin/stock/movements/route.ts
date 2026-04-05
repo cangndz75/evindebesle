@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/db";
+﻿import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
@@ -10,7 +10,6 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        // Admin check
         const user = await prisma.user.findUnique({
             where: { id: session.user.id },
             select: { isAdmin: true },
@@ -30,10 +29,6 @@ export async function GET(request: NextRequest) {
                 },
                 variant: {
                     select: {
-                        // Depending on how Variant is structured...
-                        // Checking schema, ProductVariant has colorId, sizeId.
-                        // But we might need to fetch Color and Size names. 
-                        // ProductVariant relations: color: ProductColor, size: ProductSize
                         color: { select: { name: true } },
                         size: { select: { name: true } },
                     },
@@ -50,7 +45,6 @@ export async function GET(request: NextRequest) {
             take: 100,
         });
 
-        // Map variant to flatter structure
         const formattedMovements = movements.map((m: any) => ({
             id: m.id,
             type: m.type,
@@ -69,7 +63,7 @@ export async function GET(request: NextRequest) {
     } catch (error: any) {
         console.error("Stock movements error:", error);
         return NextResponse.json(
-            { error: "Stok hareketleri yüklenirken hata oluştu" },
+            { error: "Stok hareketleri yÃ¼klenirken hata oluÅŸtu" },
             { status: 500 }
         );
     }

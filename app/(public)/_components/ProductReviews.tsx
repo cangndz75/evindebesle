@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useMemo } from "react";
 import { Star, Search, Check, ChevronDown, X, MessageSquarePlus } from "lucide-react";
@@ -28,26 +28,25 @@ type Review = {
   length: "short" | "true" | "long" | "large";
 };
 
-// Tarih formatlama fonksiyonu
 function formatDate(date: Date | string): string {
   const now = new Date();
   const reviewDate = new Date(date);
   const diffTime = Math.abs(now.getTime() - reviewDate.getTime());
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-  if (diffDays === 0) return "BUGÜN";
-  if (diffDays === 1) return "1 GÜN ÖNCE";
-  if (diffDays < 7) return `${diffDays} GÜN ÖNCE`;
+  if (diffDays === 0) return "BUGÃœN";
+  if (diffDays === 1) return "1 GÃœN Ã–NCE";
+  if (diffDays < 7) return `${diffDays} GÃœN Ã–NCE`;
   if (diffDays < 30) {
     const weeks = Math.floor(diffDays / 7);
-    return `${weeks} HAFTA ÖNCE`;
+    return `${weeks} HAFTA Ã–NCE`;
   }
   if (diffDays < 365) {
     const months = Math.floor(diffDays / 30);
-    return `${months} AY ÖNCE`;
+    return `${months} AY Ã–NCE`;
   }
   const years = Math.floor(diffDays / 365);
-  return `${years} YIL ÖNCE`;
+  return `${years} YIL Ã–NCE`;
 }
 
 interface ProductReviewsProps {
@@ -56,17 +55,16 @@ interface ProductReviewsProps {
   productImage?: string | null;
   selectedColorId?: string;
   reviews?: { id: string; userName: string; rating: number; comment: string; createdAt: Date | string; colorId?: string; colorName?: string }[];
-  hasOrdered?: boolean; // Kullanıcı bu ürünü sipariş verdi mi?
+  hasOrdered?: boolean; // KullanÄ±cÄ± bu Ã¼rÃ¼nÃ¼ sipariÅŸ verdi mi?
 }
 
-export default function ProductReviews({ productId, productName = "Ürün", productImage = null, selectedColorId, reviews = [], hasOrdered = false }: ProductReviewsProps) {
+export default function ProductReviews({ productId, productName = "ÃœrÃ¼n", productImage = null, selectedColorId, reviews = [], hasOrdered = false }: ProductReviewsProps) {
   const [showAllModal, setShowAllModal] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("highest");
   const [filterRating, setFilterRating] = useState<number | null>(null);
 
-  // Seçili renge göre filtrelenmiş yorumlar
   const filteredReviews = useMemo(() => {
     if (selectedColorId) {
       return reviews.filter((r) => r.colorId === selectedColorId || !r.colorId);
@@ -74,14 +72,12 @@ export default function ProductReviews({ productId, productName = "Ürün", prod
     return reviews;
   }, [reviews, selectedColorId]);
 
-  // Calculate average rating (filtrelenmiş yorumlara göre)
   const averageRating = useMemo(() => {
     if (filteredReviews.length === 0) return "0.0";
     const total = filteredReviews.reduce((sum, review) => sum + review.rating, 0);
     return (total / filteredReviews.length).toFixed(1);
   }, [filteredReviews]);
 
-  // Filter and sort reviews
   const displayedReviews = useMemo(() => {
     let filtered = filteredReviews.map((r) => ({
       id: r.id,
@@ -100,7 +96,6 @@ export default function ProductReviews({ productId, productName = "Ürün", prod
       length: "true" as const,
     }));
 
-    // Search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
@@ -111,19 +106,17 @@ export default function ProductReviews({ productId, productName = "Ürün", prod
       );
     }
 
-    // Rating filter
     if (filterRating !== null) {
       filtered = filtered.filter((review) => review.rating === filterRating);
     }
 
-    // Sort
     if (sortBy === "highest") {
       filtered.sort((a, b) => b.rating - a.rating);
     } else if (sortBy === "lowest") {
       filtered.sort((a, b) => a.rating - b.rating);
     } else if (sortBy === "newest") {
       filtered.sort((a, b) => {
-        const dateA = parseInt(a.date) || 0; // Basit parse, geliştirilebilir
+        const dateA = parseInt(a.date) || 0; // Basit parse, geliÅŸtirilebilir
         const dateB = parseInt(b.date) || 0;
         return dateA - dateB;
       });
@@ -138,13 +131,10 @@ export default function ProductReviews({ productId, productName = "Ürün", prod
     return filtered;
   }, [filteredReviews, searchQuery, sortBy, filterRating]);
 
-  // Show first 2 reviews on page
   const initialReviews = displayedReviews.slice(0, 2);
   const remainingCount = displayedReviews.length - 2;
 
   const handleReviewSubmitted = () => {
-    // Sayfayı yenilemek en basiti, veya bir callback ile üst componenti güncelleyebiliriz.
-    // Şimdilik reload.
     window.location.reload();
   };
 
@@ -172,13 +162,13 @@ export default function ProductReviews({ productId, productName = "Ürün", prod
             <div className="flex justify-center mb-4">
               <Star className="w-12 h-12 text-gray-300" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Henüz yorum yapılmamış</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">HenÃ¼z yorum yapÄ±lmamÄ±ÅŸ</h3>
             <p className="text-gray-500 mb-6 max-w-sm mx-auto">
-              Bu ürün hakkında ilk yorumu siz yaparak diğer kullanıcılara yardımcı olabilirsiniz.
+              Bu Ã¼rÃ¼n hakkÄ±nda ilk yorumu siz yaparak diÄŸer kullanÄ±cÄ±lara yardÄ±mcÄ± olabilirsiniz.
             </p>
             {hasOrdered && (
               <Button variant="outline" onClick={() => setShowReviewModal(true)}>
-                İlk Yorumu Yap
+                Ä°lk Yorumu Yap
               </Button>
             )}
           </div>
@@ -231,7 +221,7 @@ export default function ProductReviews({ productId, productName = "Ürün", prod
                       : "border-gray-300 hover:border-black"
                       }`}
                   >
-                    {rating} Yıldız
+                    {rating} YÄ±ldÄ±z
                   </button>
                 ))}
               </div>
@@ -251,7 +241,7 @@ export default function ProductReviews({ productId, productName = "Ürün", prod
                   onClick={() => setShowAllModal(true)}
                   className="px-8 py-3 border border-black text-black text-sm font-light uppercase tracking-wide hover:bg-black hover:text-white transition-colors"
                 >
-                  Daha Fazla Yükle ({displayedReviews.length - 2})
+                  Daha Fazla YÃ¼kle ({displayedReviews.length - 2})
                 </button>
               </div>
             )}
@@ -264,7 +254,7 @@ export default function ProductReviews({ productId, productName = "Ürün", prod
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
           <DialogHeader className="px-6 py-4 border-b border-gray-200 sticky top-0 bg-white z-10">
             <DialogTitle className="text-2xl font-serif font-light text-black">
-              Tüm Yorumlar
+              TÃ¼m Yorumlar
             </DialogTitle>
           </DialogHeader>
 
@@ -287,14 +277,14 @@ export default function ProductReviews({ productId, productName = "Ürün", prod
                   <span>+ Filtre</span>
                 </button>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600 font-light">Sırala:</span>
+                  <span className="text-sm text-gray-600 font-light">SÄ±rala:</span>
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
                     className="text-sm bg-transparent border-none focus:outline-none cursor-pointer font-light"
                   >
-                    <option value="highest">En Yüksek Puan</option>
-                    <option value="lowest">En Düşük Puan</option>
+                    <option value="highest">En YÃ¼ksek Puan</option>
+                    <option value="lowest">En DÃ¼ÅŸÃ¼k Puan</option>
                     <option value="newest">En Yeni</option>
                     <option value="oldest">En Eski</option>
                   </select>
@@ -314,7 +304,7 @@ export default function ProductReviews({ productId, productName = "Ürün", prod
                       : "border-gray-300 hover:border-black"
                       }`}
                   >
-                    {rating} Yıldız
+                    {rating} YÄ±ldÄ±z
                   </button>
                 ))}
               </div>
@@ -353,7 +343,7 @@ function ReviewCard({ review }: { review: Review }) {
             {review.isVerified && (
               <div className="flex items-center gap-1 text-xs text-gray-600">
                 <Check className="w-3 h-3" />
-                <span>Doğrulanmış Alıcı</span>
+                <span>DoÄŸrulanmÄ±ÅŸ AlÄ±cÄ±</span>
               </div>
             )}
           </div>

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -43,11 +43,11 @@ export default function DateRangeSelector({
                     <SelectValue placeholder="Select period" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="today">Bugün</SelectItem>
-                    <SelectItem value="7d">Son 7 Gün</SelectItem>
-                    <SelectItem value="30d">Son 30 Gün</SelectItem>
-                    <SelectItem value="90d">Son 90 Gün</SelectItem>
-                    <SelectItem value="custom">Özel Tarih Aralığı</SelectItem>
+                    <SelectItem value="today">BugÃ¼n</SelectItem>
+                    <SelectItem value="7d">Son 7 GÃ¼n</SelectItem>
+                    <SelectItem value="30d">Son 30 GÃ¼n</SelectItem>
+                    <SelectItem value="90d">Son 90 GÃ¼n</SelectItem>
+                    <SelectItem value="custom">Ã–zel Tarih AralÄ±ÄŸÄ±</SelectItem>
                 </SelectContent>
             </Select>
 
@@ -58,7 +58,6 @@ export default function DateRangeSelector({
                         className="px-3 py-2 border rounded-md text-sm"
                         onChange={(e) => {
                             if (onCustomRange && e.target.value) {
-                                // Will be called when end date is also selected
                             }
                         }}
                     />
@@ -68,7 +67,6 @@ export default function DateRangeSelector({
                         className="px-3 py-2 border rounded-md text-sm"
                         onChange={(e) => {
                             if (onCustomRange && e.target.value) {
-                                // Simplified - in production, collect both dates
                                 const endDate = new Date(e.target.value);
                                 const startDate = new Date(endDate);
                                 startDate.setDate(startDate.getDate() - 30);
@@ -82,7 +80,6 @@ export default function DateRangeSelector({
     );
 }
 
-// Helper to get date range from value
 export function getDateRange(value: DateRangeValue): { startDate: Date; endDate: Date } {
     const now = new Date();
     const endDate = new Date();

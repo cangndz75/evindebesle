@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useEffect, useId, useMemo, useRef, useState } from "react"
 import {
@@ -102,7 +102,6 @@ type Item = {
   balance: number
 }
 
-// Custom filter function for multi-column searching
 const multiColumnFilterFn: FilterFn<Item> = (row, columnId, filterValue) => {
   const searchableRowContent =
     `${row.original.name} ${row.original.email}`.toLowerCase()
@@ -271,7 +270,6 @@ export default function Component() {
     },
   })
 
-  // Get unique status values
   const uniqueStatusValues = useMemo(() => {
     const statusColumn = table.getColumn("status")
 
@@ -282,7 +280,6 @@ export default function Component() {
     return values.sort()
   }, [table.getColumn("status")?.getFacetedUniqueValues()])
 
-  // Get counts for each status
   const statusCounts = useMemo(() => {
     const statusColumn = table.getColumn("status")
     if (!statusColumn) return new Map()
@@ -517,7 +514,6 @@ export default function Component() {
                           )}
                           onClick={header.column.getToggleSortingHandler()}
                           onKeyDown={(e) => {
-                            // Enhanced keyboard handling for sorting
                             if (
                               header.column.getCanSort() &&
                               (e.key === "Enter" || e.key === " ")
@@ -739,18 +735,18 @@ function RowActions({ row }: { row: Row<Item> }) {
         <DropdownMenuGroup>
           <DropdownMenuItem>
             <span>Edit</span>
-            <DropdownMenuShortcut>⌘E</DropdownMenuShortcut>
+            <DropdownMenuShortcut>âŒ˜E</DropdownMenuShortcut>
           </DropdownMenuItem>
           <DropdownMenuItem>
             <span>Duplicate</span>
-            <DropdownMenuShortcut>⌘D</DropdownMenuShortcut>
+            <DropdownMenuShortcut>âŒ˜D</DropdownMenuShortcut>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem>
             <span>Archive</span>
-            <DropdownMenuShortcut>⌘A</DropdownMenuShortcut>
+            <DropdownMenuShortcut>âŒ˜A</DropdownMenuShortcut>
           </DropdownMenuItem>
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>More</DropdownMenuSubTrigger>
@@ -772,7 +768,7 @@ function RowActions({ row }: { row: Row<Item> }) {
         <DropdownMenuSeparator />
         <DropdownMenuItem className="text-destructive focus:text-destructive">
           <span>Delete</span>
-          <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
+          <DropdownMenuShortcut>âŒ˜âŒ«</DropdownMenuShortcut>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

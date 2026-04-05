@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
@@ -37,7 +37,6 @@ export default function AdminNewArrivalsPage() {
   const [loading, setLoading] = useState(false);
   const [searching, setSearching] = useState(false);
 
-  // Debounced Search & Filter
   useEffect(() => {
     const timer = setTimeout(() => {
       if (search.length >= 2 || selectedCategoryId !== "all" || selectedGender !== "all") {
@@ -99,7 +98,7 @@ export default function AdminNewArrivalsPage() {
       }
     } catch (e) {
       console.error(e);
-      toast.error("Liste yüklenemedi");
+      toast.error("Liste yÃ¼klenemedi");
     } finally {
       setLoading(false);
     }
@@ -115,14 +114,13 @@ export default function AdminNewArrivalsPage() {
 
       if (res.ok) {
         toast.success("Listeye eklendi!");
-        // Arama ve sonuçları SI-FIR-LA-MI-YO-RUZ
         fetchNewArrivalItems();
       } else {
         const err = await res.json();
-        toast.error(err.error || "Hata oluştu");
+        toast.error(err.error || "Hata oluÅŸtu");
       }
     } catch (e) {
-      toast.error("Bir hata oluştu");
+      toast.error("Bir hata oluÅŸtu");
     }
   };
 
@@ -130,13 +128,13 @@ export default function AdminNewArrivalsPage() {
     try {
       const res = await fetch(`/api/admin-new-arrivals?productId=${productId}`, { method: "DELETE" });
       if (res.ok) {
-        toast.success("Listeden çıkarıldı!");
+        toast.success("Listeden Ã§Ä±karÄ±ldÄ±!");
         fetchNewArrivalItems();
       } else {
         toast.error("Silinemedi");
       }
     } catch (e) {
-      toast.error("Bir hata oluştu");
+      toast.error("Bir hata oluÅŸtu");
     }
   };
 
@@ -163,13 +161,13 @@ export default function AdminNewArrivalsPage() {
       });
 
       if (!res.ok) {
-        toast.error("Sıralama güncellenemedi");
+        toast.error("SÄ±ralama gÃ¼ncellenemedi");
         fetchNewArrivalItems(); 
       } else {
-        toast.success("Sıralama güncellendi");
+        toast.success("SÄ±ralama gÃ¼ncellendi");
       }
     } catch (e) {
-      toast.error("Sıralama yüklenirken hata oluştu");
+      toast.error("SÄ±ralama yÃ¼klenirken hata oluÅŸtu");
     }
   };
 
@@ -188,24 +186,24 @@ export default function AdminNewArrivalsPage() {
   return (
     <div className="space-y-6 lg:p-6 p-4">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Yeni Gelenler Modülü</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Yeni Gelenler ModÃ¼lÃ¼</h1>
         <p className="text-muted-foreground mt-2">
-          "/new-arrivals" sayfasında görünecek olan ürünleri bu listeden ekleyip sırasını değiştirebilirsiniz.
+          "/new-arrivals" sayfasÄ±nda gÃ¶rÃ¼necek olan Ã¼rÃ¼nleri bu listeden ekleyip sÄ±rasÄ±nÄ± deÄŸiÅŸtirebilirsiniz.
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Ürün Ara ve Ekle</CardTitle>
-            <CardDescription>İsme veya stok koduna göre arama yapabilirsiniz</CardDescription>
+            <CardTitle>ÃœrÃ¼n Ara ve Ekle</CardTitle>
+            <CardDescription>Ä°sme veya stok koduna gÃ¶re arama yapabilirsiniz</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Ürün adı veya kodu yazın..."
+                  placeholder="ÃœrÃ¼n adÄ± veya kodu yazÄ±n..."
                   className="pl-9"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -218,9 +216,9 @@ export default function AdminNewArrivalsPage() {
                     <SelectValue placeholder="Cinsiyet" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Tüm Cinsiyetler</SelectItem>
+                    <SelectItem value="all">TÃ¼m Cinsiyetler</SelectItem>
                     <SelectItem value="male">Erkek</SelectItem>
-                    <SelectItem value="female">Kadın</SelectItem>
+                    <SelectItem value="female">KadÄ±n</SelectItem>
                     <SelectItem value="unisex">Unisex</SelectItem>
                   </SelectContent>
                 </Select>
@@ -230,7 +228,7 @@ export default function AdminNewArrivalsPage() {
                     <SelectValue placeholder="Kategori" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Tüm Kategoriler</SelectItem>
+                    <SelectItem value="all">TÃ¼m Kategoriler</SelectItem>
                     {categories.map((cat) => (
                       <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
                     ))}
@@ -241,7 +239,7 @@ export default function AdminNewArrivalsPage() {
 
             {(search.length >= 2 || selectedCategoryId !== "all" || selectedGender !== "all") && searchResults.length === 0 && !searching && (
               <div className="text-center py-8 text-sm text-gray-400 font-light italic">
-                Sonuç bulunamadı
+                SonuÃ§ bulunamadÄ±
               </div>
             )}
 
@@ -293,26 +291,26 @@ export default function AdminNewArrivalsPage() {
         <Card>
           <CardHeader>
              <CardTitle className="flex justify-between items-center">
-                Ekli Ürünler
+                Ekli ÃœrÃ¼nler
                 <span className="text-sm font-normal text-muted-foreground bg-gray-100 px-2 py-1 rounded">
-                   {newArrivalItems.length} Ürün
+                   {newArrivalItems.length} ÃœrÃ¼n
                 </span>
              </CardTitle>
-             <CardDescription>Bu listedeki ürünleri sıralayın veya çıkartın</CardDescription>
+             <CardDescription>Bu listedeki Ã¼rÃ¼nleri sÄ±ralayÄ±n veya Ã§Ä±kartÄ±n</CardDescription>
           </CardHeader>
           <CardContent>
              {loading ? (
-                <div className="text-center py-4 text-sm text-gray-500">Yükleniyor...</div>
+                <div className="text-center py-4 text-sm text-gray-500">YÃ¼kleniyor...</div>
              ) : newArrivalItems.length === 0 ? (
-                <div className="text-center py-4 text-sm text-gray-500">Bu listede henüz ürün yok.</div>
+                <div className="text-center py-4 text-sm text-gray-500">Bu listede henÃ¼z Ã¼rÃ¼n yok.</div>
              ) : (
                 <Table>
                    <TableHeader>
                       <TableRow>
-                         <TableHead>Sıra</TableHead>
+                         <TableHead>SÄ±ra</TableHead>
                          <TableHead>Resim</TableHead>
-                         <TableHead>Ürün Adı</TableHead>
-                         <TableHead className="text-right">İşlem</TableHead>
+                         <TableHead>ÃœrÃ¼n AdÄ±</TableHead>
+                         <TableHead className="text-right">Ä°ÅŸlem</TableHead>
                       </TableRow>
                    </TableHeader>
                    <TableBody>

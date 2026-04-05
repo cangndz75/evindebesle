@@ -1,9 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { generateUniqueStockCode, generateMissingStockCodes } from "@/lib/skuGenerator";
 
-// GET: Eksik stok kodlarını listele
 export async function GET(req: NextRequest) {
     try {
         const user = await getCurrentUser();
@@ -24,7 +23,6 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ missingCount: count });
         }
 
-        // List products without stock codes
         const products = await prisma.product.findMany({
             where: {
                 OR: [{ stockCode: null }, { stockCode: "" }],
@@ -47,7 +45,6 @@ export async function GET(req: NextRequest) {
     }
 }
 
-// POST: Stok kodlarını oluştur
 export async function POST(req: NextRequest) {
     try {
         const user = await getCurrentUser();
@@ -57,7 +54,6 @@ export async function POST(req: NextRequest) {
 
         const { productId, generateAll } = await req.json();
 
-        // Generate for single product
         if (productId) {
             const product = await prisma.product.findUnique({
                 where: { id: productId },
@@ -72,14 +68,14 @@ export async function POST(req: NextRequest) {
 
             if (!product) {
                 return NextResponse.json(
-                    { error: "Ürün bulunamadı" },
+                    { error: "ÃœrÃ¼n bulunamadÄ±" },
                     { status: 404 }
                 );
             }
 
             if (product.stockCode) {
                 return NextResponse.json(
-                    { error: "Bu ürünün zaten bir stok kodu var", stockCode: product.stockCode },
+                    { error: "Bu Ã¼rÃ¼nÃ¼n zaten bir stok kodu var", stockCode: product.stockCode },
                     { status: 400 }
                 );
             }
@@ -108,13 +104,12 @@ export async function POST(req: NextRequest) {
             });
         }
 
-        // Generate for all products without stock codes
         if (generateAll) {
             const result = await generateMissingStockCodes();
 
             return NextResponse.json({
                 success: true,
-                message: `${result.updated} ürün için stok kodu oluşturuldu`,
+                message: `${result.updated} Ã¼rÃ¼n iÃ§in stok kodu oluÅŸturuldu`,
                 updated: result.updated,
                 failed: result.failed,
             });
@@ -127,7 +122,7 @@ export async function POST(req: NextRequest) {
     } catch (error) {
         console.error("Error generating SKU:", error);
         return NextResponse.json(
-            { error: "Stok kodu oluşturulurken hata oluştu" },
+            { error: "Stok kodu oluÅŸturulurken hata oluÅŸtu" },
             { status: 500 }
         );
     }

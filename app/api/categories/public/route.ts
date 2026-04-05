@@ -1,7 +1,6 @@
-import { prisma } from "@/lib/db";
+﻿import { prisma } from "@/lib/db";
 import { NextResponse } from "next/server";
 
-// GET: Public kategori listesi (ana sayfa için)
 export async function GET() {
     try {
         const categories = await prisma.category.findMany({
@@ -25,7 +24,7 @@ export async function GET() {
     } catch (error: any) {
         console.error("Public categories fetch error:", error);
         return NextResponse.json(
-            { error: "Kategoriler yüklenemedi" },
+            { error: "Kategoriler yÃ¼klenemedi" },
             { status: 500 }
         );
     }

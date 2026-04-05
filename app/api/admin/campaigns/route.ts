@@ -1,9 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 
-// GET: Tüm kampanyaları listele
 export async function GET(req: NextRequest) {
   try {
     const user = await getCurrentUser();
@@ -25,7 +24,6 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST: Yeni kampanya oluştur
 export async function POST(req: NextRequest) {
   try {
     const user = await getCurrentUser();
@@ -47,8 +45,6 @@ export async function POST(req: NextRequest) {
       scheduleAt,
     } = body;
 
-    // Prisma schema'da Campaign modeli olmalı
-    // Şimdilik basit bir JSON storage kullanıyoruz
     const campaign = await prisma.campaign.create({
       data: {
         name,
@@ -75,7 +71,6 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// PUT: Kampanya güncelle
 export async function PUT(req: NextRequest) {
   try {
     const user = await getCurrentUser();

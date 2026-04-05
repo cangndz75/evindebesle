@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -83,7 +83,6 @@ export default function ProductDetailPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // SEO alanları
   const [metaTitle, setMetaTitle] = useState("");
   const [metaDescription, setMetaDescription] = useState("");
   const [canonicalUrl, setCanonicalUrl] = useState("");
@@ -101,14 +100,13 @@ export default function ProductDetailPage() {
       if (res.ok) {
         const data = await res.json();
         setProduct(data);
-        // SEO alanlarını varsayılan değerlerle doldur
         setMetaTitle(data.name || "");
         setMetaDescription(data.description || "");
         setCanonicalUrl(data.slug ? `/products/${data.slug}` : "");
       }
     } catch (error) {
       console.error("Error fetching product:", error);
-      toast.error("Ürün yüklenirken bir hata oluştu");
+      toast.error("ÃœrÃ¼n yÃ¼klenirken bir hata oluÅŸtu");
     } finally {
       setLoading(false);
     }
@@ -130,13 +128,13 @@ export default function ProductDetailPage() {
       });
 
       if (res.ok) {
-        toast.success("Ürün güncellendi");
+        toast.success("ÃœrÃ¼n gÃ¼ncellendi");
         fetchProduct();
       } else {
-        throw new Error("Güncelleme başarısız");
+        throw new Error("GÃ¼ncelleme baÅŸarÄ±sÄ±z");
       }
     } catch (error) {
-      toast.error("Ürün güncellenirken bir hata oluştu");
+      toast.error("ÃœrÃ¼n gÃ¼ncellenirken bir hata oluÅŸtu");
     } finally {
       setSaving(false);
     }
@@ -151,11 +149,11 @@ export default function ProductDetailPage() {
       });
 
       if (res.ok) {
-        toast.success("Varyant stoku güncellendi");
+        toast.success("Varyant stoku gÃ¼ncellendi");
         fetchProduct();
       }
     } catch (error) {
-      toast.error("Stok güncellenirken bir hata oluştu");
+      toast.error("Stok gÃ¼ncellenirken bir hata oluÅŸtu");
     }
   };
 
@@ -178,8 +176,8 @@ export default function ProductDetailPage() {
   if (!product) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
-        <p className="text-gray-600 mb-4">Ürün bulunamadı</p>
-        <Button onClick={() => router.back()}>Geri Dön</Button>
+        <p className="text-gray-600 mb-4">ÃœrÃ¼n bulunamadÄ±</p>
+        <Button onClick={() => router.back()}>Geri DÃ¶n</Button>
       </div>
     );
   }
@@ -202,7 +200,7 @@ export default function ProductDetailPage() {
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={() => router.push(`/products/${product.slug}`)}>
             <Eye className="w-4 h-4 mr-2" />
-            Önizle
+            Ã–nizle
           </Button>
           <Button onClick={handleSave} disabled={saving}>
             <Save className="w-4 h-4 mr-2" />
@@ -216,7 +214,7 @@ export default function ProductDetailPage() {
           <TabsTrigger value="general">Genel</TabsTrigger>
           <TabsTrigger value="variants">Varyantlar</TabsTrigger>
           <TabsTrigger value="seo">SEO</TabsTrigger>
-          <TabsTrigger value="related">İlişkili Ürünler</TabsTrigger>
+          <TabsTrigger value="related">Ä°liÅŸkili ÃœrÃ¼nler</TabsTrigger>
         </TabsList>
 
         {/* Genel Bilgiler */}
@@ -229,7 +227,7 @@ export default function ProductDetailPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <Label>Ürün Adı</Label>
+                    <Label>ÃœrÃ¼n AdÄ±</Label>
                     <Input value={product.name} disabled className="mt-2" />
                   </div>
                   <div>
@@ -237,7 +235,7 @@ export default function ProductDetailPage() {
                     <Input value={product.slug || ""} disabled className="mt-2" />
                   </div>
                   <div>
-                    <Label>Açıklama</Label>
+                    <Label>AÃ§Ä±klama</Label>
                     <Textarea
                       value={product.description || ""}
                       disabled
@@ -255,12 +253,12 @@ export default function ProductDetailPage() {
                 </CardContent>
               </Card>
 
-              {/* Kalite Uyarıları */}
+              {/* Kalite UyarÄ±larÄ± */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <AlertTriangle className="w-5 h-5 text-amber-500" />
-                    Kalite Kontrolü
+                    Kalite KontrolÃ¼
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -268,25 +266,25 @@ export default function ProductDetailPage() {
                     {!product.image && (
                       <div className="flex items-center gap-2 text-sm text-amber-600">
                         <ImageIcon className="w-4 h-4" />
-                        <span>Görsel eksik</span>
+                        <span>GÃ¶rsel eksik</span>
                       </div>
                     )}
                     {(!product.colors || product.colors.length === 0) && (
                       <div className="flex items-center gap-2 text-sm text-amber-600">
                         <Tag className="w-4 h-4" />
-                        <span>Renk varyantı eksik</span>
+                        <span>Renk varyantÄ± eksik</span>
                       </div>
                     )}
                     {(!product.sizes || product.sizes.length === 0) && (
                       <div className="flex items-center gap-2 text-sm text-amber-600">
                         <Package className="w-4 h-4" />
-                        <span>Beden varyantı eksik</span>
+                        <span>Beden varyantÄ± eksik</span>
                       </div>
                     )}
                     {!product.description && (
                       <div className="flex items-center gap-2 text-sm text-amber-600">
                         <AlertTriangle className="w-4 h-4" />
-                        <span>Açıklama eksik</span>
+                        <span>AÃ§Ä±klama eksik</span>
                       </div>
                     )}
                     {!product.stockCode && (
@@ -303,7 +301,7 @@ export default function ProductDetailPage() {
                       product.description &&
                       product.stockCode && (
                         <div className="flex items-center gap-2 text-sm text-green-600">
-                          <span>✓ Tüm alanlar tamamlandı</span>
+                          <span>âœ“ TÃ¼m alanlar tamamlandÄ±</span>
                         </div>
                       )}
                   </div>
@@ -318,7 +316,7 @@ export default function ProductDetailPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <Label>Yayın Durumu</Label>
+                    <Label>YayÄ±n Durumu</Label>
                     <Badge variant={product.isActive ? "default" : "secondary"}>
                       {product.isActive ? "Aktif" : "Taslak"}
                     </Badge>
@@ -341,13 +339,13 @@ export default function ProductDetailPage() {
         <TabsContent value="variants" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Varyant Yönetimi</CardTitle>
+              <CardTitle>Varyant YÃ¶netimi</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {product.variants.length === 0 ? (
                   <p className="text-sm text-gray-500 text-center py-4">
-                    Henüz varyant eklenmemiş
+                    HenÃ¼z varyant eklenmemiÅŸ
                   </p>
                 ) : (
                   <div className="rounded-md border overflow-x-auto">
@@ -359,7 +357,7 @@ export default function ProductDetailPage() {
                           <th className="text-left p-3">Beden</th>
                           <th className="text-left p-3">Stok</th>
                           <th className="text-left p-3">Fiyat</th>
-                          <th className="text-left p-3">Satış (Sale)</th>
+                          <th className="text-left p-3">SatÄ±ÅŸ (Sale)</th>
                           <th className="text-left p-3">Piyasa (Market)</th>
                           <th className="text-left p-3">BuyBox</th>
                         </tr>
@@ -392,28 +390,28 @@ export default function ProductDetailPage() {
                             </td>
                             <td className="p-3">
                               {variant.price ? (
-                                <span>{variant.price.toFixed(2)} ₺</span>
+                                <span>{variant.price.toFixed(2)} â‚º</span>
                               ) : (
                                 <span className="text-gray-400">-</span>
                               )}
                             </td>
                             <td className="p-3">
                               {variant.salePrice ? (
-                                <span>{variant.salePrice.toFixed(2)} ₺</span>
+                                <span>{variant.salePrice.toFixed(2)} â‚º</span>
                               ) : (
                                 <span className="text-gray-400">-</span>
                               )}
                             </td>
                             <td className="p-3">
                               {variant.marketPrice ? (
-                                <span>{variant.marketPrice.toFixed(2)} ₺</span>
+                                <span>{variant.marketPrice.toFixed(2)} â‚º</span>
                               ) : (
                                 <span className="text-gray-400">-</span>
                               )}
                             </td>
                             <td className="p-3">
                               {variant.buyBoxPrice ? (
-                                <span>{variant.buyBoxPrice.toFixed(2)} ₺</span>
+                                <span>{variant.buyBoxPrice.toFixed(2)} â‚º</span>
                               ) : (
                                 <span className="text-gray-400">-</span>
                               )}
@@ -435,7 +433,7 @@ export default function ProductDetailPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <LinkIcon className="w-5 h-5" />
-                SEO Ayarları
+                SEO AyarlarÄ±
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -445,12 +443,12 @@ export default function ProductDetailPage() {
                   id="metaTitle"
                   value={metaTitle}
                   onChange={(e) => setMetaTitle(e.target.value)}
-                  placeholder="Ürün adı - Marka"
+                  placeholder="ÃœrÃ¼n adÄ± - Marka"
                   className="mt-2"
                   maxLength={60}
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  {metaTitle.length}/60 karakter (önerilen: 50-60)
+                  {metaTitle.length}/60 karakter (Ã¶nerilen: 50-60)
                 </p>
               </div>
               <div>
@@ -459,12 +457,12 @@ export default function ProductDetailPage() {
                   id="metaDescription"
                   value={metaDescription}
                   onChange={(e) => setMetaDescription(e.target.value)}
-                  placeholder="Ürün açıklaması..."
+                  placeholder="ÃœrÃ¼n aÃ§Ä±klamasÄ±..."
                   className="mt-2 min-h-[100px]"
                   maxLength={160}
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  {metaDescription.length}/160 karakter (önerilen: 150-160)
+                  {metaDescription.length}/160 karakter (Ã¶nerilen: 150-160)
                 </p>
               </div>
               <div>
@@ -477,23 +475,23 @@ export default function ProductDetailPage() {
                   className="mt-2"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Bu ürün için canonical URL (boş bırakılırsa otomatik oluşturulur)
+                  Bu Ã¼rÃ¼n iÃ§in canonical URL (boÅŸ bÄ±rakÄ±lÄ±rsa otomatik oluÅŸturulur)
                 </p>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* İlişkili Ürünler */}
+        {/* Ä°liÅŸkili ÃœrÃ¼nler */}
         <TabsContent value="related" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>İlişkili Ürünler / Upsell</CardTitle>
+              <CardTitle>Ä°liÅŸkili ÃœrÃ¼nler / Upsell</CardTitle>
             </CardHeader>
             <CardContent>
               {product.combinations.length === 0 ? (
                 <p className="text-sm text-gray-500 text-center py-4">
-                  Henüz ilişkili ürün eklenmemiş
+                  HenÃ¼z iliÅŸkili Ã¼rÃ¼n eklenmemiÅŸ
                 </p>
               ) : (
                 <div className="space-y-2">
@@ -517,7 +515,7 @@ export default function ProductDetailPage() {
                         size="sm"
                         onClick={() => router.push(`/admin-products/${combo.relatedProduct.id}`)}
                       >
-                        Görüntüle
+                        GÃ¶rÃ¼ntÃ¼le
                       </Button>
                     </div>
                   ))}

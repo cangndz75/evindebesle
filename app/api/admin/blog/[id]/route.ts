@@ -1,9 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 
-// GET: Single post
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
     const post = await prisma.blogPost.findUnique({ where: { id } });
@@ -11,7 +10,6 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     return NextResponse.json(post);
 }
 
-// PATCH: Update
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const user = await getCurrentUser();
@@ -24,7 +22,6 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         const existingPost = await prisma.blogPost.findUnique({ where: { id } });
         if (!existingPost) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-        // If title is changing, we should probably update the slug too to match
         let newSlug = undefined;
         if (body.title && body.title !== existingPost.title) {
             const { generateBlogSlug } = await import("@/lib/slug");
@@ -48,7 +45,6 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     }
 }
 
-// DELETE
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const user = await getCurrentUser();

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { prisma } from "@/lib/db";
@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
         const session = await getServerSession(authConfig);
 
         if (!session?.user?.isAdmin) {
-            return NextResponse.json({ error: "Yetkisiz erişim" }, { status: 403 });
+            return NextResponse.json({ error: "Yetkisiz eriÅŸim" }, { status: 403 });
         }
 
         const now = new Date();
@@ -17,7 +17,6 @@ export async function GET(req: NextRequest) {
         const sevenDaysAgo = subDays(now, 7);
         const thirtyDaysAgo = subDays(now, 30);
 
-        // Terk edilen sepetler - son 24 saat
         const abandonedCartsToday = await prisma.cartItem.groupBy({
             by: ["userId"],
             where: {
@@ -27,7 +26,6 @@ export async function GET(req: NextRequest) {
             _sum: { quantity: true }
         });
 
-        // Son 7 gün
         const abandonedCartsWeek = await prisma.cartItem.groupBy({
             by: ["userId"],
             where: {
@@ -37,7 +35,6 @@ export async function GET(req: NextRequest) {
             _sum: { quantity: true }
         });
 
-        // Son 30 gün
         const abandonedCartsMonth = await prisma.cartItem.groupBy({
             by: ["userId"],
             where: {
@@ -47,7 +44,6 @@ export async function GET(req: NextRequest) {
             _sum: { quantity: true }
         });
 
-        // Detaylı sepet verileri - kullanıcı bilgileriyle
         const detailedCarts = await prisma.cartItem.findMany({
             where: {
                 updatedAt: { gte: sevenDaysAgo }
@@ -85,7 +81,6 @@ export async function GET(req: NextRequest) {
             take: 100,
         });
 
-        // Kullanıcı bazlı gruplama
         const userCarts: Record<string, any> = {};
         for (const item of detailedCarts) {
             if (!item.userId) continue;
@@ -120,12 +115,10 @@ export async function GET(req: NextRequest) {
             (a: any, b: any) => b.totalValue - a.totalValue
         );
 
-        // Toplam potansiyel gelir
         const totalPotentialRevenue = abandonedCartsList.reduce(
             (sum: number, cart: any) => sum + cart.totalValue, 0
         );
 
-        // En çok terk edilen ürünler
         const productCounts: Record<string, { product: any; count: number; value: number }> = {};
         for (const item of detailedCarts) {
             const productId = item.product.id;
@@ -144,7 +137,6 @@ export async function GET(req: NextRequest) {
             .sort((a, b) => b.count - a.count)
             .slice(0, 10);
 
-        // Günlük trend (son 7 gün)
         const dailyTrend = [];
         for (let i = 6; i >= 0; i--) {
             const dayStart = subDays(now, i);
@@ -186,7 +178,7 @@ export async function GET(req: NextRequest) {
     } catch (error: any) {
         console.error("Abandoned carts error:", error);
         return NextResponse.json(
-            { error: "Terk edilen sepet verileri yüklenirken hata oluştu." },
+            { error: "Terk edilen sepet verileri yÃ¼klenirken hata oluÅŸtu." },
             { status: 500 }
         );
     }

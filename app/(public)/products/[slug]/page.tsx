@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+﻿import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import ProductDetailPage from "../../_components/ProductDetailPage";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
@@ -132,10 +132,9 @@ export default async function ProductSlugPage({
     },
   });
 
-  // Slug ile bulamazsa id ile dene (eski ürünler için fallback)
   if (!product) {
     product = await prisma.product.findUnique({
-      where: { id: slug }, // slug parametresi aslında id olabilir
+      where: { id: slug }, // slug parametresi aslÄ±nda id olabilir
       include: {
         colors: {
           include: {
@@ -235,7 +234,6 @@ export default async function ProductSlugPage({
     notFound();
   }
 
-  // Kullanıcının bu ürünü sipariş verip vermediğini kontrol et
   const user = await getCurrentUser();
   let hasOrdered = false;
 
@@ -243,7 +241,7 @@ export default async function ProductSlugPage({
     const orderCount = await prisma.order.count({
       where: {
         userId: user.id,
-        status: "DELIVERED", // Sadece teslim edilmiş siparişler
+        status: "DELIVERED", // Sadece teslim edilmiÅŸ sipariÅŸler
         items: {
           some: {
             productId: product.id,
@@ -254,7 +252,6 @@ export default async function ProductSlugPage({
     hasOrdered = orderCount > 0;
   }
 
-  // Variant'a göre renk seçimi
   let selectedColor = product.colors?.[0];
   if (variant) {
     const variantData = await prisma.productVariant.findUnique({
@@ -272,7 +269,6 @@ export default async function ProductSlugPage({
     }
   }
 
-  // ProductDetailPage için format
   const formattedProduct = {
     id: product.id,
     slug: product.slug,
@@ -283,7 +279,6 @@ export default async function ProductSlugPage({
     images: (() => {
       const allImageUrls = new Set<string>();
 
-      // 1. Renk bazlı images'ı ekle (JSON string veya array)
       if (selectedColor?.images) {
         let parsed: string[] = [];
         if (typeof selectedColor.images === 'string') {
@@ -298,17 +293,14 @@ export default async function ProductSlugPage({
         parsed.forEach(url => url && allImageUrls.add(url));
       }
 
-      // 2. ProductImage tablosundan bu renge ait olanları veya genel olanları (colorId null) ekle
       if (product.productImages) {
         product.productImages.forEach((img: any) => {
-          // Eğer bu renk seçiliyse, o rengin resimlerini VEYA genel resimleri ekle
           if (!img.colorId || img.colorId === selectedColor?.id) {
             if (img.url) allImageUrls.add(img.url);
           }
         });
       }
 
-      // 3. Legacy alanları fallback olarak ekle
       if (product.primaryImage) allImageUrls.add(product.primaryImage);
       if (product.image) allImageUrls.add(product.image);
 
@@ -317,13 +309,11 @@ export default async function ProductSlugPage({
         badge: undefined
       }));
 
-      // Debug
       console.log('[ProductSlugPage] Final Images Count:', finalImages.length);
 
       return finalImages;
     })(),
     colors: product.colors.map((c: any) => {
-      // images'ı parse et (eğer string ise)
       let parsedImages: string[] = [];
       if (c.images) {
         if (typeof c.images === 'string') {
@@ -342,19 +332,17 @@ export default async function ProductSlugPage({
         name: c.name,
         value: c.hexCode || "#000000",
         description: c.description || "",
-        variant: c.variants?.[0]?.variantCode, // İlk variant'ın kodunu al
+        variant: c.variants?.[0]?.variantCode, // Ä°lk variant'Ä±n kodunu al
         images: parsedImages,
-        image: parsedImages.length > 0 ? parsedImages[0] : undefined, // İlk resmi image olarak da ekle (TabbedProductCarousel uyumluluğu için)
+        image: parsedImages.length > 0 ? parsedImages[0] : undefined, // Ä°lk resmi image olarak da ekle (TabbedProductCarousel uyumluluÄŸu iÃ§in)
       };
     }),
     sizes: (() => {
-      // Debug: Server-side console'da görünecek
       console.log('[ProductSlugPage] Product sizes:', product.sizes);
       console.log('[ProductSlugPage] Product sizeOptions:', product.sizeOptions);
       console.log('[ProductSlugPage] Sizes length:', product.sizes?.length || 0);
       console.log('[ProductSlugPage] SizeOptions length:', product.sizeOptions?.length || 0);
 
-      // Eğer sizes doluysa onu kullan, değilse sizeOptions'ı kullan
       if (product.sizes && product.sizes.length > 0) {
         console.log('[ProductSlugPage] Using sizes');
         return product.sizes.map((s: any) => ({
@@ -367,16 +355,16 @@ export default async function ProductSlugPage({
         return product.sizeOptions.map((so: any) => ({
           id: so.id,
           name: so.name,
-          stock: 0, // sizeOptions için stok bilgisi yok, varsayılan 0
+          stock: 0, // sizeOptions iÃ§in stok bilgisi yok, varsayÄ±lan 0
         }));
       }
       console.log('[ProductSlugPage] No sizes found');
       return [];
     })(),
     variants: product.variants
-      .filter((v: any) => v.colorId !== null) // null colorId'li variant'ları filtrele
+      .filter((v: any) => v.colorId !== null) // null colorId'li variant'larÄ± filtrele
       .map((v: any) => ({
-        colorId: v.colorId!, // Non-null assertion çünkü yukarıda filtreledik
+        colorId: v.colorId!, // Non-null assertion Ã§Ã¼nkÃ¼ yukarÄ±da filtreledik
         sizeId: v.sizeId,
         stock: v.stock,
         variantCode: v.variantCode,
@@ -394,7 +382,7 @@ export default async function ProductSlugPage({
     fabric: product.fabricType || "",
     care: "",
     washing: "",
-    delivery: "2-3 iş günü içinde teslimat",
+    delivery: "2-3 iÅŸ gÃ¼nÃ¼ iÃ§inde teslimat",
     sizeNotes: "",
     combinations: product.combinations.map((c: any) => ({
       id: c.relatedProduct.id,

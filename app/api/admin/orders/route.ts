@@ -1,9 +1,8 @@
-import { prisma } from "@/lib/db";
+﻿import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 
-// GET: Tüm siparişleri getir (admin)
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authConfig);
@@ -11,7 +10,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Admin kontrolü
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: { isAdmin: true },
@@ -89,14 +87,14 @@ export async function GET(request: NextRequest) {
         },
       },
       orderBy: { createdAt: "desc" },
-      take: 100, // İlk 100 sipariş
+      take: 100, // Ä°lk 100 sipariÅŸ
     });
 
     return NextResponse.json(orders);
   } catch (error: any) {
     console.error("Admin orders fetch error:", error);
     return NextResponse.json(
-      { error: error.message || "Siparişler yüklenirken bir hata oluştu" },
+      { error: error.message || "SipariÅŸler yÃ¼klenirken bir hata oluÅŸtu" },
       { status: 500 }
     );
   }

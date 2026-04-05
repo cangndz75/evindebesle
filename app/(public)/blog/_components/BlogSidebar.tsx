@@ -1,10 +1,9 @@
-// app/blog/_components/BlogSidebar.tsx
-import { Suspense } from "react";
+﻿import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import BlogCategoryList from "./BlogCategoryList"; // client (useSearchParams), async değil
+import BlogCategoryList from "./BlogCategoryList"; // client (useSearchParams), async deÄŸil
 import BlogGallery from "./BlogGallery";           // client/server fark etmez
-import BlogRecentPosts from "./BlogRecentPosts";   // server (yukarıdaki)
-import BlogSearchBox from "./BlogSearchBox";       // client (useSearchParams), async değil
+import BlogRecentPosts from "./BlogRecentPosts";   // server (yukarÄ±daki)
+import BlogSearchBox from "./BlogSearchBox";       // client (useSearchParams), async deÄŸil
 import BlogTags from "./BlogTags";
 
 function Lines({ n = 5 }: { n?: number }) {

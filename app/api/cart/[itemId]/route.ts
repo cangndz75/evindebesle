@@ -1,9 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { prisma } from "@/lib/db";
 import { isRedisCartEnabled, updateRedisCartItemQuantity } from "@/lib/cart-redis";
 
-// Sepetteki ürün miktarını güncelle
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ itemId: string }> }
@@ -29,7 +28,7 @@ export async function PATCH(
       const updated = await updateRedisCartItemQuantity(user.id, itemId, quantity);
       if (!updated) {
         return NextResponse.json(
-          { error: "Sepet öğesi bulunamadı" },
+          { error: "Sepet Ã¶ÄŸesi bulunamadÄ±" },
           { status: 404 }
         );
       }
@@ -45,7 +44,7 @@ export async function PATCH(
 
       if (!targetItem) {
         return NextResponse.json(
-          { error: "Sepet öğesi bulunamadı" },
+          { error: "Sepet Ã¶ÄŸesi bulunamadÄ±" },
           { status: 404 }
         );
       }
@@ -67,18 +66,17 @@ export async function PATCH(
 
       return NextResponse.json(updated);
     } catch (prismaError: any) {
-      // Prisma hatası - öğe bulunamadı veya başka bir sorun
       if (prismaError.code === 'P2025') {
         return NextResponse.json(
-          { error: "Sepet öğesi bulunamadı" },
+          { error: "Sepet Ã¶ÄŸesi bulunamadÄ±" },
           { status: 404 }
         );
       }
-      throw prismaError; // Diğer hatalar için üst seviyeye fırlat
+      throw prismaError; // DiÄŸer hatalar iÃ§in Ã¼st seviyeye fÄ±rlat
     }
   } catch (error) {
     console.error("Error updating cart item:", error);
-    const errorMessage = error instanceof Error ? error.message : "Sepet öğesi güncellenirken bir hata oluştu";
+    const errorMessage = error instanceof Error ? error.message : "Sepet Ã¶ÄŸesi gÃ¼ncellenirken bir hata oluÅŸtu";
     return NextResponse.json(
       { error: errorMessage },
       { status: 500 }

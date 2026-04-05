@@ -1,16 +1,9 @@
-import { MetadataRoute } from "next";
+﻿import { MetadataRoute } from "next";
 import { prisma } from "@/lib/db";
 
-/**
- * Dynamic Sitemap Generator (Next.js 13+ standard)
- * 
- * Automatically generates sitemap.xml by fetching routes, 
- * products, categories, and blog posts from the database.
- */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://darkvelvet.com";
 
-    // 1) Base Routes
     const staticRoutes = [
         { path: "", priority: 1.0, changeFrequency: "daily" as const },
         { path: "/home", priority: 1.0, changeFrequency: "daily" as const },
@@ -28,7 +21,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }));
 
     try {
-        // 2) Dynamic Categories
         const categories = await prisma.category.findMany({
             where: { isActive: true },
             select: { slug: true, updatedAt: true },
@@ -41,7 +33,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             priority: 0.8,
         }));
 
-        // 3) Dynamic Products with Images
         const products = await prisma.product.findMany({
             where: { isActive: true },
             select: {
@@ -68,7 +59,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             };
         });
 
-        // 4) Dynamic Blog Posts
         const posts = await prisma.blogPost.findMany({
             where: { isPublished: true },
             select: { slug: true, updatedAt: true },
@@ -84,7 +74,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         return [...staticRoutes, ...categoryRoutes, ...productRoutes, ...blogRoutes];
     } catch (error) {
         console.error("Sitemap generation database error (likely quota exceeded):", error);
-        // Fallback to static routes so the build doesn't fail
         return staticRoutes;
     }
 }

@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/db";
+﻿import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
 import SharedFavoritesClient from "./_components/SharedFavoritesClient";
 
@@ -16,7 +16,6 @@ export default async function SharedFavoritesPage({
     notFound();
   }
 
-  // Share ID'ye göre kullanıcıyı bul
   const wishlistShare = await prisma.wishlistShare.findUnique({
     where: { shareId },
     include: {
@@ -33,7 +32,6 @@ export default async function SharedFavoritesPage({
     notFound();
   }
 
-  // Kullanıcının favorilerini getir
   const favoritesRaw = await prisma.productFavorite.findMany({
     where: { userId: wishlistShare.userId },
     include: {

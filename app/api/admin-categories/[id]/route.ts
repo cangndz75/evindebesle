@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/db";
+﻿import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
@@ -6,7 +6,6 @@ import { authConfig } from "@/lib/auth.config";
 import { logAuditAction } from "@/lib/auditLog";
 
 
-// GET: Kategori detayını getir
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -24,27 +23,26 @@ export async function GET(
       include: {
         _count: {
           select: {
-            products: true, // Deprecated ama çalışıyor
+            products: true, // Deprecated ama Ã§alÄ±ÅŸÄ±yor
           },
         },
       },
     });
 
     if (!category) {
-      return NextResponse.json({ error: "Kategori bulunamadı" }, { status: 404 });
+      return NextResponse.json({ error: "Kategori bulunamadÄ±" }, { status: 404 });
     }
 
     return NextResponse.json(category);
   } catch (error: any) {
     console.error("Category fetch error:", error);
     return NextResponse.json(
-      { error: error.message || "Kategori getirilirken bir hata oluştu" },
+      { error: error.message || "Kategori getirilirken bir hata oluÅŸtu" },
       { status: 500 }
     );
   }
 }
 
-// PATCH: Kategoriyi güncelle
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -65,11 +63,9 @@ export async function PATCH(
       const targetName = name !== undefined ? name : (await prisma.category.findUnique({ where: { id } }))?.name || "";
       const targetGender = gender !== undefined ? gender : (await prisma.category.findUnique({ where: { id } }))?.gender || null;
 
-      // Slug oluştur (lib/slug.ts kullanılarak)
       const { generateSlug } = await import("@/lib/slug");
       const baseSlug = generateSlug(targetName);
 
-      // Cinsiyet prefix'i ekle
       let slugPrefix = "";
       if (targetGender === "MALE") slugPrefix = "men-";
       else if (targetGender === "FEMALE") slugPrefix = "women-";
@@ -77,7 +73,6 @@ export async function PATCH(
 
       const slug = `${slugPrefix}${baseSlug}`;
 
-      // Slug unique kontrolü
       let finalSlug = slug;
       let counter = 1;
       const existing = await prisma.category.findUnique({ where: { id } });
@@ -109,7 +104,6 @@ export async function PATCH(
       data: updateData,
     });
 
-    // Audit Log
     await logAuditAction({
       action: "CATEGORY_UPDATE",
       adminId: session.user.id,
@@ -132,13 +126,12 @@ export async function PATCH(
   } catch (error: any) {
     console.error("Category update error:", error);
     return NextResponse.json(
-      { error: error.message || "Kategori güncellenirken bir hata oluştu" },
+      { error: error.message || "Kategori gÃ¼ncellenirken bir hata oluÅŸtu" },
       { status: 500 }
     );
   }
 }
 
-// DELETE: Kategoriyi sil
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -151,14 +144,13 @@ export async function DELETE(
 
     const { id } = await params;
 
-    // Kategoriyi kullanan ürün var mı kontrol et
     const productCount = await prisma.product.count({
       where: { categoryId: id },
     });
 
     if (productCount > 0) {
       return NextResponse.json(
-        { error: "Bu kategori kullanıldığı için silinemez" },
+        { error: "Bu kategori kullanÄ±ldÄ±ÄŸÄ± iÃ§in silinemez" },
         { status: 400 }
       );
     }
@@ -169,7 +161,6 @@ export async function DELETE(
       where: { id },
     });
 
-    // Audit Log
     await logAuditAction({
       action: "CATEGORY_DELETE",
       adminId: session.user.id,
@@ -191,7 +182,7 @@ export async function DELETE(
   } catch (error: any) {
     console.error("Category deletion error:", error);
     return NextResponse.json(
-      { error: error.message || "Kategori silinirken bir hata oluştu" },
+      { error: error.message || "Kategori silinirken bir hata oluÅŸtu" },
       { status: 500 }
     );
   }

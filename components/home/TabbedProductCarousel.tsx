@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
@@ -82,7 +82,6 @@ export default function TabbedProductCarousel({
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
-    // Scroll'u sıfırla
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollLeft = 0;
       setTimeout(checkScroll, 100);
@@ -97,15 +96,15 @@ export default function TabbedProductCarousel({
           className="w-full"
           onValueChange={handleTabChange}
         >
-          {/* Modern Header - Ortalanmış */}
+          {/* Modern Header - OrtalanmÄ±ÅŸ */}
           <div className="flex flex-col items-center mb-12 px-4">
-            {/* Başlık */}
+            {/* BaÅŸlÄ±k */}
             <div className="text-center mb-8">
               <span className="inline-block text-xs font-medium tracking-[0.3em] text-[#111]/40 uppercase mb-3">
-                KEŞFET
+                KEÅFET
               </span>
               <h2 className="text-3xl md:text-4xl font-light text-[#111] tracking-tight">
-                Sizin İçin Seçtiklerimiz
+                Sizin Ä°Ã§in SeÃ§tiklerimiz
               </h2>
             </div>
 
@@ -121,25 +120,25 @@ export default function TabbedProductCarousel({
                 value="best-sellers"
                 className="px-4 md:px-6 py-2.5 text-xs font-medium uppercase tracking-wider rounded-full transition-all duration-300 data-[state=active]:bg-[#111] data-[state=active]:text-white data-[state=active]:shadow-md text-[#111]/60 hover:text-[#111]"
               >
-                En Çok Satanlar
+                En Ã‡ok Satanlar
               </TabsTrigger>
               <TabsTrigger
                 value="recommended"
                 className="px-4 md:px-6 py-2.5 text-xs font-medium uppercase tracking-wider rounded-full transition-all duration-300 data-[state=active]:bg-[#111] data-[state=active]:text-white data-[state=active]:shadow-md text-[#111]/60 hover:text-[#111]"
               >
-                Önerilenler
+                Ã–nerilenler
               </TabsTrigger>
             </TabsList>
           </div>
 
-          {/* Carousel Kontrolleri - Sağ üstte */}
+          {/* Carousel Kontrolleri - SaÄŸ Ã¼stte */}
           <div className="flex items-center justify-end gap-4 mb-6 px-4 md:px-8">
             {getViewAllLink() && (
               <Link
                 href={getViewAllLink()!}
                 className="text-xs font-medium text-[#111] hover:opacity-70 transition-opacity uppercase tracking-wider hidden sm:inline-flex items-center gap-2 group"
               >
-                TÜMÜNÜ GÖR
+                TÃœMÃœNÃœ GÃ–R
                 <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </Link>
             )}
@@ -148,7 +147,7 @@ export default function TabbedProductCarousel({
                 onClick={scrollPrev}
                 disabled={!canScrollPrev}
                 className="w-10 h-10 flex items-center justify-center border border-gray-300 rounded-full hover:bg-[#111] hover:text-white hover:border-[#111] transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-[#111] disabled:hover:border-gray-300"
-                aria-label="Önceki"
+                aria-label="Ã–nceki"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
@@ -225,9 +224,7 @@ function ProductCarouselContent({
     setModalOpen(true);
     setReviews([]);
     setProductDetails(null);
-    // Yorumları ve ürün detaylarını çek (paralel)
     if (product.id) {
-      // Yorumları çek (loading state olmadan)
       fetch(`/api/admin-products/${product.id}/reviews?approved=true`)
         .then((res) => res.json())
         .then((data) => {
@@ -239,7 +236,6 @@ function ProductCarouselContent({
         })
         .catch(() => setReviews([]));
 
-      // Ürün detaylarını çek (description, detailText, sizes, colors dahil)
       fetch(`/api/products/${product.id}`)
         .then((res) => res.json())
         .then((data) => {
@@ -249,7 +245,6 @@ function ProductCarouselContent({
               detailText: data.detailText || "",
             });
 
-            // Colors bilgisini parse et ve sakla
             const parseImages = (images: string | null): string[] => {
               if (!images) return [];
               try {
@@ -273,13 +268,11 @@ function ProductCarouselContent({
 
             setProductColors(colors);
 
-            // Tüm resimleri topla (primaryImage, secondaryImage, color images)
             const allImages: string[] = [];
             if (data.primaryImage) allImages.push(data.primaryImage);
             if (data.secondaryImage && data.secondaryImage !== data.primaryImage) allImages.push(data.secondaryImage);
             if (data.image && !allImages.includes(data.image)) allImages.push(data.image);
 
-            // Her renk için ilk resmi ekle
             colors.forEach((color: any) => {
               if (color.images && color.images.length > 0) {
                 color.images.forEach((img: string) => {
@@ -293,12 +286,10 @@ function ProductCarouselContent({
             setProductImages(allImages.length > 0 ? allImages : [data.primaryImage || data.image || ""].filter(Boolean));
             setSelectedImageIndex(0);
 
-            // İlk rengi seç
             if (colors.length > 0 && !selectedColor) {
               setSelectedColor(colors[0].id);
             }
 
-            // Sizes, slug, image, name ve price bilgisini güncelle
             const updatedProduct: Partial<Product> = {
               ...selectedProduct!,
               id: data.id || selectedProduct?.id || product.id, // ID'yi mutlaka koru
@@ -308,7 +299,6 @@ function ProductCarouselContent({
               originalPrice: data.originalPrice ?? selectedProduct?.originalPrice,
             };
 
-            // Seçili renge göre image güncelle
             const selectedColorData = colors.find((c: any) => c.id === (selectedColor || colors[0]?.id));
             if (selectedColorData) {
               updatedProduct.image = selectedColorData.image || data.primaryImage || data.image;
@@ -319,7 +309,6 @@ function ProductCarouselContent({
                 stock: v.stock,
               })) || [];
             } else {
-              // Image bilgisini güncelle
               if (data.primaryImage || data.image) {
                 updatedProduct.image = data.primaryImage || data.image;
               }
@@ -328,7 +317,6 @@ function ProductCarouselContent({
               }
             }
 
-            // Sizes bilgisini güncelle - MUTLAKA güncelle
             if (data.sizes && Array.isArray(data.sizes) && data.sizes.length > 0) {
               updatedProduct.sizes = data.sizes.map((s: any) => ({
                 name: s.name,
@@ -336,7 +324,6 @@ function ProductCarouselContent({
                 id: s.id,
               }));
             } else if (data.sizeOptions && Array.isArray(data.sizeOptions) && data.sizeOptions.length > 0) {
-              // Eğer sizes yoksa sizeOptions'tan oluştur
               updatedProduct.sizeOptions = data.sizeOptions.map((so: any) => ({
                 name: so.name,
                 id: so.id,
@@ -354,20 +341,19 @@ function ProductCarouselContent({
     if (!selectedProduct) return;
 
     if (!selectedProduct.id) {
-      toast.error("Ürün bilgisi bulunamadı", {
+      toast.error("ÃœrÃ¼n bilgisi bulunamadÄ±", {
         position: "bottom-left",
       });
       return;
     }
 
     if (!selectedSize) {
-      toast.error("Lütfen bir beden seçin", {
+      toast.error("LÃ¼tfen bir beden seÃ§in", {
         position: "bottom-left",
       });
       return;
     }
 
-    // Renk ID'sini bul - SADECE ID kullan, image URL'i kullanma!
     let colorIdToSend = null;
     if (selectedColor) {
       const colors = (selectedProduct.colors || []) as any[];
@@ -377,22 +363,17 @@ function ProductCarouselContent({
         }
         return c.id === selectedColor || c.image === selectedColor || c.value === selectedColor || c.name === selectedColor;
       });
-      // SADECE id kullan, image URL'i değil!
-      // Eğer selectedColor zaten bir ID formatındaysa (UUID gibi) onu kullan
       if (colorObj?.id) {
         colorIdToSend = colorObj.id;
       } else if (selectedColor && /^[a-f0-9-]{36}$/i.test(selectedColor)) {
-        // UUID formatındaysa direkt kullan
         colorIdToSend = selectedColor;
       } else {
-        // Son çare olarak product'ın colorId'sini kullan
         colorIdToSend = selectedProduct.colorId || null;
       }
     } else {
       colorIdToSend = selectedProduct.colorId || null;
     }
 
-    // Beden ID'sini bul
     let sizeIdToSend = null;
     const availableSizes = getAvailableSizes(selectedProduct);
     const sizeObj = availableSizes.find((s: any) => {
@@ -420,7 +401,6 @@ function ProductCarouselContent({
       if (res.ok) {
         const result = await res.json();
 
-        // Giriş yapmamış kullanıcı için localStorage'a kaydet
         if (!result.userId && result.product) {
           addToGuestCart(
             selectedProduct.id,
@@ -440,11 +420,8 @@ function ProductCarouselContent({
 
         window.dispatchEvent(new Event("cartUpdated"));
 
-        // Pop-up için event gönder (modal kapanmadan önce)
-        // API response'undan resim bilgisini al
         let productImage = selectedProduct.image;
 
-        // Önce seçili renge göre görseli kontrol et
         if (selectedColor && productColors.length > 0) {
           const selectedColorData = productColors.find((c) => c.id === selectedColor);
           if (selectedColorData?.image) {
@@ -454,9 +431,7 @@ function ProductCarouselContent({
           }
         }
 
-        // API response'undan renk görsellerini kontrol et
         if (result.color?.images) {
-          // color.images JSON string olabilir
           let colorImages: string[] = [];
           if (typeof result.color.images === 'string') {
             try {
@@ -474,7 +449,6 @@ function ProductCarouselContent({
           productImage = result.product.image;
         }
 
-        // Renk ve beden isimlerini API response'undan al, yoksa local'den bul
         const colorName = result.color?.name || (selectedColor
           ? (() => {
             const colors = (selectedProduct.colors || []) as any[];
@@ -502,7 +476,6 @@ function ProductCarouselContent({
           })()
           : null);
 
-        // Header'daki popup'ı tetikle
         window.dispatchEvent(
           new CustomEvent("itemAddedToCart", {
             detail: {
@@ -521,14 +494,13 @@ function ProductCarouselContent({
         setModalOpen(false);
       } else {
         const error = await res.json();
-        toast.error(error.error || "Sepete eklenirken bir hata oluştu", {
+        toast.error(error.error || "Sepete eklenirken bir hata oluÅŸtu", {
           position: "bottom-left",
         });
       }
     } catch (error) {
-      // 401 hatası zaten handle edildi, diğer hatalar için toast göster
       if (error instanceof Error && !error.message.includes('401')) {
-        toast.error("Sepete eklenirken bir hata oluştu", {
+        toast.error("Sepete eklenirken bir hata oluÅŸtu", {
           position: "bottom-left",
         });
       }
@@ -550,16 +522,13 @@ function ProductCarouselContent({
       return 0;
     }
 
-    // Önce variant stokuna bak
     if (product.variants && product.variants.length > 0) {
-      // Seçili renk ID'sini bul
       let actualColorId: string | null = selectedColor;
       if (selectedColor && productColors.length > 0) {
         const colorObj = productColors.find((c) => c.id === selectedColor);
         if (colorObj?.id) {
           actualColorId = colorObj.id;
         } else if (selectedColor && /^[a-f0-9-]{36}$/i.test(selectedColor)) {
-          // UUID formatındaysa direkt kullan
           actualColorId = selectedColor;
         } else {
           actualColorId = product.colorId || null;
@@ -568,40 +537,32 @@ function ProductCarouselContent({
         actualColorId = product.colorId || null;
       }
 
-      // Variant'ı bul - önce seçili renk ile, sonra product'ın colorId'si ile, sonra null ile
       let variant = product.variants.find(
         (v) => v.sizeId === sizeId && v.colorId === actualColorId
       );
 
-      // Eğer bulunamazsa, product'ın colorId'si ile dene
       if (!variant && product.colorId) {
         variant = product.variants.find(
           (v) => v.sizeId === sizeId && v.colorId === product.colorId
         );
       }
 
-      // Eğer hala bulunamazsa, colorId null olan variant'ı dene
       if (!variant) {
         variant = product.variants.find(
           (v) => v.sizeId === sizeId && (v.colorId == null || v.colorId === "")
         );
       }
 
-      // Eğer hala bulunamazsa, bu sizeId'ye ait herhangi bir variant'ı dene
       if (!variant) {
         variant = product.variants.find((v) => v.sizeId === sizeId);
       }
 
-      // Eğer variant bulundu ve stoku varsa, onu kullan
       if (variant && variant.stock > 0) {
         return variant.stock;
       }
 
-      // Eğer variant bulundu ama stoku 0 ise, size'ın stokuna bak
-      // (variant stoku 0 olsa bile, size'ın kendi stoku olabilir)
     }
 
-    // Variant stoku yoksa veya 0 ise, size'ın kendi stokuna bak
     const size = product.sizes?.find((s) => s.id === sizeId);
     return size?.stock || 0;
   };
@@ -663,14 +624,14 @@ function ProductCarouselContent({
                       />
                     )}
 
-                    {/* Hover'da "Seçenekleri Gör" butonu */}
+                    {/* Hover'da "SeÃ§enekleri GÃ¶r" butonu */}
                     {hoveredProduct === product.id && (
                       <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <button
                           onClick={(e) => handleOpenModal(product, e)}
                           className="bg-white text-[#111] px-6 py-3 text-sm font-light uppercase tracking-wide hover:bg-gray-100 transition-colors"
                         >
-                          Seçenekleri Gör
+                          SeÃ§enekleri GÃ¶r
                         </button>
                       </div>
                     )}
@@ -686,15 +647,15 @@ function ProductCarouselContent({
                       {product.originalPrice && product.originalPrice > product.price ? (
                         <>
                           <p className="text-base font-light text-[#111]">
-                            ₺{product.price.toFixed(2)}
+                            â‚º{product.price.toFixed(2)}
                           </p>
                           <p className="text-sm font-light text-[#111]/60 line-through">
-                            ₺{product.originalPrice.toFixed(2)}
+                            â‚º{product.originalPrice.toFixed(2)}
                           </p>
                         </>
                       ) : (
                         <p className="text-base font-light text-[#111]">
-                          ₺{product.originalPrice ? product.originalPrice.toFixed(2) : product.price.toFixed(2)}
+                          â‚º{product.originalPrice ? product.originalPrice.toFixed(2) : product.price.toFixed(2)}
                         </p>
                       )}
                     </div>
@@ -709,18 +670,18 @@ function ProductCarouselContent({
       {/* Product Detail Modal */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent className="max-w-[95vw] w-full max-h-[85vh] overflow-hidden p-0 flex flex-col md:flex-row my-8 md:my-12">
-          <DialogTitle className="sr-only">Ürün Detayları</DialogTitle>
+          <DialogTitle className="sr-only">ÃœrÃ¼n DetaylarÄ±</DialogTitle>
           {selectedProduct && (
             <>
-              {/* Sol taraf - Sticky dikey görsel (Desktop) */}
+              {/* Sol taraf - Sticky dikey gÃ¶rsel (Desktop) */}
               <div className="hidden md:flex md:w-[45%] md:sticky md:top-0 md:self-start md:flex-col md:items-center md:justify-start md:p-8 md:py-12 md:bg-gray-50 md:gap-4">
-                {/* Ana görsel */}
+                {/* Ana gÃ¶rsel */}
                 <div className="relative w-full aspect-[3/4] bg-gray-100">
                   {productImages.length > 0 && productImages[selectedImageIndex] ? (
                     <>
                       <Image
                         src={productImages[selectedImageIndex]}
-                        alt={selectedProduct.title || "Ürün görseli"}
+                        alt={selectedProduct.title || "ÃœrÃ¼n gÃ¶rseli"}
                         fill
                         className="object-cover"
                         sizes="50vw"
@@ -729,7 +690,7 @@ function ProductCarouselContent({
                       {selectedProduct.badge && (
                         <div className="absolute top-3 left-3 bg-[#111] text-white text-xs px-3 py-1.5 uppercase font-light">
                           {selectedProduct.badge === "İndirim" && selectedProduct.originalPrice
-                            ? `%${Math.round(((selectedProduct.originalPrice - (selectedProduct.price || 0)) / selectedProduct.originalPrice) * 100)} İNDİRİM`
+                            ? `%${Math.round(((selectedProduct.originalPrice - (selectedProduct.price || 0)) / selectedProduct.originalPrice) * 100)} Ä°NDÄ°RÄ°M`
                             : selectedProduct.badge}
                         </div>
                       )}
@@ -740,7 +701,7 @@ function ProductCarouselContent({
                             <button
                               onClick={() => setSelectedImageIndex(selectedImageIndex - 1)}
                               className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-md transition-all"
-                              aria-label="Önceki resim"
+                              aria-label="Ã–nceki resim"
                             >
                               <ChevronLeft className="w-5 h-5 text-[#111]" />
                             </button>
@@ -760,14 +721,14 @@ function ProductCarouselContent({
                   ) : (selectedProduct.hoverImage || selectedProduct.image) ? (
                     <Image
                       src={selectedProduct.hoverImage || selectedProduct.image || ""}
-                      alt={selectedProduct.title || "Ürün görseli"}
+                      alt={selectedProduct.title || "ÃœrÃ¼n gÃ¶rseli"}
                       fill
                       className="object-cover"
                       sizes="50vw"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-400">
-                      <span>Görsel yükleniyor...</span>
+                      <span>GÃ¶rsel yÃ¼kleniyor...</span>
                     </div>
                   )}
                 </div>
@@ -783,7 +744,7 @@ function ProductCarouselContent({
                       >
                         <Image
                           src={img}
-                          alt={`${selectedProduct.title} görsel ${idx + 1}`}
+                          alt={`${selectedProduct.title} gÃ¶rsel ${idx + 1}`}
                           fill
                           className="object-cover"
                           sizes="64px"
@@ -794,13 +755,13 @@ function ProductCarouselContent({
                 )}
               </div>
 
-              {/* Mobile görsel - Üstte */}
+              {/* Mobile gÃ¶rsel - Ãœstte */}
               <div className="md:hidden relative aspect-[3/4] bg-gray-100 w-full">
                 {productImages.length > 0 && productImages[selectedImageIndex] ? (
                   <>
                     <Image
                       src={productImages[selectedImageIndex]}
-                      alt={selectedProduct.title || "Ürün görseli"}
+                      alt={selectedProduct.title || "ÃœrÃ¼n gÃ¶rseli"}
                       fill
                       className="object-cover"
                       sizes="100vw"
@@ -809,7 +770,7 @@ function ProductCarouselContent({
                     {selectedProduct.badge && (
                       <div className="absolute top-3 left-3 bg-[#111] text-white text-xs px-3 py-1.5 uppercase font-light">
                         {selectedProduct.badge === "İndirim" && selectedProduct.originalPrice
-                          ? `%${Math.round(((selectedProduct.originalPrice - (selectedProduct.price || 0)) / selectedProduct.originalPrice) * 100)} İNDİRİM`
+                          ? `%${Math.round(((selectedProduct.originalPrice - (selectedProduct.price || 0)) / selectedProduct.originalPrice) * 100)} Ä°NDÄ°RÄ°M`
                           : selectedProduct.badge}
                       </div>
                     )}
@@ -820,7 +781,7 @@ function ProductCarouselContent({
                           <button
                             onClick={() => setSelectedImageIndex(selectedImageIndex - 1)}
                             className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-md"
-                            aria-label="Önceki resim"
+                            aria-label="Ã–nceki resim"
                           >
                             <ChevronLeft className="w-5 h-5 text-[#111]" />
                           </button>
@@ -840,41 +801,37 @@ function ProductCarouselContent({
                 ) : (selectedProduct.hoverImage || selectedProduct.image) ? (
                   <Image
                     src={selectedProduct.hoverImage || selectedProduct.image || ""}
-                    alt={selectedProduct.title || "Ürün görseli"}
+                    alt={selectedProduct.title || "ÃœrÃ¼n gÃ¶rseli"}
                     fill
                     className="object-cover"
                     sizes="100vw"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-gray-400">
-                    <span>Görsel yükleniyor...</span>
+                    <span>GÃ¶rsel yÃ¼kleniyor...</span>
                   </div>
                 )}
               </div>
 
-              {/* Sağ taraf - Ürün detayları (Scrollable) */}
+              {/* SaÄŸ taraf - ÃœrÃ¼n detaylarÄ± (Scrollable) */}
               <div className="flex-1 overflow-y-auto space-y-4 p-6 md:p-8 md:py-12 min-w-0">
                 <div>
                   <h2 className="text-2xl font-bold text-[#111] mb-2">
-                    {selectedProduct.title || "Ürün"}
+                    {selectedProduct.title || "ÃœrÃ¼n"}
                   </h2>
 
                   {/* Fiyat */}
                   <div className="flex items-center gap-3 mb-4">
                     {(() => {
-                      // Seçili bedenin stock'unu kontrol et
                       const selectedSizeStock = selectedSize
                         ? getSizeStock(selectedProduct, typeof selectedSize === 'string' && selectedSize.includes('-') ? null : selectedSize)
                         : null;
-                      // Stock 0 değilse üstünü çizme
                       const shouldStrikeThrough = selectedSizeStock !== null && selectedSizeStock === 0;
 
                       const price = selectedProduct.price ?? 0;
                       const originalPrice = selectedProduct.originalPrice;
 
-                      // İndirimli fiyat mantığı: originalPrice varsa ve farklıysa indirim var
                       if (originalPrice && originalPrice !== price) {
-                        // Hangi fiyat daha yüksekse o orijinal, küçük olan indirimli
                         const higherPrice = Math.max(price, originalPrice);
                         const lowerPrice = Math.min(price, originalPrice);
                         const discountPercent = Math.round(((higherPrice - lowerPrice) / higherPrice) * 100);
@@ -882,10 +839,10 @@ function ProductCarouselContent({
                         return (
                           <>
                             <span className={`text-2xl font-light ${shouldStrikeThrough ? 'text-[#111]/60 line-through' : 'text-[#111]'}`}>
-                              ₺{lowerPrice.toFixed(2)}
+                              â‚º{lowerPrice.toFixed(2)}
                             </span>
                             <span className="text-lg font-light text-[#111]/60 line-through">
-                              ₺{higherPrice.toFixed(2)}
+                              â‚º{higherPrice.toFixed(2)}
                             </span>
                             <span className="text-sm font-light text-[#111]/60 whitespace-nowrap">
                               -{discountPercent}%
@@ -895,14 +852,14 @@ function ProductCarouselContent({
                       } else {
                         return (
                           <span className={`text-2xl font-light ${shouldStrikeThrough ? 'text-[#111]/60 line-through' : 'text-[#111]'}`}>
-                            ₺{price.toFixed(2)}
+                            â‚º{price.toFixed(2)}
                           </span>
                         );
                       }
                     })()}
                   </div>
 
-                  {/* Yıldız puanı */}
+                  {/* YÄ±ldÄ±z puanÄ± */}
                   {reviews.length > 0 ? (
                     <div className="flex items-center gap-2 mb-6">
                       <div className="flex items-center gap-1">
@@ -923,28 +880,28 @@ function ProductCarouselContent({
                     </div>
                   ) : (
                     <div className="mb-6">
-                      <span className="text-sm text-[#111]/60 font-light">Henüz yorum yok</span>
+                      <span className="text-sm text-[#111]/60 font-light">HenÃ¼z yorum yok</span>
                     </div>
                   )}
 
-                  {/* Ürün detayına git link */}
+                  {/* ÃœrÃ¼n detayÄ±na git link */}
                   {selectedProduct.slug ? (
                     <Link
                       href={`/products/${selectedProduct.slug}`}
                       className="text-sm text-[#111] hover:underline font-light mb-6 inline-block"
                     >
-                      Ürün detayına git →
+                      ÃœrÃ¼n detayÄ±na git â†’
                     </Link>
                   ) : null}
 
-                  {/* Renk seçimi - Resimli */}
+                  {/* Renk seÃ§imi - Resimli */}
                   {productColors.length > 0 && (
                     <div className="mb-6">
                       <p className="text-sm font-light text-[#111] mb-3">
                         Renk: <span className="text-[#111]/60">
                           {selectedColor
-                            ? productColors.find(c => c.id === selectedColor)?.name || "Seçiniz"
-                            : "Seçiniz"}
+                            ? productColors.find(c => c.id === selectedColor)?.name || "SeÃ§iniz"
+                            : "SeÃ§iniz"}
                         </span>
                       </p>
                       <div className="flex gap-3 flex-wrap">
@@ -957,11 +914,9 @@ function ProductCarouselContent({
                               key={color.id}
                               onClick={() => {
                                 setSelectedColor(color.id);
-                                setSelectedSize(null); // Renk değişince beden seçimini sıfırla
+                                setSelectedSize(null); // Renk deÄŸiÅŸince beden seÃ§imini sÄ±fÄ±rla
 
-                                // Renk değiştiğinde dinamik güncelleme
                                 if (color.images && color.images.length > 0) {
-                                  // Bu renge ait resimleri göster
                                   const colorImages = color.images;
                                   const allImages: string[] = [];
                                   if (colorImages[0]) allImages.push(colorImages[0]);
@@ -973,7 +928,6 @@ function ProductCarouselContent({
                                   setSelectedImageIndex(0);
                                 }
 
-                                // Variant'ları güncelle
                                 setSelectedProduct({
                                   ...selectedProduct!,
                                   image: colorImage || selectedProduct?.image,
@@ -995,7 +949,7 @@ function ProductCarouselContent({
                               {colorImage ? (
                                 <Image
                                   src={colorImage}
-                                  alt={color.name || "Renk seçeneği"}
+                                  alt={color.name || "Renk seÃ§eneÄŸi"}
                                   fill
                                   className="object-cover"
                                   sizes="64px"
@@ -1016,7 +970,7 @@ function ProductCarouselContent({
                     </div>
                   )}
 
-                  {/* Beden seçimi - Her zaman göster */}
+                  {/* Beden seÃ§imi - Her zaman gÃ¶ster */}
                   <div className="mb-6">
                     <p className="text-sm font-light text-[#111] mb-3">
                       Beden: <span className="text-[#111]/60">
@@ -1032,7 +986,7 @@ function ProductCarouselContent({
                               ? (typeof foundSize === 'string' ? foundSize : foundSize.name)
                               : selectedSize;
                           })()
-                          : "Seçiniz"}
+                          : "SeÃ§iniz"}
                       </span>
                     </p>
                     <div className="grid grid-cols-4 gap-2">
@@ -1068,14 +1022,14 @@ function ProductCarouselContent({
                           });
                         } else {
                           return (
-                            <p className="text-sm text-[#111]/60 font-light col-span-4">Beden bilgisi bulunamadı</p>
+                            <p className="text-sm text-[#111]/60 font-light col-span-4">Beden bilgisi bulunamadÄ±</p>
                           );
                         }
                       })()}
                     </div>
                   </div>
 
-                  {/* Ürün açıklaması */}
+                  {/* ÃœrÃ¼n aÃ§Ä±klamasÄ± */}
                   {(productDetails?.description || productDetails?.detailText) && (
                     <div className="mb-6">
                       {productDetails.description && (
@@ -1100,7 +1054,7 @@ function ProductCarouselContent({
                       : "bg-gray-300 text-gray-500 cursor-not-allowed"
                       }`}
                   >
-                    {selectedSize ? "Sepete Ekle" : "Beden Seçiniz"}
+                    {selectedSize ? "Sepete Ekle" : "Beden SeÃ§iniz"}
                   </Button>
                 </div>
               </div>

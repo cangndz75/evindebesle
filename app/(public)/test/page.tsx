@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 export default function PaymentForm() {
   const router = useRouter();
   const [form, setForm] = useState({
-    cardHolderName: "Test Kullanıcı",
+    cardHolderName: "Test KullanÄ±cÄ±",
     cardNumber: "5526 0800 0000 0006",
     expireMonth: "12",
     expireYear: "2030",
@@ -28,7 +28,6 @@ export default function PaymentForm() {
     e.preventDefault();
     setLoading(true);
 
-    // NEXT_PUBLIC_API_URL → http://localhost:3000
     const res = await fetch(
       `${process.env.API_URL}/api/iyzico/initiate`,
       {
@@ -48,11 +47,10 @@ export default function PaymentForm() {
     const data = await res.json();
 
     if (res.ok && data.data?.status === "success") {
-      // Başarılıysa buraya
-      console.log("Ödeme başarılı:", data.data);
+      console.log("Ã–deme baÅŸarÄ±lÄ±:", data.data);
       router.push("/success");
     } else {
-      alert("Hata: " + (data.error || data.message || "Ödeme başlatılamadı"));
+      alert("Hata: " + (data.error || data.message || "Ã–deme baÅŸlatÄ±lamadÄ±"));
     }
 
     setLoading(false);
@@ -61,7 +59,7 @@ export default function PaymentForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto mt-10">
       <div>
-        <Label>Kart Üzerindeki İsim</Label>
+        <Label>Kart Ãœzerindeki Ä°sim</Label>
         <Input
           name="cardHolderName"
           value={form.cardHolderName}
@@ -69,7 +67,7 @@ export default function PaymentForm() {
         />
       </div>
       <div>
-        <Label>Kart Numarası</Label>
+        <Label>Kart NumarasÄ±</Label>
         <Input
           name="cardNumber"
           value={form.cardNumber}
@@ -86,7 +84,7 @@ export default function PaymentForm() {
           />
         </div>
         <div>
-          <Label>Yıl</Label>
+          <Label>YÄ±l</Label>
           <Input
             name="expireYear"
             value={form.expireYear}
@@ -112,7 +110,7 @@ export default function PaymentForm() {
         />
       </div>
       <Button type="submit" disabled={loading}>
-        {loading ? "Yönlendiriliyor..." : "3D Secure ile Öde"}
+        {loading ? "YÃ¶nlendiriliyor..." : "3D Secure ile Ã–de"}
       </Button>
     </form>
   );

@@ -1,26 +1,23 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { prisma } from "@/lib/db";
 
-// Widget pozisyonlarını getir
 export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authConfig);
 
     if (!session?.user?.isAdmin) {
-      return NextResponse.json({ error: "Yetkisiz erişim" }, { status: 403 });
+      return NextResponse.json({ error: "Yetkisiz eriÅŸim" }, { status: 403 });
     }
 
     const userId = session.user.id;
 
-    // Kullanıcının widget'larını getir, yoksa default'ları oluştur
     let widgets = await prisma.dashboardWidget.findMany({
       where: { userId },
       orderBy: { position: "asc" },
     });
 
-    // Eğer widget yoksa, default widget'ları oluştur
     if (widgets.length === 0) {
       const defaultWidgets = [
         { widgetKey: "todayRevenue", position: 0 },
@@ -46,19 +43,18 @@ export async function GET(req: NextRequest) {
   } catch (error: any) {
     console.error("Error fetching dashboard widgets:", error);
     return NextResponse.json(
-      { error: error.message || "Widget'lar yüklenirken bir hata oluştu" },
+      { error: error.message || "Widget'lar yÃ¼klenirken bir hata oluÅŸtu" },
       { status: 500 }
     );
   }
 }
 
-// Widget pozisyonlarını güncelle
 export async function PUT(req: NextRequest) {
   try {
     const session = await getServerSession(authConfig);
 
     if (!session?.user?.isAdmin) {
-      return NextResponse.json({ error: "Yetkisiz erişim" }, { status: 403 });
+      return NextResponse.json({ error: "Yetkisiz eriÅŸim" }, { status: 403 });
     }
 
     const userId = session.user.id;
@@ -66,12 +62,11 @@ export async function PUT(req: NextRequest) {
 
     if (!Array.isArray(widgets)) {
       return NextResponse.json(
-        { error: "Geçersiz widget verisi" },
+        { error: "GeÃ§ersiz widget verisi" },
         { status: 400 }
       );
     }
 
-    // Tüm widget pozisyonlarını güncelle
     await Promise.all(
       widgets.map((widget: { id: string; position: number }) =>
         prisma.dashboardWidget.update({
@@ -85,7 +80,7 @@ export async function PUT(req: NextRequest) {
   } catch (error: any) {
     console.error("Error updating dashboard widgets:", error);
     return NextResponse.json(
-      { error: error.message || "Widget pozisyonları güncellenirken bir hata oluştu" },
+      { error: error.message || "Widget pozisyonlarÄ± gÃ¼ncellenirken bir hata oluÅŸtu" },
       { status: 500 }
     );
   }

@@ -1,13 +1,7 @@
-/**
- * Cloudinary Yapılandırmasını dinamik olarak alır.
- * Eğer env değişkenleri okunamazsa manuel (hardcoded) değerleri kullanır.
- */
-const getCloudinaryConfig = () => {
-    // Env değişkenlerini dene
+﻿const getCloudinaryConfig = () => {
     let cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
     let uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 
-    // Eğer Env okunamazsa (Hata almamak için) Manuel değerleri kullan
     if (!cloudName) cloudName = "dlahfchej";
     if (!uploadPreset) uploadPreset = "appointment_uploads";
 
@@ -18,9 +12,6 @@ const getCloudinaryConfig = () => {
     };
 };
 
-/**
- * Uploads a base64 encoded image string to Cloudinary.
- */
 export async function uploadBase64ToCloudinary(base64String: string): Promise<string | null> {
     const config = getCloudinaryConfig();
 
@@ -48,9 +39,6 @@ export async function uploadBase64ToCloudinary(base64String: string): Promise<st
     }
 }
 
-/**
- * Uploads a File object to Cloudinary.
- */
 export async function uploadFileToCloudinary(file: File): Promise<string | null> {
     const config = getCloudinaryConfig();
 
@@ -78,9 +66,6 @@ export async function uploadFileToCloudinary(file: File): Promise<string | null>
     }
 }
 
-/**
- * HTML içindeki base64 resimleri bulur ve Cloudinary'ye yükler.
- */
 export async function processHtmlImages(html: string): Promise<string> {
     if (!html) return "";
 
@@ -89,7 +74,6 @@ export async function processHtmlImages(html: string): Promise<string> {
 
     const matches = Array.from(html.matchAll(base64Regex));
 
-    // Eşzamanlı yükleme işlemi
     const uploadPromises = matches.map(async (match) => {
         const fullMatch = match[0];
         const base64Data = match[1];
@@ -103,7 +87,6 @@ export async function processHtmlImages(html: string): Promise<string> {
 
     const results = await Promise.all(uploadPromises);
 
-    // URL değişimlerini uygula
     for (const result of results) {
         if (result.uploaded) {
             newHtml = newHtml.replace(result.original, result.uploaded);

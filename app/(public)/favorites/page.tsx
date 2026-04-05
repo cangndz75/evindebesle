@@ -1,4 +1,4 @@
-import { getCurrentUser } from "@/lib/auth/getCurrentUser";
+﻿import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
 import FavoritesClient from "./_components/FavoritesClient";
@@ -38,7 +38,6 @@ export default async function FavoritesPage() {
     orderBy: { createdAt: "desc" },
   });
 
-  // Takımı Tamamla - Favori ürünlerin kombinasyonlarını çek
   const favoriteProductIds = favorites.map((f: any) => f.productId);
 
   const productCombinations = await prisma.productCombination.findMany({
@@ -59,7 +58,6 @@ export default async function FavoritesPage() {
     take: 8,
   });
 
-  // Type dönüşümü: null -> undefined
   const formattedFavorites = favorites.map((favorite: any) => ({
     ...favorite,
     product: {
@@ -80,7 +78,6 @@ export default async function FavoritesPage() {
     },
   }));
 
-  // Takımı Tamamla için type dönüşümü
   const completeTheSet = productCombinations.map((combination: any) => ({
     id: combination.relatedProduct.id,
     name: combination.relatedProduct.name,

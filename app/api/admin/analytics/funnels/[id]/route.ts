@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { jsonNoStore, requireAdmin } from '@/lib/api/policy';
 
@@ -8,7 +8,6 @@ type RouteContext = {
     }>;
 };
 
-// GET: Get funnel analysis
 export async function GET(
     req: NextRequest,
     context: RouteContext
@@ -21,7 +20,6 @@ export async function GET(
         const { searchParams } = new URL(req.url);
         const period = searchParams.get('period') || '7d'; // 7d, 30d, 90d, today
 
-        // Get funnel with steps
         const funnel = await prisma.funnel.findUnique({
             where: { id },
             include: {
@@ -38,7 +36,6 @@ export async function GET(
             );
         }
 
-        // Calculate date range
         const now = new Date();
         let startDate: Date;
 
@@ -59,7 +56,6 @@ export async function GET(
                 startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
         }
 
-        // Analyze funnel - count users who completed each step
         const analysis = await analyzeFunnel(funnel.steps, startDate, now);
 
         return jsonNoStore({
@@ -82,7 +78,6 @@ export async function GET(
     }
 }
 
-// Helper function to analyze funnel steps
 async function analyzeFunnel(
     steps: any[],
     startDate: Date,
@@ -90,11 +85,9 @@ async function analyzeFunnel(
 ) {
     const results = [];
 
-    // For each step, count unique sessions that completed it
     for (let i = 0; i < steps.length; i++) {
         const step = steps[i];
 
-        // Get sessions that completed this step
         const sessionsAtThisStep = await prisma.analyticsEvent.findMany({
             where: {
                 eventType: step.eventType,
@@ -112,7 +105,6 @@ async function analyzeFunnel(
 
         const count = sessionsAtThisStep.length;
 
-        // Calculate conversion rate from previous step
         let conversionRate = 100;
         let dropOffCount = 0;
 
@@ -137,7 +129,6 @@ async function analyzeFunnel(
     return results;
 }
 
-// DELETE: Delete funnel
 export async function DELETE(
     req: NextRequest,
     context: RouteContext

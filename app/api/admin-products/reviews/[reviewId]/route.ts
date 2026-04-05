@@ -1,8 +1,7 @@
-import { prisma } from "@/lib/db";
+﻿import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { jsonNoStore, requireAdmin } from "@/lib/api/policy";
 
-// Yorumu güncelle (onaylama/reddetme)
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ reviewId: string }> }
@@ -34,7 +33,6 @@ export async function PATCH(
   }
 }
 
-// Yorumu sil
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ reviewId: string }> }

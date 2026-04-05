@@ -1,22 +1,16 @@
-// Advanced Analytics Tracker
-// Comprehensive event tracking for funnel, cohort, and heatmap analytics
-
+﻿
 import { v4 as uuidv4 } from 'uuid';
 
-// Session management
 let sessionId: string | null = null;
 let sessionStartTime: number | null = null;
 
-// Get or create session ID
 function getSessionId(): string {
     if (typeof window === 'undefined') return '';
 
     if (!sessionId) {
-        // Check localStorage for existing session
         const stored = localStorage.getItem('analytics_session_id');
         const storedTime = localStorage.getItem('analytics_session_start');
 
-        // Session expires after 30 minutes of inactivity
         if (stored && storedTime) {
             const elapsed = Date.now() - parseInt(storedTime);
             if (elapsed < 30 * 60 * 1000) {
@@ -25,14 +19,12 @@ function getSessionId(): string {
             }
         }
 
-        // Create new session if needed
         if (!sessionId) {
             sessionId = uuidv4();
             sessionStartTime = Date.now();
             localStorage.setItem('analytics_session_id', sessionId);
             localStorage.setItem('analytics_session_start', sessionStartTime.toString());
 
-            // Track session start
             trackSessionStart();
         }
     }
@@ -40,7 +32,6 @@ function getSessionId(): string {
     return sessionId;
 }
 
-// Get device type
 function getDeviceType(): string {
     if (typeof window === 'undefined') return 'unknown';
 
@@ -50,7 +41,6 @@ function getDeviceType(): string {
     return 'desktop';
 }
 
-// Get browser name
 function getBrowserName(): string {
     if (typeof window === 'undefined') return 'unknown';
 
@@ -62,7 +52,6 @@ function getBrowserName(): string {
     return 'Other';
 }
 
-// Track session start
 async function trackSessionStart() {
     if (typeof window === 'undefined') return;
 
@@ -83,7 +72,6 @@ async function trackSessionStart() {
     }
 }
 
-// Core event tracking function
 export async function trackEvent(
     eventType: string,
     eventData?: Record<string, any>
@@ -100,7 +88,6 @@ export async function trackEvent(
     };
 
     try {
-        // Fire and forget - don't block UI
         fetch('/api/analytics/track', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -112,7 +99,6 @@ export async function trackEvent(
     }
 }
 
-// Track page view
 export function trackPageView(page?: string) {
     trackEvent('PAGE_VIEW', {
         page: page || window.location.pathname,
@@ -120,7 +106,6 @@ export function trackPageView(page?: string) {
     });
 }
 
-// Track product view
 export function trackProductView(product: {
     id: string;
     name: string;
@@ -135,7 +120,6 @@ export function trackProductView(product: {
     });
 }
 
-// Track add to cart
 export function trackAddToCartEvent(product: {
     id: string;
     name: string;
@@ -154,7 +138,6 @@ export function trackAddToCartEvent(product: {
     });
 }
 
-// Track remove from cart
 export function trackRemoveFromCart(product: {
     id: string;
     name: string;
@@ -165,7 +148,6 @@ export function trackRemoveFromCart(product: {
     });
 }
 
-// Track begin checkout
 export function trackBeginCheckoutEvent(cart: {
     items: any[];
     total: number;
@@ -181,7 +163,6 @@ export function trackBeginCheckoutEvent(cart: {
     });
 }
 
-// Track purchase complete
 export function trackPurchaseEvent(order: {
     orderId: string;
     total: number;
@@ -199,7 +180,6 @@ export function trackPurchaseEvent(order: {
     });
 }
 
-// Track search
 export function trackSearchEvent(searchTerm: string, resultsCount: number) {
     trackEvent('SEARCH', {
         query: searchTerm,
@@ -207,28 +187,24 @@ export function trackSearchEvent(searchTerm: string, resultsCount: number) {
     });
 }
 
-// Track user signup
 export function trackSignupEvent() {
     trackEvent('SIGNUP', {
         method: 'email',
     });
 }
 
-// Track user login
 export function trackLoginEvent() {
     trackEvent('LOGIN', {
         method: 'email',
     });
 }
 
-// Track click for heatmap
 export function trackClick(event: MouseEvent, elementId?: string) {
     if (typeof window === 'undefined') return;
 
     const xPercent = (event.clientX / window.innerWidth) * 100;
     const yPercent = (event.clientY / window.innerHeight) * 100;
 
-    // Send to heatmap endpoint
     fetch('/api/analytics/heatmap', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -244,17 +220,13 @@ export function trackClick(event: MouseEvent, elementId?: string) {
     }).catch(err => console.error('Heatmap tracking failed:', err));
 }
 
-// Initialize analytics tracking
 export function initAnalytics() {
     if (typeof window === 'undefined') return;
 
-    // Ensure session is initialized
     getSessionId();
 
-    // Track page view on load
     trackPageView();
 
-    // Track clicks for heatmap (sample 10% of clicks to reduce volume)
     document.addEventListener('click', (e) => {
         if (Math.random() < 0.1) { // 10% sampling
             const target = e.target as HTMLElement;
@@ -262,7 +234,6 @@ export function initAnalytics() {
         }
     });
 
-    // Track session end on page unload
     window.addEventListener('beforeunload', () => {
         if (sessionId) {
             navigator.sendBeacon('/api/analytics/session-end', JSON.stringify({
@@ -272,9 +243,7 @@ export function initAnalytics() {
     });
 }
 
-// Auto-initialize if in browser
 if (typeof window !== 'undefined') {
-    // Initialize on DOM ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initAnalytics);
     } else {

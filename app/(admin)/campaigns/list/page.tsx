@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -59,9 +59,9 @@ const statusConfig: Record<
     { label: string; variant: "default" | "secondary" | "outline" | "destructive" }
 > = {
     draft: { label: "Taslak", variant: "secondary" },
-    ready: { label: "Hazır", variant: "outline" },
-    scheduled: { label: "Zamanlandı", variant: "default" },
-    sent: { label: "Gönderildi", variant: "default" },
+    ready: { label: "HazÄ±r", variant: "outline" },
+    scheduled: { label: "ZamanlandÄ±", variant: "default" },
+    sent: { label: "GÃ¶nderildi", variant: "default" },
 };
 
 export default function CampaignListPage() {
@@ -93,7 +93,7 @@ export default function CampaignListPage() {
             }
         } catch (error) {
             console.error("Error fetching campaigns:", error);
-            toast.error("Kampanyalar yüklenemedi");
+            toast.error("Kampanyalar yÃ¼klenemedi");
         } finally {
             setIsLoading(false);
         }
@@ -101,7 +101,6 @@ export default function CampaignListPage() {
 
     const handleDuplicate = async (campaign: Campaign) => {
         try {
-            // Get full campaign data
             const response = await fetch("/api/admin/campaigns");
             const data = await response.json();
             const fullCampaign = data.campaigns.find(
@@ -109,11 +108,10 @@ export default function CampaignListPage() {
             );
 
             if (!fullCampaign) {
-                toast.error("Kampanya bulunamadı");
+                toast.error("Kampanya bulunamadÄ±");
                 return;
             }
 
-            // Create duplicate
             const duplicateResponse = await fetch("/api/admin/campaigns", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -128,12 +126,12 @@ export default function CampaignListPage() {
             });
 
             if (duplicateResponse.ok) {
-                toast.success("Kampanya kopyalandı");
+                toast.success("Kampanya kopyalandÄ±");
                 fetchCampaigns();
             }
         } catch (error) {
             console.error("Error duplicating campaign:", error);
-            toast.error("Kopyalama başarısız");
+            toast.error("Kopyalama baÅŸarÄ±sÄ±z");
         }
     };
 
@@ -156,7 +154,7 @@ export default function CampaignListPage() {
             }
         } catch (error) {
             console.error("Error deleting campaign:", error);
-            toast.error("Silme başarısız");
+            toast.error("Silme baÅŸarÄ±sÄ±z");
         }
     };
 
@@ -179,7 +177,7 @@ export default function CampaignListPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold">Kampanyalar</h1>
-                    <p className="text-gray-500">Email kampanyalarınızı yönetin</p>
+                    <p className="text-gray-500">Email kampanyalarÄ±nÄ±zÄ± yÃ¶netin</p>
                 </div>
                 <Link href="/campaigns">
                     <Button>
@@ -216,7 +214,7 @@ export default function CampaignListPage() {
                 <Card>
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-medium text-gray-500">
-                            Zamanlandı
+                            ZamanlandÄ±
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -228,7 +226,7 @@ export default function CampaignListPage() {
                 <Card>
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-medium text-gray-500">
-                            Gönderildi
+                            GÃ¶nderildi
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -244,10 +242,10 @@ export default function CampaignListPage() {
                 <CardHeader>
                     <Tabs value={activeTab} onValueChange={setActiveTab}>
                         <TabsList>
-                            <TabsTrigger value="all">Tümü</TabsTrigger>
+                            <TabsTrigger value="all">TÃ¼mÃ¼</TabsTrigger>
                             <TabsTrigger value="draft">Taslak</TabsTrigger>
-                            <TabsTrigger value="scheduled">Zamanlandı</TabsTrigger>
-                            <TabsTrigger value="sent">Gönderildi</TabsTrigger>
+                            <TabsTrigger value="scheduled">ZamanlandÄ±</TabsTrigger>
+                            <TabsTrigger value="sent">GÃ¶nderildi</TabsTrigger>
                         </TabsList>
                     </Tabs>
                 </CardHeader>
@@ -255,8 +253,8 @@ export default function CampaignListPage() {
                     {filteredCampaigns.length === 0 ? (
                         <div className="text-center py-12 text-gray-500">
                             {activeTab === "all"
-                                ? "Henüz kampanya yok. İlk kampanyanızı oluşturun!"
-                                : "Bu kategoride kampanya bulunamadı."}
+                                ? "HenÃ¼z kampanya yok. Ä°lk kampanyanÄ±zÄ± oluÅŸturun!"
+                                : "Bu kategoride kampanya bulunamadÄ±."}
                         </div>
                     ) : (
                         <Table>
@@ -264,9 +262,9 @@ export default function CampaignListPage() {
                                 <TableRow>
                                     <TableHead>Kampanya</TableHead>
                                     <TableHead>Durum</TableHead>
-                                    <TableHead>Gönderim</TableHead>
+                                    <TableHead>GÃ¶nderim</TableHead>
                                     <TableHead>Tarih</TableHead>
-                                    <TableHead className="text-right">İşlemler</TableHead>
+                                    <TableHead className="text-right">Ä°ÅŸlemler</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -289,7 +287,7 @@ export default function CampaignListPage() {
                                             {campaign.status === "sent" ? (
                                                 <span className="flex items-center gap-1">
                                                     <Mail className="w-4 h-4 text-gray-400" />
-                                                    {campaign.sentCount} kişi
+                                                    {campaign.sentCount} kiÅŸi
                                                 </span>
                                             ) : campaign.status === "scheduled" && campaign.scheduleAt ? (
                                                 <span className="flex items-center gap-1">
@@ -334,7 +332,7 @@ export default function CampaignListPage() {
                                                     <DropdownMenuItem asChild>
                                                         <Link href={`/campaigns?id=${campaign.id}`}>
                                                             <Edit className="w-4 h-4 mr-2" />
-                                                            Düzenle
+                                                            DÃ¼zenle
                                                         </Link>
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem
@@ -365,8 +363,8 @@ export default function CampaignListPage() {
                 open={confirmDeleteOpen}
                 onOpenChange={setConfirmDeleteOpen}
                 onConfirm={performDelete}
-                title="Kampanyayı Sil"
-                description="Bu kampanyayı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
+                title="KampanyayÄ± Sil"
+                description="Bu kampanyayÄ± silmek istediÄŸinizden emin misiniz? Bu iÅŸlem geri alÄ±namaz."
             />
         </div>
     );

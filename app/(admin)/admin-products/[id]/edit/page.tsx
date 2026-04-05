@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
@@ -31,12 +31,12 @@ type Color = {
   price?: string;
   originalPrice?: string;
   stock?: { [sizeName: string]: number };
-  sizes?: string[]; // Renge özel bedenler
+  sizes?: string[]; // Renge Ã¶zel bedenler
 };
 
 const letterSizes = ["XS", "S", "M", "L", "XL", "XXL", "3XL"];
 const numberSizes = ["30", "32", "34", "36", "38", "40", "42", "44", "46", "48"];
-const tagSuggestions = ["yeni", "çoksatan", "trend", "erkek", "kadın", "unisex", "sweatshirt", "içlik", "sütyen", "kulot", "yeni ürün", "best seller", "bestseller", "en çok satan"];
+const tagSuggestions = ["yeni", "Ã§oksatan", "trend", "erkek", "kadÄ±n", "unisex", "sweatshirt", "iÃ§lik", "sÃ¼tyen", "kulot", "yeni Ã¼rÃ¼n", "best seller", "bestseller", "en Ã§ok satan"];
 
 export default function EditProductPage() {
   const router = useRouter();
@@ -45,7 +45,6 @@ export default function EditProductPage() {
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
 
-  // Temel bilgiler
   const [name, setName] = useState("");
   const [stockCode, setStockCode] = useState("");
   const [description, setDescription] = useState("");
@@ -56,59 +55,48 @@ export default function EditProductPage() {
   const [weight, setWeight] = useState("");
   const [brand, setBrand] = useState("");
 
-  // Görseller
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [primaryImage, setPrimaryImage] = useState("");
   const [secondaryImage, setSecondaryImage] = useState("");
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Ana ürün rengi
   const [primaryProductColor, setPrimaryProductColor] = useState<Color | null>(null);
   const [primaryProductColorName, setPrimaryProductColorName] = useState("");
 
-  // Renkler
   const [colors, setColors] = useState<Color[]>([]);
   const [selectedColor, setSelectedColor] = useState<number | null>(null);
   const [newColorName, setNewColorName] = useState("");
 
-  // Bedenler
   const [sizeType, setSizeType] = useState<"LETTER" | "NUMBER" | "CUP">("LETTER");
   const [customSizes, setCustomSizes] = useState<string[]>([]);
   const [newSizeInput, setNewSizeInput] = useState("");
   const [sizeStocks, setSizeStocks] = useState<{ [key: string]: number }>({});
 
-  // Etiketler
   const [tags, setTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState("");
 
-  // Kategori
   const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState("");
 
-  // Ürün kombinleri
   const [combinations, setCombinations] = useState<string[]>([]);
   const [searchProduct, setSearchProduct] = useState("");
   const [searchResults, setSearchResults] = useState<Array<{ id: string; name: string; image: string | null }>>([]);
 
-  // Detay metni
   const [detailText, setDetailText] = useState("");
 
-  // Template seçimleri
   const [washingInstructionId, setWashingInstructionId] = useState("");
   const [deliveryInfoId, setDeliveryInfoId] = useState("");
   const [sizeNoteId, setSizeNoteId] = useState("");
   const [sizeGuideId, setSizeGuideId] = useState("");
   const [modelInfoId, setModelInfoId] = useState("");
 
-  // Template listleri
   const [washingInstructions, setWashingInstructions] = useState<any[]>([]);
   const [deliveryInfos, setDeliveryInfos] = useState<any[]>([]);
   const [sizeNotes, setSizeNotes] = useState<any[]>([]);
   const [sizeGuides, setSizeGuides] = useState<any[]>([]);
   const [modelInfos, setModelInfos] = useState<any[]>([]);
 
-  // Modal states
   const [washingModalOpen, setWashingModalOpen] = useState(false);
   const [deliveryModalOpen, setDeliveryModalOpen] = useState(false);
   const [sizeNoteModalOpen, setSizeNoteModalOpen] = useState(false);
@@ -136,7 +124,6 @@ export default function EditProductPage() {
   };
 
   const handleFiles = async (files: FileList) => {
-    // Birden fazla dosya seçilebilir
     Array.from(files).forEach((file) => {
       if (file.type.startsWith("image/")) {
         const reader = new FileReader();
@@ -152,7 +139,6 @@ export default function EditProductPage() {
   const removeUploadedImage = (index: number) => {
     const imageToRemove = uploadedImages[index];
     setUploadedImages(uploadedImages.filter((_, i) => i !== index));
-    // Eğer silinen resim ana veya hover resmiyse, temizle
     if (primaryImage === imageToRemove) {
       setPrimaryImage("");
     }
@@ -180,7 +166,7 @@ export default function EditProductPage() {
       price: "",
       originalPrice: "",
       stock: {},
-      sizes: [], // Başlangıçta boş, kullanıcı seçecek
+      sizes: [], // BaÅŸlangÄ±Ã§ta boÅŸ, kullanÄ±cÄ± seÃ§ecek
     };
     setColors([...colors, newColor]);
     setNewColorName("");
@@ -239,7 +225,6 @@ export default function EditProductPage() {
 
 
   const addColorImage = async (colorIndex: number, imageUrl: string) => {
-    // Base64 görsel kontrolü
     if (imageUrl.startsWith("data:image")) {
       setLoading(true);
       try {
@@ -248,18 +233,17 @@ export default function EditProductPage() {
           const updatedColors = [...colors];
           updatedColors[colorIndex].images.push(cloudinaryUrl);
           setColors(updatedColors);
-          toast.success("Görsel Cloudinary'e yüklendi");
+          toast.success("GÃ¶rsel Cloudinary'e yÃ¼klendi");
         } else {
-          toast.error("Görsel yüklenemedi");
+          toast.error("GÃ¶rsel yÃ¼klenemedi");
         }
       } catch (error) {
         console.error("Upload error:", error);
-        toast.error("Görsel yüklenirken hata oluştu");
+        toast.error("GÃ¶rsel yÃ¼klenirken hata oluÅŸtu");
       } finally {
         setLoading(false);
       }
     } else {
-      // Normal URL
       const updatedColors = [...colors];
       updatedColors[colorIndex].images.push(imageUrl);
       setColors(updatedColors);
@@ -277,7 +261,7 @@ export default function EditProductPage() {
       }
     } catch (error) {
       console.error("Upload error:", error);
-      toast.error("Fotoğraflar yüklenirken hata oluştu");
+      toast.error("FotoÄŸraflar yÃ¼klenirken hata oluÅŸtu");
     } finally {
       setLoading(false);
     }
@@ -347,7 +331,7 @@ export default function EditProductPage() {
           .slice(0, 10)
       );
     } catch (error) {
-      console.error("Ürün arama hatası:", error);
+      console.error("ÃœrÃ¼n arama hatasÄ±:", error);
       setSearchResults([]);
     }
   };
@@ -364,7 +348,6 @@ export default function EditProductPage() {
     setCombinations(combinations.filter((id) => id !== productId));
   };
 
-  // Kategorileri yükle
   const loadTemplates = async () => {
     try {
       const [wash, delivery, notes, guides, models] = await Promise.all([
@@ -380,7 +363,7 @@ export default function EditProductPage() {
       setSizeGuides(guides);
       setModelInfos(models);
     } catch (error) {
-      console.error("Template'ler yüklenirken hata:", error);
+      console.error("Template'ler yÃ¼klenirken hata:", error);
     }
   };
 
@@ -392,11 +375,10 @@ export default function EditProductPage() {
         setCategories(data);
       }
     } catch (error) {
-      console.error("Kategoriler yüklenirken hata:", error);
+      console.error("Kategoriler yÃ¼klenirken hata:", error);
     }
   };
 
-  // Ürün verilerini yükle
   const loadProductData = async () => {
     if (!productId) return;
     setLoadingData(true);
@@ -405,7 +387,6 @@ export default function EditProductPage() {
       if (res.ok) {
         const product = await res.json();
 
-        // Temel bilgiler
         setName(product.name || "");
         setStockCode(product.stockCode || "");
         setDescription(product.description || "");
@@ -424,7 +405,6 @@ export default function EditProductPage() {
         setSizeType(product.sizeType || "LETTER");
         setSelectedCategoryId(product.categoryId || "");
 
-        // Görseller
         const images: string[] = [];
         if (product.image) images.push(product.image);
         if (product.primaryImage && !images.includes(product.primaryImage)) images.push(product.primaryImage);
@@ -433,7 +413,6 @@ export default function EditProductPage() {
         setPrimaryImage(product.primaryImage || product.image || "");
         setSecondaryImage(product.secondaryImage || "");
 
-        // Renkler
         if (product.colors && product.colors.length > 0) {
           const loadedColors: Color[] = product.colors.map((c: any) => {
             let colorImages: string[] = [];
@@ -457,18 +436,16 @@ export default function EditProductPage() {
               price: "",
               originalPrice: "",
               stock: {},
-              sizes: [], // Renge özel bedenler (varsa yüklenecek)
+              sizes: [], // Renge Ã¶zel bedenler (varsa yÃ¼klenecek)
             };
           });
 
-          // İlk renk primaryProductColor olarak ayarla
           if (loadedColors.length > 0) {
             setPrimaryProductColor(loadedColors[0]);
             setColors(loadedColors.slice(1));
           }
         }
 
-        // Bedenler
         if (product.sizes && product.sizes.length > 0) {
           const sizeNames = product.sizes.map((s: any) => s.name);
           setCustomSizes(sizeNames);
@@ -479,19 +456,17 @@ export default function EditProductPage() {
           setSizeStocks(stocks);
         }
 
-        // Etiketler
         if (product.tags && product.tags.length > 0) {
           setTags(product.tags.map((t: any) => t.name));
         }
 
-        // Kombinler
         if (product.combinations && product.combinations.length > 0) {
           setCombinations(product.combinations.map((c: any) => c.relatedProductId));
         }
       }
     } catch (error) {
-      console.error("Ürün verisi yüklenirken hata:", error);
-      toast.error("Ürün verisi yüklenirken bir hata oluştu");
+      console.error("ÃœrÃ¼n verisi yÃ¼klenirken hata:", error);
+      toast.error("ÃœrÃ¼n verisi yÃ¼klenirken bir hata oluÅŸtu");
     } finally {
       setLoadingData(false);
     }
@@ -507,14 +482,13 @@ export default function EditProductPage() {
 
   const handleSubmit = async () => {
     if (!name || !price) {
-      toast.error("Lütfen ürün adı ve fiyat bilgilerini girin");
+      toast.error("LÃ¼tfen Ã¼rÃ¼n adÄ± ve fiyat bilgilerini girin");
       return;
     }
 
     setLoading(true);
 
     try {
-      // Slug oluştur: kategori-renk-ürünadı
       const categoryName = categories.find(c => c.id === selectedCategoryId)?.name;
       const firstColorName = primaryProductColor?.name || colors[0]?.name;
       const autoSlug = generateProductSlug(name, categoryName, firstColorName);
@@ -578,28 +552,26 @@ export default function EditProductPage() {
         ],
       };
 
-      // Base64 görselleri Cloudinary'e yükle
       let finalPrimaryImage = primaryImage;
       let finalSecondaryImage = secondaryImage;
 
       if (primaryImage?.startsWith("data:image")) {
         const url = await uploadBase64ToCloudinary(primaryImage);
-        if (!url) throw new Error("Ana görsel yüklenemedi");
+        if (!url) throw new Error("Ana gÃ¶rsel yÃ¼klenemedi");
         finalPrimaryImage = url;
       }
       if (secondaryImage?.startsWith("data:image")) {
         const url = await uploadBase64ToCloudinary(secondaryImage);
-        if (!url) throw new Error("Hover görseli yüklenemedi");
+        if (!url) throw new Error("Hover gÃ¶rseli yÃ¼klenemedi");
         finalSecondaryImage = url;
       }
 
-      // Renk görsellerindeki base64'leri yükle
       const processColorImages = async (colorImages: string[]) => {
         return Promise.all(
           colorImages.map(async (img: string) => {
             if (img.startsWith("data:image")) {
               const url = await uploadBase64ToCloudinary(img);
-              if (!url) throw new Error("Renk görseli yüklenemedi");
+              if (!url) throw new Error("Renk gÃ¶rseli yÃ¼klenemedi");
               return url;
             }
             return img;
@@ -621,7 +593,6 @@ export default function EditProductPage() {
         }))
       );
 
-      // ProductData'yı güncelle
       productData.primaryImage = finalPrimaryImage || undefined;
       productData.secondaryImage = finalSecondaryImage || undefined;
       productData.image = finalPrimaryImage || undefined;
@@ -642,7 +613,6 @@ export default function EditProductPage() {
             ? parseFloat(c.price)
             : undefined;
 
-          // Renge özel bedenler varsa onları kullan, yoksa üstte seçilen bedenleri kullan
           const colorSizes = c.sizes && c.sizes.length > 0 ? c.sizes : customSizes;
 
           return {
@@ -652,7 +622,7 @@ export default function EditProductPage() {
             price: finalPrice !== parseFloat(price) ? finalPrice : undefined,
             originalPrice: finalOriginalPrice,
             sizeStocks: c.stock || {},
-            sizes: colorSizes, // Renge özel bedenler
+            sizes: colorSizes, // Renge Ã¶zel bedenler
           };
         }),
       ];
@@ -664,15 +634,15 @@ export default function EditProductPage() {
       });
 
       if (res.ok) {
-        toast.success("Ürün başarıyla güncellendi");
+        toast.success("ÃœrÃ¼n baÅŸarÄ±yla gÃ¼ncellendi");
         router.push("/admin-products");
       } else {
         const error = await res.json();
-        toast.error(error.error || "Ürün güncellenirken bir hata oluştu");
+        toast.error(error.error || "ÃœrÃ¼n gÃ¼ncellenirken bir hata oluÅŸtu");
       }
     } catch (error) {
       console.error("Hata:", error);
-      toast.error("Ürün güncellenirken bir hata oluştu");
+      toast.error("ÃœrÃ¼n gÃ¼ncellenirken bir hata oluÅŸtu");
     } finally {
       setLoading(false);
     }
@@ -693,7 +663,7 @@ export default function EditProductPage() {
               <ArrowLeft className="w-4 h-4" />
               Geri
             </Button>
-            <h1 className="text-2xl font-bold text-gray-900">Ürün Düzenle</h1>
+            <h1 className="text-2xl font-bold text-gray-900">ÃœrÃ¼n DÃ¼zenle</h1>
           </div>
           <div className="flex items-center gap-3">
             <Button
@@ -701,14 +671,14 @@ export default function EditProductPage() {
               onClick={() => router.back()}
               disabled={loading}
             >
-              İptal
+              Ä°ptal
             </Button>
             <Button
               onClick={handleSubmit}
               disabled={loading}
               className="bg-black text-white hover:bg-gray-800"
             >
-              {loading ? "Güncelleniyor..." : "Güncelle"}
+              {loading ? "GÃ¼ncelleniyor..." : "GÃ¼ncelle"}
             </Button>
           </div>
         </div>
@@ -716,12 +686,12 @@ export default function EditProductPage() {
 
       <div className="p-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
-          {/* Sol Taraf - Önizleme */}
+          {/* Sol Taraf - Ã–nizleme */}
           <div className="space-y-6">
             <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold mb-4">Ürün Önizlemesi</h2>
+              <h2 className="text-lg font-semibold mb-4">ÃœrÃ¼n Ã–nizlemesi</h2>
 
-              {/* Fotoğraf Yükleme Alanı */}
+              {/* FotoÄŸraf YÃ¼kleme AlanÄ± */}
               <div
                 className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors ${dragActive
                   ? "border-black bg-gray-50"
@@ -750,7 +720,7 @@ export default function EditProductPage() {
                   </div>
                   <div>
                     <p className="text-base font-medium text-gray-900 mb-2">
-                      Fotoğrafı buraya sürükleyin
+                      FotoÄŸrafÄ± buraya sÃ¼rÃ¼kleyin
                     </p>
                     <p className="text-sm text-gray-500 mb-3">veya</p>
                     <Button
@@ -761,25 +731,25 @@ export default function EditProductPage() {
                       className="bg-white"
                     >
                       <Upload className="w-4 h-4 mr-2" />
-                      Dosya Seç
+                      Dosya SeÃ§
                     </Button>
                   </div>
                   <p className="text-xs text-gray-500 mt-2">
-                    PNG, JPG, GIF formatları desteklenir
+                    PNG, JPG, GIF formatlarÄ± desteklenir
                   </p>
                 </div>
               </div>
 
-              {/* Yüklenen Görseller Grid */}
+              {/* YÃ¼klenen GÃ¶rseller Grid */}
               {uploadedImages.length > 0 && (
                 <div className="mt-6">
-                  <Label className="text-sm font-medium mb-3 block">Yüklenen Görseller</Label>
+                  <Label className="text-sm font-medium mb-3 block">YÃ¼klenen GÃ¶rseller</Label>
                   <div className="grid grid-cols-4 gap-3">
                     {uploadedImages.map((img, index) => (
                       <div key={index} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 group">
                         <Image
                           src={img}
-                          alt={`Görsel ${index + 1}`}
+                          alt={`GÃ¶rsel ${index + 1}`}
                           fill
                           className="object-cover"
                         />
@@ -794,15 +764,14 @@ export default function EditProductPage() {
                     ))}
                   </div>
 
-                  {/* Ana ve Hover Görsel Seçimi - Yüklenen görsellerin altında */}
+                  {/* Ana ve Hover GÃ¶rsel SeÃ§imi - YÃ¼klenen gÃ¶rsellerin altÄ±nda */}
                   <div className="mt-6 space-y-4 pt-6 border-t border-gray-200">
                     <div>
-                      <Label className="text-sm font-medium mb-3 block">Ana Görsel</Label>
+                      <Label className="text-sm font-medium mb-3 block">Ana GÃ¶rsel</Label>
                       <RadioGroup
                         value={primaryImage}
                         onValueChange={(value) => {
                           setPrimaryImage(value);
-                          // Eğer seçilen görsel hover görseli ise, hover'ı temizle
                           if (secondaryImage === value) {
                             setSecondaryImage("");
                           }
@@ -817,7 +786,7 @@ export default function EditProductPage() {
                                 }`}>
                                 <Image
                                   src={img}
-                                  alt={`Ana görsel ${index + 1}`}
+                                  alt={`Ana gÃ¶rsel ${index + 1}`}
                                   fill
                                   className="object-cover"
                                 />
@@ -847,7 +816,7 @@ export default function EditProductPage() {
                                   className={`text-xs cursor-pointer ${isHover ? "text-gray-400" : "text-gray-600"
                                     }`}
                                 >
-                                  Ana Görsel
+                                  Ana GÃ¶rsel
                                 </Label>
                               </div>
                             </div>
@@ -857,12 +826,11 @@ export default function EditProductPage() {
                     </div>
 
                     <div>
-                      <Label className="text-sm font-medium mb-3 block">Hover Görseli</Label>
+                      <Label className="text-sm font-medium mb-3 block">Hover GÃ¶rseli</Label>
                       <RadioGroup
                         value={secondaryImage}
                         onValueChange={(value) => {
                           setSecondaryImage(value);
-                          // Eğer seçilen görsel ana görsel ise, ana'yı temizle
                           if (primaryImage === value) {
                             setPrimaryImage("");
                           }
@@ -877,7 +845,7 @@ export default function EditProductPage() {
                                 }`}>
                                 <Image
                                   src={img}
-                                  alt={`Hover görseli ${index + 1}`}
+                                  alt={`Hover gÃ¶rseli ${index + 1}`}
                                   fill
                                   className="object-cover"
                                 />
@@ -907,7 +875,7 @@ export default function EditProductPage() {
                                   className={`text-xs cursor-pointer ${isPrimary ? "text-gray-400" : "text-gray-600"
                                     }`}
                                 >
-                                  Hover Görseli
+                                  Hover GÃ¶rseli
                                 </Label>
                               </div>
                             </div>
@@ -919,16 +887,16 @@ export default function EditProductPage() {
                 </div>
               )}
 
-              {/* Ürün Bilgileri Önizleme */}
+              {/* ÃœrÃ¼n Bilgileri Ã–nizleme */}
               {name && (
                 <div className="mt-6 pt-6 border-t border-gray-200">
                   <h3 className="font-semibold text-lg mb-2">{name}</h3>
                   {price && (
                     <p className="text-2xl font-bold text-gray-900">
-                      {parseFloat(price).toFixed(2)} ₺
+                      {parseFloat(price).toFixed(2)} â‚º
                       {originalPrice && parseFloat(originalPrice) > parseFloat(price) && (
                         <span className="ml-2 text-lg text-gray-500 line-through">
-                          {parseFloat(originalPrice).toFixed(2)} ₺
+                          {parseFloat(originalPrice).toFixed(2)} â‚º
                         </span>
                       )}
                     </p>
@@ -938,19 +906,19 @@ export default function EditProductPage() {
             </div>
           </div>
 
-          {/* Sağ Taraf - Form */}
+          {/* SaÄŸ Taraf - Form */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Ürün Bilgileri */}
+            {/* ÃœrÃ¼n Bilgileri */}
             <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold mb-4">Ürün Bilgileri</h2>
+              <h2 className="text-lg font-semibold mb-4">ÃœrÃ¼n Bilgileri</h2>
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="name">Ürün Adı *</Label>
+                  <Label htmlFor="name">ÃœrÃ¼n AdÄ± *</Label>
                   <Input
                     id="name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Ürün adını girin"
+                    placeholder="ÃœrÃ¼n adÄ±nÄ± girin"
                     className="mt-1"
                   />
                 </div>
@@ -960,7 +928,7 @@ export default function EditProductPage() {
                     <Label htmlFor="category">Kategori</Label>
                     <Select value={selectedCategoryId} onValueChange={setSelectedCategoryId}>
                       <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Kategori seçin" />
+                        <SelectValue placeholder="Kategori seÃ§in" />
                       </SelectTrigger>
                       <SelectContent>
                         {categories.map((cat) => (
@@ -985,7 +953,7 @@ export default function EditProductPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="weight">Ağırlık</Label>
+                    <Label htmlFor="weight">AÄŸÄ±rlÄ±k</Label>
                     <Input
                       id="weight"
                       value={weight}
@@ -998,11 +966,11 @@ export default function EditProductPage() {
                     <Label htmlFor="gender">Cinsiyet</Label>
                     <Select value={gender} onValueChange={(v: any) => setGender(v)}>
                       <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Seçiniz" />
+                        <SelectValue placeholder="SeÃ§iniz" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="MALE">Erkek</SelectItem>
-                        <SelectItem value="FEMALE">Kadın</SelectItem>
+                        <SelectItem value="FEMALE">KadÄ±n</SelectItem>
                         <SelectItem value="UNISEX">Unisex</SelectItem>
                       </SelectContent>
                     </Select>
@@ -1010,35 +978,35 @@ export default function EditProductPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="fabricType">Kumaş Tipi</Label>
+                  <Label htmlFor="fabricType">KumaÅŸ Tipi</Label>
                   <Input
                     id="fabricType"
                     value={fabricType}
                     onChange={(e) => setFabricType(e.target.value)}
-                    placeholder="Örn: Pamuk, Polyester"
+                    placeholder="Ã–rn: Pamuk, Polyester"
                     className="mt-1"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="description">Kısa Açıklama</Label>
+                  <Label htmlFor="description">KÄ±sa AÃ§Ä±klama</Label>
                   <Textarea
                     id="description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Ürün açıklaması"
+                    placeholder="ÃœrÃ¼n aÃ§Ä±klamasÄ±"
                     rows={4}
                     className="mt-1"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="detailText">Detaylı Açıklama</Label>
+                  <Label htmlFor="detailText">DetaylÄ± AÃ§Ä±klama</Label>
                   <Textarea
                     id="detailText"
                     value={detailText}
                     onChange={(e) => setDetailText(e.target.value)}
-                    placeholder="Detaylı ürün açıklaması (HTML olabilir)"
+                    placeholder="DetaylÄ± Ã¼rÃ¼n aÃ§Ä±klamasÄ± (HTML olabilir)"
                     rows={6}
                     className="mt-1"
                   />
@@ -1046,15 +1014,15 @@ export default function EditProductPage() {
               </div>
             </div>
 
-            {/* Ana Ürün Rengi */}
+            {/* Ana ÃœrÃ¼n Rengi */}
             <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold mb-4">Ana Ürün Rengi</h2>
+              <h2 className="text-lg font-semibold mb-4">Ana ÃœrÃ¼n Rengi</h2>
 
               {!primaryProductColor ? (
                 <div className="space-y-3">
                   <div className="flex gap-2">
                     <Input
-                      placeholder="Renk adı"
+                      placeholder="Renk adÄ±"
                       value={primaryProductColorName}
                       onChange={(e) => setPrimaryProductColorName(e.target.value)}
                       className="flex-1"
@@ -1095,11 +1063,11 @@ export default function EditProductPage() {
               )}
             </div>
 
-            {/* Beden Seçimi */}
+            {/* Beden SeÃ§imi */}
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <h2 className="text-lg font-semibold mb-4">Beden</h2>
 
-              {/* Beden Tipi Seçimi */}
+              {/* Beden Tipi SeÃ§imi */}
               <div className="mb-4">
                 <Label className="text-sm font-medium mb-3 block">Beden Tipi</Label>
                 <RadioGroup value={sizeType} onValueChange={(v: any) => {
@@ -1114,7 +1082,7 @@ export default function EditProductPage() {
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="NUMBER" id="size-number" />
-                      <Label htmlFor="size-number" className="cursor-pointer">Sayı (30, 32, 34, 36)</Label>
+                      <Label htmlFor="size-number" className="cursor-pointer">SayÄ± (30, 32, 34, 36)</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="CUP" id="size-cup" />
@@ -1124,7 +1092,7 @@ export default function EditProductPage() {
                 </RadioGroup>
               </div>
 
-              {/* Beden Seçimi - Harf */}
+              {/* Beden SeÃ§imi - Harf */}
               {sizeType === "LETTER" && (
                 <div className="flex flex-wrap gap-3">
                   {letterSizes.map((size) => (
@@ -1166,7 +1134,7 @@ export default function EditProductPage() {
                 </div>
               )}
 
-              {/* Beden Seçimi - Sayı */}
+              {/* Beden SeÃ§imi - SayÄ± */}
               {sizeType === "NUMBER" && (
                 <div className="space-y-3">
                   <div className="flex flex-wrap gap-3">
@@ -1210,12 +1178,12 @@ export default function EditProductPage() {
                 </div>
               )}
 
-              {/* Beden Seçimi - Beden (80B, 85C vb) */}
+              {/* Beden SeÃ§imi - Beden (80B, 85C vb) */}
               {sizeType === "CUP" && (
                 <div className="space-y-3">
                   <div className="flex gap-2">
                     <Input
-                      placeholder="Örn: 80B, 85C, 90D"
+                      placeholder="Ã–rn: 80B, 85C, 90D"
                       value={newSizeInput}
                       onChange={(e) => setNewSizeInput(e.target.value)}
                       onKeyDown={(e) => {
@@ -1267,14 +1235,14 @@ export default function EditProductPage() {
               )}
             </div>
 
-            {/* Renk Seçimi */}
+            {/* Renk SeÃ§imi */}
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <h2 className="text-lg font-semibold mb-4">Renk</h2>
 
               {/* Yeni Renk Ekleme */}
               <div className="flex gap-2 mb-4">
                 <Input
-                  placeholder="Renk adı"
+                  placeholder="Renk adÄ±"
                   value={newColorName}
                   onChange={(e) => setNewColorName(e.target.value)}
                   onKeyDown={(e) => {
@@ -1318,7 +1286,7 @@ export default function EditProductPage() {
                             setSelectedColor(selectedColor === index ? null : index)
                           }
                         >
-                          {selectedColor === index ? "Seçili" : "Seç"}
+                          {selectedColor === index ? "SeÃ§ili" : "SeÃ§"}
                         </Button>
                         <Button
                           type="button"
@@ -1332,16 +1300,16 @@ export default function EditProductPage() {
                       </div>
                     </div>
 
-                    {/* Renge özel görseller */}
+                    {/* Renge Ã¶zel gÃ¶rseller */}
                     {selectedColor === index && (
                       <div className="mt-3 pt-3 border-t border-gray-200">
                         <Label className="text-sm font-medium mb-2 block">
-                          Bu renge özel görseller
+                          Bu renge Ã¶zel gÃ¶rseller
                         </Label>
                         <div className="space-y-2">
                           <div className="flex gap-2">
                             <Input
-                              placeholder="Görsel URL"
+                              placeholder="GÃ¶rsel URL"
                               onKeyDown={(e) => {
                                 if (e.key === "Enter") {
                                   const input = e.target as HTMLInputElement;
@@ -1376,7 +1344,7 @@ export default function EditProductPage() {
                               className="whitespace-nowrap"
                             >
                               <Upload className="w-4 h-4 mr-2" />
-                              Fotoğraf Ekle
+                              FotoÄŸraf Ekle
                             </Button>
                           </div>
                           {color.images.length > 0 && (
@@ -1402,10 +1370,10 @@ export default function EditProductPage() {
                           )}
                         </div>
 
-                        {/* Renge özel fiyatlandırma */}
+                        {/* Renge Ã¶zel fiyatlandÄ±rma */}
                         <div className="mt-4 pt-4 border-t border-gray-200">
                           <Label className="text-sm font-medium mb-3 block">
-                            Fiyatlandırma
+                            FiyatlandÄ±rma
                           </Label>
                           <div className="space-y-3">
                             <div className="flex items-center space-x-2">
@@ -1420,7 +1388,7 @@ export default function EditProductPage() {
                                 htmlFor={`color-use-main-price-${index}`}
                                 className="text-sm font-normal cursor-pointer"
                               >
-                                Ana ürünle aynı fiyat
+                                Ana Ã¼rÃ¼nle aynÄ± fiyat
                               </Label>
                             </div>
 
@@ -1443,7 +1411,7 @@ export default function EditProductPage() {
                                 </div>
                                 <div>
                                   <Label className="text-xs text-gray-600 mb-1 block">
-                                    İndirimli Fiyat
+                                    Ä°ndirimli Fiyat
                                   </Label>
                                   <Input
                                     type="number"
@@ -1457,15 +1425,15 @@ export default function EditProductPage() {
                                   />
                                   {color.originalPrice && color.price && parseFloat(color.originalPrice) > parseFloat(color.price) && (
                                     <p className="text-xs text-green-600 mt-1">
-                                      İndirim: %{Math.round(((parseFloat(color.originalPrice) - parseFloat(color.price)) / parseFloat(color.originalPrice)) * 100)}
+                                      Ä°ndirim: %{Math.round(((parseFloat(color.originalPrice) - parseFloat(color.price)) / parseFloat(color.originalPrice)) * 100)}
                                     </p>
                                   )}
                                 </div>
                                 <div className="text-xs text-gray-500 mt-2">
                                   {color.originalPrice && color.price && parseFloat(color.originalPrice) > 0 && parseFloat(color.price) > 0
-                                    ? `Görünen fiyat: ${parseFloat(color.price).toFixed(2)} ₺ (İndirimli: ${parseFloat(color.originalPrice).toFixed(2)} ₺)`
+                                    ? `GÃ¶rÃ¼nen fiyat: ${parseFloat(color.price).toFixed(2)} â‚º (Ä°ndirimli: ${parseFloat(color.originalPrice).toFixed(2)} â‚º)`
                                     : color.price && parseFloat(color.price) > 0
-                                      ? `Görünen fiyat: ${parseFloat(color.price).toFixed(2)} ₺`
+                                      ? `GÃ¶rÃ¼nen fiyat: ${parseFloat(color.price).toFixed(2)} â‚º`
                                       : "Fiyat giriniz"}
                                 </div>
                               </div>
@@ -1473,22 +1441,21 @@ export default function EditProductPage() {
                           </div>
                         </div>
 
-                        {/* Renge özel beden seçimi */}
+                        {/* Renge Ã¶zel beden seÃ§imi */}
                         <div className="mt-4 pt-4 border-t border-gray-200">
                           <Label className="text-sm font-medium mb-3 block">
-                            Bu Renk İçin Bedenler
+                            Bu Renk Ä°Ã§in Bedenler
                           </Label>
                           <div className="text-xs text-gray-500 mb-3">
-                            Üstte seçilen bedenler otomatik gelir. İsterseniz bu renk için farklı bedenler seçebilirsiniz.
+                            Ãœstte seÃ§ilen bedenler otomatik gelir. Ä°sterseniz bu renk iÃ§in farklÄ± bedenler seÃ§ebilirsiniz.
                           </div>
 
-                          {/* Beden Tipi Seçimi */}
+                          {/* Beden Tipi SeÃ§imi */}
                           <div className="mb-3">
                             <Label className="text-xs font-medium mb-2 block">Beden Tipi</Label>
                             <RadioGroup
                               value={sizeType}
                               onValueChange={(v: any) => {
-                                // Beden tipi değiştiğinde renge özel bedenleri temizle
                                 const updatedColors = [...colors];
                                 updatedColors[index].sizes = [];
                                 setColors(updatedColors);
@@ -1501,7 +1468,7 @@ export default function EditProductPage() {
                                 </div>
                                 <div className="flex items-center space-x-2">
                                   <RadioGroupItem value="NUMBER" id={`color-${index}-number`} />
-                                  <Label htmlFor={`color-${index}-number`} className="cursor-pointer text-xs">Sayı</Label>
+                                  <Label htmlFor={`color-${index}-number`} className="cursor-pointer text-xs">SayÄ±</Label>
                                 </div>
                                 <div className="flex items-center space-x-2">
                                   <RadioGroupItem value="CUP" id={`color-${index}-cup`} />
@@ -1511,7 +1478,7 @@ export default function EditProductPage() {
                             </RadioGroup>
                           </div>
 
-                          {/* Beden Seçimi - Harf */}
+                          {/* Beden SeÃ§imi - Harf */}
                           {sizeType === "LETTER" && (
                             <div className="flex flex-wrap gap-2 mb-3">
                               {letterSizes.map((size) => (
@@ -1528,7 +1495,6 @@ export default function EditProductPage() {
                                         if (!updatedColors[index].sizes!.includes(size)) {
                                           updatedColors[index].sizes!.push(size);
                                         }
-                                        // Stok değeri yoksa 0 olarak ekle
                                         if (!updatedColors[index].stock) {
                                           updatedColors[index].stock = {};
                                         }
@@ -1555,7 +1521,7 @@ export default function EditProductPage() {
                             </div>
                           )}
 
-                          {/* Beden Seçimi - Sayı */}
+                          {/* Beden SeÃ§imi - SayÄ± */}
                           {sizeType === "NUMBER" && (
                             <div className="flex flex-wrap gap-2 mb-3">
                               {numberSizes.map((size) => (
@@ -1598,12 +1564,12 @@ export default function EditProductPage() {
                             </div>
                           )}
 
-                          {/* Beden Seçimi - Beden (80B, 85C vb) */}
+                          {/* Beden SeÃ§imi - Beden (80B, 85C vb) */}
                           {sizeType === "CUP" && (
                             <div className="space-y-2 mb-3">
                               <div className="flex gap-2">
                                 <Input
-                                  placeholder="Örn: 80B, 85C, 90D"
+                                  placeholder="Ã–rn: 80B, 85C, 90D"
                                   value={newSizeInput}
                                   onChange={(e) => setNewSizeInput(e.target.value)}
                                   onKeyDown={(e) => {
@@ -1677,11 +1643,11 @@ export default function EditProductPage() {
                             </div>
                           )}
 
-                          {/* Renge özel stok yönetimi */}
+                          {/* Renge Ã¶zel stok yÃ¶netimi */}
                           {color.sizes && color.sizes.length > 0 && (
                             <div className="mt-4 pt-4 border-t border-gray-200">
                               <Label className="text-sm font-medium mb-3 block">
-                                Stok Yönetimi
+                                Stok YÃ¶netimi
                               </Label>
                               <div className="grid grid-cols-3 gap-3">
                                 {color.sizes.map((size) => (
@@ -1713,7 +1679,7 @@ export default function EditProductPage() {
 
             {/* Pricing Details */}
             <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold mb-4">Fiyatlandırma</h2>
+              <h2 className="text-lg font-semibold mb-4">FiyatlandÄ±rma</h2>
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="price">Fiyat *</Label>
@@ -1728,7 +1694,7 @@ export default function EditProductPage() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="originalPrice">İndirimli Fiyat</Label>
+                  <Label htmlFor="originalPrice">Ä°ndirimli Fiyat</Label>
                   <Input
                     id="originalPrice"
                     type="number"
@@ -1740,7 +1706,7 @@ export default function EditProductPage() {
                   />
                   {originalPrice && price && parseFloat(originalPrice) > parseFloat(price) && (
                     <p className="text-sm text-green-600 mt-1">
-                      İndirim: %{Math.round(((parseFloat(originalPrice) - parseFloat(price)) / parseFloat(originalPrice)) * 100)}
+                      Ä°ndirim: %{Math.round(((parseFloat(originalPrice) - parseFloat(price)) / parseFloat(originalPrice)) * 100)}
                     </p>
                   )}
                 </div>
@@ -1772,9 +1738,9 @@ export default function EditProductPage() {
                   </div>
                 </div>
 
-                {/* Etiket Önerileri */}
+                {/* Etiket Ã–nerileri */}
                 <div>
-                  <Label className="text-sm text-gray-600 mb-2 block">Önerilen Etiketler</Label>
+                  <Label className="text-sm text-gray-600 mb-2 block">Ã–nerilen Etiketler</Label>
                   <div className="flex flex-wrap gap-2">
                     {tagSuggestions.map((suggestion) => (
                       <button
@@ -1819,12 +1785,12 @@ export default function EditProductPage() {
               </div>
             </div>
 
-            {/* Ürün Kombinleri */}
+            {/* ÃœrÃ¼n Kombinleri */}
             <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold mb-4">Ürün Kombinleri</h2>
+              <h2 className="text-lg font-semibold mb-4">ÃœrÃ¼n Kombinleri</h2>
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="searchProduct">Ürün Ara</Label>
+                  <Label htmlFor="searchProduct">ÃœrÃ¼n Ara</Label>
                   <div className="relative mt-1">
                     <Input
                       id="searchProduct"
@@ -1833,7 +1799,7 @@ export default function EditProductPage() {
                         setSearchProduct(e.target.value);
                         searchProducts(e.target.value);
                       }}
-                      placeholder="Ürün adı ile ara..."
+                      placeholder="ÃœrÃ¼n adÄ± ile ara..."
                     />
                     {searchResults.length > 0 && (
                       <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
@@ -1862,7 +1828,7 @@ export default function EditProductPage() {
                 {/* Eklenen Kombinler */}
                 {combinations.length > 0 && (
                   <div>
-                    <Label className="text-sm text-gray-600 mb-2 block">Eklenen Ürünler</Label>
+                    <Label className="text-sm text-gray-600 mb-2 block">Eklenen ÃœrÃ¼nler</Label>
                     <div className="space-y-2">
                       {combinations.map((productId) => {
                         const product = searchResults.find((p) => p.id === productId);
@@ -1875,13 +1841,13 @@ export default function EditProductPage() {
                               <div className="relative w-10 h-10 rounded overflow-hidden bg-gray-100">
                                 <Image
                                   src={product?.image || "/placeholder.jpg"}
-                                  alt={product?.name || "Ürün"}
+                                  alt={product?.name || "ÃœrÃ¼n"}
                                   fill
                                   className="object-cover"
                                 />
                               </div>
                               <span className="text-sm font-medium">
-                                {product?.name || "Yükleniyor..."}
+                                {product?.name || "YÃ¼kleniyor..."}
                               </span>
                             </div>
                             <Button
@@ -1902,19 +1868,19 @@ export default function EditProductPage() {
               </div>
             </div>
 
-            {/* Ürün Detay Şablonları */}
+            {/* ÃœrÃ¼n Detay ÅablonlarÄ± */}
             <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold mb-4">Ürün Detay Şablonları</h2>
+              <h2 className="text-lg font-semibold mb-4">ÃœrÃ¼n Detay ÅablonlarÄ±</h2>
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="washingInstruction">Yıkama Talimatı</Label>
+                  <Label htmlFor="washingInstruction">YÄ±kama TalimatÄ±</Label>
                   <div className="flex gap-2">
                     <Select value={washingInstructionId} onValueChange={setWashingInstructionId}>
                       <SelectTrigger className="mt-1 flex-1">
-                        <SelectValue placeholder="Seçiniz..." />
+                        <SelectValue placeholder="SeÃ§iniz..." />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="none">Seçim Yok</SelectItem>
+                        <SelectItem value="none">SeÃ§im Yok</SelectItem>
                         {washingInstructions.map((item) => (
                           <SelectItem key={item.id} value={item.id}>
                             {item.title}
@@ -1934,14 +1900,14 @@ export default function EditProductPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="deliveryInfo">Teslimat ve İade Bilgisi</Label>
+                  <Label htmlFor="deliveryInfo">Teslimat ve Ä°ade Bilgisi</Label>
                   <div className="flex gap-2">
                     <Select value={deliveryInfoId} onValueChange={setDeliveryInfoId}>
                       <SelectTrigger className="mt-1 flex-1">
-                        <SelectValue placeholder="Seçiniz..." />
+                        <SelectValue placeholder="SeÃ§iniz..." />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="none">Seçim Yok</SelectItem>
+                        <SelectItem value="none">SeÃ§im Yok</SelectItem>
                         {deliveryInfos.map((item) => (
                           <SelectItem key={item.id} value={item.id}>
                             {item.title}
@@ -1965,10 +1931,10 @@ export default function EditProductPage() {
                   <div className="flex gap-2">
                     <Select value={sizeNoteId} onValueChange={setSizeNoteId}>
                       <SelectTrigger className="mt-1 flex-1">
-                        <SelectValue placeholder="Seçiniz..." />
+                        <SelectValue placeholder="SeÃ§iniz..." />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="none">Seçim Yok</SelectItem>
+                        <SelectItem value="none">SeÃ§im Yok</SelectItem>
                         {sizeNotes.map((item) => (
                           <SelectItem key={item.id} value={item.id}>
                             {item.title}
@@ -1992,10 +1958,10 @@ export default function EditProductPage() {
                   <div className="flex gap-2">
                     <Select value={sizeGuideId} onValueChange={setSizeGuideId}>
                       <SelectTrigger className="mt-1 flex-1">
-                        <SelectValue placeholder="Seçiniz..." />
+                        <SelectValue placeholder="SeÃ§iniz..." />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="none">Seçim Yok</SelectItem>
+                        <SelectItem value="none">SeÃ§im Yok</SelectItem>
                         {sizeGuides.map((item) => (
                           <SelectItem key={item.id} value={item.id}>
                             {item.title}
@@ -2019,10 +1985,10 @@ export default function EditProductPage() {
                   <div className="flex gap-2">
                     <Select value={modelInfoId} onValueChange={setModelInfoId}>
                       <SelectTrigger className="mt-1 flex-1">
-                        <SelectValue placeholder="Seçiniz..." />
+                        <SelectValue placeholder="SeÃ§iniz..." />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="none">Seçim Yok</SelectItem>
+                        <SelectItem value="none">SeÃ§im Yok</SelectItem>
                         {modelInfos.map((item) => (
                           <SelectItem key={item.id} value={item.id}>
                             {item.title}

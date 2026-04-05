@@ -1,4 +1,4 @@
-import "server-only";
+﻿import "server-only";
 
 import CredentialsProvider from "next-auth/providers/credentials";
 import type { AuthOptions } from "next-auth";
@@ -16,12 +16,11 @@ export const authConfig: AuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials, req) {
-        // Rate Limiting
         const ip = req.headers?.["x-forwarded-for"] || "127.0.0.1";
         const ratelimit = await checkRateLimit(ip as string, RateLimits.strict);
 
         if (!ratelimit.success) {
-          throw new Error("Çok fazla başarısız giriş denemesi. Lütfen daha sonra tekrar deneyiniz.");
+          throw new Error("Ã‡ok fazla baÅŸarÄ±sÄ±z giriÅŸ denemesi. LÃ¼tfen daha sonra tekrar deneyiniz.");
         }
 
         if (!credentials?.email || !credentials?.password) return null;

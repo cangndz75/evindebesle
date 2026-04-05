@@ -1,5 +1,4 @@
-// app/blog/_components/BlogPagination.tsx
-"use client";
+﻿"use client";
 
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -11,7 +10,6 @@ export default function BlogPagination({ totalPages }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // 1 sayfadan azsa gizle
   if (!totalPages || totalPages <= 1) return null;
 
   const raw = Number(searchParams.get("page") || "1");

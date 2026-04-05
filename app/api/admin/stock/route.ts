@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
@@ -40,19 +40,15 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Flatten data: Product -> StockItems (Color or Base Product)
     const stockItems: any[] = [];
 
     for (const product of products) {
-      // If product has colors, create an item for each color
       if (product.colors.length > 0) {
         for (const color of product.colors) {
-          // Find variants belonging to this color
           const colorVariants = product.variants.filter(
             (v: any) => v.colorId === color.id
           );
 
-          // Calculate total stock for this color
           const totalStock = colorVariants.reduce(
             (sum: number, v: any) => sum + (v.stock || v.size?.stock || 0),
             0
@@ -77,18 +73,12 @@ export async function GET(request: NextRequest) {
           });
         }
       } else {
-        // Product has no colors (Size only or Simple)
         const totalStock = product.sizes.reduce(
           (sum: number, s: any) => sum + (s.stock || 0),
           0
         );
 
-        // If product has variants but no colors (rare edge case in schema but possible)
-        // Or if it has sizes (ProductSize) which are used when no variants exist
-        // The schema has ProductSize table which is used for simple size-stock
-        // And ProductVariant table for Color-Size combinations.
 
-        // Let's check sizes array
         const subVariants = product.sizes.map((s: any) => ({
           variantId: s.id, // This is ProductSize ID
           size: s.name,
@@ -111,7 +101,6 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Filter
     let filteredItems = stockItems;
     if (filter === "lowStock") {
       filteredItems = stockItems.filter(
@@ -128,7 +117,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error("Stock fetch error:", error);
     return NextResponse.json(
-      { error: error.message || "Stok verileri yüklenirken bir hata oluştu" },
+      { error: error.message || "Stok verileri yÃ¼klenirken bir hata oluÅŸtu" },
       { status: 500 }
     );
   }

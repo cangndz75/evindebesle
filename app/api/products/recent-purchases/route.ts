@@ -1,12 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { formatDistanceToNow } from "date-fns";
 import { tr } from "date-fns/locale";
 
-// GET: Son satın almaları getir (social proof için)
 export async function GET(req: NextRequest) {
     try {
-        // Son 24 saat içindeki tamamlanmış siparişler
         const orders = await prisma.order.findMany({
             where: {
                 status: { in: ["PROCESSING", "SHIPPED", "DELIVERED"] },
@@ -37,10 +35,9 @@ export async function GET(req: NextRequest) {
             take: 20,
         });
 
-        // Anonim isimler ve rastgele şehirler
-        const cities = ["İstanbul", "Ankara", "İzmir", "Bursa", "Antalya", "Konya", "Adana", "Gaziantep"];
+        const cities = ["Ä°stanbul", "Ankara", "Ä°zmir", "Bursa", "Antalya", "Konya", "Adana", "Gaziantep"];
         const anonymize = (name: string | null): string => {
-            if (!name) return "Müşteri";
+            if (!name) return "MÃ¼ÅŸteri";
             const parts = name.split(" ");
             if (parts.length > 1) {
                 return `${parts[0]} ${parts[1][0]}.`;
@@ -52,7 +49,7 @@ export async function GET(req: NextRequest) {
             const item = order.items[0];
             return {
                 id: order.id,
-                productName: item?.product?.name || "Ürün",
+                productName: item?.product?.name || "ÃœrÃ¼n",
                 productImage: item?.product?.image || null,
                 buyerName: anonymize(order.user?.name ?? null),
                 city: order.user?.district?.name || cities[Math.floor(Math.random() * cities.length)],

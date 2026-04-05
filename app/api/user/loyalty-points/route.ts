@@ -1,8 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 
-// GET: Kullanıcının puan bakiyesi ve geçmişi
 export async function GET(req: NextRequest) {
     try {
         const user = await getCurrentUser();
@@ -10,7 +9,6 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        // Toplam puan hesapla
         const points = await prisma.loyaltyPoint.findMany({
             where: { userId: user.id },
             orderBy: { createdAt: "desc" },
@@ -41,13 +39,10 @@ export async function GET(req: NextRequest) {
     }
 }
 
-// POST: Puan ekle (internal use - sipariş sonrası vs.)
 export async function POST(req: NextRequest) {
     try {
         const user = await getCurrentUser();
         if (!user?.isAdmin) {
-            // Admin değilse sadece belirli işlemler yapılabilir
-            // Bu endpoint genellikle internal olarak kullanılır
         }
 
         const body = await req.json();
@@ -75,12 +70,11 @@ export async function POST(req: NextRequest) {
     }
 }
 
-// Puan kazanma kuralları (lib/loyalty.ts dosyasına taşınabilir)
 const LOYALTY_RULES = {
-    PURCHASE_RATE: 5, // Her 100 TL için 5 puan
+    PURCHASE_RATE: 5, // Her 100 TL iÃ§in 5 puan
     REVIEW_BONUS: 20, // Yorum yapmak 20 puan
-    SIGNUP_BONUS: 50, // Kayıt olunca 50 puan
-    BIRTHDAY_BONUS: 100, // Doğum günü 100 puan
-    REFERRAL_BONUS: 50, // Arkadaş davet 50 puan
+    SIGNUP_BONUS: 50, // KayÄ±t olunca 50 puan
+    BIRTHDAY_BONUS: 100, // DoÄŸum gÃ¼nÃ¼ 100 puan
+    REFERRAL_BONUS: 50, // ArkadaÅŸ davet 50 puan
     POINTS_PER_TL: 10, // 10 puan = 1 TL
 };

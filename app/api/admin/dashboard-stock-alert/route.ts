@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { prisma } from "@/lib/db";
@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
     const session = await getServerSession(authConfig);
 
     if (!session?.user?.isAdmin) {
-      return NextResponse.json({ error: "Yetkisiz erişim" }, { status: 403 });
+      return NextResponse.json({ error: "Yetkisiz eriÅŸim" }, { status: 403 });
     }
 
     const searchParams = req.nextUrl.searchParams;
@@ -17,7 +17,6 @@ export async function GET(req: NextRequest) {
     let products;
 
     if (type === "out") {
-      // Tükendi
       products = await prisma.product.findMany({
         where: {
           isActive: true,
@@ -34,7 +33,6 @@ export async function GET(req: NextRequest) {
         orderBy: { updatedAt: "desc" },
       });
     } else {
-      // Düşük stok (10 ve altı)
       products = await prisma.product.findMany({
         where: {
           isActive: true,
@@ -70,7 +68,7 @@ export async function GET(req: NextRequest) {
   } catch (error: any) {
     console.error("Stock alert error:", error);
     return NextResponse.json(
-      { error: error.message || "Stok bilgileri yüklenirken bir hata oluştu" },
+      { error: error.message || "Stok bilgileri yÃ¼klenirken bir hata oluÅŸtu" },
       { status: 500 }
     );
   }

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -117,17 +117,15 @@ export default function AbandonedCartsPage() {
     };
 
     const handleSendEmail = (email: string) => {
-        // Find the user's cart
         const cart = data?.abandonedCarts.find(c => c.user.email === email);
         if (!cart) return;
 
-        // Create campaign draft
         const draft = {
             id: null,
             name: `Terk Edilen Sepet - ${cart.user.name || email}`,
             status: "draft",
-            subject: "Sepetinizde ürün unuttunuz!",
-            preheader: "Beğendiğiniz ürünler sizi bekliyor",
+            subject: "Sepetinizde Ã¼rÃ¼n unuttunuz!",
+            preheader: "BeÄŸendiÄŸiniz Ã¼rÃ¼nler sizi bekliyor",
             fromName: "Evinde Besle",
             fromEmail: "info@dark-velvet.com",
             replyTo: "info@dark-velvet.com",
@@ -151,7 +149,7 @@ export default function AbandonedCartsPage() {
                     id: "text-1",
                     type: "text",
                     content: {
-                        text: `<p style="font-size: 16px; text-align: center; color: #333;">Merhaba <strong>${cart.user.name || "Değerli Müşterimiz"}</strong>,<br><br>Sepetinizde harika ürünler bıraktığınızı fark ettik. Tükenmeden hemen tamamlayın!</p>`,
+                        text: `<p style="font-size: 16px; text-align: center; color: #333;">Merhaba <strong>${cart.user.name || "DeÄŸerli MÃ¼ÅŸterimiz"}</strong>,<br><br>Sepetinizde harika Ã¼rÃ¼nler bÄ±raktÄ±ÄŸÄ±nÄ±zÄ± fark ettik. TÃ¼kenmeden hemen tamamlayÄ±n!</p>`,
                     },
                     style: {
                         padding: "20px",
@@ -159,7 +157,6 @@ export default function AbandonedCartsPage() {
                     },
                     visibility: { mobile: true, desktop: true }
                 },
-                // Add first product as example
                 ...(cart.items.length > 0 ? [{
                     id: "product-1",
                     type: "image", // Using image block for simplicity as product block might be complex
@@ -209,10 +206,10 @@ export default function AbandonedCartsPage() {
                     id: "footer-1",
                     type: "footer",
                     content: {
-                        text: "© 2026 Evinde Besle. Tüm hakları saklıdır.",
+                        text: "Â© 2026 Evinde Besle. TÃ¼m haklarÄ± saklÄ±dÄ±r.",
                         socialHidden: true,
                         siteLink: "https://evindebesle.com",
-                        address: "İstanbul, Türkiye"
+                        address: "Ä°stanbul, TÃ¼rkiye"
                     },
                     style: {
                         padding: "20px",
@@ -223,7 +220,6 @@ export default function AbandonedCartsPage() {
             ]
         };
 
-        // Save to localStorage and redirect
         localStorage.setItem("abandonedCartDraft", JSON.stringify(draft));
         router.push("/campaigns");
     };
@@ -250,7 +246,7 @@ export default function AbandonedCartsPage() {
                     </Button>
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">Terk Edilen Sepetler</h1>
-                        <p className="text-sm text-gray-500">Detaylı analiz ve otomasyon</p>
+                        <p className="text-sm text-gray-500">DetaylÄ± analiz ve otomasyon</p>
                     </div>
                 </div>
                 <div className="flex gap-2">
@@ -260,7 +256,7 @@ export default function AbandonedCartsPage() {
                     </Button>
                     <Button onClick={() => router.push("/campaigns")}>
                         <Mail className="w-4 h-4 mr-2" />
-                        Kampanya Oluştur
+                        Kampanya OluÅŸtur
                     </Button>
                 </div>
             </div>
@@ -271,9 +267,9 @@ export default function AbandonedCartsPage() {
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-gray-500">Bugün</p>
+                                <p className="text-sm text-gray-500">BugÃ¼n</p>
                                 <p className="text-2xl font-bold">{data?.summary.today.users || 0}</p>
-                                <p className="text-xs text-gray-400">{data?.summary.today.items || 0} ürün</p>
+                                <p className="text-xs text-gray-400">{data?.summary.today.items || 0} Ã¼rÃ¼n</p>
                             </div>
                             <div className="p-3 bg-orange-100 rounded-lg">
                                 <ShoppingCart className="w-6 h-6 text-orange-600" />
@@ -288,7 +284,7 @@ export default function AbandonedCartsPage() {
                             <div>
                                 <p className="text-sm text-gray-500">Bu Hafta</p>
                                 <p className="text-2xl font-bold">{data?.summary.week.users || 0}</p>
-                                <p className="text-xs text-gray-400">{data?.summary.week.items || 0} ürün</p>
+                                <p className="text-xs text-gray-400">{data?.summary.week.items || 0} Ã¼rÃ¼n</p>
                             </div>
                             <div className="p-3 bg-blue-100 rounded-lg">
                                 <Users className="w-6 h-6 text-blue-600" />
@@ -303,7 +299,7 @@ export default function AbandonedCartsPage() {
                             <div>
                                 <p className="text-sm text-gray-500">Bu Ay</p>
                                 <p className="text-2xl font-bold">{data?.summary.month.users || 0}</p>
-                                <p className="text-xs text-gray-400">{data?.summary.month.items || 0} ürün</p>
+                                <p className="text-xs text-gray-400">{data?.summary.month.items || 0} Ã¼rÃ¼n</p>
                             </div>
                             <div className="p-3 bg-purple-100 rounded-lg">
                                 <TrendingUp className="w-6 h-6 text-purple-600" />
@@ -318,7 +314,7 @@ export default function AbandonedCartsPage() {
                             <div>
                                 <p className="text-sm text-emerald-100">Potansiyel Gelir</p>
                                 <p className="text-2xl font-bold">{formatPrice(data?.summary.totalPotentialRevenue || 0)}</p>
-                                <p className="text-xs text-emerald-200">Kurtarılabilir tutar</p>
+                                <p className="text-xs text-emerald-200">KurtarÄ±labilir tutar</p>
                             </div>
                             <div className="p-3 bg-white/20 rounded-lg">
                                 <Package className="w-6 h-6 text-white" />
@@ -333,8 +329,8 @@ export default function AbandonedCartsPage() {
                 {/* Daily Trend Chart */}
                 <Card>
                     <CardHeader>
-                        <CardTitle>Günlük Trend</CardTitle>
-                        <CardDescription>Son 7 günde terk edilen sepet sayısı</CardDescription>
+                        <CardTitle>GÃ¼nlÃ¼k Trend</CardTitle>
+                        <CardDescription>Son 7 gÃ¼nde terk edilen sepet sayÄ±sÄ±</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <ResponsiveContainer width="100%" height={200}>
@@ -343,10 +339,8 @@ export default function AbandonedCartsPage() {
                                     dataKey="date"
                                     tick={{ fontSize: 12 }}
                                     tickFormatter={(value) => {
-                                        // "25 Jan" formatını TR'ye çevir
                                         try {
                                             const date = new Date(value);
-                                            // Eğer valid date değilse direkt value döndür
                                             if (isNaN(date.getTime())) return value;
                                             return format(date, "d MMM", { locale: tr });
                                         } catch {
@@ -358,7 +352,6 @@ export default function AbandonedCartsPage() {
                                 <Tooltip
                                     content={({ active, payload, label }) => {
                                         if (active && payload && payload.length) {
-                                            // Label'ı formatla (örn: 30 Jan -> 30 Oca)
                                             let formattedLabel = label;
                                             try {
                                                 if (label) {
@@ -390,8 +383,8 @@ export default function AbandonedCartsPage() {
                 {/* Top Abandoned Products */}
                 <Card>
                     <CardHeader>
-                        <CardTitle>En Çok Terk Edilen Ürünler</CardTitle>
-                        <CardDescription>Sepette bırakılan ürünler</CardDescription>
+                        <CardTitle>En Ã‡ok Terk Edilen ÃœrÃ¼nler</CardTitle>
+                        <CardDescription>Sepette bÄ±rakÄ±lan Ã¼rÃ¼nler</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-3">
                         {data?.topAbandonedProducts.slice(0, 5).map((item, index) => (
@@ -412,7 +405,7 @@ export default function AbandonedCartsPage() {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm font-medium text-gray-900 truncate">{item.product.name}</p>
-                                    <p className="text-xs text-gray-500">{item.count} adet • {formatPrice(item.value)}</p>
+                                    <p className="text-xs text-gray-500">{item.count} adet â€¢ {formatPrice(item.value)}</p>
                                 </div>
                             </div>
                         ))}
@@ -426,20 +419,20 @@ export default function AbandonedCartsPage() {
                     <div className="flex items-center justify-between">
                         <div>
                             <CardTitle>Terk Edilen Sepetler</CardTitle>
-                            <CardDescription>Son 7 gün içinde sepetini terk eden kullanıcılar</CardDescription>
+                            <CardDescription>Son 7 gÃ¼n iÃ§inde sepetini terk eden kullanÄ±cÄ±lar</CardDescription>
                         </div>
-                        <Badge variant="secondary">{data?.abandonedCarts.length || 0} kullanıcı</Badge>
+                        <Badge variant="secondary">{data?.abandonedCarts.length || 0} kullanÄ±cÄ±</Badge>
                     </div>
                 </CardHeader>
                 <CardContent>
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Kullanıcı</TableHead>
-                                <TableHead>Ürün Sayısı</TableHead>
-                                <TableHead>Sepet Değeri</TableHead>
-                                <TableHead>Son Güncelleme</TableHead>
-                                <TableHead className="text-right">İşlemler</TableHead>
+                                <TableHead>KullanÄ±cÄ±</TableHead>
+                                <TableHead>ÃœrÃ¼n SayÄ±sÄ±</TableHead>
+                                <TableHead>Sepet DeÄŸeri</TableHead>
+                                <TableHead>Son GÃ¼ncelleme</TableHead>
+                                <TableHead className="text-right">Ä°ÅŸlemler</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -457,7 +450,7 @@ export default function AbandonedCartsPage() {
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <Badge variant="outline">{cart.itemCount} ürün</Badge>
+                                        <Badge variant="outline">{cart.itemCount} Ã¼rÃ¼n</Badge>
                                     </TableCell>
                                     <TableCell>
                                         <span className="font-semibold text-emerald-600">{formatPrice(cart.totalValue)}</span>
@@ -482,7 +475,7 @@ export default function AbandonedCartsPage() {
                             {(!data?.abandonedCarts || data.abandonedCarts.length === 0) && (
                                 <TableRow>
                                     <TableCell colSpan={5} className="text-center py-8 text-gray-500">
-                                        Henüz terk edilen sepet yok
+                                        HenÃ¼z terk edilen sepet yok
                                     </TableCell>
                                 </TableRow>
                             )}
@@ -498,17 +491,17 @@ export default function AbandonedCartsPage() {
                         <CardHeader>
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <CardTitle>{selectedUser.user.name || "Anonim Kullanıcı"}</CardTitle>
+                                    <CardTitle>{selectedUser.user.name || "Anonim KullanÄ±cÄ±"}</CardTitle>
                                     <CardDescription>{selectedUser.user.email}</CardDescription>
                                 </div>
                                 <Button variant="ghost" size="sm" onClick={() => setSelectedUser(null)}>
-                                    ✕
+                                    âœ•
                                 </Button>
                             </div>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="flex justify-between text-sm">
-                                <span className="text-gray-500">Toplam Değer</span>
+                                <span className="text-gray-500">Toplam DeÄŸer</span>
                                 <span className="font-bold text-emerald-600">{formatPrice(selectedUser.totalValue)}</span>
                             </div>
                             <div className="border-t pt-4 space-y-3">
@@ -530,7 +523,7 @@ export default function AbandonedCartsPage() {
                                         <div className="flex-1">
                                             <p className="text-sm font-medium">{item.product.name}</p>
                                             <p className="text-xs text-gray-500">
-                                                {item.size && `Beden: ${item.size}`} {item.color && `• Renk: ${item.color}`}
+                                                {item.size && `Beden: ${item.size}`} {item.color && `â€¢ Renk: ${item.color}`}
                                             </p>
                                         </div>
                                         <div className="text-right">
@@ -543,7 +536,7 @@ export default function AbandonedCartsPage() {
                             <div className="pt-4 border-t flex gap-2">
                                 <Button className="flex-1" onClick={() => handleSendEmail(selectedUser.user.email)}>
                                     <Mail className="w-4 h-4 mr-2" />
-                                    E-posta Gönder
+                                    E-posta GÃ¶nder
                                 </Button>
                             </div>
                         </CardContent>

@@ -1,11 +1,10 @@
-import { prisma } from "@/lib/db";
+﻿import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { logAuditAction } from "@/lib/auditLog";
 
-// GET: Tüm kategorileri getir
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authConfig);
@@ -18,7 +17,7 @@ export async function GET(request: NextRequest) {
       include: {
         _count: {
           select: {
-            products: true, // Deprecated ama çalışıyor
+            products: true, // Deprecated ama Ã§alÄ±ÅŸÄ±yor
           },
         },
       },
@@ -28,13 +27,12 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error("Categories fetch error:", error);
     return NextResponse.json(
-      { error: error.message || "Kategoriler getirilirken bir hata oluştu" },
+      { error: error.message || "Kategoriler getirilirken bir hata oluÅŸtu" },
       { status: 500 }
     );
   }
 }
 
-// POST: Yeni kategori oluştur
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authConfig);
@@ -47,16 +45,14 @@ export async function POST(req: Request) {
 
     if (!name) {
       return NextResponse.json(
-        { error: "Kategori adı gereklidir" },
+        { error: "Kategori adÄ± gereklidir" },
         { status: 400 }
       );
     }
 
-    // Slug oluştur (lib/slug.ts kullanılarak)
     const { generateSlug } = await import("@/lib/slug");
     const baseSlug = generateSlug(name);
 
-    // Cinsiyet prefix'i ekle
     let slugPrefix = "";
     if (gender === "MALE") slugPrefix = "men-";
     else if (gender === "FEMALE") slugPrefix = "women-";
@@ -64,7 +60,6 @@ export async function POST(req: Request) {
 
     const slug = `${slugPrefix}${baseSlug}`;
 
-    // Slug unique kontrolü
     let finalSlug = slug;
     let counter = 1;
     while (await prisma.category.findUnique({ where: { slug: finalSlug } })) {
@@ -72,7 +67,6 @@ export async function POST(req: Request) {
       counter++;
     }
 
-    // En yüksek sortOrder'ı bul
     const maxSortOrder = await prisma.category.aggregate({
       _max: { sortOrder: true },
     });
@@ -94,7 +88,6 @@ export async function POST(req: Request) {
       },
     });
 
-    // Audit Log
     await logAuditAction({
       action: "CATEGORY_CREATE",
       adminId: session.user.id,
@@ -116,7 +109,7 @@ export async function POST(req: Request) {
   } catch (error: any) {
     console.error("Category creation error:", error);
     return NextResponse.json(
-      { error: error.message || "Kategori oluşturulurken bir hata oluştu" },
+      { error: error.message || "Kategori oluÅŸturulurken bir hata oluÅŸtu" },
       { status: 500 }
     );
   }

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
@@ -18,7 +18,6 @@ export async function POST(req: Request) {
             return new NextResponse("Missing required fields", { status: 400 });
         }
 
-        // Create ticket and initial message in a transaction
         const ticket = await prisma.supportTicket.create({
             data: {
                 userId: session.user.id,

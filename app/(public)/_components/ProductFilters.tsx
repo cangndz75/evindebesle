@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { X, Plus, Minus, ChevronDown } from "lucide-react";
@@ -35,7 +35,7 @@ const COLOR_NAME_TO_HEX: Record<string, string> = {
   mavi: "#2563EB",
   blue: "#2563EB",
   kirmizi: "#B91C1C",
-  kırmızı: "#B91C1C",
+  "kÄ±rmÄ±zÄ±": "#B91C1C",
   red: "#B91C1C",
   bordo: "#7F1D1D",
   pembe: "#EC4899",
@@ -43,10 +43,10 @@ const COLOR_NAME_TO_HEX: Record<string, string> = {
   mor: "#7C3AED",
   purple: "#7C3AED",
   yesil: "#166534",
-  yeşil: "#166534",
+  "yeÅŸil": "#166534",
   green: "#166534",
   sari: "#EAB308",
-  sarı: "#EAB308",
+  "sarÄ±": "#EAB308",
   yellow: "#EAB308",
   turuncu: "#EA580C",
   orange: "#EA580C",
@@ -72,7 +72,7 @@ function getColorSwatchStyle(name: string, hexCode?: string) {
   }
 
   const normalized = normalizeColorName(name);
-  if (normalized.includes("cok renk") || normalized.includes("çok renk") || normalized.includes("multicolor")) {
+  if (normalized.includes("cok renk") || normalized.includes("Ã§ok renk") || normalized.includes("multicolor")) {
     return {
       backgroundImage:
         "conic-gradient(#ef4444, #f59e0b, #10b981, #3b82f6, #8b5cf6, #ef4444)",
@@ -129,10 +129,9 @@ export default function ProductFilters({
   resultCount,
   isLoading = false,
 }: ProductFiltersProps) {
-  const [open, setOpen] = useState(false); // Butona tıklayınca açılsın
+  const [open, setOpen] = useState(false); // Butona tÄ±klayÄ±nca aÃ§Ä±lsÄ±n
   const [localFilters, setLocalFilters] = useState<FilterState>(filters);
 
-  // filters prop'u değiştiğinde localFilters'ı güncelle
   useEffect(() => {
     setLocalFilters(filters);
   }, [filters]);
@@ -230,7 +229,7 @@ export default function ProductFilters({
               <AccordionItem value="price" className="border-b border-gray-200">
                 <AccordionTrigger className="py-4 hover:no-underline px-0">
                   <div className="flex items-center justify-between w-full pr-4">
-                    <span className="text-sm font-semibold uppercase text-[#111]">FİYAT</span>
+                    <span className="text-sm font-semibold uppercase text-[#111]">FÄ°YAT</span>
 
                   </div>
                 </AccordionTrigger>
@@ -238,7 +237,7 @@ export default function ProductFilters({
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <Label className="text-xs text-gray-600 mb-1 block">Min (₺)</Label>
+                        <Label className="text-xs text-gray-600 mb-1 block">Min (â‚º)</Label>
                         <Input
                           type="number"
                           placeholder="0"
@@ -250,7 +249,7 @@ export default function ProductFilters({
                         />
                       </div>
                       <div>
-                        <Label className="text-xs text-gray-600 mb-1 block">Max (₺)</Label>
+                        <Label className="text-xs text-gray-600 mb-1 block">Max (â‚º)</Label>
                         <Input
                           type="number"
                           placeholder="2000"
@@ -350,7 +349,7 @@ export default function ProductFilters({
                 <AccordionItem value="fabric" className="border-b border-gray-200">
                   <AccordionTrigger className="py-4 hover:no-underline px-0">
                     <div className="flex items-center justify-between w-full pr-4">
-                      <span className="text-sm font-semibold uppercase text-[#111]">KUMAŞ TİPİ</span>
+                      <span className="text-sm font-semibold uppercase text-[#111]">KUMAÅ TÄ°PÄ°</span>
 
                     </div>
                   </AccordionTrigger>
@@ -383,7 +382,7 @@ export default function ProductFilters({
                 onClick={applyFilters}
                 className="w-full bg-[#111] text-white hover:bg-[#333] h-12 text-sm font-semibold uppercase tracking-wide"
               >
-                {isLoading ? "Ürünler Yükleniyor..." : `${resultCount} Ürünü Göster`}
+                {isLoading ? "ÃœrÃ¼nler YÃ¼kleniyor..." : `${resultCount} ÃœrÃ¼nÃ¼ GÃ¶ster`}
               </Button>
             </div>
           </div>

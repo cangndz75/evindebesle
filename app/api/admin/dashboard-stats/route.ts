@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { prisma } from "@/lib/db";
@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
     const session = await getServerSession(authConfig);
 
     if (!session?.user?.isAdmin) {
-      return NextResponse.json({ error: "Yetkisiz erişim" }, { status: 403 });
+      return NextResponse.json({ error: "Yetkisiz eriÅŸim" }, { status: 403 });
     }
 
     const now = new Date();
@@ -21,7 +21,6 @@ export async function GET(req: NextRequest) {
     const previous7DaysEnd = subDays(now, 7);
     const lastHour = subHours(now, 1);
 
-    // Toplam Gelir (Son 7 gün vs Önceki 7 gün)
     const [currentRevenue, previousRevenue] = await Promise.all([
       prisma.order.aggregate({
         _sum: { total: true },
@@ -45,7 +44,6 @@ export async function GET(req: NextRequest) {
       ? ((currentRevenueTotal - previousRevenueTotal) / previousRevenueTotal) * 100
       : 0;
 
-    // Bekleyen Siparişler
     const [pendingOrders, pendingOrdersLastHour] = await Promise.all([
       prisma.order.count({
         where: { status: "PAID" },
@@ -60,7 +58,6 @@ export async function GET(req: NextRequest) {
 
 
 
-    // Stok Alarmı
     const lowStockProducts = await prisma.product.findMany({
       where: {
         isActive: true,
@@ -95,7 +92,7 @@ export async function GET(req: NextRequest) {
     }).length;
 
     const stockAlarmCount = lowStockProducts.length + outOfStockProducts.length;
-    const previousStockAlarmCount = stockAlarmCount - 3; // Simüle edilmiş
+    const previousStockAlarmCount = stockAlarmCount - 3; // SimÃ¼le edilmiÅŸ
     const stockChange = previousStockAlarmCount > 0
       ? ((stockAlarmCount - previousStockAlarmCount) / previousStockAlarmCount) * 100
       : 0;
@@ -122,7 +119,7 @@ export async function GET(req: NextRequest) {
   } catch (error: any) {
     console.error("Dashboard stats error:", error);
     return NextResponse.json(
-      { error: "İstatistikler yüklenirken bir hata oluştu." },
+      { error: "Ä°statistikler yÃ¼klenirken bir hata oluÅŸtu." },
       { status: 500 }
     );
   }

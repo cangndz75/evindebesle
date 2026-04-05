@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -286,7 +286,6 @@ export default function ProductListingPage() {
                       className="absolute bottom-3 right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-100"
                       onClick={(e) => {
                         e.preventDefault();
-                        // Favorite logic
                       }}
                       aria-label="Favorilere Ekle"
                     >
@@ -336,7 +335,7 @@ export default function ProductListingPage() {
                         className={`w-4 h-4 rounded-full border transition-all duration-200 hover:scale-110 ${isActive ? "border-[#111] scale-110" : "border-gray-300"
                           }`}
                         style={{ backgroundColor: color.value }}
-                        aria-label={`${color.name} renk seçeneği`}
+                        aria-label={`${color.name} renk seÃ§eneÄŸi`}
                       />
                     );
                   })}

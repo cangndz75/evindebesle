@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { prisma } from "@/lib/db";
@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
     const session = await getServerSession(authConfig);
 
     if (!session?.user?.isAdmin) {
-      return NextResponse.json({ error: "Yetkisiz erişim" }, { status: 403 });
+      return NextResponse.json({ error: "Yetkisiz eriÅŸim" }, { status: 403 });
     }
 
     const now = new Date();
@@ -22,7 +22,6 @@ export async function GET(req: NextRequest) {
     const lastWeekStart = startOfWeek(subDays(now, 7), { weekStartsOn: 1 });
     const lastWeekEnd = endOfWeek(subDays(now, 7), { weekStartsOn: 1 });
 
-    // Bugünkü Ciro
     const todayRevenue = await prisma.order.aggregate({
       where: {
         createdAt: { gte: todayStart, lte: todayEnd },
@@ -60,7 +59,6 @@ export async function GET(req: NextRequest) {
     const weekTotalRevenue = weekRevenue._sum.total || 0;
     const lastWeekTotalRevenue = lastWeekRevenue._sum.total || 0;
 
-    // Sipariş Adedi
     const todayOrders = await prisma.order.count({
       where: {
         createdAt: { gte: todayStart, lte: todayEnd },
@@ -73,7 +71,6 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    // AOV (Average Order Value)
     const todayOrdersWithTotal = await prisma.order.findMany({
       where: {
         createdAt: { gte: todayStart, lte: todayEnd },
@@ -98,7 +95,6 @@ export async function GET(req: NextRequest) {
       ? weekOrdersWithTotal.reduce((sum: number, o: any) => sum + o.total, 0) / weekOrdersWithTotal.length
       : 0;
 
-    // İade/İptal Oranı
     const totalOrders = await prisma.order.count({
       where: {
         createdAt: { gte: weekStart, lte: weekEnd },
@@ -121,7 +117,6 @@ export async function GET(req: NextRequest) {
 
     const cancellationRate = totalOrders > 0 ? ((cancelledOrders + refundedOrders) / totalOrders) * 100 : 0;
 
-    // Yeni Müşteri Sayısı
     const newCustomersToday = await prisma.user.count({
       where: {
         createdAt: { gte: todayStart, lte: todayEnd },
@@ -136,10 +131,8 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    // Abandoned Cart (Sepeti terk edenler - son 24 saat içinde sepetinde ürün olup sipariş vermeyenler)
     const twentyFourHoursAgo = subDays(now, 1);
 
-    // Sepeti dolu olan ama son 24 saatte siparişi olmayan kullanıcıları bul
     const abandonedCartUsers = await prisma.cartItem.groupBy({
       by: ["userId"],
       where: {
@@ -150,7 +143,6 @@ export async function GET(req: NextRequest) {
 
     const abandonedCartCount = abandonedCartUsers.length;
 
-    // İade Oranı (Tüm zamanlar veya son 30 gün?) -> Son 30 gün yapalım daha anlamlı
     const thirtyDaysAgo = subDays(now, 30);
     const recentTotalOrders = await prisma.order.count({
       where: { createdAt: { gte: thirtyDaysAgo } }
@@ -165,7 +157,6 @@ export async function GET(req: NextRequest) {
 
     const returnRate = recentTotalOrders > 0 ? (recentRefundedOrders / recentTotalOrders) * 100 : 0;
 
-    // Kargo Gecikme (3 günden fazla süredir kargoda olup teslim edilmeyenler)
     const threeDaysAgo = subDays(now, 3);
     const cargoDelayCount = await prisma.order.count({
       where: {
@@ -175,7 +166,6 @@ export async function GET(req: NextRequest) {
       }
     });
 
-    // Kritik Stok (Dashboard-stats ile senkronize olsun)
     const lowStockCount = await prisma.product.count({
       where: {
         isActive: true,
@@ -187,11 +177,9 @@ export async function GET(req: NextRequest) {
       }
     });
 
-    // Kâr Marjı ve Dönüşüm Oranı için şimdilik tahmini/basit veriler (Gerçek trafik verisi yoksa)
-    const profitMargin = 25.5; // Örnek sabit değer, ileride maliyet tablosu gelince hesaplanır
-    const conversionRate = 3.2; // Örnek sabit değer, ileride trafik api gelince hesaplanır
+    const profitMargin = 25.5; // Ã–rnek sabit deÄŸer, ileride maliyet tablosu gelince hesaplanÄ±r
+    const conversionRate = 3.2; // Ã–rnek sabit deÄŸer, ileride trafik api gelince hesaplanÄ±r
 
-    // Repeat Rate (Tekrar Eden Müşteriler)
     const customersWithMultipleOrders = await prisma.order.groupBy({
       by: ["userId"],
       where: {
@@ -283,7 +271,7 @@ export async function GET(req: NextRequest) {
   } catch (error: any) {
     console.error("Dashboard KPIs error:", error);
     return NextResponse.json(
-      { error: error.message || "KPI'lar yüklenirken bir hata oluştu" },
+      { error: error.message || "KPI'lar yÃ¼klenirken bir hata oluÅŸtu" },
       { status: 500 }
     );
   }

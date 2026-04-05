@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server"
+﻿import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authConfig } from "@/lib/auth.config"
 import { prisma } from "@/lib/db"
@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
   const session = await getServerSession(authConfig)
 
   if (!session?.user?.isAdmin) {
-    return NextResponse.json({ error: "Yetkisiz erişim" }, { status: 401 })
+    return NextResponse.json({ error: "Yetkisiz eriÅŸim" }, { status: 401 })
   }
 
   const {
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
 
   if (!code || !discountType || value == null) {
     return NextResponse.json(
-      { error: "Kod, tür ve değer zorunludur" },
+      { error: "Kod, tÃ¼r ve deÄŸer zorunludur" },
       { status: 400 }
     )
   }
@@ -45,7 +45,6 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    // Audit Log
     await logAuditAction({
       action: "COUPON_CREATE",
       adminId: session.user.id,
@@ -63,8 +62,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(coupon)
   } catch (err) {
-    console.error("Kupon oluşturulurken hata:", err)
-    return NextResponse.json({ error: "Sunucu hatası" }, { status: 500 })
+    console.error("Kupon oluÅŸturulurken hata:", err)
+    return NextResponse.json({ error: "Sunucu hatasÄ±" }, { status: 500 })
   }
 }
 
@@ -79,7 +78,7 @@ export async function GET() {
 
     return NextResponse.json(coupons)
   } catch (err) {
-    console.error("Kuponlar çekilirken hata:", err)
-    return NextResponse.json({ error: "Sunucu hatası" }, { status: 500 })
+    console.error("Kuponlar Ã§ekilirken hata:", err)
+    return NextResponse.json({ error: "Sunucu hatasÄ±" }, { status: 500 })
   }
 }

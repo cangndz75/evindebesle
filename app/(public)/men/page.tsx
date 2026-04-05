@@ -1,4 +1,4 @@
-import MenProductsPage from "../_components/MenProductsPageNew";
+﻿import MenProductsPage from "../_components/MenProductsPageNew";
 import { prisma } from "@/lib/db";
 import { Metadata } from "next";
 import CollectionPageSchema from "@/components/seo/CollectionPageSchema";
@@ -6,21 +6,21 @@ import CollectionPageSchema from "@/components/seo/CollectionPageSchema";
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://darkvelvet.com";
 
 export const metadata: Metadata = {
-  title: "Erkek İç Giyim - Premium Boxer, İç Çamaşırı ve Sweat | Dark Velvet",
-  description: "Dark Velvet erkek iç giyim koleksiyonu. Premium kalitede boxer, iç çamaşırı, sweat ve daha fazlası. Ücretsiz kargo ve hızlı teslimat ile tüm erkek ürünlerimizi keşfedin.",
+  title: "Erkek Ä°Ã§ Giyim - Premium Boxer, Ä°Ã§ Ã‡amaÅŸÄ±rÄ± ve Sweat | Dark Velvet",
+  description: "Dark Velvet erkek iÃ§ giyim koleksiyonu. Premium kalitede boxer, iÃ§ Ã§amaÅŸÄ±rÄ±, sweat ve daha fazlasÄ±. Ãœcretsiz kargo ve hÄ±zlÄ± teslimat ile tÃ¼m erkek Ã¼rÃ¼nlerimizi keÅŸfedin.",
   keywords: [
-    "erkek iç çamaşırı",
+    "erkek iÃ§ Ã§amaÅŸÄ±rÄ±",
     "erkek boxer",
     "erkek sweat",
-    "erkek iç giyim",
-    "premium iç çamaşırı",
+    "erkek iÃ§ giyim",
+    "premium iÃ§ Ã§amaÅŸÄ±rÄ±",
     "erkek atlet",
     "erkek pijama",
-    "online iç çamaşırı"
+    "online iÃ§ Ã§amaÅŸÄ±rÄ±"
   ],
   openGraph: {
-    title: "Erkek İç Giyim Koleksiyonu - Dark Velvet",
-    description: "Premium kalitede erkek iç çamaşırı, boxer, sweat ve daha fazlası.",
+    title: "Erkek Ä°Ã§ Giyim Koleksiyonu - Dark Velvet",
+    description: "Premium kalitede erkek iÃ§ Ã§amaÅŸÄ±rÄ±, boxer, sweat ve daha fazlasÄ±.",
     url: `${BASE_URL}/men`,
     type: "website",
     locale: "tr_TR",
@@ -30,14 +30,14 @@ export const metadata: Metadata = {
         url: `${BASE_URL}/og-men.jpg`,
         width: 1200,
         height: 630,
-        alt: "Dark Velvet Erkek İç Giyim"
+        alt: "Dark Velvet Erkek Ä°Ã§ Giyim"
       }
     ]
   },
   twitter: {
     card: "summary_large_image",
-    title: "Erkek İç Giyim - Dark Velvet",
-    description: "Premium erkek iç çamaşırı koleksiyonu"
+    title: "Erkek Ä°Ã§ Giyim - Dark Velvet",
+    description: "Premium erkek iÃ§ Ã§amaÅŸÄ±rÄ± koleksiyonu"
   },
   alternates: {
     canonical: `${BASE_URL}/men`
@@ -48,11 +48,9 @@ export const metadata: Metadata = {
   }
 };
 
-// ISR - 5 dakikada bir yenilenir
 export const revalidate = 300;
 export const dynamic = "force-dynamic";
 
-// Helper: JSON string'i array'e çevir
 function parseImages(images: string | null): string[] {
   if (!images) return [];
   try {
@@ -126,7 +124,7 @@ async function getInitialProducts() {
         },
       },
       orderBy: { createdAt: "desc" },
-      take: 100, // İlk yükleme için yeterli
+      take: 100, // Ä°lk yÃ¼kleme iÃ§in yeterli
     });
 
     return products.map((p: any) => ({
@@ -140,7 +138,7 @@ async function getInitialProducts() {
       secondaryImage: p.secondaryImage ?? undefined,
       gender: p.gender ?? undefined,
       fabricType: p.fabricType ?? undefined,
-      badge: (p.createdAt && (new Date().getTime() - new Date(p.createdAt).getTime() < 7 * 24 * 60 * 60 * 1000)) ? "Yeni" : (p.originalPrice && p.originalPrice > p.price ? "İndirim" : undefined),
+      badge: (p.createdAt && (new Date().getTime() - new Date(p.createdAt).getTime() < 7 * 24 * 60 * 60 * 1000)) ? "Yeni" : (p.originalPrice && p.originalPrice > p.price ? "Ä°ndirim" : undefined),
       colors: p.colors.map((c: any) => ({
         id: c.id,
         name: c.name,
@@ -212,14 +210,12 @@ async function getCategories() {
 }
 
 export default async function MenPage() {
-  // Paralel olarak tüm verileri çek
   const [initialProducts, priceRange, categories] = await Promise.all([
     getInitialProducts(),
     getPriceRange(),
     getCategories()
   ]);
 
-  // Format products for schema
   const schemaProducts = initialProducts.slice(0, 12).map((p: any) => ({
     id: p.id,
     name: p.name,
@@ -231,8 +227,8 @@ export default async function MenPage() {
   return (
     <>
       <CollectionPageSchema
-        name="Erkek İç Giyim Koleksiyonu"
-        description="Dark Velvet premium erkek iç çamaşırı, boxer, sweat ve daha fazlası"
+        name="Erkek Ä°Ã§ Giyim Koleksiyonu"
+        description="Dark Velvet premium erkek iÃ§ Ã§amaÅŸÄ±rÄ±, boxer, sweat ve daha fazlasÄ±"
         url={`${BASE_URL}/men`}
         products={schemaProducts}
         minPrice={priceRange.min}

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Minus, Plus, ShoppingBag, Trash2, ChevronLeft, ChevronRight, Tag, XCircle } from "lucide-react";
@@ -95,7 +95,6 @@ function ProductTile({
 export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
   const { data: session } = useSession();
 
-  // Store'dan cart items, state ve actions al
   const cartItems = useCartStore((state) => state.items);
   const hydrated = useCartStore((state) => state.hydrated);
   const isReady = useCartStore((state) => state.isReady);
@@ -122,33 +121,25 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
 
   const handleCreateOrder = async () => {
     if (cartItems.length === 0) {
-      toast.error("Sepetiniz boş");
+      toast.error("Sepetiniz boÅŸ");
       return;
     }
 
-    // Önce kullanıcının giriş yapıp yapmadığını kontrol et (setIsCreatingOrder'dan önce)
     const addressesRes = await fetch("/api/user-addresses");
 
-    // 401 hatası = giriş yapmamış kullanıcı - direkt yönlendir, loading gösterme
     if (addressesRes.status === 401) {
-      // Sepeti localStorage'da tut (zaten tutuluyor ama emin olmak için)
-      // Sepeti kapat ve auth-tabs'e yönlendir
       onClose();
       router.push("/auth-tabs");
       return;
     }
 
     try {
-      // Direct order creation via /api/orders is disabled for public users
-      // to enforce stock reservation and regular checkout flow.
-      // We redirect to the checkout summary page instead.
       onClose();
       router.push("/checkout/summary");
     } catch (error: any) {
       console.error("Order creation error:", error);
-      // 401 hatası zaten handle edildi, diğer hatalar için mesaj göster
       if (!error.message?.includes('401')) {
-        toast.error(error.message || "Sipariş oluşturulurken bir hata oluştu");
+        toast.error(error.message || "SipariÅŸ oluÅŸturulurken bir hata oluÅŸtu");
       }
     } finally {
       setIsCreatingOrder(false);
@@ -170,7 +161,6 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
   const loadRecommendedProducts = async (items: CartItem[]) => {
     try {
       const productIds = items.map((i) => i.productId);
-      // API artık cinsiyet+kategori bazlı akıllı fallback yapıyor
       const res = await fetch(`/api/products/recommended?productIds=${productIds.join(",")}`);
       if (res.ok) {
         const data = await res.json();
@@ -183,10 +173,8 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
 
   const loadRecentlyViewed = async () => {
     try {
-      // Önce localStorage'dan veri çek
       const localProducts = getRecentlyViewed();
 
-      // localStorage'dan gelen ürünleri formatla
       const localFormatted = localProducts.map((p) => ({
         id: p.id,
         productId: p.productId,
@@ -198,7 +186,6 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
         colors: [],
       }));
 
-      // API'den de veri çekmeyi dene (giriş yapmış kullanıcılar için veya guest için DB validasyonu)
       try {
         const productIds = localFormatted.map(p => p.productId).filter(Boolean).join(",");
         const url = productIds ? `/api/products/recent-views?ids=${productIds}` : "/api/products/recent-views";
@@ -207,7 +194,6 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
           const data = await res.json();
           const apiProducts = Array.isArray(data?.products) ? data.products : [];
 
-          // API'den gelen ürünleri formatla
           const apiFormatted = apiProducts.map((p: any) => ({
             id: p.id,
             productId: p.id,
@@ -221,8 +207,6 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
 
           const apiProductIds = new Set(apiFormatted.map((p: any) => p.productId));
 
-          // API ve localStorage ürünlerini birleştir
-          // Aynı ürün varsa API'den geleni önceliklendir (daha güncel)
           type ProductItem = {
             id: string;
             productId: string;
@@ -235,28 +219,22 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
           };
           const productMap = new Map<string, ProductItem>();
 
-          // Önce localStorage ürünlerini EĞER API'de geçerliyse (silinmemişse) ekle
           localFormatted.forEach((p: ProductItem) => {
             if (apiProductIds.has(p.productId)) {
               productMap.set(p.productId, p);
             }
           });
 
-          // Sonra API ürünlerini ekle (aynı ürün varsa üzerine yaz)
           apiFormatted.forEach((p: ProductItem) => {
             productMap.set(p.productId, p);
           });
 
-          // Map'ten array'e çevir (zaten sıralı - en yeni önce)
           const combined = Array.from(productMap.values());
-          // En fazla 12 ürün göster
           setRecentlyViewedProducts(combined.slice(0, 12));
         } else {
-          // API başarısız olursa sadece localStorage kullan
           setRecentlyViewedProducts(localFormatted.slice(0, 12));
         }
       } catch (apiError) {
-        // API hatası olursa sadece localStorage kullan
         console.error("Error fetching API recent views:", apiError);
         setRecentlyViewedProducts(localFormatted.slice(0, 12));
       }
@@ -266,13 +244,10 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
     }
   };
 
-  // Son öneri isteğinin anahtarı (gereksiz tekrar fetch'i engelle)
   const lastRecommendedKeyRef = useRef<string>("");
 
-  // Sepet açıldığında cart'ı hydrate et ve company settings yükle
   useEffect(() => {
     if (isOpen) {
-      // Cart henüz hydrate edilmemişse hydrate et
       if (!hydrated) {
         hydrate();
       }
@@ -280,7 +255,6 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
     }
   }, [isOpen, hydrated, hydrate]);
 
-  // Sepet değiştiğinde önerileri arka planda preload et
   useEffect(() => {
     if (!cartItems.length) {
       lastRecommendedKeyRef.current = "";
@@ -294,19 +268,16 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
     loadRecommendedProducts(cartItems);
   }, [cartItems]);
 
-  // Tab değiştiğinde lazy load yap
   useEffect(() => {
     if (!isOpen) return;
 
     if (activeTab === "recent") {
       loadRecentlyViewed();
     } else if (activeTab === "recommended" && cartItems.length === 0 && recommendedProducts.length === 0) {
-      // Empty cart senaryosunda öneri tab'ını ilk açışta yükle
       loadRecommendedProducts([]);
     }
   }, [isOpen, activeTab, cartItems, recommendedProducts.length]);
 
-  // Event listener: recentlyViewedUpdated event'i için
   useEffect(() => {
     if (!isOpen) return;
 
@@ -340,10 +311,8 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
   const qualifiesForFreeShipping = totalPrice >= freeShippingThreshold;
 
   const getProductImage = (item: CartItem) => {
-    // Önce seçili renk resimlerini kontrol et
     if (item.color?.images) {
       let colorImages: string[] = [];
-      // images string olabilir (JSON string)
       if (typeof item.color.images === 'string') {
         try {
           colorImages = JSON.parse(item.color.images);
@@ -358,7 +327,6 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
       }
     }
 
-    // Ürünün renklerinden ilk resmi al
     if (item.product.colors?.[0]?.images) {
       let productColorImages: string[] = [];
       if (typeof item.product.colors[0].images === 'string') {
@@ -375,7 +343,6 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
       }
     }
 
-    // Fallback: product.image (guest cart için önemli)
     return item.product.primaryImage || item.product.image || "/placeholder.jpg";
   };
 
@@ -405,16 +372,16 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                   Sepetim
                 </SheetTitle>
                 <p className="text-xs text-gray-500">
-                  {cartItems.length > 0 ? `${itemCount} ürün` : "Henüz ürün yok"}
+                  {cartItems.length > 0 ? `${itemCount} Ã¼rÃ¼n` : "HenÃ¼z Ã¼rÃ¼n yok"}
                 </p>
               </div>
-              {/* Close, Sheet zaten X ikon koyuyor olabilir. İstersen buraya ekstra koyma */}
+              {/* Close, Sheet zaten X ikon koyuyor olabilir. Ä°stersen buraya ekstra koyma */}
             </div>
           </SheetHeader>
 
           {/* Body */}
           <div className="flex-1 overflow-y-auto px-5 py-4 bg-white">
-            {/* Empty Cart Skeleton - Sadece isReady değilse göster */}
+            {/* Empty Cart Skeleton - Sadece isReady deÄŸilse gÃ¶ster */}
             {!isReady && cartItems.length === 0 ? (
               <div className="space-y-4 py-4">
                 {/* Skeleton items */}
@@ -442,11 +409,11 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                         <p className="text-sm text-gray-700 leading-5">
                           {qualifiesForFreeShipping ? (
                             <span className="font-semibold text-black">
-                              Ücretsiz kargo için yeterli tutara ulaştınız.
+                              Ãœcretsiz kargo iÃ§in yeterli tutara ulaÅŸtÄ±nÄ±z.
                             </span>
                           ) : (
                             <>
-                              Ücretsiz kargo için{" "}
+                              Ãœcretsiz kargo iÃ§in{" "}
                               <span className="font-medium text-black">
                                 {formatPriceTRY(remainingForFreeShipping)}
                               </span>{" "}
@@ -471,22 +438,22 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                   </div>
                 ) : null}
 
-                {/* EMPTY STATE (2. görsel hissi) */}
+                {/* EMPTY STATE (2. gÃ¶rsel hissi) */}
                 {cartItems.length === 0 ? (
                   <div className="pb-4">
                     <div className="rounded-xl border border-black/10 bg-white px-6 py-10 text-center">
                       <p className="text-xl font-semibold tracking-tight text-black">
-                        Sepetiniz Boş
+                        Sepetiniz BoÅŸ
                       </p>
                       <p className="mt-2 text-sm text-gray-500">
-                        Ürünlere göz atın ve favorilerinizi sepete ekleyin.
+                        ÃœrÃ¼nlere gÃ¶z atÄ±n ve favorilerinizi sepete ekleyin.
                       </p>
                       <Button
                         variant="outline"
                         className="mt-6 h-12 rounded-xl border-black text-black hover:bg-black hover:text-white px-8"
                         onClick={onClose}
                       >
-                        Alışverişe Devam Et
+                        AlÄ±ÅŸveriÅŸe Devam Et
                       </Button>
                     </div>
 
@@ -503,7 +470,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                                 : "text-gray-500 hover:text-black",
                             ].join(" ")}
                           >
-                            Özellikle Sizin İçin
+                            Ã–zellikle Sizin Ä°Ã§in
                           </button>
                           <button
                             onClick={() => setActiveTab("recent")}
@@ -514,7 +481,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                                 : "text-gray-500 hover:text-black",
                             ].join(" ")}
                           >
-                            Son Görüntülenenler
+                            Son GÃ¶rÃ¼ntÃ¼lenenler
                           </button>
                         </div>
 
@@ -523,7 +490,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                             type="button"
                             onClick={() => scrollSlider(emptySliderRef, "left")}
                             className="h-9 w-9 rounded-full border border-black/10 hover:border-black/20 hover:bg-black/5 grid place-items-center"
-                            aria-label="Sola kaydır"
+                            aria-label="Sola kaydÄ±r"
                           >
                             <ChevronLeft className="h-4 w-4" />
                           </button>
@@ -531,7 +498,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                             type="button"
                             onClick={() => scrollSlider(emptySliderRef, "right")}
                             className="h-9 w-9 rounded-full border border-black/10 hover:border-black/20 hover:bg-black/5 grid place-items-center"
-                            aria-label="Sağa kaydır"
+                            aria-label="SaÄŸa kaydÄ±r"
                           >
                             <ChevronRight className="h-4 w-4" />
                           </button>
@@ -548,7 +515,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                           ))}
                           {activeList.length === 0 ? (
                             <div className="text-sm text-gray-500 py-6">
-                              Gösterilecek ürün yok.
+                              GÃ¶sterilecek Ã¼rÃ¼n yok.
                             </div>
                           ) : null}
                         </div>
@@ -557,7 +524,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                   </div>
                 ) : null}
 
-                {/* FILLED CART (1. görselin modern/elit versiyonu) */}
+                {/* FILLED CART (1. gÃ¶rselin modern/elit versiyonu) */}
                 {cartItems.length > 0 ? (
                   <div className="space-y-0 pb-24">
                     {cartItems.map((item) => (
@@ -593,14 +560,14 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                                   {item.product.name}
                                 </Link>
                                 <p className="mt-1 text-xs text-gray-500">
-                                  {item.color?.name || "Renk"} · {item.size?.name || "Beden"}
+                                  {item.color?.name || "Renk"} Â· {item.size?.name || "Beden"}
                                 </p>
                               </div>
 
                               <button
                                 onClick={() => removeItem(item.id)}
                                 className="rounded-xl p-2 text-gray-400 hover:text-black hover:bg-black/5 transition-colors"
-                                aria-label="Ürünü kaldır"
+                                aria-label="ÃœrÃ¼nÃ¼ kaldÄ±r"
                                 type="button"
                               >
                                 <Trash2 className="h-4 w-4" />
@@ -614,7 +581,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                                   onClick={() => updateQuantity(item.id, item.quantity - 1)}
                                   disabled={item.quantity <= 1}
                                   className="h-8 w-8 grid place-items-center text-black hover:bg-black/5 disabled:opacity-40 disabled:hover:bg-transparent"
-                                  aria-label="Miktarı azalt"
+                                  aria-label="MiktarÄ± azalt"
                                 >
                                   <Minus className="h-4 w-4" />
                                 </button>
@@ -625,7 +592,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                                   type="button"
                                   onClick={() => updateQuantity(item.id, item.quantity + 1)}
                                   className="h-8 w-8 grid place-items-center text-black hover:bg-black/5"
-                                  aria-label="Miktarı artır"
+                                  aria-label="MiktarÄ± artÄ±r"
                                 >
                                   <Plus className="h-4 w-4" />
                                 </button>
@@ -649,15 +616,15 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                       <div className="pt-5 border-t border-gray-200">
                         <div className="flex items-center justify-between">
                           <SectionTitle
-                            title="Bunları da beğenebilirsiniz"
-                            subtitle="Kombininizi tamamlayın"
+                            title="BunlarÄ± da beÄŸenebilirsiniz"
+                            subtitle="Kombininizi tamamlayÄ±n"
                           />
                           <div className="flex items-center gap-2">
                             <button
                               type="button"
                               onClick={() => scrollSlider(filledRecommendedRef, "left")}
                               className="h-7 w-7 rounded-full border border-gray-300 bg-white hover:bg-gray-50 grid place-items-center"
-                              aria-label="Sola kaydır"
+                              aria-label="Sola kaydÄ±r"
                             >
                               <ChevronLeft className="h-3.5 w-3.5" />
                             </button>
@@ -665,7 +632,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                               type="button"
                               onClick={() => scrollSlider(filledRecommendedRef, "right")}
                               className="h-7 w-7 rounded-full border border-gray-300 bg-white hover:bg-gray-50 grid place-items-center"
-                              aria-label="Sağa kaydır"
+                              aria-label="SaÄŸa kaydÄ±r"
                             >
                               <ChevronRight className="h-3.5 w-3.5" />
                             </button>
@@ -707,11 +674,11 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                     onClick={handleCreateOrder}
                     disabled={isCreatingOrder}
                   >
-                    {isCreatingOrder ? "Yönlendiriliyor..." : "ÖDEMEYE GEÇ"}
+                    {isCreatingOrder ? "YÃ¶nlendiriliyor..." : "Ã–DEMEYE GEÃ‡"}
                   </Button>
 
                   <p className="text-[11px] leading-4 text-gray-400 text-center">
-                    KDV dahildir · Kargo ücreti ödeme adımında hesaplanır
+                    KDV dahildir Â· Kargo Ã¼creti Ã¶deme adÄ±mÄ±nda hesaplanÄ±r
                   </p>
                 </div>
               </div>

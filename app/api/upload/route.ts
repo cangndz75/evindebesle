@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 import { v2 as cloudinary } from "cloudinary";
 import { getServerSession } from "next-auth";
@@ -11,7 +11,6 @@ cloudinary.config({
 });
 
 export async function POST(req: NextRequest) {
-  // Config'i her istekte kontrol et/ayarla (env'lerin yüklendiğinden emin olmak için)
   cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
@@ -27,7 +26,6 @@ export async function POST(req: NextRequest) {
     const contentType = req.headers.get("content-type");
     let buffer: Buffer;
 
-    // Base64 string kontrolü (JSON body)
     if (contentType?.includes("application/json")) {
       const body = await req.json();
       const base64String = body.base64 || body.data;
@@ -36,14 +34,12 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "No base64 data provided" }, { status: 400 });
       }
 
-      // Base64 string'i buffer'a çevir
       const base64Data = base64String.includes(",")
         ? base64String.split(",")[1]
         : base64String;
 
       buffer = Buffer.from(base64Data, "base64");
     } else {
-      // FormData (dosya yükleme)
       const data = await req.formData();
       const file = data.get("file") as File;
       if (!file) return NextResponse.json({ error: "No file" }, { status: 400 });

@@ -1,7 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 
-// POST: Track analytics event
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
@@ -21,7 +20,6 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Get user ID from session if available
         let userId: string | null = null;
         const session = await prisma.analyticsSession.findUnique({
             where: { sessionId },
@@ -29,14 +27,12 @@ export async function POST(req: NextRequest) {
         });
         userId = session?.userId || null;
 
-        // Extract IP and user agent from headers
         const ipAddress =
             req.headers.get('x-forwarded-for')?.split(',')[0] ||
             req.headers.get('x-real-ip') ||
             null;
         const userAgent = req.headers.get('user-agent') || null;
 
-        // Create analytics event
         await prisma.analyticsEvent.create({
             data: {
                 sessionId,
@@ -54,13 +50,10 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: true }, { status: 200 });
     } catch (error) {
         console.error('Error tracking event:', error);
-        // Don't return error details to client - just log and return 200
-        // This prevents analytics failures from affecting user experience
         return NextResponse.json({ success: true }, { status: 200 });
     }
 }
 
-// GET: Get recent events (for debugging/admin)
 export async function GET(req: NextRequest) {
     try {
         const { searchParams } = new URL(req.url);

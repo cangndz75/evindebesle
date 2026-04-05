@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { Blocks, Code } from "lucide-react";
@@ -45,7 +45,7 @@ export default function EditorTabs({
           }`}
         >
           <Blocks className="w-4 h-4 mr-2" />
-          Blok Editör
+          Blok EditÃ¶r
         </Button>
         <Button
           variant="ghost"
@@ -79,8 +79,6 @@ export default function EditorTabs({
           <HtmlEditor
             draft={draft}
             onUpdate={(blocks) => {
-              // HTML'den bloklara dönüştürme (basitleştirilmiş)
-              // Gerçek implementasyonda HTML parse edilmeli
             }}
           />
         )}

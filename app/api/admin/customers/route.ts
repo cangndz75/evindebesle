@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { prisma } from "@/lib/db";
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
 
       return {
         id: user.id,
-        name: user.name || "İsimsiz",
+        name: user.name || "Ä°simsiz",
         email: user.email,
         phone: user.phone,
         image: user.image,
@@ -48,14 +48,13 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    // LTV'ye göre sırala
     customers.sort((a: any, b: any) => b.totalSpent - a.totalSpent);
 
     return NextResponse.json(customers);
   } catch (error: any) {
     console.error("Customers fetch error:", error);
     return NextResponse.json(
-      { error: error.message || "Müşteri verileri yüklenirken bir hata oluştu" },
+      { error: error.message || "MÃ¼ÅŸteri verileri yÃ¼klenirken bir hata oluÅŸtu" },
       { status: 500 }
     );
   }

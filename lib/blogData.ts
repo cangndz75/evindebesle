@@ -1,9 +1,6 @@
-import { prisma } from "./db";
+﻿import { prisma } from "./db";
 import { BlogPost } from "./types";
 
-/**
- * Maps a Prisma BlogPost to the UI BlogPost type
- */
 function mapPrismaToBlogPost(post: any): BlogPost {
   return {
     title: post.title,
@@ -18,9 +15,6 @@ function mapPrismaToBlogPost(post: any): BlogPost {
   };
 }
 
-/**
- * Fetches all published blog posts from the database
- */
 export async function getAllPosts(): Promise<BlogPost[]> {
   try {
     const posts = await prisma.blogPost.findMany({
@@ -44,9 +38,6 @@ export async function getAllPosts(): Promise<BlogPost[]> {
   }
 }
 
-/**
- * Fetches a single blog post by its slug from the database
- */
 export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
   try {
     const post = await prisma.blogPost.findUnique({
@@ -68,9 +59,6 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
   }
 }
 
-/**
- * Fetches related blog posts based on category
- */
 export async function getRelatedPosts(
   slug: string,
   category: string,

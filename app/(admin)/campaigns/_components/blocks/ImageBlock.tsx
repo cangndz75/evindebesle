@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Block } from "../../types";
 import { toast } from "sonner";
@@ -29,7 +29,7 @@ export default function ImageBlock({ block, onUpdate }: ImageBlockProps) {
             <div className="p-8 text-center" style={{ backgroundColor }}>
                 <div className="border-2 border-dashed border-gray-300 rounded-lg py-12 px-4 flex flex-col items-center gap-4">
                     <p className="text-gray-400 text-sm">
-                        Görsel eklemek için sağ panelden URL girin veya buraya tıklayıp yükleyin
+                        GÃ¶rsel eklemek iÃ§in saÄŸ panelden URL girin veya buraya tÄ±klayÄ±p yÃ¼kleyin
                     </p>
                     <label className="cursor-pointer">
                         <input
@@ -40,9 +40,8 @@ export default function ImageBlock({ block, onUpdate }: ImageBlockProps) {
                                 const file = e.target.files?.[0];
                                 if (!file) return;
 
-                                // Basic validation
                                 if (!file.type.startsWith("image/")) {
-                                    toast.error("Lütfen bir görsel dosyası seçin");
+                                    toast.error("LÃ¼tfen bir gÃ¶rsel dosyasÄ± seÃ§in");
                                     return;
                                 }
 
@@ -71,12 +70,12 @@ export default function ImageBlock({ block, onUpdate }: ImageBlockProps) {
                                     });
                                 } catch (error) {
                                     console.error("Upload error:", error);
-                                    toast.error("Yükleme sırasında bir hata oluştu");
+                                    toast.error("YÃ¼kleme sÄ±rasÄ±nda bir hata oluÅŸtu");
                                 }
                             }}
                         />
                         <div className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-md transition-colors text-sm cursor-pointer">
-                            Görsel Yükle
+                            GÃ¶rsel YÃ¼kle
                         </div>
                     </label>
                 </div>

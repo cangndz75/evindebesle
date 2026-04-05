@@ -1,7 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 
-// POST: Record heatmap click
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
@@ -42,7 +41,6 @@ export async function POST(req: NextRequest) {
     }
 }
 
-// GET: Get heatmap data for a page
 export async function GET(req: NextRequest) {
     try {
         const { searchParams } = new URL(req.url);

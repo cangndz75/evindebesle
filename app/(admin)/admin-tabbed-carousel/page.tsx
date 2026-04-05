@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
@@ -41,7 +41,6 @@ export default function AdminTabbedCarouselPage() {
   const [loading, setLoading] = useState(false);
   const [searching, setSearching] = useState(false);
 
-  // Debounced Search & Filter
   useEffect(() => {
     const timer = setTimeout(() => {
       if (search.length >= 2 || selectedCategoryId !== "all" || selectedGender !== "all") {
@@ -103,7 +102,7 @@ export default function AdminTabbedCarouselPage() {
       }
     } catch (e) {
       console.error(e);
-      toast.error("Liste yüklenemedi");
+      toast.error("Liste yÃ¼klenemedi");
     } finally {
       setLoading(false);
     }
@@ -111,7 +110,7 @@ export default function AdminTabbedCarouselPage() {
 
   const handleAdd = async (product: ProductBasics) => {
     if (tabItems.length >= 15) {
-      toast.error("En fazla 15 ürün eklenebilir.");
+      toast.error("En fazla 15 Ã¼rÃ¼n eklenebilir.");
       return;
     }
     try {
@@ -123,14 +122,13 @@ export default function AdminTabbedCarouselPage() {
 
       if (res.ok) {
         toast.success("Sekmeye eklendi!");
-        // Arama ve sonuçları SI-FIR-LA-MI-YO-RUZ
         fetchTabItems();
       } else {
         const err = await res.json();
-        toast.error(err.error || "Hata oluştu");
+        toast.error(err.error || "Hata oluÅŸtu");
       }
     } catch (e) {
-      toast.error("Bir hata oluştu");
+      toast.error("Bir hata oluÅŸtu");
     }
   };
 
@@ -138,13 +136,13 @@ export default function AdminTabbedCarouselPage() {
     try {
       const res = await fetch(`/api/admin-tabbed-carousel?productId=${productId}&tab=${activeTab}`, { method: "DELETE" });
       if (res.ok) {
-        toast.success("Listeden çıkarıldı!");
+        toast.success("Listeden Ã§Ä±karÄ±ldÄ±!");
         fetchTabItems();
       } else {
         toast.error("Silinemedi");
       }
     } catch (e) {
-      toast.error("Bir hata oluştu");
+      toast.error("Bir hata oluÅŸtu");
     }
   };
 
@@ -155,16 +153,13 @@ export default function AdminTabbedCarouselPage() {
     const newItems = [...tabItems];
     const swapIndex = direction === 'up' ? index - 1 : index + 1;
     
-    // Swap order
     const tempOrder = newItems[index].order;
     newItems[index].order = newItems[swapIndex].order;
     newItems[swapIndex].order = tempOrder;
 
-    // Swap position in array for instant UI update
     [newItems[index], newItems[swapIndex]] = [newItems[swapIndex], newItems[index]];
     setTabItems([...newItems]);
 
-    // Send update to API
     try {
       const reorderPayload = newItems.map(item => ({ id: item.id, order: item.order }));
       const res = await fetch("/api/admin-tabbed-carousel", {
@@ -174,13 +169,13 @@ export default function AdminTabbedCarouselPage() {
       });
 
       if (!res.ok) {
-        toast.error("Sıralama güncellenemedi");
+        toast.error("SÄ±ralama gÃ¼ncellenemedi");
         fetchTabItems(); // revert
       } else {
-        toast.success("Sıralama güncellendi");
+        toast.success("SÄ±ralama gÃ¼ncellendi");
       }
     } catch (e) {
-      toast.error("Sıralama yüklenirken hata oluştu");
+      toast.error("SÄ±ralama yÃ¼klenirken hata oluÅŸtu");
     }
   };
 
@@ -199,32 +194,32 @@ export default function AdminTabbedCarouselPage() {
   return (
     <div className="space-y-6 lg:p-6 p-4">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Sekmeli Kaydırıcılar (Carousel)</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Sekmeli KaydÄ±rÄ±cÄ±lar (Carousel)</h1>
         <p className="text-muted-foreground mt-2">
-          Ana sayfadaki sekmeli kaydırıcıdaki ürünleri (Yeni Gelenler, Çok Satanlar, Önerilenler) yönetin.
+          Ana sayfadaki sekmeli kaydÄ±rÄ±cÄ±daki Ã¼rÃ¼nleri (Yeni Gelenler, Ã‡ok Satanlar, Ã–nerilenler) yÃ¶netin.
         </p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="mb-4">
           <TabsTrigger value="new-arrivals">Yeni Gelenler</TabsTrigger>
-          <TabsTrigger value="best-sellers">Çok Satanlar</TabsTrigger>
-          <TabsTrigger value="recommended">Önerilenler</TabsTrigger>
+          <TabsTrigger value="best-sellers">Ã‡ok Satanlar</TabsTrigger>
+          <TabsTrigger value="recommended">Ã–nerilenler</TabsTrigger>
         </TabsList>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-          {/* Ürün Arama */}
+          {/* ÃœrÃ¼n Arama */}
           <Card>
             <CardHeader>
-              <CardTitle>Ürün Ara ve Ekle</CardTitle>
-              <CardDescription>İlgili sekmeye eklemek için arama yapın</CardDescription>
+              <CardTitle>ÃœrÃ¼n Ara ve Ekle</CardTitle>
+              <CardDescription>Ä°lgili sekmeye eklemek iÃ§in arama yapÄ±n</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Ürün adı veya kodu yazın..."
+                    placeholder="ÃœrÃ¼n adÄ± veya kodu yazÄ±n..."
                     className="pl-9"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
@@ -237,9 +232,9 @@ export default function AdminTabbedCarouselPage() {
                       <SelectValue placeholder="Cinsiyet" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Tüm Cinsiyetler</SelectItem>
+                      <SelectItem value="all">TÃ¼m Cinsiyetler</SelectItem>
                       <SelectItem value="male">Erkek</SelectItem>
-                      <SelectItem value="female">Kadın</SelectItem>
+                      <SelectItem value="female">KadÄ±n</SelectItem>
                       <SelectItem value="unisex">Unisex</SelectItem>
                     </SelectContent>
                   </Select>
@@ -249,7 +244,7 @@ export default function AdminTabbedCarouselPage() {
                       <SelectValue placeholder="Kategori" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Tüm Kategoriler</SelectItem>
+                      <SelectItem value="all">TÃ¼m Kategoriler</SelectItem>
                       {categories.map((cat) => (
                         <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
                       ))}
@@ -260,7 +255,7 @@ export default function AdminTabbedCarouselPage() {
 
               {(search.length >= 2 || selectedCategoryId !== "all" || selectedGender !== "all") && searchResults.length === 0 && !searching && (
                 <div className="text-center py-8 text-sm text-gray-400 font-light italic">
-                  Sonuç bulunamadı
+                  SonuÃ§ bulunamadÄ±
                 </div>
               )}
 
@@ -313,26 +308,26 @@ export default function AdminTabbedCarouselPage() {
           <Card>
             <CardHeader>
                <CardTitle className="flex justify-between items-center">
-                  Ekli Ürünler
+                  Ekli ÃœrÃ¼nler
                   <span className="text-sm font-normal text-muted-foreground bg-gray-100 px-2 py-1 rounded">
                      {tabItems.length} / 15 Eklendi
                   </span>
                </CardTitle>
-               <CardDescription>Bu sekmedeki ürünleri sıralayın veya çıkartın</CardDescription>
+               <CardDescription>Bu sekmedeki Ã¼rÃ¼nleri sÄ±ralayÄ±n veya Ã§Ä±kartÄ±n</CardDescription>
             </CardHeader>
             <CardContent>
                {loading ? (
-                  <div className="text-center py-4 text-sm text-gray-500">Yükleniyor...</div>
+                  <div className="text-center py-4 text-sm text-gray-500">YÃ¼kleniyor...</div>
                ) : tabItems.length === 0 ? (
-                  <div className="text-center py-4 text-sm text-gray-500">Bu sekmede henüz ürün yok.</div>
+                  <div className="text-center py-4 text-sm text-gray-500">Bu sekmede henÃ¼z Ã¼rÃ¼n yok.</div>
                ) : (
                   <Table>
                      <TableHeader>
                         <TableRow>
-                           <TableHead>Sıra</TableHead>
+                           <TableHead>SÄ±ra</TableHead>
                            <TableHead>Resim</TableHead>
-                           <TableHead>Ürün Adı</TableHead>
-                           <TableHead className="text-right">İşlem</TableHead>
+                           <TableHead>ÃœrÃ¼n AdÄ±</TableHead>
+                           <TableHead className="text-right">Ä°ÅŸlem</TableHead>
                         </TableRow>
                      </TableHeader>
                      <TableBody>

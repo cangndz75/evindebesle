@@ -1,10 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { resend } from "@/lib/resend";
 import { renderEmailHtml, replaceVariables } from "@/lib/email/renderEmail";
 
-// POST: Kampanyayı gönder
 export async function POST(req: NextRequest) {
   try {
     const user = await getCurrentUser();
@@ -19,7 +18,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Campaign ID required" }, { status: 400 });
     }
 
-    // Get campaign from database
     const campaign = await prisma.campaign.findUnique({
       where: { id: campaignId },
     });
@@ -28,14 +26,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Campaign not found" }, { status: 404 });
     }
 
-    // Parse blocks from contentJson
     const blocks = JSON.parse(campaign.contentJson);
 
     let recipients: any[] = [];
 
-    // If recipient email is provided (Single Send), use it
     if (recipientEmail) {
-      // Try to find user in DB to get name, otherwise use email as name base
       const user = await prisma.user.findUnique({
         where: { email: recipientEmail },
         select: { id: true, name: true, email: true },
@@ -44,7 +39,6 @@ export async function POST(req: NextRequest) {
       if (user) {
         recipients = [user];
       } else {
-        // ID is required for tracking, use a placeholder or check if subscriber exists
         const subscriber = await prisma.subscriber.findUnique({
           where: { email: recipientEmail },
         });
@@ -56,7 +50,6 @@ export async function POST(req: NextRequest) {
         }];
       }
     } else {
-      // Bulk send based on segment
       recipients = await getRecipients(campaign.audienceSegmentId);
     }
 
@@ -64,16 +57,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No recipients found" }, { status: 400 });
     }
 
-    // Base URL for tracking
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://evindebesle.com";
 
     let sentCount = 0;
     const errors: string[] = [];
 
-    // Send to each recipient with rate limiting
     for (const recipient of recipients) {
       try {
-        // Create email send record first
         const emailSend = await prisma.emailSend.create({
           data: {
             campaignId: campaign.id,
@@ -83,22 +73,19 @@ export async function POST(req: NextRequest) {
           },
         });
 
-        // Render HTML with tracking
         const html = renderEmailHtml(blocks, {
           baseUrl,
           trackingId: emailSend.trackingId,
           campaignId: campaign.id,
         });
 
-        // Replace personalization variables
         const personalizedHtml = replaceVariables(html, {
-          user_name: recipient.name || "Değerli Müşterimiz",
+          user_name: recipient.name || "DeÄŸerli MÃ¼ÅŸterimiz",
           user_email: recipient.email,
-          user_first_name: recipient.name?.split(" ")[0] || "Değerli Müşterimiz",
-          coupon_code: "HOŞGELDİN", // Default or you can add logic to fetch specific coupon
+          user_first_name: recipient.name?.split(" ")[0] || "DeÄŸerli MÃ¼ÅŸterimiz",
+          coupon_code: "HOÅGELDÄ°N", // Default or you can add logic to fetch specific coupon
         });
 
-        // Send email via Resend
         const { error } = await resend.emails.send({
           from: `${campaign.fromName} <${campaign.fromEmail}>`,
           to: recipient.email,
@@ -129,7 +116,6 @@ export async function POST(req: NextRequest) {
           sentCount++;
         }
 
-        // Rate limiting: wait 100ms between sends
         await new Promise((resolve) => setTimeout(resolve, 100));
 
       } catch (recipientError) {
@@ -138,7 +124,6 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Update campaign
     await prisma.campaign.update({
       where: { id: campaign.id },
       data: {
@@ -165,7 +150,6 @@ export async function POST(req: NextRequest) {
 }
 
 async function getRecipients(segmentId: string | null) {
-  // Common selection for both types
   const userSelect = {
     id: true,
     email: true,
@@ -175,16 +159,13 @@ async function getRecipients(segmentId: string | null) {
   const subscriberSelect = {
     id: true,
     email: true,
-    // Subscriber doesn't have a name, default to email or null
   };
 
   let users: any[] = [];
   let anonymousSubscribers: any[] = [];
 
-  // Build where clause for users
   const userWhere: Record<string, any> = {
     marketingEmailConsent: true,
-    // emailVerified: true, // Only if you strictly want verified
   };
 
   if (segmentId === "active") {
@@ -211,7 +192,6 @@ async function getRecipients(segmentId: string | null) {
       select: userSelect,
     });
   } else if (segmentId === "newsletter" || !segmentId) {
-    // Both users and anonymous subscribers
     users = await prisma.user.findMany({
       where: userWhere,
       select: userSelect,
@@ -226,7 +206,6 @@ async function getRecipients(segmentId: string | null) {
     }));
   }
 
-  // Combine and de-duplicate by email
   const allRecipients = [...users, ...anonymousSubscribers];
   const uniqueRecipients = Array.from(new Map(allRecipients.map((r: any) => [r.email, r])).values());
 

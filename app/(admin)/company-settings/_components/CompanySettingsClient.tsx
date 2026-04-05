@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -37,7 +37,6 @@ export default function CompanySettingsClient() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Ayarları yükle
   useEffect(() => {
     const loadSettings = async () => {
       try {
@@ -60,7 +59,7 @@ export default function CompanySettingsClient() {
         }
       } catch (error) {
         console.error("Error loading settings:", error);
-        toast.error("Ayarlar yüklenirken bir hata oluştu");
+        toast.error("Ayarlar yÃ¼klenirken bir hata oluÅŸtu");
       } finally {
         setIsLoading(false);
       }
@@ -69,13 +68,12 @@ export default function CompanySettingsClient() {
     loadSettings();
   }, []);
 
-  // Ayarları kaydet
   const handleSave = async () => {
     try {
       setIsSaving(true);
 
       if (isNaN(settings.freeShippingThreshold) || settings.freeShippingThreshold < 0) {
-        toast.error("Geçerli bir fiyat girin");
+        toast.error("GeÃ§erli bir fiyat girin");
         return;
       }
 
@@ -88,11 +86,11 @@ export default function CompanySettingsClient() {
       if (res.ok) {
         toast.success("Ayarlar kaydedildi");
       } else {
-        toast.error("Ayarlar kaydedilirken bir hata oluştu");
+        toast.error("Ayarlar kaydedilirken bir hata oluÅŸtu");
       }
     } catch (error) {
       console.error("Error saving settings:", error);
-      toast.error("Ayarlar kaydedilirken bir hata oluştu");
+      toast.error("Ayarlar kaydedilirken bir hata oluÅŸtu");
     } finally {
       setIsSaving(false);
     }
@@ -105,15 +103,15 @@ export default function CompanySettingsClient() {
   if (isLoading) {
     return (
       <div className="p-8">
-        <p>Yükleniyor...</p>
+        <p>YÃ¼kleniyor...</p>
       </div>
     );
   }
 
   return (
     <div className="p-8 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-light mb-2">Firma Ayarları</h1>
-      <p className="text-gray-600 mb-8">Şirket bilgilerinizi ve genel ayarlarınızı yönetin</p>
+      <h1 className="text-3xl font-light mb-2">Firma AyarlarÄ±</h1>
+      <p className="text-gray-600 mb-8">Åirket bilgilerinizi ve genel ayarlarÄ±nÄ±zÄ± yÃ¶netin</p>
 
       <div className="space-y-8">
         {/* Genel Ayarlar */}
@@ -121,10 +119,10 @@ export default function CompanySettingsClient() {
           <h2 className="text-xl font-semibold">Genel Ayarlar</h2>
           <div className="space-y-2">
             <Label htmlFor="freeShippingThreshold" className="text-base font-medium">
-              Ücretsiz Kargo Fiyatı (₺)
+              Ãœcretsiz Kargo FiyatÄ± (â‚º)
             </Label>
             <p className="text-sm text-gray-600">
-              Sepet toplamı bu tutara ulaştığında ücretsiz kargo uygulanır.
+              Sepet toplamÄ± bu tutara ulaÅŸtÄ±ÄŸÄ±nda Ã¼cretsiz kargo uygulanÄ±r.
             </p>
             <Input
               id="freeShippingThreshold"
@@ -139,10 +137,10 @@ export default function CompanySettingsClient() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="shippingPrice" className="text-base font-medium">
-              Kargo Ücreti (₺)
+              Kargo Ãœcreti (â‚º)
             </Label>
             <p className="text-sm text-gray-600">
-              Ücretsiz kargo eşiğinin altındaki siparişlere uygulanacak kargo ücreti.
+              Ãœcretsiz kargo eÅŸiÄŸinin altÄ±ndaki sipariÅŸlere uygulanacak kargo Ã¼creti.
             </p>
             <Input
               id="shippingPrice"
@@ -163,13 +161,13 @@ export default function CompanySettingsClient() {
         <div className="space-y-4">
           <div>
             <h2 className="text-xl font-semibold">Fatura Bilgileri</h2>
-            <p className="text-sm text-gray-600 mt-1">Bu bilgiler PDF faturalarında görünecektir</p>
+            <p className="text-sm text-gray-600 mt-1">Bu bilgiler PDF faturalarÄ±nda gÃ¶rÃ¼necektir</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Şirket Ünvanı */}
+            {/* Åirket ÃœnvanÄ± */}
             <div className="space-y-2">
-              <Label htmlFor="companyName">Şirket Ünvanı</Label>
+              <Label htmlFor="companyName">Åirket ÃœnvanÄ±</Label>
               <Input
                 id="companyName"
                 value={settings.companyName || ""}
@@ -221,13 +219,13 @@ export default function CompanySettingsClient() {
                 id="taxOffice"
                 value={settings.taxOffice || ""}
                 onChange={(e) => handleChange("taxOffice", e.target.value)}
-                placeholder="Kadıköy Vergi Dairesi"
+                placeholder="KadÄ±kÃ¶y Vergi Dairesi"
               />
             </div>
 
-            {/* Vergi Numarası */}
+            {/* Vergi NumarasÄ± */}
             <div className="space-y-2">
-              <Label htmlFor="taxNumber">Vergi Numarası</Label>
+              <Label htmlFor="taxNumber">Vergi NumarasÄ±</Label>
               <Input
                 id="taxNumber"
                 value={settings.taxNumber || ""}
@@ -239,12 +237,12 @@ export default function CompanySettingsClient() {
 
           {/* Adres */}
           <div className="space-y-2">
-            <Label htmlFor="companyAddress">Şirket Adresi</Label>
+            <Label htmlFor="companyAddress">Åirket Adresi</Label>
             <Textarea
               id="companyAddress"
               value={settings.companyAddress || ""}
               onChange={(e) => handleChange("companyAddress", e.target.value)}
-              placeholder="Mahalle, Sokak, No:, İlçe/İl"
+              placeholder="Mahalle, Sokak, No:, Ä°lÃ§e/Ä°l"
               rows={3}
             />
           </div>
@@ -253,7 +251,7 @@ export default function CompanySettingsClient() {
           <div className="space-y-2">
             <Label htmlFor="logoUrl">Logo URL</Label>
             <p className="text-sm text-gray-600">
-              Faturada görünecek logo görselinin URL'si
+              Faturada gÃ¶rÃ¼necek logo gÃ¶rselinin URL'si
             </p>
             <Input
               id="logoUrl"
@@ -266,7 +264,7 @@ export default function CompanySettingsClient() {
               <div className="mt-2">
                 <img
                   src={settings.logoUrl}
-                  alt="Logo önizleme"
+                  alt="Logo Ã¶nizleme"
                   className="max-w-xs h-auto border rounded p-2"
                   onError={(e) => {
                     (e.target as HTMLImageElement).style.display = "none";

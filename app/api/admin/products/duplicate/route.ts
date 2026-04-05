@@ -1,9 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { logAuditAction } from "@/lib/auditLog";
 
-// POST: Ürün kopyala
 export async function POST(req: NextRequest) {
     try {
         const user = await getCurrentUser();
@@ -15,12 +14,11 @@ export async function POST(req: NextRequest) {
 
         if (!productId) {
             return NextResponse.json(
-                { error: "Ürün ID'si gerekli" },
+                { error: "ÃœrÃ¼n ID'si gerekli" },
                 { status: 400 }
             );
         }
 
-        // Get original product with all relations
         const original = await prisma.product.findUnique({
             where: { id: productId },
             include: {
@@ -35,23 +33,20 @@ export async function POST(req: NextRequest) {
 
         if (!original) {
             return NextResponse.json(
-                { error: "Ürün bulunamadı" },
+                { error: "ÃœrÃ¼n bulunamadÄ±" },
                 { status: 404 }
             );
         }
 
-        // Generate unique slug
         const baseSlug = original.slug || original.name.toLowerCase().replace(/\s+/g, "-");
         let newSlug = `${baseSlug}-copy`;
         let counter = 1;
 
-        // Check if slug exists
         while (await prisma.product.findUnique({ where: { slug: newSlug } })) {
             newSlug = `${baseSlug}-copy-${counter}`;
             counter++;
         }
 
-        // Generate unique stock code
         let newStockCode = original.stockCode ? `${original.stockCode}-COPY` : null;
         if (newStockCode) {
             counter = 1;
@@ -61,7 +56,6 @@ export async function POST(req: NextRequest) {
             }
         }
 
-        // Create new product
         const newProduct = await prisma.product.create({
             data: {
                 name: `${original.name} (Kopya)`,
@@ -82,7 +76,6 @@ export async function POST(req: NextRequest) {
                 weight: original.weight,
                 isActive: false, // Start as inactive so admin can review
 
-                // Copy colors
                 colors: {
                     create: original.colors.map((color: { name: string; hexCode: string | null }) => ({
                         colorCode: `${color.name.toUpperCase().slice(0, 3)}-${Date.now()}`, // Unique color code
@@ -91,7 +84,6 @@ export async function POST(req: NextRequest) {
                     })),
                 },
 
-                // Copy sizes
                 sizes: {
                     create: original.sizes.map((size: { name: string }) => ({
                         name: size.name,
@@ -99,14 +91,12 @@ export async function POST(req: NextRequest) {
                     })),
                 },
 
-                // Copy tags
                 tags: {
                     create: original.tags.map((tag: { name: string }) => ({
                         name: tag.name,
                     })),
                 },
 
-                // Copy product images
                 productImages: {
                     create: original.productImages.map((img: { url: string; order: number; isPrimary: boolean; isSecondary: boolean; alt: string | null }) => ({
                         url: img.url,
@@ -117,7 +107,6 @@ export async function POST(req: NextRequest) {
                     })),
                 },
 
-                // Copy size options
                 sizeOptions: {
                     create: original.sizeOptions.map((opt: { name: string; isActive: boolean }) => ({
                         name: opt.name,
@@ -131,7 +120,6 @@ export async function POST(req: NextRequest) {
             },
         });
 
-        // Create variants for new product (color x size combinations)
         if (newProduct.colors.length > 0 && newProduct.sizes.length > 0) {
             const variantData = [];
             for (const color of newProduct.colors) {
@@ -153,7 +141,6 @@ export async function POST(req: NextRequest) {
             });
         }
 
-        // Audit log
         await logAuditAction({
             action: "PRODUCT_CREATE",
             adminId: user.id,
@@ -171,7 +158,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({
             success: true,
-            message: "Ürün kopyalandı",
+            message: "ÃœrÃ¼n kopyalandÄ±",
             product: {
                 id: newProduct.id,
                 name: newProduct.name,
@@ -181,7 +168,7 @@ export async function POST(req: NextRequest) {
     } catch (error) {
         console.error("Error duplicating product:", error);
         return NextResponse.json(
-            { error: "Kopyalama sırasında bir hata oluştu" },
+            { error: "Kopyalama sÄ±rasÄ±nda bir hata oluÅŸtu" },
             { status: 500 }
         );
     }

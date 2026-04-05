@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
@@ -63,7 +63,6 @@ export async function POST(req: Request) {
             return new NextResponse("Order ID is required", { status: 400 });
         }
 
-        // Check if invoice already exists
         const existingInvoice = await prisma.invoice.findFirst({
             where: { orderId }
         });
@@ -72,7 +71,6 @@ export async function POST(req: Request) {
             return new NextResponse("Invoice already exists for this order", { status: 400 });
         }
 
-        // Fetch order details with relations
         const order = await prisma.order.findUnique({
             where: { id: orderId },
             include: {
@@ -99,16 +97,12 @@ export async function POST(req: Request) {
             return new NextResponse("Order not found", { status: 404 });
         }
 
-        // Get company settings for snapshot
         const companySettings = await prisma.companySettings.findFirst();
 
-        // Generate Invoice Number (Simple auto-increment logic or timestamp based for now)
-        // In a real app, this should be more robust with a separate counter table or sequence.
         const datePart = new Date().getFullYear();
         const count = await prisma.invoice.count();
         const invoiceNumber = `F-${datePart}-${(count + 1).toString().padStart(6, '0')}`;
 
-        // Prepare snapshots
         const customerSnapshot = {
             name: order.user.name,
             email: order.user.email,
@@ -124,15 +118,8 @@ export async function POST(req: Request) {
             taxRate: 20, // Assuming 20% VAT for now, ideally comes from product
         }));
 
-        // Calculate details
         const subtotal = order.subtotal;
-        // Simple tax calculation (backwards from total or based on subtotal depending on business logic)
-        // Here assuming subtotal is tax-exclusive or inclusive? Usually e-commerce DB stores gross.
-        // Let's assume order.subtotal is gross for simplicity/consistency with existing logic if any.
-        // Re-calculating breakdown:
 
-        // Actually, usually order.total is what user pays.
-        // Let's assume 20% VAT included in prices.
         const taxRate = 0.20;
         const totalAmount = order.total;
         const taxAmount = totalAmount - (totalAmount / (1 + taxRate));

@@ -1,4 +1,3 @@
-// app/uyelik-sozlesmesi/page.tsx
 "use client";
 
 import Navbar from "@/app/(public)/_components/Navbar";

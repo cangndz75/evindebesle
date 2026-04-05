@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { prisma } from "@/lib/db";
@@ -20,7 +20,6 @@ export async function GET() {
     );
   }
 
-  // Temel kullanıcı + birincil adresi birlikte döndür
   const [user, primaryAddress] = await Promise.all([
     prisma.user.findUnique({
       where: { id: session.user.id },

@@ -1,5 +1,4 @@
-// app/api/payment/auth/route.ts
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { prisma } from "@/lib/db";
@@ -57,7 +56,7 @@ export async function POST(req: NextRequest) {
       },
       buyer: {
         ipAddress: req.headers.get("x-forwarded-for") || "127.0.0.1",
-        name: session.user.name || "Müşteri",
+        name: session.user.name || "MÃ¼ÅŸteri",
         surName: session.user.name?.split(" ").slice(-1)[0] || "Soyisim",
         emailAddress: session.user.email || "noreply@example.com",
         buyerId: session.user.id,

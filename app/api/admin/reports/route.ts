@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
@@ -31,7 +31,6 @@ export async function GET(request: NextRequest) {
         startDate = subDays(now, 30);
     }
 
-    // Gelir trendi
     const orders = await prisma.order.findMany({
       where: {
         paymentStatus: "PAID",
@@ -50,7 +49,6 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Günlük gelir
     const revenueByDate: Record<string, number> = {};
     const ordersByDate: Record<string, number> = {};
 
@@ -68,7 +66,6 @@ export async function GET(request: NextRequest) {
       .map(([date, orders]: [string, number]) => ({ date, orders }))
       .sort((a, b) => a.date.localeCompare(b.date));
 
-    // Kategori kırılımı
     const categoryRevenue: Record<string, { revenue: number; orders: number }> = {};
     orders.forEach((order: any) => {
       order.items.forEach((item: any) => {
@@ -87,7 +84,6 @@ export async function GET(request: NextRequest) {
       orders: data.orders,
     }));
 
-    // Ürün kırılımı
     const productRevenue: Record<string, { revenue: number; orders: number }> = {};
     orders.forEach((order: any) => {
       order.items.forEach((item: any) => {
@@ -109,7 +105,6 @@ export async function GET(request: NextRequest) {
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 10);
 
-    // Özet
     const totalRevenue = orders.reduce((sum: number, o: any) => sum + o.total, 0);
     const totalOrders = orders.length;
     const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
@@ -138,7 +133,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error("Reports error:", error);
     return NextResponse.json(
-      { error: "Rapor verileri yüklenirken bir hata oluştu." },
+      { error: "Rapor verileri yÃ¼klenirken bir hata oluÅŸtu." },
       { status: 500 }
     );
   }

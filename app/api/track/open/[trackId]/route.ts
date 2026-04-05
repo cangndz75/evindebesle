@@ -1,7 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
-// GET: Track email open (returns 1x1 transparent pixel)
 export async function GET(
     req: NextRequest,
     { params }: { params: Promise<{ trackId: string }> }
@@ -9,13 +8,11 @@ export async function GET(
     try {
         const { trackId } = await params;
 
-        // Find the email send record
         const emailSend = await prisma.emailSend.findUnique({
             where: { trackingId: trackId },
         });
 
         if (emailSend) {
-            // Update opened timestamp if not already opened
             if (!emailSend.openedAt) {
                 await prisma.emailSend.update({
                     where: { id: emailSend.id },
@@ -23,7 +20,6 @@ export async function GET(
                 });
             }
 
-            // Create event record
             await prisma.emailEvent.create({
                 data: {
                     emailSendId: emailSend.id,
@@ -34,7 +30,6 @@ export async function GET(
             });
         }
 
-        // Return 1x1 transparent GIF
         const transparentGif = Buffer.from(
             "R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
             "base64"
@@ -51,7 +46,6 @@ export async function GET(
     } catch (error) {
         console.error("Error tracking email open:", error);
 
-        // Still return the pixel even on error
         const transparentGif = Buffer.from(
             "R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
             "base64"

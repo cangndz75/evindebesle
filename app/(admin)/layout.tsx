@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
@@ -35,7 +35,7 @@ import { AdminNotificationBell } from "./_components/AdminNotificationBell";
 
 const navSections = [
   {
-    title: "ANA MENÜ",
+    title: "ANA MENÃœ",
     links: [
       {
         label: "Dashboard",
@@ -48,12 +48,12 @@ const navSections = [
     title: "OPERASYONLAR",
     links: [
       {
-        label: "Siparişler",
+        label: "SipariÅŸler",
         href: "/admin-orders",
         icon: <ShoppingBag className="w-5 h-5" />,
       },
       {
-        label: "Stok Yönetimi",
+        label: "Stok YÃ¶netimi",
         href: "/admin-stock",
         icon: <Package className="w-5 h-5" />,
       },
@@ -63,7 +63,7 @@ const navSections = [
         icon: <FileText className="w-5 h-5" />,
       },
       {
-        label: "İşlemler",
+        label: "Ä°ÅŸlemler",
         href: "/admin-transactions",
         icon: <Briefcase className="w-5 h-5" />,
       },
@@ -73,7 +73,7 @@ const navSections = [
     title: "KATALOG",
     links: [
       {
-        label: "Ürünler",
+        label: "ÃœrÃ¼nler",
         href: "/admin-products",
         icon: <Package className="w-5 h-5" />,
       },
@@ -83,12 +83,12 @@ const navSections = [
         icon: <List className="w-5 h-5" />,
       },
       {
-        label: "Ürün Şablonları",
+        label: "ÃœrÃ¼n ÅablonlarÄ±",
         href: "/admin-product-templates",
         icon: <FileText className="w-5 h-5" />,
       },
       {
-        label: "Ürün Kombinleri",
+        label: "ÃœrÃ¼n Kombinleri",
         href: "/admin-product-combinations",
         icon: <Package className="w-5 h-5" />,
       },
@@ -108,7 +108,7 @@ const navSections = [
         icon: <Ticket className="w-5 h-5" />,
       },
       {
-        label: "Mail Gönder",
+        label: "Mail GÃ¶nder",
         href: "/campaigns",
         icon: <Mail className="w-5 h-5" />,
       },
@@ -118,14 +118,14 @@ const navSections = [
         icon: <Mail className="w-5 h-5" />,
       },
       {
-        label: "Bülten Aboneleri",
+        label: "BÃ¼lten Aboneleri",
         href: "/admin-subscribers",
         icon: <Users className="w-5 h-5" />,
       },
     ],
   },
   {
-    title: "ANA SAYFA & UI YÖNETİMİ",
+    title: "ANA SAYFA & UI YÃ–NETÄ°MÄ°",
     links: [
       {
         label: "Ana Sayfa Vitrin",
@@ -133,7 +133,7 @@ const navSections = [
         icon: <Package className="w-5 h-5" />,
       },
       {
-        label: "Sekmeli Kaydırıcılar",
+        label: "Sekmeli KaydÄ±rÄ±cÄ±lar",
         href: "/admin-tabbed-carousel",
         icon: <List className="w-5 h-5" />,
       },
@@ -143,32 +143,32 @@ const navSections = [
         icon: <Package className="w-5 h-5" />,
       },
       {
-        label: "Yeni Gelenler Modülü",
+        label: "Yeni Gelenler ModÃ¼lÃ¼",
         href: "/admin-new-arrivals",
         icon: <List className="w-5 h-5" />,
       },
     ],
   },
   {
-    title: "İÇERİK YÖNETİMİ",
+    title: "Ä°Ã‡ERÄ°K YÃ–NETÄ°MÄ°",
     links: [
       {
-        label: "Blog Yazıları",
+        label: "Blog YazÄ±larÄ±",
         href: "/admin-blog",
         icon: <FileText className="w-5 h-5" />,
       },
       {
-        label: "SSS Yönetimi",
+        label: "SSS YÃ¶netimi",
         href: "/admin-faq",
         icon: <FileText className="w-5 h-5" />,
       },
     ],
   },
   {
-    title: "MÜŞTERİ & DESTEK",
+    title: "MÃœÅTERÄ° & DESTEK",
     links: [
       {
-        label: "Müşteriler",
+        label: "MÃ¼ÅŸteriler",
         href: "/admin-customers",
         icon: <User className="w-5 h-5" />,
       },
@@ -194,7 +194,7 @@ const navSections = [
         icon: <MapPin className="w-5 h-5" />,
       },
       {
-        label: "Firma Yönetimi",
+        label: "Firma YÃ¶netimi",
         href: "/company-settings",
         icon: <Building className="w-5 h-5" />,
       },
@@ -204,7 +204,7 @@ const navSections = [
         icon: <HelpCircle className="w-5 h-5" />,
       },
       {
-        label: "Dokümantasyon",
+        label: "DokÃ¼mantasyon",
         href: "/docs",
         icon: <FileText className="w-5 h-5" />,
       },
@@ -224,7 +224,6 @@ export default function AdminLayout({
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const isCampaignsPage = pathname === "/campaigns";
 
-  // Auth check - redirect if not authenticated or not admin
   useEffect(() => {
     if (status === "loading") return;
 
@@ -241,11 +240,10 @@ export default function AdminLayout({
 
   const handleLogout = async () => {
     await signOut({ redirect: false });
-    toast.success("Çıkış yapıldı");
+    toast.success("Ã‡Ä±kÄ±ÅŸ yapÄ±ldÄ±");
     router.push("/home");
   };
 
-  // Show loading state while checking auth
   if (status === "loading") {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
@@ -254,7 +252,6 @@ export default function AdminLayout({
     );
   }
 
-  // Don't render anything if not admin (will redirect)
   if (!session?.user?.isAdmin) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
@@ -288,7 +285,7 @@ export default function AdminLayout({
               <button
                 onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
                 className="w-full flex items-center justify-center p-1.5 hover:bg-gray-800 rounded transition-colors"
-                title="Genişlet"
+                title="GeniÅŸlet"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
@@ -337,10 +334,10 @@ export default function AdminLayout({
             className={`w-full text-sm text-gray-300 hover:text-white hover:bg-gray-800 ${sidebarCollapsed ? "justify-center px-0" : ""
               }`}
             onClick={handleLogout}
-            title={sidebarCollapsed ? "Çıkış Yap" : undefined}
+            title={sidebarCollapsed ? "Ã‡Ä±kÄ±ÅŸ Yap" : undefined}
           >
             <LogOut className="w-4 h-4 flex-shrink-0" />
-            {!sidebarCollapsed && <span className="ml-2">Çıkış Yap</span>}
+            {!sidebarCollapsed && <span className="ml-2">Ã‡Ä±kÄ±ÅŸ Yap</span>}
           </Button>
         </div>
       </aside>
@@ -386,7 +383,7 @@ export default function AdminLayout({
             onClick={handleLogout}
           >
             <LogOut className="w-5 h-5" />
-            Çıkış Yap
+            Ã‡Ä±kÄ±ÅŸ Yap
           </Button>
         </div>
       )}

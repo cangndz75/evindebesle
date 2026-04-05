@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useRef } from "react";
 import gsap from "gsap";
@@ -22,7 +22,6 @@ export default function CurtainReveal({ children }: CurtainRevealProps) {
 
             if (!sections.length) return;
 
-            // Pin the container
             ScrollTrigger.create({
                 trigger: containerRef.current,
                 start: "top top",
@@ -31,11 +30,9 @@ export default function CurtainReveal({ children }: CurtainRevealProps) {
                 scrub: true,
             });
 
-            // Animate each section (except the last one) with modern effects
             sections.forEach((section, index) => {
                 if (index === sections.length - 1) return;
 
-                // Create a timeline for each section
                 const tl = gsap.timeline({
                     scrollTrigger: {
                         trigger: containerRef.current,
@@ -45,7 +42,6 @@ export default function CurtainReveal({ children }: CurtainRevealProps) {
                     },
                 });
 
-                // Combine: fade out + scale down + blur
                 tl.to(section, {
                     opacity: 0,
                     scale: 0.9,

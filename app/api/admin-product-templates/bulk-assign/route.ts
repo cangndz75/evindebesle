@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
@@ -14,10 +14,9 @@ export async function POST(req: Request) {
     const { type, templateId, productIds } = body;
 
     if (!type || !templateId || !productIds || !Array.isArray(productIds)) {
-      return NextResponse.json({ error: "Eksik veya hatalı parametre" }, { status: 400 });
+      return NextResponse.json({ error: "Eksik veya hatalÄ± parametre" }, { status: 400 });
     }
 
-    // Prisma updateMany
     let result: any = null;
     if (type === "WASHING") {
       result = await prisma.product.updateMany({
@@ -35,15 +34,12 @@ export async function POST(req: Request) {
         data: { sizeNoteId: templateId },
       });
     } else {
-      return NextResponse.json({ error: "Geçersiz tip" }, { status: 400 });
+      return NextResponse.json({ error: "GeÃ§ersiz tip" }, { status: 400 });
     }
 
-    // Revalidate affected products and common pages
     revalidatePath("/home");
     revalidatePath("/men");
     revalidatePath("/women");
-    // Since we don't have slugs here easily, revalidating layouts or specific paths is harder, 
-    // but usually these are shown in product details.
     
     return NextResponse.json({ success: true, count: result.count });
   } catch (error) {

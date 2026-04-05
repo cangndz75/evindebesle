@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
@@ -12,12 +12,11 @@ export async function GET(req: NextRequest) {
   }
 
   const start = new Date();
-  start.setDate(start.getDate() - 6); // son 7 gün
+  start.setDate(start.getDate() - 6); // son 7 gÃ¼n
   const end = new Date();
 
   const days = eachDayOfInterval({ start, end });
 
-  // Ürün siparişlerinden gelir hesapla
   const orderRevenue = await prisma.order.findMany({
     where: {
       paymentStatus: "PAID",
@@ -32,7 +31,6 @@ export async function GET(req: NextRequest) {
     },
   });
 
-  // Gelir verilerini hazırla
   const revenue = orderRevenue.map((r: any) => ({
     date: r.createdAt,
     amount: r.total || 0,

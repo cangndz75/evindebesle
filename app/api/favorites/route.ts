@@ -1,8 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 
-// GET: Kullanıcının favorilerini listele
 export async function GET(req: NextRequest) {
   try {
     const user = await getCurrentUser();
@@ -38,7 +37,6 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST: Favorilere ekle
 export async function POST(req: NextRequest) {
   try {
     const user = await getCurrentUser();
@@ -51,7 +49,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Product ID is required" }, { status: 400 });
     }
 
-    // Zaten favorilerde mi kontrol et
     const existing = await prisma.productFavorite.findUnique({
       where: {
         userId_productId: {
@@ -85,7 +82,6 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// DELETE: Favorilerden çıkar
 export async function DELETE(req: NextRequest) {
   try {
     const user = await getCurrentUser();

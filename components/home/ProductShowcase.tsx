@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -9,7 +9,6 @@ import type { Product, ColorOption } from "@/lib/homeData";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-// Base64 görselleri tespit et ve filtrele (performans için)
 const isBase64Image = (url: string | undefined | null): boolean => {
   if (!url) return false;
   return url.startsWith("data:image/") || url.length > 10000;
@@ -55,7 +54,6 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
     }
   };
 
-  // Her ürün için seçili renk ve beden state'i
   const [selectedOptions, setSelectedOptions] = useState<Record<string, {
     colorId: string | null;
     sizeId: string | null;
@@ -64,7 +62,6 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
   }>>({});
   const [addingToCart, setAddingToCart] = useState<Record<string, boolean>>({});
 
-  // İlk renkleri otomatik seç
   useEffect(() => {
     products.forEach((product) => {
       if (!selectedOptions[product.id]) {
@@ -85,7 +82,6 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
     });
   }, [products]);
 
-  // colors'ı ColorOption[] formatına normalize et
   const normalizeColors = (colors?: ColorOption[] | string[]): ColorOption[] => {
     if (!colors || colors.length === 0) return [];
     if (typeof colors[0] === 'object' && 'name' in colors[0] && 'value' in colors[0]) {
@@ -109,7 +105,6 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
   const getVariantStock = (product: Product, sizeId: string | null, colorId: string | null) => {
     if (!sizeId) return 0;
 
-    // Önce ProductSize'dan direkt stok kontrolü yap (en güvenilir)
     if (product.sizes && product.sizes.length > 0) {
       const sizeObj = product.sizes.find((s: any) => {
         if (typeof s === 'object' && s.id) {
@@ -125,7 +120,6 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
       }
     }
 
-    // ProductSize'da stok yoksa, variant'a bak
     if (product.variants && product.variants.length > 0) {
       const variant = product.variants.find(
         (v) => v.sizeId === sizeId && (v.colorId === colorId || (!v.colorId && !colorId))
@@ -156,10 +150,8 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
     const product = products.find((p) => p.id === productId);
     if (!product) return;
 
-    // Sepete ekleme işlemi devam ediyorsa tekrar tıklamayı engelle
     if (addingToCart[productId]) return;
 
-    // State'i güncelle
     setSelectedOptions((prev) => ({
       ...prev,
       [productId]: {
@@ -168,7 +160,6 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
       },
     }));
 
-    // Mevcut options'ı al
     const options = selectedOptions[productId] || {
       colorId: null,
       sizeId: null,
@@ -188,10 +179,8 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
       const colorId = options.colorId || product.colorId || null;
       const finalSizeId = sizeObj?.id || sizeId;
 
-      // Ürün görseli
       const productImage = options.colorImage || product.image || "";
 
-      // Renk ve beden bilgileri
       const color = options.colorObj ? {
         id: options.colorObj.id || "",
         name: options.colorObj.name,
@@ -217,7 +206,6 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
         size,
       });
 
-      // CartPreview popup'ını göster
       window.dispatchEvent(new CustomEvent("itemAddedToCart", {
         detail: {
           product: {
@@ -234,7 +222,7 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
       window.dispatchEvent(new Event("cartUpdated"));
     } catch (error) {
       console.error("Error adding to cart:", error);
-      toast.error("Sepete eklenirken bir hata oluştu", { position: "bottom-left" });
+      toast.error("Sepete eklenirken bir hata oluÅŸtu", { position: "bottom-left" });
     } finally {
       setAddingToCart((prev) => ({ ...prev, [productId]: false }));
     }
@@ -249,7 +237,7 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
     };
 
     if (!options.sizeId) {
-      toast.error("Lütfen bir beden seçin", { position: "bottom-left" });
+      toast.error("LÃ¼tfen bir beden seÃ§in", { position: "bottom-left" });
       return;
     }
 
@@ -265,10 +253,8 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
       const colorId = options.colorId || product.colorId || null;
       const finalSizeId = sizeObj?.id || options.sizeId;
 
-      // Ürün görseli
       const productImage = options.colorImage || product.image || "";
 
-      // Renk ve beden bilgileri
       const color = options.colorObj ? {
         id: options.colorObj.id || "",
         name: options.colorObj.name,
@@ -298,7 +284,7 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
       window.dispatchEvent(new Event("cartUpdated"));
     } catch (error) {
       console.error("Error adding to cart:", error);
-      toast.error("Sepete eklenirken bir hata oluştu", { position: "bottom-left" });
+      toast.error("Sepete eklenirken bir hata oluÅŸtu", { position: "bottom-left" });
     } finally {
       setAddingToCart((prev) => ({ ...prev, [product.id]: false }));
     }
@@ -314,7 +300,7 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
     <section className="w-full bg-white py-12 md:py-20 relative">
       <div className="w-full px-4 md:px-8 max-w-[1400px] mx-auto">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl md:text-2xl font-semibold tracking-tight uppercase">Öne Çıkanlar</h2>
+          <h2 className="text-xl md:text-2xl font-semibold tracking-tight uppercase">Ã–ne Ã‡Ä±kanlar</h2>
           {products.length > 0 && (
             <div className="flex gap-2">
               <Button
@@ -341,7 +327,7 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
 
         {products.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-[#111]/60 font-light">Henüz ürün bulunmuyor.</p>
+            <p className="text-[#111]/60 font-light">HenÃ¼z Ã¼rÃ¼n bulunmuyor.</p>
           </div>
         ) : (
           <div 
@@ -359,7 +345,6 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                 colorObj: null,
               };
 
-              // Görsel seçimi
               const currentImage = filterBase64Images(options.colorImage || product.image) ||
                 product.image ||
                 "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop";
@@ -371,7 +356,7 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                   key={product.id}
                   className="group flex flex-col bg-white snap-start w-[85vw] sm:w-[50vw] md:w-[calc(33.333%-16px)] lg:w-[calc(25%-18px)] flex-shrink-0"
                 >
-                  {/* Ürün Görseli - Tıklanabilir */}
+                  {/* ÃœrÃ¼n GÃ¶rseli - TÄ±klanabilir */}
                   <Link href={productUrl} className="relative w-full aspect-[3/4] overflow-hidden bg-gray-100 mb-4 group">
                     <Image
                       src={currentImage}
@@ -399,7 +384,7 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                       </div>
                     )}
 
-                    {/* Beden Seçimi - Hover ile görünür, görselin alt kısmında */}
+                    {/* Beden SeÃ§imi - Hover ile gÃ¶rÃ¼nÃ¼r, gÃ¶rselin alt kÄ±smÄ±nda */}
                     {sizes.length > 0 && (
                       <div className="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-3 border-t border-gray-200">
                         <div className="flex items-center gap-1.5 flex-wrap justify-center">
@@ -439,7 +424,7 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                     )}
                   </Link>
 
-                  {/* Ürün Bilgileri */}
+                  {/* ÃœrÃ¼n Bilgileri */}
                   <div className="flex-1 flex flex-col">
                     <Link href={productUrl} className="mb-2">
                       <h3 className="text-sm font-light text-[#111] uppercase tracking-wide line-clamp-2">
@@ -452,20 +437,20 @@ export default function ProductShowcase({ products = [] }: ProductShowcaseProps)
                       <div className="flex items-center gap-2 mb-3">
                         {product.originalPrice ? (
                           <>
-                            <p className="text-sm font-light text-[#111]">₺{product.originalPrice.toFixed(2)}</p>
+                            <p className="text-sm font-light text-[#111]">â‚º{product.originalPrice.toFixed(2)}</p>
                             <p className="text-sm font-light text-gray-400 line-through">
-                              ₺{product.price.toFixed(2)}
+                              â‚º{product.price.toFixed(2)}
                             </p>
                           </>
                         ) : (
                           <p className="text-sm font-light text-[#111]">
-                            ₺{product.price.toFixed(2)}
+                            â‚º{product.price.toFixed(2)}
                           </p>
                         )}
                       </div>
                     )}
 
-                    {/* Renk Seçimi */}
+                    {/* Renk SeÃ§imi */}
                     {normalizedColors.length > 0 && (
                       <div className="mb-3">
                         <div className="flex items-center gap-1.5 flex-wrap">

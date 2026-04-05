@@ -1,4 +1,4 @@
-generator client {
+﻿generator client {
   provider = "prisma-client-js"
 }
 
@@ -211,8 +211,8 @@ model Category {
   name        String    @unique
   slug        String    @unique
   description String?
-  image       String?   // Dikey kategori görseli
-  sortOrder   Int       @default(0) // Sıralama değeri
+  image       String?   // Dikey kategori gÃ¶rseli
+  sortOrder   Int       @default(0) // SÄ±ralama deÄŸeri
   isActive    Boolean   @default(true)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -251,8 +251,8 @@ model Product {
   brand                String?
   categoryId           String?
   weight               Float?
-  isTrackInventory     Boolean              @default(true) // Stok takibi yapılsın mı?
-  allowBackorders      Boolean              @default(false) // Stok yokken satışa izin verilsin mi?
+  isTrackInventory     Boolean              @default(true) // Stok takibi yapÄ±lsÄ±n mÄ±?
+  allowBackorders      Boolean              @default(false) // Stok yokken satÄ±ÅŸa izin verilsin mi?
   shipmentType         String?
   trendyolLink         String?
   modelCode            String?
@@ -522,11 +522,10 @@ model CompanySettings {
   freeShippingThreshold Float  @default(99.0)
   shippingPrice         Float  @default(49.90)
 
-  // Invoice/Fatura bilgileri
   companyName    String? @default("Evindebesle")
   companyAddress String?
   taxOffice      String? // Vergi dairesi
-  taxNumber      String? // Vergi numarası
+  taxNumber      String? // Vergi numarasÄ±
   phone          String?
   email          String?
   logoUrl        String?
@@ -602,10 +601,9 @@ model Invoice {
   orderId         String
   status          InvoiceStatus @default(DRAFT)
   
-  // Snapshot data (fatura kesildiği andaki bilgiler)
-  companyDetails  Json          // Şirket bilgileri
-  customerDetails Json          // Müşteri bilgileri
-  items           Json          // Ürün kalemleri
+  companyDetails  Json          // Åirket bilgileri
+  customerDetails Json          // MÃ¼ÅŸteri bilgileri
+  items           Json          // ÃœrÃ¼n kalemleri
   
   subtotal        Float
   taxAmount       Float
@@ -724,11 +722,7 @@ model EmailSend {
   @@index([trackingId])
 }
 
-// ... existing models ...
 
-// ==========================================
-// E-posta Otomasyon Sistemi
-// ==========================================
 
 model Automation {
   id          String           @id @default(cuid())
@@ -1084,9 +1078,6 @@ model BlogPost {
   @@index([category])
 }
 
-// ==========================================
-// SSS (FAQ) Sistemi
-// ==========================================
 model FAQ {
   id        String   @id @default(cuid())
   question  String
@@ -1101,9 +1092,6 @@ model FAQ {
   @@index([isActive])
 }
 
-// ==========================================
-// Destek Ticket Sistemi
-// ==========================================
 model SupportTicket {
   id        String       @id @default(cuid())
   userId    String
@@ -1143,9 +1131,6 @@ enum TicketStatus {
   closed
 }
 
-// ==========================================
-// Admin Bildirim Sistemi
-// ==========================================
 model AdminNotification {
   id        String   @id @default(cuid())
   type      String   // ORDER, STOCK, RETURN, SYSTEM, SUPPORT
@@ -1159,9 +1144,6 @@ model AdminNotification {
   @@index([createdAt])
 }
 
-// ==========================================
-// Fiyat ve Stok Bildirimleri
-// ==========================================
 model PriceAlert {
   id           String   @id @default(cuid())
   userId       String?
@@ -1193,9 +1175,6 @@ model StockNotification {
   @@index([isNotified])
 }
 
-// ==========================================
-// Sadakat Programı
-// ==========================================
 model LoyaltyPoint {
   id        String    @id @default(cuid())
   userId    String
@@ -1213,9 +1192,6 @@ model LoyaltyPoint {
   @@index([createdAt])
 }
 
-// ==========================================
-// Ürün Bundle/Paket Sistemi
-// ==========================================
 model ProductBundle {
   id           String   @id @default(cuid())
   name         String
@@ -1246,9 +1222,6 @@ model BundleItem {
   @@index([productId])
 }
 
-// ==========================================
-// �r�n Detay �ablonlar�
-// ==========================================
 
 model WashingInstruction {
   id        String    @id @default(cuid())
@@ -1314,11 +1287,7 @@ model ModelInfo {
   @@index([gender])
 }
 
-// ==========================================
-// Advanced Analytics System
-// ==========================================
 
-// Analytics Event Tracking
 model AnalyticsEvent {
   id        String   @id @default(cuid())
   sessionId String
@@ -1340,7 +1309,6 @@ model AnalyticsEvent {
   @@index([page])
 }
 
-// User Sessions for analytics tracking
 model AnalyticsSession {
   id          String    @id @default(cuid())
   sessionId   String    @unique
@@ -1360,7 +1328,6 @@ model AnalyticsSession {
   @@index([sessionId])
 }
 
-// Funnel Definitions
 model Funnel {
   id          String       @id @default(cuid())
   name        String
@@ -1386,7 +1353,6 @@ model FunnelStep {
   @@index([funnelId])
 }
 
-// Heatmap Click Data
 model HeatmapClick {
   id        String   @id @default(cuid())
   page      String // Page URL or identifier
@@ -1403,7 +1369,6 @@ model HeatmapClick {
   @@index([sessionId])
 }
 
-// --- Yeni Eklenen Modeller (Showcase, Carousel, Collections, New Arrivals) ---
 
 model Showcase {
   id        String   @id @default(cuid())
@@ -1461,13 +1426,12 @@ model NewArrival {
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
-// --- Takımı Tamamla (Complete the Look / Combinations) ---
 
 model LookConfiguration {
   id                String     @id @default(cuid())
   mainProductId     String     @unique
-  title             String?    @default("Takımı Tamamla")
-  priority          Int        @default(0) // 0: Normal, 1: Yüksek
+  title             String?    @default("TakÄ±mÄ± Tamamla")
+  priority          Int        @default(0) // 0: Normal, 1: YÃ¼ksek
   isVisible         Boolean    @default(true)
   showAllAddButton  Boolean    @default(true)
   showTotalPrice    Boolean    @default(true)

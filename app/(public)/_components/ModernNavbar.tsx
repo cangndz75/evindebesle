@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -19,18 +19,15 @@ export default function ModernNavbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
 
-  // Store'dan cart items, hydrate ve sync fonksiyonlarını al
   const cartItems = useCartStore((state) => state.items);
   const hydrated = useCartStore((state) => state.hydrated);
   const hydrate = useCartStore((state) => state.hydrate);
   const syncGuestCartToAPI = useCartStore((state) => state.syncGuestCartToAPI);
 
-  // Cart count'u store'dan hesapla
   const cartCount = useMemo(() => {
     return cartItems.reduce((sum, item) => sum + item.quantity, 0);
   }, [cartItems]);
 
-  // App-level hydrate: Mount'ta bir kez çalış (React Strict Mode guard)
   const didHydrate = useRef(false);
   useEffect(() => {
     if (!hydrated && !didHydrate.current) {
@@ -39,23 +36,19 @@ export default function ModernNavbar() {
     }
   }, [hydrated, hydrate]);
 
-  // Login olduğunda guest cart'ı senkronize et
   useEffect(() => {
     if (session?.user && hydrated) {
-      // Kullanıcı giriş yaptı ve cart hydrate edildi, guest cart'ı senkronize et
       syncGuestCartToAPI().catch(() => {
-        // Sessizce devam et
       });
     }
   }, [session?.user, hydrated, syncGuestCartToAPI]);
 
-  // Zustand zaten reactive - event listener'a gerek yok
 
   return (
     <nav className="w-full bg-white/95 backdrop-blur-sm border-b border-gray-100">
       <div className="max-w-7xl mx-auto pl-4 md:pl-8 pr-0">
         <div className="relative flex items-center justify-between h-16 md:h-20">
-          {/* Sol: Menü */}
+          {/* Sol: MenÃ¼ */}
           <div className="flex items-center gap-4 md:gap-6 flex-shrink-0">
             <Link
               href="/men"
@@ -67,13 +60,13 @@ export default function ModernNavbar() {
               href="/women"
               className="text-sm font-light text-black hover:opacity-70 transition-opacity uppercase hidden md:inline"
             >
-              Kadın
+              KadÄ±n
             </Link>
             <Link
               href="/kids"
               className="text-sm font-light text-black hover:opacity-70 transition-opacity uppercase hidden lg:inline"
             >
-              Çocuk
+              Ã‡ocuk
             </Link>
             <Link
               href="/bundles"
@@ -85,7 +78,7 @@ export default function ModernNavbar() {
               href="/sale"
               className="text-sm font-light text-black hover:opacity-70 transition-opacity uppercase hidden lg:inline"
             >
-              Son Fırsat
+              Son FÄ±rsat
             </Link>
             <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
               <SheetTrigger asChild>
@@ -95,7 +88,7 @@ export default function ModernNavbar() {
               </SheetTrigger>
               <SheetContent side="left" className="w-[300px] p-6">
                 <SheetHeader>
-                  <SheetTitle className="sr-only">Menü</SheetTitle>
+                  <SheetTitle className="sr-only">MenÃ¼</SheetTitle>
                 </SheetHeader>
                 <div className="mt-8 space-y-4">
                   <Link
@@ -103,14 +96,14 @@ export default function ModernNavbar() {
                     onClick={() => setMenuOpen(false)}
                     className="block text-black font-light hover:opacity-70 transition-opacity"
                   >
-                    Hakkımızda
+                    HakkÄ±mÄ±zda
                   </Link>
                   <Link
                     href="/contact"
                     onClick={() => setMenuOpen(false)}
                     className="block text-black font-light hover:opacity-70 transition-opacity"
                   >
-                    İletişim
+                    Ä°letiÅŸim
                   </Link>
                   <Link
                     href="/blog"
@@ -133,7 +126,7 @@ export default function ModernNavbar() {
                       onClick={() => setMenuOpen(false)}
                       className="block text-black font-light hover:opacity-70 transition-opacity mt-8"
                     >
-                      Giriş Yap
+                      GiriÅŸ Yap
                     </Link>
                   )}
                 </div>
@@ -151,7 +144,7 @@ export default function ModernNavbar() {
             </span>
           </Link>
 
-          {/* Sağ: İkonlar */}
+          {/* SaÄŸ: Ä°konlar */}
           <div className="flex items-center gap-4 md:gap-6 flex-shrink-0 ml-auto pr-4 md:pr-8">
             <button
               className="text-black hover:opacity-70 transition-opacity"
@@ -162,7 +155,7 @@ export default function ModernNavbar() {
             <Link
               href={session?.user ? "/profile/personal-info" : "/auth-tabs"}
               className="text-black hover:opacity-70 transition-opacity"
-              aria-label="Hesabım"
+              aria-label="HesabÄ±m"
             >
               <User className="w-5 h-5" />
             </Link>

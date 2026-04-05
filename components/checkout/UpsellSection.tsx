@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
@@ -21,11 +21,6 @@ export default function UpsellSection() {
     useEffect(() => {
         const fetchUpsells = async () => {
             try {
-                // Fetch products with tag "kasa_onu" or similar logic
-                // Ideally we should have an API endpoint for this.
-                // For now, let's assume we can fetch featured products or specific tagged ones.
-                // Creating a specific API route for this would be best, but let's try to mock or use existing.
-                // Since the user asked for "ProductTags => ProductTag.name = 'kasa_onu'", we need an endpoint.
                 const res = await fetch("/api/products/upsell?tag=kasa_onu");
                 if (res.ok) {
                     const data = await res.json();
@@ -42,12 +37,7 @@ export default function UpsellSection() {
     const handleAddToCart = async (product: Product) => {
         setLoading(product.id);
         try {
-            // Add to cart logic
-            // We need to fetch product details to get variants/sizes if applicable
-            // Or just add directly if it's a simple product.
-            // For upsell, usually it's simple items.
 
-            // We'll optimistically add it.
             await addItemOptimistic({
                 productId: product.id,
                 product: {
@@ -75,7 +65,7 @@ export default function UpsellSection() {
                 })
             );
         } catch (error) {
-            toast.error("Ürün eklenirken hata oluştu");
+            toast.error("ÃœrÃ¼n eklenirken hata oluÅŸtu");
         } finally {
             setLoading(null);
         }
@@ -85,7 +75,7 @@ export default function UpsellSection() {
 
     return (
         <div className="mt-8">
-            <h3 className="text-lg font-semibold mb-4">Kasa Önü Fırsatlar</h3>
+            <h3 className="text-lg font-semibold mb-4">Kasa Ã–nÃ¼ FÄ±rsatlar</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {products.map((product) => (
                     <div key={product.id} className="border rounded-lg p-3 flex flex-col items-center text-center bg-white shadow-sm">
@@ -98,7 +88,7 @@ export default function UpsellSection() {
                             />
                         </div>
                         <h4 className="text-sm font-medium line-clamp-2 min-h-[40px]">{product.name}</h4>
-                        <p className="text-sm font-bold text-gray-900 mt-1">{product.price} ₺</p>
+                        <p className="text-sm font-bold text-gray-900 mt-1">{product.price} â‚º</p>
                         <button
                             onClick={() => handleAddToCart(product)}
                             disabled={loading === product.id}

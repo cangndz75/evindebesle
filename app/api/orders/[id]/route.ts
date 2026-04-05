@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { jsonNoStore } from "@/lib/api/policy";
@@ -70,7 +70,6 @@ export async function GET(
             return jsonNoStore({ error: "Order not found" }, { status: 404 });
         }
 
-        // Security check: Only allow users to view their own orders (unless admin)
         if (order.userId !== user.id && !user.isAdmin) {
             return jsonNoStore({ error: "Forbidden" }, { status: 403 });
         }

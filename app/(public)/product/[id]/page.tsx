@@ -1,4 +1,4 @@
-import { Metadata } from "next";
+﻿import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { cache } from "react";
@@ -9,14 +9,12 @@ import FAQPageSchema from "@/components/seo/FAQPageSchema";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://evindebesle.com";
 
-// ISR: Her 1 saatte bir yeniden oluştur
 export const revalidate = 3600;
 
 interface ProductPageProps {
   params: Promise<{ id: string }>;
 }
 
-// Ürünü DB'den çek ve aynı request içinde tekilleştir
 const getProduct = cache(async (idOrSlug: string) => {
   const include = {
     category: true,
@@ -62,7 +60,6 @@ const getProduct = cache(async (idOrSlug: string) => {
   });
 });
 
-// Dynamic SEO Metadata
 export async function generateMetadata({
   params,
 }: ProductPageProps): Promise<Metadata> {
@@ -71,12 +68,12 @@ export async function generateMetadata({
 
   if (!product) {
     return {
-      title: "Ürün Bulunamadı | Evinde Besle",
-      description: "Aradığınız ürün bulunamadı.",
+      title: "ÃœrÃ¼n BulunamadÄ± | Evinde Besle",
+      description: "AradÄ±ÄŸÄ±nÄ±z Ã¼rÃ¼n bulunamadÄ±.",
     };
   }
 
-  const categoryName = product.category?.name || "Ürünler";
+  const categoryName = product.category?.name || "ÃœrÃ¼nler";
 
   const description = product.description
     ? product.description.slice(0, 160)
@@ -97,7 +94,7 @@ export async function generateMetadata({
       product.brand || "",
       product.fabricType || "",
       "evcil hayvan",
-      "online alışveriş",
+      "online alÄ±ÅŸveriÅŸ",
     ].filter(Boolean),
     openGraph: {
       title: product.name,
@@ -129,7 +126,6 @@ export async function generateMetadata({
   };
 }
 
-// Ürün detay sayfası
 export default async function ProductPage({ params }: ProductPageProps) {
   const { id } = await params;
   const product = await getProduct(id);
@@ -138,24 +134,20 @@ export default async function ProductPage({ params }: ProductPageProps) {
     notFound();
   }
 
-  // Ortalama rating hesapla
   const avgRating =
     product.reviews.length > 0
       ? product.reviews.reduce((sum: number, r: { rating: number }) => sum + r.rating, 0) / product.reviews.length
       : 0;
 
-  // Stok durumu hesapla
   const totalStock = product.variants.reduce((sum: number, v: { stock: number }) => sum + v.stock, 0);
   const inStock = totalStock > 0;
 
-  // Görselleri hazırla
   const images = [
     ...(product.primaryImage ? [{ url: product.primaryImage, badge: undefined }] : []),
     ...(product.secondaryImage ? [{ url: product.secondaryImage, badge: undefined }] : []),
     ...product.productImages.map((img: { url: string }) => ({ url: img.url, badge: undefined })),
   ];
 
-  // Renkleri hazırla
   const colors = product.colors.map((c: { name: string; hexCode: string | null; description?: string; productImages: { url: string }[] }) => ({
     name: c.name,
     value: c.hexCode || "#000000",
@@ -163,14 +155,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
     images: c.productImages.map((img: { url: string }) => img.url),
   }));
 
-  // Bedenleri hazırla
   const sizes = product.sizes.map((s: { name: string }) => s.name);
 
-  // Kategori breadcrumb
-  const categoryName = product.category?.name || "Ürünler";
+  const categoryName = product.category?.name || "ÃœrÃ¼nler";
   const categorySlug = product.category?.slug || "";
 
-  // ProductDetailPage formatına dönüştür
   const productData = {
     id: product.id,
     name: product.name,
@@ -187,7 +176,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     fabric: product.fabricType || "",
     care: "",
     washing: "",
-    delivery: "2-3 iş günü içinde kargo",
+    delivery: "2-3 iÅŸ gÃ¼nÃ¼ iÃ§inde kargo",
     sizeNotes: "",
     rating: avgRating,
     reviewCount: product.reviews.length,
@@ -204,7 +193,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
     modelInfo: product.modelInfo,
   };
 
-  // Breadcrumb items
   const breadcrumbItems = [
     { name: "Ana Sayfa", url: `${BASE_URL}/home` },
     ...(categorySlug
@@ -213,7 +201,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
     { name: product.name, url: `${BASE_URL}/product/${product.slug || product.id}` },
   ];
 
-  // Fetch company settings for FAQ
   const settings = await prisma.companySettings.findFirst();
   const threshold = settings?.freeShippingThreshold || 99;
   const shippingPrice = settings?.shippingPrice || 49.90;
@@ -246,25 +233,25 @@ export default async function ProductPage({ params }: ProductPageProps) {
       <FAQPageSchema
         faqs={[
           {
-            question: "Ürün ne zaman kargoya verilir?",
-            answer: "Siparişiniz onaylandıktan sonra 1-2 iş günü içinde kargoya verilir. Kargo süresi 2-3 iş günüdür."
+            question: "ÃœrÃ¼n ne zaman kargoya verilir?",
+            answer: "SipariÅŸiniz onaylandÄ±ktan sonra 1-2 iÅŸ gÃ¼nÃ¼ iÃ§inde kargoya verilir. Kargo sÃ¼resi 2-3 iÅŸ gÃ¼nÃ¼dÃ¼r."
           },
           {
-            question: "Ürün değişimi yapılabilir mi?",
-            answer: "Evet, ürün teslim tarihinden itibaren 14 gün içinde ücretsiz değişim ve iade hakkınız bulunmaktadır."
+            question: "ÃœrÃ¼n deÄŸiÅŸimi yapÄ±labilir mi?",
+            answer: "Evet, Ã¼rÃ¼n teslim tarihinden itibaren 14 gÃ¼n iÃ§inde Ã¼cretsiz deÄŸiÅŸim ve iade hakkÄ±nÄ±z bulunmaktadÄ±r."
           },
           {
-            question: "Ürün bakımı nasıl yapılmalı?",
-            answer: product.washingInstruction?.content || "Ürün etiketindeki yıkama talimatlarına uyunuz. Genellikle 30 derecede makinede yıkanabilir."
+            question: "ÃœrÃ¼n bakÄ±mÄ± nasÄ±l yapÄ±lmalÄ±?",
+            answer: product.washingInstruction?.content || "ÃœrÃ¼n etiketindeki yÄ±kama talimatlarÄ±na uyunuz. Genellikle 30 derecede makinede yÄ±kanabilir."
           },
           {
-            question: "Kargo ücreti ne kadar?",
-            answer: `${threshold} TL üzeri alışverişlerde kargo ücretsizdir. Altındaki siparişlerde kargo bedeli ${shippingPrice.toFixed(2)} TL'dir.`
+            question: "Kargo Ã¼creti ne kadar?",
+            answer: `${threshold} TL Ã¼zeri alÄ±ÅŸveriÅŸlerde kargo Ã¼cretsizdir. AltÄ±ndaki sipariÅŸlerde kargo bedeli ${shippingPrice.toFixed(2)} TL'dir.`
           }
         ]}
       />
 
-      {/* Ürün Detay Sayfası */}
+      {/* ÃœrÃ¼n Detay SayfasÄ± */}
       <ProductDetailPage product={productData} />
     </>
   );

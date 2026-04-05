@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -82,7 +82,6 @@ export default function OrderDetailPage() {
     const [loading, setLoading] = useState(true);
     const [downloading, setDownloading] = useState(false);
 
-    // Review Modal State
     const [reviewModalOpen, setReviewModalOpen] = useState(false);
     const [selectedReviewProduct, setSelectedReviewProduct] = useState<{
         id: string;
@@ -98,12 +97,12 @@ export default function OrderDetailPage() {
                     const data = await res.json();
                     setOrder(data);
                 } else {
-                    toast.error("Sipariş bulunamadı");
+                    toast.error("SipariÅŸ bulunamadÄ±");
                     router.push("/profile/orders");
                 }
             } catch (error) {
                 console.error("Error fetching order:", error);
-                toast.error("Bir hata oluştu");
+                toast.error("Bir hata oluÅŸtu");
                 router.push("/profile/orders");
             } finally {
                 setLoading(false);
@@ -148,10 +147,10 @@ export default function OrderDetailPage() {
     const getStatusBadge = (status: string) => {
         const statusMap: Record<string, { label: string; className: string; icon: any }> = {
             PENDING: { label: "Beklemede", className: "bg-yellow-100 text-yellow-800", icon: Clock },
-            PREPARING: { label: "Hazırlanıyor", className: "bg-blue-100 text-blue-800", icon: Package },
+            PREPARING: { label: "HazÄ±rlanÄ±yor", className: "bg-blue-100 text-blue-800", icon: Package },
             SHIPPED: { label: "Kargoya Verildi", className: "bg-purple-100 text-purple-800", icon: Truck },
             DELIVERED: { label: "Teslim Edildi", className: "bg-green-100 text-green-800", icon: CheckCircle },
-            CANCELLED: { label: "İptal Edildi", className: "bg-red-100 text-red-800", icon: XCircle },
+            CANCELLED: { label: "Ä°ptal Edildi", className: "bg-red-100 text-red-800", icon: XCircle },
         };
         const info = statusMap[status] || { label: status, className: "bg-gray-100", icon: Clock };
         const Icon = info.icon;
@@ -195,7 +194,7 @@ export default function OrderDetailPage() {
                     </Button>
                     <div>
                         <h1 className="text-2xl font-bold flex items-center gap-3">
-                            Sipariş #{order.orderNumber}
+                            SipariÅŸ #{order.orderNumber}
                         </h1>
                         <p className="text-gray-500 text-sm mt-1">
                             {format(new Date(order.createdAt), "dd MMMM yyyy, HH:mm", { locale: tr })}
@@ -206,7 +205,7 @@ export default function OrderDetailPage() {
                     {getStatusBadge(order.status)}
                     {(order.paymentStatus === "PAID" || order.paymentStatus === "SUCCEEDED") && (
                         <Button variant="outline" onClick={handleDownloadInvoice} disabled={downloading}>
-                            {downloading ? "İndiriliyor..." : "Fatura İndir"}
+                            {downloading ? "Ä°ndiriliyor..." : "Fatura Ä°ndir"}
                             <Download className="w-4 h-4 ml-2" />
                         </Button>
                     )}
@@ -222,7 +221,7 @@ export default function OrderDetailPage() {
                         <CardHeader className="bg-gray-50/50 border-b pb-4">
                             <CardTitle className="text-lg flex items-center gap-2">
                                 <ShoppingBag className="w-5 h-5 text-gray-500" />
-                                Sipariş İçeriği ({order.items.length})
+                                SipariÅŸ Ä°Ã§eriÄŸi ({order.items.length})
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="p-0">
@@ -252,7 +251,7 @@ export default function OrderDetailPage() {
                                                         {item.productName}
                                                     </h3>
                                                     <p className="font-bold text-gray-900 whitespace-nowrap">
-                                                        {item.totalPrice.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} ₺
+                                                        {item.totalPrice.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} â‚º
                                                     </p>
                                                 </div>
 
@@ -280,7 +279,7 @@ export default function OrderDetailPage() {
                                                             href={`/product/${item.product.slug}`}
                                                             className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
                                                         >
-                                                            Ürüne Git <ChevronRight className="w-4 h-4" />
+                                                            ÃœrÃ¼ne Git <ChevronRight className="w-4 h-4" />
                                                         </Link>
                                                     )}
                                                 </div>
@@ -331,7 +330,7 @@ export default function OrderDetailPage() {
                                         )}
                                     </div>
                                 ) : (
-                                    <p className="text-sm text-gray-500">Adres bilgisi bulunamadı.</p>
+                                    <p className="text-sm text-gray-500">Adres bilgisi bulunamadÄ±.</p>
                                 )}
                             </CardContent>
                         </Card>
@@ -345,11 +344,11 @@ export default function OrderDetailPage() {
                             <CardContent>
                                 <div className="space-y-4">
                                     <div>
-                                        <p className="text-xs text-gray-500 uppercase tracking-wide">Kargo Firması</p>
+                                        <p className="text-xs text-gray-500 uppercase tracking-wide">Kargo FirmasÄ±</p>
                                         <p className="font-medium">Aras Kargo</p>
                                     </div>
                                     <div>
-                                        <p className="text-xs text-gray-500 uppercase tracking-wide">Takip Numarası</p>
+                                        <p className="text-xs text-gray-500 uppercase tracking-wide">Takip NumarasÄ±</p>
                                         {order.trackingNumber ? (
                                             <div className="flex items-center gap-2">
                                                 <p className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
@@ -358,7 +357,7 @@ export default function OrderDetailPage() {
                                                 {/* <Button variant="link" className="p-0 h-auto text-xs">Sorgula</Button> */}
                                             </div>
                                         ) : (
-                                            <p className="text-sm text-gray-500 italic">Henüz oluşmadı</p>
+                                            <p className="text-sm text-gray-500 italic">HenÃ¼z oluÅŸmadÄ±</p>
                                         )}
                                     </div>
                                 </div>
@@ -372,26 +371,26 @@ export default function OrderDetailPage() {
                 <div className="space-y-6">
                     <Card className="border-none shadow-sm sticky top-24">
                         <CardHeader className="bg-gray-50/50 border-b pb-4">
-                            <CardTitle className="text-lg">Sipariş Özeti</CardTitle>
+                            <CardTitle className="text-lg">SipariÅŸ Ã–zeti</CardTitle>
                         </CardHeader>
                         <CardContent className="pt-6 space-y-4">
                             <div className="flex justify-between text-sm text-gray-600">
                                 <span>Ara Toplam</span>
-                                <span>{order.total.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} ₺</span>
+                                <span>{order.total.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} â‚º</span>
                             </div>
                             <div className="flex justify-between text-sm text-gray-600">
                                 <span>Kargo</span>
                                 {order.shippingCost > 0 ? (
-                                    <span>{order.shippingCost.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} ₺</span>
+                                    <span>{order.shippingCost.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} â‚º</span>
                                 ) : (
-                                    <span className="text-green-600 font-medium">Ücretsiz</span>
+                                    <span className="text-green-600 font-medium">Ãœcretsiz</span>
                                 )}
                             </div>
                             <Separator />
                             <div className="flex justify-between items-center">
                                 <span className="font-bold text-lg">Toplam</span>
                                 <span className="font-bold text-xl text-primary">
-                                    {order.total.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} ₺
+                                    {order.total.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} â‚º
                                 </span>
                             </div>
 
@@ -399,15 +398,15 @@ export default function OrderDetailPage() {
                                 <div className="bg-blue-50 p-3 rounded-lg flex items-center gap-3">
                                     <CreditCard className="w-5 h-5 text-blue-600" />
                                     <div>
-                                        <p className="text-xs text-blue-700 font-medium uppercase">Ödeme Yöntemi</p>
-                                        <p className="text-sm text-blue-900 font-bold">Kredi Kartı (Iyzico)</p>
+                                        <p className="text-xs text-blue-700 font-medium uppercase">Ã–deme YÃ¶ntemi</p>
+                                        <p className="text-sm text-blue-900 font-bold">Kredi KartÄ± (Iyzico)</p>
                                     </div>
                                 </div>
 
                                 {order.status === "DELIVERED" && (
                                     <Button variant="outline" className="w-full flex items-center gap-2">
                                         <RotateCcw className="w-4 h-4" />
-                                        İade Oluştur
+                                        Ä°ade OluÅŸtur
                                     </Button>
                                 )}
                             </div>
@@ -425,7 +424,6 @@ export default function OrderDetailPage() {
                     productName={selectedReviewProduct.name}
                     productImage={selectedReviewProduct.image}
                     onReviewSubmitted={() => {
-                        // Optional: Show success toast or refresh if needed
                     }}
                 />
             )}

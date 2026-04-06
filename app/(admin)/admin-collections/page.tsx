@@ -11,6 +11,7 @@ import { Search, Plus, Trash2, ArrowUp, ArrowDown, Edit, Check } from "lucide-re
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { uploadFileToCloudinary } from "@/lib/cloudinary";
 import Image from "next/image";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 type ProductBasics = {
   id: string;
@@ -43,6 +44,10 @@ type CollectionProductItem = {
 };
 
 export default function AdminCollectionsPage() {
+  const COLLECTIONS_PAGE_SIZE = 8;
+  const SEARCH_PAGE_SIZE = 8;
+  const ITEMS_PAGE_SIZE = 8;
+
   const [collections, setCollections] = useState<Collection[]>([]);
   const [loading, setLoading] = useState(false);
   
@@ -59,13 +64,25 @@ export default function AdminCollectionsPage() {
   });
 
   const [search, setSearch] = useState("");
-  const [searchResults, setSearchResults] = useState<ProductBasics[]>([]);
+  const [allSearchResults, setAllSearchResults] = useState<ProductBasics[]>([]);
   const [collectionItems, setCollectionItems] = useState<CollectionProductItem[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("all");
   const [selectedGender, setSelectedGender] = useState<string>("all");
+  const [collectionsPage, setCollectionsPage] = useState(1);
+  const [searchPage, setSearchPage] = useState(1);
+  const [itemsPage, setItemsPage] = useState(1);
   const [itemsLoading, setItemsLoading] = useState(false);
   const [searching, setSearching] = useState(false);
+
+  const collectionsTotalPages = Math.max(1, Math.ceil(collections.length / COLLECTIONS_PAGE_SIZE));
+  const pagedCollections = collections.slice((collectionsPage - 1) * COLLECTIONS_PAGE_SIZE, collectionsPage * COLLECTIONS_PAGE_SIZE);
+
+  const searchTotalPages = Math.max(1, Math.ceil(allSearchResults.length / SEARCH_PAGE_SIZE));
+  const pagedSearchResults = allSearchResults.slice((searchPage - 1) * SEARCH_PAGE_SIZE, searchPage * SEARCH_PAGE_SIZE);
+
+  const itemsTotalPages = Math.max(1, Math.ceil(collectionItems.length / ITEMS_PAGE_SIZE));
+  const pagedCollectionItems = collectionItems.slice((itemsPage - 1) * ITEMS_PAGE_SIZE, itemsPage * ITEMS_PAGE_SIZE);
 
   const [uploading, setUploading] = useState<Record<string, boolean>>({
     image1: false,
@@ -75,14 +92,13 @@ export default function AdminCollectionsPage() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (search.length >= 2 || selectedCategoryId !== "all" || selectedGender !== "all") {
-        setSearching(true);
-        fetchProducts(search, selectedCategoryId, selectedGender)
-          .then(setSearchResults)
-          .finally(() => setSearching(false));
-      } else {
-        setSearchResults([]);
-      }
+      setSearching(true);
+      fetchProducts(search, selectedCategoryId, selectedGender)
+        .then((data) => {
+          setAllSearchResults(data);
+          setSearchPage(1);
+        })
+        .finally(() => setSearching(false));
     }, 400);
     return () => clearTimeout(timer);
   }, [search, selectedCategoryId, selectedGender]);
@@ -115,11 +131,30 @@ export default function AdminCollectionsPage() {
         image3: selectedCollection.image3 || "",
       });
       fetchCollectionItems(selectedCollection.id);
+      setItemsPage(1);
     } else {
       setFormData({ title: "", slug: "", description: "", image1: "", image2: "", image3: "" });
       setCollectionItems([]);
     }
   }, [selectedCollection]);
+
+  useEffect(() => {
+    if (collectionsPage > collectionsTotalPages) {
+      setCollectionsPage(collectionsTotalPages);
+    }
+  }, [collectionsPage, collectionsTotalPages]);
+
+  useEffect(() => {
+    if (searchPage > searchTotalPages) {
+      setSearchPage(searchTotalPages);
+    }
+  }, [searchPage, searchTotalPages]);
+
+  useEffect(() => {
+    if (itemsPage > itemsTotalPages) {
+      setItemsPage(itemsTotalPages);
+    }
+  }, [itemsPage, itemsTotalPages]);
 
   const fetchCollections = async () => {
     setLoading(true);
@@ -128,6 +163,7 @@ export default function AdminCollectionsPage() {
       if (res.ok) {
         const data = await res.json();
         setCollections(data);
+        setCollectionsPage(1);
       } else {
         setCollections([]);
       }
@@ -140,7 +176,7 @@ export default function AdminCollectionsPage() {
 
   const fetchProducts = async (q: string, catId: string, gen: string) => {
     try {
-      let url = `/api/admin-products?limit=20`;
+      let url = `/api/admin-products`;
       if (q) url += `&search=${encodeURIComponent(q)}`;
       if (catId !== "all") url += `&categoryId=${catId}`;
       if (gen !== "all") url += `&gender=${gen.toUpperCase()}`;
@@ -162,6 +198,7 @@ export default function AdminCollectionsPage() {
       if (res.ok) {
         const data = await res.json();
         setCollectionItems(data);
+        setItemsPage(1);
       } else {
         setCollectionItems([]);
       }
@@ -349,7 +386,7 @@ export default function AdminCollectionsPage() {
                   <div className="text-center py-4 text-sm text-gray-500">Hiç koleksiyon bulunamadı.</div>
                ) : (
                   <div className="space-y-2 max-h-[600px] overflow-y-auto">
-                     {collections.map(c => (
+                    {pagedCollections.map(c => (
                         <div 
                            key={c.id} 
                            className={`p-3 border rounded-lg cursor-pointer transition-colors ${selectedCollection?.id === c.id ? 'border-primary bg-primary/5' : 'hover:bg-gray-50'}`}
@@ -369,6 +406,21 @@ export default function AdminCollectionsPage() {
                      ))}
                   </div>
                )}
+
+               {collections.length > 0 && (
+                 <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
+                   <span>Toplam {collections.length} koleksiyon</span>
+                   <div className="flex items-center gap-2">
+                     <Button variant="outline" size="sm" className="h-7 px-2" disabled={collectionsPage <= 1} onClick={() => setCollectionsPage((p) => Math.max(1, p - 1))}>
+                       Önceki
+                     </Button>
+                     <span>{collectionsPage} / {collectionsTotalPages}</span>
+                     <Button variant="outline" size="sm" className="h-7 px-2" disabled={collectionsPage >= collectionsTotalPages} onClick={() => setCollectionsPage((p) => Math.min(collectionsTotalPages, p + 1))}>
+                       Sonraki
+                     </Button>
+                   </div>
+                 </div>
+               )}
             </CardContent>
           </Card>
         </div>
@@ -377,11 +429,13 @@ export default function AdminCollectionsPage() {
         <div className="lg:col-span-2 space-y-6">
            {(selectedCollection || isCreating) ? (
               <>
-                 <Card>
-                    <CardHeader>
-                       <CardTitle>{isCreating && !selectedCollection ? "Yeni Koleksiyon Oluştur" : "Koleksiyon Detayları"}</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
+                <Accordion type="multiple" defaultValue={["details", "products"]} className="space-y-4">
+                <AccordionItem value="details" className="border rounded-lg px-4">
+                  <AccordionTrigger className="py-4 text-base font-semibold hover:no-underline">
+                   {isCreating && !selectedCollection ? "Yeni Koleksiyon Oluştur" : "Koleksiyon Detayları"}
+                  </AccordionTrigger>
+                  <AccordionContent>
+                  <div className="space-y-4 pb-4">
                        <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
                              <label className="text-sm font-medium">Başlık</label>
@@ -509,15 +563,17 @@ export default function AdminCollectionsPage() {
                           </div>
                        </div>
                        <Button onClick={handleCreateOrUpdateCollection} className="w-full mt-4">KAYDET</Button>
-                    </CardContent>
-                 </Card>
+                      </div>
+                      </AccordionContent>
+                    </AccordionItem>
 
                  {selectedCollection && (
-                    <Card>
-                       <CardHeader>
-                          <CardTitle>Koleksiyondaki Ürünler</CardTitle>
-                       </CardHeader>
-                       <CardContent>
+                      <AccordionItem value="products" className="border rounded-lg px-4">
+                        <AccordionTrigger className="py-4 text-base font-semibold hover:no-underline">
+                         Koleksiyondaki Ürünler
+                        </AccordionTrigger>
+                        <AccordionContent>
+                        <div className="pb-4">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                              <div className="space-y-4">
                                 <div className="space-y-3">
@@ -553,7 +609,7 @@ export default function AdminCollectionsPage() {
                                   </div>
                                 </div>
 
-                                {(search.length >= 2 || selectedCategoryId !== "all" || selectedGender !== "all") && searchResults.length === 0 && !searching && (
+                                {!searching && allSearchResults.length === 0 && (
                                   <div className="text-center py-4 text-[11px] text-gray-400 italic">Sonuç yok</div>
                                 )}
 
@@ -564,7 +620,7 @@ export default function AdminCollectionsPage() {
                                 )}
 
                                 <div className="space-y-2 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
-                                  {searchResults.map((product) => {
+                                  {pagedSearchResults.map((product) => {
                                     const isAdded = collectionItems.some(item => item.productId === product.id);
                                     return (
                                       <div key={product.id} className={`flex items-center justify-between p-2 border rounded-lg transition-all ${isAdded ? 'bg-green-50/50 border-green-100 opacity-80' : 'hover:bg-gray-50'}`}>
@@ -592,6 +648,21 @@ export default function AdminCollectionsPage() {
                                     );
                                   })}
                                 </div>
+
+                                {allSearchResults.length > 0 && (
+                                  <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
+                                    <span>Toplam {allSearchResults.length} ürün</span>
+                                    <div className="flex items-center gap-2">
+                                      <Button variant="outline" size="sm" className="h-7 px-2" disabled={searchPage <= 1} onClick={() => setSearchPage((p) => Math.max(1, p - 1))}>
+                                        Önceki
+                                      </Button>
+                                      <span>{searchPage} / {searchTotalPages}</span>
+                                      <Button variant="outline" size="sm" className="h-7 px-2" disabled={searchPage >= searchTotalPages} onClick={() => setSearchPage((p) => Math.min(searchTotalPages, p + 1))}>
+                                        Sonraki
+                                      </Button>
+                                    </div>
+                                  </div>
+                                )}
                               </div>
 
                              <div className="border rounded-lg overflow-x-auto">
@@ -606,7 +677,9 @@ export default function AdminCollectionsPage() {
                                    <TableBody>
                                       {collectionItems.length === 0 ? (
                                         <TableRow><TableCell colSpan={3} className="text-center py-4 text-xs text-gray-500">Ürün yok.</TableCell></TableRow>
-                                      ) : collectionItems.map((item, idx) => (
+                                      ) : pagedCollectionItems.map((item, localIdx) => {
+                                        const idx = (itemsPage - 1) * ITEMS_PAGE_SIZE + localIdx;
+                                        return (
                                         <TableRow key={item.id}>
                                            <TableCell className="p-2">
                                               <div className="flex flex-col items-center justify-center space-y-1 bg-gray-50 px-1 py-0.5 rounded-md">
@@ -626,14 +699,31 @@ export default function AdminCollectionsPage() {
                                               </Button>
                                            </TableCell>
                                         </TableRow>
-                                      ))}
+                                      );})}
                                    </TableBody>
                                 </Table>
+
+                                {collectionItems.length > 0 && (
+                                  <div className="px-3 pb-3 flex items-center justify-between text-xs text-muted-foreground">
+                                    <span>Toplam {collectionItems.length} ürün</span>
+                                    <div className="flex items-center gap-2">
+                                      <Button variant="outline" size="sm" className="h-7 px-2" disabled={itemsPage <= 1} onClick={() => setItemsPage((p) => Math.max(1, p - 1))}>
+                                        Önceki
+                                      </Button>
+                                      <span>{itemsPage} / {itemsTotalPages}</span>
+                                      <Button variant="outline" size="sm" className="h-7 px-2" disabled={itemsPage >= itemsTotalPages} onClick={() => setItemsPage((p) => Math.min(itemsTotalPages, p + 1))}>
+                                        Sonraki
+                                      </Button>
+                                    </div>
+                                  </div>
+                                )}
                              </div>
                           </div>
-                       </CardContent>
-                    </Card>
+                       </div>
+                       </AccordionContent>
+                    </AccordionItem>
                  )}
+                 </Accordion>
               </>
            ) : (
               <div className="flex items-center justify-center h-[400px] border-2 border-dashed rounded-lg bg-gray-50 text-gray-400">

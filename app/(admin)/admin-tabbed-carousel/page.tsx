@@ -29,28 +29,38 @@ type TabbedItem = {
 };
 
 export default function AdminTabbedCarouselPage() {
+  const SEARCH_PAGE_SIZE = 8;
+  const ITEMS_PAGE_SIZE = 8;
+
   const [activeTab, setActiveTab] = useState("new-arrivals");
 
   const [search, setSearch] = useState("");
-  const [searchResults, setSearchResults] = useState<ProductBasics[]>([]);
+  const [allSearchResults, setAllSearchResults] = useState<ProductBasics[]>([]);
   
   const [tabItems, setTabItems] = useState<TabbedItem[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("all");
   const [selectedGender, setSelectedGender] = useState<string>("all");
+  const [searchPage, setSearchPage] = useState(1);
+  const [itemsPage, setItemsPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [searching, setSearching] = useState(false);
 
+  const searchTotalPages = Math.max(1, Math.ceil(allSearchResults.length / SEARCH_PAGE_SIZE));
+  const pagedSearchResults = allSearchResults.slice((searchPage - 1) * SEARCH_PAGE_SIZE, searchPage * SEARCH_PAGE_SIZE);
+
+  const itemsTotalPages = Math.max(1, Math.ceil(tabItems.length / ITEMS_PAGE_SIZE));
+  const pagedTabItems = tabItems.slice((itemsPage - 1) * ITEMS_PAGE_SIZE, itemsPage * ITEMS_PAGE_SIZE);
+
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (search.length >= 2 || selectedCategoryId !== "all" || selectedGender !== "all") {
-        setSearching(true);
-        fetchProducts(search, selectedCategoryId, selectedGender)
-          .then(setSearchResults)
-          .finally(() => setSearching(false));
-      } else {
-        setSearchResults([]);
-      }
+      setSearching(true);
+      fetchProducts(search, selectedCategoryId, selectedGender)
+        .then((data) => {
+          setAllSearchResults(data);
+          setSearchPage(1);
+        })
+        .finally(() => setSearching(false));
     }, 400);
     return () => clearTimeout(timer);
   }, [search, selectedCategoryId, selectedGender]);
@@ -58,7 +68,20 @@ export default function AdminTabbedCarouselPage() {
   useEffect(() => {
     fetchCategories();
     fetchTabItems();
+    setItemsPage(1);
   }, [activeTab]);
+
+  useEffect(() => {
+    if (searchPage > searchTotalPages) {
+      setSearchPage(searchTotalPages);
+    }
+  }, [searchPage, searchTotalPages]);
+
+  useEffect(() => {
+    if (itemsPage > itemsTotalPages) {
+      setItemsPage(itemsTotalPages);
+    }
+  }, [itemsPage, itemsTotalPages]);
 
   const fetchCategories = async () => {
     try {
@@ -74,7 +97,7 @@ export default function AdminTabbedCarouselPage() {
 
   const fetchProducts = async (q: string, catId: string, gen: string) => {
     try {
-      let url = `/api/admin-products?limit=20`;
+      let url = `/api/admin-products`;
       if (q) url += `&search=${encodeURIComponent(q)}`;
       if (catId !== "all") url += `&categoryId=${catId}`;
       if (gen !== "all") url += `&gender=${gen.toUpperCase()}`;
@@ -123,6 +146,7 @@ export default function AdminTabbedCarouselPage() {
       if (res.ok) {
         toast.success("Sekmeye eklendi!");
         fetchTabItems();
+        setItemsPage(1);
       } else {
         const err = await res.json();
         toast.error(err.error || "Hata oluştu");
@@ -253,7 +277,7 @@ export default function AdminTabbedCarouselPage() {
                 </div>
               </div>
 
-              {(search.length >= 2 || selectedCategoryId !== "all" || selectedGender !== "all") && searchResults.length === 0 && !searching && (
+              {!searching && allSearchResults.length === 0 && (
                 <div className="text-center py-8 text-sm text-gray-400 font-light italic">
                   Sonuç bulunamadı
                 </div>
@@ -266,7 +290,7 @@ export default function AdminTabbedCarouselPage() {
               )}
 
               <div className="space-y-2 mt-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                {searchResults.map((product) => {
+                {pagedSearchResults.map((product) => {
                   const isAdded = tabItems.some(item => item.productId === product.id);
                   return (
                     <div
@@ -301,6 +325,21 @@ export default function AdminTabbedCarouselPage() {
                   );
                 })}
               </div>
+
+              {allSearchResults.length > 0 && (
+                <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
+                  <span>Toplam {allSearchResults.length} ürün</span>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" className="h-7 px-2" disabled={searchPage <= 1} onClick={() => setSearchPage((p) => Math.max(1, p - 1))}>
+                      Önceki
+                    </Button>
+                    <span>{searchPage} / {searchTotalPages}</span>
+                    <Button variant="outline" size="sm" className="h-7 px-2" disabled={searchPage >= searchTotalPages} onClick={() => setSearchPage((p) => Math.min(searchTotalPages, p + 1))}>
+                      Sonraki
+                    </Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -331,7 +370,9 @@ export default function AdminTabbedCarouselPage() {
                         </TableRow>
                      </TableHeader>
                      <TableBody>
-                        {tabItems.map((item, idx) => (
+                        {pagedTabItems.map((item, localIdx) => {
+                          const idx = (itemsPage - 1) * ITEMS_PAGE_SIZE + localIdx;
+                          return (
                           <TableRow key={item.id}>
                              <TableCell className="w-[100px]">
                                 <div className="flex flex-col items-center justify-center space-y-1 bg-gray-50 p-1 rounded-md">
@@ -362,9 +403,24 @@ export default function AdminTabbedCarouselPage() {
                                 </Button>
                              </TableCell>
                           </TableRow>
-                        ))}
+                        );})}
                      </TableBody>
                   </Table>
+               )}
+
+               {tabItems.length > 0 && (
+                <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
+                  <span>Toplam {tabItems.length} ürün</span>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" className="h-7 px-2" disabled={itemsPage <= 1} onClick={() => setItemsPage((p) => Math.max(1, p - 1))}>
+                      Önceki
+                    </Button>
+                    <span>{itemsPage} / {itemsTotalPages}</span>
+                    <Button variant="outline" size="sm" className="h-7 px-2" disabled={itemsPage >= itemsTotalPages} onClick={() => setItemsPage((p) => Math.min(itemsTotalPages, p + 1))}>
+                      Sonraki
+                    </Button>
+                  </div>
+                </div>
                )}
             </CardContent>
           </Card>

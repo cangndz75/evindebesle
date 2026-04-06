@@ -184,20 +184,10 @@ export default function CheckoutPage() {
 
             if (!res.ok) throw new Error(data.error);
 
-            if (data.status === "success" && data.paymentPageUrl) {
+            if (data.paymentPageUrl) {
                 window.location.href = data.paymentPageUrl;
-            }
-            else if (data.checkoutFormContent) {
-                const container = document.getElementById("iyzico-checkout-form");
-                if (container) {
-                    container.innerHTML = data.checkoutFormContent + '<div id="iyzipay-checkout-form" class="responsive"></div>';
-                    const scripts = container.getElementsByTagName('script');
-                    for (let i = 0; i < scripts.length; i++) {
-                        window.eval(scripts[i].innerText);
-                    }
-                }
-            } else if (data.paymentPageUrl) {
-                window.location.href = data.paymentPageUrl;
+            } else if (data.status === "success" && data.checkoutFormContent) {
+                toast.error("Odeme sayfasi baglantisi alinmadi. Lutfen tekrar deneyin.");
             }
 
         } catch (error: any) {

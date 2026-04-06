@@ -41,14 +41,23 @@ export async function POST(req: Request) {
         }
 
         const normalizedPhone = String(body?.billingAddress?.phone || "").replace(/\D/g, "");
-        const phoneIsValid = normalizedPhone.startsWith("0")
-            ? normalizedPhone.length === 11
-            : normalizedPhone.length === 10;
+        let localPhone = "";
+        if (normalizedPhone.startsWith("0090") && normalizedPhone.length === 14) {
+            localPhone = normalizedPhone.slice(4);
+        } else if (normalizedPhone.startsWith("90") && normalizedPhone.length === 12) {
+            localPhone = normalizedPhone.slice(2);
+        } else if (normalizedPhone.startsWith("0") && normalizedPhone.length === 11) {
+            localPhone = normalizedPhone.slice(1);
+        } else if (normalizedPhone.length === 10) {
+            localPhone = normalizedPhone;
+        }
+        const phoneIsValid = /^5\d{9}$/.test(localPhone);
+        const iyzicoGsmNumber = `+90${localPhone}`;
         const normalizedZipCode = String(body?.billingAddress?.zipCode || "").replace(/\D/g, "");
 
         if (!phoneIsValid) {
             return NextResponse.json(
-                { error: "Telefon numarası geçersiz. 0 ile başlıyorsa 11, başlamıyorsa 10 hane olmalıdır." },
+                { error: "Telefon numarası geçersiz. 5XXXXXXXXX formatında bir GSM numarası girin." },
                 { status: 400 }
             );
         }
@@ -334,6 +343,11 @@ export async function POST(req: Request) {
         const conversationId = order.id;
         const buyerIp = req.headers.get("x-forwarded-for") || "127.0.0.1";
 
+        const billingFirstName = String(body?.billingAddress?.firstName || "").trim() || "Misafir";
+        const billingLastName = String(body?.billingAddress?.lastName || "").trim() || "Kullanıcı";
+        const shippingFirstName = String(body?.shippingAddress?.firstName || billingFirstName).trim() || billingFirstName;
+        const shippingLastName = String(body?.shippingAddress?.lastName || billingLastName).trim() || billingLastName;
+
         const iyzicoReq = {
             locale: "tr",
             conversationId,
@@ -346,9 +360,9 @@ export async function POST(req: Request) {
             enabledInstallments: [2, 3, 6, 9, 12],
             buyer: {
                 id: order.userId ?? order.email,
-                name: body.billingAddress?.firstName || "Misafir",
-                surname: body.billingAddress?.lastName || "Kullanıcı",
-                gsmNumber: body.billingAddress?.phone || "+905555555555",
+                name: billingFirstName,
+                surname: billingLastName,
+                gsmNumber: iyzicoGsmNumber,
                 email: body.email,
                 identityNumber: "11111111111", // Required by Iyzico
                 lastLoginDate: "2015-10-05 12:43:35",
@@ -357,21 +371,21 @@ export async function POST(req: Request) {
                 ip: buyerIp,
                 city: body.billingAddress?.city || "Istanbul",
                 country: body.billingAddress?.country || "Turkey",
-                zipCode: body.billingAddress?.zipCode || "34732",
+                zipCode: normalizedZipCode || "34732",
             },
             shippingAddress: {
-                contactName: `${body.shippingAddress?.firstName} ${body.shippingAddress?.lastName}`,
+                contactName: `${shippingFirstName} ${shippingLastName}`,
                 city: body.shippingAddress?.city || "Istanbul",
                 country: body.shippingAddress?.country || "Turkey",
                 address: body.shippingAddress?.addressLine1 || "N/A",
-                zipCode: body.shippingAddress?.zipCode || "34732",
+                zipCode: String(body?.shippingAddress?.zipCode || "").replace(/\D/g, "") || normalizedZipCode || "34732",
             },
             billingAddress: {
-                contactName: `${body.billingAddress?.firstName} ${body.billingAddress?.lastName}`,
+                contactName: `${billingFirstName} ${billingLastName}`,
                 city: body.billingAddress?.city || "Istanbul",
                 country: body.billingAddress?.country || "Turkey",
                 address: body.billingAddress?.addressLine1 || "N/A",
-                zipCode: body.billingAddress?.zipCode || "34732",
+                zipCode: normalizedZipCode || "34732",
             },
             basketItems: orderItemsData.map((it: any) => ({
                 id: it.productId,

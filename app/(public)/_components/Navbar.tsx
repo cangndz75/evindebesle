@@ -75,8 +75,8 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="w-full border-b bg-white sticky top-0 z-50 shadow-sm h-[64px]">
-      <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between h-[64px]">
+    <nav className="w-full border-b bg-white sticky top-0 z-50 shadow-sm h-16">
+      <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between h-16">
         <Link
           href={session?.user?.isAdmin ? "/dashboard" : "/home"}
           className="flex items-center gap-2 text-xl font-bold text-primary"
@@ -85,7 +85,7 @@ export default function Navbar() {
         </Link>
 
         
-        <div className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground h-[64px]">
+        <div className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground h-16">
           <Link href="/about" className="hover:text-black transition">
             Hakkımızda
           </Link>
@@ -101,7 +101,7 @@ export default function Navbar() {
         </div>
 
         
-        <div className="md:hidden flex items-center gap-2 h-[64px]">
+        <div className="md:hidden flex items-center gap-2 h-16">
           {session?.user ? (
             <Button
               variant="ghost"
@@ -125,7 +125,7 @@ export default function Navbar() {
                 <Menu className="w-5 h-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-[260px] p-4">
+            <SheetContent side="left" className="w-65 p-4">
               <SheetHeader>
                 <SheetTitle className="sr-only">Menü</SheetTitle>
               </SheetHeader>
@@ -236,9 +236,9 @@ export default function Navbar() {
         </div>
 
         
-        <div className="hidden md:flex items-center gap-4 min-w-[160px] justify-end">
+        <div className="hidden md:flex items-center gap-4 min-w-40 justify-end">
           {status === "loading" ? (
-            <div className="h-9 w-[100px]" />
+            <div className="h-9 w-25" />
           ) : session?.user ? (
             <>
               <div
@@ -258,7 +258,7 @@ export default function Navbar() {
 
                 {menuOpen && (
                   <div className="absolute top-[110%] right-0 w-56 bg-white border rounded-md shadow-md z-50 overflow-hidden">
-                    <div className="bg-gradient-to-r from-fuchsia-600 to-rose-500 text-white p-4 font-semibold text-sm">
+                    <div className="bg-linear-to-r from-fuchsia-600 to-rose-500 text-white p-4 font-semibold text-sm">
                       {session.user.name ?? "Misafir"}
                     </div>
                     <Link

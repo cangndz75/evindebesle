@@ -218,7 +218,7 @@ export default function HomeHeader() {
 
             
             <header
-                className={`w-full bg-white border-b border-black/10 transition-all duration-300 ${isScrolled ? "fixed top-0 left-0 right-0 z-[100] shadow-sm" : "relative"
+                className={`w-full bg-white border-b border-black/10 transition-all duration-300 ${isScrolled ? "fixed top-0 left-0 right-0 z-100 shadow-sm" : "relative"
                     }`}
                 onMouseLeave={scheduleClose}
             >
@@ -259,7 +259,7 @@ export default function HomeHeader() {
                                         <Menu className="w-5 h-5" />
                                     </button>
                                 </SheetTrigger>
-                                <SheetContent side="left" className="w-[300px] p-0 flex flex-col">
+                                <SheetContent side="left" className="w-75 p-0 flex flex-col">
                                     <SheetHeader className="px-6 pt-6 pb-4 border-b">
                                         <SheetTitle className="text-lg font-light uppercase tracking-wide text-[#111] text-left">
                                             {mobileMenuState === "main" ? "Menü" :
@@ -533,7 +533,7 @@ export default function HomeHeader() {
             </header>
 
             
-            {isScrolled && <div className="h-[100px] md:h-[116px]" />}
+            {isScrolled && <div className="h-25 md:h-29" />}
 
             
             <ShoppingCart isOpen={cartOpen} onClose={() => setCartOpen(false)} />

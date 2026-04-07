@@ -898,7 +898,7 @@ export function EditProductModal({
                   value={newColorName}
                   onChange={(e) => setNewColorName(e.target.value)}
                   disabled={loading}
-                  className="flex-1 min-w-[150px]"
+                  className="flex-1 min-w-37.5"
                 />
                 <div className="flex items-center gap-2">
                   <input
@@ -1278,7 +1278,7 @@ export function EditProductModal({
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="h-auto p-0 w-4 h-4"
+                      className="p-0 w-4 h-4"
                       onClick={() => removeTag(tag)}
                       disabled={loading}
                     >

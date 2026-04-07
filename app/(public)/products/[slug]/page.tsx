@@ -47,6 +47,7 @@ export default async function ProductSlugPage({
       },
       sizes: true,
       sizeOptions: true,
+      category: true,
       tags: true,
       variants: {
         include: {
@@ -144,6 +145,7 @@ export default async function ProductSlugPage({
         },
         sizes: true,
         sizeOptions: true,
+        category: true,
         tags: true,
         variants: {
           include: {
@@ -380,6 +382,9 @@ export default async function ProductSlugPage({
       colorName: r.color?.name,
     })),
     details: product.detailText ? [product.detailText] : [],
+    gender: product.gender,
+    category: product.category?.name || "",
+    categorySlug: product.category?.slug || "",
     fabric: product.fabricType || "",
     care: "",
     washing: "",

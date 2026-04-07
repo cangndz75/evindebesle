@@ -5,7 +5,7 @@ import Link from "next/link";
 
 export default function EditorialBanner() {
   return (
-    <section className="relative w-full h-[600px] md:h-[700px] lg:h-[800px] overflow-hidden bg-white">
+    <section className="relative w-full h-150 md:h-175 lg:h-200 overflow-hidden bg-white">
       
       <div className="absolute inset-0">
         <Image
@@ -18,7 +18,7 @@ export default function EditorialBanner() {
           unoptimized
         />
         
-        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-r from-black/60 via-black/40 to-transparent" />
       </div>
 
       

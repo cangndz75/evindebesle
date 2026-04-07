@@ -90,7 +90,7 @@ export default function TabbedProductCarousel({
   };
 
   return (
-    <section className="w-full bg-gradient-to-b from-gray-50 to-white py-16 md:py-24">
+    <section className="w-full bg-linear-to-b from-gray-50 to-white py-16 md:py-24">
       <div className="w-full">
         <Tabs
           defaultValue="new-arrivals"
@@ -601,7 +601,7 @@ function ProductCarouselContent({
             {products.map((product) => (
               <div
                 key={product.id}
-                className="flex-shrink-0 w-64 md:w-72 snap-start bg-white group"
+                className="shrink-0 w-64 md:w-72 snap-start bg-white group"
                 onMouseEnter={() => setHoveredProduct(product.id)}
                 onMouseLeave={() => setHoveredProduct(null)}
               >
@@ -760,7 +760,7 @@ function ProductCarouselContent({
                       <button
                         key={idx}
                         onClick={() => setSelectedImageIndex(idx)}
-                        className={`relative flex-shrink-0 w-16 h-20 bg-gray-100 rounded overflow-hidden border-2 transition-all ${selectedImageIndex === idx ? 'border-[#111]' : 'border-transparent hover:border-gray-300'
+                        className={`relative shrink-0 w-16 h-20 bg-gray-100 rounded overflow-hidden border-2 transition-all ${selectedImageIndex === idx ? 'border-[#111]' : 'border-transparent hover:border-gray-300'
                           }`}
                       >
                         <Image

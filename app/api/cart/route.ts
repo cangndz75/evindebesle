@@ -141,13 +141,40 @@ export async function POST(request: NextRequest) {
     const color = colorId
       ? await prisma.productColor.findUnique({
         where: { id: colorId },
+        select: {
+          id: true,
+          productId: true,
+          name: true,
+          hexCode: true,
+          images: true,
+        },
       })
       : null;
     const size = sizeId
       ? await prisma.productSize.findUnique({
         where: { id: sizeId },
+        select: {
+          id: true,
+          productId: true,
+          name: true,
+          stock: true,
+        },
       })
       : null;
+
+    if (colorId && (!color || color.productId !== productId)) {
+      return NextResponse.json(
+        { error: "Secilen renk bu urune ait degil." },
+        { status: 400 }
+      );
+    }
+
+    if (sizeId && (!size || size.productId !== productId)) {
+      return NextResponse.json(
+        { error: "Secilen beden bu urune ait degil." },
+        { status: 400 }
+      );
+    }
 
     if (user) {
       if (isRedisCartEnabled()) {

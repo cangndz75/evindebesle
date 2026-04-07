@@ -650,7 +650,7 @@ export default function FindMySizeModal({
         <div className="space-y-4">
           {sizeCandidates.length > 0 && (
             <p className="text-xs text-gray-600">
-              Bu urun icin mevcut bedenler: {sizeCandidates.map((candidate) => candidate.raw).join(", ")}
+              Bu ürün icin mevcut bedenler: {sizeCandidates.map((candidate) => candidate.raw).join(", ")}
             </p>
           )}
 
@@ -670,14 +670,14 @@ export default function FindMySizeModal({
           {error && <p className="text-sm text-red-600">{error}</p>}
 
           <Button onClick={handleCalculate} className="w-full">
-            Beden Oner
+            Beden Öner
           </Button>
 
           {result && (
             <div className="rounded-lg border border-gray-200 p-4 space-y-2 bg-gray-50">
-              <p className="text-sm text-gray-700">Onerilen beden</p>
+              <p className="text-sm text-gray-700">Önerilen beden</p>
               <p className="text-2xl font-semibold text-black">{result.recommended}</p>
-              <p className="text-xs text-gray-500">Guven: {result.confidence}</p>
+              <p className="text-xs text-gray-500">Güven: {result.confidence}</p>
               <p className="text-sm text-gray-700">{result.reason}</p>
               {result.alternatives.length > 0 && (
                 <p className="text-sm text-gray-700">

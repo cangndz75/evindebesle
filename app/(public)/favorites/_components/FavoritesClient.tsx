@@ -247,15 +247,29 @@ export default function FavoritesClient({
                               const sizeStock = typeof size === 'object' ? size.stock : 0;
                               const sizeId = typeof size === 'object' && size.id ? size.id : null;
 
-                              let variantStock = 0;
-                              if (currentColorId && product.colors?.[0]?.variants) {
-                                const variant = product.colors[0].variants.find((v: any) =>
+                              let finalStock = sizeStock;
+                              if (currentColorId && product.colors?.[0]?.variants && Array.isArray(product.colors[0].variants) && product.colors[0].variants.length > 0) {
+                                const exactVariant = product.colors[0].variants.find((v: any) =>
                                   v.colorId === currentColorId && v.sizeId === sizeId
                                 );
-                                variantStock = variant?.stock || 0;
-                              }
 
-                              const finalStock = variantStock > 0 ? variantStock : sizeStock;
+                                if (exactVariant) {
+                                  finalStock = exactVariant.stock || 0;
+                                } else {
+                                  const hasSizedVariantsForColor = product.colors[0].variants.some((v: any) =>
+                                    v.colorId === currentColorId && !!v.sizeId
+                                  );
+                                  const colorLevelVariant = product.colors[0].variants.find((v: any) =>
+                                    v.colorId === currentColorId && !v.sizeId
+                                  );
+
+                                  if (hasSizedVariantsForColor) {
+                                    finalStock = 0;
+                                  } else if (colorLevelVariant) {
+                                    finalStock = colorLevelVariant.stock || 0;
+                                  }
+                                }
+                              }
                               return { size, sizeName, sizeId, finalStock };
                             }).filter((item: any) => item.finalStock > 0).sort((a: any, b: any) => {
                               const orderA = SIZE_ORDER.indexOf(a.sizeName.toUpperCase());

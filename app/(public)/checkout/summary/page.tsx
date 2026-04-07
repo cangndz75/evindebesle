@@ -26,6 +26,35 @@ export default function CheckoutSummaryPage() {
     const [freeShippingThreshold, setFreeShippingThreshold] = useState(99);
     const [shippingPrice, setShippingPrice] = useState(49.90);
 
+    const getCartItemImage = (item: typeof items[number]) => {
+        if (item.color?.images) {
+            let colorImages: string[] = [];
+            if (typeof item.color.images === "string") {
+                try {
+                    colorImages = JSON.parse(item.color.images);
+                } catch {
+                    colorImages = [item.color.images];
+                }
+            } else if (Array.isArray(item.color.images)) {
+                colorImages = item.color.images;
+            }
+
+            if (colorImages.length > 0) {
+                return colorImages[0];
+            }
+        }
+
+        if (item.product.primaryImage) {
+            return item.product.primaryImage;
+        }
+
+        if (item.product.image) {
+            return item.product.image;
+        }
+
+        return "/placeholder.png";
+    };
+
     useEffect(() => {
         if (!hydrated) {
             hydrate();
@@ -65,7 +94,7 @@ export default function CheckoutSummaryPage() {
         return (
             <div className="min-h-screen pt-32 pb-16 bg-gray-50 flex flex-col items-center justify-center">
                 <h1 className="text-2xl font-light mb-4">Sepetiniz Boş</h1>
-                <Link href="/" className="bg-black text-white px-6 py-3 rounded text-sm uppercase tracking-wider hover:bg-gray-800 transition-colors">
+                <Link href="/home" className="bg-black text-white px-6 py-3 rounded text-sm uppercase tracking-wider hover:bg-gray-800 transition-colors">
                     Alışverişe Başla
                 </Link>
             </div>
@@ -85,7 +114,7 @@ export default function CheckoutSummaryPage() {
                                 <div key={`${item.productId}-${item.colorId}-${item.sizeId}`} className="flex gap-4 py-4 border-b last:border-0 border-gray-100">
                                     <div className="relative w-24 h-32 bg-gray-100 flex-shrink-0">
                                         <Image
-                                            src={item.product.image || "/placeholder.png"}
+                                            src={getCartItemImage(item)}
                                             alt={item.product.name}
                                             fill
                                             className="object-cover"

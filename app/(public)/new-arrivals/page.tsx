@@ -262,13 +262,30 @@ export default function NewArrivalsPage() {
                                                             const sizeName = typeof size === 'string' ? size : size.name;
                                                             const sizeStock = typeof size === 'object' ? size.stock || 0 : 0;
                                                             const sizeId = typeof size === 'object' && size.id ? size.id : null;
-                                                            
-                                                            let variantStock = 0;
-                                                            if (currentColorId && displayColorObj?.variants) {
-                                                                const variant = displayColorObj.variants.find((v: any) => v.sizeId === sizeId);
-                                                                variantStock = variant?.stock || 0;
+
+                                                            let finalStock = sizeStock;
+                                                            if (currentColorId && displayColorObj?.variants && Array.isArray(displayColorObj.variants) && displayColorObj.variants.length > 0) {
+                                                                const exactVariant = displayColorObj.variants.find((v: any) =>
+                                                                    v.colorId === currentColorId && v.sizeId === sizeId
+                                                                );
+
+                                                                if (exactVariant) {
+                                                                    finalStock = exactVariant.stock || 0;
+                                                                } else {
+                                                                    const hasSizedVariantsForColor = displayColorObj.variants.some((v: any) =>
+                                                                        v.colorId === currentColorId && !!v.sizeId
+                                                                    );
+                                                                    const colorLevelVariant = displayColorObj.variants.find((v: any) =>
+                                                                        v.colorId === currentColorId && !v.sizeId
+                                                                    );
+
+                                                                    if (hasSizedVariantsForColor) {
+                                                                        finalStock = 0;
+                                                                    } else if (colorLevelVariant) {
+                                                                        finalStock = colorLevelVariant.stock || 0;
+                                                                    }
+                                                                }
                                                             }
-                                                            const finalStock = variantStock > 0 ? variantStock : sizeStock;
                                                             return { size, sizeName, sizeId, finalStock };
                                                         }).filter(item => item.finalStock > 0).sort((a, b) => {
                                                             const orderA = SIZE_ORDER.indexOf(a.sizeName.toUpperCase());

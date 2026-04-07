@@ -372,9 +372,9 @@ export default async function ProductSlugPage({
         stock: v.stock,
         variantCode: v.variantCode,
         price: v.price,
-        salePrice: v.salePrice,
-        marketPrice: v.marketPrice,
-        buyBoxPrice: v.buyBoxPrice,
+        salePrice: v.salePrice !== null && v.salePrice !== undefined ? Number(v.salePrice) : null,
+        marketPrice: v.marketPrice !== null && v.marketPrice !== undefined ? Number(v.marketPrice) : null,
+        buyBoxPrice: v.buyBoxPrice !== null && v.buyBoxPrice !== undefined ? Number(v.buyBoxPrice) : null,
       })),
     reviews: product.reviews.map((r: any) => ({
       id: r.id,

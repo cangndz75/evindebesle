@@ -108,6 +108,8 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
   const [findMySizeOpen, setFindMySizeOpen] = useState(false);
   const [liveStock, setLiveStock] = useState<number | null>(null);
   const [isSticky, setIsSticky] = useState(false);
+  const [zoomActive, setZoomActive] = useState(false);
+  const [zoomPosition, setZoomPosition] = useState({ x: 50, y: 50 });
   const selectedColorLabel = product.colors?.[selectedColor]?.name || "";
 
   const selectedColorObj = product.colors?.[selectedColor];
@@ -136,6 +138,8 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
     const colorSpecific = product.variants
       .filter((variant) => variant.colorId === selectedColorObj.id)
       .sort((left, right) => {
+        if ((left.stock || 0) > 0 && (right.stock || 0) <= 0) return -1;
+        if ((left.stock || 0) <= 0 && (right.stock || 0) > 0) return 1;
         const leftPrice = left.salePrice ?? left.price ?? left.marketPrice ?? Number.POSITIVE_INFINITY;
         const rightPrice = right.salePrice ?? right.price ?? right.marketPrice ?? Number.POSITIVE_INFINITY;
         return leftPrice - rightPrice;
@@ -316,26 +320,45 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
 
   const getVariantStock = (sizeName: string): number => {
     const currentColor = product.colors?.[selectedColor];
-    if (currentColor?.id && product.variants) {
-      const sizeObj = product.sizes?.find((s: any) =>
-        typeof s === 'object' && s.name === sizeName
-      );
-      const sizeId = sizeObj && typeof sizeObj === 'object' && 'id' in sizeObj ? sizeObj.id : null;
+    if (currentColor?.id && product.variants && product.variants.length > 0) {
+      const hasColorVariants = product.variants.some((v) => !!v.colorId);
 
-      if (sizeId) {
-        const variant = product.variants.find((v) =>
-          v.colorId === currentColor.id && v.sizeId === sizeId
+      if (hasColorVariants) {
+        const sizeObj = product.sizes?.find((s: any) =>
+          typeof s === "object" && s.name === sizeName
+        ) || product.sizeOptions?.find((s: any) =>
+          typeof s === "object" && s.name === sizeName
         );
-        if (variant && variant.stock > 0) {
-          return variant.stock;
-        }
-      }
 
-      const colorVariant = product.variants.find((v) =>
-        v.colorId === currentColor.id && !v.sizeId
-      );
-      if (colorVariant && colorVariant.stock > 0) {
-        return colorVariant.stock;
+        const sizeId = sizeObj && typeof sizeObj === "object" && "id" in sizeObj ? sizeObj.id : null;
+
+        if (sizeId) {
+          const exactVariant = product.variants.find((v) =>
+            v.colorId === currentColor.id && v.sizeId === sizeId
+          );
+
+          if (exactVariant) {
+            return exactVariant.stock || 0;
+          }
+
+          const hasSizedVariantsForColor = product.variants.some((v) =>
+            v.colorId === currentColor.id && !!v.sizeId
+          );
+
+          if (hasSizedVariantsForColor) {
+            return 0;
+          }
+        }
+
+        const colorLevelVariant = product.variants.find((v) =>
+          v.colorId === currentColor.id && !v.sizeId
+        );
+
+        if (colorLevelVariant) {
+          return colorLevelVariant.stock || 0;
+        }
+
+        return 0;
       }
     }
 
@@ -629,6 +652,17 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
     touchEndX.current = null;
   };
 
+  const handleImageMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+    setZoomPosition({
+      x: Math.min(100, Math.max(0, x)),
+      y: Math.min(100, Math.max(0, y)),
+    });
+  };
+
   return (
     <div className="w-full min-h-screen bg-white pt-1.25 md:pt-5">
       
@@ -737,6 +771,9 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                 onTouchStart={handleTouchStart}
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
+                onMouseEnter={() => setZoomActive(true)}
+                onMouseLeave={() => setZoomActive(false)}
+                onMouseMove={handleImageMouseMove}
               >
                 {(() => {
                   const currentColorImages = getCurrentColorImages();
@@ -757,10 +794,29 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                         src={imageUrl}
                         alt={`Dark Velvet ${product.name} ${selectedColorLabel}`.trim()}
                         fill
-                        className="object-cover"
+                        className="object-cover transition-transform duration-200 ease-out"
+                        style={{
+                          transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%`,
+                          transform: zoomActive ? "scale(1.7)" : "scale(1)",
+                        }}
                         sizes="(max-width: 1024px) 100vw, 50vw"
                         priority
                       />
+
+                      {zoomActive && (
+                        <div
+                          className="hidden md:block absolute w-36 h-36 border border-black/30 shadow-sm pointer-events-none"
+                          style={{
+                            left: `${zoomPosition.x}%`,
+                            top: `${zoomPosition.y}%`,
+                            transform: "translate(-50%, -50%)",
+                            backgroundImage: `url(${imageUrl})`,
+                            backgroundRepeat: "no-repeat",
+                            backgroundSize: "170%",
+                            backgroundPosition: `${zoomPosition.x}% ${zoomPosition.y}%`,
+                          }}
+                        />
+                      )}
 
                       
                       {imageBadge && (

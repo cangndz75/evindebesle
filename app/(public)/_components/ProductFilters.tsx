@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -83,6 +83,25 @@ function getColorSwatchStyle(name: string, hexCode?: string) {
   return { backgroundColor: mapped || "#D1D5DB" };
 }
 
+function getColorSwatchKey(name: string, hexCode?: string) {
+  const rawHex = (hexCode || "").trim().toLocaleLowerCase("tr-TR");
+  if (rawHex && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(rawHex)) {
+    return `hex:${rawHex}`;
+  }
+
+  const normalized = normalizeColorName(name);
+  if (normalized.includes("cok renk") || normalized.includes("çok renk") || normalized.includes("multicolor")) {
+    return "multi";
+  }
+
+  const mapped = COLOR_NAME_TO_HEX[normalized];
+  if (mapped) {
+    return `map:${mapped.toLocaleLowerCase("tr-TR")}`;
+  }
+
+  return `name:${normalized}`;
+}
+
 type FilterState = {
   minPrice?: number;
   maxPrice?: number;
@@ -100,6 +119,13 @@ type ActiveFilter = {
 type ColorOption = {
   name: string;
   hexCode?: string;
+};
+
+type GroupedColorOption = {
+  key: string;
+  name: string;
+  hexCode?: string;
+  aliases: string[];
 };
 
 type ProductFiltersProps = {
@@ -134,6 +160,29 @@ export default function ProductFilters({
   const [open, setOpen] = useState(false);
   const [draftFilters, setDraftFilters] = useState<FilterState>(filters);
 
+  const groupedColors = useMemo<GroupedColorOption[]>(() => {
+    const map = new Map<string, GroupedColorOption>();
+
+    for (const color of availableColors) {
+      const key = getColorSwatchKey(color.name, color.hexCode);
+      const existing = map.get(key);
+      if (existing) {
+        if (!existing.aliases.includes(color.name)) {
+          existing.aliases.push(color.name);
+        }
+      } else {
+        map.set(key, {
+          key,
+          name: color.name,
+          hexCode: color.hexCode,
+          aliases: [color.name],
+        });
+      }
+    }
+
+    return Array.from(map.values());
+  }, [availableColors]);
+
   useEffect(() => {
     if (!open) {
       setDraftFilters(filters);
@@ -152,6 +201,20 @@ export default function ProductFilters({
       ? current.filter((v) => v !== value)
       : [...current, value];
     updateFilter(key, newArray);
+  };
+
+  const toggleGroupedColorFilter = (color: GroupedColorOption) => {
+    const current = draftFilters.colors || [];
+    const anySelected = color.aliases.some((alias) => current.includes(alias));
+    const newSet = new Set(current);
+
+    if (anySelected) {
+      color.aliases.forEach((alias) => newSet.delete(alias));
+    } else {
+      color.aliases.forEach((alias) => newSet.add(alias));
+    }
+
+    updateFilter("colors", Array.from(newSet));
   };
 
   const applyFilters = () => {
@@ -323,7 +386,7 @@ export default function ProductFilters({
               )}
 
               
-              {availableColors.length > 0 && (
+              {groupedColors.length > 0 && (
                 <AccordionItem value="color" className="border-b border-gray-200">
                   <AccordionTrigger className="py-4 hover:no-underline px-0">
                     <div className="flex items-center justify-between w-full pr-4">
@@ -333,13 +396,16 @@ export default function ProductFilters({
                   </AccordionTrigger>
                   <AccordionContent className="pt-2 pb-4 px-0">
                     <div className="grid grid-cols-6 gap-3">
-                      {availableColors.map((color) => (
+                      {groupedColors.map((color) => {
+                        const isSelected = color.aliases.some((alias) => draftFilters.colors?.includes(alias));
+
+                        return (
                         <button
-                          key={color.name}
+                          key={color.key}
                           type="button"
-                          onClick={() => toggleArrayFilter("colors", color.name)}
+                          onClick={() => toggleGroupedColorFilter(color)}
                           className={`w-8 h-8 rounded-full border transition-all ${
-                            draftFilters.colors?.includes(color.name)
+                            isSelected
                               ? "border-[#111] ring-1 ring-[#111]"
                               : "border-gray-300"
                           }`}
@@ -347,7 +413,7 @@ export default function ProductFilters({
                           aria-label={color.name}
                           title={color.name}
                         />
-                      ))}
+                      )})}
                     </div>
                   </AccordionContent>
                 </AccordionItem>

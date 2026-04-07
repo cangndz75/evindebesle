@@ -1062,15 +1062,29 @@ export default function WomenProductsPage({
                                 const sizeStock = typeof size === "object" ? size.stock : 0;
                                 const sizeId = typeof size === "object" && size.id ? size.id : null;
 
-                                let variantStock = 0;
-                                if (currentColorId && currentColorObj?.variants) {
-                                  const variant = currentColorObj.variants.find((v: any) =>
+                                let finalStock = sizeStock;
+                                if (currentColorId && currentColorObj?.variants && Array.isArray(currentColorObj.variants) && currentColorObj.variants.length > 0) {
+                                  const exactVariant = currentColorObj.variants.find((v: any) =>
                                     v.colorId === currentColorId && v.sizeId === sizeId
                                   );
-                                  variantStock = variant?.stock || 0;
-                                }
 
-                                const finalStock = variantStock > 0 ? variantStock : sizeStock;
+                                  if (exactVariant) {
+                                    finalStock = exactVariant.stock || 0;
+                                  } else {
+                                    const hasSizedVariantsForColor = currentColorObj.variants.some((v: any) =>
+                                      v.colorId === currentColorId && !!v.sizeId
+                                    );
+                                    const colorLevelVariant = currentColorObj.variants.find((v: any) =>
+                                      v.colorId === currentColorId && !v.sizeId
+                                    );
+
+                                    if (hasSizedVariantsForColor) {
+                                      finalStock = 0;
+                                    } else if (colorLevelVariant) {
+                                      finalStock = colorLevelVariant.stock || 0;
+                                    }
+                                  }
+                                }
                                 return { sizeName, sizeId, finalStock };
                               })
                               .filter((item: any) => item.finalStock > 0)

@@ -1257,12 +1257,12 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                       onClick={onClose}
                       className="flex h-11 w-full items-center justify-center border border-[#dddddd] text-xs tracking-[0.15em] text-[#808080]"
                     >
-                      URUNU INCELE
+                      ÜRÜNÜ İNCELE
                     </Link>
                   </div>
                 </div>
               ) : (
-                <div className="py-10 text-sm text-[#777]">Urun bilgisi bulunamadi.</div>
+                <div className="py-10 text-sm text-[#777]">Ürün bilgisi bulunamadı.</div>
               )}
             </div>
           </div>

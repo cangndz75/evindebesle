@@ -177,16 +177,30 @@ export default function ProductCarousel({ title, products, viewAllLink }: Produc
                               const sizeName = typeof size === 'string' ? size : size.name;
                               const sizeStock = typeof size === 'object' ? size.stock : 0;
                               const sizeId = typeof size === 'object' && size.id ? size.id : null;
-                              
-                              let variantStock = 0;
-                              if (currentColorId && product.variants) {
-                                const variant = product.variants.find((v: any) => 
+
+                              let finalStock = sizeStock;
+                              if (currentColorId && product.variants && Array.isArray(product.variants) && product.variants.length > 0) {
+                                const exactVariant = product.variants.find((v: any) =>
                                   v.colorId === currentColorId && v.sizeId === sizeId
                                 );
-                                variantStock = variant?.stock || 0;
+
+                                if (exactVariant) {
+                                  finalStock = exactVariant.stock || 0;
+                                } else {
+                                  const hasSizedVariantsForColor = product.variants.some((v: any) =>
+                                    v.colorId === currentColorId && !!v.sizeId
+                                  );
+                                  const colorLevelVariant = product.variants.find((v: any) =>
+                                    v.colorId === currentColorId && !v.sizeId
+                                  );
+
+                                  if (hasSizedVariantsForColor) {
+                                    finalStock = 0;
+                                  } else if (colorLevelVariant) {
+                                    finalStock = colorLevelVariant.stock || 0;
+                                  }
+                                }
                               }
-                              
-                              const finalStock = variantStock > 0 ? variantStock : sizeStock;
                               return { size, sizeName, sizeId, finalStock };
                             }).filter(item => item.finalStock > 0).sort((a, b) => {
                               const orderA = SIZE_ORDER.indexOf(a.sizeName.toUpperCase());

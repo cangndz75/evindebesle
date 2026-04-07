@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import MenNewArrivalsPage from "../../_components/MenNewArrivalsPage";
 
 export const metadata = {
@@ -6,5 +7,9 @@ export const metadata = {
 };
 
 export default function MenNewArrivalsPageRoute() {
-  return <MenNewArrivalsPage />;
+  return (
+    <Suspense fallback={null}>
+      <MenNewArrivalsPage />
+    </Suspense>
+  );
 }

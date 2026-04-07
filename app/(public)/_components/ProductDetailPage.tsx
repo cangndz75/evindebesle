@@ -25,7 +25,16 @@ interface ProductDetailPageProps {
     colors: { id?: string; name: string; value: string; description?: string; variant?: string; images?: string[] }[];
     sizes: string[] | { id?: string; name: string; stock: number }[];
     sizeOptions?: { id?: string; name: string; stock?: number }[];
-    variants?: { colorId: string | null; sizeId: string | null; stock: number; variantCode: string }[];
+    variants?: {
+      colorId: string | null;
+      sizeId: string | null;
+      stock: number;
+      variantCode: string;
+      price?: number | null;
+      salePrice?: number | null;
+      marketPrice?: number | null;
+      buyBoxPrice?: number | null;
+    }[];
     details: string[];
     fabric?: string;
     care?: string;
@@ -100,6 +109,50 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
   const [liveStock, setLiveStock] = useState<number | null>(null);
   const [isSticky, setIsSticky] = useState(false);
   const selectedColorLabel = product.colors?.[selectedColor]?.name || "";
+
+  const selectedColorObj = product.colors?.[selectedColor];
+
+  const selectedSizeObjForPricing = product.sizes?.find(
+    (s: any) => typeof s === "object" && s.name === selectedSize
+  ) || product.sizeOptions?.find(
+    (s: any) => typeof s === "object" && s.name === selectedSize
+  );
+
+  const selectedSizeIdForPricing =
+    selectedSizeObjForPricing && typeof selectedSizeObjForPricing === "object" && "id" in selectedSizeObjForPricing
+      ? (selectedSizeObjForPricing.id ?? null)
+      : null;
+
+  const selectedVariantForPricing = (() => {
+    if (!product.variants || !selectedColorObj?.id) return null;
+
+    if (selectedSizeIdForPricing) {
+      const exact = product.variants.find((variant) =>
+        variant.colorId === selectedColorObj.id && variant.sizeId === selectedSizeIdForPricing
+      );
+      if (exact) return exact;
+    }
+
+    const colorSpecific = product.variants
+      .filter((variant) => variant.colorId === selectedColorObj.id)
+      .sort((left, right) => {
+        const leftPrice = left.salePrice ?? left.price ?? left.marketPrice ?? Number.POSITIVE_INFINITY;
+        const rightPrice = right.salePrice ?? right.price ?? right.marketPrice ?? Number.POSITIVE_INFINITY;
+        return leftPrice - rightPrice;
+      });
+
+    return colorSpecific[0] || null;
+  })();
+
+  const displayPrice =
+    selectedVariantForPricing?.salePrice ??
+    selectedVariantForPricing?.price ??
+    selectedVariantForPricing?.marketPrice ??
+    product.price;
+
+  const displayOriginalPrice =
+    selectedVariantForPricing?.marketPrice ??
+    product.originalPrice;
 
 
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
@@ -787,18 +840,18 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
             
             <div className="mb-4 flex flex-col items-start gap-1">
               <div className="flex items-center">
-                {product.originalPrice && product.originalPrice > product.price ? (
+                {displayOriginalPrice && displayOriginalPrice > displayPrice ? (
                   <>
                     <span className="text-2xl md:text-3xl font-light text-black">
-                      {product.price} ₺
+                      {displayPrice} ₺
                     </span>
                     <span className="text-lg line-through ml-3 text-gray-400">
-                      {product.originalPrice} ₺
+                      {displayOriginalPrice} ₺
                     </span>
                   </>
                 ) : (
                   <span className="text-2xl md:text-3xl font-light text-black">
-                    {product.price} ₺
+                    {displayPrice} ₺
                   </span>
                 )}
               </div>
@@ -1286,6 +1339,10 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
         onOpenChange={setFindMySizeOpen}
         categorySlug={product.categorySlug}
         categoryName={product.category}
+        productName={product.name}
+        availableSizes={getAvailableSizesForColor().map((sizeObj) =>
+          typeof sizeObj === "string" ? sizeObj : sizeObj.name
+        )}
         sizeGuide={product.sizeGuide || null}
       />
     </div>

@@ -11,26 +11,47 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { type, templateId, productIds } = body;
+    const { type, templateId, productIds, categoryIds, assignMode, applyToAllProducts } = body;
 
-    if (!type || !templateId || !productIds || !Array.isArray(productIds)) {
+    if (!type || !templateId) {
       return NextResponse.json({ error: "Eksik veya hatalı parametre" }, { status: 400 });
     }
+
+    const resolvedAssignMode = assignMode || (applyToAllProducts ? "ALL" : "PRODUCTS");
+
+    if (resolvedAssignMode === "PRODUCTS" && (!Array.isArray(productIds) || productIds.length === 0)) {
+      return NextResponse.json({ error: "Ürün seçimi gerekli" }, { status: 400 });
+    }
+
+    if (resolvedAssignMode === "CATEGORIES" && (!Array.isArray(categoryIds) || categoryIds.length === 0)) {
+      return NextResponse.json({ error: "Kategori seçimi gerekli" }, { status: 400 });
+    }
+
+    if (!["PRODUCTS", "CATEGORIES", "ALL"].includes(resolvedAssignMode)) {
+      return NextResponse.json({ error: "Geçersiz atama modu" }, { status: 400 });
+    }
+
+    const whereClause =
+      resolvedAssignMode === "ALL"
+        ? {}
+        : resolvedAssignMode === "CATEGORIES"
+          ? { categoryId: { in: categoryIds } }
+          : { id: { in: productIds } };
 
     let result: any = null;
     if (type === "WASHING") {
       result = await prisma.product.updateMany({
-        where: { id: { in: productIds } },
+        where: whereClause,
         data: { washingInstructionId: templateId },
       });
     } else if (type === "DELIVERY") {
       result = await prisma.product.updateMany({
-        where: { id: { in: productIds } },
+        where: whereClause,
         data: { deliveryInfoId: templateId },
       });
     } else if (type === "SIZENOTE") {
       result = await prisma.product.updateMany({
-        where: { id: { in: productIds } },
+        where: whereClause,
         data: { sizeNoteId: templateId },
       });
     } else {

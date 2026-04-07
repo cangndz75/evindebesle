@@ -371,6 +371,10 @@ export default async function ProductSlugPage({
         sizeId: v.sizeId,
         stock: v.stock,
         variantCode: v.variantCode,
+        price: v.price,
+        salePrice: v.salePrice,
+        marketPrice: v.marketPrice,
+        buyBoxPrice: v.buyBoxPrice,
       })),
     reviews: product.reviews.map((r: any) => ({
       id: r.id,

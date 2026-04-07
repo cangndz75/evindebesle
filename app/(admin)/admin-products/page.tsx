@@ -52,6 +52,7 @@ type Product = {
   id: string;
   name: string;
   stockCode?: string;
+  modelCode?: string;
   description?: string;
   price: number;
   image?: string;
@@ -235,7 +236,7 @@ export default function ProductsPage() {
       cell: ({ row }) => (
         <button
           onClick={() => router.push(`/admin-products/${row.original.id}`)}
-          className="font-medium min-w-[150px] text-left hover:text-blue-600 hover:underline"
+          className="font-medium min-w-37.5 text-left hover:text-blue-600 hover:underline"
         >
           {row.getValue("name")}
         </button>
@@ -245,9 +246,9 @@ export default function ProductsPage() {
       header: "Stok Kodu",
       accessorKey: "stockCode",
       cell: ({ row }) => {
-        const code = row.original.stockCode;
+        const code = row.original.modelCode || row.original.stockCode;
         return (
-          <div className="text-sm text-muted-foreground min-w-[100px]">
+          <div className="text-sm text-muted-foreground min-w-25">
             {code || "-"}
           </div>
         );
@@ -264,7 +265,7 @@ export default function ProductsPage() {
           UNISEX: "Unisex",
         };
         return (
-          <div className="text-sm min-w-[80px]">
+          <div className="text-sm min-w-20">
             {gender ? genderMap[gender] || gender : "-"}
           </div>
         );
@@ -276,7 +277,7 @@ export default function ProductsPage() {
       cell: ({ row }) => {
         const sizeType = row.original.sizeType;
         return (
-          <div className="text-sm min-w-[100px]">
+          <div className="text-sm min-w-25">
             {sizeType === "LETTER" ? "Harf" : sizeType === "NUMBER" ? "Numara" : "-"}
           </div>
         );
@@ -288,7 +289,7 @@ export default function ProductsPage() {
       cell: ({ row }) => {
         const colors = row.original.colors || [];
         return (
-          <div className="flex flex-wrap gap-1 min-w-[120px]">
+          <div className="flex flex-wrap gap-1 min-w-30">
             {colors.length > 0 ? (
               colors.slice(0, 3).map((color, idx) => (
                 <Badge key={idx} variant="outline" className="text-xs">
@@ -314,7 +315,7 @@ export default function ProductsPage() {
         const sizes = row.original.sizes || [];
         const totalStock = sizes.reduce((sum, s) => sum + (s.stock || 0), 0);
         return (
-          <div className="min-w-[120px]">
+          <div className="min-w-30">
             <div className="text-sm font-medium">
               {sizes.length > 0 ? `${sizes.length} beden` : "-"}
             </div>
@@ -346,7 +347,7 @@ export default function ProductsPage() {
             }}
             type="number"
             format={(val) => `${Number(val).toFixed(2)} ₺`}
-            className="font-medium min-w-[100px]"
+            className="font-medium min-w-25"
           />
         );
       },
@@ -379,7 +380,7 @@ export default function ProductsPage() {
               refresh();
             }}
             type="number"
-            className="font-medium min-w-[100px]"
+            className="font-medium min-w-25"
           />
         );
       },
@@ -402,7 +403,7 @@ export default function ProductsPage() {
         }
 
         return (
-          <div className="flex flex-col gap-1 min-w-[120px]">
+          <div className="flex flex-col gap-1 min-w-30">
             {warnings.slice(0, 2).map((warning, idx) => (
               <Badge key={idx} variant="outline" className="text-xs bg-amber-50 text-amber-700">
                 {warning}
@@ -423,7 +424,7 @@ export default function ProductsPage() {
       cell: ({ row }) => {
         const isActive = row.getValue("isActive") as boolean;
         return (
-          <Badge variant={isActive ? "default" : "secondary"} className="min-w-[70px]">
+          <Badge variant={isActive ? "default" : "secondary"} className="min-w-17.5">
             {isActive ? "Aktif" : "Pasif"}
           </Badge>
         );
@@ -617,7 +618,7 @@ export default function ProductsPage() {
                 <span className="hidden sm:inline">Filtrele</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-full sm:w-[500px] overflow-y-auto">
+            <SheetContent side="right" className="w-full sm:w-125 overflow-y-auto">
               <SheetHeader>
                 <SheetTitle className="text-left text-xl font-bold">Filtrele ve Sırala</SheetTitle>
               </SheetHeader>
@@ -786,7 +787,7 @@ export default function ProductsPage() {
           </Button>
         </div>
 
-        <div className="flex-shrink-0">
+        <div className="shrink-0">
           <Button
             onClick={() => router.push("/admin-products/add")}
             className="bg-black text-white hover:bg-gray-800"
@@ -868,7 +869,7 @@ export default function ProductsPage() {
                   
                   <div className="p-4 flex gap-3">
                     
-                    <div className="flex-shrink-0">
+                    <div className="shrink-0">
                       {product.image ? (
                         <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100">
                           <img 
@@ -899,7 +900,7 @@ export default function ProductsPage() {
                         </div>
                         <Badge 
                           variant={product.isActive ? "default" : "secondary"}
-                          className="text-xs flex-shrink-0"
+                          className="text-xs shrink-0"
                         >
                           {product.isActive ? "Aktif" : "Pasif"}
                         </Badge>

@@ -469,8 +469,11 @@ function buildImportProducts(rows: ExcelRow[]): ImportedProduct[] {
   return Array.from(groups.entries()).map(([groupKey, groupRows]) => {
     const first = groupRows[0];
     const identityKey = buildProductIdentityKey(first) || groupKey;
-    const stockCode = identityKey;
-    const legacyStockCode = first.modelCode || first.supplierCode || first.barcode || groupKey;
+    const modelCode = firstNonEmptyString(groupRows.map((row) => row.modelCode));
+    const fallbackSupplierCode = firstNonEmptyString(groupRows.map((row) => row.supplierCode));
+    const fallbackBarcode = firstNonEmptyString(groupRows.map((row) => row.barcode));
+    const stockCode = modelCode || fallbackSupplierCode || fallbackBarcode || identityKey;
+    const legacyStockCode = identityKey;
     const name = resolveImportedProductName(groupRows, first.name || groupKey);
     const description = firstNonEmptyString(groupRows.map((row) => row.description));
     const brand = firstNonEmptyString(groupRows.map((row) => row.brand));
@@ -509,7 +512,7 @@ function buildImportProducts(rows: ExcelRow[]): ImportedProduct[] {
       identityKey,
       stockCode,
       legacyStockCode,
-      modelCode: firstNonEmptyString(groupRows.map((row) => row.modelCode)),
+      modelCode,
       name,
       description,
       brand,
@@ -612,6 +615,7 @@ export async function POST(req: NextRequest) {
             OR: [
               { stockCode },
               { stockCode: legacyStockCode },
+              ...(importedProduct.modelCode ? [{ modelCode: importedProduct.modelCode }] : []),
             ],
           },
           select: { id: true, name: true, stockCode: true },

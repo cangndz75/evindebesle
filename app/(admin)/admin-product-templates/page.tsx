@@ -29,6 +29,13 @@ interface Product {
   price: number;
 }
 
+interface Category {
+  id: string;
+  name: string;
+}
+
+type AssignMode = "PRODUCTS" | "CATEGORIES" | "ALL";
+
 export default function AdminProductTemplatesPage() {
   const [activeTab, setActiveTab] = useState<TemplateType>("WASHING");
   const [templates, setTemplates] = useState<Template[]>([]);
@@ -42,6 +49,11 @@ export default function AdminProductTemplatesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [selectedProductIds, setSelectedProductIds] = useState<Set<string>>(new Set());
+  const [assignMode, setAssignMode] = useState<AssignMode>("PRODUCTS");
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
+  const [categoryQuery, setCategoryQuery] = useState("");
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetchTemplates(activeTab);
@@ -124,12 +136,33 @@ export default function AdminProductTemplatesPage() {
     }
   };
 
+  const fetchCategories = async () => {
+    setCategoriesLoading(true);
+    try {
+      const res = await fetch(`/api/admin-categories`);
+      if (res.ok) {
+        const data = await res.json();
+        setCategories(Array.isArray(data) ? data : []);
+      } else {
+        toast.error("Kategoriler yüklenemedi");
+      }
+    } catch (e) {
+      toast.error("Kategoriler yüklenirken hata oluştu");
+    } finally {
+      setCategoriesLoading(false);
+    }
+  };
+
   const openAssignModal = (tpl: Template) => {
     setSelectedTemplate(tpl);
+    setAssignMode("PRODUCTS");
     setSearchQuery("");
     setSearchResults([]);
     setSelectedProductIds(new Set());
+    setCategoryQuery("");
+    setSelectedCategoryIds(new Set());
     setAssignModalOpen(true);
+    fetchCategories();
   };
 
   const toggleProductSelection = (id: string) => {
@@ -139,8 +172,21 @@ export default function AdminProductTemplatesPage() {
     setSelectedProductIds(newSet);
   };
 
+  const toggleCategorySelection = (id: string) => {
+    const newSet = new Set(selectedCategoryIds);
+    if (newSet.has(id)) newSet.delete(id);
+    else newSet.add(id);
+    setSelectedCategoryIds(newSet);
+  };
+
+  const filteredCategories = categories.filter((c) =>
+    c.name.toLocaleLowerCase("tr").includes(categoryQuery.toLocaleLowerCase("tr"))
+  );
+
   const handleBulkAssign = async () => {
-    if (!selectedTemplate || selectedProductIds.size === 0) return;
+    if (!selectedTemplate) return;
+    if (assignMode === "PRODUCTS" && selectedProductIds.size === 0) return;
+    if (assignMode === "CATEGORIES" && selectedCategoryIds.size === 0) return;
     try {
       const res = await fetch(`/api/admin-product-templates/bulk-assign`, {
         method: "POST",
@@ -148,7 +194,10 @@ export default function AdminProductTemplatesPage() {
         body: JSON.stringify({
           type: activeTab,
           templateId: selectedTemplate.id,
+          assignMode,
           productIds: Array.from(selectedProductIds),
+          categoryIds: Array.from(selectedCategoryIds),
+          applyToAllProducts: assignMode === "ALL",
         }),
       });
 
@@ -265,51 +314,106 @@ export default function AdminProductTemplatesPage() {
           </DialogHeader>
 
           <div className="flex-1 overflow-y-auto space-y-4 py-4 min-h-0">
-            <div className="relative">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Ürün adı veya kodu ile ara..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <Button variant={assignMode === "PRODUCTS" ? "default" : "outline"} onClick={() => setAssignMode("PRODUCTS")}>Seçili Ürünler</Button>
+              <Button variant={assignMode === "CATEGORIES" ? "default" : "outline"} onClick={() => setAssignMode("CATEGORIES")}>Kategoriler</Button>
+              <Button variant={assignMode === "ALL" ? "default" : "outline"} onClick={() => setAssignMode("ALL")}>Tüm Ürünler</Button>
             </div>
 
-            <div className="space-y-2">
-              <div className="text-sm font-medium mb-2">Seçili Ürünler: {selectedProductIds.size}</div>
-              
-              {searchResults.length === 0 && searchQuery.length >= 2 ? (
-                <p className="text-sm text-muted-foreground">Sonuç bulunamadı</p>
-              ) : (
-                <div className="space-y-2 max-h-[40vh] overflow-y-auto pr-2">
-                  {searchResults.map((p) => (
-                    <div
-                      key={p.id}
-                      className="flex items-center gap-3 p-2 border rounded-md hover:bg-slate-50 cursor-pointer"
-                      onClick={() => toggleProductSelection(p.id)}
-                    >
-                      <Checkbox checked={selectedProductIds.has(p.id)} onCheckedChange={() => toggleProductSelection(p.id)} />
-                      {p.image ? (
-                        <img src={p.image} className="w-10 h-10 object-cover rounded" alt={p.name} />
-                      ) : (
-                        <div className="w-10 h-10 bg-gray-200 rounded flex items-center justify-center text-xs">Yok</div>
-                      )}
-                      <div>
-                        <p className="text-sm font-medium">{p.name}</p>
-                        <p className="text-xs text-muted-foreground">{p.stockCode || "Kod yok"}</p>
-                      </div>
-                    </div>
-                  ))}
+            {assignMode === "PRODUCTS" && (
+              <div className="space-y-2">
+                <div className="relative">
+                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Ürün adı veya kodu ile ara..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9"
+                  />
                 </div>
-              )}
-            </div>
+
+                <div className="text-sm font-medium mb-2">Seçili Ürünler: {selectedProductIds.size}</div>
+
+                {searchResults.length === 0 && searchQuery.length >= 2 ? (
+                  <p className="text-sm text-muted-foreground">Sonuç bulunamadı</p>
+                ) : (
+                  <div className="space-y-2 max-h-[40vh] overflow-y-auto pr-2">
+                    {searchResults.map((p) => (
+                      <div
+                        key={p.id}
+                        className="flex items-center gap-3 p-2 border rounded-md hover:bg-slate-50 cursor-pointer"
+                        onClick={() => toggleProductSelection(p.id)}
+                      >
+                        <Checkbox checked={selectedProductIds.has(p.id)} onCheckedChange={() => toggleProductSelection(p.id)} />
+                        {p.image ? (
+                          <img src={p.image} className="w-10 h-10 object-cover rounded" alt={p.name} />
+                        ) : (
+                          <div className="w-10 h-10 bg-gray-200 rounded flex items-center justify-center text-xs">Yok</div>
+                        )}
+                        <div>
+                          <p className="text-sm font-medium">{p.name}</p>
+                          <p className="text-xs text-muted-foreground">{p.stockCode || "Kod yok"}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {assignMode === "CATEGORIES" && (
+              <div className="space-y-2">
+                <div className="relative">
+                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Kategori adı ile ara..."
+                    value={categoryQuery}
+                    onChange={(e) => setCategoryQuery(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+
+                <div className="text-sm font-medium mb-2">Seçili Kategoriler: {selectedCategoryIds.size}</div>
+
+                {categoriesLoading ? (
+                  <p className="text-sm text-muted-foreground">Kategoriler yükleniyor...</p>
+                ) : filteredCategories.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">Kategori bulunamadı</p>
+                ) : (
+                  <div className="space-y-2 max-h-[40vh] overflow-y-auto pr-2">
+                    {filteredCategories.map((c) => (
+                      <div
+                        key={c.id}
+                        className="flex items-center gap-3 p-2 border rounded-md hover:bg-slate-50 cursor-pointer"
+                        onClick={() => toggleCategorySelection(c.id)}
+                      >
+                        <Checkbox checked={selectedCategoryIds.has(c.id)} onCheckedChange={() => toggleCategorySelection(c.id)} />
+                        <p className="text-sm font-medium">{c.name}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {assignMode === "ALL" && (
+              <div className="rounded-md border p-3 bg-muted/30 text-sm text-muted-foreground">
+                Bu işlem, tüm ürünlere seçtiğiniz şablonu uygulayacaktır.
+              </div>
+            )}
           </div>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setAssignModalOpen(false)}>
               İptal
             </Button>
-            <Button onClick={handleBulkAssign} disabled={selectedProductIds.size === 0}>
+            <Button
+              onClick={handleBulkAssign}
+              disabled={
+                (assignMode === "PRODUCTS" && selectedProductIds.size === 0) ||
+                (assignMode === "CATEGORIES" && selectedCategoryIds.size === 0)
+              }
+            >
               Atamayı Tamamla
             </Button>
           </DialogFooter>

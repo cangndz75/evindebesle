@@ -1,10 +1,33 @@
 ﻿import { prisma } from "@/lib/db";
 import { NextResponse } from "next/server";
 
-export async function GET() {
+export async function GET(request: Request) {
     try {
+        const { searchParams } = new URL(request.url);
+        const productGender = searchParams.get("productGender");
+        const includeUnisex = searchParams.get("includeUnisex") === "true";
+        const withProducts = searchParams.get("withProducts") === "true";
+
+        const productGenders = productGender
+            ? includeUnisex
+                ? [productGender, "UNISEX"]
+                : [productGender]
+            : undefined;
+
         const categories = await prisma.category.findMany({
-            where: { isActive: true },
+            where: {
+                isActive: true,
+                ...(withProducts
+                    ? {
+                        products: {
+                            some: {
+                                isActive: true,
+                                ...(productGenders ? { gender: { in: productGenders } } : {}),
+                            },
+                        },
+                    }
+                    : {}),
+            },
             orderBy: { sortOrder: "asc" },
             select: {
                 id: true,
@@ -18,7 +41,7 @@ export async function GET() {
 
         return NextResponse.json(categories, {
             headers: {
-                "Cache-Control": "no-store, max-age=0",
+                "Cache-Control": "public, max-age=300, stale-while-revalidate=600",
             },
         });
     } catch (error: any) {

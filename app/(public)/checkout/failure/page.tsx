@@ -28,7 +28,13 @@ function FailureContent() {
 
 export default function CheckoutFailurePage() {
     return (
-        <Suspense fallback={<div>Yükleniyor...</div>}>
+        <Suspense
+            fallback={
+                <div className="min-h-[30vh] flex items-center justify-center">
+                    <div className="h-8 w-8 rounded-full border-2 border-black/20 border-t-black animate-spin" />
+                </div>
+            }
+        >
             <FailureContent />
         </Suspense>
     );

@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import AddCouponModal from "./AddCouponModal";
 
 export default function CouponsClient() {
@@ -35,7 +36,10 @@ export default function CouponsClient() {
       </div>
 
       {loading ? (
-        <p>Yükleniyor...</p>
+        <div className="space-y-3">
+          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-20 w-full" />
+        </div>
       ) : coupons.length === 0 ? (
         <p>Henüz bir kuponunuz bulunmamaktadır.</p>
       ) : (

@@ -9,19 +9,48 @@ export type Category = {
     group?: string | null;
 };
 
-export function useCategories() {
-    const [categories, setCategories] = useState<Category[]>([]);
-    const [loading, setLoading] = useState(true);
+type UseCategoriesOptions = {
+    productGender?: "MALE" | "FEMALE";
+    includeUnisex?: boolean;
+    withProducts?: boolean;
+};
+
+const categoryCache = new Map<string, Category[]>();
+
+function buildCategoryCacheKey(options?: UseCategoriesOptions) {
+    const params = new URLSearchParams();
+    if (options?.productGender) {
+        params.set("productGender", options.productGender);
+    }
+    if (options?.includeUnisex) {
+        params.set("includeUnisex", "true");
+    }
+    if (options?.withProducts) {
+        params.set("withProducts", "true");
+    }
+    return params.toString();
+}
+
+export function useCategories(options?: UseCategoriesOptions) {
+    const cacheKey = buildCategoryCacheKey(options);
+    const cachedCategories = categoryCache.get(cacheKey) ?? [];
+    const [categories, setCategories] = useState<Category[]>(cachedCategories);
+    const [loading, setLoading] = useState(cachedCategories.length === 0);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         async function fetchCategories() {
             try {
-                const response = await fetch('/api/categories/public');
+                if (!categoryCache.has(cacheKey)) {
+                    setLoading(true);
+                }
+                const queryString = cacheKey;
+                const response = await fetch(`/api/categories/public${queryString ? `?${queryString}` : ""}`);
                 if (!response.ok) {
                     throw new Error('Kategoriler yüklenemedi');
                 }
                 const data = await response.json();
+                categoryCache.set(cacheKey, data);
                 setCategories(data);
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'Bilinmeyen bir hata oluştu');
@@ -32,7 +61,7 @@ export function useCategories() {
         }
 
         fetchCategories();
-    }, []);
+    }, [cacheKey]);
 
     return { categories, loading, error };
 }

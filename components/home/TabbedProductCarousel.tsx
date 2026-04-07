@@ -749,7 +749,7 @@ function ProductCarouselContent({
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-400">
-                      <span>Görsel yükleniyor...</span>
+                      <div className="h-8 w-8 rounded-full border-2 border-black/20 border-t-black animate-spin" />
                     </div>
                   )}
                 </div>
@@ -829,7 +829,7 @@ function ProductCarouselContent({
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-gray-400">
-                    <span>Görsel yükleniyor...</span>
+                    <div className="h-8 w-8 rounded-full border-2 border-black/20 border-t-black animate-spin" />
                   </div>
                 )}
               </div>

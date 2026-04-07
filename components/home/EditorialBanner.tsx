@@ -38,7 +38,7 @@ export default function EditorialBanner() {
 
             
             <Link
-              href="/collections/new-arrivals"
+              href="/collections"
               className="inline-block px-8 py-4 border-2 border-white text-white text-sm md:text-base font-light tracking-wider uppercase hover:bg-white hover:text-black transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
             >
               KOLEKSİYONU KEŞFET

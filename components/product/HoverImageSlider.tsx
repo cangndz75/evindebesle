@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useRef } from "react";
 import Image from "next/image";
 
 interface HoverImageSliderProps {
@@ -29,6 +29,11 @@ export default function HoverImageSlider({
     isOutOfStock = false,
 }: HoverImageSliderProps) {
     const [activeIndex, setActiveIndex] = useState(0);
+    const touchStartX = useRef(0);
+    const touchStartY = useRef(0);
+    const touchDeltaX = useRef(0);
+    const touchDeltaY = useRef(0);
+    const blockClickRef = useRef(false);
 
     const validImages = useMemo(() => {
         const filtered = images.filter((img) => img && img.trim() !== "");
@@ -64,6 +69,53 @@ export default function HoverImageSlider({
         onImageChange?.(0);
     }, [onImageChange]);
 
+    const handleTouchStart = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+        const touch = e.touches[0];
+        touchStartX.current = touch.clientX;
+        touchStartY.current = touch.clientY;
+        touchDeltaX.current = 0;
+        touchDeltaY.current = 0;
+        blockClickRef.current = false;
+    }, []);
+
+    const handleTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+        if (imageCount <= 1) return;
+
+        const touch = e.touches[0];
+        touchDeltaX.current = touch.clientX - touchStartX.current;
+        touchDeltaY.current = touch.clientY - touchStartY.current;
+
+        if (Math.abs(touchDeltaX.current) > 10 && Math.abs(touchDeltaX.current) > Math.abs(touchDeltaY.current)) {
+            blockClickRef.current = true;
+            e.preventDefault();
+        }
+    }, [imageCount]);
+
+    const handleTouchEnd = useCallback(() => {
+        if (imageCount <= 1) return;
+
+        const threshold = 35;
+        const isHorizontal = Math.abs(touchDeltaX.current) > Math.abs(touchDeltaY.current);
+        if (!isHorizontal || Math.abs(touchDeltaX.current) < threshold) {
+            return;
+        }
+
+        const direction = touchDeltaX.current > 0 ? -1 : 1;
+        const nextIndex = Math.min(Math.max(activeIndex + direction, 0), imageCount - 1);
+        if (nextIndex !== activeIndex) {
+            setActiveIndex(nextIndex);
+            onImageChange?.(nextIndex);
+        }
+    }, [activeIndex, imageCount, onImageChange]);
+
+    const handleClickCapture = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+        if (blockClickRef.current) {
+            e.preventDefault();
+            e.stopPropagation();
+            blockClickRef.current = false;
+        }
+    }, []);
+
     const aspectClass = aspectRatio === "square" ? "aspect-square" : "aspect-3/4";
 
     return (
@@ -71,6 +123,11 @@ export default function HoverImageSlider({
             className={`relative ${aspectClass} overflow-hidden bg-gray-100 ${className}`}
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onClickCapture={handleClickCapture}
+            style={{ touchAction: "pan-y" }}
         >
             
             {validImages.map((img, idx) => (
@@ -82,7 +139,7 @@ export default function HoverImageSlider({
                     className={`object-cover transition-opacity duration-200 ${
                         idx === activeIndex
                             ? isOutOfStock
-                                ? "opacity-40 grayscale-[20%]"
+                                ? "opacity-40 grayscale-20"
                                 : "opacity-100"
                             : "opacity-0"
                     }`}

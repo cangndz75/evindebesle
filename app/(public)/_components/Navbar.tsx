@@ -28,6 +28,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 function MenuLink({
@@ -138,9 +139,7 @@ export default function Navbar() {
                     </AvatarFallback>
                   </Avatar>
                   {status === "loading" ? (
-                    <span className="font-medium text-sm text-gray-400">
-                      Yükleniyor...
-                    </span>
+                    <Skeleton className="h-4 w-24" />
                   ) : (
                     <span className="font-medium text-sm text-gray-900">
                       {session?.user?.name ?? "Misafir"}

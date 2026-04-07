@@ -13,6 +13,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { Skeleton } from "@/components/ui/skeleton";
 import ShoppingCart from "@/app/(public)/_components/ShoppingCart";
 import SearchModal from "@/components/home/SearchModal";
 import CartPreview from "@/components/home/CartPreview";
@@ -49,7 +50,16 @@ export default function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [openMenu, setOpenMenu] = useState<MenuKey | null>(null);
   const [mobileMenuState, setMobileMenuState] = useState<"main" | "men" | "women">("main");
-  const { categories, loading: categoriesLoading } = useCategories();
+  const { categories: menCategories, loading: menCategoriesLoading } = useCategories({
+    productGender: "MALE",
+    includeUnisex: true,
+    withProducts: true,
+  });
+  const { categories: womenCategories, loading: womenCategoriesLoading } = useCategories({
+    productGender: "FEMALE",
+    includeUnisex: true,
+    withProducts: true,
+  });
   const { collections, loading: collectionsLoading } = useCollections();
   const [cartOpen, setCartOpen] = useState(false);
   const [searchModalOpen, setSearchModalOpen] = useState(false);
@@ -68,6 +78,8 @@ export default function SiteHeader() {
   const cartHydrated = useCartStore((state) => state.hydrated);
   const hydrateCart = useCartStore((state) => state.hydrate);
   const syncGuestCartToAPI = useCartStore((state) => state.syncGuestCartToAPI);
+  const categoriesLoading = menCategoriesLoading || womenCategoriesLoading;
+  const activeMobileCategories = mobileMenuState === "men" ? menCategories : womenCategories;
 
   useEffect(() => {
     hydrateHeader(session);
@@ -140,11 +152,9 @@ export default function SiteHeader() {
             },
             {
               title: "KATEGORİLER",
-              items: categoriesLoading 
-                ? [{ label: "Yükleniyor...", href: "#" }]
-                : categories
-                    .filter(c => c.gender === "MALE" || c.gender === "UNISEX")
-                    .map(c => ({ label: c.name, href: `/category/${c.slug}` })),
+              items: categoriesLoading
+                ? Array.from({ length: 6 }).map((_, idx) => ({ label: `loading-men-${idx}`, href: "#loading" }))
+                : menCategories.map(c => ({ label: c.name, href: `/men?category=${c.slug}` })),
             },
           ],
           rightPromo: {
@@ -166,11 +176,9 @@ export default function SiteHeader() {
             },
             {
               title: "KATEGORİLER",
-              items: categoriesLoading 
-                ? [{ label: "Yükleniyor...", href: "#" }]
-                : categories
-                    .filter(c => c.gender === "FEMALE" || c.gender === "UNISEX")
-                    .map(c => ({ label: c.name, href: `/category/${c.slug}` })),
+              items: categoriesLoading
+                ? Array.from({ length: 6 }).map((_, idx) => ({ label: `loading-women-${idx}`, href: "#loading" }))
+                : womenCategories.map(c => ({ label: c.name, href: `/women?category=${c.slug}` })),
             },
           ],
           rightPromo: {
@@ -242,7 +250,7 @@ export default function SiteHeader() {
 
       return result;
     },
-    [categories, categoriesLoading, collections]
+    [categoriesLoading, collections, menCategories, womenCategories]
   );
 
   const open = (key: MenuKey) => {
@@ -406,15 +414,10 @@ export default function SiteHeader() {
                                 <div key={i} className="h-4 bg-gray-100 rounded w-2/3 animate-pulse" />
                               ))}
                             </div>
-                          ) : categories
-                            .filter(cat => {
-                              const targetGender = mobileMenuState === "men" ? "MALE" : "FEMALE";
-                              return cat.gender === targetGender || cat.gender === "UNISEX";
-                            })
-                            .map((cat) => (
+                          ) : activeMobileCategories.map((cat) => (
                               <Link
                                 key={cat.id}
-                                href={`/category/${cat.slug}`}
+                                href={`${mobileMenuState === "men" ? "/men" : "/women"}?category=${cat.slug}`}
                                 onClick={() => setMenuOpen(false)}
                                 className="block py-2 text-[#111] font-light hover:opacity-70 transition-opacity"
                               >
@@ -586,14 +589,18 @@ export default function SiteHeader() {
                       )}
                       <div className="space-y-4">
                         {group.items.map((link, lIdx) => (
-                          <Link
-                            key={lIdx}
-                            href={link.href}
-                            className="block text-sm font-light text-black/70 hover:text-black hover:translate-x-1 transition-all duration-300"
-                            onClick={() => setOpenMenu(null)}
-                          >
-                            {link.label}
-                          </Link>
+                          link.href === "#loading" ? (
+                            <Skeleton key={lIdx} className="h-4 w-36" />
+                          ) : (
+                            <Link
+                              key={lIdx}
+                              href={link.href}
+                              className="block text-sm font-light text-black/70 hover:text-black hover:translate-x-1 transition-all duration-300"
+                              onClick={() => setOpenMenu(null)}
+                            >
+                              {link.label}
+                            </Link>
+                          )
                         ))}
                       </div>
                     </div>

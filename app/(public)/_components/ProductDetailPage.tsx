@@ -262,11 +262,6 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
   };
 
   const getVariantStock = (sizeName: string): number => {
-    const sizeStock = getSizeStock(sizeName);
-    if (sizeStock > 0) {
-      return sizeStock;
-    }
-
     const currentColor = product.colors?.[selectedColor];
     if (currentColor?.id && product.variants) {
       const sizeObj = product.sizes?.find((s: any) =>
@@ -289,6 +284,11 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
       if (colorVariant && colorVariant.stock > 0) {
         return colorVariant.stock;
       }
+    }
+
+    const sizeStock = getSizeStock(sizeName);
+    if (sizeStock > 0) {
+      return sizeStock;
     }
 
     return 0;

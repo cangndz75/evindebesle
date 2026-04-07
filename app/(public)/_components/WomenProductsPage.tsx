@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { Heart, ChevronDown, ArrowUpDown, Filter } from "lucide-react";
 import useSWR from "swr";
 import { toast } from "sonner";
@@ -242,6 +243,7 @@ type WomenProductsPageProps = {
   initialProducts?: Product[];
   initialPriceRange?: { min: number; max: number };
   initialCategories?: CategoryBasic[];
+  initialSelectedCategory?: string;
   pageTitle?: string;
   breadcrumbCurrent?: string;
   baseQuery?: BaseQuery;
@@ -252,12 +254,14 @@ export default function WomenProductsPage({
   initialProducts = [],
   initialPriceRange = { min: 0, max: 2000 },
   initialCategories = [],
+  initialSelectedCategory = "All",
   pageTitle = "Kadın",
   breadcrumbCurrent = "Kadın",
   baseQuery,
   hideCategoryFilters = false,
 }: WomenProductsPageProps) {
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const searchParams = useSearchParams();
+  const [selectedCategory, setSelectedCategory] = useState(initialSelectedCategory);
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
@@ -325,6 +329,17 @@ export default function WomenProductsPage({
   useEffect(() => {
     prefetchedCategoryDataRef.current.All = initialProducts;
   }, [initialProducts]);
+
+  useEffect(() => {
+    const categoryFromQuery = searchParams.get("category");
+    if (!categoryFromQuery) {
+      setSelectedCategory(initialSelectedCategory);
+      return;
+    }
+
+    const hasCategory = initialCategories.some((category) => category.slug === categoryFromQuery);
+    setSelectedCategory(hasCategory ? categoryFromQuery : "All");
+  }, [searchParams, initialCategories, initialSelectedCategory]);
 
   useEffect(() => {
     if (!isSimpleCategoryBrowsing || sortOption !== "featured" || hideCategoryFilters) return;
@@ -403,6 +418,7 @@ export default function WomenProductsPage({
       revalidateOnReconnect: true,
       dedupingInterval: 2000,
       fallbackData: initialProducts.length > 0 && !apiUrl ? initialProducts : undefined,
+      keepPreviousData: true,
     }
   );
 

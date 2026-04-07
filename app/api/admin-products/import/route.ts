@@ -29,7 +29,7 @@ const COL = {
   NAME:           "Ürün Adı",
   DESCRIPTION:    "Ürün Açıklaması",
   MARKET_PRICE:   "Piyasa Satış Fiyatı (KDV Dahil)",
-  SALE_PRICE:     "Trendyol'da Satılacak Fiyat",
+  SALE_PRICE:     ["Trendyol'da Satılacak Fiyat", "Trendyol'da Satılacak Fiyat (KDV Dahil)"],
   BUYBOX_PRICE:   "BuyBox Fiyatı",
   STOCK:          "Ürün Stok Adedi",
   VAT_RATE:       "KDV Oranı",
@@ -43,17 +43,30 @@ const COL = {
   IMAGE6:         "Görsel 6",
   IMAGE7:         "Görsel 7",
   IMAGE8:         "Görsel 8",
-  TRENDYOL_LINK:  "Trendyol Linki",
+  TRENDYOL_LINK:  ["Trendyol Linki", "Trendyol.com Linki"],
 };
 
-function str(row: any, key: string): string {
-  const v = row[key];
+function getRowValue(row: any, key: string | string[]): unknown {
+  const keys = Array.isArray(key) ? key : [key];
+
+  for (const currentKey of keys) {
+    const value = row[currentKey];
+    if (value === undefined || value === null) continue;
+    if (typeof value === "string" && value.trim() === "") continue;
+    return value;
+  }
+
+  return row[keys[0]];
+}
+
+function str(row: any, key: string | string[]): string {
+  const v = getRowValue(row, key);
   if (v === undefined || v === null) return "";
   return String(v).trim();
 }
 
-function num(row: any, key: string): number {
-  const v = row[key];
+function num(row: any, key: string | string[]): number {
+  const v = getRowValue(row, key);
   if (v === undefined || v === null || v === "") return 0;
   const n = parseFloat(String(v).replace(",", "."));
   return isNaN(n) ? 0 : n;
@@ -119,6 +132,15 @@ const COLOR_TOKENS = new Set([
   "kahve", "camel", "taba", "brown", "pembe", "pink", "gul", "kirmizi", "red", "bordo", "yesil", "green",
   "haki", "khaki", "sari", "yellow", "hardal", "mor", "purple", "lila", "turuncu", "orange",
 ]);
+
+const COLOR_PREFIXES = [
+  ...Array.from(COLOR_TOKENS),
+  "çok renkli",
+  "cok renkli",
+  "multicolor",
+  "multi color",
+  "renkli",
+];
 
 function normalizeColorToken(value: string): string {
   return String(value || "")
@@ -197,31 +219,31 @@ function normalizeForKey(text: string): string {
 }
 
 function stripLeadingColorFromName(name: string, color?: string): string {
-  const normalizedName = normalizeForKey(name);
-  const normalizedColor = normalizeForKey(color || "");
-  if (normalizedColor && normalizedName.startsWith(`${normalizedColor} `)) {
-    return normalizedName.slice(normalizedColor.length + 1).trim();
-  }
+  const trimmedName = String(name || "").trim();
+  if (!trimmedName) return "";
 
-  const knownColors = [
-    "siyah", "black", "ekru", "ecru", "beyaz", "white", "krem", "ivory",
-    "gri", "gray", "grey", "antrasit", "lacivert", "navy", "mavi", "blue",
-    "bej", "beige", "tas", "vizon", "kum", "nude", "kahve", "camel", "taba",
-    "brown", "pembe", "pink", "gul", "kirmizi", "red", "bordo", "yesil", "green",
-    "haki", "khaki", "sari", "yellow", "hardal", "mor", "purple", "lila", "turuncu", "orange",
-  ];
+  const words = trimmedName.split(/\s+/);
+  const normalizedWords = words.map((word) => normalizeForKey(word));
+  const candidatePrefixes = [
+    normalizeForKey(color || ""),
+    ...COLOR_PREFIXES.map((token) => normalizeForKey(token)),
+  ].filter(Boolean);
 
-  for (const token of knownColors) {
-    if (normalizedName.startsWith(`${token} `)) {
-      return normalizedName.slice(token.length + 1).trim();
+  for (const prefix of candidatePrefixes) {
+    const prefixWords = prefix.split(" ").filter(Boolean);
+    if (prefixWords.length === 0 || prefixWords.length > words.length) continue;
+
+    const startsWithPrefix = prefixWords.every((prefixWord, index) => normalizedWords[index] === prefixWord);
+    if (startsWithPrefix) {
+      return words.slice(prefixWords.length).join(" ").trim();
     }
   }
 
-  return normalizedName;
+  return trimmedName;
 }
 
 function buildProductIdentityKey(row: ExcelRow): string {
-  const baseName = stripLeadingColorFromName(row.name, row.color) || normalizeForKey(row.name);
+  const baseName = normalizeForKey(stripLeadingColorFromName(row.name, row.color) || row.name);
   const modelKey = normalizeForKey(row.modelCode || "");
   const brandKey = normalizeForKey(row.brand || "");
   const categoryKey = normalizeForKey(row.category || "");
@@ -350,6 +372,176 @@ function groupRows(rows: ExcelRow[]): Map<string, ExcelRow[]> {
   return map;
 }
 
+interface ImportedColor {
+  name: string;
+  images: string[];
+}
+
+interface ImportedVariant {
+  barcode: string;
+  color: string;
+  size: string;
+  dimension: string;
+  stock: number;
+  supplierCode: string;
+  marketPrice: number;
+  salePrice: number;
+  buyBoxPrice: number;
+  commissionRate: number;
+  vatRate: number;
+  otvRate: number;
+  images: string[];
+}
+
+interface ImportedProduct {
+  identityKey: string;
+  stockCode: string;
+  legacyStockCode: string;
+  modelCode: string;
+  name: string;
+  description: string;
+  brand: string;
+  category: string;
+  gender: "FEMALE" | "MALE" | "UNISEX" | undefined;
+  shipmentType: string;
+  trendyolLink: string;
+  price: number;
+  originalPrice: number;
+  primaryImage: string | null;
+  secondaryImage: string | null;
+  images: string[];
+  colors: ImportedColor[];
+  variants: ImportedVariant[];
+}
+
+function firstNonEmptyString(values: string[]): string {
+  for (const value of values) {
+    if (String(value || "").trim()) {
+      return String(value).trim();
+    }
+  }
+  return "";
+}
+
+function firstPositiveNumber(values: number[]): number {
+  for (const value of values) {
+    if (value > 0) {
+      return value;
+    }
+  }
+  return 0;
+}
+
+function resolveImportedProductName(groupRows: ExcelRow[], fallback: string): string {
+  const candidates = new Map<string, { value: string; count: number }>();
+
+  for (const row of groupRows) {
+    const candidate = stripLeadingColorFromName(row.name, row.color) || row.name || fallback;
+    const normalizedCandidate = normalizeForKey(candidate);
+    if (!normalizedCandidate) continue;
+
+    const current = candidates.get(normalizedCandidate);
+    if (current) {
+      current.count += 1;
+      continue;
+    }
+
+    candidates.set(normalizedCandidate, {
+      value: String(candidate).trim(),
+      count: 1,
+    });
+  }
+
+  const sorted = Array.from(candidates.values()).sort((left, right) => {
+    if (right.count !== left.count) {
+      return right.count - left.count;
+    }
+
+    return left.value.length - right.value.length;
+  });
+
+  return sorted[0]?.value || fallback;
+}
+
+function buildImportProducts(rows: ExcelRow[]): ImportedProduct[] {
+  const groups = groupRows(rows);
+
+  return Array.from(groups.entries()).map(([groupKey, groupRows]) => {
+    const first = groupRows[0];
+    const identityKey = buildProductIdentityKey(first) || groupKey;
+    const stockCode = identityKey;
+    const legacyStockCode = first.modelCode || first.supplierCode || first.barcode || groupKey;
+    const name = resolveImportedProductName(groupRows, first.name || groupKey);
+    const description = firstNonEmptyString(groupRows.map((row) => row.description));
+    const brand = firstNonEmptyString(groupRows.map((row) => row.brand));
+    const category = firstNonEmptyString(groupRows.map((row) => row.category));
+    const shipmentType = firstNonEmptyString(groupRows.map((row) => row.shipmentType));
+    const trendyolLink = firstNonEmptyString(groupRows.map((row) => row.trendyolLink));
+    const colorMap = new Map<string, ImportedColor>();
+    const colorOrder: string[] = [];
+    const imageSet = new Set<string>();
+
+    for (const row of groupRows) {
+      for (const image of row.images || []) {
+        if (image) {
+          imageSet.add(image);
+        }
+      }
+
+      const normalizedColor = normalizeForKey(row.color);
+      if (!normalizedColor) continue;
+
+      if (!colorMap.has(normalizedColor)) {
+        colorOrder.push(normalizedColor);
+        colorMap.set(normalizedColor, {
+          name: row.color.trim(),
+          images: [],
+        });
+      }
+
+      const currentColor = colorMap.get(normalizedColor)!;
+      currentColor.images = Array.from(new Set([...currentColor.images, ...(row.images || [])]));
+    }
+
+    const images = Array.from(imageSet);
+
+    return {
+      identityKey,
+      stockCode,
+      legacyStockCode,
+      modelCode: firstNonEmptyString(groupRows.map((row) => row.modelCode)),
+      name,
+      description,
+      brand,
+      category,
+      gender: normalizeGender(firstNonEmptyString(groupRows.map((row) => row.gender))),
+      shipmentType,
+      trendyolLink,
+      price: firstPositiveNumber(groupRows.map((row) => row.salePrice || row.marketPrice)),
+      originalPrice: firstPositiveNumber(groupRows.map((row) => row.marketPrice)),
+      primaryImage: images[0] || null,
+      secondaryImage: images[1] || null,
+      images,
+      colors: colorOrder.map((key) => colorMap.get(key)!).filter(Boolean),
+      variants: groupRows.map((row) => ({
+        barcode: row.barcode,
+        color: row.color,
+        size: row.size,
+        dimension: row.dimension,
+        stock: row.stock,
+        supplierCode: row.supplierCode,
+        marketPrice: row.marketPrice,
+        salePrice: row.salePrice,
+        buyBoxPrice: row.buyBoxPrice,
+        commissionRate: row.commissionRate,
+        vatRate: row.vatRate,
+        otvRate: row.otvRate,
+        images: row.images || [],
+      })),
+    };
+  });
+}
+
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authConfig);
@@ -367,7 +559,7 @@ export async function POST(req: NextRequest) {
     if (!rawData.length) return NextResponse.json({ error: "Excel dosyası boş" }, { status: 400 });
 
     const rows = parseRows(rawData);
-    const groups = groupRows(rows);
+    const importedProducts = buildImportProducts(rows);
 
     const catCache = new Map<string, string>();
     let createdCategories = 0;
@@ -404,19 +596,16 @@ export async function POST(req: NextRequest) {
     const errors: { group: string; error: string }[] = [];
     const touchedProductIds = new Set<string>();
 
-    for (const [groupKey, groupRows] of groups) {
+    for (const importedProduct of importedProducts) {
       try {
-        const first = groupRows[0];
-        const productName = first.name || groupKey;
+        const productName = importedProduct.name || importedProduct.modelCode || importedProduct.stockCode;
         if (!productName) continue;
 
-        const salePrice = first.salePrice || first.marketPrice || 0;
-        const categoryId = await getCategoryId(first.category);
-        const gender = normalizeGender(first.gender);
-
-        const identityKey = buildProductIdentityKey(first) || groupKey;
-        const stockCode = identityKey;
-        const legacyStockCode = first.modelCode || first.supplierCode || first.barcode || groupKey;
+        const salePrice = importedProduct.price || importedProduct.originalPrice || 0;
+        const categoryId = await getCategoryId(importedProduct.category);
+        const gender = importedProduct.gender;
+        const stockCode = importedProduct.stockCode;
+        const legacyStockCode = importedProduct.legacyStockCode;
 
         let product = await prisma.product.findFirst({
           where: {
@@ -429,15 +618,16 @@ export async function POST(req: NextRequest) {
         });
 
         if (product) {
-          const importedBaseName = stripLeadingColorFromName(first.name, first.color);
+          const importedBaseName = normalizeForKey(importedProduct.name);
           const existingBaseName = stripLeadingColorFromName(product.name, "");
-          if (importedBaseName && existingBaseName && importedBaseName !== existingBaseName) {
+          if (importedBaseName && existingBaseName && importedBaseName !== normalizeForKey(existingBaseName)) {
             product = null;
           }
         }
 
         if (!product) {
-          let slug = generateProductSlug(productName, first.category || null, first.color || null);
+          const firstColorName = importedProduct.colors[0]?.name || null;
+          let slug = generateProductSlug(productName, importedProduct.category || null, firstColorName);
           const existingSlug = await prisma.product.findFirst({ where: { slug } });
           if (existingSlug) slug = `${slug}-${Date.now()}`;
 
@@ -446,19 +636,19 @@ export async function POST(req: NextRequest) {
               name: productName,
               slug,
               stockCode,
-              modelCode: first.modelCode || null,
-              description: first.description || null,
+              modelCode: importedProduct.modelCode || null,
+              description: importedProduct.description || null,
               price: salePrice,
-              originalPrice: first.marketPrice || null,
+              originalPrice: importedProduct.originalPrice || null,
               gender,
-              brand: first.brand || null,
+              brand: importedProduct.brand || null,
               categoryId,
               isActive: true,
-              shipmentType: first.shipmentType || null,
-              trendyolLink: first.trendyolLink || null,
-              primaryImage: first.images[0] || null,
-              secondaryImage: first.images[1] || null,
-              image: first.images[0] || null,
+              shipmentType: importedProduct.shipmentType || null,
+              trendyolLink: importedProduct.trendyolLink || null,
+              primaryImage: importedProduct.primaryImage,
+              secondaryImage: importedProduct.secondaryImage,
+              image: importedProduct.primaryImage,
             },
             select: { id: true },
           });
@@ -469,17 +659,18 @@ export async function POST(req: NextRequest) {
             data: {
               stockCode,
               name: productName,
-              modelCode: first.modelCode || undefined,
-              description: first.description || undefined,
+              modelCode: importedProduct.modelCode || undefined,
+              description: importedProduct.description || undefined,
               price: salePrice || undefined,
-              originalPrice: first.marketPrice || undefined,
+              originalPrice: importedProduct.originalPrice || undefined,
               gender: gender || undefined,
-              brand: first.brand || undefined,
+              brand: importedProduct.brand || undefined,
               categoryId: categoryId || undefined,
-              shipmentType: first.shipmentType || undefined,
-              trendyolLink: first.trendyolLink || undefined,
-              primaryImage: first.images[0] || undefined,
-              image: first.images[0] || undefined,
+              shipmentType: importedProduct.shipmentType || undefined,
+              trendyolLink: importedProduct.trendyolLink || undefined,
+              primaryImage: importedProduct.primaryImage || undefined,
+              secondaryImage: importedProduct.secondaryImage || undefined,
+              image: importedProduct.primaryImage || undefined,
             },
           });
           updatedProducts++;
@@ -488,10 +679,10 @@ export async function POST(req: NextRequest) {
         const productId = product.id;
         touchedProductIds.add(productId);
 
-        for (let i = 0; i < first.images.length; i++) {
-          const url = first.images[i];
+        for (let i = 0; i < importedProduct.images.slice(0, 2).length; i++) {
+          const url = importedProduct.images[i];
           const exists = await prisma.productImage.findFirst({
-            where: { productId, url },
+            where: { productId, colorId: null, url },
             select: { id: true },
           });
           if (!exists) {
@@ -511,21 +702,56 @@ export async function POST(req: NextRequest) {
         const colorMap = new Map<string, string>();
         const existingColors = await prisma.productColor.findMany({
           where: { productId },
-          select: { id: true, name: true, images: true },
+          select: { id: true, name: true },
         });
-        const colorImagesMap = new Map<string, string[]>();
         for (const c of existingColors) {
           const ck = c.name.trim().toLowerCase();
           colorMap.set(ck, c.id);
-          colorImagesMap.set(ck, parseColorImages(c.images));
         }
 
-        for (const row of groupRows) {
-          if (!row.color) continue;
-          const ck = row.color.trim().toLowerCase();
-          const current = colorImagesMap.get(ck) || [];
-          const merged = Array.from(new Set([...current, ...(row.images || [])]));
-          colorImagesMap.set(ck, merged);
+        for (const color of importedProduct.colors) {
+          const colorKey = color.name.trim().toLowerCase();
+          if (!colorMap.has(colorKey)) {
+            const newColor = await prisma.productColor.create({
+              data: {
+                productId,
+                name: color.name.trim(),
+                images: JSON.stringify(color.images || []),
+              },
+              select: { id: true },
+            });
+            colorMap.set(colorKey, newColor.id);
+          } else {
+            await prisma.productColor.update({
+              where: { id: colorMap.get(colorKey)! },
+              data: {
+                images: JSON.stringify(color.images || []),
+              },
+            });
+          }
+
+          const colorId = colorMap.get(colorKey)!;
+          for (let imageIndex = 0; imageIndex < color.images.length; imageIndex++) {
+            const imageUrl = color.images[imageIndex];
+            const existingImage = await prisma.productImage.findFirst({
+              where: { productId, colorId, url: imageUrl },
+              select: { id: true },
+            });
+
+            if (!existingImage) {
+              await prisma.productImage.create({
+                data: {
+                  productId,
+                  colorId,
+                  url: imageUrl,
+                  order: imageIndex,
+                  isPrimary: imageIndex === 0,
+                  isSecondary: imageIndex > 0,
+                  alt: `${productName} - ${color.name}`,
+                },
+              });
+            }
+          }
         }
 
         const sizeMap = new Map<string, string>();
@@ -535,49 +761,43 @@ export async function POST(req: NextRequest) {
         });
         for (const s of existingSizes) sizeMap.set(s.name.trim().toLowerCase(), s.id);
 
-        for (const row of groupRows) {
+        const sizeTotals = new Map<string, number>();
+        for (const variant of importedProduct.variants) {
+          const sizeKey = variant.size.trim().toLowerCase();
+          if (!sizeKey) continue;
+          sizeTotals.set(sizeKey, (sizeTotals.get(sizeKey) || 0) + variant.stock);
+        }
+
+        for (const [sizeKey, totalStock] of sizeTotals) {
+          const sizeName = importedProduct.variants.find((variant) => variant.size.trim().toLowerCase() === sizeKey)?.size.trim() || "";
+          if (!sizeName) continue;
+
+          if (!sizeMap.has(sizeKey)) {
+            const newSize = await prisma.productSize.create({
+              data: { productId, name: sizeName, stock: totalStock },
+              select: { id: true },
+            });
+            sizeMap.set(sizeKey, newSize.id);
+          } else {
+            await prisma.productSize.update({
+              where: { id: sizeMap.get(sizeKey)! },
+              data: { stock: totalStock },
+            });
+          }
+        }
+
+        for (const row of importedProduct.variants) {
           try {
             let colorId: string | null = null;
             if (row.color) {
               const ck = row.color.trim().toLowerCase();
-              if (!colorMap.has(ck)) {
-                const newColor = await prisma.productColor.create({
-                  data: {
-                    productId,
-                    name: row.color.trim(),
-                    images: JSON.stringify(colorImagesMap.get(ck) || []),
-                  },
-                  select: { id: true },
-                });
-                colorMap.set(ck, newColor.id);
-              } else {
-                const imagesForColor = colorImagesMap.get(ck) || [];
-                if (imagesForColor.length > 0) {
-                  await prisma.productColor.update({
-                    where: { id: colorMap.get(ck)! },
-                    data: { images: JSON.stringify(imagesForColor) },
-                  });
-                }
-              }
-              colorId = colorMap.get(ck)!;
+              colorId = colorMap.get(ck) || null;
             }
 
             let sizeId: string | null = null;
             if (row.size) {
               const sk = row.size.trim().toLowerCase();
-              if (!sizeMap.has(sk)) {
-                const newSize = await prisma.productSize.create({
-                  data: { productId, name: row.size.trim(), stock: row.stock },
-                  select: { id: true },
-                });
-                sizeMap.set(sk, newSize.id);
-              } else {
-                await prisma.productSize.update({
-                  where: { id: sizeMap.get(sk)! },
-                  data: { stock: row.stock },
-                });
-              }
-              sizeId = sizeMap.get(sk)!;
+              sizeId = sizeMap.get(sk) || null;
             }
 
             let existingVariant: { id: string } | null = null;
@@ -632,11 +852,11 @@ export async function POST(req: NextRequest) {
               createdVariants++;
             }
           } catch (rowErr: any) {
-            errors.push({ group: groupKey, error: `Satır (${row.barcode || row.size}): ${rowErr.message}` });
+            errors.push({ group: importedProduct.modelCode || importedProduct.stockCode, error: `Satır (${row.barcode || row.size}): ${rowErr.message}` });
           }
         }
       } catch (groupErr: any) {
-        errors.push({ group: groupKey, error: groupErr.message });
+        errors.push({ group: importedProduct.modelCode || importedProduct.stockCode, error: groupErr.message });
       }
     }
 
@@ -644,13 +864,20 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       totalRows: rows.length,
-      totalGroups: groups.size,
+      totalGroups: importedProducts.length,
+      total: importedProducts.length,
+      created: createdProducts,
+      updated: updatedProducts,
+      skipped: 0,
       createdProducts,
       updatedProducts,
       createdVariants,
       updatedVariants,
       createdCategories,
-      errors,
+      errors: errors.map((entry) => ({
+        ...entry,
+        modelCode: entry.group,
+      })),
       postImportValidation: validation,
     });
   } catch (error: any) {
@@ -674,36 +901,30 @@ export async function PUT(req: NextRequest) {
     const rawData = await readExcelRowsFromBuffer(buffer);
 
     const rows = parseRows(rawData);
-    const groups = groupRows(rows);
+    const importedProducts = buildImportProducts(rows);
 
-    const preview = Array.from(groups.entries())
-      .slice(0, 30)
-      .map(([groupKey, gRows]) => ({
-        groupKey,
-        name: gRows[0].name || groupKey,
-        brand: gRows[0].brand,
-        category: gRows[0].category,
-        gender: normalizeGender(gRows[0].gender),
-        salePrice: gRows[0].salePrice,
-        marketPrice: gRows[0].marketPrice,
-        shipmentType: gRows[0].shipmentType,
-        trendyolLink: gRows[0].trendyolLink,
-        imageCount: gRows[0].images.length,
-        variantCount: gRows.length,
-        variants: gRows.slice(0, 5).map((r) => ({
-          barcode: r.barcode,
-          color: r.color,
-          size: r.size,
-          dimension: r.dimension,
-          stock: r.stock,
-          salePrice: r.salePrice,
-        })),
-      }));
+    const preview = importedProducts.slice(0, 30).map((product) => ({
+      modelCode: product.modelCode || product.stockCode,
+      name: product.name,
+      brand: product.brand,
+      category: product.category,
+      price: product.price,
+      originalPrice: product.originalPrice,
+      gender: product.gender,
+      imageCount: product.images.length,
+      variants: product.variants.slice(0, 5).map((variant) => ({
+        barcode: variant.barcode,
+        color: variant.color,
+        size: variant.size,
+        stock: variant.stock,
+      })),
+    }));
 
     return NextResponse.json({
       totalRows: rawData.length,
-      totalProducts: groups.size,
+      totalProducts: importedProducts.length,
       preview,
+      convertedProducts: importedProducts,
     });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

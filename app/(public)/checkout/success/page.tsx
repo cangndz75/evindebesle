@@ -105,7 +105,9 @@ export default function CheckoutSuccessPage() {
         <Suspense fallback={
             <div className="flex flex-col items-center justify-center min-h-[60vh]">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-                <h2 className="text-xl font-medium">Yükleniyor...</h2>
+                <div className="h-2 w-24 bg-blue-100 rounded-full overflow-hidden">
+                    <div className="h-full w-1/2 bg-blue-600 animate-pulse" />
+                </div>
             </div>
         }>
             <SuccessContent />

@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect, useMemo, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { Heart, ChevronDown, ShoppingBag, Filter, ArrowUpDown } from "lucide-react";
 import { toast } from "sonner";
 import useSWR from "swr";
@@ -28,6 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import HoverImageSlider from "@/components/product/HoverImageSlider";
 
 type ProductColor = {
@@ -160,6 +162,7 @@ type MenProductsPageProps = {
   initialProducts?: Product[];
   initialPriceRange?: { min: number; max: number };
   initialCategories?: CategoryBasic[];
+  initialSelectedCategory?: string;
   pageTitle?: string;
   breadcrumbCurrent?: string;
   baseQuery?: BaseQuery;
@@ -237,12 +240,14 @@ export default function MenProductsPage({
   initialProducts = [],
   initialPriceRange = { min: 0, max: 2000 },
   initialCategories = [],
+  initialSelectedCategory = "All",
   pageTitle = "Erkek",
   breadcrumbCurrent = "Erkek",
   baseQuery,
   hideCategoryFilters = false,
 }: MenProductsPageProps = {}) {
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const searchParams = useSearchParams();
+  const [selectedCategory, setSelectedCategory] = useState(initialSelectedCategory);
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
@@ -268,6 +273,17 @@ export default function MenProductsPage({
       setPriceRange(initialPriceRange);
     }
   }, [initialPriceRange]);
+
+  useEffect(() => {
+    const categoryFromQuery = searchParams.get("category");
+    if (!categoryFromQuery) {
+      setSelectedCategory(initialSelectedCategory);
+      return;
+    }
+
+    const hasCategory = initialCategories.some((category) => category.slug === categoryFromQuery);
+    setSelectedCategory(hasCategory ? categoryFromQuery : "All");
+  }, [searchParams, initialCategories, initialSelectedCategory]);
 
   const fetcher = useCallback(async (url: string) => {
     const res = await fetch(url);
@@ -345,6 +361,7 @@ export default function MenProductsPage({
       revalidateOnReconnect: true,
       dedupingInterval: 2000, // 2 saniye içinde aynı request'i tekrar etme
       fallbackData: initialProducts.length > 0 && !apiUrl ? initialProducts : undefined,
+      keepPreviousData: true,
     }
   );
 
@@ -708,8 +725,16 @@ export default function MenProductsPage({
         </Dialog>
 
         
-        {loading ? (
-          <div className="text-center py-12">Yükleniyor...</div>
+        {loading && products.length === 0 ? (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            {Array.from({ length: 8 }).map((_, idx) => (
+              <div key={idx}>
+                <Skeleton className="aspect-3/4 w-full mb-4" />
+                <Skeleton className="h-4 w-4/5 mx-auto mb-2" />
+                <Skeleton className="h-4 w-1/3 mx-auto" />
+              </div>
+            ))}
+          </div>
         ) : products.length === 0 ? (
           <div className="text-center py-12 text-[#111]/60">
             Ürün bulunamadı

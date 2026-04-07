@@ -23,10 +23,29 @@ interface ProductPreview {
   imageCount: number;
 }
 
+interface ConvertedImportedProduct {
+  stockCode: string;
+  legacyStockCode: string;
+  modelCode: string;
+  name: string;
+  description: string;
+  brand: string;
+  category: string;
+  gender?: "FEMALE" | "MALE" | "UNISEX";
+  price: number;
+  originalPrice: number;
+  shipmentType: string;
+  trendyolLink: string;
+  images: string[];
+  colors: { name: string; images: string[] }[];
+  variants: VariantPreview[];
+}
+
 interface PreviewResult {
   totalRows: number;
   totalProducts: number;
   preview: ProductPreview[];
+  convertedProducts?: ConvertedImportedProduct[];
 }
 
 interface ImportResult {
@@ -104,6 +123,25 @@ export default function ProductImportPage() {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
+  const downloadConvertedJson = () => {
+    if (!previewData?.convertedProducts?.length) return;
+
+    const blob = new Blob(
+      [JSON.stringify({ Ürünler: previewData.convertedProducts }, null, 2)],
+      { type: "application/json;charset=utf-8" }
+    );
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const baseName = file?.name.replace(/\.xlsx$/i, "") || "urunler";
+
+    link.href = url;
+    link.download = `${baseName}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6">
       
@@ -121,6 +159,7 @@ export default function ProductImportPage() {
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800 space-y-1">
         <p className="font-semibold">Desteklenen Format</p>
         <p>• Trendyol ürün listesi formatı (.xlsx)</p>
+        <p>• Excel önce standart import JSON formatına dönüştürülür</p>
         <p>• Aynı Model Koduna sahip satırlar tek ürün olarak gruplandırılır</p>
         <p>• Daha önce import edilmiş ürünler (aynı stok kodu) güncellenir</p>
       </div>
@@ -156,7 +195,7 @@ export default function ProductImportPage() {
       {file && (
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <FileSpreadsheet className="w-8 h-8 text-green-600 flex-shrink-0" />
+            <FileSpreadsheet className="w-8 h-8 shrink-0 text-green-600" />
             <div>
               <p className="font-medium text-gray-900">{file.name}</p>
               <p className="text-sm text-gray-500">{(file.size / 1024).toFixed(1)} KB</p>
@@ -222,7 +261,7 @@ export default function ProductImportPage() {
                   {previewData.preview.map((p) => (
                     <tr key={p.modelCode} className="hover:bg-gray-50">
                       <td className="px-4 py-3 font-mono text-xs text-gray-600">{p.modelCode}</td>
-                      <td className="px-4 py-3 font-medium text-gray-900 max-w-[180px] truncate">{p.name || "—"}</td>
+                      <td className="max-w-45 truncate px-4 py-3 font-medium text-gray-900">{p.name || "—"}</td>
                       <td className="px-4 py-3 text-gray-600">{p.brand || "—"}</td>
                       <td className="px-4 py-3 text-gray-600">{p.category || "—"}</td>
                       <td className="px-4 py-3 text-right font-medium">
@@ -270,6 +309,13 @@ export default function ProductImportPage() {
                 <Package className="w-5 h-5" />
               )}
               {importing ? "Import ediliyor..." : `${previewData.totalProducts} Ürünü Import Et`}
+            </button>
+            <button
+              onClick={downloadConvertedJson}
+              disabled={!previewData.convertedProducts?.length || importing}
+              className="px-6 py-3 border border-blue-300 text-blue-700 rounded-lg font-medium hover:bg-blue-50 transition-colors disabled:opacity-50"
+            >
+              JSON İndir
             </button>
             <button
               onClick={reset}

@@ -225,7 +225,15 @@ async function getCategories() {
   }
 }
 
-export default async function WomenPage() {
+export default async function WomenPage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const sp = (await searchParams) ?? {};
+  const categoryParam = Array.isArray(sp.category) ? sp.category[0] : sp.category;
+  const initialSelectedCategory = typeof categoryParam === "string" ? categoryParam : "All";
+
   const [initialProducts, priceRange, categories] = await Promise.all([
     getInitialProducts(),
     getPriceRange(),
@@ -254,6 +262,7 @@ export default async function WomenPage() {
         initialProducts={initialProducts}
         initialPriceRange={priceRange}
         initialCategories={categories}
+        initialSelectedCategory={initialSelectedCategory}
       />
     </>
   );

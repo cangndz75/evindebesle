@@ -14,11 +14,29 @@ function normalizeForSearch(value: string) {
 }
 
 function buildQueryVariants(query: string) {
+  const raw = query.trim();
+  const rawLower = raw.toLocaleLowerCase("tr-TR");
   const normalized = normalizeForSearch(query);
   const compact = normalized.replace(/([a-z0-9])\1{1,}/g, "$1").trim();
   const set = new Set<string>();
+  if (raw) set.add(raw);
+  if (rawLower) set.add(rawLower);
   if (normalized) set.add(normalized);
   if (compact) set.add(compact);
+
+  const normalizedTokens = normalized.split(" ").filter(Boolean);
+  for (const token of normalizedTokens) {
+    if (token.length > 1) set.add(token);
+  }
+
+  const rawTokens = rawLower
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .split(/\s+/)
+    .filter(Boolean);
+  for (const token of rawTokens) {
+    if (token.length > 1) set.add(token);
+  }
+
   return Array.from(set);
 }
 

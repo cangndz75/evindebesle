@@ -1404,6 +1404,7 @@ model Collection {
   image3      String?
   order       Int      @default(0)
   isActive    Boolean  @default(true)
+  isFeaturedInMenu Boolean @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   products    CollectionProduct[]

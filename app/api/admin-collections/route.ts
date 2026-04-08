@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { jsonNoStore, requireAdmin } from "@/lib/api/policy";
+import { Prisma } from "@prisma/client";
 
 export async function GET(request: Request) {
   const admin = await requireAdmin();
@@ -28,7 +29,7 @@ export async function POST(request: Request) {
   if (!admin.ok) return admin.response;
 
   try {
-    const { title, slug, description, image1, image2, image3, isActive } = await request.json();
+    const { title, slug, description, image1, image2, image3, isActive, isFeaturedInMenu } = await request.json();
 
     if (!title || !slug) {
       return jsonNoStore({ error: "Title ve Slug zorunludur" }, { status: 400 });
@@ -41,19 +42,29 @@ export async function POST(request: Request) {
 
     const count = await prisma.collection.count();
 
-    const collection = await prisma.collection.create({
-      data: {
-        title,
-        slug,
-        description,
-        image1,
-        image2,
-        image3,
-        isActive: isActive !== undefined ? isActive : true,
-        order: count
+    const collection = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      if (isFeaturedInMenu) {
+        await tx.collection.updateMany({
+          data: { isFeaturedInMenu: false },
+        });
       }
+
+      return tx.collection.create({
+        data: {
+          title,
+          slug,
+          description,
+          image1,
+          image2,
+          image3,
+          isActive: isActive !== undefined ? isActive : true,
+          isFeaturedInMenu: Boolean(isFeaturedInMenu),
+          order: count,
+        },
+      });
     });
 
+    revalidatePath("/");
     revalidatePath("/collections");
     return jsonNoStore(collection);
   } catch (error) {
@@ -67,7 +78,7 @@ export async function PUT(request: Request) {
   if (!admin.ok) return admin.response;
 
   try {
-    const { id, title, slug, description, image1, image2, image3, isActive } = await request.json();
+    const { id, title, slug, description, image1, image2, image3, isActive, isFeaturedInMenu } = await request.json();
 
     if (!id || !title || !slug) {
       return jsonNoStore({ error: "Eksik parametreler" }, { status: 400 });
@@ -78,19 +89,30 @@ export async function PUT(request: Request) {
        return jsonNoStore({ error: "Bu slug (URL adresi) başka bir koleksiyonda kullanılıyor" }, { status: 400 });
     }
 
-    const collection = await prisma.collection.update({
-      where: { id },
-      data: {
-        title,
-        slug,
-        description,
-        image1,
-        image2,
-        image3,
-        isActive
+    const collection = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      if (isFeaturedInMenu) {
+        await tx.collection.updateMany({
+          where: { id: { not: id } },
+          data: { isFeaturedInMenu: false },
+        });
       }
+
+      return tx.collection.update({
+        where: { id },
+        data: {
+          title,
+          slug,
+          description,
+          image1,
+          image2,
+          image3,
+          isActive,
+          isFeaturedInMenu,
+        },
+      });
     });
 
+    revalidatePath("/");
     revalidatePath("/collections");
     return jsonNoStore(collection);
   } catch (error) {

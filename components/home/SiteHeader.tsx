@@ -139,6 +139,7 @@ export default function SiteHeader() {
 
   const mega = useMemo<Record<MenuKey, { left: MegaGroup[]; rightPromo: Promo | null }>>(
     () => {
+      const featuredCollection = collections.find((c) => c.isFeaturedInMenu);
       const result: Record<MenuKey, { left: MegaGroup[]; rightPromo: Promo | null }> = {
         men: {
           left: [
@@ -193,24 +194,22 @@ export default function SiteHeader() {
           rightPromo: null
         },
         collections: {
-          left: [
-            {
-              title: "KOLEKSİYONLAR",
-              items: collections.length > 0
-                ? collections.map(c => ({ label: c.title, href: `/collections/${c.slug}` }))
-                : [
-                  { label: "Minimalist", href: "/collections/minimalist" },
-                  { label: "Dark Edition", href: "/collections/dark" },
-                  { label: "Velvet Soft", href: "/collections/velvet" },
-                ],
-            },
-          ],
-          rightPromo: {
-            title: "Dark Collection",
-            subtitle: "Özel seri tasarımlar",
-            image: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?q=80&w=1200&auto=format&fit=crop",
-            href: "/collections",
-          },
+          left: collections.length > 0
+            ? [
+              {
+                title: "KOLEKSİYONLAR",
+                items: collections.map(c => ({ label: c.title, href: `/collections/${c.slug}` })),
+              },
+            ]
+            : [],
+          rightPromo: featuredCollection
+            ? {
+              title: featuredCollection.title,
+              subtitle: "Öne çıkan",
+              image: featuredCollection.image1 || "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?q=80&w=1200&auto=format&fit=crop",
+              href: `/collections/${featuredCollection.slug}`,
+            }
+            : null,
         },
         about: {
           left: [
@@ -318,7 +317,11 @@ export default function SiteHeader() {
                   <div
                     key={item.key}
                     className="relative h-full flex items-center"
-                    onMouseEnter={() => (item.key !== "new" && item.key !== "men" && item.key !== "women") && open(item.key)}
+                    onMouseEnter={() => {
+                      if (item.key === "new" || item.key === "men" || item.key === "women") return;
+                      if (item.key === "collections" && collections.length === 0) return;
+                      open(item.key);
+                    }}
                     onMouseLeave={scheduleClose}
                   >
                     {item.key === "new" ? (
@@ -570,7 +573,7 @@ export default function SiteHeader() {
         </nav>
 
         
-        {openMenu && mega[openMenu] && (
+        {openMenu && mega[openMenu] && (mega[openMenu].left.length > 0 || mega[openMenu].rightPromo) && (
           <div
             className="hidden md:block absolute left-0 right-0 top-full z-50 bg-white border-t border-black/10 shadow-lg"
             onMouseEnter={keepOpen}

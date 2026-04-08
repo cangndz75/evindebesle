@@ -10,7 +10,9 @@ export async function GET() {
         id: true,
         title: true,
         slug: true,
+        image1: true,
         isActive: true,
+        isFeaturedInMenu: true,
       },
     });
 

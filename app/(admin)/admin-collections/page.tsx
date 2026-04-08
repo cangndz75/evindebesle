@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { uploadFileToCloudinary } from "@/lib/cloudinary";
 import Image from "next/image";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Switch } from "@/components/ui/switch";
 
 type ProductBasics = {
   id: string;
@@ -32,6 +33,7 @@ type Collection = {
   image2: string;
   image3: string;
   isActive: boolean;
+  isFeaturedInMenu: boolean;
   _count?: { products: number };
 };
 
@@ -61,6 +63,7 @@ export default function AdminCollectionsPage() {
     image1: "",
     image2: "",
     image3: "",
+    isFeaturedInMenu: false,
   });
 
   const [search, setSearch] = useState("");
@@ -129,11 +132,12 @@ export default function AdminCollectionsPage() {
         image1: selectedCollection.image1 || "",
         image2: selectedCollection.image2 || "",
         image3: selectedCollection.image3 || "",
+        isFeaturedInMenu: selectedCollection.isFeaturedInMenu || false,
       });
       fetchCollectionItems(selectedCollection.id);
       setItemsPage(1);
     } else {
-      setFormData({ title: "", slug: "", description: "", image1: "", image2: "", image3: "" });
+      setFormData({ title: "", slug: "", description: "", image1: "", image2: "", image3: "", isFeaturedInMenu: false });
       setCollectionItems([]);
     }
   }, [selectedCollection]);
@@ -163,6 +167,10 @@ export default function AdminCollectionsPage() {
       if (res.ok) {
         const data = await res.json();
         setCollections(data);
+        if (selectedCollection) {
+          const refreshedSelected = data.find((item: Collection) => item.id === selectedCollection.id) || null;
+          setSelectedCollection(refreshedSelected);
+        }
         setCollectionsPage(1);
       } else {
         setCollections([]);
@@ -248,6 +256,36 @@ export default function AdminCollectionsPage() {
         fetchCollections();
       } else {
         toast.error("Silinemedi");
+      }
+    } catch (e) {
+      toast.error("Bir hata oluştu");
+    }
+  };
+
+  const handleFeaturedToggle = async (collection: Collection, checked: boolean) => {
+    try {
+      const res = await fetch("/api/admin-collections", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: collection.id,
+          title: collection.title,
+          slug: collection.slug,
+          description: collection.description,
+          image1: collection.image1,
+          image2: collection.image2,
+          image3: collection.image3,
+          isActive: collection.isActive,
+          isFeaturedInMenu: checked,
+        }),
+      });
+
+      if (res.ok) {
+        toast.success(checked ? "Öne çıkan koleksiyon güncellendi" : "Öne çıkan seçimi kaldırıldı");
+        fetchCollections();
+      } else {
+        const err = await res.json();
+        toast.error(err.error || "Güncelleme başarısız");
       }
     } catch (e) {
       toast.error("Bir hata oluştu");
@@ -399,9 +437,18 @@ export default function AdminCollectionsPage() {
                               </Button>
                            </div>
                            <p className="text-xs text-muted-foreground truncate">/{c.slug}</p>
-                           <div className="mt-2 text-xs font-medium text-gray-500 bg-gray-100 inline-block px-2 py-0.5 rounded">
+                          <div className="mt-2 flex items-center justify-between gap-3">
+                            <div className="text-xs font-medium text-gray-500 bg-gray-100 inline-block px-2 py-0.5 rounded">
                               {c._count?.products || 0} Ürün
-                           </div>
+                            </div>
+                            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                             <span className="text-[11px] text-muted-foreground">Öne Çıkan</span>
+                             <Switch
+                              checked={c.isFeaturedInMenu}
+                              onCheckedChange={(checked) => handleFeaturedToggle(c, checked)}
+                             />
+                            </div>
+                          </div>
                         </div>
                      ))}
                   </div>
@@ -449,6 +496,16 @@ export default function AdminCollectionsPage() {
                        <div className="space-y-2">
                           <label className="text-sm font-medium">Açıklama</label>
                           <Textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} placeholder="Koleksiyon detayları..." rows={3} />
+                       </div>
+                       <div className="flex items-center justify-between rounded-md border p-3">
+                          <div>
+                            <p className="text-sm font-medium">Menüde Öne Çıkan Koleksiyon</p>
+                            <p className="text-xs text-muted-foreground">Aynı anda yalnızca 1 koleksiyon seçilebilir.</p>
+                          </div>
+                          <Switch
+                            checked={formData.isFeaturedInMenu}
+                            onCheckedChange={(checked) => setFormData({ ...formData, isFeaturedInMenu: checked })}
+                          />
                        </div>
                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                           

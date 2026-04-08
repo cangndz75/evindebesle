@@ -245,7 +245,11 @@ export default function FavoritesClient({
                             const inStockSizes = availableSizes.map((size: any) => {
                               const sizeName = typeof size === 'string' ? size : size.name;
                               const sizeStock = typeof size === 'object' ? size.stock : 0;
-                              const sizeId = typeof size === 'object' && size.id ? size.id : null;
+                              const rawSizeId = typeof size === 'object' && size.id ? size.id : null;
+                              const matchedSizeId = Array.isArray(product.sizes)
+                                ? product.sizes.find((s: any) => typeof s === 'object' && s?.name === sizeName && s?.id)?.id
+                                : null;
+                              const sizeId = rawSizeId || matchedSizeId || null;
 
                               let finalStock = sizeStock;
                               if (currentColorId && product.colors?.[0]?.variants && Array.isArray(product.colors[0].variants) && product.colors[0].variants.length > 0) {

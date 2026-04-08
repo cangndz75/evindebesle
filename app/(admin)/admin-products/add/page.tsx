@@ -178,6 +178,8 @@ export default function AddProductPage() {
         };
       }));
 
+      const modelCode = (data as any).modelCode || "";
+
       const payload = {
         ...data,
         uploadedImages: processedImages,
@@ -202,7 +204,7 @@ export default function AddProductPage() {
         sizes: !data.isVariable
           ? Object.entries(data.simpleStock || {}).map(([name, stock]) => ({ name, stock }))
           : [],
-        stockCode: data.sku,
+        stockCode: data.sku || data.barcode || modelCode || "",
         image: realPrimary || (processedImages.length > 0 ? processedImages[0] : null), // Legacy field
         price: Number(data.price),
         originalPrice: data.originalPrice ? Number(data.originalPrice) : null,

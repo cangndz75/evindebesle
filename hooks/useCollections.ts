@@ -4,7 +4,9 @@ export type Collection = {
   id: string;
   title: string;
   slug: string;
+  image1?: string | null;
   isActive: boolean;
+  isFeaturedInMenu: boolean;
 };
 
 export const useCollections = () => {

@@ -110,6 +110,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
   const [isSticky, setIsSticky] = useState(false);
   const [zoomActive, setZoomActive] = useState(false);
   const [zoomPosition, setZoomPosition] = useState({ x: 50, y: 50 });
+  const zoomScale = 2.6;
   const selectedColorLabel = product.colors?.[selectedColor]?.name || "";
 
   const selectedColorObj = product.colors?.[selectedColor];
@@ -797,7 +798,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                         className="object-cover transition-transform duration-200 ease-out"
                         style={{
                           transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%`,
-                          transform: zoomActive ? "scale(1.7)" : "scale(1)",
+                          transform: "scale(1)",
                         }}
                         sizes="(max-width: 1024px) 100vw, 50vw"
                         priority
@@ -805,14 +806,14 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
 
                       {zoomActive && (
                         <div
-                          className="hidden md:block absolute w-36 h-36 border border-black/30 shadow-sm pointer-events-none"
+                          className="hidden md:block absolute w-48 h-48 border border-black/30 shadow-sm pointer-events-none"
                           style={{
                             left: `${zoomPosition.x}%`,
                             top: `${zoomPosition.y}%`,
                             transform: "translate(-50%, -50%)",
                             backgroundImage: `url(${imageUrl})`,
                             backgroundRepeat: "no-repeat",
-                            backgroundSize: "170%",
+                            backgroundSize: `${zoomScale * 100}%`,
                             backgroundPosition: `${zoomPosition.x}% ${zoomPosition.y}%`,
                           }}
                         />
@@ -952,6 +953,64 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
             <p className="text-base text-gray-700 font-light leading-relaxed mb-8 max-w-lg">
               {product.colors?.[selectedColor]?.description || product.description}
             </p>
+
+            <div className="md:hidden mb-6">
+              <p className="text-sm font-light text-black mb-3">
+                Renk: <span className="font-normal">{product.colors?.[selectedColor]?.name || "Renk seçilmedi"}</span>
+              </p>
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {product.colors?.map((color, idx) => {
+                  let colorImage: string | null = null;
+
+                  if ((color as any).image) {
+                    colorImage = (color as any).image;
+                  } else if (color.images) {
+                    if (typeof color.images === "string") {
+                      try {
+                        const parsed = JSON.parse(color.images);
+                        colorImage = Array.isArray(parsed) && parsed.length > 0 ? parsed[0] : null;
+                      } catch {
+                        colorImage = color.images;
+                      }
+                    } else if (Array.isArray(color.images) && color.images.length > 0) {
+                      colorImage = color.images[0];
+                    }
+                  }
+
+                  if (!colorImage && getCurrentColorImages().length > 0) {
+                    const firstImage = getCurrentColorImages()[0];
+                    colorImage = typeof firstImage === "string" ? firstImage : firstImage.url;
+                  }
+
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => handleColorChange(idx)}
+                      className={`relative w-14 h-18 shrink-0 overflow-hidden border transition-all rounded ${selectedColor === idx
+                        ? "border-[#111]"
+                        : "border-gray-200"
+                        }`}
+                      aria-label={color.name}
+                    >
+                      {colorImage ? (
+                        <Image
+                          src={colorImage}
+                          alt={`Dark Velvet ${product.name} ${color.name} renk secenegi`}
+                          fill
+                          className="object-cover"
+                          sizes="56px"
+                        />
+                      ) : (
+                        <div
+                          className="w-full h-full"
+                          style={{ backgroundColor: color.value }}
+                        />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
 
             
             <div className="hidden md:block mb-8">

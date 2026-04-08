@@ -39,6 +39,7 @@ type ProductColor = {
 };
 
 type ProductSize = {
+  id?: string;
   name: string;
   stock: number;
 };
@@ -832,7 +833,11 @@ export default function MenProductsPage({
                             const inStockSizes = availableSizes.map((size: any) => {
                               const sizeName = typeof size === 'string' ? size : size.name;
                               const sizeStock = typeof size === 'object' ? size.stock : 0;
-                              const sizeId = typeof size === 'object' && size.id ? size.id : null;
+                              const rawSizeId = typeof size === 'object' && size.id ? size.id : null;
+                              const matchedSizeId = Array.isArray(product.sizes)
+                                ? product.sizes.find((s: any) => typeof s === 'object' && s?.name === sizeName && s?.id)?.id
+                                : null;
+                              const sizeId = rawSizeId || matchedSizeId || null;
 
                               let finalStock = sizeStock;
                               if (currentColorId && displayColorObj?.variants && Array.isArray(displayColorObj.variants) && displayColorObj.variants.length > 0) {

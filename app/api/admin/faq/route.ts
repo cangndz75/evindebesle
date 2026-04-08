@@ -3,6 +3,19 @@ import { prisma } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 
+function normalizeFaqCategory(raw: string) {
+    const value = (raw || "").trim().toLocaleLowerCase("tr-TR");
+
+    if (["order", "siparis", "sipariş"].includes(value)) return "order";
+    if (["payment", "odeme", "ödeme"].includes(value)) return "payment";
+    if (["shipping", "kargo", "teslimat"].includes(value)) return "shipping";
+    if (["return", "iade"].includes(value)) return "return";
+    if (["product", "urun", "ürün"].includes(value)) return "product";
+    if (["account", "hesap"].includes(value)) return "account";
+
+    return value || "order";
+}
+
 export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const category = searchParams.get("category");
@@ -18,13 +31,18 @@ export async function GET(req: NextRequest) {
 
         const where: any = isAdmin ? {} : { isActive: true };
         if (category) {
-            where.category = category;
+            where.category = normalizeFaqCategory(category);
         }
 
-        const faqs = await prisma.fAQ.findMany({
+        const rawFaqs = await prisma.fAQ.findMany({
             where,
             orderBy: [{ category: "asc" }, { order: "asc" }],
         });
+
+        const faqs = rawFaqs.map((faq: any) => ({
+            ...faq,
+            category: normalizeFaqCategory(faq.category),
+        }));
 
         if (!isAdmin) {
             const grouped: Record<string, typeof faqs> = {};
@@ -71,13 +89,15 @@ export async function POST(req: NextRequest) {
                 return NextResponse.json({ error: "En az bir geçerli soru-cevap girin" }, { status: 400 });
             }
 
+            const normalizedCategory = normalizeFaqCategory(category);
+
             const created = await prisma.$transaction(
                 validItems.map((item: any, index: number) =>
                     prisma.fAQ.create({
                         data: {
                             question: item.question,
                             answer: item.answer,
-                            category,
+                            category: normalizedCategory,
                             order: item.order ?? index,
                             isActive: isActive !== false,
                         },
@@ -96,7 +116,7 @@ export async function POST(req: NextRequest) {
             data: {
                 question,
                 answer,
-                category,
+                category: normalizeFaqCategory(category),
                 order: order || 0,
                 isActive: isActive !== false,
             },
@@ -121,6 +141,10 @@ export async function PUT(req: NextRequest) {
 
         if (!id) {
             return NextResponse.json({ error: "ID zorunlu" }, { status: 400 });
+        }
+
+        if (updates.category !== undefined) {
+            updates.category = normalizeFaqCategory(updates.category);
         }
 
         const faq = await prisma.fAQ.update({

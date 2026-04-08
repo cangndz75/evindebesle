@@ -1016,7 +1016,11 @@ function ProductCarouselContent({
                         if (availableSizes.length > 0) {
                           return availableSizes.map((size) => {
                             const sizeName = typeof size === "string" ? size : size.name;
-                            const sizeId = typeof size === "object" && size.id ? size.id : null;
+                            const rawSizeId = typeof size === "object" && size.id ? size.id : null;
+                            const matchedSizeId = Array.isArray(selectedProduct.sizes)
+                              ? selectedProduct.sizes.find((s: any) => typeof s === "object" && s?.name === sizeName && s?.id)?.id
+                              : null;
+                            const sizeId = rawSizeId || matchedSizeId || null;
                             const stock = getSizeStock(selectedProduct, sizeId);
                             const isOutOfStock = stock <= 0;
                             const isSelected = selectedSize === sizeId || selectedSize === sizeName;

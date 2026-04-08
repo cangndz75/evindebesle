@@ -157,14 +157,20 @@ export default function ProductFilters({
   resultCount,
   isLoading = false,
 }: ProductFiltersProps) {
+  const MOBILE_SIZE_LIMIT = 20;
   const [open, setOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [showAllMobileSizes, setShowAllMobileSizes] = useState(false);
   const [draftFilters, setDraftFilters] = useState<FilterState>(filters);
 
   const groupedColors = useMemo<GroupedColorOption[]>(() => {
     const map = new Map<string, GroupedColorOption>();
 
     for (const color of availableColors) {
-      const key = getColorSwatchKey(color.name, color.hexCode);
+      const normalizedName = normalizeColorName(color.name);
+      const key = normalizedName.includes("cok renk") || normalizedName.includes("çok renk") || normalizedName.includes("multicolor")
+        ? "multi"
+        : `name:${normalizedName}`;
       const existing = map.get(key);
       if (existing) {
         if (!existing.aliases.includes(color.name)) {
@@ -188,6 +194,25 @@ export default function ProductFilters({
       setDraftFilters(filters);
     }
   }, [filters, open]);
+
+  useEffect(() => {
+    const updateIsMobile = () => setIsMobile(window.innerWidth < 768);
+    updateIsMobile();
+    window.addEventListener("resize", updateIsMobile);
+    return () => window.removeEventListener("resize", updateIsMobile);
+  }, []);
+
+  useEffect(() => {
+    if (!open) {
+      setShowAllMobileSizes(false);
+    }
+  }, [open]);
+
+  const visibleSizes = useMemo(() => {
+    if (!isMobile) return availableSizes;
+    if (showAllMobileSizes) return availableSizes;
+    return availableSizes.slice(0, MOBILE_SIZE_LIMIT);
+  }, [availableSizes, isMobile, showAllMobileSizes]);
 
   const updateFilter = (key: keyof FilterState, value: any) => {
     const newFilters = { ...draftFilters, [key]: value };
@@ -286,7 +311,7 @@ export default function ProductFilters({
             <span>Filtrele</span>
           </button>
         </SheetTrigger>
-        <SheetContent side="left" className="w-100 overflow-y-auto p-0">
+        <SheetContent side="left" className="w-100 overflow-y-auto p-0 [&>button]:h-10 [&>button]:w-10 [&>button]:top-4 [&>button]:right-4 [&>button>svg]:h-5 [&>button>svg]:w-5">
           <SheetHeader className="px-6 pt-6 pb-4 border-b">
             <SheetTitle className="text-left font-bold text-[#111]">Filtreler</SheetTitle>
           </SheetHeader>
@@ -365,7 +390,7 @@ export default function ProductFilters({
                   </AccordionTrigger>
                   <AccordionContent className="pt-2 pb-4 px-0">
                     <div className="grid grid-cols-3 gap-3">
-                      {availableSizes.map((size) => (
+                      {visibleSizes.map((size) => (
                         <div key={size} className="flex items-center space-x-2">
                           <Checkbox
                             id={`size-${size}`}
@@ -381,6 +406,15 @@ export default function ProductFilters({
                         </div>
                       ))}
                     </div>
+                    {isMobile && availableSizes.length > MOBILE_SIZE_LIMIT && (
+                      <button
+                        type="button"
+                        onClick={() => setShowAllMobileSizes((prev) => !prev)}
+                        className="mt-4 text-sm font-medium text-[#111] underline underline-offset-4"
+                      >
+                        {showAllMobileSizes ? "Daha az göster" : "Daha fazla göster"}
+                      </button>
+                    )}
                   </AccordionContent>
                 </AccordionItem>
               )}

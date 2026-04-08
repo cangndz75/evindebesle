@@ -69,6 +69,36 @@ export default function CheckoutPage() {
             .catch(() => { });
     }, []);
 
+    const getCartItemImage = (item: typeof cart[number]) => {
+        if (item.color?.images) {
+            let colorImages: string[] = [];
+
+            if (typeof item.color.images === "string") {
+                try {
+                    colorImages = JSON.parse(item.color.images);
+                } catch {
+                    colorImages = [item.color.images];
+                }
+            } else if (Array.isArray(item.color.images)) {
+                colorImages = item.color.images;
+            }
+
+            if (colorImages.length > 0) {
+                return colorImages[0];
+            }
+        }
+
+        if (item.product.primaryImage) {
+            return item.product.primaryImage;
+        }
+
+        if (item.product.image) {
+            return item.product.image;
+        }
+
+        return "/placeholder.png";
+    };
+
 
     const subtotal = cart.reduce((acc, item) => {
         const price = item.product.price;
@@ -469,16 +499,12 @@ export default function CheckoutPage() {
                             {cart.map((item) => (
                                 <div key={item.id} className="flex gap-4">
                                     <div className="relative w-16 h-20 bg-gray-200 rounded overflow-hidden shrink-0">
-                                        {item.product.image ? (
-                                            <Image
-                                                src={item.product.image}
-                                                alt={item.product.name}
-                                                fill
-                                                className="object-cover"
-                                            />
-                                        ) : (
-                                            <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">No Img</div>
-                                        )}
+                                        <Image
+                                            src={getCartItemImage(item)}
+                                            alt={item.product.name}
+                                            fill
+                                            className="object-cover"
+                                        />
                                         <div className="absolute top-0 right-0 bg-gray-500 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-bl-md">
                                             {item.quantity}
                                         </div>

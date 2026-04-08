@@ -9,14 +9,20 @@ import ExcelJS from "exceljs";
 export const dynamic = "force-dynamic";
 
 function isStockCodeUniqueError(error: unknown): boolean {
+  const target: string[] =
+    typeof error === "object" &&
+    error !== null &&
+    "meta" in error &&
+    Array.isArray((error as { meta?: { target?: string[] } }).meta?.target)
+      ? (error as { meta?: { target?: string[] } }).meta?.target ?? []
+      : [];
+
   return (
     typeof error === "object" &&
     error !== null &&
     "code" in error &&
     (error as { code?: string }).code === "P2002" &&
-    "meta" in error &&
-    Array.isArray((error as { meta?: { target?: string[] } }).meta?.target) &&
-    (error as { meta?: { target?: string[] } }).meta?.target?.includes("stockCode")
+    target.includes("stockCode")
   );
 }
 

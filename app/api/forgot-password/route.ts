@@ -53,7 +53,7 @@ export async function POST(req: Request) {
 
     const baseUrl = process.env.FRONTEND_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || "https://dark-velvet.com";
     const resetUrl = `${baseUrl}/reset-password?token=${token}`
-    const fromAddress = process.env.RESEND_FROM || "Dark Velvet <onboarding@resend.dev>";
+    const fromAddress = process.env.RESEND_FROM?.trim() || "Dark Velvet <noreply@dark-velvet.com>";
 
     const { error } = await resend.emails.send({
       from: fromAddress,

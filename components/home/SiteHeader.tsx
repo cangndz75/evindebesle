@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Menu, Search, User, Heart, ShoppingBag, X, ChevronRight, ChevronLeft } from "lucide-react";
+import { Menu, Search, User, Heart, ShoppingBag, X, ChevronRight, ChevronLeft, Home } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -286,15 +286,19 @@ export default function SiteHeader() {
     return (
       <header className="sticky top-0 z-50 bg-white border-b border-black/10 w-full">
         <div className="w-full px-4 md:px-8 h-16 md:h-20 flex items-center justify-between relative">
-          
-          <div className="w-10"></div>
+          <Link href="/home" className="md:hidden hover:opacity-70 transition-opacity" aria-label="Ana Sayfa">
+            <Home className="w-5 h-5 text-[#111]" />
+          </Link>
+          <div className="hidden md:block w-10"></div>
 
-          
-          <div className="absolute left-1/2 -translate-x-1/2 text-2xl md:text-3xl font-serif font-light tracking-wider text-[#111]">
+          <Link
+            href="/home"
+            className="absolute left-1/2 -translate-x-1/2 text-2xl md:text-3xl font-serif font-light tracking-wider text-[#111] hover:opacity-80 transition-opacity"
+            aria-label="Dark Velvet Ana Sayfa"
+          >
             Dark Velvet
-          </div>
+          </Link>
 
-          
           <Link href="/cart" className="hover:opacity-70 transition-opacity">
             <ShoppingBag className="w-6 h-6 text-[#111]" />
           </Link>

@@ -80,6 +80,11 @@ export default function SiteHeader() {
   const syncGuestCartToAPI = useCartStore((state) => state.syncGuestCartToAPI);
   const categoriesLoading = menCategoriesLoading || womenCategoriesLoading;
   const activeMobileCategories = mobileMenuState === "men" ? menCategories : womenCategories;
+  const sortedMobileCategories = useMemo(() => {
+    return [...activeMobileCategories].sort((a, b) =>
+      a.name.localeCompare(b.name, "tr", { sensitivity: "base" })
+    );
+  }, [activeMobileCategories]);
 
   useEffect(() => {
     hydrateHeader(session);
@@ -286,7 +291,7 @@ export default function SiteHeader() {
 
           
           <div className="absolute left-1/2 -translate-x-1/2 text-2xl md:text-3xl font-serif font-light tracking-wider text-[#111]">
-            Dark velvet
+            Dark Velvet
           </div>
 
           
@@ -417,7 +422,7 @@ export default function SiteHeader() {
                                 <div key={i} className="h-4 bg-gray-100 rounded w-2/3 animate-pulse" />
                               ))}
                             </div>
-                          ) : activeMobileCategories.map((cat) => (
+                          ) : sortedMobileCategories.map((cat) => (
                               <Link
                                 key={cat.id}
                                 href={`${mobileMenuState === "men" ? "/men" : "/women"}?category=${cat.slug}`}

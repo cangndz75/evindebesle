@@ -277,18 +277,6 @@ export default function CategoryProductsPage({
     }, []);
 
     const buildApiUrl = useCallback(() => {
-        const hasFilters =
-            sortOption !== "featured" ||
-            filters.minPrice ||
-            filters.maxPrice ||
-            filters.sizes.length > 0 ||
-            filters.colors.length > 0 ||
-            filters.fabricTypes.length > 0;
-
-        if (!hasFilters && initialProducts.length > 0) {
-            return null; // Use initial products
-        }
-
         const params = new URLSearchParams();
         params.append("categorySlug", categorySlug);
         if (gender) {
@@ -317,7 +305,7 @@ export default function CategoryProductsPage({
         params.append("sort", sortOption);
 
         return `/api/products?${params.toString()}`;
-    }, [categorySlug, gender, filters, initialProducts, sortOption]);
+    }, [categorySlug, gender, filters, sortOption]);
 
     const apiUrl = buildApiUrl();
 
@@ -831,8 +819,14 @@ export default function CategoryProductsPage({
                                                                                     addToGuestCart(product.id, currentColorId || null, sizeId || null, 1, {
                                                                                         id: result.product.id,
                                                                                         name: result.product.name || product.name,
-                                                                                        image: result.product.image || product.image,
+                                                                                        image: displayColorObj?.images?.[0] || result.product.image || product.primaryImage || product.image,
                                                                                         price: result.product.price || product.price || 0,
+                                                                                    }, {
+                                                                                        id: currentColorId || "",
+                                                                                        name: displayColorObj?.name || "",
+                                                                                    }, {
+                                                                                        id: sizeId || "",
+                                                                                        name: sizeName || "",
                                                                                     });
                                                                                 }
                                                                                 const cartModule = await import("@/lib/stores/cartStore");

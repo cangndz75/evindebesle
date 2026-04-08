@@ -59,8 +59,15 @@ async function getDbCartItems(userId: string) {
       }
     }
 
+    const colorPrimaryImage = colorImages.length > 0 ? colorImages[0] : null;
+
     return {
       ...item,
+      product: {
+        ...item.product,
+        image: colorPrimaryImage || item.product.image,
+        primaryImage: colorPrimaryImage || item.product.primaryImage,
+      },
       color: item.color ? { ...item.color, images: colorImages } : null,
     };
   });
@@ -150,6 +157,16 @@ export async function POST(request: NextRequest) {
         },
       })
       : null;
+
+    let colorImages: string[] = [];
+    if (color?.images) {
+      try {
+        colorImages = typeof color.images === "string" ? JSON.parse(color.images) : color.images;
+      } catch {
+        colorImages = [color.images as string];
+      }
+    }
+    const colorPrimaryImage = colorImages.length > 0 ? colorImages[0] : null;
     const size = sizeId
       ? await prisma.productSize.findUnique({
         where: { id: sizeId },
@@ -328,7 +345,7 @@ export async function POST(request: NextRequest) {
         product: {
           id: product.id,
           name: product.name,
-          image: product.image,
+          image: colorPrimaryImage || product.image,
           price: product.price,
           originalPrice: product.originalPrice,
           categoryId: product.categoryId,

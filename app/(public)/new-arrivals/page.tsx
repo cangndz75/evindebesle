@@ -331,8 +331,14 @@ export default function NewArrivalsPage() {
                                                                                     addToGuestCart(product.id, currentColorId || null, sizeId || null, 1, {
                                                                                         id: result.product.id,
                                                                                         name: result.product.name,
-                                                                                        image: result.product.image,
+                                                                                        image: displayColorObj?.images?.[0] || result.product.image || product.primaryImage || product.image,
                                                                                         price: result.product.price,
+                                                                                    }, {
+                                                                                        id: currentColorId || "",
+                                                                                        name: displayColorObj?.name || "",
+                                                                                    }, {
+                                                                                        id: sizeId || "",
+                                                                                        name: sizeName || "",
                                                                                     });
                                                                                 }
                                                                                 const cartStore = await import("@/lib/stores/cartStore");

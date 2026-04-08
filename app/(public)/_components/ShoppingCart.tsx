@@ -110,11 +110,18 @@ function ProductTile({
 }: {
   product: RecommendedProduct;
   onNavigate: () => void;
-  onQuickAdd: (product: RecommendedProduct) => void;
-  onQuickDetail: (product: RecommendedProduct) => void;
+  onQuickAdd: (product: RecommendedProduct, preferredColorId?: string | null) => void;
+  onQuickDetail: (product: RecommendedProduct, preferredColorId?: string | null) => void;
 }) {
+  const [selectedColorId, setSelectedColorId] = useState<string | null>(product.colors?.[0]?.id || null);
+
+  useEffect(() => {
+    setSelectedColorId(product.colors?.[0]?.id || null);
+  }, [product.id, product.colors]);
+
+  const selectedColor = product.colors?.find((color) => color.id === selectedColorId) || product.colors?.[0];
   const productImage =
-    product.colors?.[0]?.images?.[0] ||
+    selectedColor?.images?.[0] ||
     product.primaryImage ||
     product.image ||
     "/placeholder.jpg";
@@ -199,7 +206,7 @@ function ProductTile({
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              onQuickAdd(product);
+              onQuickAdd(product, selectedColor?.id || null);
             }}
             className="h-7 min-w-24 rounded-full bg-white px-3 text-[10px] font-semibold tracking-widest text-black"
           >
@@ -210,7 +217,7 @@ function ProductTile({
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              onQuickDetail(product);
+              onQuickDetail(product, selectedColor?.id || null);
             }}
             className="flex h-7 min-w-24 items-center justify-center rounded-full border border-white/85 bg-black/20 px-3 text-[10px] font-semibold tracking-widest text-white"
           >
@@ -224,9 +231,19 @@ function ProductTile({
         {product.colors && product.colors.length > 0 ? (
           <div className="flex items-center gap-1 pt-1">
             {product.colors.slice(0, 4).map((color) => (
-              <span key={color.id} className="h-2.5 w-2.5 rounded-full border border-[#d4d4d4] p-px">
+              <button
+                key={color.id}
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setSelectedColorId(color.id);
+                }}
+                className={`h-2.5 w-2.5 rounded-full border p-px ${selectedColor?.id === color.id ? "border-black" : "border-[#d4d4d4]"}`}
+                aria-label={color.name}
+              >
                 <span className="block h-full w-full rounded-full" style={getSwatchStyle(color)} />
-              </span>
+              </button>
             ))}
           </div>
         ) : null}
@@ -441,7 +458,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
     return details;
   };
 
-  const openQuickModal = async (product: RecommendedProduct) => {
+  const openQuickModal = async (product: RecommendedProduct, preferredColorId?: string | null) => {
     setQuickProduct(product);
     setQuickModalOpen(false);
     setQuickLoading(true);
@@ -456,7 +473,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
       const details = await fetchQuickProductDetails(product.id);
       setQuickProductDetails(details);
 
-      const initialColorId = details.colors[0]?.id || null;
+      const initialColorId = details.colors.find((color) => color.id === preferredColorId)?.id || details.colors[0]?.id || null;
       setQuickSelectedColorId(initialColorId);
       const firstAvailableSize = getVisibleSortedSizes(details, initialColorId)[0];
       setQuickSelectedSizeId(firstAvailableSize?.id || null);
@@ -470,10 +487,10 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
     }
   };
 
-  const handleQuickAddInstant = async (product: RecommendedProduct) => {
+  const handleQuickAddInstant = async (product: RecommendedProduct, preferredColorId?: string | null) => {
     try {
       const details = await fetchQuickProductDetails(product.id);
-      const initialColor = details.colors[0] || null;
+      const initialColor = details.colors.find((color) => color.id === preferredColorId) || details.colors[0] || null;
       const initialSize = getVisibleSortedSizes(details, initialColor?.id || null)[0] || null;
       const productImage = initialColor?.images?.[0] || details.primaryImage || details.image;
 
@@ -1254,7 +1271,10 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                     </Button>
                     <Link
                       href={quickProductDetails.slug ? `/products/${quickProductDetails.slug}` : `/product/${quickProductDetails.id}`}
-                      onClick={onClose}
+                      onClick={() => {
+                        setQuickModalOpen(false);
+                        onClose();
+                      }}
                       className="flex h-11 w-full items-center justify-center border border-[#dddddd] text-xs tracking-[0.15em] text-[#808080]"
                     >
                       ÜRÜNÜ İNCELE

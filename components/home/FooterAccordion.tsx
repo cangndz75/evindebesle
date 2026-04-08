@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { useSession } from "next-auth/react";
 import {
   Accordion,
   AccordionContent,
@@ -165,8 +166,10 @@ function BenefitMarquee() {
 }
 
 export default function Footer() {
+  const { data: session } = useSession();
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const getAccountHref = (href: string) => (session?.user ? href : "/auth-tabs");
 
   const handleSubscribe = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -312,11 +315,10 @@ export default function Footer() {
                   <div className="space-y-4">
                     <h5 className="text-xs uppercase tracking-[0.2em] font-medium text-black border-b border-black/10 pb-2">Alışveriş</h5>
                     <ul className="space-y-3">
-                      <li><Link href="/men/new" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Yeni Gelenler</Link></li>
+                      <li><Link href="/new-arrivals" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Yeni Gelenler</Link></li>
                       <li><Link href="/women" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Kadın</Link></li>
                       <li><Link href="/men" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Erkek</Link></li>
-                      <li><Link href="/women" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Koleksiyonlar</Link></li>
-                      <li><Link href="/category/sale" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">İndirimler</Link></li>
+                      <li><Link href="/collections" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Koleksiyonlar</Link></li>
                     </ul>
                   </div>
 
@@ -326,10 +328,10 @@ export default function Footer() {
                     <ul className="space-y-3">
                       <li><Link href="/auth-tabs" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Giriş Yap</Link></li>
                       <li><Link href="/auth-tabs" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Üye Ol</Link></li>
-                      <li><Link href="/profile/personal-info" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Profilim</Link></li>
-                      <li><Link href="/profile/orders" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Siparişlerim</Link></li>
-                      <li><Link href="/favorites" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Favorilerim</Link></li>
-                      <li><Link href="/profile/addresses" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Adreslerim</Link></li>
+                      <li><Link href={getAccountHref("/profile/personal-info")} className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Profilim</Link></li>
+                      <li><Link href={getAccountHref("/profile/orders")} className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Siparişlerim</Link></li>
+                      <li><Link href={getAccountHref("/favorites")} className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Favorilerim</Link></li>
+                      <li><Link href={getAccountHref("/profile/addresses")} className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Adreslerim</Link></li>
                     </ul>
                   </div>
 
@@ -367,10 +369,7 @@ export default function Footer() {
                   <div className="space-y-4">
                     <h5 className="text-xs uppercase tracking-[0.2em] font-medium text-black border-b border-black/10 pb-2">Sosyal Medya</h5>
                     <ul className="space-y-3">
-                      <li><a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Instagram</a></li>
-                      <li><a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Facebook</a></li>
-                      <li><a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">X (Twitter)</a></li>
-                      <li><a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">TikTok</a></li>
+                      <li><a href="https://www.instagram.com/darkvelvet0/" target="_blank" rel="noopener noreferrer" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Instagram</a></li>
                     </ul>
                   </div>
                 </div>

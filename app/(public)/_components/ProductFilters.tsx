@@ -261,6 +261,14 @@ export default function ProductFilters({
     onClearFilters();
   };
 
+  const handleRemoveActiveFilter = (filter: ActiveFilter) => {
+    if (activeFilters.length <= 1) {
+      handleClear();
+      return;
+    }
+    onRemoveFilter(filter);
+  };
+
   return (
     <div className="space-y-4">
       
@@ -273,7 +281,7 @@ export default function ProductFilters({
             >
               <span>{filter.label}</span>
               <button
-                onClick={() => onRemoveFilter(filter)}
+                onClick={() => handleRemoveActiveFilter(filter)}
                 className="ml-1 hover:bg-gray-200 rounded-full p-0.5"
               >
                 <X className="w-3 h-3" />

@@ -349,21 +349,6 @@ export default function WomenProductsPage({
   }, [initialCategories, prefetchCategoryData, isSimpleCategoryBrowsing, sortOption, hideCategoryFilters]);
 
   const buildApiUrl = useCallback(() => {
-    const hasBaseQuery = Boolean(baseQuery?.tag || baseQuery?.newArrivals || baseQuery?.categorySlug);
-    const hasFilters =
-      hasBaseQuery ||
-      selectedCategory !== "All" ||
-      sortOption !== "featured" ||
-      filters.minPrice ||
-      filters.maxPrice ||
-      filters.sizes.length > 0 ||
-      filters.colors.length > 0 ||
-      filters.fabricTypes.length > 0;
-
-    if (!hasFilters && initialProducts.length > 0) {
-      return null;
-    }
-
     const params = new URLSearchParams();
     params.append("gender", "FEMALE");
     params.append("gender", "UNISEX");
@@ -406,7 +391,7 @@ export default function WomenProductsPage({
     params.append("sort", sortOption);
 
     return `/api/products?${params.toString()}`;
-  }, [selectedCategory, filters, initialProducts, sortOption, baseQuery]);
+  }, [selectedCategory, filters, sortOption, baseQuery]);
 
   const apiUrl = buildApiUrl();
 
@@ -1130,8 +1115,14 @@ export default function WomenProductsPage({
                                         addToGuestCart(product.id, currentColorId || null, sizeId || null, 1, {
                                           id: result.product.id,
                                           name: result.product.name || product.name,
-                                          image: result.product.image || product.image,
+                                          image: currentColorObj?.images?.[0] || result.product.image || product.primaryImage || product.image,
                                           price: result.product.price || product.price || 0,
+                                        }, {
+                                          id: currentColorId || "",
+                                          name: currentColorObj?.name || "",
+                                        }, {
+                                          id: sizeId || "",
+                                          name: sizeName || "",
                                         });
                                       }
                                       const cartModule = await import("@/lib/stores/cartStore");

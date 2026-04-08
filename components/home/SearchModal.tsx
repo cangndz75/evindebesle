@@ -18,39 +18,12 @@ type Product = {
   slug?: string;
 };
 
-type Collection = {
-  id: string;
-  title: string;
-  href: string;
-  image: string;
-};
-
 interface SearchModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialQuery?: string;
 }
 
-const collections: Collection[] = [
-  {
-    id: "1",
-    title: "Kadın Koleksiyonu",
-    href: "/category/women",
-    image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=600&auto=format&fit=crop",
-  },
-  {
-    id: "2",
-    title: "Erkek Koleksiyonu",
-    href: "/category/men",
-    image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=600&auto=format&fit=crop",
-  },
-  {
-    id: "3",
-    title: "Tüm Hizmetler",
-    href: "/services",
-    image: "https://images.unsplash.com/photo-1551730459-92db2a308d6a?q=80&w=600&auto=format&fit=crop",
-  },
-];
 
 export default function SearchModal({ isOpen, onClose, initialQuery = "" }: SearchModalProps) {
   const modalRef = useRef<HTMLDivElement | null>(null);
@@ -78,19 +51,14 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
   }, [isOpen, initialQuery]);
 
   const searchProducts = useCallback(async (query: string) => {
-    if (!query || query.length < 1) {
-      setProducts([]);
-      setSuggestions([]);
-      return;
-    }
-
     setLoading(true);
     try {
-      const params = new URLSearchParams({
-        q: query,
-        sortBy,
-        limit: "50",
-      });
+      const params = new URLSearchParams();
+      if (query && query.trim().length > 0) {
+        params.set("q", query);
+      }
+      params.set("sortBy", sortBy);
+      params.set("limit", query && query.trim().length > 0 ? "50" : "20");
 
       if (selectedCategory) {
         params.append("category", selectedCategory);
@@ -116,18 +84,22 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
           });
         }
 
-        const uniqueSuggestions = new Set<string>();
-        data.products.forEach((product: Product) => {
-          if (product.title.toLowerCase().includes(query.toLowerCase())) {
-            uniqueSuggestions.add(product.title);
-          }
-          product.tags?.forEach((tag) => {
-            if (tag.toLowerCase().includes(query.toLowerCase())) {
-              uniqueSuggestions.add(tag);
+        if (query && query.trim().length > 0) {
+          const uniqueSuggestions = new Set<string>();
+          data.products.forEach((product: Product) => {
+            if (product.title.toLowerCase().includes(query.toLowerCase())) {
+              uniqueSuggestions.add(product.title);
             }
+            product.tags?.forEach((tag) => {
+              if (tag.toLowerCase().includes(query.toLowerCase())) {
+                uniqueSuggestions.add(tag);
+              }
+            });
           });
-        });
-        setSuggestions(Array.from(uniqueSuggestions).slice(0, 5));
+          setSuggestions(Array.from(uniqueSuggestions).slice(0, 5));
+        } else {
+          setSuggestions([]);
+        }
       } else {
         setProducts([]);
         setSuggestions([]);
@@ -214,16 +186,8 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
   }, [isOpen, onClose]);
 
   const filteredProducts = useMemo(() => {
-    return products;
+    return products.filter((product) => Number(product.price) > 0);
   }, [products]);
-
-  const filteredCollections = useMemo(() => {
-    if (!searchQuery || searchQuery.length < 1) return [];
-    const query = searchQuery.toLowerCase();
-    return collections.filter((collection) =>
-      collection.title.toLowerCase().includes(query)
-    );
-  }, [searchQuery]);
 
   if (!isOpen) return null;
 
@@ -280,47 +244,6 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
       
       <div className="flex-1 overflow-y-auto bg-gray-50 overscroll-contain">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
-          
-          
-          {filteredCollections.length > 0 && (
-            <div className="mb-8">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-sm font-light uppercase tracking-wide">Koleksiyonlar:</h2>
-                <Link
-                  href="/collections"
-                  className="text-xs text-gray-600 hover:text-black transition-colors"
-                >
-                  Tümünü Gör
-                </Link>
-              </div>
-              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-                {filteredCollections.map((collection) => (
-                  <Link
-                    key={collection.id}
-                    href={collection.href}
-                    onClick={onClose}
-                    className="group bg-white p-3 hover:shadow-md transition-shadow shrink-0 w-48"
-                  >
-                    <div className="relative aspect-4/3 mb-2 overflow-hidden bg-gray-100">
-                      <Image
-                        src={collection.image}
-                        alt={collection.title}
-                        fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-105"
-                        sizes="192px"
-                        unoptimized
-                      />
-                    </div>
-                    <h3 className="text-xs font-light mb-1">{collection.title}</h3>
-                    <span className="text-xs text-gray-600 hover:text-black transition-colors">
-                      Daha Fazla Bilgi
-                    </span>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
-
           
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-light uppercase tracking-wide">
@@ -591,7 +514,7 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
                 </div>
               ) : (
                 <div className="text-center py-12">
-                  <p className="text-gray-600 font-light">Arama yapmak için yukarıdaki alana yazın.</p>
+                  <p className="text-gray-600 font-light">Şu an gösterilecek ürün bulunamadı.</p>
                 </div>
               )}
             </div>

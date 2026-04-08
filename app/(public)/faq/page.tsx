@@ -10,6 +10,8 @@ interface FAQ {
     question: string;
     answer: string;
     category: string;
+    order: number;
+    isActive: boolean;
 }
 
 const categoryConfig: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
@@ -23,7 +25,6 @@ const categoryConfig: Record<string, { label: string; icon: React.ReactNode; col
 
 export default function SSSPage() {
     const [faqs, setFaqs] = useState<FAQ[]>([]);
-    const [grouped, setGrouped] = useState<Record<string, FAQ[]>>({});
     const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
     const [searchQuery, setSearchQuery] = useState("");
     const [activeCategory, setActiveCategory] = useState<string | null>(null);
@@ -32,11 +33,33 @@ export default function SSSPage() {
     useEffect(() => {
         const fetchFaqs = async () => {
             try {
-                const res = await fetch("/api/admin/faq");
+                const res = await fetch("/api/faq");
                 if (res.ok) {
                     const data = await res.json();
-                    setFaqs(data.faqs || []);
-                    setGrouped(data.grouped || {});
+                    const rawFaqs = Array.isArray(data?.faqs) ? data.faqs : [];
+
+                    const normalizedFaqs: FAQ[] = rawFaqs
+                        .map((item: any) => ({
+                            id: String(item?.id || ""),
+                            question: String(item?.question || "").trim(),
+                            answer: String(item?.answer ?? item?.answers ?? "").trim(),
+                            category: String(item?.category || "").toLocaleLowerCase("tr-TR").trim(),
+                            order: Number.isFinite(Number(item?.order)) ? Number(item.order) : 0,
+                            isActive: item?.isActive !== false,
+                        }))
+                        .filter((item: FAQ) => item.id && item.question && item.answer)
+                        .filter((item: FAQ) => item.isActive)
+                        .sort((a: FAQ, b: FAQ) => {
+                            if (a.category !== b.category) {
+                                return a.category.localeCompare(b.category, "tr");
+                            }
+                            if (a.order !== b.order) {
+                                return a.order - b.order;
+                            }
+                            return a.question.localeCompare(b.question, "tr");
+                        });
+
+                    setFaqs(normalizedFaqs);
                 }
             } catch (error) {
                 console.error("Error fetching FAQs:", error);
@@ -68,6 +91,14 @@ export default function SSSPage() {
         : activeCategory
             ? faqs.filter(faq => faq.category === activeCategory)
             : faqs;
+
+    const grouped = faqs.reduce<Record<string, FAQ[]>>((acc, faq) => {
+        if (!acc[faq.category]) {
+            acc[faq.category] = [];
+        }
+        acc[faq.category].push(faq);
+        return acc;
+    }, {});
 
     const displayGrouped = searchQuery
         ? { results: filteredFaqs }

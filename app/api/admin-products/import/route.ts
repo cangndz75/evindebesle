@@ -8,6 +8,18 @@ import ExcelJS from "exceljs";
 
 export const dynamic = "force-dynamic";
 
+function isStockCodeUniqueError(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: string }).code === "P2002" &&
+    "meta" in error &&
+    Array.isArray((error as { meta?: { target?: string[] } }).meta?.target) &&
+    (error as { meta?: { target?: string[] } }).meta?.target?.includes("stockCode")
+  );
+}
+
 function toExcelBuffer(data: ArrayBuffer | Buffer): Buffer<ArrayBuffer> {
   return data instanceof ArrayBuffer
     ? Buffer.from(new Uint8Array(data))
@@ -249,7 +261,7 @@ function buildProductIdentityKey(row: ExcelRow): string {
   const categoryKey = normalizeForKey(row.category || "");
 
   if (modelKey) {
-    return `${modelKey}::${baseName}`;
+    return modelKey;
   }
 
   return [baseName, brandKey, categoryKey].filter(Boolean).join("|");
@@ -635,28 +647,65 @@ export async function POST(req: NextRequest) {
           const existingSlug = await prisma.product.findFirst({ where: { slug } });
           if (existingSlug) slug = `${slug}-${Date.now()}`;
 
-          product = await prisma.product.create({
-            data: {
-              name: productName,
-              slug,
-              stockCode,
-              modelCode: importedProduct.modelCode || null,
-              description: importedProduct.description || null,
-              price: salePrice,
-              originalPrice: importedProduct.originalPrice || null,
-              gender,
-              brand: importedProduct.brand || null,
-              categoryId,
-              isActive: true,
-              shipmentType: importedProduct.shipmentType || null,
-              trendyolLink: importedProduct.trendyolLink || null,
-              primaryImage: importedProduct.primaryImage,
-              secondaryImage: importedProduct.secondaryImage,
-              image: importedProduct.primaryImage,
-            },
-            select: { id: true },
-          });
-          createdProducts++;
+          try {
+            product = await prisma.product.create({
+              data: {
+                name: productName,
+                slug,
+                stockCode,
+                modelCode: importedProduct.modelCode || null,
+                description: importedProduct.description || null,
+                price: salePrice,
+                originalPrice: importedProduct.originalPrice || null,
+                gender,
+                brand: importedProduct.brand || null,
+                categoryId,
+                isActive: true,
+                shipmentType: importedProduct.shipmentType || null,
+                trendyolLink: importedProduct.trendyolLink || null,
+                primaryImage: importedProduct.primaryImage,
+                secondaryImage: importedProduct.secondaryImage,
+                image: importedProduct.primaryImage,
+              },
+              select: { id: true },
+            });
+            createdProducts++;
+          } catch (createError) {
+            if (!isStockCodeUniqueError(createError) || !stockCode) {
+              throw createError;
+            }
+
+            const existingByStockCode = await prisma.product.findUnique({
+              where: { stockCode },
+              select: { id: true },
+            });
+
+            if (!existingByStockCode) {
+              throw createError;
+            }
+
+            await prisma.product.update({
+              where: { id: existingByStockCode.id },
+              data: {
+                name: productName,
+                modelCode: importedProduct.modelCode || undefined,
+                description: importedProduct.description || undefined,
+                price: salePrice || undefined,
+                originalPrice: importedProduct.originalPrice || undefined,
+                gender: gender || undefined,
+                brand: importedProduct.brand || undefined,
+                categoryId: categoryId || undefined,
+                shipmentType: importedProduct.shipmentType || undefined,
+                trendyolLink: importedProduct.trendyolLink || undefined,
+                primaryImage: importedProduct.primaryImage || undefined,
+                secondaryImage: importedProduct.secondaryImage || undefined,
+                image: importedProduct.primaryImage || undefined,
+              },
+            });
+
+            product = { id: existingByStockCode.id };
+            updatedProducts++;
+          }
         } else {
           await prisma.product.update({
             where: { id: product.id },

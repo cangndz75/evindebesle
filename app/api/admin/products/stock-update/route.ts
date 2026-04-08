@@ -4,6 +4,7 @@ import { authConfig } from "@/lib/auth.config";
 import { prisma } from "@/lib/db";
 import { logAuditAction } from "@/lib/auditLog";
 import { revalidatePath } from "next/cache";
+import { syncSizeStocksFromVariants } from "@/lib/stock";
 
 export async function POST(req: NextRequest) {
     try {
@@ -23,10 +24,35 @@ export async function POST(req: NextRequest) {
         let productForRevalidate: { id: string; slug: string | null } | null = null;
 
         if (isVariant) {
+            const existingVariant = await prisma.productVariant.findUnique({
+                where: { id: variantId },
+                select: { id: true, stock: true, productId: true },
+            });
+
+            if (!existingVariant) {
+                return NextResponse.json({ error: "Variant not found" }, { status: 404 });
+            }
+
             await prisma.productVariant.update({
                 where: { id: variantId },
                 data: { stock: newStock }
             });
+
+            const diff = newStock - (existingVariant.stock || 0);
+            if (diff !== 0) {
+                await prisma.stockMovement.create({
+                    data: {
+                        productId: existingVariant.productId,
+                        variantId: existingVariant.id,
+                        quantity: Math.abs(diff),
+                        type: "ADJUSTMENT",
+                        reason: "Admin stock update",
+                        userId: session.user.id,
+                    },
+                });
+            }
+
+            await syncSizeStocksFromVariants(existingVariant.productId);
 
             const variant = await prisma.productVariant.findUnique({
                 where: { id: variantId },
@@ -38,10 +64,32 @@ export async function POST(req: NextRequest) {
             });
             productForRevalidate = variant?.product ?? null;
         } else {
+            const existingSize = await prisma.productSize.findUnique({
+                where: { id: variantId },
+                select: { id: true, stock: true, productId: true },
+            });
+
+            if (!existingSize) {
+                return NextResponse.json({ error: "Size not found" }, { status: 404 });
+            }
+
             await prisma.productSize.update({
                 where: { id: variantId },
                 data: { stock: newStock }
             });
+
+            const diff = newStock - (existingSize.stock || 0);
+            if (diff !== 0) {
+                await prisma.stockMovement.create({
+                    data: {
+                        productId: existingSize.productId,
+                        quantity: Math.abs(diff),
+                        type: "ADJUSTMENT",
+                        reason: "Admin size stock update",
+                        userId: session.user.id,
+                    },
+                });
+            }
 
             const size = await prisma.productSize.findUnique({
                 where: { id: variantId },

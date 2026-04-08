@@ -10,6 +10,30 @@ import {
   warmRedisCartFromDatabase,
 } from "@/lib/cart-redis";
 
+async function resolveCartVariant(productId: string, colorId: string | null, sizeId: string | null) {
+  const where: any = { productId };
+  where.colorId = colorId || null;
+  where.sizeId = sizeId || null;
+
+  const exact = await prisma.productVariant.findFirst({
+    where,
+    select: { stock: true, stockReserved: true },
+  });
+
+  if (exact) {
+    return exact;
+  }
+
+  return prisma.productVariant.findFirst({
+    where: {
+      productId,
+      ...(colorId ? { colorId } : {}),
+      ...(sizeId ? { sizeId } : {}),
+    },
+    select: { stock: true, stockReserved: true },
+  });
+}
+
 async function getDbCartItems(userId: string) {
   const cartItems = await prisma.cartItem.findMany({
     where: { userId },
@@ -108,6 +132,7 @@ export async function POST(request: NextRequest) {
     const user = await getCurrentUser();
     const body = await request.json();
     const { productId, colorId, sizeId, quantity = 1 } = body;
+    const normalizedQuantity = Math.max(1, Number(quantity) || 1);
 
     if (!productId) {
       return NextResponse.json(
@@ -193,29 +218,46 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const existingDbItem = user
+      ? await prisma.cartItem.findFirst({
+        where: {
+          userId: user.id,
+          productId,
+          colorId: colorId || null,
+          sizeId: sizeId || null,
+        },
+        select: { id: true, quantity: true },
+      })
+      : null;
+
+    if (product.isTrackInventory && !product.allowBackorders) {
+      const variant = await resolveCartVariant(productId, colorId || null, sizeId || null);
+      const availableStock = variant
+        ? Math.max(0, (variant.stock || 0) - (variant.stockReserved || 0))
+        : Math.max(0, size?.stock || 0);
+      const desiredQuantity = (existingDbItem?.quantity || 0) + normalizedQuantity;
+
+      if (desiredQuantity > availableStock) {
+        return NextResponse.json(
+          { error: `Bu ürün için maksimum ${availableStock} adet sepete ekleyebilirsiniz.` },
+          { status: 400 }
+        );
+      }
+    }
+
     if (user) {
       if (isRedisCartEnabled()) {
         const itemId = await upsertRedisCartItem(user.id, {
           productId,
           colorId: colorId || null,
           sizeId: sizeId || null,
-          quantity,
-        });
-
-        const existingDbItem = await prisma.cartItem.findFirst({
-          where: {
-            userId: user.id,
-            productId,
-            colorId: colorId || null,
-            sizeId: sizeId || null,
-          },
-          select: { id: true, quantity: true },
+          quantity: normalizedQuantity,
         });
 
         if (existingDbItem) {
           await prisma.cartItem.update({
             where: { id: existingDbItem.id },
-            data: { quantity: existingDbItem.quantity + quantity },
+            data: { quantity: existingDbItem.quantity + normalizedQuantity },
           });
         } else {
           await prisma.cartItem.create({
@@ -224,7 +266,7 @@ export async function POST(request: NextRequest) {
               productId,
               colorId: colorId || null,
               sizeId: sizeId || null,
-              quantity,
+              quantity: normalizedQuantity,
             },
           });
         }
@@ -253,7 +295,7 @@ export async function POST(request: NextRequest) {
       if (existingItem) {
         const updated = await prisma.cartItem.update({
           where: { id: existingItem.id },
-          data: { quantity: existingItem.quantity + quantity },
+          data: { quantity: existingItem.quantity + normalizedQuantity },
           include: {
             product: {
               select: {
@@ -296,7 +338,7 @@ export async function POST(request: NextRequest) {
             productId,
             colorId: colorId || null,
             sizeId: sizeId || null,
-            quantity,
+            quantity: normalizedQuantity,
           },
           include: {
             product: {
@@ -341,7 +383,7 @@ export async function POST(request: NextRequest) {
         productId,
         colorId: colorId || null,
         sizeId: sizeId || null,
-        quantity,
+        quantity: normalizedQuantity,
         product: {
           id: product.id,
           name: product.name,

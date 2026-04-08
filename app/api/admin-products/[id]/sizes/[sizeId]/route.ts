@@ -17,10 +17,34 @@ export async function PATCH(
     const body = await request.json();
     const { stock } = body;
 
+    const existingSize = await prisma.productSize.findUnique({
+      where: { id: sizeId },
+      select: { id: true, stock: true, productId: true },
+    });
+
+    if (!existingSize) {
+      return NextResponse.json({ error: "Size not found" }, { status: 404 });
+    }
+
+    const newStock = parseInt(stock);
+
     await prisma.productSize.update({
       where: { id: sizeId },
-      data: { stock: parseInt(stock) },
+      data: { stock: newStock },
     });
+
+    const diff = newStock - (existingSize.stock || 0);
+    if (diff !== 0) {
+      await prisma.stockMovement.create({
+        data: {
+          productId: existingSize.productId,
+          quantity: Math.abs(diff),
+          type: "ADJUSTMENT",
+          reason: "Admin size stock update",
+          userId: session.user.id,
+        },
+      });
+    }
 
     return NextResponse.json({ success: true });
   } catch (error: any) {

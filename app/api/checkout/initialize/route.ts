@@ -7,6 +7,7 @@ import { checkRateLimit, getClientIdentifier, RateLimits } from "@/lib/rateLimit
 import { clearRedisCart, persistRedisCartToDatabase } from "@/lib/cart-redis";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
+import { finalizePayment } from "@/lib/services/payment";
 
 export async function POST(req: Request) {
     try {
@@ -255,6 +256,13 @@ export async function POST(req: Request) {
                 orderItemsData.map((i: any) => ({ variantId: i._variantId, qty: i.quantity })),
                 15
             );
+
+            await finalizePayment({
+                orderId: order.id,
+                paymentId: order.payment?.paymentId || `TEST-${Date.now()}`,
+                conversationId: order.payment?.conversationId || `TEST-CONV-${Date.now()}`,
+                rawResult: { provider: "TEST", status: "PAID" },
+            });
 
             if (body.email) {
                 try {

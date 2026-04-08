@@ -147,9 +147,6 @@ export const useCartStore = create<CartState>((set, get) => ({
       const res = await fetch("/api/cart");
       if (res.ok) {
         const items = await res.json();
-        if (typeof window !== "undefined") {
-          localStorage.removeItem("guestCart");
-        }
         set({ items, hydrated: true, isReady: true });
       } else if (res.status === 401) {
         if (guestCart.length === 0) {
@@ -234,7 +231,32 @@ export const useCartStore = create<CartState>((set, get) => ({
       });
 
       if (res.ok) {
-        await get().refreshCart();
+        const data = await res.json().catch(() => null);
+
+        if (data?.userId === null || data?.isGuest) {
+          const guestCart = getGuestCart();
+          const existingGuestItem = guestCart.find(
+            (item) =>
+              item.productId === productId &&
+              item.colorId === (colorId || null) &&
+              item.sizeId === (sizeId || null)
+          );
+
+          if (existingGuestItem) {
+            existingGuestItem.quantity += quantity;
+            saveGuestCart(guestCart);
+          } else {
+            addToGuestCart(productId, colorId, sizeId, quantity, product, color, size);
+          }
+
+          const syncedGuestCart = getGuestCart();
+          set({ items: formatGuestCart(syncedGuestCart), hydrated: true, isReady: true });
+          if (typeof window !== "undefined") {
+            window.dispatchEvent(new Event("cartUpdated"));
+          }
+        } else {
+          await get().refreshCart();
+        }
       } else if (res.status === 401) {
         const guestCart = getGuestCart();
         const existingGuestItem = guestCart.find(
@@ -484,9 +506,6 @@ export const useCartStore = create<CartState>((set, get) => ({
       const res = await fetch("/api/cart");
       if (res.ok) {
         const items = await res.json();
-        if (typeof window !== "undefined") {
-          localStorage.removeItem("guestCart");
-        }
         set({ items, isReady: true });
         if (typeof window !== "undefined") {
           window.dispatchEvent(new Event("cartUpdated"));

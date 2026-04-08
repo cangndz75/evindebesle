@@ -5,6 +5,7 @@ import { generateVariantCode, generateProductSlug } from "@/lib/slug";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { logAuditAction } from "@/lib/auditLog";
+import { syncSizeStocksFromVariants } from "@/lib/stock";
 
 export const dynamic = "force-dynamic";
 
@@ -382,6 +383,8 @@ export async function POST(req: Request) {
         data: variantsToCreate,
         skipDuplicates: true,
       });
+
+      await syncSizeStocksFromVariants(product.id);
     }
 
     if (combinations && Array.isArray(combinations) && combinations.length > 0) {

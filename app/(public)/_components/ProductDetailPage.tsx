@@ -96,8 +96,14 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
   const searchParams = useSearchParams();
   const [selectedImage, setSelectedImage] = useState(0);
 
+  const initialColorId = searchParams.get("colorId");
   const initialVariant = searchParams.get("variant");
-  const initialColorIndex = product.colors?.findIndex(c => c.variant === initialVariant) ?? 0;
+  const initialColorIndex =
+    (initialColorId
+      ? product.colors?.findIndex((c) => c.id === initialColorId)
+      : -1) >= 0
+      ? (product.colors?.findIndex((c) => c.id === initialColorId) ?? 0)
+      : (product.colors?.findIndex((c) => c.variant === initialVariant) ?? 0);
   const [selectedColor, setSelectedColor] = useState(initialColorIndex >= 0 ? initialColorIndex : 0);
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [quantity, setQuantity] = useState(1);

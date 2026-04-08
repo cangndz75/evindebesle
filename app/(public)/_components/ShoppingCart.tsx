@@ -109,7 +109,7 @@ function ProductTile({
   onQuickDetail,
 }: {
   product: RecommendedProduct;
-  onNavigate: () => void;
+  onNavigate?: () => void;
   onQuickAdd: (product: RecommendedProduct, preferredColorId?: string | null) => void;
   onQuickDetail: (product: RecommendedProduct, preferredColorId?: string | null) => void;
 }) {
@@ -126,7 +126,10 @@ function ProductTile({
     product.image ||
     "/placeholder.jpg";
 
-  const productUrl = product.slug ? `/products/${product.slug}` : `/product/${product.id}`;
+  const productUrlBase = product.slug ? `/products/${product.slug}` : `/product/${product.id}`;
+  const productUrl = selectedColor?.id
+    ? `${productUrlBase}?colorId=${encodeURIComponent(selectedColor.id)}`
+    : productUrlBase;
 
   const getSwatchStyle = (color: ProductColor) => {
     if (color.hexCode) {
@@ -187,7 +190,7 @@ function ProductTile({
       <div className="relative aspect-3/4 overflow-hidden rounded-md bg-[#f5f5f5] ring-1 ring-black/5">
         <Link
           href={productUrl}
-          onClick={onNavigate}
+          onClick={() => onNavigate?.()}
           className="absolute inset-0 z-10"
           aria-label={product.name}
         />
@@ -559,14 +562,6 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
   const handleCreateOrder = async () => {
     if (cartItems.length === 0) {
       toast.error("Sepetiniz boş");
-      return;
-    }
-
-    const addressesRes = await fetch("/api/user-addresses");
-
-    if (addressesRes.status === 401) {
-      onClose();
-      router.push("/auth-tabs");
       return;
     }
 
@@ -948,7 +943,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                           className="flex gap-3 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                         >
                           {activeList.slice(0, 10).map((p) => (
-                            <ProductTile key={p.id} product={p} onNavigate={onClose} onQuickAdd={handleQuickAddInstant} onQuickDetail={openQuickModal} />
+                            <ProductTile key={p.id} product={p} onQuickAdd={handleQuickAddInstant} onQuickDetail={openQuickModal} />
                           ))}
                           {activeList.length === 0 ? (
                             <div className="text-sm text-gray-500 py-6">
@@ -1082,7 +1077,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                             className="flex gap-3 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                           >
                             {recommendedProducts.slice(0, 12).map((p) => (
-                              <ProductTile key={p.id} product={p} onNavigate={onClose} onQuickAdd={handleQuickAddInstant} onQuickDetail={openQuickModal} />
+                              <ProductTile key={p.id} product={p} onQuickAdd={handleQuickAddInstant} onQuickDetail={openQuickModal} />
                             ))}
                           </div>
                         </div>

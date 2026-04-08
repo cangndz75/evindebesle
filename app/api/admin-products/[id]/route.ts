@@ -6,6 +6,7 @@ import { generateVariantCode, generateProductSlug } from "@/lib/slug";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { logAuditAction } from "@/lib/auditLog";
+import { syncSizeStocksFromVariants } from "@/lib/stock";
 
 
 export async function GET(
@@ -340,6 +341,8 @@ export async function PATCH(
           });
         }
       }
+
+      await syncSizeStocksFromVariants(id);
     }
 
     if (tags !== undefined) {

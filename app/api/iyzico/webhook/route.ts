@@ -1,7 +1,7 @@
 ﻿import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { iyzico, iyzicoCall } from "@/lib/iyzico";
-import { commitReservationToSaleTx } from "@/lib/stock";
+import { releaseReservationTx } from "@/lib/stock";
 import { finalizePayment } from "@/lib/services/payment";
 import { redactForLog } from "@/lib/security/log";
 import { verifyIyzicoWebhookSignature } from "@/lib/security/webhook-signature";
@@ -65,6 +65,22 @@ export async function POST(req: NextRequest) {
 
             return NextResponse.json({ status: "success" });
         } else {
+            await releaseReservationTx(payment.orderId);
+
+            await prisma.$transaction([
+                prisma.order.update({
+                    where: { id: payment.orderId },
+                    data: { status: "PAYMENT_FAILED" },
+                }),
+                prisma.paymentAttempt.update({
+                    where: { id: payment.id },
+                    data: {
+                        status: "FAILED",
+                        rawResult: retrieveRes,
+                    },
+                }),
+            ]);
+
             console.log(`Webhook: Payment failed for token ${token}.`);
             return NextResponse.json({ status: "failed_notification_received" });
         }

@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { generateVariantCode, generateProductSlug } from "@/lib/slug";
+import { syncSizeStocksFromVariants } from "@/lib/stock";
 import { Readable } from "node:stream";
 import ExcelJS from "exceljs";
 
@@ -914,6 +915,8 @@ export async function POST(req: NextRequest) {
             errors.push({ group: importedProduct.modelCode || importedProduct.stockCode, error: `Satır (${row.barcode || row.size}): ${rowErr.message}` });
           }
         }
+
+        await syncSizeStocksFromVariants(productId);
       } catch (groupErr: any) {
         errors.push({ group: importedProduct.modelCode || importedProduct.stockCode, error: groupErr.message });
       }

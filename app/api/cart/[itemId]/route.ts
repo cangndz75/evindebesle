@@ -1,7 +1,74 @@
 ﻿import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { prisma } from "@/lib/db";
-import { isRedisCartEnabled, updateRedisCartItemQuantity } from "@/lib/cart-redis";
+import { getRedisCartSnapshot, isRedisCartEnabled, updateRedisCartItemQuantity } from "@/lib/cart-redis";
+
+async function validateCartQuantity(
+  productId: string,
+  colorId: string | null,
+  sizeId: string | null,
+  quantity: number
+) {
+  const product = await prisma.product.findUnique({
+    where: { id: productId },
+    select: {
+      name: true,
+      isTrackInventory: true,
+      allowBackorders: true,
+    },
+  });
+
+  if (!product) {
+    return { ok: false, status: 404, message: "Ürün bulunamadı" };
+  }
+
+  if (!product.isTrackInventory || product.allowBackorders) {
+    return { ok: true };
+  }
+
+  const exactVariant = await prisma.productVariant.findFirst({
+    where: {
+      productId,
+      colorId: colorId || null,
+      sizeId: sizeId || null,
+    },
+    select: { stock: true, stockReserved: true },
+  });
+
+  const fallbackVariant = exactVariant
+    ? null
+    : await prisma.productVariant.findFirst({
+      where: {
+        productId,
+        ...(colorId ? { colorId } : {}),
+        ...(sizeId ? { sizeId } : {}),
+      },
+      select: { stock: true, stockReserved: true },
+    });
+
+  const variant = exactVariant || fallbackVariant;
+
+  let availableStock = 0;
+  if (variant) {
+    availableStock = Math.max(0, (variant.stock || 0) - (variant.stockReserved || 0));
+  } else if (sizeId) {
+    const size = await prisma.productSize.findUnique({
+      where: { id: sizeId },
+      select: { stock: true },
+    });
+    availableStock = Math.max(0, size?.stock || 0);
+  }
+
+  if (quantity > availableStock) {
+    return {
+      ok: false,
+      status: 400,
+      message: `Bu ürün için maksimum ${availableStock} adet seçebilirsiniz.`,
+    };
+  }
+
+  return { ok: true };
+}
 
 export async function PATCH(
   request: NextRequest,
@@ -15,7 +82,7 @@ export async function PATCH(
 
     const { itemId } = await params;
     const body = await request.json();
-    const { quantity } = body;
+    const quantity = Math.max(1, Number(body.quantity) || 0);
 
     if (!quantity || quantity < 1) {
       return NextResponse.json(
@@ -25,6 +92,29 @@ export async function PATCH(
     }
 
     if (isRedisCartEnabled()) {
+      const snapshot = await getRedisCartSnapshot(user.id);
+      const targetRedisItem = snapshot.find((item) => item.id === itemId);
+      if (!targetRedisItem) {
+        return NextResponse.json(
+          { error: "Sepet öğesi bulunamadı" },
+          { status: 404 }
+        );
+      }
+
+      const stockValidation = await validateCartQuantity(
+        targetRedisItem.productId,
+        targetRedisItem.colorId,
+        targetRedisItem.sizeId,
+        quantity
+      );
+
+      if (!stockValidation.ok) {
+        return NextResponse.json(
+          { error: stockValidation.message },
+          { status: stockValidation.status }
+        );
+      }
+
       const updated = await updateRedisCartItemQuantity(user.id, itemId, quantity);
       if (!updated) {
         return NextResponse.json(
@@ -39,13 +129,27 @@ export async function PATCH(
     try {
       const targetItem = await prisma.cartItem.findFirst({
         where: { id: itemId, userId: user.id },
-        select: { id: true },
+        select: { id: true, productId: true, colorId: true, sizeId: true },
       });
 
       if (!targetItem) {
         return NextResponse.json(
           { error: "Sepet öğesi bulunamadı" },
           { status: 404 }
+        );
+      }
+
+      const stockValidation = await validateCartQuantity(
+        targetItem.productId,
+        targetItem.colorId,
+        targetItem.sizeId,
+        quantity
+      );
+
+      if (!stockValidation.ok) {
+        return NextResponse.json(
+          { error: stockValidation.message },
+          { status: stockValidation.status }
         );
       }
 

@@ -102,7 +102,7 @@ export default function CheckoutSummaryPage() {
     }
 
     return (
-        <div className="min-h-screen pt-[120px] pb-16 bg-gray-50">
+        <div className="min-h-screen pt-30 pb-16 bg-gray-50">
             <div className="max-w-7xl mx-auto px-4 md:px-8">
                 <h1 className="text-2xl md:text-3xl font-serif font-light mb-8">Sepetim ({items.length})</h1>
 
@@ -112,7 +112,7 @@ export default function CheckoutSummaryPage() {
                         <div className="bg-white rounded-lg p-6 shadow-sm">
                             {items.map((item) => (
                                 <div key={`${item.productId}-${item.colorId}-${item.sizeId}`} className="flex gap-4 py-4 border-b last:border-0 border-gray-100">
-                                    <div className="relative w-24 h-32 bg-gray-100 flex-shrink-0">
+                                    <div className="relative w-24 h-32 bg-gray-100 shrink-0">
                                         <Image
                                             src={getCartItemImage(item)}
                                             alt={item.product.name}

@@ -1,10 +1,38 @@
-﻿import { prisma } from "@/lib/db";
+import { prisma } from "@/lib/db";
+import type { Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { notifyOrderShippedEmail } from "@/lib/services/cargo";
 
-function resolveOrderItemImage(item: any) {
+type AdminOrderDetailItem = Prisma.OrderItemGetPayload<{
+  include: {
+    product: {
+      select: {
+        id: true;
+        name: true;
+        slug: true;
+        image: true;
+        primaryImage: true;
+      };
+    };
+    color: {
+      select: {
+        id: true;
+        name: true;
+        images: true;
+      };
+    };
+    size: {
+      select: {
+        id: true;
+        name: true;
+      };
+    };
+  };
+}>;
+
+function resolveOrderItemImage(item: AdminOrderDetailItem) {
   if (item.image) return item.image;
 
   const rawColorImages = item.color?.images;
@@ -69,6 +97,7 @@ export async function GET(
                   name: true,
                   slug: true,
                   image: true,
+                  primaryImage: true,
                 },
               },
               color: {
@@ -134,7 +163,7 @@ export async function GET(
 
     const normalizedOrder = {
       ...order,
-      items: order.items.map((item) => ({
+      items: order.items.map((item: AdminOrderDetailItem) => ({
         ...item,
         image: resolveOrderItemImage(item),
       })),

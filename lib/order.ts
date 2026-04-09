@@ -1,7 +1,12 @@
 import "server-only";
 
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import type { PrintOrder } from "@/lib/types/print-order";
+
+type PrintOrderItemRow = Prisma.OrderItemGetPayload<{
+  select: { id: true; productName: true; quantity: true };
+}>;
 
 export async function getOrderById(id: string): Promise<PrintOrder | null> {
   const order = await prisma.order.findFirst({
@@ -26,7 +31,7 @@ export async function getOrderById(id: string): Promise<PrintOrder | null> {
     tracking_number: order.trackingNumber,
     customer_name: customerName,
     shipping_address: shippingAddress,
-    items: order.items.map((item) => ({
+    items: order.items.map((item: PrintOrderItemRow) => ({
       id: item.id,
       name: item.productName,
       quantity: item.quantity,

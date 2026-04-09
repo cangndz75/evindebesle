@@ -10,8 +10,9 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  await prisma.user.delete({
+  await prisma.user.update({
     where: { id: session.user.id },
+    data: { deletedAt: new Date() },
   })
 
   return NextResponse.json({ success: true })

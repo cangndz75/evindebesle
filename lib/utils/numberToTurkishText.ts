@@ -1,8 +1,10 @@
 ﻿export function numberToTurkishText(amount: number): string {
-    if (amount === 0) return "SIFIR TÜRK LİRASI";
+    const normalized = Math.round((Number.isFinite(amount) ? amount : 0) * 100) / 100;
+    if (normalized === 0) return "SIFIR TÜRK LİRASI";
 
-    const integerPart = Math.floor(amount);
-    const decimalPart = Math.round((amount - integerPart) * 100);
+    const totalKurus = Math.round(normalized * 100);
+    const integerPart = Math.floor(totalKurus / 100);
+    const decimalPart = totalKurus % 100;
 
     const ones = ["", "BİR", "İKİ", "ÜÇ", "DÖRT", "BEŞ", "ALTI", "YEDİ", "SEKİZ", "DOKUZ"];
     const tens = ["", "ON", "YİRMİ", "OTUZ", "KIRK", "ELLİ", "ALTMIŞ", "YETMİŞ", "SEKSEN", "DOKSAN"];

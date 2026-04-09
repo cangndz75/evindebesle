@@ -28,6 +28,22 @@ export function TransactionDetailModal({
 }: TransactionDetailModalProps) {
     if (!transaction) return null;
 
+    const getPaymentStatusLabel = (status: string) => {
+        const statusMap: Record<string, string> = {
+            PAID: "Ödendi",
+            SUCCESS: "Ödendi",
+            SUCCEEDED: "Ödendi",
+            PAYMENT_SUCCESS: "Ödendi",
+            PENDING: "Ödeme Bekleniyor",
+            PENDING_PAYMENT: "Ödeme Bekleniyor",
+            FAILED: "Ödeme Başarısız",
+            PAYMENT_FAILED: "Ödeme Başarısız",
+            PAYMENT_CAPTURE_FAILED: "Ödeme Tahsilatı Başarısız",
+            REFUNDED: "İade Edildi",
+        };
+        return statusMap[status] || status;
+    };
+
     const formattedTotal = new Intl.NumberFormat("tr-TR", {
         style: "currency",
         currency: "TRY",
@@ -49,10 +65,24 @@ export function TransactionDetailModal({
                             </DialogDescription>
                         </div>
                         <Badge
-                            variant={transaction.paymentStatus === "PAID" ? "outline" : "secondary"}
-                            className={transaction.paymentStatus === "PAID" ? "bg-green-100 text-green-800 hover:bg-green-200 border-green-200" : ""}
+                            variant={
+                                ["PAID", "SUCCESS", "SUCCEEDED", "PAYMENT_SUCCESS"].includes(transaction.paymentStatus)
+                                    ? "outline"
+                                    : "secondary"
+                            }
+                            className={
+                                ["PAID", "SUCCESS", "SUCCEEDED", "PAYMENT_SUCCESS"].includes(transaction.paymentStatus)
+                                    ? "bg-green-100 text-green-800 hover:bg-green-200 border-green-200"
+                                    : ["PENDING", "PENDING_PAYMENT"].includes(transaction.paymentStatus)
+                                    ? "bg-yellow-100 text-yellow-800 hover:bg-yellow-200 border-yellow-200"
+                                    : ["FAILED", "PAYMENT_FAILED", "PAYMENT_CAPTURE_FAILED"].includes(transaction.paymentStatus)
+                                    ? "bg-red-100 text-red-800 hover:bg-red-200 border-red-200"
+                                    : transaction.paymentStatus === "REFUNDED"
+                                    ? "bg-orange-100 text-orange-800 hover:bg-orange-200 border-orange-200"
+                                    : ""
+                            }
                         >
-                            {transaction.paymentStatus}
+                            {getPaymentStatusLabel(transaction.paymentStatus)}
                         </Badge>
                     </div>
                 </DialogHeader>

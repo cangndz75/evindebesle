@@ -47,7 +47,7 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 type Order = {
   id: string;
   orderNumber: string;
-  status: "PENDING" | "PAID" | "PREPARING" | "SHIPPED" | "DELIVERED" | "CANCELLED";
+  status: "PENDING" | "PENDING_PAYMENT" | "PAID" | "PREPARING" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "COMPLETED" | "CANCELLED";
   paymentStatus: "PENDING" | "PAID" | "FAILED" | "REFUNDED";
   subtotal: number;
   shippingCost: number;
@@ -88,7 +88,7 @@ export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [activeTab, setActiveTab] = useState<"ALL" | "PAID" | "PREPARING" | "SHIPPED" | "CANCELLED">("ALL");
+  const [activeTab, setActiveTab] = useState<"ALL" | "PENDING" | "PROCESSING" | "SHIPPED" | "CANCELLED">("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
@@ -181,16 +181,58 @@ export default function AdminOrdersPage() {
     }
   };
 
+  const getOrderStatusLabel = (status: string) => {
+    const statusMap: Record<string, string> = {
+      PENDING: "Beklemede",
+      PENDING_PAYMENT: "Ödeme Bekleniyor",
+      PAID: "Ödendi",
+      PROCESSING: "Hazırlanıyor",
+      PAYMENT_SUCCESS: "Ödeme Alındı",
+      PAYMENT_FAILED: "Ödeme Başarısız",
+      PAYMENT_CAPTURE_FAILED: "Ödeme Tahsilatı Başarısız",
+      PREPARING: "Hazırlanıyor",
+      SHIPPED: "Kargoya Verildi",
+      DELIVERED: "Teslim Edildi",
+      COMPLETED: "Tamamlandı",
+      CANCELLED: "İptal Edildi",
+      REFUNDED: "İade Edildi",
+      DRAFT: "Taslak",
+    };
+    return statusMap[status] || status;
+  };
+
+  const getPaymentStatusLabel = (status: string) => {
+    const statusMap: Record<string, string> = {
+      PENDING: "Ödeme Bekleniyor",
+      PENDING_PAYMENT: "Ödeme Bekleniyor",
+      PAID: "Ödendi",
+      SUCCEEDED: "Ödendi",
+      PAYMENT_SUCCESS: "Ödendi",
+      FAILED: "Başarısız",
+      PAYMENT_FAILED: "Başarısız",
+      PAYMENT_CAPTURE_FAILED: "Tahsilat Başarısız",
+      REFUNDED: "İade Edildi",
+    };
+    return statusMap[status] || status;
+  };
+
   const getStatusBadge = (status: string) => {
     const statusMap: Record<string, { label: string; className: string }> = {
       PENDING: { label: "Beklemede", className: "bg-yellow-100 text-yellow-800" },
+      PENDING_PAYMENT: { label: "Ödeme Bekleniyor", className: "bg-amber-100 text-amber-800" },
       PAID: { label: "Ödendi", className: "bg-green-100 text-green-800" },
+      PAYMENT_SUCCESS: { label: "Ödeme Alındı", className: "bg-emerald-100 text-emerald-800" },
+      PAYMENT_FAILED: { label: "Ödeme Başarısız", className: "bg-red-100 text-red-800" },
+      PAYMENT_CAPTURE_FAILED: { label: "Tahsilat Başarısız", className: "bg-red-100 text-red-800" },
+      PROCESSING: { label: "Hazırlanıyor", className: "bg-blue-100 text-blue-800" },
       PREPARING: { label: "Hazırlanıyor", className: "bg-blue-100 text-blue-800" },
       SHIPPED: { label: "Kargoya Verildi", className: "bg-purple-100 text-purple-800" },
       DELIVERED: { label: "Teslim Edildi", className: "bg-green-100 text-green-800" },
+      COMPLETED: { label: "Tamamlandı", className: "bg-green-100 text-green-800" },
       CANCELLED: { label: "İptal Edildi", className: "bg-red-100 text-red-800" },
+      DRAFT: { label: "Taslak", className: "bg-gray-100 text-gray-800" },
     };
-    const statusInfo = statusMap[status] || { label: status, className: "bg-gray-100 text-gray-800" };
+    const statusInfo = statusMap[status] || { label: getOrderStatusLabel(status), className: "bg-gray-100 text-gray-800" };
     return (
       <Badge className={statusInfo.className}>
         {statusInfo.label}
@@ -201,11 +243,16 @@ export default function AdminOrdersPage() {
   const getPaymentStatusBadge = (status: string) => {
     const statusMap: Record<string, { label: string; className: string }> = {
       PENDING: { label: "Ödeme Bekleniyor", className: "bg-gray-100 text-gray-800" },
+      PENDING_PAYMENT: { label: "Ödeme Bekleniyor", className: "bg-amber-100 text-amber-800" },
       PAID: { label: "Ödendi", className: "bg-green-100 text-green-800" },
+      SUCCEEDED: { label: "Ödendi", className: "bg-green-100 text-green-800" },
+      PAYMENT_SUCCESS: { label: "Ödendi", className: "bg-green-100 text-green-800" },
       FAILED: { label: "Başarısız", className: "bg-red-100 text-red-800" },
+      PAYMENT_FAILED: { label: "Başarısız", className: "bg-red-100 text-red-800" },
+      PAYMENT_CAPTURE_FAILED: { label: "Tahsilat Başarısız", className: "bg-red-100 text-red-800" },
       REFUNDED: { label: "İade Edildi", className: "bg-orange-100 text-orange-800" },
     };
-    const statusInfo = statusMap[status] || { label: status, className: "bg-gray-100 text-gray-800" };
+    const statusInfo = statusMap[status] || { label: getPaymentStatusLabel(status), className: "bg-gray-100 text-gray-800" };
     return (
       <Badge className={statusInfo.className}>
         {statusInfo.label}
@@ -215,7 +262,13 @@ export default function AdminOrdersPage() {
 
   const filteredOrders = orders.filter((order) => {
     if (activeTab !== "ALL") {
-      if (order.status !== activeTab) return false;
+      if (activeTab === "PENDING") {
+        if (!["PENDING", "PENDING_PAYMENT", "PAID"].includes(order.status)) return false;
+      } else if (activeTab === "PROCESSING") {
+        if (!["PREPARING", "PROCESSING"].includes(order.status)) return false;
+      } else if (order.status !== activeTab) {
+        return false;
+      }
     }
 
     if (paymentFilter !== "all" && order.paymentStatus !== paymentFilter) return false;
@@ -241,11 +294,11 @@ export default function AdminOrdersPage() {
     try {
       setUpdatingStatus(true);
       const promises = Array.from(selectedOrders).map((orderId) => {
-        if (action === "PREPARING") {
+        if (action === "PROCESSING") {
           return fetch(`/api/admin/orders/${orderId}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ status: "PREPARING" }),
+            body: JSON.stringify({ status: "PROCESSING" }),
           });
         } else if (action === "SHIPPED") {
           return null; // Handled separately via tracking dialog
@@ -280,8 +333,8 @@ export default function AdminOrdersPage() {
 
   const tabs = [
     { key: "ALL" as const, label: "Tüm Siparişler", count: orders.length },
-    { key: "PAID" as const, label: "Yeni Siparişler", count: orders.filter((o) => o.status === "PAID").length },
-    { key: "PREPARING" as const, label: "Hazırlanıyor", count: orders.filter((o) => o.status === "PREPARING").length },
+    { key: "PENDING" as const, label: "Bekliyor", count: orders.filter((o) => ["PENDING", "PENDING_PAYMENT", "PAID"].includes(o.status)).length },
+    { key: "PROCESSING" as const, label: "Hazırlanıyor", count: orders.filter((o) => ["PREPARING", "PROCESSING"].includes(o.status)).length },
     { key: "SHIPPED" as const, label: "Kargoda", count: orders.filter((o) => o.status === "SHIPPED").length },
     { key: "CANCELLED" as const, label: "İade", count: orders.filter((o) => o.status === "CANCELLED").length },
   ];
@@ -485,9 +538,9 @@ export default function AdminOrdersPage() {
                           <Eye className="w-4 h-4 mr-2" />
                           Detayları Görüntüle
                         </DropdownMenuItem>
-                        {order.status !== "PREPARING" && (
+                        {order.status !== "PREPARING" && order.status !== "PROCESSING" && (
                           <DropdownMenuItem
-                            onClick={() => handleStatusChange(order.id, "PREPARING")}
+                            onClick={() => handleStatusChange(order.id, "PROCESSING")}
                           >
                             <Package className="w-4 h-4 mr-2" />
                             Hazırlanıyor Yap

@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
     try {
         const orders = await prisma.order.findMany({
             where: {
-                status: { in: ["PROCESSING", "SHIPPED", "DELIVERED"] },
+                status: { in: ["PROCESSING", "SHIPPED", "DELIVERED", "COMPLETED"] },
                 createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
             },
             include: {

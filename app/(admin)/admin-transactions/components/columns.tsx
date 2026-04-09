@@ -87,18 +87,23 @@ export const columns = (showDetails: (transaction: Transaction) => void): Column
             switch (status) {
                 case "PAID":
                 case "SUCCESS":
+                case "SUCCEEDED":
+                case "PAYMENT_SUCCESS":
                     variant = "outline";
                     label = "Ödendi";
                     className = "bg-green-100 text-green-800 hover:bg-green-200 border-green-200";
                     break;
                 case "PENDING":
+                case "PENDING_PAYMENT":
                     variant = "secondary";
-                    label = "Bekliyor";
+                    label = "Ödeme Bekleniyor";
                     className = "bg-yellow-100 text-yellow-800 hover:bg-yellow-200 border-yellow-200";
                     break;
                 case "FAILED":
+                case "PAYMENT_FAILED":
+                case "PAYMENT_CAPTURE_FAILED":
                     variant = "destructive";
-                    label = "Başarısız";
+                    label = "Ödeme Başarısız";
                     break;
                 case "REFUNDED":
                     variant = "outline";

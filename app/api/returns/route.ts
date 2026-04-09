@@ -75,7 +75,7 @@ export async function POST(req: Request) {
             return new NextResponse("Order not found", { status: 404 });
         }
 
-        if (order.status !== "DELIVERED") {
+        if (order.status !== "DELIVERED" && order.status !== "COMPLETED") {
             return new NextResponse("Only delivered orders can be returned", { status: 400 });
         }
 

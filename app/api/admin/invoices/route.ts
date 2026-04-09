@@ -2,6 +2,19 @@
 import { prisma } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
+import { fromKurus, sumKurus, toKurus } from "@/lib/utils/money";
+
+const DEFAULT_TCKN_VKN = "11111111111";
+const DEFAULT_INVOICE_PREFIX = "DRK";
+const VAT_RATE = 20;
+
+function buildGibInvoiceNumber(year: number, sequence: number): string {
+    return `${DEFAULT_INVOICE_PREFIX}${year}${sequence.toString().padStart(9, "0")}`;
+}
+
+function toExTaxKurusFromGross(grossKurus: number): number {
+    return Math.round((grossKurus * 100) / (100 + VAT_RATE));
+}
 
 export async function GET(req: Request) {
     try {
@@ -99,15 +112,36 @@ export async function POST(req: Request) {
 
         const companySettings = await prisma.companySettings.findFirst();
 
-        const datePart = new Date().getFullYear();
-        const count = await prisma.invoice.count();
-        const invoiceNumber = `F-${datePart}-${(count + 1).toString().padStart(6, '0')}`;
+        const year = new Date().getFullYear();
+        const yearStart = new Date(`${year}-01-01T00:00:00.000Z`);
+        const nextYearStart = new Date(`${year + 1}-01-01T00:00:00.000Z`);
+        const countForYear = await prisma.invoice.count({
+            where: {
+                createdAt: {
+                    gte: yearStart,
+                    lt: nextYearStart,
+                },
+            },
+        });
+        const invoiceNumber = buildGibInvoiceNumber(year, countForYear + 1);
+
+        const customerAddress = order.billingAddress || order.shippingAddress;
+        const districtName = customerAddress?.district?.name || "";
+        const cityName = customerAddress?.district?.city || "";
+        const addressLine = customerAddress?.fullAddress || "";
+        const fullAddressText = [districtName, cityName, addressLine].filter(Boolean).join(" ").trim();
+
+        const rawTaxNumber = (order.user as any)?.taxNumber || (customerAddress as any)?.taxNumber;
+        const taxNumber = String(rawTaxNumber || DEFAULT_TCKN_VKN);
 
         const customerSnapshot = {
             name: order.user.name,
             email: order.user.email,
             phone: order.user.phone,
-            address: order.billingAddress || order.shippingAddress,
+            address: customerAddress,
+            addressText: fullAddressText,
+            taxNumber,
+            taxOffice: (order.user as any)?.taxOffice || "-",
         };
 
         const itemsSnapshot = order.items.map((item: any) => ({
@@ -115,29 +149,30 @@ export async function POST(req: Request) {
             quantity: item.quantity,
             unitPrice: item.unitPrice,
             totalPrice: item.totalPrice,
-            taxRate: 20, // Assuming 20% VAT for now, ideally comes from product
+            taxRate: VAT_RATE,
         }));
 
-        const subtotal = order.subtotal;
+        const itemGrossKurus = sumKurus(order.items.map((item: any) => item.totalPrice));
+        const itemNetKurus = toExTaxKurusFromGross(itemGrossKurus);
+        const itemTaxKurus = itemGrossKurus - itemNetKurus;
 
-        const taxRate = 0.20;
-        const totalAmount = order.total;
-        const taxAmount = totalAmount - (totalAmount / (1 + taxRate));
-        const netAmount = totalAmount - taxAmount;
+        const totalAmount = fromKurus(toKurus(order.total));
+        const taxAmount = fromKurus(itemTaxKurus);
+        const netAmount = fromKurus(itemNetKurus);
 
         const invoice = await prisma.invoice.create({
             data: {
                 invoiceNumber,
                 orderId: order.id,
-                status: "ISSUED", // Auto-issue
+                status: "ISSUED",
                 companyDetails: companySettings || {},
                 customerDetails: customerSnapshot,
                 items: itemsSnapshot,
                 subtotal: netAmount,
-                taxAmount: taxAmount,
-                totalAmount: totalAmount,
+                taxAmount,
+                totalAmount,
                 issuedAt: new Date(),
-                dueDate: new Date(new Date().setDate(new Date().getDate() + 14)), // 14 days due
+                dueDate: new Date(new Date().setDate(new Date().getDate() + 14)),
             }
         });
 

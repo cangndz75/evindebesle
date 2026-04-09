@@ -84,6 +84,24 @@ export default function CustomerDetailPage() {
     }).format(value);
   };
 
+  const getOrderStatusLabel = (status: string) => {
+    const statusMap: Record<string, string> = {
+      PENDING: "Beklemede",
+      PENDING_PAYMENT: "Ödeme Bekleniyor",
+      PAID: "Ödendi",
+      PAYMENT_SUCCESS: "Ödeme Alındı",
+      PAYMENT_FAILED: "Ödeme Başarısız",
+      PAYMENT_CAPTURE_FAILED: "Ödeme Tahsilatı Başarısız",
+      PREPARING: "Hazırlanıyor",
+      SHIPPED: "Kargoya Verildi",
+      DELIVERED: "Teslim Edildi",
+      CANCELLED: "İptal Edildi",
+      REFUNDED: "İade Edildi",
+      DRAFT: "Taslak",
+    };
+    return statusMap[status] || status;
+  };
+
   if (loading) {
     return (
       <div className="space-y-6 p-6">
@@ -177,7 +195,7 @@ export default function CustomerDetailPage() {
                               : "bg-yellow-100 text-yellow-800"
                           }
                         >
-                          {order.status}
+                          {getOrderStatusLabel(order.status)}
                         </Badge>
                       </div>
                     </div>

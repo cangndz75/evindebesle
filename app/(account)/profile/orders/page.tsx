@@ -31,7 +31,7 @@ import { toast } from "sonner";
 type ProductOrder = {
   id: string;
   orderNumber: string;
-  status: "PENDING" | "PREPARING" | "SHIPPED" | "DELIVERED" | "CANCELLED";
+  status: "PENDING" | "PREPARING" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "COMPLETED" | "CANCELLED";
   paymentStatus: "PENDING" | "PAID" | "FAILED" | "REFUNDED" | "SUCCEEDED";
   total: number;
   createdAt: string;
@@ -142,6 +142,11 @@ export default function OrdersPage() {
         className: "bg-blue-100 text-blue-800 border-blue-200",
         icon: <Package className="w-3 h-3" />,
       },
+      PROCESSING: {
+        label: "Hazırlanıyor",
+        className: "bg-blue-100 text-blue-800 border-blue-200",
+        icon: <Package className="w-3 h-3" />,
+      },
       SHIPPED: {
         label: "Kargoya Verildi",
         className: "bg-purple-100 text-purple-800 border-purple-200",
@@ -149,6 +154,11 @@ export default function OrdersPage() {
       },
       DELIVERED: {
         label: "Teslim Edildi",
+        className: "bg-green-100 text-green-800 border-green-200",
+        icon: <CheckCircle className="w-3 h-3" />,
+      },
+      COMPLETED: {
+        label: "Tamamlandı",
         className: "bg-green-100 text-green-800 border-green-200",
         icon: <CheckCircle className="w-3 h-3" />,
       },
@@ -306,7 +316,7 @@ export default function OrdersPage() {
                               )}
 
                               
-                              {order.status === "DELIVERED" && (
+                              {(order.status === "DELIVERED" || order.status === "COMPLETED") && (
                                 <Button
                                   variant="outline"
                                   size="sm"
@@ -350,7 +360,7 @@ export default function OrdersPage() {
                       
                       <div className="flex flex-wrap justify-end gap-2 pt-2 border-t">
                         
-                        {order.status === "DELIVERED" && (
+                        {(order.status === "DELIVERED" || order.status === "COMPLETED") && (
                           <Button
                             variant="outline"
                             onClick={() => handleOpenReturnModal(order)}

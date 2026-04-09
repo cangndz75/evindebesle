@@ -468,8 +468,8 @@ export async function DELETE(
     const body = await request.json().catch(() => ({}));
     const { colorIds, deleteAll } = body;
 
-    const product = await prisma.product.findUnique({
-      where: { id },
+    const product = await prisma.product.findFirst({
+      where: { id, deletedAt: null },
       include: {
         colors: {
           select: {
@@ -503,8 +503,12 @@ export async function DELETE(
 
 
     if (deleteAll) {
-      await prisma.product.delete({
+      await prisma.product.update({
         where: { id },
+        data: {
+          deletedAt: new Date(),
+          isActive: false,
+        },
       });
     } else if (colorIds && Array.isArray(colorIds) && colorIds.length > 0) {
       for (const colorId of colorIds) {
@@ -539,8 +543,12 @@ export async function DELETE(
         });
 
         if (hasSizes === 0) {
-          await prisma.product.delete({
+          await prisma.product.update({
             where: { id },
+            data: {
+              deletedAt: new Date(),
+              isActive: false,
+            },
           });
         }
       }
@@ -557,6 +565,8 @@ export async function DELETE(
       adminEmail: session.user.email || "",
       targetType: "Product",
       targetId: id,
+      oldValue: product,
+      newValue: { deletedAt: new Date().toISOString(), isActive: false },
       details: auditDetails,
       ipAddress: request.headers.get("x-forwarded-for") || undefined,
       userAgent: request.headers.get("user-agent") || undefined,

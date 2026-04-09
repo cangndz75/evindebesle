@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useCartStore } from "@/lib/stores/cartStore";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
@@ -53,6 +53,7 @@ export default function CheckoutPage() {
     const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
     const [useSavedAddress, setUseSavedAddress] = useState(false);
     const [selectedSavedAddressId, setSelectedSavedAddressId] = useState<string>("");
+    const pendingIdempotencyKey = useRef<string | null>(null);
 
     useEffect(() => {
         const init = async () => {
@@ -235,13 +236,14 @@ export default function CheckoutPage() {
                 }).catch(() => undefined);
             }
 
-            const idempotencyKey = crypto.randomUUID();
+            const idempotencyKey = pendingIdempotencyKey.current || crypto.randomUUID();
+            pendingIdempotencyKey.current = idempotencyKey;
 
             const res = await fetch("/api/checkout/initialize", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "Idempotency-Key": idempotencyKey,
+                    "x-idempotency-key": idempotencyKey,
                 },
                 body: JSON.stringify({
                     userId: session?.user?.id,
@@ -268,12 +270,14 @@ export default function CheckoutPage() {
             if (!res.ok) throw new Error(data.error);
 
             if (data.paymentPageUrl) {
+                pendingIdempotencyKey.current = null;
                 window.location.href = data.paymentPageUrl;
             } else if (data.status === "success" && data.checkoutFormContent) {
                 toast.error("Odeme sayfasi baglantisi alinmadi. Lutfen tekrar deneyin.");
             }
 
         } catch (error: any) {
+            pendingIdempotencyKey.current = null;
             toast.error(error.message || "Ödeme başlatılamadı");
         } finally {
             setLoading(false);

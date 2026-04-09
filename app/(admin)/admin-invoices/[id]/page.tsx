@@ -10,6 +10,7 @@ import { Printer, ArrowLeft, Download, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { QRCodeCanvas } from "qrcode.react";
 import { numberToTurkishText } from "@/lib/utils/numberToTurkishText";
+import { fromKurus, toKurus } from "@/lib/utils/money";
 
 interface InvoiceItem {
     productName: string;
@@ -91,6 +92,20 @@ export default function InvoiceDetailPage() {
 
     const ETTN = invoice.id;
 
+    const customerTaxNumber =
+        invoice.customerDetails?.taxNumber && String(invoice.customerDetails?.taxNumber).trim().length > 0
+            ? String(invoice.customerDetails?.taxNumber)
+            : "11111111111";
+    const customerAddressText =
+        invoice.customerDetails?.addressText ||
+        [
+            invoice.customerDetails?.address?.district?.name,
+            invoice.customerDetails?.address?.district?.city,
+            invoice.customerDetails?.address?.fullAddress,
+        ]
+            .filter(Boolean)
+            .join(" ");
+
     const companyName = invoice.companyDetails?.companyName || "EVİNDEBESLE E-TİC.";
     const companyAddress = invoice.companyDetails?.companyAddress || "Merkez Mah. Örnek Cad. No:1 İstanbul";
     const companyPhone = invoice.companyDetails?.phone || "+90 212 111 22 33";
@@ -147,7 +162,7 @@ export default function InvoiceDetailPage() {
                             {logoUrl ? (
                                 <img src={logoUrl} alt="Logo" className="h-12 w-auto object-contain" />
                             ) : (
-                                <h1 className="text-2xl font-bold text-orange-600">EVİNDEBESLE</h1>
+                                <h1 className="text-2xl font-bold text-orange-600">{companyName}</h1>
                             )}
                         </div>
                         <div className="flex flex-col items-center">
@@ -181,17 +196,12 @@ export default function InvoiceDetailPage() {
                         </div>
                         <div className="pl-0">
                             <p className="font-bold">{invoice.customerDetails?.name}</p>
-                            <p>{invoice.customerDetails?.address?.fullAddress}</p>
+                            <p>{customerAddressText || "-"}</p>
                             <p>{invoice.customerDetails?.address?.district?.name} / {invoice.customerDetails?.address?.district?.city}</p>
                             <p className="mt-2">E-Posta: {invoice.customerDetails?.email}</p>
                             <p>Tel: {invoice.customerDetails?.phone}</p>
-                            
-                            {invoice.customerDetails?.taxNumber && (
-                                <>
-                                    <p>Vergi Dairesi: {invoice.customerDetails?.taxOffice || "-"}</p>
-                                    <p>TCKN/VKN: {invoice.customerDetails?.taxNumber}</p>
-                                </>
-                            )}
+                            <p>Vergi Dairesi: {invoice.customerDetails?.taxOffice || "-"}</p>
+                            <p>TCKN/VKN: {customerTaxNumber}</p>
                         </div>
                     </div>
 
@@ -258,7 +268,7 @@ export default function InvoiceDetailPage() {
                                 <th className="py-1 px-2 text-left border-r border-gray-300 w-8">Sıra No</th>
                                 <th className="py-1 px-2 text-left border-r border-gray-300 w-24">Mal Hizmet Kodu</th>
                                 <th className="py-1 px-2 text-left border-r border-gray-300">Mal Hizmet Adı</th>
-                                <th className="py-1 px-2 text-center border-r border-gray-300 w-16">Miktar</th>
+                                <th className="py-1 px-2 text-right border-r border-gray-300 w-16">Miktar</th>
                                 <th className="py-1 px-2 text-right border-r border-gray-300 w-20">Birim Fiyat</th>
                                 <th className="py-1 px-2 text-right border-r border-gray-300 w-20">Mal Hizmet Tutarı</th>
                                 <th className="py-1 px-2 text-center border-r border-gray-300 w-12">KDV Oranı</th>
@@ -268,22 +278,21 @@ export default function InvoiceDetailPage() {
                         <tbody>
                             {invoice.items.map((item, index) => {
                                 const taxRate = item.taxRate || 20;
-                                const itemTotal = item.totalPrice;
-
-                                const taxAmount = (itemTotal * taxRate) / (100 + taxRate);
-                                const exTaxTotal = itemTotal - taxAmount;
-                                const exTaxUnit = exTaxTotal / item.quantity;
+                                const itemTotalKurus = toKurus(item.totalPrice);
+                                const taxAmountKurus = Math.round((itemTotalKurus * taxRate) / (100 + taxRate));
+                                const exTaxTotalKurus = itemTotalKurus - taxAmountKurus;
+                                const exTaxUnitKurus = item.quantity > 0 ? Math.round(exTaxTotalKurus / item.quantity) : 0;
 
                                 return (
                                     <tr key={index} className="border-b border-gray-200">
                                         <td className="py-1 px-2 text-center border-r border-gray-200">{index + 1}</td>
                                         <td className="py-1 px-2 border-r border-gray-200">PROD-{index + 100}</td>
                                         <td className="py-1 px-2 border-r border-gray-200">{item.productName}</td>
-                                        <td className="py-1 px-2 text-center border-r border-gray-200">{item.quantity} Adet</td>
-                                        <td className="py-1 px-2 text-right border-r border-gray-200">{exTaxUnit.toFixed(2)} TRY</td>
-                                        <td className="py-1 px-2 text-right border-r border-gray-200">{exTaxTotal.toFixed(2)} TRY</td>
+                                        <td className="py-1 px-2 text-right border-r border-gray-200">{item.quantity} Adet</td>
+                                        <td className="py-1 px-2 text-right border-r border-gray-200">{fromKurus(exTaxUnitKurus).toFixed(2)} TRY</td>
+                                        <td className="py-1 px-2 text-right border-r border-gray-200">{fromKurus(exTaxTotalKurus).toFixed(2)} TRY</td>
                                         <td className="py-1 px-2 text-center border-r border-gray-200">%{taxRate.toFixed(2)}</td>
-                                        <td className="py-1 px-2 text-right">{taxAmount.toFixed(2)} TRY</td>
+                                        <td className="py-1 px-2 text-right">{fromKurus(taxAmountKurus).toFixed(2)} TRY</td>
                                     </tr>
                                 );
                             })}
@@ -368,15 +377,15 @@ export default function InvoiceDetailPage() {
                 
                 <div className="mt-8 border-t border-b border-gray-300 py-1 text-[10px]">
                     <div className="grid grid-cols-4 gap-2 font-bold text-center uppercase">
-                        <div>Ödeme Şekli</div>
+                        <div>Ödeme Şekli/Aracısı</div>
+                        <div>Taşıyıcı Adı</div>
                         <div>Taşıyıcı VKN/TCKN</div>
-                        <div>Ödeme Aracısı Adı</div>
                         <div>Gönderim Tarihi</div>
                     </div>
                     <div className="grid grid-cols-4 gap-2 text-center mt-1 uppercase">
                         <div>KREDI KARTI / IYZICO</div>
+                        <div>ARAS KARGO</div>
                         <div>0720039666</div>
-                        <div>Aras Kargo A.Ş.</div>
                         <div>{invoice.issuedAt ? format(new Date(invoice.issuedAt), "dd.MM.yyyy", { locale: tr }) : "-"}</div>
                     </div>
                 </div>

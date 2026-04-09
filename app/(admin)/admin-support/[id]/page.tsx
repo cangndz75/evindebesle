@@ -57,6 +57,24 @@ export default function AdminTicketDetailPage() {
         fetcher
     );
 
+    const getOrderStatusLabel = (status: string) => {
+        const statusMap: Record<string, string> = {
+            PENDING: "Beklemede",
+            PENDING_PAYMENT: "Ödeme Bekleniyor",
+            PAID: "Ödendi",
+            PAYMENT_SUCCESS: "Ödeme Alındı",
+            PAYMENT_FAILED: "Ödeme Başarısız",
+            PAYMENT_CAPTURE_FAILED: "Ödeme Tahsilatı Başarısız",
+            PREPARING: "Hazırlanıyor",
+            SHIPPED: "Kargoya Verildi",
+            DELIVERED: "Teslim Edildi",
+            CANCELLED: "İptal Edildi",
+            REFUNDED: "İade Edildi",
+            DRAFT: "Taslak",
+        };
+        return statusMap[status] || status;
+    };
+
     useEffect(() => {
         if (messagesEndRef.current) {
             messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
@@ -190,7 +208,7 @@ export default function AdminTicketDetailPage() {
                                 <CardContent className="p-3 text-sm">
                                     <div className="flex justify-between items-center mb-1">
                                         <span className="font-medium">#{ticket.order.orderNumber}</span>
-                                        <Badge variant="secondary" className="text-[10px] h-5">{ticket.order.status}</Badge>
+                                        <Badge variant="secondary" className="text-[10px] h-5">{getOrderStatusLabel(ticket.order.status)}</Badge>
                                     </div>
                                     <div className="text-right font-bold text-gray-700">
                                         {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(ticket.order.total)}

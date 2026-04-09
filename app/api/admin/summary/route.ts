@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
     prisma.order.count(),
     prisma.order.aggregate({
       _sum: { total: true },
-      where: { status: { in: ["PAID", "PREPARING", "SHIPPED", "DELIVERED"] } },
+      where: { status: { in: ["PAID", "PREPARING", "PROCESSING", "SHIPPED", "DELIVERED", "COMPLETED"] } },
     }),
   ]);
 

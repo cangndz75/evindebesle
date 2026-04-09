@@ -16,12 +16,14 @@ import {
   CheckCircle,
   Clock,
   XCircle,
-  MapPin,
   Mail,
   Phone,
-  Download,
   AlertTriangle,
   RotateCcw,
+  Copy,
+  ExternalLink,
+  FileText,
+  CreditCard,
 } from "lucide-react";
 import {
   Dialog,
@@ -40,13 +42,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
@@ -54,8 +49,8 @@ import { toast } from "sonner";
 type Order = {
   id: string;
   orderNumber: string;
-  status: "PENDING" | "PREPARING" | "SHIPPED" | "DELIVERED" | "CANCELLED";
-  paymentStatus: "PENDING" | "PAID" | "FAILED" | "REFUNDED";
+  status: "PENDING" | "PAID" | "PREPARING" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "COMPLETED" | "CANCELLED" | "REFUNDED";
+  paymentStatus: "PENDING" | "PAID" | "FAILED" | "REFUNDED" | "SUCCEEDED";
   paymentMethod: string | null;
   paymentId: string | null;
   paidAt: string | null;
@@ -69,6 +64,11 @@ type Order = {
   customerNote: string | null;
   adminNote: string | null;
   createdAt: string;
+  cargoCompany?: {
+    id: number;
+    name: string;
+    code: string;
+  } | null;
   user: {
     id: string;
     name: string;
@@ -135,6 +135,7 @@ export default function OrderDetailPage() {
   const [trackingNumber, setTrackingNumber] = useState("");
   const [statusNote, setStatusNote] = useState("");
   const [updating, setUpdating] = useState(false);
+  const [creatingLabel, setCreatingLabel] = useState(false);
 
   useEffect(() => {
     if (params.id) {
@@ -197,15 +198,85 @@ export default function OrderDetailPage() {
     }
   };
 
+  const handleCreateCargoLabel = async () => {
+    if (!order) return;
+
+    setCreatingLabel(true);
+    try {
+      const res = await fetch(`/api/admin/orders/${order.id}/ship-label`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cargoCompanyCode: "aras" }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.error || "Kargo barkodu oluşturulamadı");
+      }
+
+      const data = await res.json();
+      toast.success(`Kargo barkodu oluşturuldu: ${data.trackingNumber}`);
+      await fetchOrder();
+    } catch (error: any) {
+      toast.error(error?.message || "Kargo barkodu oluşturulamadı");
+    } finally {
+      setCreatingLabel(false);
+    }
+  };
+
+  const getOrderStatusLabel = (status: string) => {
+    const statusMap: Record<string, string> = {
+      PENDING: "Yeni",
+      PENDING_PAYMENT: "Ödeme Bekleniyor",
+      PAID: "Ödendi",
+      PAYMENT_SUCCESS: "Ödeme Alındı",
+      PAYMENT_FAILED: "Ödeme Başarısız",
+      PAYMENT_CAPTURE_FAILED: "Ödeme Tahsilatı Başarısız",
+      PREPARING: "Hazırlanıyor",
+      PROCESSING: "Hazırlanıyor",
+      SHIPPED: "Kargoya Verildi",
+      DELIVERED: "Teslim Edildi",
+      COMPLETED: "Tamamlandı",
+      CANCELLED: "İptal Edildi",
+      REFUNDED: "İade Edildi",
+      DRAFT: "Taslak",
+    };
+    return statusMap[status] || status;
+  };
+
+  const getPaymentStatusLabel = (status: string) => {
+    const statusMap: Record<string, string> = {
+      PENDING: "Ödeme Bekleniyor",
+      PENDING_PAYMENT: "Ödeme Bekleniyor",
+      PAID: "Ödendi",
+      SUCCEEDED: "Ödendi",
+      PAYMENT_SUCCESS: "Ödendi",
+      FAILED: "Başarısız",
+      PAYMENT_FAILED: "Başarısız",
+      PAYMENT_CAPTURE_FAILED: "Tahsilat Başarısız",
+      REFUNDED: "İade Edildi",
+    };
+    return statusMap[status] || status;
+  };
+
   const getStatusBadge = (status: string) => {
     const statusMap: Record<string, { label: string; className: string }> = {
       PENDING: { label: "Yeni", className: "bg-blue-100 text-blue-800" },
+      PENDING_PAYMENT: { label: "Ödeme Bekleniyor", className: "bg-amber-100 text-amber-800" },
+      PAID: { label: "Ödendi", className: "bg-emerald-100 text-emerald-800" },
+      PAYMENT_SUCCESS: { label: "Ödeme Alındı", className: "bg-emerald-100 text-emerald-800" },
+      PAYMENT_FAILED: { label: "Ödeme Başarısız", className: "bg-red-100 text-red-800" },
+      PAYMENT_CAPTURE_FAILED: { label: "Tahsilat Başarısız", className: "bg-red-100 text-red-800" },
       PREPARING: { label: "Hazırlanıyor", className: "bg-yellow-100 text-yellow-800" },
+      PROCESSING: { label: "Hazırlanıyor", className: "bg-yellow-100 text-yellow-800" },
       SHIPPED: { label: "Kargoya Verildi", className: "bg-purple-100 text-purple-800" },
       DELIVERED: { label: "Teslim Edildi", className: "bg-green-100 text-green-800" },
+      COMPLETED: { label: "Tamamlandı", className: "bg-green-100 text-green-800" },
       CANCELLED: { label: "İptal Edildi", className: "bg-red-100 text-red-800" },
+      REFUNDED: { label: "İade Edildi", className: "bg-orange-100 text-orange-800" },
+      DRAFT: { label: "Taslak", className: "bg-gray-100 text-gray-800" },
     };
-    const statusInfo = statusMap[status] || { label: status, className: "bg-gray-100 text-gray-800" };
+    const statusInfo = statusMap[status] || { label: getOrderStatusLabel(status), className: "bg-gray-100 text-gray-800" };
     return (
       <Badge className={`${statusInfo.className} px-3 py-1.5 rounded-full`}>
         {statusInfo.label}
@@ -216,11 +287,16 @@ export default function OrderDetailPage() {
   const getPaymentStatusBadge = (status: string) => {
     const statusMap: Record<string, { label: string; className: string }> = {
       PENDING: { label: "Ödeme Bekleniyor", className: "bg-gray-100 text-gray-800" },
+      PENDING_PAYMENT: { label: "Ödeme Bekleniyor", className: "bg-amber-100 text-amber-800" },
       PAID: { label: "Ödendi", className: "bg-green-100 text-green-800" },
+      SUCCEEDED: { label: "Ödendi", className: "bg-green-100 text-green-800" },
+      PAYMENT_SUCCESS: { label: "Ödendi", className: "bg-green-100 text-green-800" },
       FAILED: { label: "Başarısız", className: "bg-red-100 text-red-800" },
+      PAYMENT_FAILED: { label: "Başarısız", className: "bg-red-100 text-red-800" },
+      PAYMENT_CAPTURE_FAILED: { label: "Tahsilat Başarısız", className: "bg-red-100 text-red-800" },
       REFUNDED: { label: "İade Edildi", className: "bg-orange-100 text-orange-800" },
     };
-    const statusInfo = statusMap[status] || { label: status, className: "bg-gray-100 text-gray-800" };
+    const statusInfo = statusMap[status] || { label: getPaymentStatusLabel(status), className: "bg-gray-100 text-gray-800" };
     return (
       <Badge className={`${statusInfo.className} px-3 py-1.5 rounded-full`}>
         {statusInfo.label}
@@ -235,6 +311,15 @@ export default function OrderDetailPage() {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(value);
+  };
+
+  const getTrackingUrl = () => {
+    if (!order?.trackingNumber) return null;
+    const code = order.cargoCompany?.code?.toLowerCase();
+    if (code === "aras") return `https://kargotakip.araskargo.com.tr/mainpage.aspx?code=${order.trackingNumber}`;
+    if (code === "yurtici") return `https://www.yurticikargo.com/tr/online-servisler/gonderi-sorgula?code=${order.trackingNumber}`;
+    if (code === "trendyolexpress") return `https://www.trendyol.com/kargo-takip?trackingNumber=${order.trackingNumber}`;
+    return null;
   };
 
   if (loading) {
@@ -264,65 +349,107 @@ export default function OrderDetailPage() {
     );
   }
 
+  const totalQuantity = order.items.reduce((sum, item) => sum + item.quantity, 0);
+  const trackingUrl = getTrackingUrl();
+  const isShipped = ["SHIPPED", "DELIVERED", "COMPLETED"].includes(order.status);
+  const isPaid = ["PAID", "SUCCEEDED", "PAYMENT_SUCCESS"].includes(order.paymentStatus);
+  const estimatedSaving = Math.max(0, order.discount + (order.shippingCost === 0 ? 0 : 0));
+  const orderHistory: OrderHistory[] = [
+    { status: "ORDER_CREATED", createdAt: order.createdAt },
+    ...(isPaid ? [{ status: "PAYMENT_SUCCESS", createdAt: order.paidAt || order.createdAt }] : []),
+    ...(["PREPARING", "PROCESSING", "SHIPPED", "DELIVERED", "COMPLETED"].includes(order.status)
+      ? [{ status: "ORDER_PROCESSING", createdAt: order.paidAt || order.createdAt }]
+      : []),
+    ...(isShipped
+      ? [{ status: "SHIPPED", createdAt: order.shippedAt || order.createdAt }]
+      : []),
+    ...(["DELIVERED", "COMPLETED"].includes(order.status)
+      ? [{ status: "DELIVERED", createdAt: order.deliveredAt || order.shippedAt || order.createdAt }]
+      : []),
+  ];
+
   return (
-    <div className="space-y-6 p-6 bg-gray-50 min-h-screen">
-      
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => router.back()}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold">Sipariş #{order.orderNumber}</h1>
-            <p className="text-sm text-gray-600">
+    <div className="min-h-screen bg-slate-50 p-4 md:p-6 space-y-5">
+      <div className="flex items-center gap-2 text-sm text-slate-500">
+        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => router.back()}>
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <span>Siparişler</span>
+        <span>&gt;</span>
+        <span className="font-medium text-slate-700">#{order.orderNumber}</span>
+      </div>
+
+      <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-semibold tracking-tight text-slate-900">#{order.orderNumber}</h1>
+          <div className="flex flex-wrap items-center gap-2">
+            {getPaymentStatusBadge(order.paymentStatus)}
+            {getStatusBadge(order.status)}
+            <span className="text-sm text-slate-500">
               {format(new Date(order.createdAt), "dd MMMM yyyy HH:mm", { locale: tr })}
-            </p>
+            </span>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" onClick={() => window.print()}>
+            <Printer className="mr-2 h-4 w-4" />
+            Fatura Yazdır
+          </Button>
           <Button
-            variant="default"
-            onClick={() => setStatusModalOpen(true)}
-            className="bg-gray-900 text-white hover:bg-gray-800"
+            variant="outline"
+            onClick={() => router.push(`/admin-orders/${order.id}/print`)}
+            disabled={!order.trackingNumber}
+            className={order.trackingNumber ? "bg-indigo-600 text-white hover:bg-indigo-700" : "opacity-50 cursor-not-allowed"}
           >
+            <Printer className="mr-2 h-4 w-4" />
+            Etiketi Yazdır
+          </Button>
+          <Button variant="outline" onClick={() => setStatusModalOpen(true)}>
+            <RotateCcw className="mr-2 h-4 w-4" />
             Durum Güncelle
           </Button>
-          <Button variant="outline" onClick={() => router.push(`/admin-support/new?orderId=${order.id}`)}>
-            <Mail className="w-4 h-4 mr-2" />
-            Mesaj
-          </Button>
+          {order.status !== "SHIPPED" && order.status !== "DELIVERED" && order.status !== "COMPLETED" && order.status !== "CANCELLED" && (
+            <Button
+              onClick={handleCreateCargoLabel}
+              disabled={creatingLabel}
+              className="bg-slate-900 text-white hover:bg-slate-800"
+            >
+              <Truck className="mr-2 h-4 w-4" />
+              {creatingLabel ? "Barkod Oluşturuluyor" : "Kargo Barkodu Oluştur"}
+            </Button>
+          )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline">İşlemler <MoreVertical className="w-4 h-4 ml-2" /></Button>
+              <Button variant="outline" size="icon">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => window.print()}>
-                <Printer className="w-4 h-4 mr-2" /> Yazdır
+              <DropdownMenuItem onClick={() => router.push(`/admin-support/new?orderId=${order.id}`)}>
+                <Mail className="mr-2 h-4 w-4" /> Mesaj
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => router.push(`/admin-orders/${order.id}/refund`)}>
-                <RotateCcw className="w-4 h-4 mr-2" /> İade Oluştur
+                <RotateCcw className="mr-2 h-4 w-4" /> İade Oluştur
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        <div className="lg:col-span-2 space-y-6">
-          
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.75fr)_minmax(340px,1fr)]">
+        <div className="space-y-5">
           {order.riskScore !== undefined && order.riskScore > 50 && (
             <Card className="border-red-200 bg-red-50">
               <CardHeader className="pb-2">
                 <div className="flex items-center gap-2 text-red-700">
-                  <AlertTriangle className="w-5 h-5" />
+                  <AlertTriangle className="h-5 w-5" />
                   <CardTitle className="text-red-700">Risk Analizi</CardTitle>
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-4">
                   <div>
-                    <p className="font-semibold text-lg text-red-900">Skor: {order.riskScore} / 100</p>
+                    <p className="text-lg font-semibold text-red-900">Skor: {order.riskScore} / 100</p>
                     <p className="text-sm text-red-600">Yüksek riskli sipariş. Lütfen kontrol ediniz.</p>
                   </div>
                   <Button variant="destructive" size="sm">Detaylı İncele</Button>
@@ -331,299 +458,197 @@ export default function OrderDetailPage() {
             </Card>
           )}
 
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Sipariş ve Ödeme Durumu</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label className="text-sm text-gray-600">Sipariş Durumu</Label>
-                <div className="mt-2">{getStatusBadge(order.status)}</div>
+          <Card className="border-slate-200">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle>Ürünler</CardTitle>
+                <Badge variant="secondary" className="rounded-full px-3">{totalQuantity} adet</Badge>
               </div>
-              <div>
-                <Label className="text-sm text-gray-600">Ödeme Durumu</Label>
-                <div className="mt-2">{getPaymentStatusBadge(order.paymentStatus)}</div>
-              </div>
-              {order.paymentMethod && (
-                <div>
-                  <Label className="text-sm text-gray-600">Ödeme Yöntemi</Label>
-                  <p className="mt-2 font-medium">{order.paymentMethod}</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Ürünler</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
+            <CardContent className="p-0">
+              <div className="hidden border-y bg-slate-50 px-5 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500 md:grid md:grid-cols-[minmax(0,1.7fr)_1fr_80px_130px_130px]">
+                <span>Ürün</span>
+                <span>SKU</span>
+                <span className="text-center">Adet</span>
+                <span className="text-right">Birim Fiyat</span>
+                <span className="text-right">Toplam</span>
+              </div>
+              <div className="divide-y">
                 {order.items.map((item) => (
-                  <div key={item.id} className="flex items-start gap-4 p-4 border rounded-lg">
-                    <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">
-                      {item.image || item.product.image ? (
-                        <img
-                          src={item.image || item.product.image || ""}
-                          alt={item.productName}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Package className="w-8 h-8 text-gray-400" />
+                  <div key={item.id} className="grid gap-3 px-4 py-4 md:grid-cols-[minmax(0,1.7fr)_1fr_80px_130px_130px] md:items-center md:px-5">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="h-14 w-14 overflow-hidden rounded-lg border bg-slate-100">
+                        {item.image || item.product.image ? (
+                          <img
+                            src={item.image || item.product.image || ""}
+                            alt={item.productName}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center">
+                            <Package className="h-5 w-5 text-slate-400" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-slate-900">{item.productName}</p>
+                        <div className="mt-1 flex flex-wrap gap-1 text-xs text-slate-500">
+                          {item.colorName && <Badge variant="secondary" className="rounded-md">Renk: {item.colorName}</Badge>}
+                          {item.sizeName && <Badge variant="secondary" className="rounded-md">Beden: {item.sizeName}</Badge>}
                         </div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold mb-1">{item.productName}</h4>
-                      <div className="space-y-1 text-sm text-gray-600">
-                        {item.colorName && <p>Renk: {item.colorName}</p>}
-                        {item.sizeName && <p>Beden: {item.sizeName}</p>}
-                        <p>Adet: {item.quantity}</p>
-                        <p className="font-medium text-gray-900">
-                          Birim Fiyat: {formatPrice(item.unitPrice)}
-                        </p>
-                        <p className="font-semibold text-lg">
-                          Toplam: {formatPrice(item.totalPrice)}
-                        </p>
                       </div>
                     </div>
+                    <div className="text-xs font-medium text-slate-500 md:text-sm">{item.product.slug || item.id.slice(0, 12)}</div>
+                    <div className="md:text-center">
+                      <Badge variant="secondary" className="h-8 min-w-8 justify-center rounded-md">{item.quantity}</Badge>
+                    </div>
+                    <div className="text-sm font-medium text-slate-700 md:text-right">{formatPrice(item.unitPrice)}</div>
+                    <div className="text-sm font-semibold text-slate-900 md:text-right">{formatPrice(item.totalPrice)}</div>
                   </div>
                 ))}
               </div>
             </CardContent>
           </Card>
 
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Durum Timeline</CardTitle>
+          <Card className="border-slate-200">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle>Kargo &amp; Teslimat</CardTitle>
+                <Badge className="bg-emerald-100 text-emerald-700">Aktif</Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center justify-between rounded-xl border bg-slate-50 p-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-md bg-red-500 text-sm font-bold text-white">
+                    {(order.cargoCompany?.name || "AK").split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="font-medium text-slate-900">{order.cargoCompany?.name || "Aras Kargo"}</p>
+                    <p className="text-xs text-slate-500">Kargo Firması</p>
+                  </div>
+                </div>
+                <Badge className="bg-amber-100 text-amber-700">{isShipped ? "Kargoya Verildi" : "Hazırlanıyor"}</Badge>
+              </div>
+
+              <div className="space-y-2 rounded-xl border bg-slate-50 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Takip Numarası</p>
+                <div className="flex items-center justify-between gap-3">
+                  <p className="font-semibold tracking-wide text-slate-900">{order.trackingNumber || "Henüz oluşturulmadı"}</p>
+                  {order.trackingNumber && (
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => {
+                          navigator.clipboard.writeText(order.trackingNumber || "");
+                          toast.success("Takip numarası kopyalandı");
+                        }}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                      {trackingUrl && (
+                        <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => window.open(trackingUrl, "_blank") }>
+                          <ExternalLink className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {order.trackingNumber && (
+                <div className="rounded-xl border border-dashed bg-white p-5">
+                  <div
+                    className="mx-auto h-11 w-56"
+                    style={{
+                      backgroundImage: "repeating-linear-gradient(90deg, #0f172a 0, #0f172a 2px, transparent 2px, transparent 4px)",
+                    }}
+                  />
+                  <p className="mt-2 text-center text-xs font-medium tracking-[0.2em] text-slate-500">{order.trackingNumber}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="border-slate-200">
+            <CardHeader className="pb-3">
+              <CardTitle>Sipariş Geçmişi</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                    <CheckCircle className="w-4 h-4 text-green-600" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium">Sipariş Oluşturuldu</p>
-                    <p className="text-sm text-gray-600">
-                      {format(new Date(order.createdAt), "dd MMMM yyyy HH:mm", { locale: tr })}
-                    </p>
-                  </div>
-                </div>
-
-                
-                {order.paymentStatus === "PAID" && (
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                      <CheckCircle className="w-4 h-4 text-green-600" />
+                {orderHistory.map((history, index) => {
+                  const isLast = index === orderHistory.length - 1;
+                  const statusMap: Record<string, { label: string; code: string; done: boolean; warning?: boolean }> = {
+                    ORDER_CREATED: { label: "Sipariş Oluşturuldu", code: "ORDER_CREATED", done: true },
+                    PAYMENT_SUCCESS: { label: "Ödeme Alındı", code: "PAYMENT_SUCCESS", done: isPaid },
+                    ORDER_PROCESSING: { label: "Hazırlanıyor", code: "ORDER_PROCESSING", done: ["PREPARING", "PROCESSING", "SHIPPED", "DELIVERED", "COMPLETED"].includes(order.status), warning: ["PREPARING", "PROCESSING"].includes(order.status) },
+                    SHIPPED: { label: "Kargoya Verildi", code: "SHIPPED", done: isShipped },
+                    DELIVERED: { label: "Teslim Edildi", code: "DELIVERED", done: ["DELIVERED", "COMPLETED"].includes(order.status) },
+                  };
+                  const item = statusMap[history.status];
+                  return (
+                    <div key={`${history.status}-${index}`} className="relative flex items-start gap-3">
+                      <div className={`mt-0.5 flex h-6 w-6 items-center justify-center rounded-full ${item.warning ? "bg-amber-100" : item.done ? "bg-emerald-100" : "bg-slate-100"}`}>
+                        {item.warning ? (
+                          <Clock className="h-3.5 w-3.5 text-amber-600" />
+                        ) : item.done ? (
+                          <CheckCircle className="h-3.5 w-3.5 text-emerald-600" />
+                        ) : (
+                          <Clock className="h-3.5 w-3.5 text-slate-400" />
+                        )}
+                      </div>
+                      {!isLast && <div className="absolute left-3 top-7 h-8 w-px bg-slate-200" />}
+                      <div className="flex-1">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <p className={`font-medium ${item.done ? "text-slate-900" : "text-slate-400"}`}>{item.label}</p>
+                          <p className="text-xs text-slate-500">{format(new Date(history.createdAt), "dd MMMM yyyy HH:mm", { locale: tr })}</p>
+                        </div>
+                        <Badge variant="secondary" className="mt-1 text-[11px]">{item.code}</Badge>
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <p className="font-medium">Ödeme Alındı</p>
-                      <p className="text-sm text-gray-600">
-                        {order.paidAt
-                          ? format(new Date(order.paidAt), "dd MMMM yyyy HH:mm", { locale: tr })
-                          : format(new Date(order.createdAt), "dd MMMM yyyy HH:mm", { locale: tr })}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                
-                {(order.status === "PREPARING" || order.status === "SHIPPED" || order.status === "DELIVERED") && (
-                  <div className="flex items-start gap-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${order.status === "PREPARING" ? "bg-blue-100" : "bg-green-100"
-                      }`}>
-                      <Package className={`w-4 h-4 ${order.status === "PREPARING" ? "text-blue-600" : "text-green-600"
-                        }`} />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium">Hazırlanıyor</p>
-                      {order.status !== "PREPARING" && (
-                        <p className="text-sm text-gray-600">Tamamlandı</p>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                
-                {(order.status === "SHIPPED" || order.status === "DELIVERED") && (
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
-                      <Truck className="w-4 h-4 text-purple-600" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium">Kargoya Verildi</p>
-                      {order.shippedAt && (
-                        <p className="text-sm text-gray-600">
-                          {format(new Date(order.shippedAt), "dd MMMM yyyy HH:mm", { locale: tr })}
-                        </p>
-                      )}
-                      {order.trackingNumber && (
-                        <p className="text-sm font-mono text-gray-700 mt-1">{order.trackingNumber}</p>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                
-                {order.status === "DELIVERED" && (
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                      <CheckCircle className="w-4 h-4 text-green-600" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium">Teslim Edildi</p>
-                      {order.deliveredAt && (
-                        <p className="text-sm text-gray-600">
-                          {format(new Date(order.deliveredAt), "dd MMMM yyyy HH:mm", { locale: tr })}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                
-                {order.status === "CANCELLED" && (
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-                      <XCircle className="w-4 h-4 text-red-600" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium">İptal Edildi</p>
-                    </div>
-                  </div>
-                )}
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
 
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Notlar</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {order.customerNote && (
-                <div>
-                  <Label className="text-sm text-gray-600">Müşteri Notu</Label>
-                  <p className="mt-2 p-3 bg-gray-50 rounded-lg text-sm">{order.customerNote}</p>
-                </div>
-              )}
-              {order.adminNote && (
-                <div>
-                  <Label className="text-sm text-gray-600">İç Not (Admin)</Label>
-                  <p className="mt-2 p-3 bg-blue-50 rounded-lg text-sm">{order.adminNote}</p>
-                </div>
-              )}
-              {!order.customerNote && !order.adminNote && (
-                <p className="text-sm text-gray-500">Henüz not eklenmemiş</p>
-              )}
-            </CardContent>
-          </Card>
-
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>İşlem Geçmişi</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {auditLogs.length === 0 ? (
-                  <p className="text-sm text-gray-500">Henüz kaydedilmiş işlem yok.</p>
-                ) : (
-                  auditLogs.map((log) => (
+          {auditLogs.length > 0 && (
+            <Card className="border-slate-200">
+              <CardHeader>
+                <CardTitle>İşlem Geçmişi</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {auditLogs.slice(0, 6).map((log) => (
                     <div key={log.id} className="flex gap-3 text-sm">
-                      <div className="w-2 h-2 mt-1.5 rounded-full bg-gray-300 flex-shrink-0" />
+                      <div className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-slate-300" />
                       <div className="flex-1">
-                        <div className="flex justify-between items-start">
-                          <p className="font-medium text-gray-900">
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="font-medium text-slate-900">
                             {log.action === "UPDATE" ? "Güncelleme" : log.action}
-                            {log.performedBy && <span className="text-gray-500 font-normal"> • {log.performedBy.name}</span>}
+                            {log.performedBy && <span className="font-normal text-slate-500"> • {log.performedBy.name}</span>}
                           </p>
-                          <span className="text-xs text-gray-400">
-                            {format(new Date(log.createdAt), "dd MMM HH:mm", { locale: tr })}
-                          </span>
-                        </div>
-                        <div className="mt-1">
-                          
-                          {log.action === "UPDATE" && log.newValue && typeof log.newValue === 'object' && (
-                            <div className="text-xs text-gray-600 space-y-1">
-                              {(log.newValue as any).status && (
-                                <p>Durum: <span className="font-medium">{(log.newValue as any).status}</span></p>
-                              )}
-                              {(log.newValue as any).paymentStatus && (
-                                <p>Ödeme: <span className="font-medium">{(log.newValue as any).paymentStatus}</span></p>
-                              )}
-                              {(log.newValue as any).trackingNumber && (
-                                <p>Kargo Takip: <span className="font-medium">{(log.newValue as any).trackingNumber}</span></p>
-                              )}
-                            </div>
-                          )}
+                          <span className="text-xs text-slate-400">{format(new Date(log.createdAt), "dd MMM HH:mm", { locale: tr })}</span>
                         </div>
                       </div>
                     </div>
-                  ))
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
-        
-        <div className="space-y-6">
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Sipariş Özeti</CardTitle>
+        <div className="space-y-5">
+          <Card className="border-slate-200">
+            <CardHeader className="pb-3">
+              <CardTitle>Müşteri Bilgileri</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Ara Toplam</span>
-                <span className="font-medium">{formatPrice(order.subtotal)}</span>
-              </div>
-              {order.discount > 0 && (
-                <div className="flex justify-between text-green-600">
-                  <span>İndirim</span>
-                  <span>-{formatPrice(order.discount)}</span>
-                </div>
-              )}
-              <div className="flex justify-between">
-                <span className="text-gray-600">Kargo</span>
-                <span className={order.shippingCost === 0 ? "text-green-600" : ""}>
-                  {order.shippingCost === 0 ? "Ücretsiz" : formatPrice(order.shippingCost)}
-                </span>
-              </div>
-              <div className="pt-3 border-t">
-                <div className="flex justify-between">
-                  <span className="font-bold text-lg">Toplam</span>
-                  <span className="font-bold text-lg">{formatPrice(order.total)}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Müşteri</CardTitle>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => router.push(`/users?userId=${order.user.id}`)}
-                >
-                  Geçmiş Siparişler
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-5">
               <div className="flex items-center gap-3">
-                <Avatar className="w-12 h-12">
+                <Avatar className="h-12 w-12">
                   <AvatarImage src={order.user.image || ""} />
                   <AvatarFallback>
                     {order.user.name
@@ -635,110 +660,139 @@ export default function OrderDetailPage() {
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="font-semibold">{order.user.name}</p>
-                  <p className="text-sm text-gray-600">Müşteri Detayları</p>
+                  <p className="font-semibold text-slate-900">{order.user.name}</p>
+                  <p className="text-sm text-slate-500">Kayıtlı Müşteri</p>
                 </div>
               </div>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm">
-                  <Mail className="w-4 h-4 text-gray-400" />
+
+              <div className="space-y-2 border-b pb-4">
+                <div className="flex items-center gap-2 text-sm text-slate-700">
+                  <Mail className="h-4 w-4 text-slate-400" />
                   <span>{order.user.email}</span>
                 </div>
                 {order.user.phone && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Phone className="w-4 h-4 text-gray-400" />
+                  <div className="flex items-center gap-2 text-sm text-slate-700">
+                    <Phone className="h-4 w-4 text-slate-400" />
                     <span>{order.user.phone}</span>
                   </div>
                 )}
               </div>
+
+              {order.shippingAddress && (
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Teslimat Adresi</p>
+                  <div className="rounded-xl border bg-slate-50 p-4 text-sm">
+                    <p className="font-semibold text-slate-900">{order.user.name}</p>
+                    <p className="mt-1 text-slate-600">{order.shippingAddress.fullAddress}</p>
+                    <p className="mt-1 text-slate-600">{order.shippingAddress.district.name}</p>
+                  </div>
+                </div>
+              )}
+
+              {order.shippingAddress && (
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Fatura Adresi</p>
+                  <div className="rounded-xl border bg-slate-50 p-4 text-sm">
+                    <p className="font-semibold text-slate-900">{order.user.name}</p>
+                    <p className="mt-1 text-slate-600">{order.shippingAddress.fullAddress}</p>
+                    <p className="mt-1 text-slate-600">{order.shippingAddress.district.name}</p>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
-          
-          {order.shippingAddress && (
-            <Card>
-              <CardHeader>
+          <Card className="border-slate-200">
+            <CardHeader className="pb-3">
+              <CardTitle>Sipariş Özeti</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2.5">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-slate-600">Ara Toplam</span>
+                <span className="font-medium text-slate-900">{formatPrice(order.subtotal)}</span>
+              </div>
+              {order.discount > 0 && (
+                <div className="flex items-center justify-between text-sm text-emerald-600">
+                  <span>İndirim</span>
+                  <span className="font-semibold">-{formatPrice(order.discount)}</span>
+                </div>
+              )}
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-slate-600">Kargo</span>
+                <span className={order.shippingCost === 0 ? "font-medium text-emerald-600" : "font-medium text-slate-900"}>
+                  {order.shippingCost === 0 ? "Ücretsiz" : formatPrice(order.shippingCost)}
+                </span>
+              </div>
+              <div className="mt-3 border-t pt-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle>Teslimat Adresi</CardTitle>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      navigator.clipboard.writeText(
-                        `${order.shippingAddress?.district.name} - ${order.shippingAddress?.fullAddress}`
-                      );
-                      toast.success("Adres kopyalandı");
-                    }}
-                  >
-                    Kopyala
-                  </Button>
+                  <span className="text-xl font-semibold text-slate-900">Genel Toplam</span>
+                  <span className="text-2xl font-bold text-slate-900">{formatPrice(order.total)}</span>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <p className="font-medium">{order.user.name}</p>
-                  {order.user.phone && <p className="text-sm">{order.user.phone}</p>}
-                  <p className="text-sm text-gray-600">
-                    {order.shippingAddress.district.name} - {order.shippingAddress.fullAddress}
-                  </p>
+              </div>
+              {estimatedSaving > 0 && (
+                <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700">
+                  {formatPrice(estimatedSaving)} tasarruf edildi
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              )}
+            </CardContent>
+          </Card>
 
-          
-          {(order.status === "SHIPPED" || order.status === "DELIVERED") && order.trackingNumber && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Kargo Bilgileri</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label className="text-sm text-gray-600">Kargo Firması</Label>
-                  <p className="mt-2 font-medium">MNG Kargo</p>
-                </div>
-                <div>
-                  <Label className="text-sm text-gray-600">Takip Numarası</Label>
-                  <p className="mt-2 font-mono font-medium">{order.trackingNumber}</p>
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" className="flex-1">
-                    <Download className="w-4 h-4 mr-2" />
-                    Kargo Etiketi
-                  </Button>
-                  <Button variant="outline" className="flex-1">
-                    Takip Et
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          
-          {order.paymentStatus === "PAID" && (
-            <Card>
-              <CardHeader>
+          {(isPaid || order.paymentMethod || order.paymentId) && (
+            <Card className="border-slate-200">
+              <CardHeader className="pb-3">
                 <CardTitle>Ödeme Detayları</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {order.paymentMethod && (
-                  <div>
-                    <Label className="text-sm text-gray-600">Ödeme Yöntemi</Label>
-                    <p className="mt-1 font-medium">{order.paymentMethod}</p>
+                  <div className="flex items-start gap-3 text-sm">
+                    <CreditCard className="mt-0.5 h-4 w-4 text-slate-400" />
+                    <div>
+                      <p className="text-slate-500">Ödeme Yöntemi</p>
+                      <p className="font-semibold text-slate-900">{order.paymentMethod}</p>
+                    </div>
                   </div>
                 )}
                 {order.paymentId && (
-                  <div>
-                    <Label className="text-sm text-gray-600">Transaction ID</Label>
-                    <p className="mt-1 font-mono text-sm">{order.paymentId}</p>
+                  <div className="flex items-start gap-3 text-sm">
+                    <FileText className="mt-0.5 h-4 w-4 text-slate-400" />
+                    <div>
+                      <p className="text-slate-500">İşlem ID</p>
+                      <p className="font-mono font-semibold text-slate-900">#{order.paymentId}</p>
+                    </div>
                   </div>
                 )}
                 {order.paidAt && (
+                  <div className="flex items-start gap-3 text-sm">
+                    <Clock className="mt-0.5 h-4 w-4 text-slate-400" />
+                    <div>
+                      <p className="text-slate-500">Ödeme Tarihi</p>
+                      <p className="font-semibold text-slate-900">{format(new Date(order.paidAt), "dd MMMM yyyy HH:mm", { locale: tr })}</p>
+                    </div>
+                  </div>
+                )}
+                <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700">
+                  Ödeme Doğrulandı
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {(order.customerNote || order.adminNote) && (
+            <Card className="border-slate-200">
+              <CardHeader>
+                <CardTitle>Notlar</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {order.customerNote && (
                   <div>
-                    <Label className="text-sm text-gray-600">Ödeme Tarihi</Label>
-                    <p className="mt-1 text-sm">
-                      {format(new Date(order.paidAt), "dd MMMM yyyy HH:mm", { locale: tr })}
-                    </p>
+                    <Label className="text-xs text-slate-500">Müşteri Notu</Label>
+                    <p className="mt-1 rounded-lg bg-slate-50 p-3 text-sm text-slate-700">{order.customerNote}</p>
+                  </div>
+                )}
+                {order.adminNote && (
+                  <div>
+                    <Label className="text-xs text-slate-500">İç Not</Label>
+                    <p className="mt-1 rounded-lg bg-slate-50 p-3 text-sm text-slate-700">{order.adminNote}</p>
                   </div>
                 )}
               </CardContent>
@@ -760,10 +814,9 @@ export default function OrderDetailPage() {
               <div className="mt-2 space-y-2">
                 {[
                   { value: "PENDING", label: "Yeni", icon: Package },
-                  { value: "PREPARING", label: "Hazırlanıyor", icon: Clock },
-                  { value: "PREPARING", label: "Kargoya Hazır", icon: CheckCircle },
+                  { value: "PROCESSING", label: "Hazırlanıyor", icon: Clock },
                   { value: "SHIPPED", label: "Kargoya Verildi", icon: Truck },
-                  { value: "DELIVERED", label: "Teslim Edildi", icon: CheckCircle },
+                  { value: "COMPLETED", label: "Tamamlandı", icon: CheckCircle },
                   { value: "CANCELLED", label: "İptal Edildi", icon: XCircle },
                 ].map((status) => {
                   const Icon = status.icon;
@@ -803,7 +856,7 @@ export default function OrderDetailPage() {
                 placeholder="Durum değişikliği hakkında not ekleyin..."
                 value={statusNote}
                 onChange={(e) => setStatusNote(e.target.value)}
-                className="mt-2 min-h-[100px]"
+                className="mt-2 min-h-25"
                 maxLength={500}
               />
               <p className="text-xs text-gray-500 mt-1">{statusNote.length}/500</p>

@@ -16,7 +16,11 @@ export type AuditAction =
     | "CATEGORY_CREATE"
     | "CATEGORY_UPDATE"
     | "CATEGORY_DELETE"
-    | "COUPON_DELETE";
+    | "COUPON_DELETE"
+    | "PAYMENT_SUCCESS"
+    | "SHIPMENT_LABEL_CREATED"
+    | "CARGO_WEBHOOK_DELIVERED"
+    | string;
 
 interface AuditLogData {
     action: AuditAction;
@@ -24,6 +28,8 @@ interface AuditLogData {
     adminEmail: string;
     targetType?: string;
     targetId?: string;
+    oldValue?: Record<string, any> | null;
+    newValue?: Record<string, any> | null;
     details?: Record<string, any>;
     ipAddress?: string;
     userAgent?: string;
@@ -37,6 +43,8 @@ export async function logAuditAction(data: AuditLogData): Promise<void> {
                 performedById: data.adminId, // mapped from adminId
                 entityType: data.targetType, // mapped from targetType
                 entityId: data.targetId,     // mapped from targetId
+                oldValue: data.oldValue ?? undefined,
+                newValue: data.newValue ?? undefined,
                 details: data.details,       // passed naturally as Json
                 ipAddress: data.ipAddress,
                 userAgent: data.userAgent,

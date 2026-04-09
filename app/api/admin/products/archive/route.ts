@@ -30,13 +30,13 @@ export async function POST(req: NextRequest) {
 
         if (action === "archive") {
             const result = await prisma.product.updateMany({
-                where: { id: { in: productIds } },
+                where: { id: { in: productIds }, deletedAt: null },
                 data: { isActive: false },
             });
             updatedCount = result.count;
         } else if (action === "restore") {
             const result = await prisma.product.updateMany({
-                where: { id: { in: productIds } },
+                where: { id: { in: productIds }, deletedAt: null },
                 data: { isActive: true },
             });
             updatedCount = result.count;
@@ -44,6 +44,7 @@ export async function POST(req: NextRequest) {
             const productsWithOrders = await prisma.product.findMany({
                 where: {
                     id: { in: productIds },
+                    deletedAt: null,
                     orderItems: { some: {} },
                 },
                 select: { id: true, name: true },
@@ -64,8 +65,12 @@ export async function POST(req: NextRequest) {
             );
 
             if (deleteIds.length > 0) {
-                const result = await prisma.product.deleteMany({
+                const result = await prisma.product.updateMany({
                     where: { id: { in: deleteIds } },
+                    data: {
+                        deletedAt: new Date(),
+                        isActive: false,
+                    },
                 });
                 updatedCount = result.count;
             }

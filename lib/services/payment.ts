@@ -5,6 +5,8 @@ import { commitReservationToSaleTx, releaseReservationTx } from "@/lib/stock";
 import { createAdminNotification } from "@/lib/admin-notification";
 import { clearRedisCart } from "@/lib/cart-redis";
 import { sendAdminOrderPaidSms } from "@/lib/sms";
+import { enqueueOrderPostPaymentJob } from "@/lib/queue/order-post-payment";
+import { runOrderPostPaymentTasks } from "@/lib/services/order-post-payment";
 
 interface FinalizePaymentParams {
     orderId: string;
@@ -118,28 +120,28 @@ export async function finalizePayment({
         }
 
         try {
-            await createAdminNotification({
-                type: "ORDER",
-                title: "Yeni Sipariş Alındı",
-                message: `#${result.order.orderNumber} numaralı sipariş başarıyla oluşturuldu.`,
-                link: `/admin/orders/${result.order.id}` // Corrected link path
-            });
-        } catch (notifError) {
-            console.error("Failed to send admin notification:", notifError);
-        }
-
-        try {
-            const smsResult = await sendAdminOrderPaidSms({
-                orderNumber: result.order.orderNumber,
-                total: result.order.total,
+            const queued = await enqueueOrderPostPaymentJob({
                 orderId: result.order.id,
             });
 
-            if (!smsResult.ok) {
-                console.warn("Admin order SMS not sent", smsResult);
+            if (!queued.queued) {
+                await Promise.allSettled([
+                    createAdminNotification({
+                        type: "ORDER",
+                        title: "Yeni Sipariş Alındı",
+                        message: `#${result.order.orderNumber} numaralı sipariş başarıyla oluşturuldu.`,
+                        link: `/admin-orders/${result.order.id}`
+                    }),
+                    sendAdminOrderPaidSms({
+                        orderNumber: result.order.orderNumber,
+                        total: result.order.total,
+                        orderId: result.order.id,
+                    }),
+                    runOrderPostPaymentTasks(result.order.id),
+                ]);
             }
-        } catch (smsError) {
-            console.error("Failed to send admin order SMS:", smsError);
+        } catch (queueError) {
+            console.error("Post-payment queue error:", queueError);
         }
 
         return result.order;

@@ -1,6 +1,6 @@
-import crypto from "crypto";
-
 export function normalizeIdempotencyKey(key?: string | null) {
-    if (!key || key.length < 10) return crypto.randomUUID();
-    return key.slice(0, 200);
+    if (!key) return null;
+    const normalized = key.trim();
+    if (normalized.length < 10) return null;
+    return normalized.slice(0, 200);
 }

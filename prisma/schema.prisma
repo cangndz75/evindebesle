@@ -26,6 +26,7 @@ model User {
   profileNoteConsent     Boolean              @default(false)
   createdAt              DateTime             @default(now())
   updatedAt              DateTime             @updatedAt
+  deletedAt              DateTime?
   isTestUser             Boolean              @default(false)
   accounts               Account[]
   campaigns              Campaign[]
@@ -52,6 +53,8 @@ model User {
   userAutomations        UserAutomation[]
   analyticsEvents        AnalyticsEvent[]
   analyticsSessions      AnalyticsSession[]
+
+  @@index([deletedAt])
 }
 
 model PasswordResetToken {
@@ -241,6 +244,7 @@ model Product {
   isActive             Boolean              @default(true)
   createdAt            DateTime             @default(now())
   updatedAt            DateTime             @updatedAt
+  deletedAt            DateTime?
   detailText           String?
   gender               Gender?
   sizeType             SizeType?
@@ -305,6 +309,7 @@ model Product {
   @@index([isActive, price])
   @@index([isActive, categoryId, gender, createdAt])
   @@index([fabricType])
+  @@index([deletedAt])
 }
 
 model ProductColor {
@@ -539,6 +544,21 @@ model CompanySettings {
   updatedAt DateTime @updatedAt
 }
 
+model CargoCompany {
+  id          Int      @id @default(autoincrement())
+  name        String
+  code        String   @unique
+  trackingUrl String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  orders      Order[]
+
+  @@index([code])
+  @@index([isActive])
+}
+
 model DashboardWidget {
   id        String   @id @default(cuid())
   userId    String?
@@ -569,6 +589,7 @@ model Order {
   paymentMethod     String?
   paidAt            DateTime?
   trackingNumber    String?
+  cargoCompanyId    Int?
   shippedAt         DateTime?
   deliveredAt       DateTime?
   couponId          String?
@@ -576,7 +597,9 @@ model Order {
   adminNote         String?
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt
+  deletedAt         DateTime?
   billingAddress    UserAddress?    @relation("BillingAddress", fields: [billingAddressId], references: [id])
+  cargoCompany      CargoCompany?   @relation(fields: [cargoCompanyId], references: [id])
   coupon            Coupon?         @relation(fields: [couponId], references: [id])
   shippingAddress   UserAddress?    @relation("ShippingAddress", fields: [shippingAddressId], references: [id])
   user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -585,7 +608,7 @@ model Order {
   riskAnalysis      String?
   returnRequests    ReturnRequest[]
 
-  idempotencyKey    String?            @unique
+  idempotencyKey    String?
   reservedUntil     DateTime?
   currency          String             @default("TRY")
   payment           PaymentAttempt?
@@ -594,7 +617,10 @@ model Order {
   @@index([userId])
   @@index([orderNumber])
   @@index([status])
+  @@index([cargoCompanyId])
   @@index([createdAt])
+  @@index([idempotencyKey])
+  @@index([deletedAt])
 
   invoices Invoice[]
 }
@@ -648,6 +674,24 @@ model AuditLog {
 
   @@index([entityId])
   @@index([entityType])
+}
+
+model IdempotencyRequest {
+  id          String            @id @default(cuid())
+  scope       String
+  key         String
+  status      IdempotencyStatus @default(PROCESSING)
+  requestHash String?
+  response    Json?
+  orderId     String?
+  errorCode   String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  expiresAt   DateTime
+
+  @@unique([scope, key])
+  @@index([expiresAt])
+  @@index([orderId])
 }
 
 model OrderItem {
@@ -849,6 +893,9 @@ enum SizeType {
 
 enum OrderStatus {
   DRAFT
+  PENDING
+  PROCESSING
+  COMPLETED
   PENDING_PAYMENT
   PAID
   PAYMENT_FAILED
@@ -870,6 +917,12 @@ enum PaymentStatus {
   PENDING
   PAID
   REFUNDED
+}
+
+enum IdempotencyStatus {
+  PROCESSING
+  SUCCESS
+  FAILED
 }
 
 enum CampaignStatus {

@@ -31,7 +31,7 @@ import ProductReviewModal from "@/components/product/ProductReviewModal";
 interface OrderDetail {
     id: string;
     orderNumber: string;
-    status: "PENDING" | "PREPARING" | "SHIPPED" | "DELIVERED" | "CANCELLED";
+    status: "PENDING" | "PREPARING" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "COMPLETED" | "CANCELLED";
     paymentStatus: "PENDING" | "PAID" | "FAILED" | "REFUNDED" | "SUCCEEDED";
     total: number;
     subtotal: number; // Assuming API returns this or we calculate
@@ -151,8 +151,10 @@ export default function OrderDetailPage() {
             PAID: { label: "Ödeme Alındı", className: "bg-emerald-100 text-emerald-800", icon: CheckCircle },
             PAYMENT_FAILED: { label: "Ödeme Başarısız", className: "bg-red-100 text-red-800", icon: XCircle },
             PREPARING: { label: "Hazırlanıyor", className: "bg-blue-100 text-blue-800", icon: Package },
+            PROCESSING: { label: "Hazırlanıyor", className: "bg-blue-100 text-blue-800", icon: Package },
             SHIPPED: { label: "Kargoya Verildi", className: "bg-purple-100 text-purple-800", icon: Truck },
             DELIVERED: { label: "Teslim Edildi", className: "bg-green-100 text-green-800", icon: CheckCircle },
+            COMPLETED: { label: "Tamamlandı", className: "bg-green-100 text-green-800", icon: CheckCircle },
             CANCELLED: { label: "İptal Edildi", className: "bg-red-100 text-red-800", icon: XCircle },
         };
         const info = statusMap[status] || { label: status, className: "bg-gray-100", icon: Clock };
@@ -288,7 +290,7 @@ export default function OrderDetailPage() {
                                                 </div>
 
                                                 
-                                                {order.status === "DELIVERED" && (
+                                                {(order.status === "DELIVERED" || order.status === "COMPLETED") && (
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
@@ -406,7 +408,7 @@ export default function OrderDetailPage() {
                                     </div>
                                 </div>
 
-                                {order.status === "DELIVERED" && (
+                                {(order.status === "DELIVERED" || order.status === "COMPLETED") && (
                                     <Button variant="outline" className="w-full flex items-center gap-2">
                                         <RotateCcw className="w-4 h-4" />
                                         İade Oluştur

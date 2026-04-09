@@ -8,8 +8,13 @@ import { clearRedisCart, persistRedisCartToDatabase } from "@/lib/cart-redis";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { finalizePayment } from "@/lib/services/payment";
+import crypto from "crypto";
 
 export async function POST(req: Request) {
+    const idemScope = "checkout.initialize";
+    let idem: string | null = null;
+    let idempotencyLocked = false;
+
     try {
         const reqUrl = new URL(req.url);
         const appBaseUrl = (process.env.APP_URL || process.env.NEXT_PUBLIC_BASE_URL || reqUrl.origin).replace(/\/$/, "");
@@ -25,8 +30,42 @@ export async function POST(req: Request) {
 
         await releaseExpiredReservations();
 
-        const idem = normalizeIdempotencyKey(req.headers.get("Idempotency-Key"));
+        const rawIdempotencyKey = req.headers.get("x-idempotency-key") || req.headers.get("Idempotency-Key");
+        idem = normalizeIdempotencyKey(rawIdempotencyKey);
+        if (!idem) {
+            return NextResponse.json(
+                { error: "x-idempotency-key zorunludur ve en az 10 karakter olmalıdır." },
+                { status: 400 }
+            );
+        }
+
         const body = await req.json();
+        const now = new Date();
+        const twentyFourHoursLater = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+        const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+        const existingIdempotency = await prisma.idempotencyRequest.findUnique({
+            where: {
+                scope_key: {
+                    scope: idemScope,
+                    key: idem,
+                },
+            },
+        });
+
+        if (existingIdempotency && existingIdempotency.expiresAt > now) {
+            if (existingIdempotency.status === "SUCCESS" && existingIdempotency.response) {
+                return NextResponse.json(existingIdempotency.response as any);
+            }
+
+            if (existingIdempotency.status === "PROCESSING") {
+                return NextResponse.json(
+                    { error: "Bu ödeme isteği halen işleniyor. Lütfen birkaç saniye sonra tekrar deneyin." },
+                    { status: 409 }
+                );
+            }
+        }
+
         const session = await getServerSession(authConfig);
 
         let resolvedUserId = body.userId || session?.user?.id || null;
@@ -104,18 +143,50 @@ export async function POST(req: Request) {
             }
         }
 
-        const existing = await prisma.order.findUnique({
-            where: { idempotencyKey: idem },
+        const existing = await prisma.order.findFirst({
+            where: {
+                idempotencyKey: idem,
+                deletedAt: null,
+                createdAt: { gte: twentyFourHoursAgo },
+            },
             include: { payment: true, items: true },
+            orderBy: { createdAt: "desc" },
         });
 
         if (existing?.payment?.token) {
-            return NextResponse.json({
+            const existingPayload = {
                 orderId: existing.id,
                 status: existing.status,
                 checkoutFormContent: existing.payment.rawResult ? (existing.payment.rawResult as any).checkoutFormContent : undefined,
                 paymentPageUrl: existing.payment.rawResult ? (existing.payment.rawResult as any).paymentPageUrl : undefined,
+            };
+
+            await prisma.idempotencyRequest.upsert({
+                where: {
+                    scope_key: {
+                        scope: idemScope,
+                        key: idem,
+                    },
+                },
+                create: {
+                    scope: idemScope,
+                    key: idem,
+                    status: "SUCCESS",
+                    requestHash: crypto.createHash("sha256").update(JSON.stringify(body)).digest("hex"),
+                    response: existingPayload,
+                    orderId: existing.id,
+                    expiresAt: twentyFourHoursLater,
+                },
+                update: {
+                    status: "SUCCESS",
+                    response: existingPayload,
+                    orderId: existing.id,
+                    errorCode: null,
+                    expiresAt: twentyFourHoursLater,
+                },
             });
+
+            return NextResponse.json(existingPayload);
         }
 
         const orderItemsData = [];
@@ -129,8 +200,11 @@ export async function POST(req: Request) {
                 .replace(/[\u0300-\u036f]/g, "");
 
         for (const item of body.items) {
-            const product = await prisma.product.findUnique({
-                where: { id: item.productId },
+            const product = await prisma.product.findFirst({
+                where: {
+                    id: item.productId,
+                    deletedAt: null,
+                },
                 select: {
                     id: true,
                     name: true,
@@ -365,6 +439,53 @@ export async function POST(req: Request) {
         const total = subtotal + shipping - discount;
         const currency = "TRY";
 
+        const requestHash = crypto.createHash("sha256").update(JSON.stringify(body)).digest("hex");
+        const lockState = await prisma.idempotencyRequest.findUnique({
+            where: {
+                scope_key: {
+                    scope: idemScope,
+                    key: idem,
+                },
+            },
+        });
+
+        if (lockState && lockState.expiresAt > now) {
+            if (lockState.status === "SUCCESS" && lockState.response) {
+                return NextResponse.json(lockState.response as any);
+            }
+            if (lockState.status === "PROCESSING") {
+                return NextResponse.json(
+                    { error: "Bu ödeme isteği halen işleniyor. Lütfen birkaç saniye sonra tekrar deneyin." },
+                    { status: 409 }
+                );
+            }
+        }
+
+        await prisma.idempotencyRequest.upsert({
+            where: {
+                scope_key: {
+                    scope: idemScope,
+                    key: idem,
+                },
+            },
+            create: {
+                scope: idemScope,
+                key: idem,
+                status: "PROCESSING",
+                requestHash,
+                expiresAt: twentyFourHoursLater,
+            },
+            update: {
+                status: "PROCESSING",
+                requestHash,
+                response: null,
+                orderId: null,
+                errorCode: null,
+                expiresAt: twentyFourHoursLater,
+            },
+        });
+        idempotencyLocked = true;
+
         if (body.paymentMethod === "TEST") {
             const order = await prisma.order.create({
                 data: {
@@ -435,11 +556,29 @@ export async function POST(req: Request) {
                 await clearRedisCart(resolvedUserId);
             }
 
-            return NextResponse.json({
+            const payload = {
                 orderId: order.id,
                 paymentPageUrl: `/success?orderId=${order.id}`, // Direct redirect
                 status: "success"
+            };
+
+            await prisma.idempotencyRequest.update({
+                where: {
+                    scope_key: {
+                        scope: idemScope,
+                        key: idem,
+                    },
+                },
+                data: {
+                    status: "SUCCESS",
+                    response: payload,
+                    orderId: order.id,
+                    errorCode: null,
+                    expiresAt: twentyFourHoursLater,
+                },
             });
+
+            return NextResponse.json(payload);
         }
 
         const order = await prisma.order.create({
@@ -606,6 +745,24 @@ export async function POST(req: Request) {
                 }),
             ]);
 
+            await prisma.idempotencyRequest.update({
+                where: {
+                    scope_key: {
+                        scope: idemScope,
+                        key: idem,
+                    },
+                },
+                data: {
+                    status: "FAILED",
+                    orderId: order.id,
+                    errorCode: initRes.errorMessage || "IYZICO_INIT_FAILED",
+                    response: {
+                        error: initRes.errorMessage || "Iyzico init failed",
+                    },
+                    expiresAt: twentyFourHoursLater,
+                },
+            });
+
             return NextResponse.json({ error: initRes.errorMessage || "Iyzico init failed" }, { status: 400 });
         }
 
@@ -619,14 +776,53 @@ export async function POST(req: Request) {
             },
         });
 
-        return NextResponse.json({
+        const payload = {
             orderId: order.id,
             checkoutFormContent: initRes.checkoutFormContent,
             paymentPageUrl: initRes.paymentPageUrl,
+        };
+
+        await prisma.idempotencyRequest.update({
+            where: {
+                scope_key: {
+                    scope: idemScope,
+                    key: idem,
+                },
+            },
+            data: {
+                status: "SUCCESS",
+                response: payload,
+                orderId: order.id,
+                errorCode: null,
+                expiresAt: twentyFourHoursLater,
+            },
         });
+
+        return NextResponse.json(payload);
 
     } catch (error: any) {
         console.error("Checkout Init Error:", error);
+
+        if (idempotencyLocked && idem) {
+            try {
+                await prisma.idempotencyRequest.update({
+                    where: {
+                        scope_key: {
+                            scope: idemScope,
+                            key: idem,
+                        },
+                    },
+                    data: {
+                        status: "FAILED",
+                        errorCode: error?.message || "CHECKOUT_INIT_EXCEPTION",
+                        response: { error: "CHECKOUT_INIT_EXCEPTION" },
+                    },
+                });
+            } catch (idemUpdateError) {
+                console.error("Idempotency update error:", idemUpdateError);
+            }
+        }
+
         return NextResponse.json({ error: "CHECKOUT_INIT_EXCEPTION" }, { status: 500 });
     }
 }

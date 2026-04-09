@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { iyzico, iyzicoCall } from "@/lib/iyzico";
 import { commitReservationToSaleTx, releaseReservationTx } from "@/lib/stock";
@@ -76,7 +76,7 @@ async function handleCallback(req: NextRequest) {
         }
 
         if (payment.status === "SUCCEEDED") {
-            return NextResponse.redirect(`${baseUrl}/checkout/success?orderId=${orderId}`);
+            return NextResponse.redirect(`${baseUrl}/checkout/success?orderId=${orderId}`, 303);
         }
 
         await prisma.paymentAttempt.update({
@@ -129,7 +129,7 @@ async function handleCallback(req: NextRequest) {
                 conversationId: retrieveRes.conversationId || null,
             });
 
-            return NextResponse.redirect(`${baseUrl}/checkout/success?orderId=${orderId}`);
+            return NextResponse.redirect(`${baseUrl}/checkout/success?orderId=${orderId}`, 303);
         } else {
             await releaseReservationTx(orderId);
 
@@ -154,7 +154,7 @@ async function handleCallback(req: NextRequest) {
                 })
             ]);
 
-            return NextResponse.redirect(`${baseUrl}/checkout/success?orderId=${orderId}&error=payment_failed`);
+            return NextResponse.redirect(`${baseUrl}/checkout/success?orderId=${orderId}&error=payment_failed`, 303);
         }
 
     } catch (error: any) {

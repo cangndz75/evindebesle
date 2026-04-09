@@ -1,9 +1,7 @@
 import "server-only";
 
 import { prisma } from "@/lib/db";
-import { resend } from "@/lib/resend";
-
-const FROM = "Dark Velvet <noreply@dark-velvet.com>";
+import { resend, resendFromAddress } from "@/lib/resend";
 
 function publicBaseUrl() {
   const raw =
@@ -67,14 +65,17 @@ export async function sendVerificationOtpByEmail(normalizedEmail: string) {
   const html = buildHtml(token, verifyUrl);
 
   const { error } = await resend.emails.send({
-    from: FROM,
-    to: normalizedEmail,
+    from: resendFromAddress(),
+    to: [normalizedEmail],
     subject: "Doğrulama Kodunuz",
     html,
   });
 
   if (error) {
-    console.error("[sendVerificationOtpByEmail] Resend error:", error);
+    console.error(
+      "[sendVerificationOtpByEmail] Resend error:",
+      typeof error === "object" ? JSON.stringify(error) : error
+    );
     return { ok: false as const, error: "E-posta gönderilemedi." };
   }
 

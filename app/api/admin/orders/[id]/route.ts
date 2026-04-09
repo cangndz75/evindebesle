@@ -161,9 +161,11 @@ export async function GET(
       );
     }
 
+    const orderItems = order.items as AdminOrderDetailItem[];
+
     const normalizedOrder = {
       ...order,
-      items: order.items.map((item: AdminOrderDetailItem) => ({
+      items: orderItems.map((item) => ({
         ...item,
         image: resolveOrderItemImage(item),
       })),

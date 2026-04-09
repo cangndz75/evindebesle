@@ -23,6 +23,21 @@ type SavedAddress = {
     isPrimary: boolean;
 };
 
+function splitFullName(full: string | null | undefined) {
+    const t = String(full || "").trim();
+    if (!t) return { first: "", last: "" };
+    const parts = t.split(/\s+/);
+    return { first: parts[0] || "", last: parts.slice(1).join(" ") || "" };
+}
+
+function digitsToLocalGsm10(raw: string | null | undefined) {
+    let d = String(raw || "").replace(/\D/g, "");
+    if (d.startsWith("0090") && d.length >= 14) d = d.slice(4);
+    else if (d.startsWith("90") && d.length >= 12) d = d.slice(2);
+    else if (d.startsWith("0") && d.length >= 11) d = d.slice(1);
+    return d.slice(0, 10);
+}
+
 export default function CheckoutPage() {
     const { items: cart, refreshCart, couponCode, discountAmount, applyCoupon, removeCoupon } = useCartStore();
     const { data: session, status } = useSession();
@@ -113,6 +128,26 @@ export default function CheckoutPage() {
             });
     }, [status]);
 
+    useEffect(() => {
+        if (status !== "authenticated") return;
+        fetch("/api/user/me")
+            .then((r) => (r.ok ? r.json() : null))
+            .then((data) => {
+                const u = data?.user;
+                if (!u) return;
+                const fromName = splitFullName(u.name);
+                const phoneDigits = digitsToLocalGsm10(u.phone);
+                setFormData((prev) => ({
+                    ...prev,
+                    email: prev.email || u.email || "",
+                    firstName: prev.firstName || fromName.first,
+                    lastName: prev.lastName || fromName.last,
+                    phone: prev.phone || phoneDigits,
+                }));
+            })
+            .catch(() => undefined);
+    }, [status]);
+
     const getCartItemImage = (item: typeof cart[number]) => {
         if (item.color?.images) {
             let colorImages: string[] = [];
@@ -200,10 +235,33 @@ export default function CheckoutPage() {
         }
 
         const requiresManualAddress = !useSavedAddress || !selectedSavedAddressId;
+        const checkoutWithSavedAddress =
+            status === "authenticated" &&
+            useSavedAddress &&
+            savedAddresses.length > 0 &&
+            Boolean(selectedSavedAddressId);
 
-        if (!formData.email || !formData.firstName || !formData.lastName || !formData.phone) {
-            toast.error("Lütfen tüm zorunlu alanları doldurunuz.");
+        const { first: sessionFirst, last: sessionLast } = splitFullName(session?.user?.name);
+        const effectiveFirst = (formData.firstName.trim() || sessionFirst).trim();
+        const effectiveLast = (formData.lastName.trim() || sessionLast).trim();
+
+        if (!formData.email?.trim()) {
+            toast.error("Lütfen e-posta adresinizi girin.");
             return;
+        }
+
+        if (checkoutWithSavedAddress) {
+            if (!effectiveFirst) {
+                toast.error(
+                    "Ad bilgisi eksik. Profilinizdeki ad soyadı güncelleyin veya kayıtlı adres seçimini kapatıp formu doldurun."
+                );
+                return;
+            }
+        } else {
+            if (!formData.firstName?.trim() || !formData.lastName?.trim()) {
+                toast.error("Lütfen tüm zorunlu alanları doldurunuz.");
+                return;
+            }
         }
 
         if (requiresManualAddress && (!formData.addressLine1 || !formData.city)) {
@@ -226,6 +284,12 @@ export default function CheckoutPage() {
         }
 
         setLoading(true);
+
+        const billingShippingPayload = {
+            ...formData,
+            firstName: checkoutWithSavedAddress ? effectiveFirst : formData.firstName.trim(),
+            lastName: checkoutWithSavedAddress ? effectiveLast : formData.lastName.trim(),
+        };
 
         try {
             if (newsletterConsent) {
@@ -256,9 +320,9 @@ export default function CheckoutPage() {
                         colorName: item.color?.name,
                         sizeName: item.size?.name
                     })),
-                    billingAddress: formData,
-                    shippingAddress: formData, // Keeping it simple: shipping = billing
-                    selectedUserAddressId: useSavedAddress ? selectedSavedAddressId || null : null,
+                    billingAddress: billingShippingPayload,
+                    shippingAddress: billingShippingPayload,
+                    selectedUserAddressId: checkoutWithSavedAddress ? selectedSavedAddressId : null,
                     shippingPrice: shippingPrice,
                     paymentMethod: methodToUse, // CREDIT_CARD or TEST
                     couponCode: couponCode
@@ -428,6 +492,25 @@ export default function CheckoutPage() {
                                 <p className="text-sm text-gray-700">{selectedSavedAddress.districtName}</p>
                                 <p className="text-sm text-gray-700 leading-relaxed">{selectedSavedAddress.fullAddress}</p>
                                 <p className="text-xs text-gray-500">Ülke: Türkiye</p>
+                            </div>
+                            <div className="mt-4 space-y-2">
+                                <p className="text-sm text-gray-600">
+                                    Ödeme ve bildirimler için cep telefonu (5XXXXXXXXX)
+                                </p>
+                                <div className="w-full flex items-center border border-gray-300 rounded focus-within:border-black overflow-hidden">
+                                    <span className="px-3 text-sm text-gray-600 border-r border-gray-200">+90</span>
+                                    <input
+                                        type="tel"
+                                        name="phone"
+                                        placeholder="5554443322"
+                                        value={formData.phone}
+                                        onChange={handleChange}
+                                        inputMode="numeric"
+                                        pattern="[0-9]*"
+                                        maxLength={10}
+                                        className="w-full p-3 focus:outline-none"
+                                    />
+                                </div>
                             </div>
                         ) : (
                             <div className="space-y-4">

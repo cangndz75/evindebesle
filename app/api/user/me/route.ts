@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { prisma } from "@/lib/db";
@@ -39,6 +39,17 @@ export async function GET() {
       select: { id: true, districtId: true, fullAddress: true },
     }),
   ]);
+
+  if (!user) {
+    return jsonNoStore(
+      {
+        error: "Unauthenticated",
+        user: null,
+        primaryAddress: null,
+      },
+      { status: 401 }
+    );
+  }
 
   return jsonNoStore({
     user,

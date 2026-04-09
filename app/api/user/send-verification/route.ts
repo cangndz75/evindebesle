@@ -1,34 +1,32 @@
-import { NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authConfig } from "@/lib/auth.config"
-import { prisma } from "@/lib/db"
-import { Resend } from "resend"
-import { v4 as uuidv4 } from "uuid"
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authConfig } from "@/lib/auth.config";
+import { prisma } from "@/lib/db";
+import { sendVerificationOtpByEmail } from "@/lib/email/sendVerificationOtp";
 
 export async function POST() {
-  const session = await getServerSession(authConfig)
-  if (!session?.user?.id) return NextResponse.json({}, { status: 401 })
+  const session = await getServerSession(authConfig);
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Oturum gerekli." }, { status: 401 });
+  }
 
-  const token = uuidv4()
-  const email = session.user.email!
-
-  await prisma.user.update({
+  const dbUser = await prisma.user.findUnique({
     where: { id: session.user.id },
-    data: {
-      emailVerifyToken: token,
-      emailVerifyExpires: new Date(Date.now() + 1000 * 60 * 60 * 24),
-    },
-  })
+    select: { email: true, emailVerified: true },
+  });
 
-    const verifyUrl = `${process.env.FRONTEND_BASE_URL}/verify-email?token=${token}`
+  if (!dbUser?.email) {
+    return NextResponse.json({ error: "Kayıtlı e-posta bulunamadı." }, { status: 400 });
+  }
 
-  const resend = new Resend(process.env.RESEND_API_KEY)
-  await resend.emails.send({
-    from: "do-not-reply@seninsite.com",
-    to: email,
-    subject: "E-posta Doğrulama",
-    html: `<p>E-postanızı doğrulamak için <a href="${verifyUrl}">buraya tıklayın</a>.</p>`,
-  })
+  if (dbUser.emailVerified) {
+    return NextResponse.json({ success: true, alreadyVerified: true });
+  }
 
-  return NextResponse.json({ success: true })
+  const result = await sendVerificationOtpByEmail(dbUser.email);
+  if (!result.ok) {
+    return NextResponse.json({ error: result.error }, { status: 500 });
+  }
+
+  return NextResponse.json({ success: true });
 }

@@ -1,4 +1,4 @@
-﻿import "server-only";
+import "server-only";
 
 import CredentialsProvider from "next-auth/providers/credentials";
 import type { AuthOptions } from "next-auth";
@@ -54,23 +54,84 @@ export const authConfig: AuthOptions = {
   },
   callbacks: {
     async session({ session, token }: { session: any; token: any }) {
-      if (token) {
-        session.user.id = token.sub;
-        session.user.isAdmin = token.isAdmin;
-        session.user.districtId = token.districtId;
-        session.user.fullAddress = token.fullAddress;
-        session.user.isTestUser = Boolean(token.isTestUser);
+      if (!token?.sub) {
+        session.user.id = undefined;
+        session.user.email = null;
+        session.user.name = null;
+        session.user.isAdmin = false;
+        session.user.districtId = null;
+        session.user.fullAddress = null;
+        session.user.isTestUser = false;
+        return session;
       }
+
+      session.user.id = token.sub;
+      session.user.email = token.email ?? session.user.email;
+      session.user.name = token.name ?? session.user.name;
+      session.user.isAdmin = Boolean(token.isAdmin);
+      session.user.districtId = token.districtId;
+      session.user.fullAddress = token.fullAddress;
+      session.user.isTestUser = Boolean(token.isTestUser);
       return session;
     },
     async jwt({ token, user }: { token: any; user?: any }) {
       if (user) {
-        token.sub = user.id;
-        token.isAdmin = user.isAdmin;
-        token.districtId = user.districtId;
-        token.fullAddress = user.fullAddress;
+        const id = typeof user.id === "string" ? user.id : String(user.id);
+        token.sub = id;
+        token.email = user.email ?? null;
+        token.name = user.name ?? null;
+        token.isAdmin = Boolean(user.isAdmin);
+        token.districtId = user.districtId ?? null;
+        token.fullAddress = user.fullAddress ?? null;
         token.isTestUser = user.isTestUser ?? false;
+        return token;
       }
+
+      const userId = token.sub as string | undefined;
+      if (!userId) return token;
+
+      try {
+        const dbUser = await prisma.user.findFirst({
+          where: { id: userId, deletedAt: null },
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            isAdmin: true,
+            districtId: true,
+            fullAddress: true,
+            isTestUser: true,
+          },
+        });
+
+        if (!dbUser) {
+          delete token.sub;
+          delete token.email;
+          delete token.name;
+          delete token.isAdmin;
+          delete token.districtId;
+          delete token.fullAddress;
+          delete token.isTestUser;
+          return token;
+        }
+
+        token.sub = dbUser.id;
+        token.email = dbUser.email;
+        token.name = dbUser.name;
+        token.isAdmin = Boolean(dbUser.isAdmin);
+        token.districtId = dbUser.districtId;
+        token.fullAddress = dbUser.fullAddress;
+        token.isTestUser = dbUser.isTestUser ?? false;
+      } catch {
+        delete token.sub;
+        delete token.email;
+        delete token.name;
+        delete token.isAdmin;
+        delete token.districtId;
+        delete token.fullAddress;
+        delete token.isTestUser;
+      }
+
       return token;
     },
   },

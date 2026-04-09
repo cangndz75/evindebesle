@@ -1,7 +1,8 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { rateLimit } from "@/lib/rateLimit";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
+import { sendVerificationOtpByEmail } from "@/lib/email/sendVerificationOtp";
 
 export async function POST(req: Request) {
   try {
@@ -36,6 +37,17 @@ export async function POST(req: Request) {
     });
     console.log("[REGISTER_SUCCESS]", newUser.id);
 
+    let verificationEmailSent = false;
+    try {
+      const otpResult = await sendVerificationOtpByEmail(normalizedEmail);
+      verificationEmailSent = otpResult.ok;
+      if (!otpResult.ok) {
+        console.error("[REGISTER_OTP_MAIL]", otpResult.error);
+      }
+    } catch (mailErr) {
+      console.error("[REGISTER_OTP_MAIL_EXCEPTION]", mailErr);
+    }
+
     try {
       await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/analytics/track`, {
         method: 'POST',
@@ -56,7 +68,10 @@ export async function POST(req: Request) {
       console.error('[ANALYTICS_TRACK_ERROR]', err);
     }
 
-    return NextResponse.json({ success: true, userId: newUser.id }, { status: 201 });
+    return NextResponse.json(
+      { success: true, userId: newUser.id, verificationEmailSent },
+      { status: 201 }
+    );
 
   } catch (error) {
     console.error("[REGISTER_ERROR]", error);

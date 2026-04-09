@@ -11,20 +11,35 @@ export default function EmailVerifyNotice() {
   const [dismissed, setDismissed] = useState(false)
 
   useEffect(() => {
-    fetch("/api/user/me").then(res => res.json()).then(data => {
-      setNeedsVerification(!data?.user?.emailVerified)
-    })
-  }, [])
+    fetch("/api/user/me")
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data?.user) {
+          setNeedsVerification(false);
+          return;
+        }
+        setNeedsVerification(!data.user.emailVerified);
+      });
+  }, []);
 
   const handleSendVerification = async () => {
     setSending(true)
-    const res = await fetch("/api/user/send-verification", { method: "POST" })
-    setSending(false)
+    const res = await fetch("/api/user/send-verification", { method: "POST" });
+    setSending(false);
+
+    const data = await res.json().catch(() => ({}));
 
     if (res.ok) {
-      toast.success("Doğrulama e-postası gönderildi. Lütfen e-posta kutunuzu kontrol edin.")
+      if (data?.alreadyVerified) {
+        setNeedsVerification(false);
+        toast.success("E-posta adresiniz zaten doğrulanmış.");
+        return;
+      }
+      toast.success(
+        "Doğrulama kodu e-postanıza gönderildi. Gelen kutunuzu ve spam klasörünü kontrol edin; kodu /verify sayfasında girebilirsiniz."
+      );
     } else {
-      toast.error("Bir hata oluştu. Lütfen tekrar deneyin.")
+      toast.error(data?.error || "Bir hata oluştu. Lütfen tekrar deneyin.");
     }
   }
 

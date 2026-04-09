@@ -104,28 +104,19 @@ export default function AuthTabs() {
           return;
         }
 
-        const otpRes = await fetch("/api/send-otp", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: registerEmail }),
-        });
-
-        if (!otpRes.ok) {
-          sessionStorage.setItem(
-            "pendingRegisterAuth",
-            JSON.stringify({ email: registerEmail, password: registerPassword })
-          );
-          toast.error("Kayıt tamamlandı, kod gönderilemedi. Doğrulama ekranından tekrar gönderebilirsiniz.");
-          router.push(`/verify?email=${registerEmail}`);
-          return;
-        }
-
         sessionStorage.setItem(
           "pendingRegisterAuth",
           JSON.stringify({ email: registerEmail, password: registerPassword })
         );
-        toast.success("Kayıt başarılı! Kod gönderildi.");
-        router.push(`/verify?email=${registerEmail}`);
+
+        if (data.verificationEmailSent === false) {
+          toast.warning(
+            "Hesap oluşturuldu ancak doğrulama e-postası gönderilemedi. Doğrulama sayfasından kodu tekrar isteyin."
+          );
+        } else {
+          toast.success("Kayıt başarılı! E-postanıza doğrulama kodu gönderildi.");
+        }
+        router.push(`/verify?email=${encodeURIComponent(registerEmail)}`);
       } catch {
         toast.error("Bir hata oluştu.");
       }

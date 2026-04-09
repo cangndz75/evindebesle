@@ -16,7 +16,10 @@ export async function GET() {
   const addresses = await prisma.userAddress.findMany({
     where: { userId: session.user.id },
     include: { district: true },
-    orderBy: { createdAt: "desc" },
+    orderBy: [
+      { isPrimary: "desc" },
+      { createdAt: "desc" },
+    ],
   });
 
   return NextResponse.json(

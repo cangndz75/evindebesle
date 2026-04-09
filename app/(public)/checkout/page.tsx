@@ -15,6 +15,14 @@ declare global {
     }
 }
 
+type SavedAddress = {
+    id: string;
+    districtId: string;
+    districtName: string;
+    fullAddress: string;
+    isPrimary: boolean;
+};
+
 export default function CheckoutPage() {
     const { items: cart, refreshCart, couponCode, discountAmount, applyCoupon, removeCoupon } = useCartStore();
     const { data: session, status } = useSession();
@@ -42,6 +50,9 @@ export default function CheckoutPage() {
 
     const [paymentMethod, setPaymentMethod] = useState<"CREDIT_CARD" | "TEST">("CREDIT_CARD");
     const [newsletterConsent, setNewsletterConsent] = useState(true);
+    const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
+    const [useSavedAddress, setUseSavedAddress] = useState(false);
+    const [selectedSavedAddressId, setSelectedSavedAddressId] = useState<string>("");
 
     useEffect(() => {
         const init = async () => {
@@ -68,6 +79,38 @@ export default function CheckoutPage() {
             })
             .catch(() => { });
     }, []);
+
+    useEffect(() => {
+        if (status !== "authenticated") {
+            setSavedAddresses([]);
+            setUseSavedAddress(false);
+            setSelectedSavedAddressId("");
+            return;
+        }
+
+        fetch("/api/address")
+            .then((res) => res.json())
+            .then((data) => {
+                const list = Array.isArray(data) ? data : [];
+                setSavedAddresses(list);
+
+                if (list.length === 0) {
+                    setUseSavedAddress(false);
+                    setSelectedSavedAddressId("");
+                    return;
+                }
+
+                const primary = list.find((addr: SavedAddress) => addr.isPrimary);
+                const initialId = primary?.id || list[0]?.id || "";
+                setUseSavedAddress(true);
+                setSelectedSavedAddressId(initialId);
+            })
+            .catch(() => {
+                setSavedAddresses([]);
+                setUseSavedAddress(false);
+                setSelectedSavedAddressId("");
+            });
+    }, [status]);
 
     const getCartItemImage = (item: typeof cart[number]) => {
         if (item.color?.images) {
@@ -106,6 +149,8 @@ export default function CheckoutPage() {
     }, 0);
     const shippingPrice = subtotal >= freeShippingThreshold ? 0 : shippingCost;
     const total = Math.max(0, subtotal + shippingPrice - discountAmount);
+    const isManualAddressDisabled = status === "authenticated" && useSavedAddress && savedAddresses.length > 0 && Boolean(selectedSavedAddressId);
+    const selectedSavedAddress = savedAddresses.find((addr) => addr.id === selectedSavedAddressId) || null;
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -153,8 +198,15 @@ export default function CheckoutPage() {
             return;
         }
 
-        if (!formData.email || !formData.firstName || !formData.lastName || !formData.addressLine1 || !formData.city || !formData.phone) {
+        const requiresManualAddress = !useSavedAddress || !selectedSavedAddressId;
+
+        if (!formData.email || !formData.firstName || !formData.lastName || !formData.phone) {
             toast.error("Lütfen tüm zorunlu alanları doldurunuz.");
+            return;
+        }
+
+        if (requiresManualAddress && (!formData.addressLine1 || !formData.city)) {
+            toast.error("Lütfen teslimat adresini doldurunuz.");
             return;
         }
 
@@ -204,6 +256,7 @@ export default function CheckoutPage() {
                     })),
                     billingAddress: formData,
                     shippingAddress: formData, // Keeping it simple: shipping = billing
+                    selectedUserAddressId: useSavedAddress ? selectedSavedAddressId || null : null,
                     shippingPrice: shippingPrice,
                     paymentMethod: methodToUse, // CREDIT_CARD or TEST
                     couponCode: couponCode
@@ -314,87 +367,147 @@ export default function CheckoutPage() {
                     
                     <div>
                         <h2 className="text-xl font-medium mb-4">Teslimat Adresi</h2>
-                        <div className="space-y-4">
-                            <div className="grid grid-cols-1">
-                                <select
-                                    name="country"
-                                    value={formData.country}
-                                    onChange={handleChange}
-                                    className="w-full border border-gray-300 rounded p-3 bg-white focus:outline-none focus:border-black"
-                                >
-                                    <option value="Turkey">Türkiye</option>
-                                </select>
+                        {status === "authenticated" && (
+                            <div className="mb-4 rounded border border-gray-200 p-3 bg-white">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <input
+                                        id="useSavedAddress"
+                                        type="checkbox"
+                                        className="rounded border-gray-300"
+                                        checked={useSavedAddress && savedAddresses.length > 0}
+                                        onChange={(e) => {
+                                            const next = e.target.checked;
+                                            if (savedAddresses.length === 0) {
+                                                setUseSavedAddress(false);
+                                                return;
+                                            }
+                                            setUseSavedAddress(next);
+                                            if (next && !selectedSavedAddressId) {
+                                                const primary = savedAddresses.find((addr) => addr.isPrimary);
+                                                setSelectedSavedAddressId(primary?.id || savedAddresses[0]?.id || "");
+                                            }
+                                        }}
+                                        disabled={savedAddresses.length === 0}
+                                    />
+                                    <label htmlFor="useSavedAddress" className="text-sm font-medium">
+                                        Kayıtlı adresimi seç
+                                    </label>
+                                </div>
+
+                                {savedAddresses.length > 0 && (
+                                    <select
+                                        value={selectedSavedAddressId}
+                                        onChange={(e) => setSelectedSavedAddressId(e.target.value)}
+                                        disabled={!useSavedAddress}
+                                        className="w-full border border-gray-300 rounded p-2 text-sm bg-white disabled:bg-gray-100"
+                                    >
+                                        {savedAddresses.map((addr) => (
+                                            <option key={addr.id} value={addr.id}>
+                                                {addr.isPrimary ? "Ana Adres - " : ""}{addr.districtName} / {addr.fullAddress}
+                                            </option>
+                                        ))}
+                                    </select>
+                                )}
+
+                                {savedAddresses.length === 0 && (
+                                    <p className="text-xs text-gray-500">Kayıtlı adresiniz yok, aşağıdaki formdan yeni adres girin.</p>
+                                )}
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
+                        )}
+
+                        {isManualAddressDisabled && selectedSavedAddress ? (
+                            <div className="rounded border border-gray-200 bg-gray-50 p-4 space-y-2">
+                                <p className="text-xs uppercase tracking-wide text-gray-500">Seçilen Kayıtlı Adres</p>
+                                <p className="text-sm font-medium text-gray-900">
+                                    {selectedSavedAddress.isPrimary ? "Ana Adres" : "Kayıtlı Adres"}
+                                </p>
+                                <p className="text-sm text-gray-700">{selectedSavedAddress.districtName}</p>
+                                <p className="text-sm text-gray-700 leading-relaxed">{selectedSavedAddress.fullAddress}</p>
+                                <p className="text-xs text-gray-500">Ülke: Türkiye</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                <div className="grid grid-cols-1">
+                                    <select
+                                        name="country"
+                                        value={formData.country}
+                                        onChange={handleChange}
+                                        className="w-full border border-gray-300 rounded p-3 bg-white focus:outline-none focus:border-black"
+                                    >
+                                        <option value="Turkey">Türkiye</option>
+                                    </select>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <input
+                                        type="text"
+                                        name="firstName"
+                                        placeholder="Ad"
+                                        value={formData.firstName}
+                                        onChange={handleChange}
+                                        className="w-full border border-gray-300 rounded p-3 focus:outline-none focus:border-black"
+                                    />
+                                    <input
+                                        type="text"
+                                        name="lastName"
+                                        placeholder="Soyad"
+                                        value={formData.lastName}
+                                        onChange={handleChange}
+                                        className="w-full border border-gray-300 rounded p-3 focus:outline-none focus:border-black"
+                                    />
+                                </div>
                                 <input
                                     type="text"
-                                    name="firstName"
-                                    placeholder="Ad"
-                                    value={formData.firstName}
+                                    name="addressLine1"
+                                    placeholder="Adres"
+                                    value={formData.addressLine1}
                                     onChange={handleChange}
                                     className="w-full border border-gray-300 rounded p-3 focus:outline-none focus:border-black"
                                 />
                                 <input
                                     type="text"
-                                    name="lastName"
-                                    placeholder="Soyad"
-                                    value={formData.lastName}
+                                    name="apartment"
+                                    placeholder="Apartman, daire vb. (opsiyonel)"
+                                    value={formData.apartment}
                                     onChange={handleChange}
                                     className="w-full border border-gray-300 rounded p-3 focus:outline-none focus:border-black"
                                 />
+                                <div className="grid grid-cols-3 gap-4">
+                                    <input
+                                        type="text"
+                                        name="city"
+                                        placeholder="Şehir"
+                                        value={formData.city}
+                                        onChange={handleChange}
+                                        className="w-full border border-gray-300 rounded p-3 focus:outline-none focus:border-black"
+                                    />
+                                    <input
+                                        type="text"
+                                        name="zipCode"
+                                        placeholder="Posta Kodu"
+                                        value={formData.zipCode}
+                                        onChange={handleChange}
+                                        inputMode="numeric"
+                                        pattern="[0-9]*"
+                                        maxLength={5}
+                                        className="w-full border border-gray-300 rounded p-3 focus:outline-none focus:border-black col-span-2"
+                                    />
+                                </div>
+                                <div className="w-full flex items-center border border-gray-300 rounded focus-within:border-black overflow-hidden">
+                                    <span className="px-3 text-sm text-gray-600 border-r border-gray-200">+90</span>
+                                    <input
+                                        type="tel"
+                                        name="phone"
+                                        placeholder="5554443322"
+                                        value={formData.phone}
+                                        onChange={handleChange}
+                                        inputMode="numeric"
+                                        pattern="[0-9]*"
+                                        maxLength={10}
+                                        className="w-full p-3 focus:outline-none"
+                                    />
+                                </div>
                             </div>
-                            <input
-                                type="text"
-                                name="addressLine1"
-                                placeholder="Adres"
-                                value={formData.addressLine1}
-                                onChange={handleChange}
-                                className="w-full border border-gray-300 rounded p-3 focus:outline-none focus:border-black"
-                            />
-                            <input
-                                type="text"
-                                name="apartment"
-                                placeholder="Apartman, daire vb. (opsiyonel)"
-                                value={formData.apartment}
-                                onChange={handleChange}
-                                className="w-full border border-gray-300 rounded p-3 focus:outline-none focus:border-black"
-                            />
-                            <div className="grid grid-cols-3 gap-4">
-                                <input
-                                    type="text"
-                                    name="city"
-                                    placeholder="Şehir"
-                                    value={formData.city}
-                                    onChange={handleChange}
-                                    className="w-full border border-gray-300 rounded p-3 focus:outline-none focus:border-black"
-                                />
-                                <input
-                                    type="text"
-                                    name="zipCode"
-                                    placeholder="Posta Kodu"
-                                    value={formData.zipCode}
-                                    onChange={handleChange}
-                                    inputMode="numeric"
-                                    pattern="[0-9]*"
-                                    maxLength={5}
-                                    className="w-full border border-gray-300 rounded p-3 focus:outline-none focus:border-black col-span-2"
-                                />
-                            </div>
-                            <div className="w-full flex items-center border border-gray-300 rounded focus-within:border-black overflow-hidden">
-                                <span className="px-3 text-sm text-gray-600 border-r border-gray-200">+90</span>
-                                <input
-                                    type="tel"
-                                    name="phone"
-                                    placeholder="5554443322"
-                                    value={formData.phone}
-                                    onChange={handleChange}
-                                    inputMode="numeric"
-                                    pattern="[0-9]*"
-                                    maxLength={10}
-                                    className="w-full p-3 focus:outline-none"
-                                />
-                            </div>
-                        </div>
+                        )}
                     </div>
 
                     

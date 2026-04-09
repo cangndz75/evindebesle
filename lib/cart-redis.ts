@@ -234,19 +234,59 @@ export async function persistRedisCartToDatabase(userId: string) {
   const snapshot = await getRedisCartSnapshot(userId);
   if (snapshot.length === 0) return { persisted: 0 };
 
-  await prisma.$transaction(async (tx: any) => {
-    await tx.cartItem.deleteMany({ where: { userId } });
-    await tx.cartItem.createMany({
-      data: snapshot.map((item) => ({
+  const productIds = Array.from(new Set(snapshot.map((item) => item.productId).filter(Boolean)));
+  const colorIds = Array.from(new Set(snapshot.map((item) => item.colorId).filter(Boolean))) as string[];
+  const sizeIds = Array.from(new Set(snapshot.map((item) => item.sizeId).filter(Boolean))) as string[];
+
+  const [products, colors, sizes] = await Promise.all([
+    prisma.product.findMany({
+      where: { id: { in: productIds } },
+      select: { id: true },
+    }),
+    colorIds.length
+      ? prisma.productColor.findMany({
+          where: { id: { in: colorIds } },
+          select: { id: true, productId: true },
+        })
+      : Promise.resolve([]),
+    sizeIds.length
+      ? prisma.productSize.findMany({
+          where: { id: { in: sizeIds } },
+          select: { id: true, productId: true },
+        })
+      : Promise.resolve([]),
+  ]);
+
+  const validProductIds = new Set(products.map((product: any) => product.id));
+  const colorMeta = new Map(colors.map((color: any) => [color.id, color.productId]));
+  const sizeMeta = new Map(sizes.map((size: any) => [size.id, size.productId]));
+
+  const sanitizedRows = snapshot
+    .filter((item) => validProductIds.has(item.productId))
+    .map((item) => {
+      const normalizedColorId =
+        item.colorId && colorMeta.get(item.colorId) === item.productId ? item.colorId : null;
+      const normalizedSizeId =
+        item.sizeId && sizeMeta.get(item.sizeId) === item.productId ? item.sizeId : null;
+
+      return {
         userId,
         productId: item.productId,
-        colorId: item.colorId,
-        sizeId: item.sizeId,
+        colorId: normalizedColorId,
+        sizeId: normalizedSizeId,
         quantity: item.quantity,
-      })),
-      skipDuplicates: true,
+      };
     });
+
+  await prisma.$transaction(async (tx: any) => {
+    await tx.cartItem.deleteMany({ where: { userId } });
+    if (sanitizedRows.length > 0) {
+      await tx.cartItem.createMany({
+        data: sanitizedRows,
+        skipDuplicates: true,
+      });
+    }
   });
 
-  return { persisted: snapshot.length };
+  return { persisted: sanitizedRows.length };
 }

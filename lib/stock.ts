@@ -162,3 +162,34 @@ export async function commitReservationToSaleTx(orderId: string) {
         });
     });
 }
+
+export async function releaseExpiredReservations() {
+    const now = new Date();
+    const expiredOrders = await prisma.stockReservation.findMany({
+        where: {
+            releasedAt: null,
+            OR: [
+                { expiresAt: { lte: now } },
+                {
+                    order: {
+                        status: {
+                            in: ["PAYMENT_FAILED", "CANCELLED", "DRAFT"],
+                        },
+                    },
+                },
+            ],
+        },
+        select: { orderId: true },
+        distinct: ["orderId"],
+    });
+
+    for (const row of expiredOrders) {
+        try {
+            await releaseReservationTx(row.orderId);
+        } catch (error) {
+            console.error("Expired reservation release error:", row.orderId, error);
+        }
+    }
+
+    return { releasedOrders: expiredOrders.length };
+}

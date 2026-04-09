@@ -29,9 +29,10 @@ export async function GET(
                                 name: true,
                                 slug: true,
                                 image: true,
+                                primaryImage: true,
                             }
                         },
-                        color: { select: { id: true, name: true } },
+                        color: { select: { id: true, name: true, images: true } },
                         size: { select: { id: true, name: true } },
                     },
                 },

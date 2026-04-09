@@ -147,6 +147,9 @@ export default function OrderDetailPage() {
     const getStatusBadge = (status: string) => {
         const statusMap: Record<string, { label: string; className: string; icon: any }> = {
             PENDING: { label: "Beklemede", className: "bg-yellow-100 text-yellow-800", icon: Clock },
+            PENDING_PAYMENT: { label: "Ödeme Bekleniyor", className: "bg-amber-100 text-amber-800", icon: Clock },
+            PAID: { label: "Ödeme Alındı", className: "bg-emerald-100 text-emerald-800", icon: CheckCircle },
+            PAYMENT_FAILED: { label: "Ödeme Başarısız", className: "bg-red-100 text-red-800", icon: XCircle },
             PREPARING: { label: "Hazırlanıyor", className: "bg-blue-100 text-blue-800", icon: Package },
             SHIPPED: { label: "Kargoya Verildi", className: "bg-purple-100 text-purple-800", icon: Truck },
             DELIVERED: { label: "Teslim Edildi", className: "bg-green-100 text-green-800", icon: CheckCircle },

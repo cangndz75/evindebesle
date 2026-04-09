@@ -1,7 +1,7 @@
 ﻿import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { normalizeIdempotencyKey } from "@/lib/idempotency";
-import { reserveStockTx } from "@/lib/stock";
+import { releaseExpiredReservations, releaseReservationTx, reserveStockTx } from "@/lib/stock";
 import { iyzico, iyzicoCall } from "@/lib/iyzico";
 import { checkRateLimit, getClientIdentifier, RateLimits } from "@/lib/rateLimit";
 import { clearRedisCart, persistRedisCartToDatabase } from "@/lib/cart-redis";
@@ -11,6 +11,8 @@ import { finalizePayment } from "@/lib/services/payment";
 
 export async function POST(req: Request) {
     try {
+        const reqUrl = new URL(req.url);
+        const appBaseUrl = (process.env.APP_URL || process.env.NEXT_PUBLIC_BASE_URL || reqUrl.origin).replace(/\/$/, "");
         const ip = getClientIdentifier(req);
         const rateKey = `checkout:${ip}`;
         const paymentRate = await checkRateLimit(rateKey, RateLimits.payment);
@@ -20,6 +22,8 @@ export async function POST(req: Request) {
                 { status: 429 }
             );
         }
+
+        await releaseExpiredReservations();
 
         const idem = normalizeIdempotencyKey(req.headers.get("Idempotency-Key"));
         const body = await req.json();
@@ -39,6 +43,28 @@ export async function POST(req: Request) {
                 { error: "Kullanıcı doğrulanamadı. Lütfen tekrar giriş yapın." },
                 { status: 401 }
             );
+        }
+
+        let selectedAddressId: string | null = body?.selectedUserAddressId || null;
+        let selectedAddressRecord: any = null;
+
+        if (selectedAddressId) {
+            selectedAddressRecord = await prisma.userAddress.findFirst({
+                where: {
+                    id: selectedAddressId,
+                    userId: resolvedUserId,
+                },
+                include: {
+                    district: true,
+                },
+            });
+
+            if (!selectedAddressRecord) {
+                return NextResponse.json(
+                    { error: "Seçilen kayıtlı adres bulunamadı." },
+                    { status: 400 }
+                );
+            }
         }
 
         const normalizedPhone = String(body?.billingAddress?.phone || "").replace(/\D/g, "");
@@ -95,55 +121,94 @@ export async function POST(req: Request) {
         const orderItemsData = [];
         let subtotal = 0;
 
+        const normalizeText = (value: unknown) =>
+            String(value || "")
+                .trim()
+                .toLocaleLowerCase("tr-TR")
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "");
+
         for (const item of body.items) {
-            let variant = await prisma.productVariant.findFirst({
-                where: {
-                    productId: item.productId,
-                    ...(item.colorId ? { colorId: item.colorId } : {}),
-                    ...(item.sizeId ? { sizeId: item.sizeId } : {}),
+            const product = await prisma.product.findUnique({
+                where: { id: item.productId },
+                select: {
+                    id: true,
+                    name: true,
+                    isTrackInventory: true,
+                    allowBackorders: true,
+                    price: true,
+                    categoryId: true,
+                    gender: true,
+                    colors: { select: { id: true, name: true } },
+                    sizes: { select: { id: true, name: true } },
                 },
-                include: {
-                    product: true,
-                }
             });
 
-            if (!variant && item.productId && !item.colorId && !item.sizeId) {
-                variant = await prisma.productVariant.findUnique({
-                    where: { id: item.productId },
-                    include: {
-                        product: true,
-                    }
-                });
+            if (!product) {
+                return NextResponse.json({
+                    error: `Ürün bulunamadı: ${item.productId}. Sepetinizi güncelleyip tekrar deneyin.`
+                }, { status: 400 });
             }
 
-            if (!variant && (item.colorName || item.sizeName)) {
-                variant = await prisma.productVariant.findFirst({
-                    where: {
-                        productId: item.productId,
-                        ...(item.colorName
-                            ? {
-                                color: {
-                                    is: {
-                                        name: item.colorName,
-                                    },
-                                },
-                            }
-                            : {}),
-                        ...(item.sizeName
-                            ? {
-                                size: {
-                                    is: {
-                                        name: item.sizeName,
-                                    },
-                                },
-                            }
-                            : {}),
-                    },
-                    include: {
-                        product: true,
-                    },
-                });
+            let resolvedColorId: string | null = item.colorId || null;
+            let resolvedSizeId: string | null = item.sizeId || null;
+
+            if (resolvedColorId) {
+                const hasColor = product.colors.some((c: any) => c.id === resolvedColorId);
+                if (!hasColor) {
+                    return NextResponse.json({
+                        error: `"${product.name}" için seçili renk geçersiz. Sepetinizi güncelleyip tekrar deneyin.`
+                    }, { status: 400 });
+                }
             }
+
+            if (resolvedSizeId) {
+                const hasSize = product.sizes.some((s: any) => s.id === resolvedSizeId);
+                if (!hasSize) {
+                    return NextResponse.json({
+                        error: `"${product.name}" için seçili beden geçersiz. Sepetinizi güncelleyip tekrar deneyin.`
+                    }, { status: 400 });
+                }
+            }
+
+            if (!resolvedColorId && item.colorName) {
+                const wantedColor = normalizeText(item.colorName);
+                const matchedColor = product.colors.find((c: any) => normalizeText(c.name) === wantedColor);
+                resolvedColorId = matchedColor?.id || null;
+            }
+
+            if (!resolvedSizeId && item.sizeName) {
+                const wantedSize = normalizeText(item.sizeName);
+                const matchedSize = product.sizes.find((s: any) => normalizeText(s.name) === wantedSize);
+                resolvedSizeId = matchedSize?.id || null;
+            }
+
+            if (product.colors.length > 0 && !resolvedColorId) {
+                return NextResponse.json({
+                    error: `"${product.name}" için renk bilgisi eksik. Sepetinizi güncelleyip tekrar deneyin.`
+                }, { status: 400 });
+            }
+
+            if (product.sizes.length > 0 && !resolvedSizeId) {
+                return NextResponse.json({
+                    error: `"${product.name}" için beden bilgisi eksik. Sepetinizi güncelleyip tekrar deneyin.`
+                }, { status: 400 });
+            }
+
+            const variant = await prisma.productVariant.findFirst({
+                where: {
+                    productId: item.productId,
+                    colorId: resolvedColorId,
+                    sizeId: resolvedSizeId,
+                },
+                select: {
+                    id: true,
+                    productId: true,
+                    price: true,
+                    stock: true,
+                    stockReserved: true,
+                },
+            });
 
             if (!variant) {
                 return NextResponse.json({
@@ -151,36 +216,115 @@ export async function POST(req: Request) {
                 }, { status: 400 });
             }
 
-            if (variant.product.isTrackInventory && !variant.product.allowBackorders) {
-                const availableStock = variant.stock - (variant.stockReserved || 0);
+            if (product.isTrackInventory && !product.allowBackorders) {
+                const availableStock = Math.max(0, variant.stock - (variant.stockReserved || 0));
                 if (availableStock < item.quantity) {
                     return NextResponse.json({
-                        error: `"${variant.product.name}" için yeterli stok yok. Mevcut: ${availableStock}`
+                        error: `"${product.name}" için yeterli stok yok. Mevcut: ${availableStock}`
                     }, { status: 400 });
                 }
             }
 
-            const price = variant.price || variant.product.price;
+            const price = variant.price || product.price;
             const lineTotal = Number(price) * item.quantity;
             subtotal += lineTotal;
 
             orderItemsData.push({
                 productId: variant.productId,
-                colorId: item.colorId || null,
-                sizeId: item.sizeId || null,
-                productName: variant.product.name,
+                colorId: resolvedColorId,
+                sizeId: resolvedSizeId,
+                productName: product.name,
                 colorName: item.colorName || null,
                 sizeName: item.sizeName || null,
                 unitPrice: Number(price),
                 quantity: item.quantity,
                 totalPrice: lineTotal,
-                categoryId: variant.product.categoryId,
-                gender: variant.product.gender,
+                categoryId: product.categoryId,
+                gender: product.gender,
                 _variantId: variant.id
             });
         }
 
         const shipping = Number(body.shippingPrice || 0);
+
+        let shippingAddressId: string | null = selectedAddressRecord?.id || null;
+        let billingAddressId: string | null = selectedAddressRecord?.id || null;
+
+        if (!selectedAddressRecord) {
+            const cityRaw = String(body?.shippingAddress?.city || body?.billingAddress?.city || "").trim();
+            const city = cityRaw || "İstanbul";
+            const districtName = `${city} Merkez`;
+
+            let district = await prisma.district.findFirst({
+                where: {
+                    city: { equals: city, mode: "insensitive" },
+                    name: { equals: districtName, mode: "insensitive" },
+                },
+                select: { id: true },
+            });
+
+            if (!district) {
+                district = await prisma.district.create({
+                    data: {
+                        name: districtName,
+                        city,
+                    },
+                    select: { id: true },
+                });
+            }
+
+            const fullAddressParts = [
+                String(body?.shippingAddress?.addressLine1 || body?.billingAddress?.addressLine1 || "").trim(),
+                String(body?.shippingAddress?.apartment || body?.billingAddress?.apartment || "").trim(),
+                city,
+                String(body?.shippingAddress?.zipCode || body?.billingAddress?.zipCode || "").trim(),
+                String(body?.shippingAddress?.country || body?.billingAddress?.country || "Turkey").trim(),
+                String(body?.shippingAddress?.phone || body?.billingAddress?.phone || "").trim(),
+            ].filter(Boolean);
+
+            const fullAddress = fullAddressParts.join(" | ");
+
+            const existingAddress = await prisma.userAddress.findFirst({
+                where: {
+                    userId: resolvedUserId,
+                    districtId: district.id,
+                    fullAddress,
+                },
+                select: { id: true },
+            });
+
+            if (existingAddress) {
+                shippingAddressId = existingAddress.id;
+                billingAddressId = existingAddress.id;
+            } else {
+                const existingCount = await prisma.userAddress.count({
+                    where: { userId: resolvedUserId },
+                });
+
+                const createdAddress = await prisma.userAddress.create({
+                    data: {
+                        userId: resolvedUserId,
+                        districtId: district.id,
+                        fullAddress,
+                        isPrimary: existingCount === 0,
+                    },
+                    select: { id: true, districtId: true, fullAddress: true, isPrimary: true },
+                });
+
+                shippingAddressId = createdAddress.id;
+                billingAddressId = createdAddress.id;
+
+                if (createdAddress.isPrimary) {
+                    await prisma.user.update({
+                        where: { id: resolvedUserId },
+                        data: {
+                            districtId: createdAddress.districtId,
+                            fullAddress: createdAddress.fullAddress,
+                        },
+                    });
+                }
+            }
+        }
 
         let discount = 0;
         let couponId: string | null = null;
@@ -235,6 +379,8 @@ export async function POST(req: Request) {
                     couponId: couponId,
                     status: "PENDING_PAYMENT", // Will be updated to PAID if successful, or we can set PAID immediately for test
                     paymentStatus: "PAID", // Lowercase enum match if needed, checks schema
+                    shippingAddressId,
+                    billingAddressId,
                     idempotencyKey: idem,
                     items: {
                         create: orderItemsData.map(({ _variantId, categoryId, gender, ...rest }: any) => rest)
@@ -308,6 +454,8 @@ export async function POST(req: Request) {
                 total,
                 couponId: couponId,
                 status: "PENDING_PAYMENT",
+                shippingAddressId,
+                billingAddressId,
                 idempotencyKey: idem,
                 items: {
                     create: orderItemsData.map(({ _variantId, categoryId, gender, ...rest }: any) => rest)
@@ -355,6 +503,20 @@ export async function POST(req: Request) {
         const billingLastName = String(body?.billingAddress?.lastName || "").trim() || "Kullanıcı";
         const shippingFirstName = String(body?.shippingAddress?.firstName || billingFirstName).trim() || billingFirstName;
         const shippingLastName = String(body?.shippingAddress?.lastName || billingLastName).trim() || billingLastName;
+        const normalizeCountry = (value: unknown) => {
+            const raw = String(value || "").trim().toLocaleLowerCase("tr-TR");
+            if (!raw) return "Turkey";
+            if (raw === "turkiye" || raw === "türkiye" || raw === "turkey") return "Turkey";
+            return String(value).trim();
+        };
+        const billingCountry = normalizeCountry(body?.billingAddress?.country);
+        const shippingCountry = normalizeCountry(body?.shippingAddress?.country);
+        const selectedAddressCity = selectedAddressRecord?.district?.city || "Istanbul";
+        const selectedAddressStreet = selectedAddressRecord?.fullAddress || "N/A";
+        const effectiveBillingAddress = selectedAddressRecord ? selectedAddressStreet : (body.billingAddress?.addressLine1 || "N/A");
+        const effectiveShippingAddress = selectedAddressRecord ? selectedAddressStreet : (body.shippingAddress?.addressLine1 || "N/A");
+        const effectiveBillingCity = selectedAddressRecord ? selectedAddressCity : (body.billingAddress?.city || "Istanbul");
+        const effectiveShippingCity = selectedAddressRecord ? selectedAddressCity : (body.shippingAddress?.city || "Istanbul");
 
         const iyzicoReq = {
             locale: "tr",
@@ -364,7 +526,7 @@ export async function POST(req: Request) {
             currency: "TRY",
             basketId: order.orderNumber,
             paymentGroup: "PRODUCT",
-            callbackUrl: `${process.env.APP_URL}/api/iyzico/callback?orderId=${order.id}`,
+            callbackUrl: `${appBaseUrl}/api/iyzico/callback?orderId=${order.id}`,
             enabledInstallments: [2, 3, 6, 9, 12],
             buyer: {
                 id: order.userId ?? order.email,
@@ -375,24 +537,24 @@ export async function POST(req: Request) {
                 identityNumber: "11111111111", // Required by Iyzico
                 lastLoginDate: "2015-10-05 12:43:35",
                 registrationDate: "2013-04-21 15:12:09",
-                registrationAddress: body.billingAddress?.addressLine1 || "N/A",
+                registrationAddress: effectiveBillingAddress,
                 ip: buyerIp,
-                city: body.billingAddress?.city || "Istanbul",
-                country: body.billingAddress?.country || "Turkey",
+                city: effectiveBillingCity,
+                country: billingCountry,
                 zipCode: normalizedZipCode || "34732",
             },
             shippingAddress: {
                 contactName: `${shippingFirstName} ${shippingLastName}`,
-                city: body.shippingAddress?.city || "Istanbul",
-                country: body.shippingAddress?.country || "Turkey",
-                address: body.shippingAddress?.addressLine1 || "N/A",
+                city: effectiveShippingCity,
+                country: shippingCountry,
+                address: effectiveShippingAddress,
                 zipCode: String(body?.shippingAddress?.zipCode || "").replace(/\D/g, "") || normalizedZipCode || "34732",
             },
             billingAddress: {
                 contactName: `${billingFirstName} ${billingLastName}`,
-                city: body.billingAddress?.city || "Istanbul",
-                country: body.billingAddress?.country || "Turkey",
-                address: body.billingAddress?.addressLine1 || "N/A",
+                city: effectiveBillingCity,
+                country: billingCountry,
+                address: effectiveBillingAddress,
                 zipCode: normalizedZipCode || "34732",
             },
             basketItems: orderItemsData.map((it: any) => ({
@@ -404,20 +566,45 @@ export async function POST(req: Request) {
             })),
         };
 
-        const initRes: any = await iyzicoCall<any>(
-            (request, cb) => (iyzico as any).checkoutFormInitialize.create(request, cb),
-            iyzicoReq
-        );
+        let initRes: any;
+        try {
+            initRes = await iyzicoCall<any>(
+                (request, cb) => (iyzico as any).checkoutFormInitialize.create(request, cb),
+                iyzicoReq
+            );
+        } catch (initError: any) {
+            await Promise.allSettled([
+                releaseReservationTx(order.id),
+                prisma.paymentAttempt.update({
+                    where: { orderId: order.id },
+                    data: {
+                        status: "FAILED",
+                        rawResult: {
+                            status: "failure",
+                            errorMessage: initError?.message || "Iyzico init exception",
+                        },
+                    },
+                }),
+                prisma.order.update({
+                    where: { id: order.id },
+                    data: { status: "PAYMENT_FAILED" },
+                }),
+            ]);
+            throw initError;
+        }
 
         if (initRes.status !== "success") {
-            await prisma.paymentAttempt.update({
-                where: { orderId: order.id },
-                data: { status: "FAILED", rawResult: initRes },
-            });
-            await prisma.order.update({
-                where: { id: order.id },
-                data: { status: "PAYMENT_FAILED" },
-            });
+            await Promise.allSettled([
+                releaseReservationTx(order.id),
+                prisma.paymentAttempt.update({
+                    where: { orderId: order.id },
+                    data: { status: "FAILED", rawResult: initRes },
+                }),
+                prisma.order.update({
+                    where: { id: order.id },
+                    data: { status: "PAYMENT_FAILED" },
+                }),
+            ]);
 
             return NextResponse.json({ error: initRes.errorMessage || "Iyzico init failed" }, { status: 400 });
         }

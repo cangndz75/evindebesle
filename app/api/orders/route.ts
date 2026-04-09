@@ -20,8 +20,8 @@ export async function GET(request: NextRequest) {
       include: {
         items: {
           include: {
-            product: { select: { id: true, name: true, slug: true, image: true } },
-            color: { select: { id: true, name: true } },
+            product: { select: { id: true, name: true, slug: true, image: true, primaryImage: true } },
+            color: { select: { id: true, name: true, images: true } },
             size: { select: { id: true, name: true } },
           },
         },

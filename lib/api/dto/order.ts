@@ -2,6 +2,29 @@ import "server-only";
 
 type AnyRecord = Record<string, any>;
 
+function resolveOrderItemImage(item: AnyRecord) {
+  if (item.image) return item.image;
+
+  const rawColorImages = item.color?.images;
+  if (rawColorImages) {
+    try {
+      const parsed = typeof rawColorImages === "string" ? JSON.parse(rawColorImages) : rawColorImages;
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed[0] ?? null;
+      }
+      if (typeof parsed === "string" && parsed.trim()) {
+        return parsed;
+      }
+    } catch {
+      if (typeof rawColorImages === "string" && rawColorImages.trim()) {
+        return rawColorImages;
+      }
+    }
+  }
+
+  return item.product?.primaryImage ?? item.product?.image ?? null;
+}
+
 export function toOrderListDTO(order: AnyRecord) {
   return {
     id: order.id,
@@ -17,11 +40,11 @@ export function toOrderListDTO(order: AnyRecord) {
       colorName: item.colorName ?? item.color?.name ?? null,
       sizeName: item.sizeName ?? item.size?.name ?? null,
       quantity: item.quantity,
-      image: item.image ?? item.product?.image ?? null,
+      image: resolveOrderItemImage(item),
       product: {
         id: item.product?.id,
         name: item.product?.name,
-        image: item.product?.image ?? null,
+        image: item.product?.primaryImage ?? item.product?.image ?? null,
         slug: item.product?.slug ?? null,
       },
     })),
@@ -56,14 +79,14 @@ export function toOrderDetailDTO(order: AnyRecord) {
       quantity: item.quantity,
       unitPrice: item.unitPrice,
       totalPrice: item.totalPrice,
-      image: item.image ?? item.product?.image ?? null,
+      image: resolveOrderItemImage(item),
       colorName: item.colorName ?? item.color?.name ?? null,
       sizeName: item.sizeName ?? item.size?.name ?? null,
       product: {
         id: item.product?.id,
         name: item.product?.name,
         slug: item.product?.slug ?? null,
-        image: item.product?.image ?? null,
+        image: item.product?.primaryImage ?? item.product?.image ?? null,
       },
       color: item.color ? { name: item.color.name } : null,
       size: item.size ? { name: item.size.name } : null,

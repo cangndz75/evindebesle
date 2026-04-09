@@ -484,32 +484,34 @@ export default function CheckoutPage() {
                         )}
 
                         {isManualAddressDisabled && selectedSavedAddress ? (
-                            <div className="rounded border border-gray-200 bg-gray-50 p-4 space-y-2">
-                                <p className="text-xs uppercase tracking-wide text-gray-500">Seçilen Kayıtlı Adres</p>
-                                <p className="text-sm font-medium text-gray-900">
-                                    {selectedSavedAddress.isPrimary ? "Ana Adres" : "Kayıtlı Adres"}
-                                </p>
-                                <p className="text-sm text-gray-700">{selectedSavedAddress.districtName}</p>
-                                <p className="text-sm text-gray-700 leading-relaxed">{selectedSavedAddress.fullAddress}</p>
-                                <p className="text-xs text-gray-500">Ülke: Türkiye</p>
-                            </div>
-                            <div className="mt-4 space-y-2">
-                                <p className="text-sm text-gray-600">
-                                    Ödeme ve bildirimler için cep telefonu (5XXXXXXXXX)
-                                </p>
-                                <div className="w-full flex items-center border border-gray-300 rounded focus-within:border-black overflow-hidden">
-                                    <span className="px-3 text-sm text-gray-600 border-r border-gray-200">+90</span>
-                                    <input
-                                        type="tel"
-                                        name="phone"
-                                        placeholder="5554443322"
-                                        value={formData.phone}
-                                        onChange={handleChange}
-                                        inputMode="numeric"
-                                        pattern="[0-9]*"
-                                        maxLength={10}
-                                        className="w-full p-3 focus:outline-none"
-                                    />
+                            <div className="space-y-4">
+                                <div className="rounded border border-gray-200 bg-gray-50 p-4 space-y-2">
+                                    <p className="text-xs uppercase tracking-wide text-gray-500">Seçilen Kayıtlı Adres</p>
+                                    <p className="text-sm font-medium text-gray-900">
+                                        {selectedSavedAddress.isPrimary ? "Ana Adres" : "Kayıtlı Adres"}
+                                    </p>
+                                    <p className="text-sm text-gray-700">{selectedSavedAddress.districtName}</p>
+                                    <p className="text-sm text-gray-700 leading-relaxed">{selectedSavedAddress.fullAddress}</p>
+                                    <p className="text-xs text-gray-500">Ülke: Türkiye</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <p className="text-sm text-gray-600">
+                                        Ödeme ve bildirimler için cep telefonu (5XXXXXXXXX)
+                                    </p>
+                                    <div className="w-full flex items-center border border-gray-300 rounded focus-within:border-black overflow-hidden">
+                                        <span className="px-3 text-sm text-gray-600 border-r border-gray-200">+90</span>
+                                        <input
+                                            type="tel"
+                                            name="phone"
+                                            placeholder="5554443322"
+                                            value={formData.phone}
+                                            onChange={handleChange}
+                                            inputMode="numeric"
+                                            pattern="[0-9]*"
+                                            maxLength={10}
+                                            className="w-full p-3 focus:outline-none"
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         ) : (

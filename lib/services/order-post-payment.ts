@@ -47,6 +47,11 @@ async function ensureInvoiceForOrder(orderId: string) {
     return null;
   }
 
+  // Misafir kullanıcı desteği: user olmayabilir, bilgileri adresten al
+  const userName = order.user?.name || order.shippingAddress?.fullName || order.billingAddress?.fullName || "Misafir Kullanıcı";
+  const userEmail = order.user?.email || order.shippingAddress?.email || order.billingAddress?.email || null;
+  const userPhone = order.user?.phone || order.shippingAddress?.phone || order.billingAddress?.phone || null;
+
   const companySettings = await prisma.companySettings.findFirst();
 
   const year = new Date().getFullYear();
@@ -73,9 +78,9 @@ async function ensureInvoiceForOrder(orderId: string) {
   const taxNumber = String(rawTaxNumber || DEFAULT_TCKN_VKN);
 
   const customerSnapshot = {
-    name: order.user.name,
-    email: order.user.email,
-    phone: order.user.phone,
+    name: userName,
+    email: userEmail,
+    phone: userPhone,
     address: customerAddress,
     addressText: fullAddressText,
     taxNumber,
@@ -128,10 +133,16 @@ async function sendOrderPaidEmail(orderId: string) {
           email: true,
         },
       },
+      shippingAddress: true,
+      billingAddress: true,
     },
   });
 
-  if (!order?.user?.email) {
+  // Misafir kullanıcı desteği
+  const userName = order?.user?.name || order?.shippingAddress?.fullName || order?.billingAddress?.fullName || "Degerli Musterimiz";
+  const userEmail = order?.user?.email || order?.shippingAddress?.email || order?.billingAddress?.email;
+
+  if (!userEmail) {
     return;
   }
 
@@ -139,15 +150,15 @@ async function sendOrderPaidEmail(orderId: string) {
 
   await resend.emails.send({
     from,
-    to: order.user.email,
-    subject: `Siparisiniz alindi: ${order.orderNumber}`,
+    to: userEmail,
+    subject: `Siparişiniz alındı: ${order.orderNumber}`,
     html: `
       <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111">
-        <h2>Siparisiniz alindi</h2>
-        <p>Merhaba ${order.user.name || "Degerli Musterimiz"},</p>
-        <p><strong>${order.orderNumber}</strong> numarali siparisiniz basariyla alindi.</p>
+        <h2>Siparişiniz alındı</h2>
+        <p>Merhaba ${userName},</p>
+        <p><strong>${order.orderNumber}</strong> numaralı siparişiniz başarıyla alındı.</p>
         <p>Toplam tutar: <strong>${order.total.toFixed(2)} TRY</strong></p>
-        <p>Siparisiniz hazirlandiginda kargo bilgilendirmesi e-posta ile iletilecektir.</p>
+        <p>Siparişiniz hazırlandığında kargo bilgilendirmesi e-posta ile iletilecektir.</p>
       </div>
     `,
   });
@@ -163,14 +174,14 @@ export async function runOrderPostPaymentTasks(orderId: string) {
         orderId,
       });
     } catch (error) {
-      console.error("Auto shipment label error:", error);
+      console.error("Otomatik kargo etiketi hatası:", error);
     }
   }
 
   await prisma.auditLog.create({
     data: {
-      action: "POST_PAYMENT_TASKS_COMPLETED",
-      entityType: "ORDER",
+      action: "ODEME_SONRASI_GOREVLER_TAMAMLANDI",
+      entityType: "SIPARIS",
       entityId: orderId,
       details: {
         invoiceNumber: invoice?.invoiceNumber || null,

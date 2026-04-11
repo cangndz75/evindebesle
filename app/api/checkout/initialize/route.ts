@@ -77,11 +77,27 @@ export async function POST(req: Request) {
             resolvedUserId = matchedUser?.id || null;
         }
 
+        // Misafir kullanıcı desteği: resolvedUserId yoksa yeni guest user oluştur
         if (!resolvedUserId) {
-            return NextResponse.json(
-                { error: "Kullanıcı doğrulanamadı. Lütfen tekrar giriş yapın." },
-                { status: 401 }
-            );
+            const guestName = (body?.billingAddress?.firstName || "Misafir") + " " + (body?.billingAddress?.lastName || "Kullanıcı");
+            const guestEmail = body?.email || body?.billingAddress?.email || body?.shippingAddress?.email || null;
+            const guestPhone = body?.billingAddress?.phone || body?.shippingAddress?.phone || null;
+            if (!guestEmail) {
+                return NextResponse.json(
+                    { error: "E-posta zorunludur." },
+                    { status: 400 }
+                );
+            }
+            const guestUser = await prisma.user.create({
+                data: {
+                    name: guestName,
+                    email: guestEmail,
+                    phone: guestPhone,
+                    isGuest: true,
+                },
+                select: { id: true },
+            });
+            resolvedUserId = guestUser.id;
         }
 
         let selectedAddressId: string | null = body?.selectedUserAddressId || null;
@@ -358,6 +374,7 @@ export async function POST(req: Request) {
 
             const fullAddress = fullAddressParts.join(" | ");
 
+            // Misafir kullanıcı için adresi userId ile kaydet, yoksa normal akış
             const existingAddress = await prisma.userAddress.findFirst({
                 where: {
                     userId: resolvedUserId,
@@ -381,6 +398,9 @@ export async function POST(req: Request) {
                         districtId: district.id,
                         fullAddress,
                         isPrimary: existingCount === 0,
+                        email: body?.email || body?.billingAddress?.email || body?.shippingAddress?.email || null,
+                        phone: body?.billingAddress?.phone || body?.shippingAddress?.phone || null,
+                        fullName: (body?.billingAddress?.firstName || "Misafir") + " " + (body?.billingAddress?.lastName || "Kullanıcı"),
                     },
                     select: { id: true, districtId: true, fullAddress: true, isPrimary: true },
                 });

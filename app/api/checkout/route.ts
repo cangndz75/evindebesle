@@ -53,6 +53,11 @@ export async function POST(request: Request) {
     const shipmentResponse = await shipinkClient.createShipment(shipmentPayload);
 
     // Shipink order ve shipment id'lerini veritabanına kaydet
+    // Test ortamı için: veritabanındaki ilk kullanıcıyı bul
+    const user = await prisma.user.findFirst();
+    if (!user) {
+      return NextResponse.json({ success: false, message: 'Kullanıcı bulunamadı, test için en az bir kullanıcı ekleyin.' }, { status: 500 });
+    }
     await prisma.order.create({
       data: {
         orderNumber: orderId,
@@ -65,7 +70,7 @@ export async function POST(request: Request) {
         total: validBody.totalPrice,
         currency: 'TRY',
         trackingNumber: shipmentResponse.tracking_code || null,
-        userId: 'demo-user-id', // TODO: Burada gerçek userId kullanılmalı
+        userId: user.id,
         // shippingAddressId, billingAddressId gibi alanları ihtiyaca göre doldurabilirsin
       }
     });

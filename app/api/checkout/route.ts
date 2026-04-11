@@ -65,7 +65,8 @@ export async function POST(request: Request) {
         total: validBody.totalPrice,
         currency: 'TRY',
         trackingNumber: shipmentResponse.tracking_code || null,
-        // userId, shippingAddressId, billingAddressId gibi alanları ihtiyaca göre doldurabilirsin
+        userId: 'demo-user-id', // TODO: Burada gerçek userId kullanılmalı
+        // shippingAddressId, billingAddressId gibi alanları ihtiyaca göre doldurabilirsin
       }
     });
 

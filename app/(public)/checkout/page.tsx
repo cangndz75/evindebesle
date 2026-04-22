@@ -312,7 +312,7 @@ export default function CheckoutPage() {
         };
 
         try {
-            if (newsletterConsent) {
+            if (newsletterConsent && status === "authenticated") {
                 await fetch("/api/user/update-consent", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },

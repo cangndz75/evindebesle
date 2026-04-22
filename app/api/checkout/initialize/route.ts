@@ -96,18 +96,34 @@ export async function POST(req: Request) {
                     { status: 400 }
                 );
             }
-            const guestUser = await prisma.user.create({
-                data: {
-                    name: guestName,
-                    email: guestEmail,
-                    phone: guestPhone,
-                    isGuest: true,
-                    password: null,
-                    marketingEmailConsent: Boolean(body?.newsletterConsent),
-                },
-                select: { id: true },
-            });
-            resolvedUserId = guestUser.id;
+            try {
+                const guestUser = await prisma.user.create({
+                    data: {
+                        name: guestName,
+                        email: guestEmail,
+                        phone: guestPhone,
+                        isGuest: true,
+                        password: null,
+                        marketingEmailConsent: Boolean(body?.newsletterConsent),
+                    },
+                    select: { id: true },
+                });
+                resolvedUserId = guestUser.id;
+            } catch (createErr: any) {
+                if (createErr?.code === "P2002") {
+                    const existing = await prisma.user.findUnique({
+                        where: { email: guestEmail },
+                        select: { id: true },
+                    });
+                    if (existing) {
+                        resolvedUserId = existing.id;
+                    } else {
+                        throw createErr;
+                    }
+                } else {
+                    throw createErr;
+                }
+            }
         }
 
         let selectedAddressId: string | null = body?.selectedUserAddressId || null;
@@ -872,6 +888,19 @@ export async function POST(req: Request) {
             }
         }
 
-        return NextResponse.json({ error: "CHECKOUT_INIT_EXCEPTION" }, { status: 500 });
+        const msg = String(error?.message || "");
+        const likelyMissingMigration =
+            /does not exist|Unknown column|Unknown argument|column/i.test(msg) &&
+            /isGuest|password|null|distanceSales|fullName|email|UserAddress|Order/i.test(msg);
+
+        return NextResponse.json(
+            {
+                error: likelyMissingMigration
+                    ? "Veritabanı şeması eksik. Sunucuda prisma migration uygulanmalı (ör. prisma migrate deploy)."
+                    : "Ödeme başlatılamadı. Lütfen bir süre sonra tekrar deneyin.",
+                ...(process.env.NODE_ENV !== "production" ? { debugMessage: msg.slice(0, 600) } : {}),
+            },
+            { status: 500 }
+        );
     }
 }

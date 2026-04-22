@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 
 import { shipinkClient } from '@/lib/shipink';
 import { CheckoutSchema } from '@/lib/validation/checkout';
-import prisma from '@/lib/prisma';
+import { prisma } from "@/lib/db";
 
 export async function POST(request: Request) {
   try {

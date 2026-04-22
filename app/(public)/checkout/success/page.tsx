@@ -1,15 +1,17 @@
-﻿"use client";
+"use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, Suspense, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { dlPush } from "@/lib/ga4";
+import { useCartStore } from "@/lib/stores/cartStore";
 
 function SuccessContent() {
     const searchParams = useSearchParams();
     const orderId = searchParams.get("orderId");
     const [status, setStatus] = useState("loading"); // loading, success, failed
     const [order, setOrder] = useState<any>(null);
+    const cartClearedRef = useRef(false);
 
     useEffect(() => {
         if (!orderId) {
@@ -58,6 +60,13 @@ function SuccessContent() {
 
         checkStatus();
     }, [orderId]);
+
+    useEffect(() => {
+        if (status !== "success" || cartClearedRef.current) return;
+        cartClearedRef.current = true;
+        useCartStore.getState().clearCart();
+        void useCartStore.getState().refreshCart();
+    }, [status]);
 
     if (status === "loading") {
         return (

@@ -316,6 +316,7 @@ export default function CheckoutPage() {
                 await fetch("/api/user/update-consent", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
+                    credentials: "include",
                     body: JSON.stringify({ consent: true }),
                 }).catch(() => undefined);
             }

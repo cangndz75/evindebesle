@@ -8,6 +8,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Loader2, CreditCard, Wallet } from "lucide-react";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import DistanceSellingBody from "@/components/legal/DistanceSellingBody";
 
 declare global {
     interface Window {
@@ -65,6 +72,8 @@ export default function CheckoutPage() {
 
     const [paymentMethod, setPaymentMethod] = useState<"CREDIT_CARD" | "TEST">("CREDIT_CARD");
     const [newsletterConsent, setNewsletterConsent] = useState(true);
+    const [distanceSalesContractAccepted, setDistanceSalesContractAccepted] = useState(false);
+    const [distanceSellingModalOpen, setDistanceSellingModalOpen] = useState(false);
     const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
     const [useSavedAddress, setUseSavedAddress] = useState(false);
     const [selectedSavedAddressId, setSelectedSavedAddressId] = useState<string>("");
@@ -250,6 +259,17 @@ export default function CheckoutPage() {
             return;
         }
 
+        const emailTrim = formData.email.trim();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrim)) {
+            toast.error("Geçerli bir e-posta adresi girin.");
+            return;
+        }
+
+        if (!distanceSalesContractAccepted) {
+            toast.error("Mesafeli satış sözleşmesini onaylamanız gerekir.");
+            return;
+        }
+
         if (checkoutWithSavedAddress) {
             if (!effectiveFirst) {
                 toast.error(
@@ -312,6 +332,8 @@ export default function CheckoutPage() {
                 body: JSON.stringify({
                     userId: session?.user?.id,
                     email: formData.email,
+                    acceptDistanceSalesContract: true,
+                    newsletterConsent,
                     items: cart.map(item => ({
                         productId: item.productId,
                         colorId: item.colorId,
@@ -356,36 +378,6 @@ export default function CheckoutPage() {
         );
     }
 
-    if (status === "unauthenticated") {
-        return (
-            <div className="container mx-auto px-4 py-12 md:py-20 max-w-lg text-center">
-                <h1 className="text-3xl font-serif font-light mb-4">Giriş Yapın</h1>
-                <p className="text-gray-500 mb-8 font-light">
-                    Siparişinizi tamamlamak için lütfen giriş yapın veya üye olun.
-                </p>
-                <div className="flex flex-col gap-4">
-                    <Link
-                        href="/auth-tabs?mode=login&redirect=/checkout"
-                        className="w-full bg-black text-white py-4 rounded text-sm uppercase tracking-widest hover:bg-gray-800 transition-colors"
-                    >
-                        Giriş Yap
-                    </Link>
-                    <Link
-                        href="/auth-tabs?mode=register&redirect=/checkout"
-                        className="w-full bg-white text-black border border-black py-4 rounded text-sm uppercase tracking-widest hover:bg-gray-50 transition-colors"
-                    >
-                        Üye Ol
-                    </Link>
-                </div>
-                <div className="mt-8 pt-8 border-t border-gray-100">
-                    <p className="text-xs text-gray-400">
-                        Devam ederek Kullanım Koşulları ve Gizlilik Politikamızı kabul etmiş olursunuz.
-                    </p>
-                </div>
-            </div>
-        );
-    }
-
     if (!cart || cart.length === 0) {
         return (
             <div className="container mx-auto px-4 py-20 text-center">
@@ -396,7 +388,22 @@ export default function CheckoutPage() {
     }
 
     return (
-        <div className="container mx-auto px-4 md:px-8 py-8 md:py-12">
+        <>
+            <Dialog open={distanceSellingModalOpen} onOpenChange={setDistanceSellingModalOpen}>
+                <DialogContent
+                    className="flex max-h-[min(85vh,800px)] w-[calc(100%-2rem)] max-w-2xl flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl"
+                    showCloseButton
+                >
+                    <DialogHeader className="shrink-0 border-b border-gray-200 px-5 py-4 text-left">
+                        <DialogTitle className="pr-8 text-lg font-semibold">Mesafeli Satış Sözleşmesi</DialogTitle>
+                    </DialogHeader>
+                    <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+                        <DistanceSellingBody omitCheckoutLink />
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            <div className="container mx-auto px-4 md:px-8 py-8 md:py-12">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
 
                 
@@ -409,7 +416,12 @@ export default function CheckoutPage() {
                             {session?.user ? (
                                 <span className="text-sm text-gray-500">Giriş yapıldı: {session.user.email}</span>
                             ) : (
-                                <Link href="/auth-tabs" className="text-sm underline">Giriş Yap</Link>
+                                <span className="text-sm text-gray-500">
+                                    Misafir alışverişi —{" "}
+                                    <Link href="/auth-tabs?redirect=/checkout" className="underline text-black">
+                                        Giriş yap
+                                    </Link>
+                                </span>
                             )}
                         </div>
                         <input
@@ -517,14 +529,13 @@ export default function CheckoutPage() {
                         ) : (
                             <div className="space-y-4">
                                 <div className="grid grid-cols-1">
-                                    <select
-                                        name="country"
-                                        value={formData.country}
-                                        onChange={handleChange}
-                                        className="w-full border border-gray-300 rounded p-3 bg-white focus:outline-none focus:border-black"
-                                    >
-                                        <option value="Turkey">Türkiye</option>
-                                    </select>
+                                    <input
+                                        type="text"
+                                        readOnly
+                                        aria-readonly="true"
+                                        value="Türkiye"
+                                        className="w-full border border-gray-300 rounded p-3 bg-gray-50 text-gray-700 cursor-default focus:outline-none"
+                                    />
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <input
@@ -560,27 +571,27 @@ export default function CheckoutPage() {
                                     onChange={handleChange}
                                     className="w-full border border-gray-300 rounded p-3 focus:outline-none focus:border-black"
                                 />
-                                <div className="grid grid-cols-3 gap-4">
-                                    <input
-                                        type="text"
-                                        name="city"
-                                        placeholder="Şehir"
-                                        value={formData.city}
-                                        onChange={handleChange}
-                                        className="w-full border border-gray-300 rounded p-3 focus:outline-none focus:border-black"
-                                    />
-                                    <input
-                                        type="text"
-                                        name="zipCode"
-                                        placeholder="Posta Kodu"
-                                        value={formData.zipCode}
-                                        onChange={handleChange}
-                                        inputMode="numeric"
-                                        pattern="[0-9]*"
-                                        maxLength={5}
-                                        className="w-full border border-gray-300 rounded p-3 focus:outline-none focus:border-black col-span-2"
-                                    />
-                                </div>
+                                <input
+                                    type="text"
+                                    name="city"
+                                    placeholder="Şehir"
+                                    value={formData.city}
+                                    onChange={handleChange}
+                                    autoComplete="off"
+                                    className="w-full border border-gray-300 rounded p-3 focus:outline-none focus:border-black"
+                                />
+                                <input
+                                    type="text"
+                                    name="zipCode"
+                                    placeholder="Posta Kodu"
+                                    value={formData.zipCode}
+                                    onChange={handleChange}
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
+                                    maxLength={5}
+                                    autoComplete="postal-code"
+                                    className="w-full border border-gray-300 rounded p-3 focus:outline-none focus:border-black max-w-[220px]"
+                                />
                                 <div className="w-full flex items-center border border-gray-300 rounded focus-within:border-black overflow-hidden">
                                     <span className="px-3 text-sm text-gray-600 border-r border-gray-200">+90</span>
                                     <input
@@ -672,21 +683,41 @@ export default function CheckoutPage() {
                         </div>
                     </div>
 
-                    <div className="space-y-3">
+                    <div className="space-y-3 lg:hidden">
+                        <div className="flex items-start gap-2 rounded border border-gray-200 bg-white p-3">
+                            <input
+                                id="distance-sales-m"
+                                type="checkbox"
+                                className="mt-1 rounded border-gray-300"
+                                checked={distanceSalesContractAccepted}
+                                onChange={(e) => setDistanceSalesContractAccepted(e.target.checked)}
+                            />
+                            <label htmlFor="distance-sales-m" className="cursor-pointer text-sm text-gray-700 leading-snug">
+                                <button
+                                    type="button"
+                                    className="inline p-0 font-medium text-black underline decoration-black/40 underline-offset-2 hover:decoration-black"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        setDistanceSellingModalOpen(true);
+                                    }}
+                                >
+                                    Mesafeli Satış Sözleşmesi
+                                </button>
+                                &apos;ni okudum, onaylıyorum.
+                            </label>
+                        </div>
                         <button
                             onClick={() => handleCheckout("CREDIT_CARD")}
-                            disabled={loading}
+                            disabled={loading || !distanceSalesContractAccepted}
                             className="w-full bg-black text-white py-4 rounded font-medium text-lg hover:bg-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {loading && paymentMethod === "CREDIT_CARD" ? "İşleniyor..." : `Ödemeyi Tamamla • ${total.toFixed(2)} TL`}
                         </button>
-
-                        
-                        
                     </div>
 
                     <div className="text-xs text-gray-400 text-center mt-4">
-                        All rights reserved Goodhood
+                        © {new Date().getFullYear()} Dark Velvet. Tüm hakları saklıdır.
                     </div>
 
                 </div>
@@ -776,10 +807,47 @@ export default function CheckoutPage() {
                             <p className="text-xs text-gray-400 mt-1">Vergiler dahildir</p>
                         </div>
 
+                        <div className="hidden lg:flex flex-col gap-3 mt-6 pt-4 border-t border-gray-200">
+                            <div className="flex items-start gap-2">
+                                <input
+                                    id="distance-sales-d"
+                                    type="checkbox"
+                                    className="mt-1 rounded border-gray-300"
+                                    checked={distanceSalesContractAccepted}
+                                    onChange={(e) => setDistanceSalesContractAccepted(e.target.checked)}
+                                />
+                                <label htmlFor="distance-sales-d" className="cursor-pointer text-sm text-gray-700 leading-snug">
+                                    <button
+                                        type="button"
+                                        className="inline p-0 font-medium text-black underline decoration-black/40 underline-offset-2 hover:decoration-black"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            setDistanceSellingModalOpen(true);
+                                        }}
+                                    >
+                                        Mesafeli Satış Sözleşmesi
+                                    </button>
+                                    &apos;ni okudum, onaylıyorum.
+                                </label>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => handleCheckout("CREDIT_CARD")}
+                                disabled={loading || !distanceSalesContractAccepted}
+                                className="w-full bg-black text-white py-3 rounded font-medium hover:bg-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {loading && paymentMethod === "CREDIT_CARD"
+                                    ? "İşleniyor..."
+                                    : `Ödemeyi Tamamla • ${total.toFixed(2)} TL`}
+                            </button>
+                        </div>
+
                     </div>
                 </div>
 
             </div>
         </div>
+        </>
     );
 }

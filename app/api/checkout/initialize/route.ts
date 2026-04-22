@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { normalizeIdempotencyKey } from "@/lib/idempotency";
 import { releaseExpiredReservations, releaseReservationTx, reserveStockTx } from "@/lib/stock";
@@ -40,6 +40,14 @@ export async function POST(req: Request) {
         }
 
         const body = await req.json();
+
+        if (body?.acceptDistanceSalesContract !== true) {
+            return NextResponse.json(
+                { error: "Mesafeli satış sözleşmesini onaylamanız gerekir." },
+                { status: 400 }
+            );
+        }
+
         const now = new Date();
         const twentyFourHoursLater = new Date(now.getTime() + 24 * 60 * 60 * 1000);
         const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
@@ -94,6 +102,8 @@ export async function POST(req: Request) {
                     email: guestEmail,
                     phone: guestPhone,
                     isGuest: true,
+                    password: null,
+                    marketingEmailConsent: Boolean(body?.newsletterConsent),
                 },
                 select: { id: true },
             });
@@ -149,6 +159,21 @@ export async function POST(req: Request) {
                 { error: "Posta kodu girildiyse 5 hane olmalıdır." },
                 { status: 400 }
             );
+        }
+
+        if (body?.newsletterConsent && typeof body?.email === "string") {
+            const em = body.email.trim().toLowerCase();
+            if (em.includes("@")) {
+                try {
+                    await prisma.subscriber.upsert({
+                        where: { email: em },
+                        update: { isActive: true },
+                        create: { email: em, isActive: true },
+                    });
+                } catch (e) {
+                    console.warn("Newsletter subscriber upsert skipped:", e);
+                }
+            }
         }
 
         if (resolvedUserId) {
@@ -512,6 +537,8 @@ export async function POST(req: Request) {
                     orderNumber: `DV-${Date.now()}`,
                     userId: resolvedUserId,
                     email: body.email,
+                    paymentMethod: body.paymentMethod === "TEST" ? "TEST" : "CREDIT_CARD",
+                    distanceSalesContractAcceptedAt: new Date(),
                     currency,
                     subtotal,
                     shippingCost: shipping,
@@ -606,6 +633,8 @@ export async function POST(req: Request) {
                 orderNumber: `DV-${Date.now()}`,
                 userId: resolvedUserId,
                 email: body.email,
+                paymentMethod: body.paymentMethod === "TEST" ? "TEST" : "CREDIT_CARD",
+                distanceSalesContractAcceptedAt: new Date(),
                 currency,
                 subtotal,
                 shippingCost: shipping,

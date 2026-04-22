@@ -10,7 +10,8 @@ model User {
   id                     String               @id @default(uuid())
   name                   String
   email                  String               @unique
-  password               String
+  password               String?
+  isGuest                Boolean              @default(false)
   phone                  String?
   districtId             String?
   fullAddress            String?
@@ -171,6 +172,9 @@ model UserAddress {
   userId         String
   districtId     String
   fullAddress    String
+  email          String?
+  phone          String?
+  fullName       String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   isPrimary      Boolean  @default(false)
@@ -577,6 +581,7 @@ model Order {
   orderNumber       String          @unique
   userId            String
   email             String?
+  distanceSalesContractAcceptedAt DateTime?
   status            OrderStatus     @default(PENDING_PAYMENT)
   paymentStatus     PaymentStatus   @default(PENDING)
   subtotal          Float

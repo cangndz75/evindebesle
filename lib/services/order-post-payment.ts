@@ -1,5 +1,6 @@
 import { prisma } from "../db";
 import { resend } from "../resend";
+import { buildDistanceSalesContractHtmlForOrder } from "@/lib/legal/distance-sales-contract";
 import { createShipmentLabelForOrder } from "./cargo";
 import { fromKurus, sumKurus, toKurus } from "../utils/money";
 
@@ -49,7 +50,8 @@ async function ensureInvoiceForOrder(orderId: string) {
 
   // Misafir kullanıcı desteği: user olmayabilir, bilgileri adresten al
   const userName = order.user?.name || order.shippingAddress?.fullName || order.billingAddress?.fullName || "Misafir Kullanıcı";
-  const userEmail = order.user?.email || order.shippingAddress?.email || order.billingAddress?.email || null;
+  const userEmail =
+    order.email || order.user?.email || order.shippingAddress?.email || order.billingAddress?.email || null;
   const userPhone = order.user?.phone || order.shippingAddress?.phone || order.billingAddress?.phone || null;
 
   const companySettings = await prisma.companySettings.findFirst();
@@ -123,6 +125,37 @@ async function ensureInvoiceForOrder(orderId: string) {
   return created;
 }
 
+async function sendDistanceSalesContractEmail(orderId: string) {
+  const html = await buildDistanceSalesContractHtmlForOrder(orderId);
+  if (!html) return;
+
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: {
+      user: { select: { email: true } },
+      shippingAddress: true,
+      billingAddress: true,
+    },
+  });
+  if (!order) return;
+
+  const to =
+    order.email ||
+    order.user?.email ||
+    order.shippingAddress?.email ||
+    order.billingAddress?.email;
+  if (!to) return;
+
+  const from = process.env.ORDER_MAIL_FROM || "siparis@dark-velvet.com";
+
+  await resend.emails.send({
+    from,
+    to,
+    subject: `Mesafeli Satış Sözleşmesi — ${order.orderNumber}`,
+    html,
+  });
+}
+
 async function sendOrderPaidEmail(orderId: string) {
   const order = await prisma.order.findUnique({
     where: { id: orderId },
@@ -138,9 +171,17 @@ async function sendOrderPaidEmail(orderId: string) {
     },
   });
 
+  if (!order) {
+    return;
+  }
+
   // Misafir kullanıcı desteği
-  const userName = order?.user?.name || order?.shippingAddress?.fullName || order?.billingAddress?.fullName || "Degerli Musterimiz";
-  const userEmail = order?.user?.email || order?.shippingAddress?.email || order?.billingAddress?.email;
+  const userName = order.user?.name || order.shippingAddress?.fullName || order.billingAddress?.fullName || "Degerli Musterimiz";
+  const userEmail =
+    order.email ||
+    order.user?.email ||
+    order.shippingAddress?.email ||
+    order.billingAddress?.email;
 
   if (!userEmail) {
     return;
@@ -167,6 +208,11 @@ async function sendOrderPaidEmail(orderId: string) {
 export async function runOrderPostPaymentTasks(orderId: string) {
   const invoice = await ensureInvoiceForOrder(orderId);
   await sendOrderPaidEmail(orderId);
+  try {
+    await sendDistanceSalesContractEmail(orderId);
+  } catch (e) {
+    console.error("Mesafeli satış sözleşmesi e-postası gönderilemedi:", e);
+  }
 
   if (process.env.AUTO_CREATE_SHIPMENT_LABEL === "true") {
     try {

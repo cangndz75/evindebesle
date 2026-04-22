@@ -34,6 +34,7 @@ const footerSections = [
       { label: "Kargo Politikaları", href: "/shipping" },
       { label: "Gizlilik Politikası", href: "/privacy" },
       { label: "K.V.K.K. Aydınlatma Metni", href: "/kvkk" },
+      { label: "Mesafeli Satış Sözleşmesi", href: "/distance-selling" },
     ],
   },
   {
@@ -353,6 +354,7 @@ export default function Footer() {
                       <li><Link href="/shipping" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Kargo Politikaları</Link></li>
                       <li><Link href="/privacy" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Gizlilik Politikası</Link></li>
                       <li><Link href="/kvkk" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">K.V.K.K. Aydınlatma Metni</Link></li>
+                      <li><Link href="/distance-selling" className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Mesafeli Satış Sözleşmesi</Link></li>
                     </ul>
                   </div>
 

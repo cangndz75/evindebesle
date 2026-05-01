@@ -1,5 +1,6 @@
 ﻿import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { requireAdmin } from '@/lib/api/policy';
 
 export async function POST(req: NextRequest) {
     try {
@@ -55,6 +56,9 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
+    const admin = await requireAdmin();
+    if (!admin.ok) return admin.response;
+
     try {
         const { searchParams } = new URL(req.url);
         const limit = parseInt(searchParams.get('limit') || '100');

@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error("Customers fetch error:", error);
     return NextResponse.json(
-      { error: error.message || "Müşteri verileri yüklenirken bir hata oluştu" },
+      { error: "Müşteri verileri yüklenirken bir hata oluştu" },
       { status: 500 }
     );
   }

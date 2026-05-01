@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
       });
 
       if (campaign) {
-        campaignBlocks = campaignBlocks || JSON.parse(campaign.contentJson);
+        campaignBlocks = campaignBlocks || (() => { try { return JSON.parse(campaign.contentJson); } catch { return null; } })();
         campaignSubject = campaignSubject || campaign.subject;
         senderName = senderName || campaign.fromName;
         senderEmail = senderEmail || campaign.fromEmail;
@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
 
     if (error) {
       console.error("Error sending test email:", error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: "E-posta gönderilemedi" }, { status: 500 });
     }
 
     return NextResponse.json({

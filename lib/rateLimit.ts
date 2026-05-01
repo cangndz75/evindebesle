@@ -26,12 +26,12 @@ export function getClientIdentifier(req: Request): string {
 
 export async function checkRateLimit(identifier: string, limitConfig: RateLimitConfig) {
     if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
-        console.warn("Rate limiting disabled: UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN not set.");
+        console.error("Rate limiting unavailable: UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN not set.");
         return {
-            success: true,
+            success: false,
             limit: limitConfig.maxRequests,
-            remaining: limitConfig.maxRequests,
-            resetTime: Date.now() + 10000, // Dummy reset time
+            remaining: 0,
+            resetTime: Date.now() + 10000,
         };
     }
 
@@ -54,9 +54,9 @@ export async function checkRateLimit(identifier: string, limitConfig: RateLimitC
     } catch (error) {
         console.error("Rate limit error:", error);
         return {
-            success: true,
+            success: false,
             limit: limitConfig.maxRequests,
-            remaining: limitConfig.maxRequests,
+            remaining: 0,
             resetTime: Date.now(),
         };
     }

@@ -11,6 +11,11 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const tabOption = searchParams.get("tab") || "new-arrivals";
 
+    const ALLOWED_TABS = ["new-arrivals", "best-sellers", "featured", "sale"] as const;
+    if (!ALLOWED_TABS.includes(tabOption as any)) {
+      return jsonNoStore({ error: "Geçersiz tab değeri" }, { status: 400 });
+    }
+
     const items = await prisma.tabbedCarouselProduct.findMany({
       where: { tab: tabOption },
       orderBy: { order: "asc" },

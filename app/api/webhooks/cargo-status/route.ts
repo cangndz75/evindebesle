@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
   } catch (error: any) {
     console.error("[CARGO_STATUS_WEBHOOK]", error);
     return NextResponse.json(
-      { error: error?.message || "WEBHOOK_EXCEPTION" },
+      { error: "WEBHOOK_EXCEPTION" },
       { status: 500 }
     );
   }

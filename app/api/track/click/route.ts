@@ -14,6 +14,24 @@ export async function GET(req: NextRequest) {
 
         const decodedUrl = decodeURIComponent(originalUrl);
 
+        // Open redirect koruması: sadece kendi domain'e yönlendir
+        const ALLOWED_HOSTS = [
+          "dark-velvet.com",
+          "www.dark-velvet.com",
+          "evindebesle.com",
+          "www.evindebesle.com",
+        ];
+        let safeRedirectUrl: string;
+        try {
+          const parsed = new URL(decodedUrl);
+          if (!ALLOWED_HOSTS.includes(parsed.hostname)) {
+            return NextResponse.redirect(new URL("/", req.url));
+          }
+          safeRedirectUrl = parsed.toString();
+        } catch {
+          return NextResponse.redirect(new URL("/", req.url));
+        }
+
         if (campaignId) {
             try {
                 let emailLink = await prisma.emailLink.findFirst({
@@ -67,7 +85,7 @@ export async function GET(req: NextRequest) {
             }
         }
 
-        return NextResponse.redirect(decodedUrl);
+        return NextResponse.redirect(safeRedirectUrl);
     } catch (error) {
         console.error("Error in click tracking:", error);
         return NextResponse.redirect(new URL("/", req.url));

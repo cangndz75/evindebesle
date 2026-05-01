@@ -26,7 +26,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Campaign not found" }, { status: 404 });
     }
 
-    const blocks = JSON.parse(campaign.contentJson);
+    let blocks: any;
+    try {
+      blocks = JSON.parse(campaign.contentJson);
+    } catch {
+      return NextResponse.json({ error: "Campaign içeriği geçersiz" }, { status: 422 });
+    }
 
     let recipients: any[] = [];
 

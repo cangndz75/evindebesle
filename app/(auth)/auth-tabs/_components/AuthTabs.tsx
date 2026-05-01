@@ -330,7 +330,7 @@ export default function AuthTabs() {
             DARK<br />VELVET
           </h2>
           <p className="text-base md:text-lg text-white/90 mb-10 font-light leading-relaxed">
-            Her alışverişte mağaza kredisi kazanın ve özel ödüllerin kilidini açın.
+            En sevdiğiniz ürünleri keşfedin, alışverişin keyfini çıkarın. Hemen üye olun ve özel fırsatları kaçırmayın!
           </p>
           <Button
             variant="outline"

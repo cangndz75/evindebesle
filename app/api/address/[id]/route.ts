@@ -14,7 +14,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const body = await req.json();
 
   const updated = await prisma.userAddress.update({
-    where: { id },
+    where: { id, userId: session.user.id },
     data: {
       fullAddress: body.fullAddress,
       districtId: body.districtId,
@@ -33,7 +33,7 @@ export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id:
   }
 
   await prisma.userAddress.delete({
-    where: { id },
+    where: { id, userId: session.user.id },
   });
 
   return NextResponse.json({ success: true });

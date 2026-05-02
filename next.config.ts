@@ -1,7 +1,6 @@
-﻿import type { NextConfig } from "next";
-import { withSentryConfig } from "@sentry/nextjs";
+﻿import { withSentryConfig } from "@sentry/nextjs";
 
-const nextConfig: NextConfig = {
+const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },

@@ -28,14 +28,11 @@ function buildHtml(token: string, verifyUrl: string) {
       <span style="display: inline-block; font-size: 28px; font-weight: bold; letter-spacing: 6px; color: #111111;">${token}</span>
     </div>
     <p style="color: #555555; font-size: 14px;">
-      Kodu girmek için: <a href="${verifyUrl}" style="color: #111111;">${verifyUrl}</a>
-    </p>
-    <p style="color: #555555; font-size: 14px;">
       Bu kod 10 dakika boyunca geçerlidir. Eğer bu işlemi siz başlatmadıysanız, lütfen bizimle iletişime geçin.
     </p>
     <hr style="margin: 24px 0; border: none; border-top: 1px solid #ddd;" />
     <p style="color: #999999; font-size: 12px; text-align: center;">
-      Bu e-posta <a href="https://darkvelvet.com" style="color: #999999;">darkvelvet.com</a> üzerinden gönderilmiştir.
+      Bu e-posta <a href="https://dark-velvet.com" style="color: #999999;">dark-velvet.com</a> üzerinden gönderilmiştir.
     </p>
   </div>
 `;

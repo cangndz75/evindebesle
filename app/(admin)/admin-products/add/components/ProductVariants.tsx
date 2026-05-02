@@ -371,5 +371,7 @@ const VariantItem = React.memo(({
     );
 });
 
+VariantItem.displayName = "VariantItem";
+
 function LinkButtonOnClick() { return null; }
 function UploadIcon() { return <Plus className="w-3 h-3 mr-1" />; }

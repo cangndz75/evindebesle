@@ -50,12 +50,12 @@ npm run ci:quality
 
 `ci:quality` runs:
 
-- `npm run lint:ci`
+- `npm run lint`
 - `npm run test:unit`
-- `npm run typecheck:ci`
-- `npm run build:ci:report`
+- `npm run typecheck`
+- `npm run build:ci`
 
-`test:unit` is blocking. Lint/typecheck/build are currently report-only in phased rollout mode.
+All quality gate steps are blocking.
 
 ## Tests
 
@@ -106,6 +106,9 @@ Implemented protections:
 - HMAC signature verification (`x-cargo-signature`)
 - Timestamp freshness check (`x-cargo-timestamp`)
 - Replay protection with Redis-backed nonce fingerprint (fallback: in-memory)
+- Optional source IP allowlist gate
+- Optional webhook rate-limit gate
+- Structured security audit events for denied/accepted requests
 - Strict delivery transition guard in order state machine
 
 Relevant environment variables:
@@ -113,6 +116,8 @@ Relevant environment variables:
 - `CARGO_WEBHOOK_SECRET`
 - `CARGO_WEBHOOK_MAX_SKEW_SECONDS` (default `300`)
 - `CARGO_WEBHOOK_REPLAY_TTL_SECONDS` (default `300`)
+- `CARGO_WEBHOOK_IP_ALLOWLIST` (comma-separated, supports `*` and `10.0.0.*`)
+- `CARGO_WEBHOOK_RATE_LIMIT_ENABLED` (default `true`)
 - `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` (recommended)
 
 ## Build and Run

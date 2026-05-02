@@ -16,7 +16,7 @@ export default function BlogPagination({ totalPages }: Props) {
   const currentPage = Math.min(Math.max(raw, 1), totalPages);
 
   const changePage = (page: number) => {
-    const params = new URLSearchParams(Array.from(searchParams.entries()));
+    const params = new URLSearchParams(searchParams.toString());
     params.set("page", String(page));
     router.push(`/blog?${params.toString()}`);
   };

@@ -14,7 +14,8 @@ import AppointmentNotesTab from "./_components/AppointmentNotesTab";
 import AppointmentTimelineWrapper from "./_components/AppointmentTimelineWrapper";
 
 export default function OrderDetailPage() {
-  const { id } = useParams<{ id: string }>();
+  const params = useParams<{ id: string }>();
+  const id = params?.id;
   const [appointment, setAppointment] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -100,7 +101,7 @@ export default function OrderDetailPage() {
         </TabsList>
 
         <TabsContent value="timeline" className="pt-6">
-          <AppointmentTimelineWrapper appointmentId={id as string} />
+          <AppointmentTimelineWrapper appointmentId={id ?? ""} />
         </TabsContent>
 
         <TabsContent value="media" className="pt-6">

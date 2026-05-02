@@ -47,7 +47,8 @@ export default function ForgotPasswordClient() {
       toast.success("Bağlantı yeniden gönderildi.");
       setCountdown(300);
     } else {
-      toast.error("Gönderilirken bir hata oluştu.");
+      const data = await res.json();
+      toast.error(data.error || "Şifre sıfırlama e-postası gönderilemedi.");
     }
   };
 

@@ -111,7 +111,7 @@ export default function AuthTabs() {
 
         if (data.verificationEmailSent === false) {
           toast.warning(
-            "Hesap oluşturuldu ancak doğrulama e-postası gönderilemedi. Doğrulama sayfasından kodu tekrar isteyin."
+            "Hesap olu2şturuldu ancak doğrulama e-postası gönderilemedi. Doğrulama sayfasından kodu tekrar isteyin."
           );
         } else {
           toast.success("Kayıt başarılı! E-postanıza doğrulama kodu gönderildi.");

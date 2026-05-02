@@ -38,13 +38,16 @@ export async function POST(req: Request) {
     console.log("[REGISTER_SUCCESS]", newUser.id);
 
     let verificationEmailSent = false;
+    let mailDebugError: string | null = null;
     try {
       const otpResult = await sendVerificationOtpByEmail(normalizedEmail);
       verificationEmailSent = otpResult.ok;
       if (!otpResult.ok) {
+        mailDebugError = otpResult.error ?? "unknown";
         console.error("[REGISTER_OTP_MAIL]", otpResult.error);
       }
-    } catch (mailErr) {
+    } catch (mailErr: any) {
+      mailDebugError = mailErr?.message || String(mailErr);
       console.error("[REGISTER_OTP_MAIL_EXCEPTION]", mailErr);
     }
 
@@ -69,7 +72,7 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json(
-      { success: true, userId: newUser.id, verificationEmailSent },
+      { success: true, userId: newUser.id, verificationEmailSent, mailDebugError },
       { status: 201 }
     );
 

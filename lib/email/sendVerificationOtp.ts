@@ -64,8 +64,11 @@ export async function sendVerificationOtpByEmail(normalizedEmail: string) {
   const verifyUrl = `${publicBaseUrl()}/verify?email=${encodeURIComponent(normalizedEmail)}`;
   const html = buildHtml(token, verifyUrl);
 
-  const { error } = await resend.emails.send({
-    from: resendFromAddress(),
+  const fromAddress = resendFromAddress();
+  console.log("[sendVerificationOtpByEmail] Sending from:", fromAddress, "to:", normalizedEmail);
+
+  const { data, error } = await resend.emails.send({
+    from: fromAddress,
     to: [normalizedEmail],
     subject: "Doğrulama Kodunuz",
     html,
@@ -74,10 +77,12 @@ export async function sendVerificationOtpByEmail(normalizedEmail: string) {
   if (error) {
     console.error(
       "[sendVerificationOtpByEmail] Resend error:",
-      typeof error === "object" ? JSON.stringify(error) : error
+      JSON.stringify(error)
     );
-    return { ok: false as const, error: "E-posta gönderilemedi." };
+    return { ok: false as const, error: `E-posta gönderilemedi: ${JSON.stringify(error)}` };
   }
+
+  console.log("[sendVerificationOtpByEmail] Success, id:", data?.id);
 
   return { ok: true as const };
 }

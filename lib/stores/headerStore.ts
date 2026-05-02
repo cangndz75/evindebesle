@@ -26,8 +26,6 @@ export const useHeaderStore = create<HeaderState>((set, get) => ({
   setFreeShippingThreshold: (threshold) => set({ freeShippingThreshold: threshold }),
 
   hydrate: async (session) => {
-    if (get().isHydrated) return;
-
     if (!session?.user) {
       const guestCount = getGuestCartCount();
       set({ cartCount: guestCount, favoriteCount: 0, isHydrated: true });
@@ -65,7 +63,8 @@ export const useHeaderStore = create<HeaderState>((set, get) => ({
         });
       } catch (error) {
         console.error("Error hydrating header:", error);
-        set({ isHydrated: true });
+        // Fail-safe: never keep stale badge values on hydration errors.
+        set({ cartCount: 0, favoriteCount: 0, isHydrated: true });
       }
     }
   },
@@ -78,7 +77,7 @@ export const useHeaderStore = create<HeaderState>((set, get) => ({
     }
 
     const cartState = useCartStore.getState();
-    if (cartState.isReady) {
+    if (cartState.hydrated) {
       const total = cartState.items.reduce((sum, item) => sum + item.quantity, 0);
       set({ cartCount: total });
       return;
@@ -90,9 +89,12 @@ export const useHeaderStore = create<HeaderState>((set, get) => ({
         const items = await res.json();
         const total = items.reduce((sum: number, item: any) => sum + item.quantity, 0);
         set({ cartCount: total });
+      } else {
+        set({ cartCount: 0 });
       }
     } catch (error) {
       console.error("Error refreshing cart count:", error);
+      set({ cartCount: 0 });
     }
   },
 

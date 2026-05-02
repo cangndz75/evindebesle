@@ -14,7 +14,7 @@ import AppointmentNotesTab from "./_components/AppointmentNotesTab";
 import AppointmentTimelineWrapper from "./_components/AppointmentTimelineWrapper";
 
 export default function OrderDetailPage() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const [appointment, setAppointment] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
 

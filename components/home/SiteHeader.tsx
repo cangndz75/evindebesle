@@ -69,15 +69,19 @@ export default function SiteHeader() {
   const {
     cartCount,
     favoriteCount,
-    freeShippingThreshold,
     hydrate: hydrateHeader,
     refreshCartCount,
     refreshFavoriteCount,
   } = useHeaderStore();
 
   const cartHydrated = useCartStore((state) => state.hydrated);
+  const cartItems = useCartStore((state) => state.items);
   const hydrateCart = useCartStore((state) => state.hydrate);
   const syncGuestCartToAPI = useCartStore((state) => state.syncGuestCartToAPI);
+  const displayedCartCount = useMemo(() => {
+    if (!cartHydrated) return cartCount;
+    return cartItems.reduce((total, item) => total + item.quantity, 0);
+  }, [cartHydrated, cartCount, cartItems]);
   const categoriesLoading = menCategoriesLoading || womenCategoriesLoading;
   const activeMobileCategories = mobileMenuState === "men" ? menCategories : womenCategories;
   const sortedMobileCategories = useMemo(() => {
@@ -571,9 +575,9 @@ export default function SiteHeader() {
                 aria-label="Sepet"
               >
                 <ShoppingBag className="w-5 h-5" />
-                {cartCount > 0 && (
+                {displayedCartCount > 0 && (
                   <span className="absolute -top-1 -right-1 w-4 h-4 text-white text-[10px] rounded-full flex items-center justify-center font-light bg-[#111]">
-                    {cartCount}
+                    {displayedCartCount}
                   </span>
                 )}
               </button>

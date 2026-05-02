@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { resend } from "@/lib/resend";
+import { canTransitionToCompletedFrom } from "@/lib/services/cargo-state";
 
 type CreateShipmentResult = {
   trackingNumber: string;
@@ -130,6 +131,7 @@ export async function createShipmentLabelForOrder(params: {
           district: true,
         },
       },
+      cargoCompany: true,
     },
   });
 
@@ -146,6 +148,18 @@ export async function createShipmentLabelForOrder(params: {
 
   if (!cargoCompany) {
     throw new Error("CARGO_COMPANY_NOT_FOUND");
+  }
+
+  if (order.trackingNumber) {
+    return {
+      trackingNumber: order.trackingNumber,
+      trackingUrl: buildTrackingUrl(
+        order.cargoCompany?.trackingUrl || cargoCompany.trackingUrl,
+        order.trackingNumber
+      ),
+      cargoCompanyId: order.cargoCompanyId || cargoCompany.id,
+      cargoCompanyName: order.cargoCompany?.name || cargoCompany.name,
+    };
   }
 
   const recipientAddress = [
@@ -258,12 +272,27 @@ export async function applyCargoStatusWebhook(params: {
     return { ignored: true, orderId: order.id, status };
   }
 
+  if (order.status === "COMPLETED") {
+    return { ignored: true, orderId: order.id, status: "already_completed" };
+  }
+
+  if (!canTransitionToCompletedFrom(order.status)) {
+    return {
+      ignored: true,
+      orderId: order.id,
+      status: "invalid_transition",
+      currentStatus: order.status,
+    };
+  }
+
+  const deliveredAt = order.deliveredAt || new Date();
+
   await prisma.$transaction([
     prisma.order.update({
       where: { id: order.id },
       data: {
         status: "COMPLETED",
-        deliveredAt: new Date(),
+        deliveredAt,
       },
     }),
     prisma.auditLog.create({
@@ -273,7 +302,7 @@ export async function applyCargoStatusWebhook(params: {
         action: "CARGO_WEBHOOK_DELIVERED",
         newValue: {
           status: "COMPLETED",
-          deliveredAt: new Date().toISOString(),
+          deliveredAt: deliveredAt.toISOString(),
         },
         performedById: params.performedById,
       },

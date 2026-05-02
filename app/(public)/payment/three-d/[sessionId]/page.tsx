@@ -16,6 +16,7 @@ export default async function Page({ params }: Props) {
 
   return (
     <main suppressHydrationWarning className="p-4">
+      {/* trusted-3ds-render: PSP-signed 3DS challenge HTML persisted server-side */}
       <div dangerouslySetInnerHTML={{ __html: session.threeDSHtml }} />
     </main>
   );

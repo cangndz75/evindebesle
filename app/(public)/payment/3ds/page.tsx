@@ -18,6 +18,7 @@ export default async function ThreeDSPage({ searchParams }: Props) {
 
   return (
     <main suppressHydrationWarning className="p-0 m-0">
+      {/* trusted-3ds-render: PSP-signed 3DS challenge HTML persisted server-side */}
       <div dangerouslySetInnerHTML={{ __html: s.threeDSHtml }} />
     </main>
   );

@@ -102,6 +102,36 @@ type Item = {
   balance: number
 }
 
+const LOCAL_SEED_ITEMS: Item[] = [
+  {
+    id: "usr_001",
+    name: "Aylin Kaya",
+    email: "aylin.kaya@example.com",
+    location: "Istanbul",
+    flag: "TR",
+    status: "Active",
+    balance: 1240.32,
+  },
+  {
+    id: "usr_002",
+    name: "Mert Yilmaz",
+    email: "mert.yilmaz@example.com",
+    location: "Ankara",
+    flag: "TR",
+    status: "Pending",
+    balance: 415.9,
+  },
+  {
+    id: "usr_003",
+    name: "Selin Demir",
+    email: "selin.demir@example.com",
+    location: "Izmir",
+    flag: "TR",
+    status: "Inactive",
+    balance: 87.5,
+  },
+]
+
 const multiColumnFilterFn: FilterFn<Item> = (row, columnId, filterValue) => {
   const searchableRowContent =
     `${row.original.name} ${row.original.email}`.toLowerCase()
@@ -230,14 +260,7 @@ export default function Component() {
 
   const [data, setData] = useState<Item[]>([])
   useEffect(() => {
-    async function fetchPosts() {
-      const res = await fetch(
-        "https://raw.githubusercontent.com/origin-space/origin-images/refs/heads/main/users-01_fertyx.json"
-      )
-      const data = await res.json()
-      setData(data)
-    }
-    fetchPosts()
+    setData(LOCAL_SEED_ITEMS)
   }, [])
 
   const handleDeleteRows = () => {

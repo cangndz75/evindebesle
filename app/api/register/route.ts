@@ -8,7 +8,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { name, email, password } = body;
-    const normalizedEmail = String(email || "").trim().toLocaleLowerCase("tr-TR");
+    const normalizedEmail = String(email || "").trim().toLowerCase();
     const normalizedName = String(name || "").trim();
 
     const ip = req.headers.get("x-forwarded-for") || "127.0.0.1";

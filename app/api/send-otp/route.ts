@@ -4,7 +4,7 @@ import { sendVerificationOtpByEmail } from "@/lib/email/sendVerificationOtp";
 export async function POST(req: Request) {
   try {
     const { email } = await req.json();
-    const normalizedEmail = String(email || "").trim().toLocaleLowerCase("tr-TR");
+    const normalizedEmail = String(email || "").trim().toLowerCase();
 
     if (!normalizedEmail) {
       return NextResponse.json({ error: "Email gerekli." }, { status: 400 });

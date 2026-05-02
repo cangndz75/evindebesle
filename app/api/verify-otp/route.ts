@@ -4,7 +4,7 @@ import { createAdminNotification } from "@/lib/notifications/createAdminNotifica
 
 export async function POST(req: Request) {
   const { email, code } = await req.json();
-  const normalizedEmail = String(email || "").trim().toLocaleLowerCase("tr-TR");
+  const normalizedEmail = String(email || "").trim().toLowerCase();
 
   const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
   if (

@@ -18,7 +18,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Geçersiz e-posta." }, { status: 400 })
     }
 
-    const normalizedEmail = email.trim().toLocaleLowerCase("tr-TR");
+    const normalizedEmail = email.trim().toLowerCase();
     if (!normalizedEmail) {
       return NextResponse.json({ error: "Geçersiz e-posta." }, { status: 400 })
     }

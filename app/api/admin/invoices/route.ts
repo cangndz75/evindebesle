@@ -3,6 +3,8 @@ import { prisma } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { fromKurus, sumKurus, toKurus } from "@/lib/utils/money";
+import { randomUUID } from "crypto";
+import { withDefaultCompanyProfile } from "@/lib/invoice/company-profile";
 
 const DEFAULT_TCKN_VKN = "11111111111";
 const DEFAULT_INVOICE_PREFIX = "DRK";
@@ -110,7 +112,7 @@ export async function POST(req: Request) {
             return new NextResponse("Order not found", { status: 404 });
         }
 
-        const companySettings = await prisma.companySettings.findFirst();
+        const companySettings = withDefaultCompanyProfile(await prisma.companySettings.findFirst());
 
         const year = new Date().getFullYear();
         const yearStart = new Date(`${year}-01-01T00:00:00.000Z`);
@@ -133,6 +135,7 @@ export async function POST(req: Request) {
 
         const rawTaxNumber = (order.user as any)?.taxNumber || (customerAddress as any)?.taxNumber;
         const taxNumber = String(rawTaxNumber || DEFAULT_TCKN_VKN);
+        const ettn = randomUUID().replaceAll("-", "");
 
         const customerSnapshot = {
             name: order.user.name,
@@ -142,6 +145,7 @@ export async function POST(req: Request) {
             addressText: fullAddressText,
             taxNumber,
             taxOffice: (order.user as any)?.taxOffice || "-",
+            ettn,
         };
 
         const itemsSnapshot = order.items.map((item: any) => ({

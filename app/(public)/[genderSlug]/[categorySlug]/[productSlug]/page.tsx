@@ -1,9 +1,9 @@
 import { prisma } from "@/lib/db";
 import { notFound, permanentRedirect } from "next/navigation";
-import ProductPage, { generateMetadata as generateLegacyMetadata, revalidate } from "@/app/(public)/product/[id]/page";
+import ProductPage, { generateMetadata as generateLegacyMetadata } from "@/app/(public)/product/[id]/page";
 import { buildProductPath, normalizeGenderSlug } from "@/lib/seo/productPath";
 
-export { revalidate };
+export const revalidate = 3600;
 
 type RouteProps = {
   params: Promise<{

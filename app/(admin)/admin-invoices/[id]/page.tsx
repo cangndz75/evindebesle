@@ -6,11 +6,12 @@ import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Printer, ArrowLeft, Download, Mail } from "lucide-react";
+import { Printer, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { QRCodeCanvas } from "qrcode.react";
 import { numberToTurkishText } from "@/lib/utils/numberToTurkishText";
 import { fromKurus, toKurus } from "@/lib/utils/money";
+import { buildGibQrContent, formatQrIssueDate, resolveInvoiceEttn } from "@/lib/invoice/qr";
 
 interface InvoiceItem {
     productName: string;
@@ -28,8 +29,8 @@ interface Invoice {
     totalAmount: number;
     subtotal: number;
     taxAmount: number;
-    couponDiscount: number; // Add if available in API
-    shippingCost: number;   // Add if available in API
+    couponDiscount?: number;
+    shippingCost?: number;
     createdAt: string;
     issuedAt: string | null;
     dueDate: string | null;
@@ -38,6 +39,12 @@ interface Invoice {
     items: InvoiceItem[];
     order: {
         orderNumber: string;
+        shippingCost?: number;
+        paymentMethod?: string | null;
+        cargoCompany?: {
+            name: string;
+            code: string;
+        } | null;
     };
 }
 
@@ -90,12 +97,16 @@ export default function InvoiceDetailPage() {
     const SENARYO = "EARSIVFATURA";
     const FATURA_TIPI = "SATIS";
 
-    const ETTN = invoice.id;
+    const ETTN = resolveInvoiceEttn({
+        invoiceId: invoice.id,
+        customerDetails: invoice.customerDetails,
+        companyDetails: invoice.companyDetails,
+    });
 
     const customerTaxNumber =
         invoice.customerDetails?.taxNumber && String(invoice.customerDetails?.taxNumber).trim().length > 0
             ? String(invoice.customerDetails?.taxNumber)
-            : "11111111111";
+            : "-";
     const customerAddressText =
         invoice.customerDetails?.addressText ||
         [
@@ -106,14 +117,26 @@ export default function InvoiceDetailPage() {
             .filter(Boolean)
             .join(" ");
 
-    const companyName = invoice.companyDetails?.companyName || "EVİNDEBESLE E-TİC.";
-    const companyAddress = invoice.companyDetails?.companyAddress || "Merkez Mah. Örnek Cad. No:1 İstanbul";
-    const companyPhone = invoice.companyDetails?.phone || "+90 212 111 22 33";
+    const companyName = invoice.companyDetails?.companyName || "CIHAN MERT OZCAN";
+    const companyAddress = invoice.companyDetails?.companyAddress || "YUNUS MAH. ERSIN SK NO:8/3 KARTAL ISTANBUL";
+    const companyPhone = invoice.companyDetails?.phone || "5356818375";
     const companyEmail = invoice.companyDetails?.email || "info@dark-velvet.com";
-    const taxOffice = invoice.companyDetails?.taxOffice || "Marmara Kurumlar";
-    const taxNumber = invoice.companyDetails?.taxNumber || "1234567890";
-    const mersisNo = "0388023942900019"; // Example
-    const logoUrl = invoice.companyDetails?.logoUrl; // Could be null
+    const companyWebsite = invoice.companyDetails?.website || "https://www.dark-velvet.com";
+    const taxOffice = invoice.companyDetails?.taxOffice || "KARTAL VERGI DAIRESI MUD";
+    const taxNumber = invoice.companyDetails?.taxNumber || "1063374910";
+    const tradeRegistryNo = invoice.companyDetails?.tradeRegistryNo || invoice.companyDetails?.ticaretSicilNo || "6690628147";
+    const logoUrl = invoice.companyDetails?.logoUrl;
+    const shippingCost = invoice.order?.shippingCost ?? invoice.shippingCost ?? 0;
+    const paymentMethod = invoice.order?.paymentMethod || "-";
+    const cargoCompanyName = invoice.order?.cargoCompany?.name || "-";
+    const cargoCompanyCode = invoice.order?.cargoCompany?.code || "-";
+    const qrPayload = buildGibQrContent({
+        sellerTaxId: String(taxNumber).trim() || "11111111111",
+        invoiceNumber: invoice.invoiceNumber,
+        ettn: ETTN,
+        issueDate: formatQrIssueDate(invoice.issuedAt || invoice.createdAt),
+        payableAmount: invoice.totalAmount,
+    });
 
     return (
         <div className="min-h-screen bg-gray-50 p-4 md:p-8 print:p-0 print:bg-white text-[11px] leading-tight font-sans text-black">
@@ -147,12 +170,12 @@ export default function InvoiceDetailPage() {
                         <div className="mt-2">
                             <p>Tel: {companyPhone}</p>
                             <p>E-Posta: {companyEmail}</p>
-                            <p>Web Sitesi: https://dark-velvet.com</p>
+                            <p>Web Sitesi: {companyWebsite}</p>
                         </div>
                         <div className="mt-2 text-gray-700">
                             <p>Vergi Dairesi: {taxOffice}</p>
                             <p>Vergi Kimlik Numarası: {taxNumber}</p>
-                            <p>Mersis No: {mersisNo}</p>
+                            <p>Ticaret Sicil Numarası: {tradeRegistryNo}</p>
                         </div>
                     </div>
 
@@ -179,7 +202,7 @@ export default function InvoiceDetailPage() {
                         
                         <div className="mt-4 mr-2">
                             <QRCodeCanvas
-                                value={`https://gib.gov.tr/fatura/${invoice.invoiceNumber}`}
+                                value={qrPayload}
                                 size={90}
                                 level={"M"}
                             />
@@ -197,7 +220,6 @@ export default function InvoiceDetailPage() {
                         <div className="pl-0">
                             <p className="font-bold">{invoice.customerDetails?.name}</p>
                             <p>{customerAddressText || "-"}</p>
-                            <p>{invoice.customerDetails?.address?.district?.name} / {invoice.customerDetails?.address?.district?.city}</p>
                             <p className="mt-2">E-Posta: {invoice.customerDetails?.email}</p>
                             <p>Tel: {invoice.customerDetails?.phone}</p>
                             <p>Vergi Dairesi: {invoice.customerDetails?.taxOffice || "-"}</p>
@@ -325,17 +347,6 @@ export default function InvoiceDetailPage() {
                         </div>
 
                         
-                        <div className="mt-4 text-[9px] flex gap-8">
-                            <div>
-                                <span className="font-bold underline block mb-1">BANKA BİLGİLERİ</span>
-                                <div className="grid grid-cols-[60px_1fr] gap-x-2">
-                                    <span>Garanti</span>
-                                    <span>TR00 0000 0000 0000 0000 0000 00</span>
-                                    <span>Yapı Kredi</span>
-                                    <span>TR00 0000 0000 0000 0000 0000 00</span>
-                                </div>
-                            </div>
-                        </div>
                     </div>
 
                     
@@ -355,10 +366,10 @@ export default function InvoiceDetailPage() {
                                     <td className="p-1 text-right font-bold border-b border-gray-300 border-l">{invoice.taxAmount.toFixed(2)} TRY</td>
                                 </tr>
                                 
-                                {invoice.shippingCost > 0 && (
+                                {shippingCost > 0 && (
                                     <tr>
                                         <td className="p-1 border-b border-gray-300">Kargo:</td>
-                                        <td className="p-1 text-right font-bold border-b border-gray-300 border-l">{invoice.shippingCost.toFixed(2)} TRY</td>
+                                        <td className="p-1 text-right font-bold border-b border-gray-300 border-l">{shippingCost.toFixed(2)} TRY</td>
                                     </tr>
                                 )}
                                 <tr className="bg-gray-100">
@@ -383,9 +394,9 @@ export default function InvoiceDetailPage() {
                         <div>Gönderim Tarihi</div>
                     </div>
                     <div className="grid grid-cols-4 gap-2 text-center mt-1 uppercase">
-                        <div>KREDI KARTI / IYZICO</div>
-                        <div>ARAS KARGO</div>
-                        <div>0720039666</div>
+                        <div>{String(paymentMethod).replaceAll("_", " ")}</div>
+                        <div>{cargoCompanyName}</div>
+                        <div>{cargoCompanyCode}</div>
                         <div>{invoice.issuedAt ? format(new Date(invoice.issuedAt), "dd.MM.yyyy", { locale: tr }) : "-"}</div>
                     </div>
                 </div>

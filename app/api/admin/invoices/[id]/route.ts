@@ -64,6 +64,12 @@ export async function GET(
                                 discountType: true,
                                 value: true,
                             }
+                        },
+                        cargoCompany: {
+                            select: {
+                                name: true,
+                                code: true,
+                            }
                         }
                     }
                 }

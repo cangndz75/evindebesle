@@ -3,6 +3,8 @@ import { resend } from "../resend";
 import { buildDistanceSalesContractHtmlForOrder } from "@/lib/legal/distance-sales-contract";
 import { createShipmentLabelForOrder } from "./cargo";
 import { fromKurus, sumKurus, toKurus } from "../utils/money";
+import { randomUUID } from "crypto";
+import { withDefaultCompanyProfile } from "@/lib/invoice/company-profile";
 
 const VAT_RATE = 20;
 const DEFAULT_TCKN_VKN = "11111111111";
@@ -48,13 +50,12 @@ async function ensureInvoiceForOrder(orderId: string) {
     return null;
   }
 
-  // Misafir kullanıcı desteği: user olmayabilir, bilgileri adresten al
   const userName = order.user?.name || order.shippingAddress?.fullName || order.billingAddress?.fullName || "Misafir Kullanıcı";
   const userEmail =
     order.email || order.user?.email || order.shippingAddress?.email || order.billingAddress?.email || null;
   const userPhone = order.user?.phone || order.shippingAddress?.phone || order.billingAddress?.phone || null;
 
-  const companySettings = await prisma.companySettings.findFirst();
+  const companySettings = withDefaultCompanyProfile(await prisma.companySettings.findFirst());
 
   const year = new Date().getFullYear();
   const yearStart = new Date(`${year}-01-01T00:00:00.000Z`);
@@ -78,6 +79,7 @@ async function ensureInvoiceForOrder(orderId: string) {
 
   const rawTaxNumber = (order.user as any)?.taxNumber || (customerAddress as any)?.taxNumber;
   const taxNumber = String(rawTaxNumber || DEFAULT_TCKN_VKN);
+  const ettn = randomUUID().replaceAll("-", "");
 
   const customerSnapshot = {
     name: userName,
@@ -87,6 +89,7 @@ async function ensureInvoiceForOrder(orderId: string) {
     addressText: fullAddressText,
     taxNumber,
     taxOffice: (order.user as any)?.taxOffice || "-",
+    ettn,
   };
 
   const itemsSnapshot = order.items.map((item: any) => ({

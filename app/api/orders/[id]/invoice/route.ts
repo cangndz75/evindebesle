@@ -5,8 +5,30 @@ import puppeteer from "puppeteer";
 import { renderInvoiceHTML } from "@/lib/invoice/renderInvoiceHTML";
 import { toInvoiceDTO } from "@/lib/api/dto/order";
 import { jsonNoStore } from "@/lib/api/policy";
+import QRCode from "qrcode";
+import { buildGibQrContent, formatQrIssueDate, resolveInvoiceEttn } from "@/lib/invoice/qr";
+import { withDefaultCompanyProfile } from "@/lib/invoice/company-profile";
 
 export const dynamic = "force-dynamic";
+
+const VAT_RATE = 20;
+const DEFAULT_TAX_NUMBER = "11111111111";
+
+function buildFallbackCustomer(order: any) {
+    const customerAddress = order.billingAddress || order.shippingAddress;
+    const districtName = customerAddress?.district?.name || "";
+    const cityName = customerAddress?.district?.city || "";
+    const addressLine = customerAddress?.fullAddress || "";
+
+    return {
+        name: order.user?.name || "-",
+        email: order.user?.email || "",
+        phone: order.user?.phone || "",
+        taxOffice: "-",
+        taxNumber: DEFAULT_TAX_NUMBER,
+        addressText: [districtName, cityName, addressLine].filter(Boolean).join(" ").trim(),
+    };
+}
 
 export async function GET(
     request: NextRequest,
@@ -33,6 +55,7 @@ export async function GET(
                     select: {
                         name: true,
                         email: true,
+                        phone: true,
                     },
                 },
                 shippingAddress: {
@@ -63,20 +86,89 @@ export async function GET(
             );
         }
 
-        const companySettings = await prisma.companySettings.findFirst();
+        const companySettings = withDefaultCompanyProfile(await prisma.companySettings.findFirst());
+
+        const invoiceRecord = await prisma.invoice.findFirst({
+            where: { orderId: order.id },
+            orderBy: { createdAt: "desc" },
+        });
+
+        const orderDto = toInvoiceDTO(order);
+
+        const items = Array.isArray((invoiceRecord?.items as any[] | undefined))
+            ? (invoiceRecord?.items as any[])
+            : orderDto.items.map((item: any) => ({
+                  productName: item.productName,
+                  quantity: item.quantity,
+                  unitPrice: item.unitPrice,
+                  totalPrice: item.totalPrice,
+                  taxRate: VAT_RATE,
+              }));
+
+        const subtotal = typeof invoiceRecord?.subtotal === "number" ? invoiceRecord.subtotal : orderDto.subtotal;
+        const taxAmount = typeof invoiceRecord?.taxAmount === "number" ? invoiceRecord.taxAmount : orderDto.subtotal * (VAT_RATE / 100);
+        const totalAmount = typeof invoiceRecord?.totalAmount === "number" ? invoiceRecord.totalAmount : orderDto.total;
+
+        const customerDetails =
+            invoiceRecord?.customerDetails && typeof invoiceRecord.customerDetails === "object"
+                ? (invoiceRecord.customerDetails as Record<string, unknown>)
+                : buildFallbackCustomer(order);
+
+        const companyDetails =
+            invoiceRecord?.companyDetails && typeof invoiceRecord.companyDetails === "object"
+            ? withDefaultCompanyProfile(invoiceRecord.companyDetails)
+            : (companySettings as Record<string, unknown>);
+
+        const invoicePayload = {
+            invoiceNumber: invoiceRecord?.invoiceNumber || `SIP-${order.orderNumber}`,
+            ettn: resolveInvoiceEttn({
+                invoiceId: invoiceRecord?.id || order.id,
+                customerDetails,
+                companyDetails,
+            }),
+            issuedAt: invoiceRecord?.issuedAt || order.paidAt || order.createdAt,
+            dueDate: invoiceRecord?.dueDate || null,
+            scenario: "EARSIVFATURA",
+            type: "SATIS",
+            customizationNo: "TR1.2",
+            subtotal,
+            taxAmount,
+            totalAmount,
+            items,
+            customerDetails,
+        };
+
+        const sellerTaxId =
+            String((companyDetails as Record<string, unknown>)?.taxNumber || "").trim() || DEFAULT_TAX_NUMBER;
+        const issueDate = formatQrIssueDate(invoicePayload.issuedAt);
+        const qrContent = buildGibQrContent({
+            sellerTaxId,
+            invoiceNumber: invoicePayload.invoiceNumber,
+            ettn: invoicePayload.ettn,
+            issueDate,
+            payableAmount: invoicePayload.totalAmount,
+        });
+
+        const qrDataUrl = await QRCode.toDataURL(qrContent, {
+            margin: 1,
+            width: 180,
+            errorCorrectionLevel: "M",
+        });
 
         const html = renderInvoiceHTML({
-            order: toInvoiceDTO(order),
-            company: companySettings || {
-                companyName: "Dark Velvet",
-                companyAddress: "",
-                taxOffice: "",
-                taxNumber: "",
-                phone: "",
-                email: "",
+            order: orderDto,
+            invoice: invoicePayload,
+            company: companyDetails || {
+                companyName: "CIHAN MERT OZCAN",
+                companyAddress: "YUNUS MAH. ERSIN SK NO:8/3 KARTAL ISTANBUL",
+                taxOffice: "KARTAL VERGI DAIRESI MUD",
+                taxNumber: "1063374910",
+                phone: "5356818375",
+                email: "info@dark-velvet.com",
                 logoUrl: "",
-                website: "",
+                website: "https://www.dark-velvet.com",
             },
+            qrDataUrl,
         });
 
         console.log("Starting debug invoice generation...");

@@ -116,21 +116,68 @@ export default function AbandonedCartsPage() {
         }).format(value);
     };
 
-    const handleSendEmail = (email: string) => {
-        const cart = data?.abandonedCarts.find(c => c.user.email === email);
-        if (!cart) return;
+    const buildAbandonedCartCampaignDraft = (
+        targetEmail?: string,
+        targetCart?: AbandonedCartUser
+    ) => {
+        const isSingle = !!targetEmail && !!targetCart;
+        const carts = isSingle ? [targetCart!] : (data?.abandonedCarts || []);
+        const topProducts = isSingle
+            ? targetCart!.items.slice(0, 4)
+            : (data?.topAbandonedProducts?.slice(0, 4) || []).map((p) => ({
+                product: p.product,
+                quantity: p.count,
+                value: p.value,
+            }));
 
-        const draft = {
+        const totalUsers = isSingle ? 1 : (data?.abandonedCarts.length || 0);
+        const totalRevenue = isSingle
+            ? targetCart!.totalValue
+            : (data?.summary.totalPotentialRevenue || 0);
+
+        const userName = isSingle ? (targetCart!.user.name || "Değerli Müşterimiz") : "{{first_name}}";
+        const greeting = isSingle
+            ? `Merhaba <strong>${userName}</strong>,`
+            : `Merhaba <strong>{{first_name|Değerli Müşterimiz}}</strong>,`;
+
+        const productBlocks = topProducts.flatMap((item, idx) => [
+            {
+                id: `img-prod-${idx}`,
+                type: "image" as const,
+                content: {
+                    imageUrl: item.product.image || "",
+                    altText: item.product.name,
+                    linkUrl: `https://dark-velvet.com/product/${item.product.id}`,
+                    align: "center",
+                    width: "280px",
+                },
+                style: { padding: "8px 20px", backgroundColor: "#ffffff" },
+                visibility: { mobile: true, desktop: true },
+            },
+            {
+                id: `txt-prod-${idx}`,
+                type: "text" as const,
+                content: {
+                    text: `<p style="font-size:16px;font-weight:bold;text-align:center;color:#000;margin:4px 0;">${item.product.name}</p><p style="font-size:14px;text-align:center;color:#666;margin:0 0 12px;">${formatPrice(item.value || item.product.price)}</p>`,
+                },
+                style: { padding: "0 20px 8px", backgroundColor: "#ffffff" },
+                visibility: { mobile: true, desktop: true },
+            },
+        ]);
+
+        return {
             id: null,
-            name: `Terk Edilen Sepet - ${cart.user.name || email}`,
+            name: isSingle
+                ? `Sepet Hatırlatma — ${targetCart!.user.name || targetEmail}`
+                : `Terk Edilen Sepet Kampanyası — ${totalUsers} kullanıcı`,
             status: "draft",
-            subject: "Sepetinizde ürün unuttunuz!",
-            preheader: "Beğendiğiniz ürünler sizi bekliyor",
+            subject: "Sepetinizde ürünler sizi bekliyor!",
+            preheader: "Beğendiğiniz ürünler tükenmeden alışverişinizi tamamlayın",
             fromName: "Dark Velvet",
             fromEmail: "info@dark-velvet.com",
             replyTo: "info@dark-velvet.com",
-            recipientEmail: email,
-            audienceSegmentId: null,
+            recipientEmail: targetEmail || undefined,
+            audienceSegmentId: isSingle ? null : "active",
             scheduleAt: null,
             blocks: [
                 {
@@ -140,86 +187,93 @@ export default function AbandonedCartsPage() {
                         logoUrl: "https://dark-velvet.com/images/logo.png",
                         align: "center",
                         backgroundColor: "#ffffff",
-                        padding: "20px"
+                        padding: "20px",
                     },
                     style: {},
-                    visibility: { mobile: true, desktop: true }
+                    visibility: { mobile: true, desktop: true },
                 },
                 {
-                    id: "text-1",
-                    type: "text",
+                    id: "hero-1",
+                    type: "hero",
                     content: {
-                        text: `<p style="font-size: 16px; text-align: center; color: #333;">Merhaba <strong>${cart.user.name || "Değerli Müşterimiz"}</strong>,<br><br>Sepetinizde harika ürünler bıraktığınızı fark ettik. Tükenmeden hemen tamamlayın!</p>`,
-                    },
-                    style: {
-                        padding: "20px",
-                        backgroundColor: "#ffffff"
-                    },
-                    visibility: { mobile: true, desktop: true }
-                },
-                ...(cart.items.length > 0 ? [{
-                    id: "product-1",
-                    type: "image", // Using image block for simplicity as product block might be complex
-                    content: {
-                        imageUrl: cart.items[0].product.image || "https://dark-velvet.com/images/placeholder.png",
-                        altText: cart.items[0].product.name,
-                        linkUrl: `https://dark-velvet.com/product/${cart.items[0].product.id}`,
+                        imageUrl: "",
+                        title: "Sepetinizi Unutmayın",
+                        subtitle: "Seçtiğiniz ürünler hâlâ sizi bekliyor",
+                        backgroundColor: "#111111",
+                        textColor: "#ffffff",
                         align: "center",
-                        width: "300px" // Reasonable width for product image
                     },
-                    style: {
-                        padding: "10px",
-                        backgroundColor: "#ffffff"
-                    },
-                    visibility: { mobile: true, desktop: true }
-                }, {
-                    id: "text-prod-1",
+                    style: { padding: "32px 20px", backgroundColor: "#111111" },
+                    visibility: { mobile: true, desktop: true },
+                },
+                {
+                    id: "text-greeting",
                     type: "text",
                     content: {
-                        text: `<p style="font-size: 18px; font-weight: bold; text-align: center; color: #000; margin: 10px 0;">${cart.items[0].product.name}</p><p style="font-size: 16px; text-align: center; color: #666;">${formatPrice(cart.items[0].value)}</p>`,
+                        text: `<p style="font-size:16px;line-height:1.7;text-align:center;color:#333;padding:0 16px;">${greeting}<br><br>Sepetinizde bıraktığınız ürünler hâlâ mevcut. Stoklar sınırlı — kaçırmadan alışverişinizi tamamlayın!</p>`,
                     },
-                    style: {
-                        padding: "0 20px",
-                        backgroundColor: "#ffffff"
-                    },
-                    visibility: { mobile: true, desktop: true }
-                }] : []),
+                    style: { padding: "24px 20px 8px", backgroundColor: "#ffffff" },
+                    visibility: { mobile: true, desktop: true },
+                },
+                {
+                    id: "divider-1",
+                    type: "divider",
+                    content: {},
+                    style: { padding: "8px 40px", backgroundColor: "#ffffff" },
+                    visibility: { mobile: true, desktop: true },
+                },
+                ...productBlocks,
                 {
                     id: "cta-1",
                     type: "cta",
                     content: {
-                        text: "Sepeti Tamamla",
+                        text: "Alışverişi Tamamla",
                         url: "https://dark-velvet.com/cart",
                         align: "center",
                         backgroundColor: "#000000",
                         textColor: "#ffffff",
-                        borderRadius: "4px",
-                        padding: "12px 24px"
+                        borderRadius: "6px",
+                        padding: "14px 32px",
                     },
-                    style: {
-                        padding: "20px",
-                        backgroundColor: "#ffffff"
+                    style: { padding: "24px 20px", backgroundColor: "#ffffff" },
+                    visibility: { mobile: true, desktop: true },
+                },
+                {
+                    id: "text-urgency",
+                    type: "text",
+                    content: {
+                        text: `<p style="font-size:13px;text-align:center;color:#999;padding:0 20px;">Tüm siparişlerde <strong>ücretsiz kargo</strong> ve <strong>30 gün kolay iade</strong> garantisi.</p>`,
                     },
-                    visibility: { mobile: true, desktop: true }
+                    style: { padding: "0 20px 24px", backgroundColor: "#ffffff" },
+                    visibility: { mobile: true, desktop: true },
                 },
                 {
                     id: "footer-1",
                     type: "footer",
                     content: {
-                        text: "© 2026 Dark Velvet. Tüm hakları saklıdır.",
-                        socialHidden: true,
+                        text: `© ${new Date().getFullYear()} Dark Velvet. Tüm hakları saklıdır.`,
+                        socialHidden: false,
                         siteLink: "https://dark-velvet.com",
-                        address: "İstanbul, Türkiye"
+                        address: "İstanbul, Türkiye",
                     },
-                    style: {
-                        padding: "20px",
-                        backgroundColor: "#f9fafb"
-                    },
-                    visibility: { mobile: true, desktop: true }
-                }
-            ]
+                    style: { padding: "20px", backgroundColor: "#f9fafb" },
+                    visibility: { mobile: true, desktop: true },
+                },
+            ],
         };
+    };
 
+    const handleSendEmail = (email: string) => {
+        const cart = data?.abandonedCarts.find((c) => c.user.email === email);
+        if (!cart) return;
+
+        const draft = buildAbandonedCartCampaignDraft(email, cart);
+        localStorage.setItem("abandonedCartDraft", JSON.stringify(draft));
+        router.push("/campaigns");
+    };
+
+    const handleBulkCampaign = () => {
+        const draft = buildAbandonedCartCampaignDraft();
         localStorage.setItem("abandonedCartDraft", JSON.stringify(draft));
         router.push("/campaigns");
     };
@@ -254,7 +308,10 @@ export default function AbandonedCartsPage() {
                         <RefreshCw className="w-4 h-4 mr-2" />
                         Yenile
                     </Button>
-                    <Button onClick={() => router.push("/campaigns")}>
+                    <Button
+                        onClick={handleBulkCampaign}
+                        disabled={!data?.abandonedCarts?.length}
+                    >
                         <Mail className="w-4 h-4 mr-2" />
                         Kampanya Oluştur
                     </Button>

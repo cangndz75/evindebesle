@@ -227,13 +227,8 @@ export default function AdminLayout({
   useEffect(() => {
     if (status === "loading") return;
 
-    if (!session) {
-      router.replace("/auth-tabs");
-      return;
-    }
-
-    if (!session.user?.isAdmin) {
-      router.replace("/home");
+    if (!session || !session.user?.isAdmin) {
+      router.replace("/");
       return;
     }
   }, [session, status, router]);

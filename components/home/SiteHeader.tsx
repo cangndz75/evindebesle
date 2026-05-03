@@ -275,14 +275,20 @@ export default function SiteHeader() {
     closeTimer.current = window.setTimeout(() => setOpenMenu(null), 200);
   };
 
-  if (
+  const isAdminRoute =
     pathname?.startsWith("/dashboard") ||
     pathname?.startsWith("/admin") ||
     pathname?.startsWith("/users") ||
     pathname?.startsWith("/coupons") ||
     pathname?.startsWith("/company-settings") ||
-    pathname?.startsWith("/campaigns")
-  ) {
+    pathname?.startsWith("/campaigns") ||
+    pathname?.startsWith("/email-campaigns") ||
+    pathname?.startsWith("/abandoned-carts") ||
+    pathname?.startsWith("/analytics") ||
+    pathname?.startsWith("/automations") ||
+    pathname?.startsWith("/docs");
+
+  if (isAdminRoute) {
     return null;
   }
 

@@ -139,7 +139,7 @@ export default function AddressList() {
                   <DialogTitle>Adresi Güncelle</DialogTitle>
                 </DialogHeader>
                 <EditAddressForm
-                  districtId={address.districtId}
+                  district={address.districtId}
                   fullAddress={address.fullAddress}
                   loading={formLoading}
                   onSubmit={(values) => handleEdit(address.id, values)}

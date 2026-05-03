@@ -1,10 +1,11 @@
-﻿
+
 import { prisma } from "@/lib/db";
 import { OrderStatus } from "@prisma/client";
 import { commitReservationToSaleTx, releaseReservationTx } from "@/lib/stock";
 import { createAdminNotification } from "@/lib/admin-notification";
 import { clearRedisCart } from "@/lib/cart-redis";
 import { sendAdminOrderPaidSms } from "@/lib/sms";
+import { sendAdminOrderWhatsApp } from "@/lib/whatsapp";
 import { enqueueOrderPostPaymentJob } from "@/lib/queue/order-post-payment";
 import { runOrderPostPaymentTasks } from "@/lib/services/order-post-payment";
 
@@ -133,6 +134,11 @@ export async function finalizePayment({
                         link: `/admin-orders/${result.order.id}`
                     }),
                     sendAdminOrderPaidSms({
+                        orderNumber: result.order.orderNumber,
+                        total: result.order.total,
+                        orderId: result.order.id,
+                    }),
+                    sendAdminOrderWhatsApp({
                         orderNumber: result.order.orderNumber,
                         total: result.order.total,
                         orderId: result.order.id,

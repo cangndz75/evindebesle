@@ -3,6 +3,26 @@ import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { checkRateLimit, getClientIdentifier, RateLimits } from "@/lib/rateLimit";
 
+const ADMIN_PAGE_PREFIXES = [
+  "/admin",
+  "/dashboard",
+  "/users",
+  "/abandoned-carts",
+  "/coupons",
+  "/campaigns",
+  "/email-campaigns",
+  "/company-settings",
+  "/analytics",
+  "/automations",
+  "/docs",
+];
+
+function isAdminPagePath(pathname: string): boolean {
+  return ADMIN_PAGE_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(prefix + "/")
+  );
+}
+
 function applyNoStoreHeaders(response: NextResponse) {
   response.headers.set("Cache-Control", "private, no-store, no-cache, must-revalidate");
   response.headers.set("Pragma", "no-cache");
@@ -14,7 +34,6 @@ export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const isApiRoute = pathname.startsWith("/api/");
 
-  const adminPaths = ["/admin", "/dashboard", "/users"];
   const isProtectedAdminApiPath =
     pathname.startsWith("/api/admin/") ||
     pathname.startsWith("/api/admin-");
@@ -28,9 +47,7 @@ export async function middleware(request: NextRequest) {
     "/api/payment/auth",
   ].some((path) => pathname.startsWith(path));
 
-  const isProtectedAdminPath = adminPaths.some((path) =>
-    pathname.startsWith(path)
-  );
+  const isProtectedAdminPath = isAdminPagePath(pathname);
 
   if (isProtectedAdminPath || isProtectedAdminApiPath) {
     const token = await getToken({ req: request });
@@ -41,7 +58,7 @@ export async function middleware(request: NextRequest) {
         );
       }
       return applyNoStoreHeaders(
-        NextResponse.redirect(new URL("/", request.url))
+        NextResponse.rewrite(new URL("/not-found", request.url), { status: 404 })
       );
     }
   }
@@ -72,5 +89,19 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/api/:path*", "/admin/:path*", "/dashboard/:path*", "/users/:path*"],
+  matcher: [
+    "/api/:path*",
+    "/admin/:path*",
+    "/admin-:path*",
+    "/dashboard/:path*",
+    "/users/:path*",
+    "/abandoned-carts/:path*",
+    "/coupons/:path*",
+    "/campaigns/:path*",
+    "/email-campaigns/:path*",
+    "/company-settings/:path*",
+    "/analytics/:path*",
+    "/automations/:path*",
+    "/docs/:path*",
+  ],
 };

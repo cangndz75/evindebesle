@@ -5,6 +5,7 @@ import { createShipmentLabelForOrder } from "./cargo";
 import { fromKurus, sumKurus, toKurus } from "../utils/money";
 import { randomUUID } from "crypto";
 import { withDefaultCompanyProfile } from "@/lib/invoice/company-profile";
+import { sendAdminOrderWhatsApp } from "@/lib/whatsapp";
 
 const VAT_RATE = 20;
 const DEFAULT_TCKN_VKN = "11111111111";

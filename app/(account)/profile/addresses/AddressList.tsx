@@ -18,6 +18,7 @@ type District = { id: string; name: string };
 type Address = {
   id: string;
   districtId: string;
+  city: string;
   districtName: string;
   fullAddress: string;
   isPrimary: boolean;
@@ -51,7 +52,7 @@ export default function AddressList() {
 
   const handleEdit = async (
     id: string,
-    values: { districtId: string; fullAddress: string }
+    values: { city: string; district: string; fullAddress: string }
   ) => {
     setFormLoading(true);
     const res = await fetch(`/api/address/${id}`, {
@@ -139,7 +140,8 @@ export default function AddressList() {
                   <DialogTitle>Adresi Güncelle</DialogTitle>
                 </DialogHeader>
                 <EditAddressForm
-                  district={address.districtId}
+                  city={address.city}
+                  district={address.districtName}
                   fullAddress={address.fullAddress}
                   loading={formLoading}
                   onSubmit={(values) => handleEdit(address.id, values)}

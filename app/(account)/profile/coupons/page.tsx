@@ -5,7 +5,7 @@ import CouponsClient from "./_components/CouponsClient";
 
 export default async function CouponsPage() {
   const session = await getServerSession(authConfig);
-  if (!session?.user?.id) return redirect("/login");
+  if (!session?.user?.id) return redirect("/auth-tabs");
 
   return <CouponsClient />;
 }

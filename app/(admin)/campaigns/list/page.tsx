@@ -77,7 +77,7 @@ export default function CampaignListPage() {
         if (sessionStatus === "loading") return;
 
         if (!session) {
-            router.push("/login");
+            router.push("/auth-tabs");
             return;
         }
 

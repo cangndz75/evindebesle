@@ -136,7 +136,7 @@ export const authConfig: AuthOptions = {
     },
   },
   pages: {
-    signIn: "/login",
+    signIn: "/auth-tabs",
   },
   secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
 };

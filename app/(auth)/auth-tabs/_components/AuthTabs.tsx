@@ -299,7 +299,7 @@ export default function AuthTabs() {
 
               <div className="text-xs pt-4 border-t border-gray-100 uppercase tracking-wide text-center">
                 <Link
-                  href="/login"
+                  href="/auth-tabs"
                   onClick={(e) => {
                     e.preventDefault();
                     setTab("login");

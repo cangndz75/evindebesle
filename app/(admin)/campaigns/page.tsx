@@ -17,7 +17,7 @@ export default function CampaignsPage() {
 
       if (!session) {
         toast.error("Giriş yapmanız gerekiyor");
-        router.push("/login");
+        router.push("/auth-tabs");
         return;
       }
 

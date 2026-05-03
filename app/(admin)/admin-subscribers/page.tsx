@@ -56,7 +56,7 @@ export default function AdminSubscribersPage() {
         if (sessionStatus === "loading") return;
 
         if (!session) {
-            router.push("/login");
+            router.push("/auth-tabs");
             return;
         }
 

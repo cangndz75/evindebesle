@@ -1,64 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
-
-const slides = [
-  {
-    title: "Stilini Keşfet",
-    desc: "Tarzına uygun seçkilerle alışveriş deneyimini kolaylaştırıyoruz.",
-    image:
-      "https://res.cloudinary.com/dlahfchej/image/upload/v1752619387/15_iaalt8.png",
-  },
-  {
-    title: "Güvenli ve Hızlı",
-    desc: "Güvenli ödeme ve hızlı süreçlerle kesintisiz deneyim yaşayın.",
-    image:
-      "https://res.cloudinary.com/dlahfchej/image/upload/v1752619398/6_umwbmf.png",
-  },
-  {
-    title: "Kolay Erişim",
-    desc: "İhtiyacınız olan hizmetlere tek tıkla ulaşın.",
-    image:
-      "https://res.cloudinary.com/dlahfchej/image/upload/v1752619388/8_kkoxpr.png",
-  },
-];
-
 export default function OnboardingSlides() {
-  const [index, setIndex] = useState(0);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setIndex((prev) => (prev + 1) % slides.length);
-    }, 4000);
-    return () => clearInterval(timer);
-  }, []);
-
   return (
-    <div className="relative h-screen w-full flex flex-col items-center justify-center text-center text-white overflow-hidden">
-      {slides.map((slide, i) => (
-        <div
-          key={i}
-          className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-            i === index ? "opacity-100 z-10" : "opacity-0 z-0"
-          } bg-no-repeat bg-center bg-contain`}
-          style={{ backgroundImage: `url(${slide.image})` }}
-        />
-      ))}
-
-      <div className="relative max-w-md px-6 z-20">
-        <h3 className="text-3xl font-bold mb-2">{slides[index].title}</h3>
-        <p className="text-lg mb-6">{slides[index].desc}</p>
-        <div className="flex justify-center gap-2">
-          {slides.map((_, i) => (
-            <div
-              key={i}
-              className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                i === index ? "bg-violet-600" : "bg-gray-400"
-              }`}
-            />
-          ))}
-        </div>
-      </div>
+    <div className="relative h-screen w-full overflow-hidden">
+      <img
+        src="https://res.cloudinary.com/dlahfchej/image/upload/v1774311491/evindebesle/file_kf28fh.jpg"
+        alt="Dark Velvet"
+        className="absolute inset-0 w-full h-full object-cover"
+      />
     </div>
   );
 }

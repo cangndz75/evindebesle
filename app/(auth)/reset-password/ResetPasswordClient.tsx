@@ -39,7 +39,7 @@ export default function ResetPasswordClient() {
 
       if (res.ok) {
         toast.success("Şifre başarıyla yenilendi.");
-        router.push("/login");
+        router.push("/auth-tabs");
       } else {
         toast.error("Geçersiz veya süresi dolmuş bağlantı.");
       }
@@ -47,7 +47,7 @@ export default function ResetPasswordClient() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-muted relative">
+    <div className="h-full flex items-center justify-center px-4 bg-muted relative">
       <div className="absolute top-6 left-6 flex items-center gap-2">
         <button
           onClick={() => router.back()}

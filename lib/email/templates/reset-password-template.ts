@@ -12,9 +12,6 @@ export const generateResetPasswordEmailHtml = ({
         <td style="padding:24px 32px;text-align:left;">
           <h1 style="margin:0;color:#000;font-size:24px;">Dark Velvet</h1>
         </td>
-        <td style="padding:24px 32px;text-align:right;font-size:12px;color:#666;">
-          "Dostça Hizmet"
-        </td>
       </tr>
       <tr>
         <td colspan="2" style="padding:0 32px;">
@@ -39,16 +36,6 @@ export const generateResetPasswordEmailHtml = ({
             MÜŞTERİ DESTEK HATTI: 0850 000 00 00<br />
             WHATSAPP DESTEK: +90 500 000 00 00
           </p>
-        </td>
-      </tr>
-      <tr>
-        <td colspan="2" style="padding:0 32px 32px;text-align:center;">
-          <p style="font-size:14px;font-weight:500;color:#444;">Bizi Takip Et</p>
-          <div style="margin-top:8px;">
-            <a href="#" style="margin:0 8px;"><img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Instagram" width="24" /></a>
-            <a href="#" style="margin:0 8px;"><img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" width="24" /></a>
-            <a href="#" style="margin:0 8px;"><img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Twitter" width="24" /></a>
-          </div>
         </td>
       </tr>
       <tr>

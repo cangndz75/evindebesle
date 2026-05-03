@@ -193,7 +193,7 @@ export default function Navbar() {
                     </MenuLink>
                   </>
                 ) : (
-                  <MenuLink href="/login" icon={<User className="w-4 h-4" />}>
+                  <MenuLink href="/auth-tabs" icon={<User className="w-4 h-4" />}>
                     Giriş Yap
                   </MenuLink>
                 )}
@@ -306,7 +306,7 @@ export default function Navbar() {
               </Button>
             </>
           ) : (
-            <Link href="/login">
+            <Link href="/auth-tabs">
               <Button>
                 <User className="w-4 h-4 mr-1" />
                 Giriş Yap

@@ -128,6 +128,93 @@ async function ensureInvoiceForOrder(orderId: string) {
   return created;
 }
 
+export async function sendInvoiceCreatedEmail(orderId: string, invoiceNumber: string) {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: {
+      user: { select: { name: true, email: true } },
+      shippingAddress: true,
+      billingAddress: true,
+    },
+  });
+
+  if (!order) return;
+
+  const userName =
+    order.user?.name ||
+    order.shippingAddress?.fullName ||
+    order.billingAddress?.fullName ||
+    "Değerli Müşterimiz";
+  const userEmail =
+    order.email ||
+    order.user?.email ||
+    (order.shippingAddress as any)?.email ||
+    (order.billingAddress as any)?.email;
+
+  if (!userEmail) return;
+
+  const from = process.env.ORDER_MAIL_FROM || "siparis@dark-velvet.com";
+  const siteUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.dark-velvet.com";
+
+  await resend.emails.send({
+    from,
+    to: userEmail,
+    subject: `Faturanız oluşturuldu — ${order.orderNumber}`,
+    html: `
+      <div style="background-color:#f3f4f6;padding:0;margin:0;font-family:Arial,sans-serif;">
+        <table align="center" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:auto;background-color:white;">
+          <tr>
+            <td style="padding:24px 32px;text-align:left;">
+              <h1 style="margin:0;color:#000;font-size:24px;">Dark Velvet</h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:0 32px;">
+              <h2 style="font-size:20px;color:#111;">Merhaba ${userName},</h2>
+              <p style="font-size:16px;line-height:1.6;color:#333;">
+                <strong>${order.orderNumber}</strong> numaralı siparişinize ait faturanız oluşturulmuştur.
+              </p>
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin:16px 0;background-color:#f9fafb;border-radius:8px;border:1px solid #e5e7eb;">
+                <tr>
+                  <td style="padding:16px;">
+                    <p style="margin:0 0 8px;font-size:14px;color:#6b7280;">Fatura Numarası</p>
+                    <p style="margin:0;font-size:18px;font-weight:bold;color:#111;">${invoiceNumber}</p>
+                  </td>
+                  <td style="padding:16px;text-align:right;">
+                    <p style="margin:0 0 8px;font-size:14px;color:#6b7280;">Toplam Tutar</p>
+                    <p style="margin:0;font-size:18px;font-weight:bold;color:#111;">${order.total.toFixed(2)} TRY</p>
+                  </td>
+                </tr>
+              </table>
+              <p style="font-size:14px;line-height:1.6;color:#555;">
+                Faturanıza hesabınız üzerinden veya aşağıdaki bağlantıdan ulaşabilirsiniz.
+              </p>
+              <div style="margin:24px 0;text-align:center;">
+                <a href="${siteUrl}/hesabim/siparislerim" style="background-color:#111;color:white;padding:14px 32px;border-radius:6px;text-decoration:none;font-weight:bold;display:inline-block;">
+                  Siparişlerimi Görüntüle
+                </a>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:32px;">
+              <hr style="border:none;border-top:1px solid #e5e7eb;" />
+              <p style="font-size:13px;color:#555;text-align:center;margin-top:16px;">
+                Herhangi bir sorunuz varsa bize ulaşabilirsiniz.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:16px 32px;font-size:11px;color:#999;text-align:center;">
+              © ${new Date().getFullYear()} Dark Velvet. Tüm hakları saklıdır.
+            </td>
+          </tr>
+        </table>
+      </div>
+    `,
+  });
+}
+
 async function sendDistanceSalesContractEmail(orderId: string) {
   const html = await buildDistanceSalesContractHtmlForOrder(orderId);
   if (!html) return;
@@ -211,6 +298,15 @@ async function sendOrderPaidEmail(orderId: string) {
 export async function runOrderPostPaymentTasks(orderId: string) {
   const invoice = await ensureInvoiceForOrder(orderId);
   await sendOrderPaidEmail(orderId);
+
+  if (invoice?.invoiceNumber) {
+    try {
+      await sendInvoiceCreatedEmail(orderId, invoice.invoiceNumber);
+    } catch (e) {
+      console.error("Fatura oluşturuldu e-postası gönderilemedi:", e);
+    }
+  }
+
   try {
     await sendDistanceSalesContractEmail(orderId);
   } catch (e) {

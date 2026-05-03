@@ -3,6 +3,7 @@ import { Resend } from "resend"
 import { getServerSession } from "next-auth"
 import { authConfig } from "@/lib/auth.config"
 import { prisma } from "@/lib/db"
+import { createAdminNotification } from "@/lib/admin-notification"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -70,6 +71,13 @@ export async function POST(req: Request) {
     })
   } catch {
   }
+
+  await createAdminNotification({
+    type: "SUPPORT",
+    title: "Yeni İletişim Formu",
+    message: `${normalizedName} (${normalizedEmail}) iletişim formu gönderdi`,
+    link: `/admin-support/${ticket.id}`,
+  });
 
   return new Response(JSON.stringify({ success: true, ticketId: ticket.id }), {
     headers: { "Content-Type": "application/json" },

@@ -1,7 +1,8 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
+import { createAdminNotification } from "@/lib/admin-notification";
 
 export async function POST(req: Request) {
     try {
@@ -34,6 +35,13 @@ export async function POST(req: Request) {
                     },
                 },
             },
+        });
+
+        await createAdminNotification({
+            type: "SUPPORT",
+            title: "Yeni Destek Talebi",
+            message: `${session.user.name || session.user.email} yeni bir destek talebi oluşturdu: "${subject}"`,
+            link: `/admin-support/${ticket.id}`,
         });
 
         return NextResponse.json(ticket);

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
@@ -389,7 +389,9 @@ export default function AdminLayout({
       )}
 
       <main className={`flex-1 bg-gray-50 relative ${isCampaignsPage ? "overflow-hidden" : "overflow-y-auto"
-        }`}>{children}</main>
+        }`}>
+        <div className="h-full">{children}</div>
+      </main>
     </div>
   );
 }

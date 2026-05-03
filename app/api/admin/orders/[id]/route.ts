@@ -76,7 +76,7 @@ export async function GET(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const [order, auditLogs] = await Promise.all([
+    const [order, auditLogs, invoice] = await Promise.all([
       prisma.order.findUnique({
         where: { id },
         include: {
@@ -135,6 +135,16 @@ export async function GET(
           },
         },
       }),
+      prisma.invoice.findFirst({
+        where: { orderId: id },
+        select: {
+          id: true,
+          invoiceNumber: true,
+          status: true,
+          totalAmount: true,
+          createdAt: true,
+        },
+      }),
       prisma.auditLog.findMany({
         where: {
           entityId: id,
@@ -171,7 +181,7 @@ export async function GET(
       })),
     };
 
-    return NextResponse.json({ order: normalizedOrder, auditLogs });
+    return NextResponse.json({ order: normalizedOrder, auditLogs, invoice });
   } catch (error: any) {
     console.error("Order detail fetch error:", error);
     return NextResponse.json(

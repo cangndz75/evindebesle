@@ -136,6 +136,8 @@ export default function OrderDetailPage() {
   const [statusNote, setStatusNote] = useState("");
   const [updating, setUpdating] = useState(false);
   const [creatingLabel, setCreatingLabel] = useState(false);
+  const [invoice, setInvoice] = useState<{ id: string; invoiceNumber: string; status: string; totalAmount: number; createdAt: string } | null>(null);
+  const [creatingInvoice, setCreatingInvoice] = useState(false);
 
   useEffect(() => {
     if (params.id) {
@@ -152,6 +154,7 @@ export default function OrderDetailPage() {
         if (data.order) {
           setOrder(data.order);
           setAuditLogs(data.auditLogs || []);
+          setInvoice(data.invoice || null);
           setNewStatus(data.order.status);
         } else {
           setOrder(data);
@@ -195,6 +198,31 @@ export default function OrderDetailPage() {
       toast.error("Sipariş durumu güncellenirken bir hata oluştu");
     } finally {
       setUpdating(false);
+    }
+  };
+
+  const handleCreateInvoice = async () => {
+    if (!order) return;
+    setCreatingInvoice(true);
+    try {
+      const res = await fetch("/api/admin/invoices", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId: order.id }),
+      });
+      if (res.ok) {
+        const inv = await res.json();
+        setInvoice(inv);
+        toast.success("Fatura başarıyla oluşturuldu");
+        router.push(`/admin-invoices/${inv.id}`);
+      } else {
+        const msg = await res.text();
+        toast.error(msg || "Fatura oluşturulamadı");
+      }
+    } catch {
+      toast.error("Fatura oluşturulurken bir hata oluştu");
+    } finally {
+      setCreatingInvoice(false);
     }
   };
 
@@ -391,10 +419,21 @@ export default function OrderDetailPage() {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" onClick={() => window.print()}>
-            <Printer className="mr-2 h-4 w-4" />
-            Fatura Yazdır
-          </Button>
+          {invoice ? (
+            <Button variant="outline" onClick={() => router.push(`/admin-invoices/${invoice.id}`)}>
+              <FileText className="mr-2 h-4 w-4" />
+              Faturayı Görüntüle
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              onClick={handleCreateInvoice}
+              disabled={creatingInvoice}
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              {creatingInvoice ? "Oluşturuluyor..." : "Fatura Oluştur"}
+            </Button>
+          )}
           <Button
             variant="outline"
             onClick={() => router.push(`/admin-orders/${order.id}/print`)}

@@ -126,7 +126,7 @@ export default function AdminTicketDetailPage() {
 
     if (isLoading) {
         return (
-            <div className="flex justify-center items-center h-screen bg-gray-50">
+            <div className="flex justify-center items-center h-full">
                 <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
             </div>
         );
@@ -144,7 +144,7 @@ export default function AdminTicketDetailPage() {
     }
 
     return (
-        <div className="flex h-screen bg-gray-50 overflow-hidden">
+        <div className="flex h-full overflow-hidden">
             
             <aside className="w-80 bg-white border-r flex flex-col overflow-y-auto">
                 <div className="p-4 border-b">

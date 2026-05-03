@@ -228,11 +228,23 @@ export async function notifyOrderShippedEmail(orderId: string) {
           email: true,
         },
       },
+      shippingAddress: true,
+      billingAddress: true,
       cargoCompany: true,
     },
   });
 
-  if (!order?.user?.email || !order.trackingNumber) {
+  if (!order?.trackingNumber) {
+    return { sent: false };
+  }
+
+  const to =
+    order.email ||
+    order.user?.email ||
+    (order.shippingAddress as any)?.email ||
+    (order.billingAddress as any)?.email;
+
+  if (!to) {
     return { sent: false };
   }
 
@@ -240,7 +252,7 @@ export async function notifyOrderShippedEmail(orderId: string) {
   const trackingUrl = buildTrackingUrl(order.cargoCompany?.trackingUrl, order.trackingNumber);
 
   await sendShipmentEmail({
-    to: order.user.email,
+    to,
     orderNumber: order.orderNumber,
     trackingNumber: order.trackingNumber,
     trackingUrl,

@@ -1,10 +1,11 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { fromKurus, sumKurus, toKurus } from "@/lib/utils/money";
 import { randomUUID } from "crypto";
 import { withDefaultCompanyProfile } from "@/lib/invoice/company-profile";
+import { sendInvoiceCreatedEmail } from "@/lib/services/order-post-payment";
 
 const DEFAULT_TCKN_VKN = "11111111111";
 const DEFAULT_INVOICE_PREFIX = "DRK";
@@ -178,6 +179,10 @@ export async function POST(req: Request) {
                 issuedAt: new Date(),
                 dueDate: new Date(new Date().setDate(new Date().getDate() + 14)),
             }
+        });
+
+        sendInvoiceCreatedEmail(order.id, invoiceNumber).catch((err) => {
+            console.error("Fatura oluşturuldu e-postası gönderilemedi:", err);
         });
 
         return NextResponse.json(invoice);

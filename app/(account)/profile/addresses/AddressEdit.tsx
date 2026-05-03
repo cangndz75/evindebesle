@@ -3,31 +3,23 @@
 import { useEffect, useState } from "react";
 import AddressForm from "./AddressForm";
 
-type District = { id: string; name: string };
-
 export default function AddressEdit({ onSuccess }: { onSuccess: () => void }) {
-  const [districts, setDistricts] = useState<District[]>([]);
-  const [userAddress, setUserAddress] = useState<{ districtId?: string; fullAddress?: string }>({});
+  const [userAddress, setUserAddress] = useState<{ city?: string; district?: string; fullAddress?: string }>({});
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    fetch("/api/districts")
-      .then((res) => res.json())
-      .then(setDistricts);
-  }, []);
 
   useEffect(() => {
     fetch("/api/me")
       .then((res) => res.json())
       .then((data) =>
         setUserAddress({
-          districtId: data.districtId,
+          city: data.city,
+          district: data.district,
           fullAddress: data.fullAddress,
         })
       );
   }, []);
 
-  const handleSave = async (values: { districtId: string; fullAddress: string }) => {
+  const handleSave = async (values: { city: string; district: string; fullAddress: string }) => {
     setLoading(true);
     await fetch("/api/address", {
       method: "PATCH",
@@ -40,7 +32,8 @@ export default function AddressEdit({ onSuccess }: { onSuccess: () => void }) {
 
   return (
     <AddressForm
-      districtId={userAddress.districtId}
+      city={userAddress.city}
+      district={userAddress.district}
       fullAddress={userAddress.fullAddress}
       loading={loading}
       onSubmit={handleSave}

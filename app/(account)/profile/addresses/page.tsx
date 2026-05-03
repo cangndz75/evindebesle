@@ -15,10 +15,10 @@ import AddressForm from "./AddressForm";
 import EditAddressForm from "./EditAddressModal";
 import { toast } from "sonner";
 
-type District = { id: string; name: string };
 type Address = {
   id: string;
   districtId: string;
+  city: string;
   districtName: string;
   fullAddress: string;
   isPrimary: boolean;
@@ -26,7 +26,6 @@ type Address = {
 
 export default function AddressesPage() {
   const [addresses, setAddresses] = useState<Address[]>([]);
-  const [districts, setDistricts] = useState<District[]>([]);
   const [loading, setLoading] = useState(true);
   const [formLoading, setFormLoading] = useState(false);
   const [openAdd, setOpenAdd] = useState(false);
@@ -41,17 +40,12 @@ export default function AddressesPage() {
   };
 
   useEffect(() => {
-    fetch("/api/districts")
-      .then((res) => res.json())
-      .then(setDistricts);
-  }, []);
-
-  useEffect(() => {
     fetchAddresses();
   }, []);
 
   const handleAdd = async (values: {
-    districtId: string;
+    city: string;
+    district: string;
     fullAddress: string;
   }) => {
     setFormLoading(true);
@@ -69,7 +63,7 @@ export default function AddressesPage() {
 
   const handleEdit = async (
     id: string,
-    values: { districtId: string; fullAddress: string }
+    values: { city: string; district: string; fullAddress: string }
   ) => {
     setFormLoading(true);
     const res = await fetch(`/api/address/${id}`, {
@@ -125,15 +119,13 @@ export default function AddressesPage() {
               className="border rounded-lg p-4 flex flex-col md:flex-row md:items-start justify-between gap-4"
             >
               <div className="flex-1">
-                <div className="text-sm text-gray-500">İlçe:</div>
                 <div className="font-medium text-lg">
-                  {address.districtName}
+                  {address.city} / {address.districtName}
                 </div>
-                <div className="mt-2 text-sm text-gray-500">Tam Adres:</div>
-                <div>{address.fullAddress}</div>
+                <div className="mt-1 text-sm text-gray-600">{address.fullAddress}</div>
                 {address.isPrimary && (
                   <div className="text-xs text-green-600 mt-2 font-medium">
-                    ⭐ Ana Adres
+                    Ana Adres
                   </div>
                 )}
               </div>
@@ -182,7 +174,8 @@ export default function AddressesPage() {
                     <DialogTitle>Adresi Güncelle</DialogTitle>
                   </DialogHeader>
                   <EditAddressForm
-                    districtId={address.districtId}
+                    city={address.city}
+                    district={address.districtName}
                     fullAddress={address.fullAddress}
                     loading={formLoading}
                     onSubmit={(values) => handleEdit(address.id, values)}

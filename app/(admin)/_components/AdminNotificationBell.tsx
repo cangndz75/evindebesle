@@ -48,6 +48,8 @@ export function AdminNotificationBell() {
     const router = useRouter();
     const [isOpen, setIsOpen] = useState(false);
     const defaultTitleRef = useRef<string>("");
+    const seenNotificationIdsRef = useRef<Set<string>>(new Set());
+    const seededRef = useRef(false);
 
     const titleByType = useMemo<Record<string, string>>(() => ({
         ORDER: "Yeni sipariş var",
@@ -67,6 +69,67 @@ export function AdminNotificationBell() {
 
     const notifications = data?.notifications || [];
     const unreadCount = data?.unreadCount || 0;
+
+    const playNotificationSound = () => {
+        try {
+            const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+            const now = audioContext.currentTime;
+
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(880, now);
+            osc.frequency.setValueAtTime(660, now + 0.12);
+
+            gain.gain.setValueAtTime(0.0001, now);
+            gain.gain.exponentialRampToValueAtTime(0.08, now + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
+
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+
+            osc.start(now);
+            osc.stop(now + 0.3);
+
+            osc.onended = () => {
+                audioContext.close().catch(() => undefined);
+            };
+        } catch {
+            // Ignore audio errors (autoplay/security constraints)
+        }
+    };
+
+    useEffect(() => {
+        if (notifications.length === 0) return;
+
+        if (!seededRef.current) {
+            for (const notification of notifications) {
+                seenNotificationIdsRef.current.add(notification.id);
+            }
+            seededRef.current = true;
+            return;
+        }
+
+        const incoming = notifications.filter(
+            (notification) => !seenNotificationIdsRef.current.has(notification.id)
+        );
+
+        if (incoming.length === 0) return;
+
+        for (const notification of incoming) {
+            seenNotificationIdsRef.current.add(notification.id);
+
+            const cleanMessage = notification.message
+                ? notification.message.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim()
+                : "";
+
+            playNotificationSound();
+            toast(notification.title || "Yeni Bildirim", {
+                description: cleanMessage || "Yeni bir bildiriminiz var.",
+            });
+        }
+    }, [notifications]);
 
     useEffect(() => {
         if (!defaultTitleRef.current) {

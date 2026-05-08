@@ -146,8 +146,8 @@ export default function ReturnRequestModal({
         }
     };
 
-    const canProceedStep1 = selectedItems.length > 0;
-    const canProceedStep2 = generalReason !== "";
+    const canProceedStep1 = selectedItems.length > 0 && generalReason !== "";
+    const canProceedStep2 = true;
 
     if (!order) return null;
 
@@ -198,6 +198,21 @@ export default function ReturnRequestModal({
                         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
                             <AlertCircle className="h-4 w-4" />
                             İade etmek istediğiniz ürünleri seçin
+                        </div>
+                        <div>
+                            <Label className="mb-2 block">Genel İade Nedeni *</Label>
+                            <Select value={generalReason} onValueChange={setGeneralReason}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="İade nedeninizi seçin" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {RETURN_REASONS.map((r) => (
+                                        <SelectItem key={r.value} value={r.value}>
+                                            {r.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
                         <div className="space-y-3 max-h-[350px] overflow-y-auto pr-2">
                             {order.items.map((item) => {
@@ -306,21 +321,6 @@ export default function ReturnRequestModal({
                 
                 {step === 2 && (
                     <div className="space-y-4">
-                        <div>
-                            <Label className="mb-2 block">Genel İade Nedeni *</Label>
-                            <Select value={generalReason} onValueChange={setGeneralReason}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="İade nedeninizi seçin" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {RETURN_REASONS.map((r) => (
-                                        <SelectItem key={r.value} value={r.value}>
-                                            {r.label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
                         <div>
                             <Label className="mb-2 block">Açıklama (Opsiyonel)</Label>
                             <Textarea

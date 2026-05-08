@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { createAdminNotification } from "@/lib/admin-notification";
+import { resend, resendFromAddress } from "@/lib/resend";
 
 export async function GET(req: Request) {
     try {
@@ -69,6 +70,22 @@ export async function POST(req: Request) {
             },
             include: {
                 items: true,
+                user: {
+                    select: {
+                        name: true,
+                        email: true,
+                    },
+                },
+                shippingAddress: {
+                    select: {
+                        email: true,
+                    },
+                },
+                billingAddress: {
+                    select: {
+                        email: true,
+                    },
+                },
             },
         });
 
@@ -83,9 +100,6 @@ export async function POST(req: Request) {
         const existingReturn = await prisma.returnRequest.findFirst({
             where: {
                 orderId,
-                status: {
-                    in: ["PENDING", "APPROVED"],
-                },
             },
         });
 
@@ -127,6 +141,32 @@ export async function POST(req: Request) {
             message: `#${order.orderNumber} numaralı sipariş için iade talebi oluşturuldu.`,
             link: "/admin-returns",
         });
+
+        const to =
+            order.email ||
+            order.user?.email ||
+            order.shippingAddress?.email ||
+            order.billingAddress?.email ||
+            null;
+
+        if (to) {
+            await resend.emails
+                .send({
+                    from: resendFromAddress(),
+                    to,
+                    subject: `İade talebiniz oluşturuldu - ${order.orderNumber}`,
+                    html: `
+                      <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111">
+                        <h2>İade talebiniz oluşturuldu</h2>
+                        <p>Sipariş No: <strong>${order.orderNumber}</strong></p>
+                        <p>İade talebiniz alınmıştır. Süreci Hesabım > Siparişlerim ekranından takip edebilirsiniz.</p>
+                      </div>
+                    `,
+                })
+                .catch((mailError) => {
+                    console.error("[RETURNS_POST_MAIL]", mailError);
+                });
+        }
 
 
         return NextResponse.json(returnRequest);

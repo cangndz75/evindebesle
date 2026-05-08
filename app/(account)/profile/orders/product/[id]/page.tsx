@@ -27,6 +27,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { toast } from "sonner";
 import ProductReviewModal from "@/components/product/ProductReviewModal";
+import MyReviewModal from "@/components/product/MyReviewModal";
+import ReturnRequestModal from "@/components/returns/ReturnRequestModal";
+import ReturnRequestViewModal from "@/components/returns/ReturnRequestViewModal";
 
 interface OrderDetail {
     id: string;
@@ -75,6 +78,35 @@ interface OrderDetail {
     paymentMethod: string | null; // e.g. "CREDIT_CARD", "IY ZICO"
 }
 
+type UserProductReview = {
+    id: string;
+    rating: number;
+    comment: string | null;
+    createdAt: string;
+};
+
+type ReturnRequestData = {
+    id: string;
+    orderId: string;
+    status: string;
+    reason: string;
+    description: string | null;
+    createdAt: string;
+    order: {
+        orderNumber: string;
+    };
+    items: Array<{
+        id: string;
+        quantity: number;
+        reason: string | null;
+        orderItem: {
+            productName: string;
+            colorName: string | null;
+            sizeName: string | null;
+        };
+    }>;
+};
+
 export default function OrderDetailPage() {
     const params = useParams();
     const router = useRouter();
@@ -83,11 +115,21 @@ export default function OrderDetailPage() {
     const [downloading, setDownloading] = useState(false);
 
     const [reviewModalOpen, setReviewModalOpen] = useState(false);
+    const [reviewViewModalOpen, setReviewViewModalOpen] = useState(false);
     const [selectedReviewProduct, setSelectedReviewProduct] = useState<{
         id: string;
         name: string;
         image: string | null;
     } | null>(null);
+    const [selectedReviewForView, setSelectedReviewForView] = useState<{
+        product: { id: string; name: string; image: string | null };
+        review: UserProductReview;
+    } | null>(null);
+    const [userReviewsByProduct, setUserReviewsByProduct] = useState<Record<string, UserProductReview>>({});
+
+    const [returnModalOpen, setReturnModalOpen] = useState(false);
+    const [returnViewModalOpen, setReturnViewModalOpen] = useState(false);
+    const [currentReturnRequest, setCurrentReturnRequest] = useState<ReturnRequestData | null>(null);
 
     useEffect(() => {
         const fetchOrder = async () => {
@@ -113,6 +155,43 @@ export default function OrderDetailPage() {
             fetchOrder();
         }
     }, [params.id, router]);
+
+    useEffect(() => {
+        if (!order?.items?.length) return;
+
+        const productIds = Array.from(new Set(order.items.map((item) => item.product.id).filter(Boolean)));
+
+        Promise.all(
+            productIds.map(async (productId) => {
+                const res = await fetch(`/api/product-reviews?productId=${productId}&checkUser=true`);
+                const data = await res.json();
+                return { productId, review: data?.review || null };
+            })
+        )
+            .then((rows) => {
+                const map: Record<string, UserProductReview> = {};
+                for (const row of rows) {
+                    if (row.review?.id) {
+                        map[row.productId] = {
+                            id: row.review.id,
+                            rating: row.review.rating,
+                            comment: row.review.comment ?? null,
+                            createdAt: row.review.createdAt,
+                        };
+                    }
+                }
+                setUserReviewsByProduct(map);
+            })
+            .catch(() => setUserReviewsByProduct({}));
+
+        fetch("/api/returns")
+            .then((res) => res.json())
+            .then((data: ReturnRequestData[]) => {
+                const request = (data || []).find((r) => r.orderId === order.id) || null;
+                setCurrentReturnRequest(request);
+            })
+            .catch(() => setCurrentReturnRequest(null));
+    }, [order]);
 
     const handleDownloadInvoice = async () => {
         if (!order) return;
@@ -142,6 +221,11 @@ export default function OrderDetailPage() {
     const handleOpenReviewModal = (product: { id: string; name: string; image: string | null }) => {
         setSelectedReviewProduct(product);
         setReviewModalOpen(true);
+    };
+
+    const handleOpenReviewViewModal = (product: { id: string; name: string; image: string | null }, review: UserProductReview) => {
+        setSelectedReviewForView({ product, review });
+        setReviewViewModalOpen(true);
     };
 
     const getStatusBadge = (status: string) => {
@@ -281,7 +365,7 @@ export default function OrderDetailPage() {
                                                 <div className="flex items-center gap-3">
                                                     {item.product.slug && (
                                                         <Link
-                                                            href={`/product/${item.product.slug}`}
+                                                            href={`/products/${item.product.slug}`}
                                                             className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
                                                         >
                                                             Ürüne Git <ChevronRight className="w-4 h-4" />
@@ -291,19 +375,38 @@ export default function OrderDetailPage() {
 
                                                 
                                                 {(order.status === "DELIVERED" || order.status === "COMPLETED") && (
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        className="flex items-center gap-2 text-xs"
-                                                        onClick={() => handleOpenReviewModal({
-                                                            id: item.product.id,
-                                                            name: item.productName, // Use order item product name in case product name changed
-                                                            image: item.image || item.product.image
-                                                        })}
-                                                    >
-                                                        <MessageSquarePlus className="w-3 h-3" />
-                                                        Yorum Yap
-                                                    </Button>
+                                                    userReviewsByProduct[item.product.id] ? (
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="flex items-center gap-2 text-xs"
+                                                            onClick={() => handleOpenReviewViewModal(
+                                                                {
+                                                                    id: item.product.id,
+                                                                    name: item.productName,
+                                                                    image: item.image || item.product.image,
+                                                                },
+                                                                userReviewsByProduct[item.product.id]
+                                                            )}
+                                                        >
+                                                            <MessageSquarePlus className="w-3 h-3" />
+                                                            Yorumumu Gör
+                                                        </Button>
+                                                    ) : (
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="flex items-center gap-2 text-xs"
+                                                            onClick={() => handleOpenReviewModal({
+                                                                id: item.product.id,
+                                                                name: item.productName,
+                                                                image: item.image || item.product.image
+                                                            })}
+                                                        >
+                                                            <MessageSquarePlus className="w-3 h-3" />
+                                                            Yorum Yap
+                                                        </Button>
+                                                    )
                                                 )}
                                             </div>
                                         </div>
@@ -409,10 +512,25 @@ export default function OrderDetailPage() {
                                 </div>
 
                                 {(order.status === "DELIVERED" || order.status === "COMPLETED") && (
-                                    <Button variant="outline" className="w-full flex items-center gap-2">
-                                        <RotateCcw className="w-4 h-4" />
-                                        İade Oluştur
-                                    </Button>
+                                    currentReturnRequest ? (
+                                        <Button
+                                            variant="outline"
+                                            className="w-full flex items-center gap-2"
+                                            onClick={() => setReturnViewModalOpen(true)}
+                                        >
+                                            <RotateCcw className="w-4 h-4" />
+                                            İadeyi Görüntüle
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            variant="outline"
+                                            className="w-full flex items-center gap-2"
+                                            onClick={() => setReturnModalOpen(true)}
+                                        >
+                                            <RotateCcw className="w-4 h-4" />
+                                            İade Oluştur
+                                        </Button>
+                                    )
                                 )}
                             </div>
                         </CardContent>
@@ -429,9 +547,86 @@ export default function OrderDetailPage() {
                     productName={selectedReviewProduct.name}
                     productImage={selectedReviewProduct.image}
                     onReviewSubmitted={() => {
+                        fetch(`/api/product-reviews?productId=${selectedReviewProduct.id}&checkUser=true`)
+                            .then((res) => res.json())
+                            .then((data) => {
+                                if (data?.review?.id) {
+                                    setUserReviewsByProduct((prev) => ({
+                                        ...prev,
+                                        [selectedReviewProduct.id]: {
+                                            id: data.review.id,
+                                            rating: data.review.rating,
+                                            comment: data.review.comment ?? null,
+                                            createdAt: data.review.createdAt,
+                                        },
+                                    }));
+                                }
+                            });
                     }}
                 />
             )}
+
+            {selectedReviewForView && (
+                <MyReviewModal
+                    isOpen={reviewViewModalOpen}
+                    onClose={() => setReviewViewModalOpen(false)}
+                    productId={selectedReviewForView.product.id}
+                    productName={selectedReviewForView.product.name}
+                    productImage={selectedReviewForView.product.image}
+                    review={selectedReviewForView.review}
+                    onDeleted={() => {
+                        setUserReviewsByProduct((prev) => {
+                            const next = { ...prev };
+                            delete next[selectedReviewForView.product.id];
+                            return next;
+                        });
+                    }}
+                />
+            )}
+
+            <ReturnRequestModal
+                isOpen={returnModalOpen}
+                onClose={() => setReturnModalOpen(false)}
+                order={order ? {
+                    id: order.id,
+                    orderNumber: order.orderNumber,
+                    items: order.items.map((item) => ({
+                        id: item.id,
+                        productName: item.productName,
+                        colorName: item.colorName,
+                        sizeName: item.sizeName,
+                        quantity: item.quantity,
+                        image: item.image,
+                        product: {
+                            id: item.product.id,
+                            name: item.product.name,
+                            image: item.product.image,
+                        },
+                    })),
+                } : null}
+                onSuccess={() => {
+                    fetch("/api/returns")
+                        .then((res) => res.json())
+                        .then((data: ReturnRequestData[]) => {
+                            const request = (data || []).find((r) => r.orderId === order.id) || null;
+                            setCurrentReturnRequest(request);
+                        });
+                }}
+            />
+
+            <ReturnRequestViewModal
+                isOpen={returnViewModalOpen}
+                onClose={() => setReturnViewModalOpen(false)}
+                data={currentReturnRequest}
+                onCancelled={() => {
+                    fetch("/api/returns")
+                        .then((res) => res.json())
+                        .then((data: ReturnRequestData[]) => {
+                            const request = (data || []).find((r) => r.orderId === order.id) || null;
+                            setCurrentReturnRequest(request);
+                        });
+                }}
+            />
         </div>
     );
 }

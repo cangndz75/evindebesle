@@ -619,12 +619,12 @@ export default function OrderDetailPage() {
               <div className="space-y-4">
                 {orderHistory.map((history, index) => {
                   const isLast = index === orderHistory.length - 1;
-                  const statusMap: Record<string, { label: string; code: string; done: boolean; warning?: boolean }> = {
-                    ORDER_CREATED: { label: "Sipariş Oluşturuldu", code: "ORDER_CREATED", done: true },
-                    PAYMENT_SUCCESS: { label: "Ödeme Alındı", code: "PAYMENT_SUCCESS", done: isPaid },
-                    ORDER_PROCESSING: { label: "Hazırlanıyor", code: "ORDER_PROCESSING", done: ["PREPARING", "PROCESSING", "SHIPPED", "DELIVERED", "COMPLETED"].includes(order.status), warning: ["PREPARING", "PROCESSING"].includes(order.status) },
-                    SHIPPED: { label: "Kargoya Verildi", code: "SHIPPED", done: isShipped },
-                    DELIVERED: { label: "Teslim Edildi", code: "DELIVERED", done: ["DELIVERED", "COMPLETED"].includes(order.status) },
+                  const statusMap: Record<string, { label: string; done: boolean; warning?: boolean }> = {
+                    ORDER_CREATED: { label: "Sipariş Oluşturuldu", done: true },
+                    PAYMENT_SUCCESS: { label: "Ödeme Alındı", done: isPaid },
+                    ORDER_PROCESSING: { label: "Hazırlanıyor", done: ["PREPARING", "PROCESSING", "SHIPPED", "DELIVERED", "COMPLETED"].includes(order.status), warning: ["PREPARING", "PROCESSING"].includes(order.status) },
+                    SHIPPED: { label: "Kargoya Verildi", done: isShipped },
+                    DELIVERED: { label: "Teslim Edildi", done: ["DELIVERED", "COMPLETED"].includes(order.status) },
                   };
                   const item = statusMap[history.status];
                   return (
@@ -644,7 +644,6 @@ export default function OrderDetailPage() {
                           <p className={`font-medium ${item.done ? "text-slate-900" : "text-slate-400"}`}>{item.label}</p>
                           <p className="text-xs text-slate-500">{format(new Date(history.createdAt), "dd MMMM yyyy HH:mm", { locale: tr })}</p>
                         </div>
-                        <Badge variant="secondary" className="mt-1 text-[11px]">{item.code}</Badge>
                       </div>
                     </div>
                   );
@@ -876,9 +875,7 @@ export default function OrderDetailPage() {
             </div>
             {newStatus === "SHIPPED" && (
               <div>
-                <Label htmlFor="tracking">
-                  Kargo Takip Numarası <span className="text-red-500">*</span>
-                </Label>
+                <Label htmlFor="tracking">Kargo Takip Numarası (Opsiyonel)</Label>
                 <Input
                   id="tracking"
                   placeholder="Örn: MNG123456789TR"
@@ -907,7 +904,7 @@ export default function OrderDetailPage() {
             </Button>
             <Button
               onClick={handleStatusUpdate}
-              disabled={updating || (newStatus === "SHIPPED" && !trackingNumber)}
+              disabled={updating}
               className="bg-gray-900 text-white hover:bg-gray-800"
             >
               <CheckCircle className="w-4 h-4 mr-2" />

@@ -140,7 +140,7 @@ export default function ProductReviews({ productId, productName = "Ürün", prod
 
   return (
     <>
-      <section className="max-w-4xl mx-auto px-4 md:px-8 py-12 border-t border-gray-200">
+      <section id="product-reviews" className="max-w-4xl mx-auto px-4 md:px-8 py-12 border-t border-gray-200">
         <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
           <h2 className="text-3xl md:text-4xl font-serif font-light text-black text-center md:text-left">
             Yorumlar

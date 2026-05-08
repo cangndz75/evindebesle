@@ -23,7 +23,9 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import ProductReviewModal from "@/components/product/ProductReviewModal";
+import MyReviewModal from "@/components/product/MyReviewModal";
 import ReturnRequestModal from "@/components/returns/ReturnRequestModal";
+import ReturnRequestViewModal from "@/components/returns/ReturnRequestViewModal";
 import { toast } from "sonner";
 
 
@@ -58,24 +60,67 @@ type ProductOrder = {
   } | null;
 };
 
+type UserProductReview = {
+  id: string;
+  rating: number;
+  comment: string | null;
+  createdAt: string;
+};
+
+type ReturnRequestData = {
+  id: string;
+  orderId: string;
+  status: string;
+  reason: string;
+  description: string | null;
+  createdAt: string;
+  order: {
+    orderNumber: string;
+  };
+  items: Array<{
+    id: string;
+    quantity: number;
+    reason: string | null;
+    orderItem: {
+      productName: string;
+      colorName: string | null;
+      sizeName: string | null;
+    };
+  }>;
+};
+
 export default function OrdersPage() {
   const [productOrders, setProductOrders] = useState<ProductOrder[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
   const router = useRouter();
 
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [reviewViewModalOpen, setReviewViewModalOpen] = useState(false);
   const [selectedReviewProduct, setSelectedReviewProduct] = useState<{
     id: string;
     name: string;
     image: string | null;
   } | null>(null);
+  const [selectedReviewForView, setSelectedReviewForView] = useState<{
+    product: { id: string; name: string; image: string | null };
+    review: UserProductReview;
+  } | null>(null);
+  const [userReviewsByProduct, setUserReviewsByProduct] = useState<Record<string, UserProductReview>>({});
 
   const [returnModalOpen, setReturnModalOpen] = useState(false);
+  const [returnViewModalOpen, setReturnViewModalOpen] = useState(false);
   const [selectedReturnOrder, setSelectedReturnOrder] = useState<ProductOrder | null>(null);
+  const [selectedReturnRequest, setSelectedReturnRequest] = useState<ReturnRequestData | null>(null);
+  const [returnRequestsByOrder, setReturnRequestsByOrder] = useState<Record<string, ReturnRequestData>>({});
 
   const handleOpenReturnModal = (order: ProductOrder) => {
     setSelectedReturnOrder(order);
     setReturnModalOpen(true);
+  };
+
+  const handleOpenReturnViewModal = (request: ReturnRequestData) => {
+    setSelectedReturnRequest(request);
+    setReturnViewModalOpen(true);
   };
 
   useEffect(() => {
@@ -83,11 +128,72 @@ export default function OrdersPage() {
       .then((res) => res.json())
       .then((data) => setProductOrders(data))
       .finally(() => setLoadingOrders(false));
+
+    fetch("/api/returns")
+      .then((res) => res.json())
+      .then((data: ReturnRequestData[]) => {
+        const byOrder: Record<string, ReturnRequestData> = {};
+        for (const request of data || []) {
+          if (!byOrder[request.orderId]) {
+            byOrder[request.orderId] = request;
+          }
+        }
+        setReturnRequestsByOrder(byOrder);
+      })
+      .catch(() => {
+        setReturnRequestsByOrder({});
+      });
   }, []);
+
+  useEffect(() => {
+    const productIds = Array.from(
+      new Set(
+        productOrders.flatMap((order) => order.items.map((item) => item.product.id)).filter(Boolean)
+      )
+    );
+
+    if (productIds.length === 0) {
+      setUserReviewsByProduct({});
+      return;
+    }
+
+    Promise.all(
+      productIds.map(async (productId) => {
+        const res = await fetch(`/api/product-reviews?productId=${productId}&checkUser=true`);
+        const data = await res.json();
+        return {
+          productId,
+          review: data?.review || null,
+        };
+      })
+    )
+      .then((rows) => {
+        const map: Record<string, UserProductReview> = {};
+        for (const row of rows) {
+          if (row.review?.id) {
+            map[row.productId] = {
+              id: row.review.id,
+              rating: row.review.rating,
+              comment: row.review.comment ?? null,
+              createdAt: row.review.createdAt,
+            };
+          }
+        }
+        setUserReviewsByProduct(map);
+      })
+      .catch(() => {
+        setUserReviewsByProduct({});
+      });
+  }, [productOrders]);
 
   const handleOpenReviewModal = (product: { id: string; name: string; image: string | null }) => {
     setSelectedReviewProduct(product);
     setReviewModalOpen(true);
+  };
+
+  const handleOpenReviewViewModal = (product: { id: string; name: string; image: string | null }, review: UserProductReview) => {
+    setSelectedReviewForView({ product, review });
+    setReviewViewModalOpen(true);
   };
 
   const handleDownloadInvoice = async (orderId: string, orderNumber: string) => {
@@ -239,7 +345,7 @@ export default function OrdersPage() {
                   <CardHeader className="pb-4">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg">
+                        <div className="w-12 h-12 rounded-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg">
                           {order.orderNumber.slice(-3)}
                         </div>
                         <div>
@@ -267,7 +373,7 @@ export default function OrdersPage() {
                             className="flex items-center justify-between gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                           >
                             <div className="flex items-center gap-4 flex-1">
-                              <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">
+                              <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-gray-200 shrink-0">
                                 {item.image || item.product.image ? (
                                   <img
                                     src={item.image || item.product.image || ""}
@@ -307,8 +413,8 @@ export default function OrdersPage() {
                             <div className="flex flex-col items-end gap-2">
                               {item.product.slug && (
                                 <Link
-                                  href={`/product/${item.product.slug}`}
-                                  className="text-blue-600 hover:text-blue-700 flex-shrink-0"
+                                  href={`/products/${item.product.slug}`}
+                                  className="text-blue-600 hover:text-blue-700 shrink-0"
                                   title="Ürünü Görüntüle"
                                 >
                                   <Eye className="w-5 h-5" />
@@ -317,19 +423,38 @@ export default function OrdersPage() {
 
                               
                               {(order.status === "DELIVERED" || order.status === "COMPLETED") && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="flex items-center gap-2 text-xs"
-                                  onClick={() => handleOpenReviewModal({
-                                    id: item.product.id,
-                                    name: item.product.name,
-                                    image: item.image || item.product.image || null
-                                  })}
-                                >
-                                  <MessageSquarePlus className="w-3 h-3" />
-                                  Yorum Yap
-                                </Button>
+                                userReviewsByProduct[item.product.id] ? (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="flex items-center gap-2 text-xs"
+                                    onClick={() => handleOpenReviewViewModal(
+                                      {
+                                        id: item.product.id,
+                                        name: item.product.name,
+                                        image: item.image || item.product.image || null,
+                                      },
+                                      userReviewsByProduct[item.product.id]
+                                    )}
+                                  >
+                                    <MessageSquarePlus className="w-3 h-3" />
+                                    Yorumumu Gör
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="flex items-center gap-2 text-xs"
+                                    onClick={() => handleOpenReviewModal({
+                                      id: item.product.id,
+                                      name: item.product.name,
+                                      image: item.image || item.product.image || null
+                                    })}
+                                  >
+                                    <MessageSquarePlus className="w-3 h-3" />
+                                    Yorum Yap
+                                  </Button>
+                                )
                               )}
                             </div>
                           </div>
@@ -361,14 +486,25 @@ export default function OrdersPage() {
                       <div className="flex flex-wrap justify-end gap-2 pt-2 border-t">
                         
                         {(order.status === "DELIVERED" || order.status === "COMPLETED") && (
-                          <Button
-                            variant="outline"
-                            onClick={() => handleOpenReturnModal(order)}
-                            className="flex items-center gap-2"
-                          >
-                            <RotateCcw className="w-4 h-4" />
-                            İade Talep Et
-                          </Button>
+                          returnRequestsByOrder[order.id] ? (
+                            <Button
+                              variant="outline"
+                              onClick={() => handleOpenReturnViewModal(returnRequestsByOrder[order.id])}
+                              className="flex items-center gap-2"
+                            >
+                              <RotateCcw className="w-4 h-4" />
+                              İadeyi Görüntüle
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="outline"
+                              onClick={() => handleOpenReturnModal(order)}
+                              className="flex items-center gap-2"
+                            >
+                              <RotateCcw className="w-4 h-4" />
+                              İade Talep Et
+                            </Button>
+                          )
                         )}
 
                         
@@ -410,6 +546,39 @@ export default function OrdersPage() {
           productName={selectedReviewProduct.name}
           productImage={selectedReviewProduct.image}
           onReviewSubmitted={() => {
+            fetch(`/api/product-reviews?productId=${selectedReviewProduct.id}&checkUser=true`)
+              .then((res) => res.json())
+              .then((data) => {
+                if (data?.review?.id) {
+                  setUserReviewsByProduct((prev) => ({
+                    ...prev,
+                    [selectedReviewProduct.id]: {
+                      id: data.review.id,
+                      rating: data.review.rating,
+                      comment: data.review.comment ?? null,
+                      createdAt: data.review.createdAt,
+                    },
+                  }));
+                }
+              });
+          }}
+        />
+      )}
+
+      {selectedReviewForView && (
+        <MyReviewModal
+          isOpen={reviewViewModalOpen}
+          onClose={() => setReviewViewModalOpen(false)}
+          productId={selectedReviewForView.product.id}
+          productName={selectedReviewForView.product.name}
+          productImage={selectedReviewForView.product.image}
+          review={selectedReviewForView.review}
+          onDeleted={() => {
+            setUserReviewsByProduct((prev) => {
+              const next = { ...prev };
+              delete next[selectedReviewForView.product.id];
+              return next;
+            });
           }}
         />
       )}
@@ -420,9 +589,39 @@ export default function OrdersPage() {
         onClose={() => setReturnModalOpen(false)}
         order={selectedReturnOrder}
         onSuccess={() => {
+          fetch("/api/returns")
+            .then((res) => res.json())
+            .then((data: ReturnRequestData[]) => {
+              const byOrder: Record<string, ReturnRequestData> = {};
+              for (const request of data || []) {
+                if (!byOrder[request.orderId]) {
+                  byOrder[request.orderId] = request;
+                }
+              }
+              setReturnRequestsByOrder(byOrder);
+            });
           fetch("/api/orders")
             .then((res) => res.json())
             .then((data) => setProductOrders(data));
+        }}
+      />
+
+      <ReturnRequestViewModal
+        isOpen={returnViewModalOpen}
+        onClose={() => setReturnViewModalOpen(false)}
+        data={selectedReturnRequest}
+        onCancelled={() => {
+          fetch("/api/returns")
+            .then((res) => res.json())
+            .then((data: ReturnRequestData[]) => {
+              const byOrder: Record<string, ReturnRequestData> = {};
+              for (const request of data || []) {
+                if (!byOrder[request.orderId]) {
+                  byOrder[request.orderId] = request;
+                }
+              }
+              setReturnRequestsByOrder(byOrder);
+            });
         }}
       />
     </div>

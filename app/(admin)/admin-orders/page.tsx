@@ -725,8 +725,8 @@ export default function AdminOrdersPage() {
             <DialogTitle>Kargo Bilgisi</DialogTitle>
             <DialogDescription>
               {isBulkTracking
-                ? `${selectedOrders.size} sipariş için kargo takip numarası girin.`
-                : "Seçili sipariş için kargo takip numarası girin."}
+                ? `${selectedOrders.size} sipariş için kargo takip numarası girebilirsiniz (opsiyonel).`
+                : "Seçili sipariş için kargo takip numarası girebilirsiniz (opsiyonel)."}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
@@ -742,7 +742,7 @@ export default function AdminOrdersPage() {
               İptal
             </Button>
             <Button
-              disabled={!trackingInput || updatingStatus}
+              disabled={updatingStatus}
               onClick={async () => {
                 if (isBulkTracking) {
                   try {
@@ -751,7 +751,10 @@ export default function AdminOrdersPage() {
                       fetch(`/api/admin/orders/${orderId}`, {
                         method: "PATCH",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ status: "SHIPPED", trackingNumber: trackingInput }),
+                        body: JSON.stringify({
+                          status: "SHIPPED",
+                          ...(trackingInput.trim() && { trackingNumber: trackingInput.trim() }),
+                        }),
                       })
                     );
                     await Promise.all(promises);

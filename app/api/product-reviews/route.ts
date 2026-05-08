@@ -21,6 +21,23 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        const existingReview = await prisma.productReview.findFirst({
+            where: {
+                productId,
+                userId: session.user.id,
+            },
+            select: {
+                id: true,
+            },
+        });
+
+        if (existingReview) {
+            return NextResponse.json(
+                { error: "Bu ürün için zaten yorum yaptınız" },
+                { status: 409 }
+            );
+        }
+
 
         const review = await prisma.productReview.create({
             data: {
@@ -52,6 +69,56 @@ export async function POST(request: NextRequest) {
         console.error("Review creation error:", error);
         return NextResponse.json(
             { error: error.message || "Yorum gönderilirken bir hata oluştu" },
+            { status: 500 }
+        );
+    }
+}
+
+export async function DELETE(request: NextRequest) {
+    try {
+        const session = await getServerSession(authConfig);
+        if (!session?.user?.id) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        const body = await request.json().catch(() => ({}));
+        const reviewId = typeof body?.reviewId === "string" ? body.reviewId : undefined;
+        const productId = typeof body?.productId === "string" ? body.productId : undefined;
+
+        let targetReview = null;
+
+        if (reviewId) {
+            targetReview = await prisma.productReview.findFirst({
+                where: {
+                    id: reviewId,
+                    userId: session.user.id,
+                },
+                select: { id: true },
+            });
+        } else if (productId) {
+            targetReview = await prisma.productReview.findFirst({
+                where: {
+                    productId,
+                    userId: session.user.id,
+                },
+                orderBy: { createdAt: "desc" },
+                select: { id: true },
+            });
+        }
+
+        if (!targetReview) {
+            return NextResponse.json({ error: "Yorum bulunamadı" }, { status: 404 });
+        }
+
+        await prisma.productReview.delete({
+            where: { id: targetReview.id },
+        });
+
+        return NextResponse.json({ success: true });
+    } catch (error: any) {
+        console.error("Review delete error:", error);
+        return NextResponse.json(
+            { error: error.message || "Yorum silinirken bir hata oluştu" },
             { status: 500 }
         );
     }

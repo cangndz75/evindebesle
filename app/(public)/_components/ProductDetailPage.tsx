@@ -935,8 +935,19 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
             {product.reviews && product.reviews.length > 0 && (() => {
               const averageRating = product.reviews.reduce((sum, r) => sum + r.rating, 0) / product.reviews.length;
               const reviewCount = product.reviews.length;
+              const handleGoToReviews = () => {
+                const el = document.getElementById("product-reviews");
+                if (!el) return;
+                el.scrollIntoView({ behavior: "smooth", block: "start" });
+              };
+
               return (
-                <div className="flex items-center gap-2 mb-6">
+                <button
+                  type="button"
+                  onClick={handleGoToReviews}
+                  className="flex items-center gap-2 mb-6 group"
+                  aria-label="Yorumlar bolumune git"
+                >
                   <div className="flex items-center gap-1">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <svg
@@ -948,10 +959,10 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                       </svg>
                     ))}
                   </div>
-                  <span className="text-sm text-gray-600 font-light">
+                  <span className="text-sm text-gray-600 font-light group-hover:underline underline-offset-4">
                     {reviewCount} Yorum
                   </span>
-                </div>
+                </button>
               );
             })()}
 

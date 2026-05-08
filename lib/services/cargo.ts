@@ -36,8 +36,8 @@ function randomTrackingNumber(prefix: string): string {
 async function sendShipmentEmail(params: {
   to: string;
   orderNumber: string;
-  trackingNumber: string;
-  trackingUrl: string;
+  trackingNumber?: string | null;
+  trackingUrl?: string | null;
   cargoCompanyName: string;
 }) {
   const from = process.env.ORDER_MAIL_FROM || "siparis@dark-velvet.com";
@@ -50,10 +50,8 @@ async function sendShipmentEmail(params: {
         <h2>Siparişiniz kargoya verildi</h2>
         <p>Sipariş No: <strong>${params.orderNumber}</strong></p>
         <p>Taşıyıcı: <strong>${params.cargoCompanyName}</strong></p>
-        <p>Takip Numarası: <strong>${params.trackingNumber}</strong></p>
-        <p>
-          <a href="${params.trackingUrl}" target="_blank" rel="noopener noreferrer">Kargonuzu takip edin</a>
-        </p>
+        ${params.trackingNumber ? `<p>Takip Numarası: <strong>${params.trackingNumber}</strong></p>` : ""}
+        ${params.trackingUrl ? `<p><a href="${params.trackingUrl}" target="_blank" rel="noopener noreferrer">Kargonuzu takip edin</a></p>` : ""}
       </div>
     `,
   });
@@ -234,7 +232,7 @@ export async function notifyOrderShippedEmail(orderId: string) {
     },
   });
 
-  if (!order?.trackingNumber) {
+  if (!order) {
     return { sent: false };
   }
 
@@ -249,12 +247,15 @@ export async function notifyOrderShippedEmail(orderId: string) {
   }
 
   const cargoCompanyName = order.cargoCompany?.name || "Kargo Firması";
-  const trackingUrl = buildTrackingUrl(order.cargoCompany?.trackingUrl, order.trackingNumber);
+  const trackingNumber = order.trackingNumber ? String(order.trackingNumber).trim() : null;
+  const trackingUrl = trackingNumber
+    ? buildTrackingUrl(order.cargoCompany?.trackingUrl, trackingNumber)
+    : null;
 
   await sendShipmentEmail({
     to,
     orderNumber: order.orderNumber,
-    trackingNumber: order.trackingNumber,
+    trackingNumber,
     trackingUrl,
     cargoCompanyName,
   });

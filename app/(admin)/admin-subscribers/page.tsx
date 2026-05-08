@@ -133,6 +133,8 @@ export default function AdminSubscribersPage() {
         fetchSubscribers();
     };
 
+    const maskEmailFully = () => "********";
+
     return (
         <div className="p-6 max-w-7xl mx-auto space-y-6">
             <div className="flex items-center justify-between">
@@ -143,7 +145,7 @@ export default function AdminSubscribersPage() {
                 <div className="flex items-center gap-2">
                     <form onSubmit={handleSearch} className="relative w-64 md:w-80">
                         <Input
-                            placeholder="Email ara..."
+                            placeholder="Abone ara..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             className="pl-10"
@@ -190,7 +192,7 @@ export default function AdminSubscribersPage() {
                                             <TableCell className="font-medium">
                                                 <div className="flex items-center gap-2">
                                                     <Mail className="w-4 h-4 text-gray-400" />
-                                                    {subscriber.email}
+                                                    {maskEmailFully()}
                                                 </div>
                                             </TableCell>
                                             <TableCell>

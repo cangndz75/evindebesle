@@ -62,6 +62,8 @@ export default function AdminSupportPage() {
         fetcher
     );
 
+    const maskEmailFully = () => "********";
+
     const getStatusBadge = (status: string) => {
         switch (status) {
             case "open":
@@ -151,7 +153,7 @@ export default function AdminSupportPage() {
                                                 <TableCell>
                                                     <div className="flex flex-col">
                                                         <span className="text-sm font-medium">{ticket.user.name || "İsimsiz"}</span>
-                                                        <span className="text-xs text-muted-foreground">{ticket.user.email}</span>
+                                                        <span className="text-xs text-muted-foreground">{maskEmailFully()}</span>
                                                     </div>
                                                 </TableCell>
                                                 <TableCell>{ticket.category}</TableCell>

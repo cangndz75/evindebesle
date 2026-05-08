@@ -203,11 +203,11 @@ const navSections = [
         href: "/admin-support",
         icon: <HelpCircle className="w-5 h-5" />,
       },
-      {
-        label: "Dokümantasyon",
-        href: "/docs",
-        icon: <FileText className="w-5 h-5" />,
-      },
+      // {
+      //   label: "Dokümantasyon",
+      //   href: "/docs",
+      //   icon: <FileText className="w-5 h-5" />,
+      // },
     ],
   },
 ];

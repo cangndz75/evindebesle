@@ -57,6 +57,8 @@ export default function AdminTicketDetailPage() {
         fetcher
     );
 
+    const maskEmailFully = () => "********";
+
     const getOrderStatusLabel = (status: string) => {
         const statusMap: Record<string, string> = {
             PENDING: "Beklemede",
@@ -195,7 +197,7 @@ export default function AdminTicketDetailPage() {
                             </div>
                             <div className="overflow-hidden">
                                 <p className="font-medium truncate">{ticket.user.name || "İsimsiz"}</p>
-                                <p className="text-xs text-muted-foreground truncate" title={ticket.user.email}>{ticket.user.email}</p>
+                                <p className="text-xs text-muted-foreground truncate" title="Maskeli e-posta">{maskEmailFully()}</p>
                             </div>
                         </div>
                     </div>
@@ -267,7 +269,7 @@ export default function AdminTicketDetailPage() {
                             value={replyMessage}
                             onChange={(e) => setReplyMessage(e.target.value)}
                             placeholder="Yanıtınızı yazın..."
-                            className="min-h-[80px] resize-none"
+                            className="min-h-20 resize-none"
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' && !e.shiftKey) {
                                     e.preventDefault();

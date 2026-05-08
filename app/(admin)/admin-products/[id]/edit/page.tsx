@@ -462,12 +462,12 @@ export default function EditProductPage() {
           });
           setSizeStocks(stocks);
         } else {
+          const fallbackSizesFromVariantsRaw: string[] = (product.variants || []).map((v: any) =>
+            normalizeSizeName(v?.size?.name || "")
+          );
+
           const fallbackSizesFromVariants: string[] = Array.from(
-            new Set<string>(
-              (product.variants || [])
-                .map((v: any) => normalizeSizeName(v?.size?.name || ""))
-                .filter((name): name is string => Boolean(name))
-            )
+            new Set<string>(fallbackSizesFromVariantsRaw.filter((name: string) => Boolean(name)))
           );
 
           if (fallbackSizesFromVariants.length > 0) {

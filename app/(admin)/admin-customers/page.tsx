@@ -1,10 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -16,7 +13,7 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Search, Mail, Phone, Package, DollarSign, Eye } from "lucide-react";
+import { Search, Mail, Phone, Package, DollarSign } from "lucide-react";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 
@@ -33,7 +30,6 @@ type Customer = {
 };
 
 export default function CustomersPage() {
-  const router = useRouter();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -66,14 +62,29 @@ export default function CustomersPage() {
     }).format(value);
   };
 
+  const maskNameToInitials = (name: string) => {
+    const parts = name
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean);
+
+    if (parts.length === 0) return "--";
+
+    return parts
+      .slice(0, 2)
+      .map((part) => `${part[0]?.toUpperCase()}.`)
+      .join(" ");
+  };
+
+  const fullyMask = (value: string | null | undefined) => {
+    if (!value) return "********";
+    return "*".repeat(Math.max(8, Math.min(16, value.length)));
+  };
+
   const filteredCustomers = customers.filter((customer) => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
-    return (
-      customer.name.toLowerCase().includes(query) ||
-      customer.email.toLowerCase().includes(query) ||
-      (customer.phone && customer.phone.toLowerCase().includes(query))
-    );
+    return customer.name.toLowerCase().includes(query);
   });
 
   return (
@@ -88,7 +99,7 @@ export default function CustomersPage() {
       
       <div className="flex flex-col md:flex-row gap-4">
         <Input
-          placeholder="Müşteri adı, e-posta veya telefon ile ara..."
+          placeholder="Müşteri adı ile ara..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="flex-1"
@@ -121,7 +132,6 @@ export default function CustomersPage() {
                     <TableHead>Sipariş Sayısı</TableHead>
                     <TableHead>Toplam Harcama</TableHead>
                     <TableHead>Son Sipariş</TableHead>
-                    <TableHead className="text-right">İşlemler</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -141,7 +151,7 @@ export default function CustomersPage() {
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <p className="font-medium">{customer.name}</p>
+                            <p className="font-medium tracking-wide">{maskNameToInitials(customer.name)}</p>
                             <p className="text-sm text-gray-500">
                               {format(new Date(customer.createdAt), "dd MMM yyyy", { locale: tr })}
                             </p>
@@ -152,12 +162,12 @@ export default function CustomersPage() {
                         <div className="space-y-1 text-sm">
                           <div className="flex items-center gap-2">
                             <Mail className="w-3 h-3 text-gray-400" />
-                            <span>{customer.email}</span>
+                            <span>{fullyMask(customer.email)}</span>
                           </div>
                           {customer.phone && (
                             <div className="flex items-center gap-2">
                               <Phone className="w-3 h-3 text-gray-400" />
-                              <span>{customer.phone}</span>
+                              <span>{fullyMask(customer.phone)}</span>
                             </div>
                           )}
                         </div>
@@ -182,16 +192,6 @@ export default function CustomersPage() {
                         ) : (
                           <span className="text-sm text-gray-400">Henüz sipariş yok</span>
                         )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => router.push(`/admin-customers/${customer.id}`)}
-                        >
-                          <Eye className="w-4 h-4 mr-2" />
-                          Detay
-                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}

@@ -135,6 +135,7 @@ export default function OrderDetailPage() {
   const [trackingNumber, setTrackingNumber] = useState("");
   const [statusNote, setStatusNote] = useState("");
   const [updating, setUpdating] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const [creatingLabel, setCreatingLabel] = useState(false);
   const [invoice, setInvoice] = useState<{ id: string; invoiceNumber: string; status: string; totalAmount: number; createdAt: string } | null>(null);
   const [creatingInvoice, setCreatingInvoice] = useState(false);
@@ -249,6 +250,37 @@ export default function OrderDetailPage() {
       toast.error(error?.message || "Kargo barkodu oluşturulamadı");
     } finally {
       setCreatingLabel(false);
+    }
+  };
+
+  const handleCancelOrder = async () => {
+    if (!order) return;
+
+    const confirmed = window.confirm("Bu siparişi iptal edip iyzico iade sürecini başlatmak istiyor musunuz?");
+    if (!confirmed) return;
+
+    setCancelling(true);
+    try {
+      const res = await fetch(`/api/admin/orders/${order.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: "CANCELLED",
+          adminNote: "Admin panelden sipariş iptal edildi ve iyzico iade süreci başlatıldı.",
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data?.error || "Sipariş iptal edilemedi");
+      }
+
+      toast.success("Sipariş iptal edildi, iade süreci başlatıldı");
+      await fetchOrder();
+    } catch (error: any) {
+      toast.error(error?.message || "Sipariş iptal edilirken bir hata oluştu");
+    } finally {
+      setCancelling(false);
     }
   };
 
@@ -467,8 +499,8 @@ export default function OrderDetailPage() {
               <DropdownMenuItem onClick={() => router.push(`/admin-support/new?orderId=${order.id}`)}>
                 <Mail className="mr-2 h-4 w-4" /> Mesaj
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => router.push(`/admin-orders/${order.id}/refund`)}>
-                <RotateCcw className="mr-2 h-4 w-4" /> İade Oluştur
+              <DropdownMenuItem onClick={handleCancelOrder} disabled={cancelling || order.status === "CANCELLED" || order.paymentStatus === "REFUNDED"}>
+                <RotateCcw className="mr-2 h-4 w-4" /> {cancelling ? "İptal Ediliyor..." : "Siparişi İptal Et"}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

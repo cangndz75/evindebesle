@@ -33,6 +33,11 @@ export type Transaction = {
     payment: any;
 };
 
+const fullyMask = (value: string | null | undefined) => {
+    if (!value) return "********";
+    return "*".repeat(Math.max(8, Math.min(16, value.length)));
+};
+
 export const columns = (showDetails: (transaction: Transaction) => void): ColumnDef<Transaction>[] => [
     {
         accessorKey: "orderNumber",
@@ -47,7 +52,7 @@ export const columns = (showDetails: (transaction: Transaction) => void): Column
             return (
                 <div className="flex flex-col">
                     <span className="font-medium">{user?.name || "Misafir"}</span>
-                    <span className="text-xs text-muted-foreground">{email}</span>
+                    <span className="text-xs text-muted-foreground">{fullyMask(email)}</span>
                 </div>
             )
         }

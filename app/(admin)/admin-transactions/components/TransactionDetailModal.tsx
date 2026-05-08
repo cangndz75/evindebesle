@@ -28,6 +28,26 @@ export function TransactionDetailModal({
 }: TransactionDetailModalProps) {
     if (!transaction) return null;
 
+    const fullyMask = (value: string | null | undefined) => {
+        if (!value) return "********";
+        return "*".repeat(Math.max(8, Math.min(16, value.length)));
+    };
+
+    const maskNameToInitials = (name: string | null | undefined) => {
+        if (!name) return "--";
+        const parts = name
+            .trim()
+            .split(/\s+/)
+            .filter(Boolean);
+
+        if (parts.length === 0) return "--";
+
+        return parts
+            .slice(0, 2)
+            .map((part) => `${part[0]?.toUpperCase()}.`)
+            .join(" ");
+    };
+
     const getPaymentStatusLabel = (status: string) => {
         const statusMap: Record<string, string> = {
             PAID: "Ödendi",
@@ -96,9 +116,9 @@ export function TransactionDetailModal({
                                 Müşteri Bilgileri
                             </div>
                             <div className="rounded-lg border p-4 text-sm">
-                                <div className="font-medium">{transaction.user.name || "Misafir"}</div>
-                                <div className="text-muted-foreground">{transaction.email || transaction.user.email}</div>
-                                {transaction.user.phone && <div className="text-muted-foreground mt-1">{transaction.user.phone}</div>}
+                                <div className="font-medium">{maskNameToInitials(transaction.user?.name || "")}</div>
+                                <div className="text-muted-foreground">{fullyMask(transaction.email || transaction.user?.email)}</div>
+                                {transaction.user?.phone && <div className="text-muted-foreground mt-1">{fullyMask(transaction.user.phone)}</div>}
                             </div>
                         </div>
 
@@ -135,12 +155,12 @@ export function TransactionDetailModal({
                             <div className="rounded-lg border p-4 text-sm">
                                 {transaction.shippingAddress ? (
                                     <>
-                                        <div className="font-medium">{transaction.shippingAddress.title}</div>
+                                        <div className="font-medium">{fullyMask(transaction.shippingAddress.title)}</div>
                                         <div className="text-muted-foreground whitespace-pre-wrap">
-                                            {transaction.shippingAddress.fullAddress}
+                                            {fullyMask(transaction.shippingAddress.fullAddress)}
                                         </div>
                                         <div className="text-muted-foreground mt-1">
-                                            {transaction.shippingAddress.districtId} 
+                                            {fullyMask(transaction.shippingAddress.districtId)}
                                         </div>
                                     </>
                                 ) : (
@@ -158,9 +178,9 @@ export function TransactionDetailModal({
                             <div className="rounded-lg border p-4 text-sm">
                                 {transaction.billingAddress ? (
                                     <>
-                                        <div className="font-medium">{transaction.billingAddress.title}</div>
+                                        <div className="font-medium">{fullyMask(transaction.billingAddress.title)}</div>
                                         <div className="text-muted-foreground whitespace-pre-wrap">
-                                            {transaction.billingAddress.fullAddress}
+                                            {fullyMask(transaction.billingAddress.fullAddress)}
                                         </div>
                                     </>
                                 ) : (
@@ -181,7 +201,7 @@ export function TransactionDetailModal({
                         <div className="rounded-lg border divide-y">
                             {transaction.items?.map((item: any) => (
                                 <div key={item.id} className="p-4 flex items-center gap-4">
-                                    <div className="h-16 w-16 relative rounded-md overflow-hidden bg-gray-100 flex-shrink-0">
+                                    <div className="h-16 w-16 relative rounded-md overflow-hidden bg-gray-100 shrink-0">
                                         {item.product?.image || item.image ? (
                                             <Image
                                                 src={item.product?.image || item.image}

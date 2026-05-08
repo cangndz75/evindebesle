@@ -47,6 +47,26 @@ export default function AdminInvoicesPage() {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
 
+    const fullyMask = (value: string | null | undefined) => {
+        if (!value) return "********";
+        return "*".repeat(Math.max(8, Math.min(16, value.length)));
+    };
+
+    const maskNameToInitials = (name: string | null | undefined) => {
+        if (!name) return "--";
+        const parts = name
+            .trim()
+            .split(/\s+/)
+            .filter(Boolean);
+
+        if (parts.length === 0) return "--";
+
+        return parts
+            .slice(0, 2)
+            .map((part) => `${part[0]?.toUpperCase()}.`)
+            .join(" ");
+    };
+
     const fetchInvoices = async () => {
         setLoading(true);
         try {
@@ -144,8 +164,8 @@ export default function AdminInvoicesPage() {
                                     </TableCell>
                                     <TableCell>
                                         <div>
-                                            <div className="font-medium">{invoice.order.user.name}</div>
-                                            <div className="text-sm text-muted-foreground">{invoice.order.user.email}</div>
+                                            <div className="font-medium">{maskNameToInitials(invoice.order.user.name)}</div>
+                                            <div className="text-sm text-muted-foreground">{fullyMask(invoice.order.user.email)}</div>
                                         </div>
                                     </TableCell>
                                     <TableCell>

@@ -64,6 +64,7 @@ export async function GET(req: NextRequest) {
                         email: true,
                         image: true,
                         createdAt: true,
+                        marketingEmailConsent: true,
                     }
                 },
                 product: {
@@ -134,7 +135,13 @@ export async function GET(req: NextRequest) {
                 quantity: number;
                 value: number;
                 lastUpdated: Date;
-                usersById: Record<string, { id: string; name: string | null; email: string; image: string | null }>;
+                usersById: Record<string, {
+                    id: string;
+                    name: string | null;
+                    email: string;
+                    image: string | null;
+                    marketingEmailConsent: boolean;
+                }>;
             }
         > = {};
 
@@ -163,6 +170,7 @@ export async function GET(req: NextRequest) {
                     name: item.user.name,
                     email: item.user.email,
                     image: item.user.image,
+                    marketingEmailConsent: Boolean(item.user.marketingEmailConsent),
                 };
             }
         }
@@ -170,12 +178,16 @@ export async function GET(req: NextRequest) {
         const abandonedProducts = Object.values(productStats)
             .map((entry) => {
                 const users = Object.values(entry.usersById);
+                const consentedUsersCount = users.filter((u) => u.marketingEmailConsent).length;
+                const nonConsentedUsersCount = users.length - consentedUsersCount;
                 return {
                     product: entry.product,
                     quantity: entry.quantity,
                     value: entry.value,
                     users,
                     usersCount: users.length,
+                    consentedUsersCount,
+                    nonConsentedUsersCount,
                     lastUpdated: entry.lastUpdated.toISOString(),
                 };
             })

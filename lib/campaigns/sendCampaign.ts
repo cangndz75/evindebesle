@@ -117,7 +117,6 @@ export async function sendCampaignNow({ campaignId, recipientEmail, recipientEma
       status: "sent",
       sentAt: new Date(),
       sentCount,
-      scheduleAt: null,
     },
   });
 
@@ -171,7 +170,10 @@ async function resolveRecipients({ recipientEmail, recipientEmails, audienceSegm
     }
 
     const users = await prisma.user.findMany({
-      where: { email: { in: normalizedEmails } },
+      where: {
+        email: { in: normalizedEmails },
+        marketingEmailConsent: true,
+      },
       select: { id: true, email: true, name: true },
     });
 
@@ -183,18 +185,20 @@ async function resolveRecipients({ recipientEmail, recipientEmails, audienceSegm
     const usersByEmail = new Map(users.map((user) => [user.email.toLowerCase(), user]));
     const subscribersByEmail = new Set(subscribers.map((subscriber) => subscriber.email.toLowerCase()));
 
-    return normalizedEmails.map((email) => {
+    const eligibleRecipients = normalizedEmails.flatMap((email) => {
       const matchedUser = usersByEmail.get(email);
       if (matchedUser) {
-        return matchedUser;
+        return [matchedUser];
       }
 
       if (subscribersByEmail.has(email)) {
-        return { email, name: email.split("@")[0] };
+        return [{ email, name: email.split("@")[0] }];
       }
 
-      return { email, name: email.split("@")[0] };
+      return [];
     });
+
+    return eligibleRecipients;
   }
 
   const userSelect = {

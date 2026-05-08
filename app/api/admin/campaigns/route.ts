@@ -83,24 +83,59 @@ export async function PUT(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { id, ...updates } = body;
+    const { id } = body;
 
     if (!id) {
       return NextResponse.json({ error: "Campaign ID required" }, { status: 400 });
     }
 
+    const updateData: {
+      name?: string;
+      status?: string;
+      subject?: string;
+      preheader?: string;
+      fromName?: string;
+      fromEmail?: string;
+      replyTo?: string;
+      audienceSegmentId?: string | null;
+      scheduleAt?: Date | null;
+      contentJson?: string;
+    } = {};
+
+    if (typeof body.name === "string") updateData.name = body.name;
+    if (typeof body.status === "string") updateData.status = body.status;
+    if (typeof body.subject === "string") updateData.subject = body.subject;
+    if (typeof body.preheader === "string") updateData.preheader = body.preheader;
+    if (typeof body.fromName === "string") updateData.fromName = body.fromName;
+    if (typeof body.fromEmail === "string") updateData.fromEmail = body.fromEmail;
+    if (typeof body.replyTo === "string") updateData.replyTo = body.replyTo;
+
+    if (body.audienceSegmentId === null || typeof body.audienceSegmentId === "string") {
+      updateData.audienceSegmentId = body.audienceSegmentId;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(body, "scheduleAt")) {
+      if (body.scheduleAt === null || body.scheduleAt === "") {
+        updateData.scheduleAt = null;
+      } else {
+        const parsedScheduleAt = new Date(body.scheduleAt);
+        if (Number.isNaN(parsedScheduleAt.getTime())) {
+          return NextResponse.json({ error: "Invalid scheduleAt" }, { status: 400 });
+        }
+        updateData.scheduleAt = parsedScheduleAt;
+      }
+    }
+
+    if (Array.isArray(body.blocks)) {
+      updateData.contentJson = JSON.stringify({
+        blocks: body.blocks,
+        recipientEmails: Array.isArray(body.recipientEmails) ? body.recipientEmails : [],
+      });
+    }
+
     const campaign = await prisma.campaign.update({
       where: { id },
-      data: {
-        ...updates,
-        contentJson: updates.blocks
-          ? JSON.stringify({
-              blocks: updates.blocks,
-              recipientEmails: Array.isArray(updates.recipientEmails) ? updates.recipientEmails : [],
-            })
-          : undefined,
-        scheduleAt: updates.scheduleAt ? new Date(updates.scheduleAt) : undefined,
-      },
+      data: updateData,
     });
 
     return NextResponse.json(campaign);

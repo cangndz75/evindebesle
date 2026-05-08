@@ -12,6 +12,11 @@ export default function TransactionsClient() {
     const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
+    const fullyMask = (value: string | null | undefined) => {
+        if (!value) return "********";
+        return "*".repeat(Math.max(8, Math.min(16, value.length)));
+    };
+
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
@@ -57,7 +62,7 @@ export default function TransactionsClient() {
                     const rows = data.map(t => [
                         t.orderNumber,
                         t.user.name,
-                        t.email || t.user.email,
+                        fullyMask(t.email || t.user.email),
                         t.total,
                         t.paymentStatus,
                         t.createdAt

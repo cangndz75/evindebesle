@@ -40,6 +40,7 @@ import {
     ResponsiveContainer,
 } from "recharts";
 import Image from "next/image";
+import { toast } from "sonner";
 
 interface AbandonedCartUser {
     user: {
@@ -70,6 +71,7 @@ interface AbandonedProductUser {
     name: string | null;
     email: string;
     image: string | null;
+    marketingEmailConsent: boolean;
 }
 
 interface AbandonedProduct {
@@ -83,6 +85,8 @@ interface AbandonedProduct {
     value: number;
     users: AbandonedProductUser[];
     usersCount: number;
+    consentedUsersCount: number;
+    nonConsentedUsersCount: number;
     lastUpdated: string;
 }
 
@@ -315,11 +319,19 @@ export default function AbandonedCartsPage() {
     };
 
     const handleProductBulkCampaign = (product: AbandonedProduct) => {
+        const consentedUsers = product.users.filter((user) => user.marketingEmailConsent);
         const uniqueEmails = Array.from(
-            new Set(product.users.map((user) => user.email.trim().toLowerCase()).filter(Boolean))
+            new Set(consentedUsers.map((user) => user.email.trim().toLowerCase()).filter(Boolean))
         );
 
-        if (uniqueEmails.length === 0) return;
+        if (uniqueEmails.length === 0) {
+            toast.error("Pazarlama izni olan alıcı bulunamadı");
+            return;
+        }
+
+        if (product.nonConsentedUsersCount > 0) {
+            toast.info(`${product.nonConsentedUsersCount} kişi pazarlama izni olmadığı için hariç tutuldu`);
+        }
 
         const productPreview = {
             product: product.product,
@@ -588,9 +600,10 @@ export default function AbandonedCartsPage() {
                                             let formattedLabel = label;
                                             try {
                                                 if (label) {
-                                                    const date = new Date(label);
+                                                    const normalizedLabel = String(label);
+                                                    const date = new Date(normalizedLabel);
                                                     if (!isNaN(date.getTime())) {
-                                                        formattedLabel = formatInTurkey(label, {
+                                                        formattedLabel = formatInTurkey(normalizedLabel, {
                                                             day: "numeric",
                                                             month: "long",
                                                             year: "numeric",
@@ -895,6 +908,9 @@ export default function AbandonedCartsPage() {
                                         <p className="text-xs text-indigo-700 mt-1">
                                             Bu urunu terk eden tum kullanicilar icin tek tikla toplu kampanya taslagi olustur.
                                         </p>
+                                        <p className="text-xs text-indigo-700 mt-2">
+                                            Izinli: {selectedProduct.consentedUsersCount} • Izinsiz: {selectedProduct.nonConsentedUsersCount}
+                                        </p>
                                     </div>
                                     <Sparkles className="w-5 h-5 text-indigo-500 shrink-0" />
                                 </div>
@@ -912,11 +928,15 @@ export default function AbandonedCartsPage() {
                                     <div className="min-w-0">
                                         <p className="font-medium text-sm text-gray-900 truncate">{user.name || "Anonim"}</p>
                                         <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                                        <p className={`text-[11px] mt-0.5 ${user.marketingEmailConsent ? "text-emerald-600" : "text-amber-600"}`}>
+                                            {user.marketingEmailConsent ? "Pazarlama izni var" : "Pazarlama izni yok"}
+                                        </p>
                                     </div>
                                     <Button
                                         variant="outline"
                                         size="sm"
                                         onClick={() => handleSendEmail(user.email)}
+                                        disabled={!user.marketingEmailConsent}
                                     >
                                         <Mail className="w-4 h-4 mr-2" />
                                         E-posta

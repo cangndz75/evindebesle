@@ -2,11 +2,14 @@
 import { prisma } from "@/lib/db";
 import { resend } from "@/lib/resend";
 import { sendCampaignNow } from "@/lib/campaigns/sendCampaign";
+import { setCampaignCronHeartbeat } from "@/lib/campaigns/cronHealth";
 
 export const dynamic = 'force-dynamic'; // Ensure not cached
 
 export async function GET(req: NextRequest) {
     try {
+        setCampaignCronHeartbeat(new Date());
+
         const authHeader = req.headers.get("authorization");
         if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
             if (process.env.NODE_ENV === "production") {

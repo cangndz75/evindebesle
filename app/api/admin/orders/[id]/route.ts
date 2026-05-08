@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { notifyOrderShippedEmail } from "@/lib/services/cargo";
+import { iyzico, iyzicoCall } from "@/lib/iyzico";
 
 type AdminOrderDetailItem = Prisma.OrderItemGetPayload<{
   include: {
@@ -53,6 +54,102 @@ function resolveOrderItemImage(item: AdminOrderDetailItem) {
   }
 
   return item.product?.primaryImage ?? item.product?.image ?? null;
+}
+
+async function startIyzicoCancellation(order: {
+  id: string;
+  total: number;
+  paymentId: string | null;
+  payment?: { paymentId: string | null; rawResult: any } | null;
+}) {
+  const ip = "127.0.0.1";
+  const paymentId = order.payment?.paymentId || order.paymentId;
+
+  if (!paymentId) {
+    return {
+      success: false,
+      message: "Iyzico ödeme ID bulunamadı. İptal başlatılamadı.",
+    };
+  }
+
+  try {
+    const cancelReq = {
+      locale: "tr",
+      conversationId: order.id,
+      paymentId,
+      ip,
+    };
+
+    const cancelRes: any = await iyzicoCall<any>(
+      (req, cb) => (iyzico as any).cancel.create(req, cb),
+      cancelReq
+    );
+
+    if (cancelRes?.status === "success") {
+      return {
+        success: true,
+        method: "cancel",
+        raw: cancelRes,
+      };
+    }
+  } catch (error) {
+    console.error("Iyzico cancel error:", error);
+  }
+
+  const itemTransactions =
+    order.payment?.rawResult?.itemTransactions ||
+    order.payment?.rawResult?.paymentItems ||
+    [];
+
+  if (!Array.isArray(itemTransactions) || itemTransactions.length === 0) {
+    return {
+      success: false,
+      message: "Iptal denendi ancak iade islemi icin transaction bilgisi bulunamadi.",
+    };
+  }
+
+  const refundResponses: any[] = [];
+  for (const tx of itemTransactions) {
+    const paymentTransactionId = tx?.paymentTransactionId;
+    if (!paymentTransactionId) continue;
+
+    const txPrice = Number(tx?.paidPrice ?? tx?.price ?? 0);
+    const refundReq = {
+      locale: "tr",
+      conversationId: order.id,
+      paymentTransactionId,
+      price: txPrice > 0 ? txPrice.toFixed(2) : Number(order.total).toFixed(2),
+      ip,
+      currency: "TRY",
+    };
+
+    const refundRes: any = await iyzicoCall<any>(
+      (req, cb) => (iyzico as any).refund.create(req, cb),
+      refundReq
+    );
+
+    refundResponses.push(refundRes);
+    if (refundRes?.status !== "success") {
+      return {
+        success: false,
+        message: refundRes?.errorMessage || "Iade baslatilamadi.",
+        raw: refundResponses,
+      };
+    }
+  }
+
+  if (refundResponses.length === 0) {
+    return {
+      success: false,
+      message: "Iade baslatmak icin uygun transaction bulunamadi.",
+    };
+  }
+
+  return {
+    success: true,
+    method: "refund",
+    raw: refundResponses,
+  };
 }
 
 export async function GET(
@@ -216,12 +313,55 @@ export async function PATCH(
 
     const oldOrder = await prisma.order.findUnique({
       where: { id },
-      select: { status: true, adminNote: true },
+      select: {
+        id: true,
+        status: true,
+        adminNote: true,
+        paymentStatus: true,
+        total: true,
+        paymentId: true,
+        payment: {
+          select: {
+            paymentId: true,
+            rawResult: true,
+          },
+        },
+      },
     });
+
+    if (!oldOrder) {
+      return NextResponse.json({ error: "Sipariş bulunamadı" }, { status: 404 });
+    }
+
+    let cancelPaymentMeta: any = null;
+    if (status === "CANCELLED") {
+      if (oldOrder.status === "CANCELLED" || oldOrder.paymentStatus === "REFUNDED") {
+        return NextResponse.json({ error: "Sipariş zaten iptal/iade edilmiş" }, { status: 400 });
+      }
+
+      const paymentResult = await startIyzicoCancellation({
+        id: oldOrder.id,
+        total: oldOrder.total,
+        paymentId: oldOrder.paymentId,
+        payment: oldOrder.payment,
+      });
+
+      if (!paymentResult.success) {
+        return NextResponse.json(
+          { error: paymentResult.message || "Iyzico iptal/iade işlemi başlatılamadı." },
+          { status: 400 }
+        );
+      }
+
+      cancelPaymentMeta = paymentResult;
+    }
 
     const updateData: any = {};
     if (status) {
       updateData.status = status;
+      if (status === "CANCELLED") {
+        updateData.paymentStatus = "REFUNDED";
+      }
       if (status === "SHIPPED") {
         updateData.shippedAt = new Date();
       } else if (status === "DELIVERED" || status === "COMPLETED") {
@@ -249,7 +389,10 @@ export async function PATCH(
           entityType: "ORDER",
           action: "UPDATE",
           oldValue: oldOrder ? (oldOrder as any) : {},
-          newValue: updateData,
+          newValue: {
+            ...updateData,
+            ...(cancelPaymentMeta ? { iyzicoCancellation: cancelPaymentMeta } : {}),
+          },
           performedById: session.user.id,
         },
       }),

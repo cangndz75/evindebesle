@@ -101,7 +101,7 @@ export default function CampaignComposerPage() {
   const [scheduleInputValue, setScheduleInputValue] = useState("");
 
   const hasRecipientList = (draft.recipientEmails?.length || 0) > 0;
-  const recipientListPreview = (draft.recipientEmails || []).slice(0, 3);
+  const recipientListPreview = (draft.recipientEmails || []).slice(0, 10);
 
   useEffect(() => {
     const savedDraft = localStorage.getItem("abandonedCartDraft");
@@ -665,11 +665,40 @@ export default function CampaignComposerPage() {
                       {recipientListPreview.map((email) => (
                         <p key={email} className="text-xs text-emerald-800 truncate">{email}</p>
                       ))}
-                      {(draft.recipientEmails?.length || 0) > 3 && (
-                        <p className="text-xs text-emerald-700">+{(draft.recipientEmails?.length || 0) - 3} kişi daha</p>
+                      {(draft.recipientEmails?.length || 0) > 10 && (
+                        <p className="text-xs text-emerald-700">+{(draft.recipientEmails?.length || 0) - 10} kişi daha</p>
                       )}
                     </div>
                     <p className="text-xs text-emerald-700">Bu liste abandoned-carts ekranından otomatik üretildi.</p>
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          updateDraft({
+                            recipientEmails: [],
+                            recipientEmail: undefined,
+                          })
+                        }
+                      >
+                        Listeyi Temizle
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          updateDraft({
+                            recipientEmails: [],
+                            recipientEmail: undefined,
+                            audienceSegmentId: draft.audienceSegmentId || "active",
+                          })
+                        }
+                      >
+                        Segmente Dön
+                      </Button>
+                    </div>
                   </div>
                 ) : (
                   <Select

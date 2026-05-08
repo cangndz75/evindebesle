@@ -1,6 +1,6 @@
 ﻿import { prisma } from "@/lib/db";
 
-export type AdminNotificationType = "ORDER" | "STOCK" | "RETURN" | "SYSTEM" | "SUPPORT" | "PAYMENT";
+export type AdminNotificationType = "ORDER" | "STOCK" | "RETURN" | "SYSTEM" | "SUPPORT" | "PAYMENT" | "REVIEW";
 
 interface CreateNotificationParams {
     type: AdminNotificationType;

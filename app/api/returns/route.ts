@@ -2,6 +2,7 @@
 import { prisma } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
+import { createAdminNotification } from "@/lib/admin-notification";
 
 export async function GET(req: Request) {
     try {
@@ -118,6 +119,13 @@ export async function POST(req: Request) {
             include: {
                 items: true,
             },
+        });
+
+        await createAdminNotification({
+            type: "RETURN",
+            title: "Yeni İade Talebi",
+            message: `#${order.orderNumber} numaralı sipariş için iade talebi oluşturuldu.`,
+            link: "/admin-returns",
         });
 
 

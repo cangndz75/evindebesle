@@ -4,6 +4,7 @@ import { authConfig } from "@/lib/auth.config";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
 import { createAdminNotification } from "@/lib/notifications/createAdminNotification";
+import { createAdminNotification as createAdminBellNotification } from "@/lib/admin-notification";
 
 const reviewSchema = z.object({
   appointmentId: z.string().min(1),
@@ -107,6 +108,13 @@ export async function POST(req: NextRequest) {
     <strong>Puan:</strong> ${rating} / 5<br/>
     <strong>Yorum:</strong> ${comment || "(yorum yok)"}`,
   });
+
+    await createAdminBellNotification({
+      type: "REVIEW",
+      title: "Yeni Yorum",
+      message: `${session.user.name || session.user.email} ${rating}/5 puanla yeni bir randevu yorumu bıraktı.`,
+      link: "/dashboard",
+    });
 
 
     return NextResponse.json({ success: true, review });

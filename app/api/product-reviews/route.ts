@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
+import { createAdminNotification } from "@/lib/admin-notification";
 
 export async function POST(request: NextRequest) {
     try {
@@ -30,6 +31,20 @@ export async function POST(request: NextRequest) {
                 comment: comment || "",
                 isApproved: true, // Geliştirme aşamasında otomatik onay
             },
+            include: {
+                product: {
+                    select: {
+                        name: true,
+                    },
+                },
+            },
+        });
+
+        await createAdminNotification({
+            type: "REVIEW",
+            title: "Yeni Yorum",
+            message: `${session.user.name || session.user.email} "${review.product.name}" ürününe ${rating}/5 puan verdi.`,
+            link: "/admin-products",
         });
 
         return NextResponse.json({ success: true, review });

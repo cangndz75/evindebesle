@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import useSWR from "swr";
 import { formatDistanceToNow } from "date-fns";
 import { tr } from "date-fns/locale";
@@ -15,6 +15,7 @@ import {
     DollarSign,
     MessageSquare,
     RefreshCw,
+    Star,
 } from "lucide-react";
 import {
     DropdownMenu,
@@ -46,6 +47,14 @@ interface AdminNotification {
 export function AdminNotificationBell() {
     const router = useRouter();
     const [isOpen, setIsOpen] = useState(false);
+    const defaultTitleRef = useRef<string>("");
+
+    const titleByType = useMemo<Record<string, string>>(() => ({
+        ORDER: "Yeni sipariş var",
+        RETURN: "Yeni iade talebi var",
+        REVIEW: "Yeni yorum var",
+        SUPPORT: "Yeni destek talebi var",
+    }), []);
 
     const { data, mutate } = useSWR<{ notifications: AdminNotification[]; unreadCount: number }>(
         "/api/admin/notifications?limit=20",
@@ -58,6 +67,35 @@ export function AdminNotificationBell() {
 
     const notifications = data?.notifications || [];
     const unreadCount = data?.unreadCount || 0;
+
+    useEffect(() => {
+        if (!defaultTitleRef.current) {
+            defaultTitleRef.current = document.title;
+        }
+
+        if (unreadCount <= 0) {
+            document.title = defaultTitleRef.current;
+            return;
+        }
+
+        const firstUnread = notifications.find((notification) => !notification.isRead);
+        const prefix = titleByType[firstUnread?.type || ""] || "Yeni admin bildirimi var";
+        const attentionTitle = `(${unreadCount}) ${prefix}`;
+        const baseTitle = defaultTitleRef.current;
+
+        let showAttention = true;
+        document.title = attentionTitle;
+
+        const intervalId = window.setInterval(() => {
+            showAttention = !showAttention;
+            document.title = showAttention ? attentionTitle : baseTitle;
+        }, 2000);
+
+        return () => {
+            window.clearInterval(intervalId);
+            document.title = defaultTitleRef.current || document.title;
+        };
+    }, [notifications, unreadCount, titleByType]);
 
     const handleMarkAsRead = async (id: string, link?: string) => {
         try {
@@ -104,6 +142,8 @@ export function AdminNotificationBell() {
                 return <DollarSign className="h-4 w-4 text-green-500" />;
             case "SUPPORT":
                 return <MessageSquare className="h-4 w-4 text-purple-500" />;
+            case "REVIEW":
+                return <Star className="h-4 w-4 text-amber-500" />;
             default:
                 return <Info className="h-4 w-4 text-gray-500" />;
         }
@@ -143,7 +183,7 @@ export function AdminNotificationBell() {
                     )}
                 </DropdownMenuLabel>
 
-                <ScrollArea className="h-[400px]">
+                <ScrollArea className="h-100">
                     {notifications.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-40 text-gray-500">
                             <Bell className="h-8 w-8 mb-2 opacity-20" />

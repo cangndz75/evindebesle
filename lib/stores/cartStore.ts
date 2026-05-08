@@ -147,21 +147,29 @@ export const useCartStore = create<CartState>((set, get) => ({
       const res = await fetch("/api/cart");
       if (res.ok) {
         const items = await res.json();
-        set({ items, hydrated: true, isReady: true });
+        const latestGuestCart = getGuestCart();
+
+        if (Array.isArray(items) && items.length === 0 && latestGuestCart.length > 0) {
+          set({ items: formatGuestCart(latestGuestCart), hydrated: true, isReady: true });
+        } else {
+          set({ items, hydrated: true, isReady: true });
+        }
       } else if (res.status === 401) {
-        if (guestCart.length === 0) {
+        const latestGuestCart = getGuestCart();
+        if (latestGuestCart.length === 0) {
           set({ items: [], hydrated: true, isReady: true });
         } else {
-          set({ hydrated: true, isReady: true });
+          set({ items: formatGuestCart(latestGuestCart), hydrated: true, isReady: true });
         }
       } else {
         set({ hydrated: true, isReady: true });
       }
     } catch (error) {
-      if (guestCart.length === 0) {
+      const latestGuestCart = getGuestCart();
+      if (latestGuestCart.length === 0) {
         set({ items: [], hydrated: true, isReady: true });
       } else {
-        set({ hydrated: true, isReady: true });
+        set({ items: formatGuestCart(latestGuestCart), hydrated: true, isReady: true });
       }
     }
   },
@@ -506,7 +514,13 @@ export const useCartStore = create<CartState>((set, get) => ({
       const res = await fetch("/api/cart");
       if (res.ok) {
         const items = await res.json();
-        set({ items, isReady: true });
+        const latestGuestCart = getGuestCart();
+
+        if (Array.isArray(items) && items.length === 0 && latestGuestCart.length > 0) {
+          set({ items: formatGuestCart(latestGuestCart), isReady: true });
+        } else {
+          set({ items, isReady: true });
+        }
         if (typeof window !== "undefined") {
           window.dispatchEvent(new Event("cartUpdated"));
         }
@@ -568,7 +582,7 @@ export const useCartStore = create<CartState>((set, get) => ({
           .filter((r) => !r.success)
           .map((r) => r.itemId);
         const remainingItems = guestCart.filter(
-          (item) => !failedItemIds.includes(item.id)
+          (item) => failedItemIds.includes(item.id)
         );
         if (typeof window !== "undefined") {
           localStorage.setItem("guestCart", JSON.stringify(remainingItems));

@@ -462,11 +462,11 @@ export default function EditProductPage() {
           });
           setSizeStocks(stocks);
         } else {
-          const fallbackSizesFromVariants = Array.from(
-            new Set(
+          const fallbackSizesFromVariants: string[] = Array.from(
+            new Set<string>(
               (product.variants || [])
                 .map((v: any) => normalizeSizeName(v?.size?.name || ""))
-                .filter(Boolean)
+                .filter((name): name is string => Boolean(name))
             )
           );
 

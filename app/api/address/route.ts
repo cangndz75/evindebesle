@@ -44,6 +44,7 @@ export async function GET() {
       city: addr.district?.city || "",
       districtName: addr.district?.name || "",
       fullAddress: addr.fullAddress,
+      phone: addr.phone || "",
       isPrimary: addr.isPrimary,
     }))
   );

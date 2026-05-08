@@ -27,6 +27,7 @@ type SavedAddress = {
     districtId: string;
     districtName: string;
     fullAddress: string;
+    phone?: string;
     isPrimary: boolean;
 };
 
@@ -43,6 +44,11 @@ function digitsToLocalGsm10(raw: string | null | undefined) {
     else if (d.startsWith("90") && d.length >= 12) d = d.slice(2);
     else if (d.startsWith("0") && d.length >= 11) d = d.slice(1);
     return d.slice(0, 10);
+}
+
+function isLocalGsm10(raw: string | null | undefined) {
+    const d = String(raw || "").replace(/\D/g, "");
+    return /^5\d{9}$/.test(d);
 }
 
 export default function CheckoutPage() {
@@ -129,6 +135,14 @@ export default function CheckoutPage() {
                 const initialId = primary?.id || list[0]?.id || "";
                 setUseSavedAddress(true);
                 setSelectedSavedAddressId(initialId);
+
+                const fallbackPhone = digitsToLocalGsm10(primary?.phone || list[0]?.phone || "");
+                if (fallbackPhone) {
+                    setFormData((prev) => ({
+                        ...prev,
+                        phone: isLocalGsm10(prev.phone) ? prev.phone : fallbackPhone,
+                    }));
+                }
             })
             .catch(() => {
                 setSavedAddresses([]);
@@ -136,6 +150,19 @@ export default function CheckoutPage() {
                 setSelectedSavedAddressId("");
             });
     }, [status]);
+
+    useEffect(() => {
+        if (!(status === "authenticated" && useSavedAddress && selectedSavedAddressId)) return;
+
+        const selected = savedAddresses.find((addr) => addr.id === selectedSavedAddressId);
+        const fallbackPhone = digitsToLocalGsm10(selected?.phone || "");
+        if (!fallbackPhone) return;
+
+        setFormData((prev) => ({
+            ...prev,
+            phone: isLocalGsm10(prev.phone) ? prev.phone : fallbackPhone,
+        }));
+    }, [status, useSavedAddress, selectedSavedAddressId, savedAddresses]);
 
     useEffect(() => {
         if (status !== "authenticated") return;
@@ -290,10 +317,10 @@ export default function CheckoutPage() {
         }
 
         const normalizedPhone = formData.phone.replace(/\D/g, "");
-        const phoneIsValid = /^\d{10}$/.test(normalizedPhone);
+        const phoneIsValid = /^5\d{9}$/.test(normalizedPhone);
 
         if (!phoneIsValid) {
-            toast.error("Telefon numarası zorunludur ve tam 10 hane olmalıdır.");
+            toast.error("Telefon numarası geçersiz. 5XXXXXXXXX formatında bir GSM numarası girin.");
             return;
         }
 

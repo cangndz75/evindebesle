@@ -45,6 +45,24 @@ interface Invoice {
             name: string;
             code: string;
         } | null;
+        returnRequests?: Array<{
+            id: string;
+            status: string;
+            reason: string;
+            refundAmount?: number | null;
+            createdAt: string;
+            items: Array<{
+                id: string;
+                quantity: number;
+                orderItem: {
+                    productName: string;
+                    colorName?: string | null;
+                    sizeName?: string | null;
+                    unitPrice: number;
+                    totalPrice: number;
+                };
+            }>;
+        }>;
     };
 }
 
@@ -137,6 +155,43 @@ export default function InvoiceDetailPage() {
         issueDate: formatQrIssueDate(invoice.issuedAt || invoice.createdAt),
         payableAmount: invoice.totalAmount,
     });
+
+    const returnRequests = invoice.order?.returnRequests || [];
+    const settledReturn =
+        returnRequests.find((r) => r.status === "COMPLETED") ||
+        returnRequests.find((r) => r.status === "APPROVED") ||
+        null;
+
+    const returnedQuantity = settledReturn
+        ? settledReturn.items.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0)
+        : 0;
+
+    const returnedTotal = settledReturn
+        ? (typeof settledReturn.refundAmount === "number" && settledReturn.refundAmount > 0
+            ? settledReturn.refundAmount
+            : settledReturn.items.reduce(
+                (sum, item) =>
+                    sum + ((Number(item.orderItem?.unitPrice) || 0) * (Number(item.quantity) || 0)),
+                0
+            ))
+        : 0;
+
+    const returnedUnitPrice = returnedQuantity > 0 ? returnedTotal / returnedQuantity : 0;
+
+    const returnedKinds = settledReturn
+        ? settledReturn.items
+            .map((item) => {
+                const base = item.orderItem?.productName || "Ürün";
+                const color = item.orderItem?.colorName ? ` / ${item.orderItem.colorName}` : "";
+                const size = item.orderItem?.sizeName ? ` / ${item.orderItem.sizeName}` : "";
+                return `${base}${color}${size}`;
+            })
+            .filter(Boolean)
+            .join(", ")
+        : "-";
+
+    const returnSenderName = invoice.customerDetails?.name || "-";
+    const returnSenderAddress = customerAddressText || "-";
 
     return (
         <div className="min-h-screen bg-gray-50 p-4 md:p-8 print:p-0 print:bg-white text-[11px] leading-tight font-sans text-black">
@@ -407,15 +462,18 @@ export default function InvoiceDetailPage() {
                 </div>
                 <div className="flex justify-between mt-8 text-[10px]">
                     <div className="w-1/2 px-4 space-y-1">
-                        <p>Adı Soyadı: .......................................</p>
-                        <p>Adresi: ............................................</p>
+                        <p>Adı Soyadı: {returnSenderName}</p>
+                        <p>Adresi: {returnSenderAddress}</p>
                         <p className="mt-4">İmza: ............................................</p>
                     </div>
                     <div className="w-1/2 px-4 space-y-1 text-right">
-                        <div className="flex justify-end gap-2"><span className="w-20 text-left">Cinsi:</span> <span className="w-32 border-b border-gray-300"></span></div>
-                        <div className="flex justify-end gap-2"><span className="w-20 text-left">Miktar:</span> <span className="w-32 border-b border-gray-300"></span></div>
-                        <div className="flex justify-end gap-2"><span className="w-20 text-left">Birim Fiyat:</span> <span className="w-32 border-b border-gray-300"></span></div>
-                        <div className="flex justify-end gap-2"><span className="w-20 text-left">Tutar:</span> <span className="w-32 border-b border-gray-300"></span></div>
+                        <div className="flex justify-end gap-2"><span className="w-20 text-left">Cinsi:</span> <span className="w-56 border-b border-gray-300 text-left truncate" title={returnedKinds}>{returnedKinds}</span></div>
+                        <div className="flex justify-end gap-2"><span className="w-20 text-left">Miktar:</span> <span className="w-56 border-b border-gray-300 text-left">{settledReturn ? `${returnedQuantity} Adet` : "-"}</span></div>
+                        <div className="flex justify-end gap-2"><span className="w-20 text-left">Birim Fiyat:</span> <span className="w-56 border-b border-gray-300 text-left">{settledReturn ? `${returnedUnitPrice.toFixed(2)} TRY` : "-"}</span></div>
+                        <div className="flex justify-end gap-2"><span className="w-20 text-left">Tutar:</span> <span className="w-56 border-b border-gray-300 text-left">{settledReturn ? `${returnedTotal.toFixed(2)} TRY` : "-"}</span></div>
+                        {!settledReturn && (
+                            <p className="text-[9px] text-gray-500 mt-2 text-left">Bu fatura için onaylanmış/tamamlanmış iade kaydı bulunmuyor.</p>
+                        )}
                     </div>
                 </div>
 

@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { format } from "date-fns";
-import { tr } from "date-fns/locale";
 import {
     ShoppingCart,
     Users,
@@ -14,6 +12,7 @@ import {
     RefreshCw,
     ExternalLink,
     Loader2,
+    Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -66,6 +65,27 @@ interface AbandonedCartUser {
     lastUpdated: string;
 }
 
+interface AbandonedProductUser {
+    id: string;
+    name: string | null;
+    email: string;
+    image: string | null;
+}
+
+interface AbandonedProduct {
+    product: {
+        id: string;
+        name: string;
+        price: number;
+        image: string | null;
+    };
+    quantity: number;
+    value: number;
+    users: AbandonedProductUser[];
+    usersCount: number;
+    lastUpdated: string;
+}
+
 interface AbandonedCartData {
     summary: {
         today: { users: number; items: number };
@@ -79,6 +99,7 @@ interface AbandonedCartData {
         count: number;
         value: number;
     }>;
+    abandonedProducts: AbandonedProduct[];
     dailyTrend: Array<{ date: string; count: number }>;
 }
 
@@ -87,6 +108,8 @@ export default function AbandonedCartsPage() {
     const [data, setData] = useState<AbandonedCartData | null>(null);
     const [loading, setLoading] = useState(true);
     const [selectedUser, setSelectedUser] = useState<AbandonedCartUser | null>(null);
+    const [selectedProduct, setSelectedProduct] = useState<AbandonedProduct | null>(null);
+    const [viewMode, setViewMode] = useState<"cart" | "product">("cart");
 
     const fetchData = async () => {
         setLoading(true);
@@ -114,6 +137,19 @@ export default function AbandonedCartsPage() {
             minimumFractionDigits: 0,
             maximumFractionDigits: 0,
         }).format(value);
+    };
+
+    const formatInTurkey = (
+        value: string,
+        options: Intl.DateTimeFormatOptions
+    ) => {
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return value;
+
+        return new Intl.DateTimeFormat("tr-TR", {
+            timeZone: "Europe/Istanbul",
+            ...options,
+        }).format(date);
     };
 
     const buildAbandonedCartCampaignDraft = (
@@ -278,6 +314,121 @@ export default function AbandonedCartsPage() {
         router.push("/campaigns");
     };
 
+    const handleProductBulkCampaign = (product: AbandonedProduct) => {
+        const uniqueEmails = Array.from(
+            new Set(product.users.map((user) => user.email.trim().toLowerCase()).filter(Boolean))
+        );
+
+        if (uniqueEmails.length === 0) return;
+
+        const productPreview = {
+            product: product.product,
+            quantity: product.quantity,
+            value: product.value,
+        };
+
+        const draft = {
+            ...buildAbandonedCartCampaignDraft(),
+            name: `${product.product.name} • Terk Edenlere Kampanya`,
+            subject: `${product.product.name} sizi bekliyor`,
+            preheader: `${uniqueEmails.length} kisiye ozel urun hatirlatma`,
+            audienceSegmentId: null,
+            recipientEmail: undefined,
+            recipientEmails: uniqueEmails,
+            blocks: [
+                {
+                    id: "header-1",
+                    type: "header" as const,
+                    content: {
+                        logoUrl: "https://dark-velvet.com/images/logo.png",
+                        align: "center",
+                        backgroundColor: "#ffffff",
+                        padding: "20px",
+                    },
+                    style: {},
+                    visibility: { mobile: true, desktop: true },
+                },
+                {
+                    id: "hero-1",
+                    type: "hero" as const,
+                    content: {
+                        imageUrl: product.product.image || "",
+                        title: `${product.product.name}`,
+                        subtitle: "Sepetinizdeki urunu kacirmayin",
+                        backgroundColor: "#0f172a",
+                        textColor: "#ffffff",
+                        align: "center",
+                    },
+                    style: { padding: "28px 20px", backgroundColor: "#0f172a" },
+                    visibility: { mobile: true, desktop: true },
+                },
+                {
+                    id: "text-focus",
+                    type: "text" as const,
+                    content: {
+                        text: `<p style="font-size:16px;line-height:1.7;text-align:center;color:#333;padding:0 16px;">Merhaba <strong>{{first_name|Degerli Musterimiz}}</strong>,<br><br>Sepetinizde biraktiginiz <strong>${product.product.name}</strong> hala stokta. Tukenmeden alisverisinizi tamamlayin.</p>`,
+                    },
+                    style: { padding: "24px 20px 8px", backgroundColor: "#ffffff" },
+                    visibility: { mobile: true, desktop: true },
+                },
+                ...[
+                    {
+                        id: "img-prod-0",
+                        type: "image" as const,
+                        content: {
+                            imageUrl: productPreview.product.image || "",
+                            altText: productPreview.product.name,
+                            linkUrl: `https://dark-velvet.com/product/${productPreview.product.id}`,
+                            align: "center",
+                            width: "280px",
+                        },
+                        style: { padding: "8px 20px", backgroundColor: "#ffffff" },
+                        visibility: { mobile: true, desktop: true },
+                    },
+                    {
+                        id: "txt-prod-0",
+                        type: "text" as const,
+                        content: {
+                            text: `<p style="font-size:16px;font-weight:bold;text-align:center;color:#000;margin:4px 0;">${productPreview.product.name}</p><p style="font-size:14px;text-align:center;color:#666;margin:0 0 12px;">${formatPrice(productPreview.value)}</p>`,
+                        },
+                        style: { padding: "0 20px 8px", backgroundColor: "#ffffff" },
+                        visibility: { mobile: true, desktop: true },
+                    },
+                ],
+                {
+                    id: "cta-1",
+                    type: "cta" as const,
+                    content: {
+                        text: "Urunu Simdi Al",
+                        url: `https://dark-velvet.com/product/${product.product.id}`,
+                        align: "center",
+                        backgroundColor: "#000000",
+                        textColor: "#ffffff",
+                        borderRadius: "6px",
+                        padding: "14px 32px",
+                    },
+                    style: { padding: "24px 20px", backgroundColor: "#ffffff" },
+                    visibility: { mobile: true, desktop: true },
+                },
+                {
+                    id: "footer-1",
+                    type: "footer" as const,
+                    content: {
+                        text: `© ${new Date().getFullYear()} Dark Velvet. Tum haklari saklidir.`,
+                        socialHidden: false,
+                        siteLink: "https://dark-velvet.com",
+                        address: "Istanbul, Turkiye",
+                    },
+                    style: { padding: "20px", backgroundColor: "#f9fafb" },
+                    visibility: { mobile: true, desktop: true },
+                },
+            ],
+        };
+
+        localStorage.setItem("abandonedCartDraft", JSON.stringify(draft));
+        router.push("/campaigns");
+    };
+
     if (loading) {
         return (
             <div className="flex min-h-screen items-center justify-center">
@@ -365,7 +516,7 @@ export default function AbandonedCartsPage() {
                     </CardContent>
                 </Card>
 
-                <Card className="bg-gradient-to-br from-emerald-500 to-emerald-600 text-white">
+                <Card className="bg-linear-to-br from-emerald-500 to-emerald-600 text-white">
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between">
                             <div>
@@ -380,6 +531,31 @@ export default function AbandonedCartsPage() {
                     </CardContent>
                 </Card>
             </div>
+
+            <Card>
+                <CardContent className="p-4 flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <p className="text-sm font-medium text-gray-900">Gorunum Tipi</p>
+                        <p className="text-xs text-gray-500">Sepet bazli ve urun bazli analiz arasinda gecis yapin</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            type="button"
+                            variant={viewMode === "cart" ? "default" : "outline"}
+                            onClick={() => setViewMode("cart")}
+                        >
+                            Sepet Bazli
+                        </Button>
+                        <Button
+                            type="button"
+                            variant={viewMode === "product" ? "default" : "outline"}
+                            onClick={() => setViewMode("product")}
+                        >
+                            Urun Bazli
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
 
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -399,7 +575,7 @@ export default function AbandonedCartsPage() {
                                         try {
                                             const date = new Date(value);
                                             if (isNaN(date.getTime())) return value;
-                                            return format(date, "d MMM", { locale: tr });
+                                            return formatInTurkey(value, { day: "numeric", month: "short" });
                                         } catch {
                                             return value;
                                         }
@@ -414,7 +590,11 @@ export default function AbandonedCartsPage() {
                                                 if (label) {
                                                     const date = new Date(label);
                                                     if (!isNaN(date.getTime())) {
-                                                        formattedLabel = format(date, "d MMMM yyyy", { locale: tr });
+                                                        formattedLabel = formatInTurkey(label, {
+                                                            day: "numeric",
+                                                            month: "long",
+                                                            year: "numeric",
+                                                        });
                                                     }
                                                 }
                                             } catch { }
@@ -475,64 +655,154 @@ export default function AbandonedCartsPage() {
                 <CardHeader>
                     <div className="flex items-center justify-between">
                         <div>
-                            <CardTitle>Terk Edilen Sepetler</CardTitle>
-                            <CardDescription>Son 7 gün içinde sepetini terk eden kullanıcılar</CardDescription>
+                            <CardTitle>{viewMode === "cart" ? "Terk Edilen Sepetler" : "Terk Edilen Urunler"}</CardTitle>
+                            <CardDescription>
+                                {viewMode === "cart"
+                                    ? "Son 7 gun icinde sepetini terk eden kullanicilar"
+                                    : "Son 7 gun icinde sepette birakilan urunlerin urun bazli dagilimi"}
+                            </CardDescription>
                         </div>
-                        <Badge variant="secondary">{data?.abandonedCarts.length || 0} kullanıcı</Badge>
+                        <Badge variant="secondary">
+                            {viewMode === "cart"
+                                ? `${data?.abandonedCarts.length || 0} kullanici`
+                                : `${data?.abandonedProducts.length || 0} urun`}
+                        </Badge>
                     </div>
                 </CardHeader>
                 <CardContent>
                     <Table>
                         <TableHeader>
-                            <TableRow>
-                                <TableHead>Kullanıcı</TableHead>
-                                <TableHead>Ürün Sayısı</TableHead>
-                                <TableHead>Sepet Değeri</TableHead>
-                                <TableHead>Son Güncelleme</TableHead>
-                                <TableHead className="text-right">İşlemler</TableHead>
-                            </TableRow>
+                            {viewMode === "cart" ? (
+                                <TableRow>
+                                    <TableHead>Kullanici</TableHead>
+                                    <TableHead>Urun Sayisi</TableHead>
+                                    <TableHead>Sepet Degeri</TableHead>
+                                    <TableHead>Son Guncelleme</TableHead>
+                                    <TableHead className="text-right">Islemler</TableHead>
+                                </TableRow>
+                            ) : (
+                                <TableRow>
+                                    <TableHead>Urun</TableHead>
+                                    <TableHead>Terk Eden Kullanici</TableHead>
+                                    <TableHead>Toplam Adet</TableHead>
+                                    <TableHead>Potansiyel Gelir</TableHead>
+                                    <TableHead>Son Guncelleme</TableHead>
+                                    <TableHead className="text-right">Islemler</TableHead>
+                                </TableRow>
+                            )}
                         </TableHeader>
                         <TableBody>
-                            {data?.abandonedCarts.map((cart) => (
-                                <TableRow key={cart.user.id}>
-                                    <TableCell>
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-medium">
-                                                {cart.user.name?.[0]?.toUpperCase() || "?"}
+                            {viewMode === "cart" &&
+                                data?.abandonedCarts.map((cart) => (
+                                    <TableRow key={cart.user.id}>
+                                        <TableCell>
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-medium">
+                                                    {cart.user.name?.[0]?.toUpperCase() || "?"}
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium text-gray-900">{cart.user.name || "Anonim"}</p>
+                                                    <p className="text-xs text-gray-500">{cart.user.email}</p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <p className="font-medium text-gray-900">{cart.user.name || "Anonim"}</p>
-                                                <p className="text-xs text-gray-500">{cart.user.email}</p>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge variant="outline">{cart.itemCount} urun</Badge>
+                                        </TableCell>
+                                        <TableCell>
+                                            <span className="font-semibold text-emerald-600">{formatPrice(cart.totalValue)}</span>
+                                        </TableCell>
+                                        <TableCell>
+                                            <span className="text-sm text-gray-500">
+                                                {formatInTurkey(cart.lastUpdated, {
+                                                    day: "2-digit",
+                                                    month: "short",
+                                                    hour: "2-digit",
+                                                    minute: "2-digit",
+                                                })}
+                                            </span>
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => setSelectedUser(cart)}
+                                            >
+                                                Detay
+                                                <ExternalLink className="w-3 h-3 ml-1" />
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+
+                            {viewMode === "product" &&
+                                data?.abandonedProducts.map((entry) => (
+                                    <TableRow key={entry.product.id}>
+                                        <TableCell>
+                                            <div className="flex items-center gap-3 min-w-0">
+                                                <div className="w-10 h-10 rounded-lg bg-gray-100 overflow-hidden shrink-0">
+                                                    {entry.product.image ? (
+                                                        <Image
+                                                            src={entry.product.image}
+                                                            alt={entry.product.name}
+                                                            width={40}
+                                                            height={40}
+                                                            className="object-cover w-full h-full"
+                                                        />
+                                                    ) : (
+                                                        <Package className="w-5 h-5 m-2.5 text-gray-400" />
+                                                    )}
+                                                </div>
+                                                <p className="font-medium text-gray-900 truncate">{entry.product.name}</p>
                                             </div>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge variant="outline">{cart.itemCount} ürün</Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                        <span className="font-semibold text-emerald-600">{formatPrice(cart.totalValue)}</span>
-                                    </TableCell>
-                                    <TableCell>
-                                        <span className="text-sm text-gray-500">
-                                            {format(new Date(cart.lastUpdated), "d MMM HH:mm", { locale: tr })}
-                                        </span>
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => setSelectedUser(cart)}
-                                        >
-                                            Detay
-                                            <ExternalLink className="w-3 h-3 ml-1" />
-                                        </Button>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                            {(!data?.abandonedCarts || data.abandonedCarts.length === 0) && (
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge variant="outline">{entry.usersCount} kullanici</Badge>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge variant="outline">{entry.quantity} adet</Badge>
+                                        </TableCell>
+                                        <TableCell>
+                                            <span className="font-semibold text-emerald-600">{formatPrice(entry.value)}</span>
+                                        </TableCell>
+                                        <TableCell>
+                                            <span className="text-sm text-gray-500">
+                                                {formatInTurkey(entry.lastUpdated, {
+                                                    day: "2-digit",
+                                                    month: "short",
+                                                    hour: "2-digit",
+                                                    minute: "2-digit",
+                                                })}
+                                            </span>
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <div className="flex items-center justify-end gap-2">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => handleProductBulkCampaign(entry)}
+                                                >
+                                                    <Mail className="w-3 h-3 mr-1" />
+                                                    Toplu Taslak
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => setSelectedProduct(entry)}
+                                                >
+                                                    Detay
+                                                    <ExternalLink className="w-3 h-3 ml-1" />
+                                                </Button>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+
+                            {((viewMode === "cart" && (!data?.abandonedCarts || data.abandonedCarts.length === 0)) ||
+                                (viewMode === "product" && (!data?.abandonedProducts || data.abandonedProducts.length === 0))) && (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="text-center py-8 text-gray-500">
-                                        Henüz terk edilen sepet yok
+                                    <TableCell colSpan={viewMode === "cart" ? 5 : 6} className="text-center py-8 text-gray-500">
+                                        Bu gorunumde veri bulunmuyor
                                     </TableCell>
                                 </TableRow>
                             )}
@@ -596,6 +866,63 @@ export default function AbandonedCartsPage() {
                                     E-posta Gönder
                                 </Button>
                             </div>
+                        </CardContent>
+                    </Card>
+                </div>
+            )}
+
+            {selectedProduct && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <Card className="w-full max-w-lg max-h-[80vh] overflow-y-auto">
+                        <CardHeader>
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <CardTitle>{selectedProduct.product.name}</CardTitle>
+                                    <CardDescription>
+                                        {selectedProduct.usersCount} kullanici • {selectedProduct.quantity} adet • {formatPrice(selectedProduct.value)}
+                                    </CardDescription>
+                                </div>
+                                <Button variant="ghost" size="sm" onClick={() => setSelectedProduct(null)}>
+                                    ✕
+                                </Button>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                            <div className="rounded-xl border border-indigo-200 bg-linear-to-br from-indigo-50 to-sky-50 p-4">
+                                <div className="flex items-start justify-between gap-4">
+                                    <div>
+                                        <p className="text-sm font-semibold text-indigo-900">Hizli Aksiyon</p>
+                                        <p className="text-xs text-indigo-700 mt-1">
+                                            Bu urunu terk eden tum kullanicilar icin tek tikla toplu kampanya taslagi olustur.
+                                        </p>
+                                    </div>
+                                    <Sparkles className="w-5 h-5 text-indigo-500 shrink-0" />
+                                </div>
+                                <Button
+                                    className="w-full mt-3 bg-indigo-600 hover:bg-indigo-700"
+                                    onClick={() => handleProductBulkCampaign(selectedProduct)}
+                                >
+                                    <Mail className="w-4 h-4 mr-2" />
+                                    Bu Urunu Terk Edenlere Toplu Kampanya Taslagi
+                                </Button>
+                            </div>
+
+                            {selectedProduct.users.map((user) => (
+                                <div key={user.id} className="flex items-center justify-between gap-3 border rounded-lg p-3">
+                                    <div className="min-w-0">
+                                        <p className="font-medium text-sm text-gray-900 truncate">{user.name || "Anonim"}</p>
+                                        <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                                    </div>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleSendEmail(user.email)}
+                                    >
+                                        <Mail className="w-4 h-4 mr-2" />
+                                        E-posta
+                                    </Button>
+                                </div>
+                            ))}
                         </CardContent>
                     </Card>
                 </div>

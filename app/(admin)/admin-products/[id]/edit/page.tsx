@@ -38,6 +38,26 @@ const letterSizes = ["XS", "S", "M", "L", "XL", "XXL", "3XL"];
 const numberSizes = ["30", "32", "34", "36", "38", "40", "42", "44", "46", "48"];
 const tagSuggestions = ["yeni", "çoksatan", "trend", "erkek", "kadın", "unisex", "sweatshirt", "içlik", "sütyen", "kulot", "yeni ürün", "best seller", "bestseller", "en çok satan"];
 
+function normalizeSizeName(value: string): string {
+  return String(value || "").trim().toUpperCase();
+}
+
+function inferSizeTypeFromNames(sizeNames: string[]): "LETTER" | "NUMBER" | "CUP" {
+  const normalized = sizeNames
+    .map(normalizeSizeName)
+    .filter(Boolean);
+
+  if (normalized.length === 0) return "LETTER";
+
+  const isCup = normalized.every((name) => /^\d{2,3}[A-Z]+$/.test(name));
+  if (isCup) return "CUP";
+
+  const isNumber = normalized.every((name) => /^\d+$/.test(name));
+  if (isNumber) return "NUMBER";
+
+  return "LETTER";
+}
+
 export default function EditProductPage() {
   const router = useRouter();
   const params = useParams();
@@ -354,7 +374,6 @@ export default function EditProductPage() {
         setSizeNoteId(product.sizeNoteId || "");
         setSizeGuideId(product.sizeGuideId || "");
         setModelInfoId(product.modelInfoId || "");
-        setSizeType(product.sizeType || "LETTER");
         setSelectedCategoryId(product.categoryId || "");
 
         const images: string[] = [];
@@ -384,8 +403,9 @@ export default function EditProductPage() {
               }
 
               if (sizeName) {
-                stocksByColor.get(colorName)![sizeName] = Number(variant.stock) || 0;
-                sizesByColor.get(colorName)!.add(sizeName);
+                const normalizedSize = normalizeSizeName(sizeName);
+                stocksByColor.get(colorName)![normalizedSize] = Number(variant.stock) || 0;
+                sizesByColor.get(colorName)!.add(normalizedSize);
               }
 
               if (!pricesByColor.has(colorName) && typeof variant.price === "number" && !Number.isNaN(variant.price)) {
@@ -427,13 +447,43 @@ export default function EditProductPage() {
         }
 
         if (product.sizes && product.sizes.length > 0) {
-          const sizeNames = product.sizes.map((s: any) => s.name);
+          const sizeNames = product.sizes
+            .map((s: any) => normalizeSizeName(s.name))
+            .filter(Boolean);
+
+          const resolvedSizeType: "LETTER" | "NUMBER" | "CUP" = product.sizeType || inferSizeTypeFromNames(sizeNames);
+          setSizeType(resolvedSizeType);
           setCustomSizes(sizeNames);
+
           const stocks: { [key: string]: number } = {};
           product.sizes.forEach((s: any) => {
-            stocks[s.name] = s.stock || 0;
+            const normalizedName = normalizeSizeName(s.name);
+            stocks[normalizedName] = s.stock || 0;
           });
           setSizeStocks(stocks);
+        } else {
+          const fallbackSizesFromVariants = Array.from(
+            new Set(
+              (product.variants || [])
+                .map((v: any) => normalizeSizeName(v?.size?.name || ""))
+                .filter(Boolean)
+            )
+          );
+
+          if (fallbackSizesFromVariants.length > 0) {
+            const resolvedSizeType: "LETTER" | "NUMBER" | "CUP" = product.sizeType || inferSizeTypeFromNames(fallbackSizesFromVariants);
+            setSizeType(resolvedSizeType);
+            setCustomSizes(fallbackSizesFromVariants);
+            const stocks: { [key: string]: number } = {};
+            for (const variant of product.variants || []) {
+              const normalizedName = normalizeSizeName(variant?.size?.name || "");
+              if (!normalizedName) continue;
+              stocks[normalizedName] = (stocks[normalizedName] || 0) + (Number(variant?.stock) || 0);
+            }
+            setSizeStocks(stocks);
+          } else {
+            setSizeType(product.sizeType || "LETTER");
+          }
         }
 
         if (product.tags && product.tags.length > 0) {

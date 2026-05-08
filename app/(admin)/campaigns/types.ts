@@ -14,6 +14,7 @@ export interface CampaignDraft {
   audienceSegmentId: string | null;
   scheduleAt: Date | null;
   recipientEmail?: string;
+  recipientEmails?: string[];
 }
 
 export type BlockType = "header" | "hero" | "coupon" | "cta" | "footer" | "text" | "product" | "image" | "divider";

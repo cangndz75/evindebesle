@@ -70,6 +70,27 @@ export async function GET(
                                 name: true,
                                 code: true,
                             }
+                        },
+                        returnRequests: {
+                            include: {
+                                items: {
+                                    include: {
+                                        orderItem: {
+                                            select: {
+                                                productName: true,
+                                                colorName: true,
+                                                sizeName: true,
+                                                quantity: true,
+                                                unitPrice: true,
+                                                totalPrice: true,
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                            orderBy: {
+                                createdAt: "desc",
+                            },
                         }
                     }
                 }

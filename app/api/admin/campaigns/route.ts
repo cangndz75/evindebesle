@@ -41,6 +41,7 @@ export async function POST(req: NextRequest) {
       fromEmail,
       replyTo,
       blocks,
+      recipientEmails,
       audienceSegmentId,
       scheduleAt,
     } = body;
@@ -54,7 +55,10 @@ export async function POST(req: NextRequest) {
         fromName,
         fromEmail,
         replyTo,
-        contentJson: JSON.stringify(blocks),
+        contentJson: JSON.stringify({
+          blocks,
+          recipientEmails: Array.isArray(recipientEmails) ? recipientEmails : [],
+        }),
         audienceSegmentId,
         scheduleAt: scheduleAt ? new Date(scheduleAt) : null,
         createdById: user.id,
@@ -89,7 +93,12 @@ export async function PUT(req: NextRequest) {
       where: { id },
       data: {
         ...updates,
-        contentJson: updates.blocks ? JSON.stringify(updates.blocks) : undefined,
+        contentJson: updates.blocks
+          ? JSON.stringify({
+              blocks: updates.blocks,
+              recipientEmails: Array.isArray(updates.recipientEmails) ? updates.recipientEmails : [],
+            })
+          : undefined,
         scheduleAt: updates.scheduleAt ? new Date(updates.scheduleAt) : undefined,
       },
     });

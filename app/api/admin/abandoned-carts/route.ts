@@ -2,7 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { prisma } from "@/lib/db";
-import { subDays, subHours, format } from "date-fns";
+import { subDays, subHours } from "date-fns";
+
+const TURKEY_OFFSET_MS = 3 * 60 * 60 * 1000;
+
+const getTurkeyDayStartUtc = (date: Date) => {
+    const shifted = new Date(date.getTime() + TURKEY_OFFSET_MS);
+    shifted.setUTCHours(0, 0, 0, 0);
+    return new Date(shifted.getTime() - TURKEY_OFFSET_MS);
+};
 
 export async function GET(req: NextRequest) {
     try {
@@ -119,28 +127,73 @@ export async function GET(req: NextRequest) {
             (sum: number, cart: any) => sum + cart.totalValue, 0
         );
 
-        const productCounts: Record<string, { product: any; count: number; value: number }> = {};
+        const productStats: Record<
+            string,
+            {
+                product: any;
+                quantity: number;
+                value: number;
+                lastUpdated: Date;
+                usersById: Record<string, { id: string; name: string | null; email: string; image: string | null }>;
+            }
+        > = {};
+
         for (const item of detailedCarts) {
             const productId = item.product.id;
-            if (!productCounts[productId]) {
-                productCounts[productId] = {
+            if (!productStats[productId]) {
+                productStats[productId] = {
                     product: item.product,
-                    count: 0,
+                    quantity: 0,
                     value: 0,
+                    lastUpdated: item.updatedAt,
+                    usersById: {},
                 };
             }
-            productCounts[productId].count += item.quantity;
-            productCounts[productId].value += item.product.price * item.quantity;
+
+            productStats[productId].quantity += item.quantity;
+            productStats[productId].value += item.product.price * item.quantity;
+
+            if (item.updatedAt > productStats[productId].lastUpdated) {
+                productStats[productId].lastUpdated = item.updatedAt;
+            }
+
+            if (item.userId && item.user) {
+                productStats[productId].usersById[item.userId] = {
+                    id: item.user.id,
+                    name: item.user.name,
+                    email: item.user.email,
+                    image: item.user.image,
+                };
+            }
         }
 
-        const topAbandonedProducts = Object.values(productCounts)
-            .sort((a, b) => b.count - a.count)
-            .slice(0, 10);
+        const abandonedProducts = Object.values(productStats)
+            .map((entry) => {
+                const users = Object.values(entry.usersById);
+                return {
+                    product: entry.product,
+                    quantity: entry.quantity,
+                    value: entry.value,
+                    users,
+                    usersCount: users.length,
+                    lastUpdated: entry.lastUpdated.toISOString(),
+                };
+            })
+            .sort((a, b) => b.value - a.value);
+
+        const topAbandonedProducts = abandonedProducts
+            .sort((a, b) => b.quantity - a.quantity)
+            .slice(0, 10)
+            .map((entry) => ({
+                product: entry.product,
+                count: entry.quantity,
+                value: entry.value,
+            }));
 
         const dailyTrend = [];
         for (let i = 6; i >= 0; i--) {
-            const dayStart = subDays(now, i);
-            const dayEnd = subDays(now, i - 1);
+            const dayStart = getTurkeyDayStartUtc(subDays(now, i));
+            const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
 
             const count = await prisma.cartItem.groupBy({
                 by: ["userId"],
@@ -172,6 +225,7 @@ export async function GET(req: NextRequest) {
                 totalPotentialRevenue,
             },
             abandonedCarts: abandonedCartsList.slice(0, 50),
+            abandonedProducts: abandonedProducts.slice(0, 100),
             topAbandonedProducts,
             dailyTrend,
         });

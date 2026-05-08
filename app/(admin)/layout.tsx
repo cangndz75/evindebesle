@@ -262,8 +262,13 @@ export default function AdminLayout({
         <div className={`border-b border-gray-800 ${sidebarCollapsed ? "p-3" : "p-6"}`}>
           {!sidebarCollapsed ? (
             <div className="flex items-center gap-2">
-              <Home className="w-5 h-5 flex-shrink-0" />
-              <h2 className="text-xl font-bold whitespace-nowrap flex-1">Dark Velvet</h2>
+              <Link
+                href="/dashboard"
+                className="flex items-center gap-2 flex-1 min-w-0 hover:text-gray-200 transition-colors"
+              >
+                <Home className="w-5 h-5 flex-shrink-0" />
+                <h2 className="text-xl font-bold whitespace-nowrap">Dark Velvet</h2>
+              </Link>
               <AdminNotificationBell />
               <button
                 onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -275,7 +280,13 @@ export default function AdminLayout({
             </div>
           ) : (
             <div className="flex flex-col items-center gap-2">
-              <Home className="w-5 h-5 flex-shrink-0" />
+              <Link
+                href="/dashboard"
+                className="p-1 rounded hover:bg-gray-800 transition-colors"
+                title="Dashboard"
+              >
+                <Home className="w-5 h-5 flex-shrink-0" />
+              </Link>
               <AdminNotificationBell />
               <button
                 onClick={() => setSidebarCollapsed(!sidebarCollapsed)}

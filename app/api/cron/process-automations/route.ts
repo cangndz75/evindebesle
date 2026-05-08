@@ -1,6 +1,7 @@
 ﻿import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { resend } from "@/lib/resend";
+import { sendCampaignNow } from "@/lib/campaigns/sendCampaign";
 
 export const dynamic = 'force-dynamic'; // Ensure not cached
 
@@ -16,6 +17,7 @@ export async function GET(req: NextRequest) {
         const results = {
             triggeredResponse: await checkTriggers(),
             processedFlows: await processActiveFlows(),
+            processedCampaigns: await processScheduledCampaigns(),
         };
 
         return NextResponse.json({ success: true, results });
@@ -26,6 +28,33 @@ export async function GET(req: NextRequest) {
             { status: 500 }
         );
     }
+}
+
+async function processScheduledCampaigns() {
+    const now = new Date();
+    const scheduledCampaigns = await prisma.campaign.findMany({
+        where: {
+            status: "scheduled",
+            scheduleAt: {
+                lte: now,
+            },
+        },
+        select: { id: true },
+        take: 25,
+    });
+
+    let processed = 0;
+
+    for (const campaign of scheduledCampaigns) {
+        try {
+            await sendCampaignNow({ campaignId: campaign.id });
+            processed++;
+        } catch (error) {
+            console.error(`Failed to process scheduled campaign ${campaign.id}:`, error);
+        }
+    }
+
+    return processed;
 }
 
 async function checkTriggers() {

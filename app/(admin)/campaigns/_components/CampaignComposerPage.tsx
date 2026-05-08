@@ -63,6 +63,26 @@ const initialDraft: CampaignDraft = {
   scheduleAt: null,
 };
 
+const toValidDate = (value: Date | string | null | undefined) => {
+  if (!value) return null;
+  const parsed = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
+
+const formatDateTimeLocal = (value: Date | string | null | undefined) => {
+  const date = toValidDate(value);
+  if (!date) return "";
+
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+};
+
+const getDefaultScheduledAt = () => {
+  const date = new Date();
+  date.setHours(date.getHours() + 1, 0, 0, 0);
+  return date;
+};
+
 export default function CampaignComposerPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
@@ -78,12 +98,20 @@ export default function CampaignComposerPage() {
   const [sendConfirmed, setSendConfirmed] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [editorMode, setEditorMode] = useState<"blocks" | "html">("blocks");
+  const [scheduleInputValue, setScheduleInputValue] = useState("");
+
+  const hasRecipientList = (draft.recipientEmails?.length || 0) > 0;
+  const recipientListPreview = (draft.recipientEmails || []).slice(0, 3);
 
   useEffect(() => {
     const savedDraft = localStorage.getItem("abandonedCartDraft");
     if (savedDraft) {
       try {
         const parsedDraft = JSON.parse(savedDraft);
+        if (parsedDraft.scheduleAt) {
+          const parsedScheduleAt = toValidDate(parsedDraft.scheduleAt);
+          parsedDraft.scheduleAt = parsedScheduleAt;
+        }
         setDraft(parsedDraft);
         setHistory([parsedDraft]);
         setHistoryIndex(0);
@@ -96,6 +124,10 @@ export default function CampaignComposerPage() {
       }
     }
   }, []);
+
+  useEffect(() => {
+    setScheduleInputValue(formatDateTimeLocal(draft.scheduleAt));
+  }, [draft.scheduleAt]);
 
   const updateDraft = useCallback((updates: Partial<CampaignDraft>) => {
     setDraft((prev) => {
@@ -247,8 +279,17 @@ export default function CampaignComposerPage() {
         body: JSON.stringify(draft),
       });
       if (!response.ok) throw new Error("Gönderim başarısız");
-      updateDraft({ status: "sent" });
-      toast.success("Kampanya gönderildi!");
+
+      const result = await response.json();
+      const nextStatus = result?.scheduled ? "scheduled" : "sent";
+      updateDraft({ status: nextStatus });
+
+      if (result?.scheduled) {
+        toast.success("Kampanya zamanlandı");
+      } else {
+        toast.success("Kampanya gönderildi!");
+      }
+
       setShowSendModal(false);
     } catch {
       toast.error("Gönderim sırasında bir hata oluştu");
@@ -271,6 +312,19 @@ export default function CampaignComposerPage() {
     if (!draft.id) errors.push("Kampanya henüz kaydedilmemiş. Lütfen kaydedin.");
     if (!draft.blocks.some((b) => b.type === "footer")) errors.push("Footer bloğu zorunludur");
     if (!draft.blocks.some((b) => b.type === "footer" && b.content.siteLink)) errors.push("Unsubscribe linki eklenmelidir");
+    if (!draft.recipientEmail && !hasRecipientList && !draft.audienceSegmentId) {
+      errors.push("Alıcı seçimi zorunludur");
+    }
+
+    if (draft.scheduleAt) {
+      const scheduleDate = toValidDate(draft.scheduleAt);
+      if (!scheduleDate) {
+        errors.push("Zamanlama tarihi geçersiz");
+      } else if (scheduleDate <= new Date()) {
+        errors.push("Zamanlama için ileri bir tarih/saat seçin");
+      }
+    }
+
     return errors;
   };
 
@@ -507,7 +561,7 @@ export default function CampaignComposerPage() {
             </div>
 
             {/* Right Panel */}
-            <div className="w-[340px] border-l border-gray-200 bg-gray-50 overflow-y-auto shrink-0">
+            <div className="w-85 border-l border-gray-200 bg-gray-50 overflow-y-auto shrink-0">
               {selectedBlock ? (
                 <div className="h-full flex flex-col">
                   <div className="p-4 border-b border-gray-200 bg-white flex items-center justify-between">
@@ -599,6 +653,24 @@ export default function CampaignComposerPage() {
                       <p className="text-xs text-gray-400">Tek alıcı</p>
                     </div>
                   </div>
+                ) : hasRecipientList ? (
+                  <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 space-y-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-sm font-semibold text-emerald-900">Özel Alıcı Listesi</p>
+                      <span className="text-xs font-medium rounded-full bg-emerald-100 px-2 py-1 text-emerald-700">
+                        {draft.recipientEmails?.length || 0} kişi
+                      </span>
+                    </div>
+                    <div className="space-y-1.5">
+                      {recipientListPreview.map((email) => (
+                        <p key={email} className="text-xs text-emerald-800 truncate">{email}</p>
+                      ))}
+                      {(draft.recipientEmails?.length || 0) > 3 && (
+                        <p className="text-xs text-emerald-700">+{(draft.recipientEmails?.length || 0) - 3} kişi daha</p>
+                      )}
+                    </div>
+                    <p className="text-xs text-emerald-700">Bu liste abandoned-carts ekranından otomatik üretildi.</p>
+                  </div>
                 ) : (
                   <Select
                     value={draft.audienceSegmentId || ""}
@@ -622,9 +694,12 @@ export default function CampaignComposerPage() {
                     value={draft.scheduleAt ? "scheduled" : "now"}
                     onValueChange={(value) => {
                       if (value === "now") {
+                        setScheduleInputValue("");
                         updateDraft({ scheduleAt: null });
                       } else {
-                        updateDraft({ scheduleAt: new Date() });
+                        const initialValue = formatDateTimeLocal(getDefaultScheduledAt());
+                        setScheduleInputValue(initialValue);
+                        updateDraft({ scheduleAt: new Date(initialValue) });
                       }
                     }}
                   >
@@ -636,6 +711,23 @@ export default function CampaignComposerPage() {
                       <SelectItem value="scheduled">Zamanla</SelectItem>
                     </SelectContent>
                   </Select>
+
+                  {draft.scheduleAt && (
+                    <div className="mt-3 space-y-2">
+                      <Label className="text-xs text-gray-500">Tarih ve saat</Label>
+                      <Input
+                        type="datetime-local"
+                        value={scheduleInputValue}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          setScheduleInputValue(value);
+                          const parsedDate = toValidDate(value);
+                          updateDraft({ scheduleAt: parsedDate });
+                        }}
+                        min={formatDateTimeLocal(new Date())}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -708,7 +800,13 @@ export default function CampaignComposerPage() {
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Alıcı:</span>
-                <span className="font-medium">{draft.recipientEmail || "Segment"}</span>
+                <span className="font-medium">
+                  {draft.recipientEmail
+                    ? draft.recipientEmail
+                    : hasRecipientList
+                      ? `${draft.recipientEmails?.length || 0} kişilik özel liste`
+                      : "Segment"}
+                </span>
               </div>
             </div>
             <div className="flex items-center space-x-2">

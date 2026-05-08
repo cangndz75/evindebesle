@@ -32,13 +32,6 @@ export async function GET(
                         createdAt: "asc",
                     },
                 },
-                order: {
-                    select: {
-                        orderNumber: true,
-                        total: true,
-                        status: true,
-                    }
-                }
             },
         });
 
@@ -46,7 +39,21 @@ export async function GET(
             return new NextResponse("Not Found", { status: 404 });
         }
 
-        return NextResponse.json(ticket);
+        const order = ticket.orderId
+            ? await prisma.order.findUnique({
+                where: { id: ticket.orderId },
+                select: {
+                    orderNumber: true,
+                    total: true,
+                    status: true,
+                },
+            })
+            : null;
+
+        return NextResponse.json({
+            ...ticket,
+            order: order || undefined,
+        });
     } catch (error) {
         console.error("[ADMIN_SUPPORT_DETAIL_GET]", error);
         return new NextResponse("Internal Error", { status: 500 });

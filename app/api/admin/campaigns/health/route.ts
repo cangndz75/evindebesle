@@ -79,14 +79,23 @@ export async function GET() {
       }),
     ]);
 
-    const failedCampaigns = failedCampaignsRaw.map((campaign) => ({
+    const failedCampaigns = failedCampaignsRaw.map(
+      (campaign: {
+        id: string;
+        name: string;
+        status: string;
+        sentAt: Date | null;
+        _count: { emailSends: number };
+        emailSends: Array<{ id: string }>;
+      }) => ({
       id: campaign.id,
       name: campaign.name,
       status: campaign.status,
       sentAt: campaign.sentAt,
       failedCount: campaign.emailSends.length,
       totalSendCount: campaign._count.emailSends,
-    }));
+      }),
+    );
 
     return NextResponse.json({
       pendingScheduledCount,

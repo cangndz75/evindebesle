@@ -19,6 +19,7 @@ export async function GET() {
         email: "",
         logoUrl: "",
         website: "",
+        announcementMessages: [],
         deliveryTimes: [
           {
             title: "İstanbul İçi",
@@ -69,7 +70,15 @@ export async function PATCH(request: NextRequest) {
       logoUrl,
       website,
       deliveryTimes,
+      announcementMessages,
     } = body;
+
+    const sanitizedAnnouncementMessages = Array.isArray(announcementMessages)
+      ? announcementMessages
+          .filter((item): item is string => typeof item === "string")
+          .map((item) => item.trim())
+          .filter(Boolean)
+      : null;
 
     let settings = await prisma.companySettings.findFirst();
     const oldSettings = settings ? { ...settings } : null;
@@ -88,6 +97,7 @@ export async function PATCH(request: NextRequest) {
           logoUrl: logoUrl ?? "",
           website: website ?? "",
           deliveryTimes: Array.isArray(deliveryTimes) ? deliveryTimes : [],
+          announcementMessages: sanitizedAnnouncementMessages ?? [],
         },
       });
     } else {
@@ -105,6 +115,7 @@ export async function PATCH(request: NextRequest) {
           logoUrl: logoUrl ?? settings.logoUrl,
           website: website ?? settings.website,
           deliveryTimes: Array.isArray(deliveryTimes) ? deliveryTimes : settings.deliveryTimes,
+          announcementMessages: sanitizedAnnouncementMessages ?? settings.announcementMessages,
         },
       });
     }

@@ -29,6 +29,7 @@ interface CompanySettings {
   logoUrl?: string | null;
   website?: string | null;
   deliveryTimes?: DeliveryTime[];
+  announcementMessages?: string[];
 }
 
 type DeliveryTime = {
@@ -71,6 +72,7 @@ export default function CompanySettingsClient() {
     email: "",
     logoUrl: "",
     website: "",
+    announcementMessages: [],
     deliveryTimes: [
       {
         title: "İstanbul İçi",
@@ -116,6 +118,9 @@ export default function CompanySettingsClient() {
             email: data.email || "",
             logoUrl: data.logoUrl || "",
             website: data.website || "",
+            announcementMessages: Array.isArray(data.announcementMessages)
+              ? data.announcementMessages.filter((item: unknown): item is string => typeof item === "string")
+              : [],
             deliveryTimes: Array.isArray(data.deliveryTimes) && data.deliveryTimes.length > 0
               ? data.deliveryTimes
               : [
@@ -207,6 +212,36 @@ export default function CompanySettingsClient() {
       return {
         ...prev,
         deliveryTimes: current.map((item, i) => (i === index ? { ...item, [field]: value } : item)),
+      };
+    });
+  };
+
+  const updateAnnouncementMessage = (index: number, value: string) => {
+    setSettings((prev) => {
+      const current = Array.isArray(prev.announcementMessages) ? prev.announcementMessages : [];
+      return {
+        ...prev,
+        announcementMessages: current.map((item, i) => (i === index ? value : item)),
+      };
+    });
+  };
+
+  const addAnnouncementMessage = () => {
+    setSettings((prev) => {
+      const current = Array.isArray(prev.announcementMessages) ? prev.announcementMessages : [];
+      return {
+        ...prev,
+        announcementMessages: [...current, ""],
+      };
+    });
+  };
+
+  const removeAnnouncementMessage = (index: number) => {
+    setSettings((prev) => {
+      const current = Array.isArray(prev.announcementMessages) ? prev.announcementMessages : [];
+      return {
+        ...prev,
+        announcementMessages: current.filter((_, i) => i !== index),
       };
     });
   };
@@ -397,6 +432,43 @@ export default function CompanySettingsClient() {
               className="max-w-xs"
               placeholder="49.90"
             />
+          </div>
+
+          <div className="space-y-3">
+            <Label className="text-base font-medium">Üst Bant Kampanya Metinleri</Label>
+            <p className="text-sm text-gray-600">
+              Ana sayfanın en üstündeki bantta bu metinler sırayla gösterilir. "Ücretsiz Kargo" metni her zaman ilk sırada kalır.
+            </p>
+
+            <div className="space-y-3">
+              {(settings.announcementMessages || []).map((message, index) => (
+                <div key={index} className="rounded-lg border p-3 bg-white space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <Label>Kampanya Metni {index + 1}</Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => removeAnnouncementMessage(index)}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Sil
+                    </Button>
+                  </div>
+                  <Textarea
+                    value={message}
+                    onChange={(e) => updateAnnouncementMessage(index, e.target.value)}
+                    placeholder="Örn: Yeni üyelere özel %10 indirim"
+                    rows={2}
+                  />
+                </div>
+              ))}
+
+              <Button type="button" variant="outline" onClick={addAnnouncementMessage}>
+                <Plus className="w-4 h-4 mr-2" />
+                Kampanya Metni Ekle
+              </Button>
+            </div>
           </div>
         </div>
 

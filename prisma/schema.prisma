@@ -543,6 +543,7 @@ model CompanySettings {
   logoUrl        String?
   website        String?
   deliveryTimes  Json?
+  announcementMessages Json?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

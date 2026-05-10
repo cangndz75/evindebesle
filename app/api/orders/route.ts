@@ -28,6 +28,15 @@ export async function GET(request: NextRequest) {
         shippingAddress: { include: { district: true } },
         billingAddress: { include: { district: true } },
         coupon: { select: { code: true, discountType: true, value: true } },
+        invoices: {
+          select: {
+            id: true,
+            invoiceNumber: true,
+            createdAt: true,
+          },
+          orderBy: { createdAt: "desc" },
+          take: 1,
+        },
       },
       orderBy: { createdAt: "desc" },
     });

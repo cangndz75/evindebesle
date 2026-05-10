@@ -58,6 +58,11 @@ type ProductOrder = {
       name: string;
     };
   } | null;
+  invoice: {
+    id: string;
+    invoiceNumber: string;
+    createdAt: string;
+  } | null;
 };
 
 type UserProductReview = {
@@ -508,11 +513,12 @@ export default function OrdersPage() {
                         )}
 
                         
-                        {(order.paymentStatus === "PAID" || order.paymentStatus === "SUCCEEDED") && (
+                        {order.invoice && (
                           <Button
                             variant="outline"
                             onClick={() => handleDownloadInvoice(order.id, order.orderNumber)}
                             className="flex items-center gap-2"
+                            title={`Fatura No: ${order.invoice.invoiceNumber}`}
                           >
                             <FileDown className="w-4 h-4" />
                             Fatura İndir

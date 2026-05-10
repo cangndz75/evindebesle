@@ -67,14 +67,17 @@ function toExTaxKurusFromGross(grossKurus: number): number {
   return Math.round((grossKurus * 100) / (100 + VAT_RATE));
 }
 
-async function ensureInvoiceForOrder(orderId: string) {
+export async function ensureInvoiceForOrder(orderId: string) {
   const existing = await prisma.invoice.findFirst({
     where: { orderId },
     select: { id: true, invoiceNumber: true },
   });
 
   if (existing) {
-    return existing;
+    return {
+      ...existing,
+      created: false,
+    };
   }
 
   const order = await prisma.order.findUnique({
@@ -95,7 +98,7 @@ async function ensureInvoiceForOrder(orderId: string) {
     },
   });
 
-  if (!order || order.paymentStatus !== "PAID") {
+  if (!order || (order.paymentStatus !== "PAID" && order.paymentStatus !== "SUCCEEDED")) {
     return null;
   }
 
@@ -174,7 +177,10 @@ async function ensureInvoiceForOrder(orderId: string) {
     select: { id: true, invoiceNumber: true },
   });
 
-  return created;
+  return {
+    ...created,
+    created: true,
+  };
 }
 
 export async function sendInvoiceCreatedEmail(orderId: string, invoiceNumber: string) {
@@ -514,16 +520,7 @@ async function sendOrderPaidEmail(orderId: string) {
 }
 
 export async function runOrderPostPaymentTasks(orderId: string) {
-  const invoice = await ensureInvoiceForOrder(orderId);
   await sendOrderPaidEmail(orderId);
-
-  if (invoice?.invoiceNumber) {
-    try {
-      await sendInvoiceCreatedEmail(orderId, invoice.invoiceNumber);
-    } catch (e) {
-      console.error("Fatura oluşturuldu e-postası gönderilemedi:", e);
-    }
-  }
 
   try {
     await sendDistanceSalesContractEmail(orderId);
@@ -547,7 +544,7 @@ export async function runOrderPostPaymentTasks(orderId: string) {
       entityType: "SIPARIS",
       entityId: orderId,
       details: {
-        invoiceNumber: invoice?.invoiceNumber || null,
+        invoiceNumber: null,
         autoShipmentRequested: process.env.AUTO_CREATE_SHIPMENT_LABEL === "true",
       },
     },

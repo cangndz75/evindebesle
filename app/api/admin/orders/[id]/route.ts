@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { notifyOrderShippedEmail } from "@/lib/services/cargo";
+import { ensureInvoiceForOrder, sendInvoiceCreatedEmail } from "@/lib/services/order-post-payment";
 import { iyzico, iyzicoCall } from "@/lib/iyzico";
 
 type AdminOrderDetailItem = Prisma.OrderItemGetPayload<{
@@ -399,6 +400,17 @@ export async function PATCH(
     ]);
 
     if (updateData.status === "SHIPPED" || (updatedOrder.status === "SHIPPED" && updateData.trackingNumber)) {
+      const ensuredInvoice = await ensureInvoiceForOrder(updatedOrder.id).catch((err) => {
+        console.error("Order shipped invoice ensure error:", err);
+        return null;
+      });
+
+      if (ensuredInvoice?.created && ensuredInvoice.invoiceNumber) {
+        await sendInvoiceCreatedEmail(updatedOrder.id, ensuredInvoice.invoiceNumber).catch((err) => {
+          console.error("Order shipped invoice email error:", err);
+        });
+      }
+
       await notifyOrderShippedEmail(updatedOrder.id).catch((err) => {
         console.error("Order shipped email error:", err);
       });

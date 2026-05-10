@@ -182,10 +182,14 @@ async function resolveRecipients({ recipientEmail, recipientEmails, audienceSegm
       select: { email: true },
     });
 
-    const usersByEmail = new Map(users.map((user) => [user.email.toLowerCase(), user]));
-    const subscribersByEmail = new Set(subscribers.map((subscriber) => subscriber.email.toLowerCase()));
+    const usersByEmail = new Map<string, CampaignRecipient>(
+      users.map((user: { id: string; email: string; name: string | null }) => [user.email.toLowerCase(), user] as const)
+    );
+    const subscribersByEmail = new Set(
+      subscribers.map((subscriber: { email: string }) => subscriber.email.toLowerCase())
+    );
 
-    const eligibleRecipients = normalizedEmails.flatMap((email) => {
+    const eligibleRecipients = normalizedEmails.flatMap((email): CampaignRecipient[] => {
       const matchedUser = usersByEmail.get(email);
       if (matchedUser) {
         return [matchedUser];
@@ -248,7 +252,7 @@ async function resolveRecipients({ recipientEmail, recipientEmails, audienceSegm
       select: { email: true },
     });
 
-    anonymousSubscribers = subscribers.map((s) => ({
+    anonymousSubscribers = subscribers.map((s: { email: string }) => ({
       email: s.email,
       name: s.email.split("@")[0],
     }));

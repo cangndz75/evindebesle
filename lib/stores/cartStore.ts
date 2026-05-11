@@ -7,6 +7,7 @@ export type CartItem = {
   colorId: string | null;
   sizeId: string | null;
   quantity: number;
+  availableStock?: number | null;
   isGuest?: boolean;
   optimisticId?: string;
   product: {
@@ -37,6 +38,7 @@ export type CartItem = {
   size: {
     id: string;
     name: string;
+    stock?: number;
   } | null;
 };
 

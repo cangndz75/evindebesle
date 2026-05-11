@@ -5,6 +5,52 @@ import type { AuthOptions } from "next-auth";
 import { prisma } from "@/lib/db";
 import bcrypt from "bcryptjs";
 import { checkRateLimit, RateLimits } from "./rateLimit";
+import { logAuditAction } from "@/lib/auditLog";
+
+function firstHeaderValue(value: string | string[] | undefined): string | null {
+  if (!value) return null;
+  const raw = Array.isArray(value) ? value[0] : value;
+  const cleaned = raw?.trim();
+  return cleaned || null;
+}
+
+function extractForwardedFor(forwarded: string | null): string | null {
+  if (!forwarded) return null;
+  const first = forwarded.split(",")[0]?.trim();
+  if (!first) return null;
+
+  const forMatch = first.match(/for=(?:"?)(\[[^\]]+\]|[^;,"]+)(?:"?)/i);
+  if (forMatch?.[1]) {
+    return forMatch[1].replace(/^\[|\]$/g, "").trim();
+  }
+
+  return first.replace(/^\[|\]$/g, "").trim();
+}
+
+function resolveClientIp(headers: Record<string, string | string[] | undefined>): string {
+  const cfConnectingIp = firstHeaderValue(headers["cf-connecting-ip"]);
+  if (cfConnectingIp) return cfConnectingIp;
+
+  const xRealIp = firstHeaderValue(headers["x-real-ip"]);
+  if (xRealIp) return xRealIp;
+
+  const xForwardedFor = extractForwardedFor(firstHeaderValue(headers["x-forwarded-for"]));
+  if (xForwardedFor) return xForwardedFor;
+
+  const xVercelForwardedFor = extractForwardedFor(firstHeaderValue(headers["x-vercel-forwarded-for"]));
+  if (xVercelForwardedFor) return xVercelForwardedFor;
+
+  const forwarded = extractForwardedFor(firstHeaderValue(headers.forwarded));
+  if (forwarded) return forwarded;
+
+  const trueClientIp = firstHeaderValue(headers["true-client-ip"]);
+  if (trueClientIp) return trueClientIp;
+
+  const xClientIp = firstHeaderValue(headers["x-client-ip"]);
+  if (xClientIp) return xClientIp;
+
+  return "127.0.0.1";
+}
 
 
 export const authConfig: AuthOptions = {
@@ -16,8 +62,8 @@ export const authConfig: AuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials, req) {
-        const ip = req.headers?.["x-forwarded-for"] || "127.0.0.1";
-        const ratelimit = await checkRateLimit(ip as string, RateLimits.strict);
+        const clientIp = resolveClientIp(req.headers || {});
+        const ratelimit = await checkRateLimit(clientIp, RateLimits.strict);
 
         if (!ratelimit.success) {
           throw new Error("Çok fazla başarısız giriş denemesi. Lütfen daha sonra tekrar deneyiniz.");
@@ -35,11 +81,34 @@ export const authConfig: AuthOptions = {
         const isValid = await bcrypt.compare(credentials.password, user.password);
         if (!isValid) return null;
 
+        if (user.isAdmin) {
+          const ipAddress = clientIp;
+          const userAgentHeader = req.headers?.["user-agent"];
+          const userAgent = Array.isArray(userAgentHeader)
+            ? userAgentHeader[0]
+            : userAgentHeader;
+
+          await logAuditAction({
+            action: "ADMIN_LOGIN_SUCCESS",
+            adminId: user.id,
+            adminEmail: user.email,
+            targetType: "AUTH",
+            targetId: user.id,
+            details: {
+              event: "ADMIN_LOGIN",
+              status: "SUCCESS",
+            },
+            ipAddress,
+            userAgent,
+          });
+        }
+
         return {
           id: user.id.toString(),
           email: user.email,
           name: user.name,
           isAdmin: user.isAdmin,
+          adminMfaEnabled: Boolean(user.adminMfaEnabled),
           districtId: user.districtId,
           fullAddress: user.fullAddress,
           isTestUser: user.isTestUser ?? false,
@@ -59,6 +128,7 @@ export const authConfig: AuthOptions = {
         session.user.email = null;
         session.user.name = null;
         session.user.isAdmin = false;
+        session.user.adminMfaEnabled = false;
         session.user.districtId = null;
         session.user.fullAddress = null;
         session.user.isTestUser = false;
@@ -69,6 +139,7 @@ export const authConfig: AuthOptions = {
       session.user.email = token.email ?? session.user.email;
       session.user.name = token.name ?? session.user.name;
       session.user.isAdmin = Boolean(token.isAdmin);
+      session.user.adminMfaEnabled = Boolean(token.adminMfaEnabled);
       session.user.districtId = token.districtId;
       session.user.fullAddress = token.fullAddress;
       session.user.isTestUser = Boolean(token.isTestUser);
@@ -81,6 +152,7 @@ export const authConfig: AuthOptions = {
         token.email = user.email ?? null;
         token.name = user.name ?? null;
         token.isAdmin = Boolean(user.isAdmin);
+        token.adminMfaEnabled = Boolean(user.adminMfaEnabled);
         token.districtId = user.districtId ?? null;
         token.fullAddress = user.fullAddress ?? null;
         token.isTestUser = user.isTestUser ?? false;
@@ -98,6 +170,7 @@ export const authConfig: AuthOptions = {
             email: true,
             name: true,
             isAdmin: true,
+            adminMfaEnabled: true,
             districtId: true,
             fullAddress: true,
             isTestUser: true,
@@ -109,6 +182,7 @@ export const authConfig: AuthOptions = {
           delete token.email;
           delete token.name;
           delete token.isAdmin;
+          delete token.adminMfaEnabled;
           delete token.districtId;
           delete token.fullAddress;
           delete token.isTestUser;
@@ -119,6 +193,7 @@ export const authConfig: AuthOptions = {
         token.email = dbUser.email;
         token.name = dbUser.name;
         token.isAdmin = Boolean(dbUser.isAdmin);
+        token.adminMfaEnabled = Boolean(dbUser.adminMfaEnabled);
         token.districtId = dbUser.districtId;
         token.fullAddress = dbUser.fullAddress;
         token.isTestUser = dbUser.isTestUser ?? false;
@@ -127,6 +202,7 @@ export const authConfig: AuthOptions = {
         delete token.email;
         delete token.name;
         delete token.isAdmin;
+        delete token.adminMfaEnabled;
         delete token.districtId;
         delete token.fullAddress;
         delete token.isTestUser;

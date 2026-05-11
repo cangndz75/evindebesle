@@ -34,6 +34,68 @@ async function resolveCartVariant(productId: string, colorId: string | null, siz
   });
 }
 
+async function enrichCartItemsWithAvailableStock(items: any[]) {
+  if (!Array.isArray(items) || items.length === 0) return [];
+
+  type InventoryFlags = {
+    id: string;
+    isTrackInventory: boolean;
+    allowBackorders: boolean;
+  };
+
+  const productIds = Array.from(new Set(items.map((item) => item.productId).filter(Boolean)));
+  const productInventory: InventoryFlags[] = await prisma.product.findMany({
+    where: { id: { in: productIds } },
+    select: {
+      id: true,
+      isTrackInventory: true,
+      allowBackorders: true,
+    },
+  });
+
+  const inventoryMap = new Map<string, InventoryFlags>(
+    productInventory.map((product: InventoryFlags) => [product.id, product])
+  );
+
+  return Promise.all(
+    items.map(async (item) => {
+      const inventory = inventoryMap.get(item.productId);
+
+      if (!inventory || !inventory.isTrackInventory || inventory.allowBackorders) {
+        return { ...item, availableStock: null };
+      }
+
+      const variant = await resolveCartVariant(
+        item.productId,
+        item.colorId || null,
+        item.sizeId || null
+      );
+
+      if (variant) {
+        return {
+          ...item,
+          availableStock: Math.max(0, (variant.stock || 0) - (variant.stockReserved || 0)),
+        };
+      }
+
+      if (typeof item?.size?.stock === "number") {
+        return { ...item, availableStock: Math.max(0, item.size.stock) };
+      }
+
+      if (item.sizeId) {
+        const size = await prisma.productSize.findUnique({
+          where: { id: item.sizeId },
+          select: { stock: true },
+        });
+
+        return { ...item, availableStock: Math.max(0, size?.stock || 0) };
+      }
+
+      return { ...item, availableStock: 0 };
+    })
+  );
+}
+
 async function getDbCartItems(userId: string) {
   const cartItems = await prisma.cartItem.findMany({
     where: { userId },
@@ -107,17 +169,19 @@ export async function GET() {
     if (isRedisCartEnabled()) {
       const redisItems = await hydrateRedisCart(user.id);
       if (redisItems.length > 0) {
-        return NextResponse.json(redisItems);
+        const enrichedRedisItems = await enrichCartItemsWithAvailableStock(redisItems as any[]);
+        return NextResponse.json(enrichedRedisItems);
       }
     }
 
     const parsedItems = await getDbCartItems(user.id);
+    const enrichedItems = await enrichCartItemsWithAvailableStock(parsedItems as any[]);
 
     if (isRedisCartEnabled() && parsedItems.length > 0) {
       await warmRedisCartFromDatabase(user.id);
     }
 
-    return NextResponse.json(parsedItems);
+    return NextResponse.json(enrichedItems);
   } catch (error) {
     console.error("Error fetching cart:", error);
     return NextResponse.json(

@@ -23,6 +23,7 @@ import {
   Building,
   HelpCircle,
   FileText,
+  ShieldCheck,
   Ticket,
   Mail,
   Users,
@@ -178,6 +179,11 @@ const navSections = [
   {
     title: "RAPORLAMA",
     links: [
+      {
+        label: "Admin Girişleri",
+        href: "/admin-logins",
+        icon: <ShieldCheck className="w-5 h-5" />,
+      },
       {
         label: "Raporlar",
         href: "/admin-reports",

@@ -75,6 +75,16 @@ async function handleCallback(req: NextRequest) {
             return NextResponse.json({ error: "Payment record not found" }, { status: 404 });
         }
 
+        if (payment.token && payment.token !== token) {
+            callbackDebug("token_mismatch", {
+                orderId,
+                hasSavedToken: true,
+                incomingTokenLength: token.length,
+                savedTokenLength: payment.token.length,
+            });
+            return NextResponse.json({ error: "TOKEN_ORDER_MISMATCH" }, { status: 400 });
+        }
+
         if (payment.status === "SUCCEEDED") {
             return NextResponse.redirect(`${baseUrl}/checkout/success?orderId=${orderId}`, 303);
         }

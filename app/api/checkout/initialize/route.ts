@@ -9,6 +9,7 @@ import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { finalizePayment } from "@/lib/services/payment";
 import crypto from "crypto";
+import { detectCardDataInPayload } from "@/lib/security/pci";
 
 export async function POST(req: Request) {
     const idemScope = "checkout.initialize";
@@ -40,6 +41,18 @@ export async function POST(req: Request) {
         }
 
         const body = await req.json();
+
+        const cardDataFindings = detectCardDataInPayload(body);
+        if (cardDataFindings.length > 0) {
+            return NextResponse.json(
+                {
+                    error: "PCI_DSS_VIOLATION",
+                    message: "Doğrudan kart verisi gönderimi yasaktır. Hosted checkout akışını kullanın.",
+                    rejectedFields: cardDataFindings.slice(0, 5),
+                },
+                { status: 400 }
+            );
+        }
 
         if (body?.acceptDistanceSalesContract !== true) {
             return NextResponse.json(

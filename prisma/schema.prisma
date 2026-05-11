@@ -23,6 +23,10 @@ model User {
   emailVerified          Boolean              @default(false)
   emailVerifyToken       String?
   emailVerifyExpires     DateTime?
+  adminMfaEnabled        Boolean              @default(false)
+  adminMfaSecret         String?
+  adminMfaBackupCodes    String?
+  adminMfaEnabledAt      DateTime?
   marketingEmailConsent  Boolean              @default(false)
   profileNoteConsent     Boolean              @default(false)
   createdAt              DateTime             @default(now())

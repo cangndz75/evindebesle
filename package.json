@@ -14,7 +14,7 @@
     "typecheck": "tsc --noEmit",
     "ci:quality": "npm run lint && npm run test:unit && npm run typecheck && npm run build:ci",
     "worker:order-post-payment": "tsx scripts/workers/order-post-payment-worker.ts",
-    "lint": "next lint --quiet",
+    "lint": "eslint \"**/*.{ts,tsx,mjs,js,cjs}\" --quiet",
     "postinstall": "prisma generate",
     "prisma:generate": "prisma generate",
     "security:deps": "node scripts/security/dependency-audit.cjs",
@@ -23,6 +23,7 @@
     "security:sast": "node scripts/security/sast-privacy-auth-scan.cjs",
     "security:dast": "node scripts/security/dast-smoke.cjs",
     "security:contracts": "node scripts/security/contracts.cjs",
+    "security:encrypt-pii": "tsx scripts/security/encrypt-pii-at-rest.ts",
     "security:all": "npm run security:deps && npm run security:ai && npm run security:next && npm run security:sast && npm run security:contracts"
   },
   "dependencies": {
@@ -102,6 +103,7 @@
     "remark-gfm": "^4.0.1",
     "resend": "^4.6.0",
     "sanitize-html": "^2.17.2",
+    "server-only": "^0.0.1",
     "sonner": "^2.0.6",
     "swr": "^2.3.6",
     "tailwind-merge": "^3.3.1",

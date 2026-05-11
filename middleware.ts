@@ -34,58 +34,86 @@ export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const isApiRoute = pathname.startsWith("/api/");
 
-  const isProtectedAdminApiPath =
-    pathname.startsWith("/api/admin/") ||
-    pathname.startsWith("/api/admin-");
-  const isSensitiveAuthApiPath = [
-    "/api/register",
-    "/api/forgot-password",
-    "/api/reset-password",
-    "/api/send-otp",
-    "/api/verify-otp",
-    "/api/checkout/initialize",
-    "/api/payment/auth",
-  ].some((path) => pathname.startsWith(path));
+  try {
+    const isProtectedAdminApiPath =
+      pathname.startsWith("/api/admin/") ||
+      pathname.startsWith("/api/admin-");
+    const isSensitiveAuthApiPath = [
+      "/api/register",
+      "/api/forgot-password",
+      "/api/reset-password",
+      "/api/send-otp",
+      "/api/verify-otp",
+      "/api/checkout/initialize",
+      "/api/payment/auth",
+    ].some((path) => pathname.startsWith(path));
 
-  const isProtectedAdminPath = isAdminPagePath(pathname);
+    const isProtectedAdminPath = isAdminPagePath(pathname);
 
-  if (isProtectedAdminPath || isProtectedAdminApiPath) {
-    const token = await getToken({ req: request });
-    if (!token || !token.isAdmin) {
-      if (isProtectedAdminApiPath) {
+    if (isProtectedAdminPath || isProtectedAdminApiPath) {
+      let token: Awaited<ReturnType<typeof getToken>> | null = null;
+      try {
+        token = await getToken({ req: request });
+      } catch (error) {
+        console.error("[middleware] getToken error", {
+          pathname,
+          method: request.method,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+
+      if (!token || !token.isAdmin) {
+        if (isProtectedAdminApiPath) {
+          return applyNoStoreHeaders(
+            NextResponse.json({ error: "Forbidden" }, { status: 403 })
+          );
+        }
         return applyNoStoreHeaders(
-          NextResponse.json({ error: "Forbidden" }, { status: 403 })
+          NextResponse.rewrite(new URL("/not-found", request.url), { status: 404 })
         );
       }
+    }
+
+    if (isSensitiveAuthApiPath) {
+      const ip = getClientIdentifier(request);
+      const rateKey = `sensitive:${pathname}:${ip}`;
+      const profile = pathname.includes("checkout") || pathname.includes("payment")
+        ? RateLimits.payment
+        : RateLimits.strict;
+      const result = await checkRateLimit(rateKey, profile);
+
+      if (!result.success) {
+        return applyNoStoreHeaders(
+          NextResponse.json(
+            { error: "Too many requests. Please try again later." },
+            { status: 429 }
+          )
+        );
+      }
+    }
+
+    const response = NextResponse.next();
+    if (isApiRoute) {
+      applyNoStoreHeaders(response);
+    }
+    return response;
+  } catch (error) {
+    console.error("[middleware] unhandled error", {
+      pathname,
+      method: request.method,
+      error: error instanceof Error ? error.message : String(error),
+    });
+
+    if (isApiRoute) {
       return applyNoStoreHeaders(
-        NextResponse.rewrite(new URL("/not-found", request.url), { status: 404 })
+        NextResponse.json({ error: "Unauthorized" }, { status: 401 })
       );
     }
-  }
 
-  if (isSensitiveAuthApiPath) {
-    const ip = getClientIdentifier(request);
-    const rateKey = `sensitive:${pathname}:${ip}`;
-    const profile = pathname.includes("checkout") || pathname.includes("payment")
-      ? RateLimits.payment
-      : RateLimits.strict;
-    const result = await checkRateLimit(rateKey, profile);
-
-    if (!result.success) {
-      return applyNoStoreHeaders(
-        NextResponse.json(
-          { error: "Too many requests. Please try again later." },
-          { status: 429 }
-        )
-      );
-    }
+    return applyNoStoreHeaders(
+      NextResponse.rewrite(new URL("/not-found", request.url), { status: 404 })
+    );
   }
-
-  const response = NextResponse.next();
-  if (isApiRoute) {
-    applyNoStoreHeaders(response);
-  }
-  return response;
 }
 
 export const config = {

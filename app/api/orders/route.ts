@@ -1,8 +1,7 @@
 ﻿
 import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authConfig } from "@/lib/auth.config";
+import { getToken } from "next-auth/jwt";
 import { jsonNoStore } from "@/lib/api/policy";
 import { toOrderListDTO } from "@/lib/api/dto/order";
 
@@ -10,13 +9,14 @@ export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authConfig);
-    if (!session?.user?.id) {
+    const token = await getToken({ req: request });
+    const userId = typeof token?.sub === "string" ? token.sub : null;
+    if (!userId) {
       return jsonNoStore({ error: "Unauthorized" }, { status: 401 });
     }
 
     const orders = await prisma.order.findMany({
-      where: { userId: session.user.id },
+      where: { userId },
       include: {
         items: {
           include: {
@@ -49,17 +49,21 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  try {
+    const token = await getToken({ req: request });
+    if (!token || !token.isAdmin) {
+      return jsonNoStore(
+        { error: "Direct order creation is disabled. Please use the checkout flow." },
+        { status: 403 }
+      );
+    }
 
-  const session = await getServerSession(authConfig);
-  if (!session?.user?.isAdmin) {
     return jsonNoStore(
-      { error: "Direct order creation is disabled. Please use the checkout flow." },
-      { status: 403 }
+      { error: "Endpoint deprecated for direct calling. Use /api/checkout/initialize" },
+      { status: 400 }
     );
+  } catch (error) {
+    console.error("Orders POST auth error:", error);
+    return jsonNoStore({ error: "Unauthorized" }, { status: 401 });
   }
-
-  return jsonNoStore(
-    { error: "Endpoint deprecated for direct calling. Use /api/checkout/initialize" },
-    { status: 400 }
-  );
 }

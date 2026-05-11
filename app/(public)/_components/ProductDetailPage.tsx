@@ -117,6 +117,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
   const [zoomActive, setZoomActive] = useState(false);
   const [zoomPosition, setZoomPosition] = useState({ x: 50, y: 50 });
   const zoomScale = 2.6;
+  const cartItems = useCartStore((state) => state.items);
   const selectedColorLabel = product.colors?.[selectedColor]?.name || "";
 
   const selectedColorObj = product.colors?.[selectedColor];
@@ -183,6 +184,17 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
   const addToCart = async (options?: { redirectToPayment?: boolean }) => {
     if (!selectedSize) {
       toast.error("Lütfen bir beden seçin");
+      return;
+    }
+
+    if (remainingStockForSelection <= 0) {
+      toast.error("Seçtiğiniz renk/beden için stok tükendi");
+      return;
+    }
+
+    if (quantity > remainingStockForSelection) {
+      setQuantity(remainingStockForSelection);
+      toast.error(`En fazla ${remainingStockForSelection} adet ekleyebilirsiniz`);
       return;
     }
 
@@ -377,6 +389,34 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
     return 0;
   };
 
+  const selectedSizeObj = selectedSize
+    ? product.sizes?.find((s: any) => typeof s === "object" && s.name === selectedSize) ||
+      product.sizeOptions?.find((s: any) => typeof s === "object" && s.name === selectedSize)
+    : null;
+
+  const selectedColorId = selectedColorObj?.id ?? null;
+  const selectedSizeId =
+    selectedSizeObj && typeof selectedSizeObj === "object" && "id" in selectedSizeObj
+      ? (selectedSizeObj.id ?? null)
+      : null;
+
+  const selectedVariantStock = selectedSize ? getVariantStock(selectedSize) : 0;
+
+  const sameVariantQuantityInCart = cartItems.reduce((sum, item) => {
+    if (
+      item.productId === product.id &&
+      item.colorId === selectedColorId &&
+      item.sizeId === selectedSizeId
+    ) {
+      return sum + item.quantity;
+    }
+    return sum;
+  }, 0);
+
+  const remainingStockForSelection = Math.max(0, selectedVariantStock - sameVariantQuantityInCart);
+  const isActualOutOfStock = selectedSize ? selectedVariantStock <= 0 : false;
+  const isCartQuantityCapped = selectedSize ? selectedVariantStock > 0 && remainingStockForSelection <= 0 : false;
+
   const ALPHA_SIZE_ORDER = [
     "XXXXS",
     "XXXS",
@@ -483,6 +523,20 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
       console.error("Error:", error);
     }
   };
+
+  useEffect(() => {
+    if (!selectedSize) {
+      setQuantity(1);
+      return;
+    }
+
+    if (remainingStockForSelection <= 0) {
+      setQuantity(1);
+      return;
+    }
+
+    setQuantity((prev) => Math.min(prev, remainingStockForSelection));
+  }, [selectedSize, selectedColor, remainingStockForSelection]);
 
   useEffect(() => {
     if (!selectedSize) {
@@ -1170,12 +1224,12 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
             {(() => {
 
               if (selectedSize) {
-                const stock = getVariantStock(selectedSize);
+                const stock = remainingStockForSelection;
 
-                if (stock <= 0) {
+                if (isActualOutOfStock) {
                   return (
                     <div className="mb-6 p-3 bg-gray-50 border border-gray-200 rounded">
-                      <p className="text-sm text-gray-700 mb-2">Bu beden şu anda stokta yok.</p>
+                      <p className="text-sm text-gray-700 mb-2">Bu renk ve bedende sepete eklenebilecek stok kalmadı.</p>
                       <div className="flex gap-2">
                         <input
                           type="email"
@@ -1194,11 +1248,19 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                       </div>
                     </div>
                   );
-                } else if (stock < 5) {
+                } else if (isCartQuantityCapped) {
+                  return (
+                    <div className="mb-6 p-3 bg-gray-50 border border-gray-200 rounded">
+                      <p className="text-sm text-gray-700">
+                        Bu renk/beden için tüm mevcut adedi zaten sepetinize eklediniz.
+                      </p>
+                    </div>
+                  );
+                } else if (selectedVariantStock < 5) {
                   return (
                     <div className="mb-4">
                       <span className="text-red-600 text-sm font-medium animate-pulse">
-                        Son {stock} ürün!
+                        Son {selectedVariantStock} ürün!
                       </span>
                     </div>
                   );
@@ -1222,8 +1284,9 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                   {quantity}
                 </span>
                 <button
-                  onClick={() => setQuantity((prev) => prev + 1)}
+                  onClick={() => setQuantity((prev) => Math.min(remainingStockForSelection, prev + 1))}
                   className="px-4 h-full text-black hover:bg-gray-100 transition-colors font-light flex items-center justify-center"
+                  disabled={!selectedSize || remainingStockForSelection <= 0 || quantity >= remainingStockForSelection}
                 >
                   <Plus className="w-4 h-4" />
                 </button>
@@ -1232,7 +1295,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
               
               <button
                 onClick={() => addToCart()}
-                disabled={!selectedSize || getVariantStock(selectedSize) <= 0}
+                disabled={!selectedSize || remainingStockForSelection <= 0}
                 className="flex-1 bg-[#111] text-white hover:bg-[#333] uppercase tracking-wider text-sm font-semibold h-14 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 Sepete Ekle

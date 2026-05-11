@@ -7,12 +7,22 @@ dotenv.config();
 
 const app = express();
 
-const allowedOrigins = [
+const defaultAllowedOrigins = [
   "http://localhost:3000",
+  "http://localhost:3001",
   "https://dark-velvet.com",
-  "https://sandbox-api.iyzipay.com",     // Sadece fetch için gerekebilir
-  "https://sandbox-secure.iyzipay.com", // 3D iframe sunucusu
+  "https://www.dark-velvet.com",
 ];
+
+const envAllowedOrigins = (process.env.CORS_ALLOWED_ORIGINS || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+const allowedOrigins = new Set([
+  ...defaultAllowedOrigins,
+  ...envAllowedOrigins,
+]);
 
 app.use((req, res, next) => {
   console.log(`📥 ${req.method} - ${req.originalUrl}`);
@@ -25,16 +35,17 @@ app.use(cors({
       return callback(null, true);
     }
 
-    if (allowedOrigins.includes(origin)) {
+    if (allowedOrigins.has(origin)) {
       return callback(null, true);
     }
 
     console.warn("⛔️ CORS reddedildi:", origin);
-    return callback(null, true); 
+    return callback(new Error("Not allowed by CORS"));
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
+  allowedHeaders: ["Content-Type", "Authorization"],
+  optionsSuccessStatus: 204,
 }));
 
 app.use(express.urlencoded({ extended: true }));

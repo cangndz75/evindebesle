@@ -61,10 +61,10 @@ export default function AuthTabs() {
         });
 
         if (res?.error) {
-          const message =
-            res.error === "CredentialsSignin"
-              ? "E-posta adresi veya şifre hatalı."
-              : res.error;
+          let message = "E-posta adresi veya şifre hatalı.";
+          if (res.error !== "CredentialsSignin") {
+            message = res.error;
+          }
           toast.error(message);
           return;
         }

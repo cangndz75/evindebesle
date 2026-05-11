@@ -386,6 +386,17 @@ export default function CartPage() {
             return;
         }
 
+        if (quickRemainingStockForSelection <= 0) {
+            toast.error("Seçtiğiniz renk/beden için sepette eklenebilir stok kalmadı");
+            return;
+        }
+
+        if (quickQuantity > quickRemainingStockForSelection) {
+            setQuickQuantity(quickRemainingStockForSelection);
+            toast.error(`En fazla ${quickRemainingStockForSelection} adet ekleyebilirsiniz`);
+            return;
+        }
+
         setQuickSubmitting(true);
         try {
             const productImage = selectedColor?.images?.[0] || quickProductDetails.primaryImage || quickProductDetails.image;
@@ -412,6 +423,26 @@ export default function CartPage() {
             setQuickSubmitting(false);
         }
     };
+
+    const quickSelectedSizeStock =
+        quickProductDetails && quickSelectedSizeId
+            ? getSizeStockForColor(quickProductDetails, quickSelectedColorId, quickSelectedSizeId)
+            : 0;
+
+    const quickSameVariantQuantityInCart = quickProductDetails
+        ? cartItems.reduce((sum, item) => {
+            if (
+                item.productId === quickProductDetails.id &&
+                item.colorId === (quickSelectedColorId || null) &&
+                item.sizeId === (quickSelectedSizeId || null)
+            ) {
+                return sum + item.quantity;
+            }
+            return sum;
+        }, 0)
+        : 0;
+
+    const quickRemainingStockForSelection = Math.max(0, quickSelectedSizeStock - quickSameVariantQuantityInCart);
 
     const updateSliderProgress = () => {
         const ref = activeTab === "recommended" ? filledRecommendedRef : emptySliderRef;
@@ -543,6 +574,20 @@ export default function CartPage() {
         return () => clearTimeout(timeout);
     }, [activeTab, recommendedProducts.length, recentlyViewedProducts.length]);
 
+    useEffect(() => {
+        if (!quickSelectedSizeId) {
+            setQuickQuantity(1);
+            return;
+        }
+
+        if (quickRemainingStockForSelection <= 0) {
+            setQuickQuantity(1);
+            return;
+        }
+
+        setQuickQuantity((prev) => Math.min(prev, quickRemainingStockForSelection));
+    }, [quickSelectedColorId, quickSelectedSizeId, quickRemainingStockForSelection]);
+
     const totalPrice = useMemo(() => {
         return cartItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
     }, [cartItems]);
@@ -597,6 +642,33 @@ export default function CartPage() {
     const getProductUrl = (item: CartItem) => {
         if (item.product.slug) return `/products/${item.product.slug}`;
         return `/product/${item.product.id}`;
+    };
+
+    const getMaxQuantityForCartItem = (item: CartItem): number | null => {
+        const stockLimit =
+            typeof item.availableStock === "number"
+                ? Math.max(0, item.availableStock)
+                : typeof item.size?.stock === "number"
+                    ? Math.max(0, item.size.stock)
+                    : null;
+
+        if (stockLimit === null) {
+            return null;
+        }
+
+        const sameVariantQuantityExceptCurrent = cartItems.reduce((sum, cartItem) => {
+            if (
+                cartItem.id !== item.id &&
+                cartItem.productId === item.productId &&
+                cartItem.colorId === item.colorId &&
+                cartItem.sizeId === item.sizeId
+            ) {
+                return sum + cartItem.quantity;
+            }
+            return sum;
+        }, 0);
+
+        return Math.max(0, stockLimit - sameVariantQuantityExceptCurrent);
     };
 
     const activeList = activeTab === "recommended" ? recommendedProducts : recentlyViewedProducts;
@@ -688,6 +760,11 @@ export default function CartPage() {
                                 ) : (
                                     <div className="space-y-6">
                                         {cartItems.map((item) => (
+                                            (() => {
+                                                const maxQuantity = getMaxQuantityForCartItem(item);
+                                                const cannotIncrease = maxQuantity !== null && item.quantity >= maxQuantity;
+
+                                                return (
                                             <div
                                                 key={item.id}
                                                 className="flex gap-6 p-4 rounded-2xl border border-gray-100 hover:border-gray-200 transition-colors"
@@ -742,8 +819,20 @@ export default function CartPage() {
                                                             </span>
                                                             <button
                                                                 type="button"
-                                                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                                                className="h-8 w-8 grid place-items-center rounded-full hover:bg-gray-50"
+                                                                onClick={() => {
+                                                                    if (maxQuantity === null) {
+                                                                        updateQuantity(item.id, item.quantity + 1);
+                                                                        return;
+                                                                    }
+
+                                                                    if (item.quantity >= maxQuantity) {
+                                                                        return;
+                                                                    }
+
+                                                                    updateQuantity(item.id, Math.min(maxQuantity, item.quantity + 1));
+                                                                }}
+                                                                disabled={cannotIncrease}
+                                                                className="h-8 w-8 grid place-items-center rounded-full hover:bg-gray-50 disabled:opacity-40"
                                                             >
                                                                 <Plus className="h-3 w-3" />
                                                             </button>
@@ -761,6 +850,8 @@ export default function CartPage() {
                                                     </div>
                                                 </div>
                                             </div>
+                                                );
+                                            })()
                                         ))}
                                     </div>
                                 )}
@@ -1025,8 +1116,9 @@ export default function CartPage() {
                                             <span className="w-8 text-center text-sm">{quickQuantity}</span>
                                             <button
                                                 type="button"
-                                                onClick={() => setQuickQuantity((prev) => prev + 1)}
-                                                className="h-9 w-9 grid place-items-center text-[#888] hover:text-black"
+                                                onClick={() => setQuickQuantity((prev) => Math.min(quickRemainingStockForSelection, prev + 1))}
+                                                disabled={!quickSelectedSizeId || quickRemainingStockForSelection <= 0 || quickQuantity >= quickRemainingStockForSelection}
+                                                className="h-9 w-9 grid place-items-center text-[#888] hover:text-black disabled:opacity-40"
                                             >
                                                 <Plus className="h-4 w-4" />
                                             </button>

@@ -1,5 +1,5 @@
 ﻿import { Ratelimit } from "@upstash/ratelimit";
-import { Redis } from "@upstash/redis";
+import { Redis } from "@upstash/redis/cloudflare";
 
 export const RateLimits = {
     standard: { maxRequests: 20, window: "10 s" },
@@ -10,13 +10,6 @@ export const RateLimits = {
 } as const;
 
 type RateLimitConfig = typeof RateLimits[keyof typeof RateLimits];
-
-const ratelimit = new Ratelimit({
-    redis: Redis.fromEnv(),
-    limiter: Ratelimit.slidingWindow(10, "10 s"),
-    analytics: true,
-    prefix: "@upstash/ratelimit",
-});
 
 export function getClientIdentifier(req: Request): string {
     const forwarded = req.headers.get("x-forwarded-for");

@@ -4,6 +4,17 @@ import { tr } from "date-fns/locale";
 
 export const dynamic = "force-dynamic";
 
+type AdminLoginLogRow = {
+  id: string;
+  createdAt: Date;
+  ipAddress: string | null;
+  userAgent: string | null;
+  performedBy: {
+    name: string | null;
+    email: string | null;
+  } | null;
+};
+
 export default async function AdminLoginsPage() {
   const logs = await prisma.auditLog.findMany({
     where: {
@@ -53,7 +64,7 @@ export default async function AdminLoginsPage() {
                   </td>
                 </tr>
               ) : (
-                logs.map((log) => (
+                logs.map((log: AdminLoginLogRow) => (
                   <tr key={log.id} className="border-t border-gray-100 align-top">
                     <td className="px-4 py-3 whitespace-nowrap text-gray-700">
                       {format(log.createdAt, "dd MMM yyyy HH:mm:ss", { locale: tr })}

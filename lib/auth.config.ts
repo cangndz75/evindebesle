@@ -63,11 +63,6 @@ export const authConfig: AuthOptions = {
       },
       async authorize(credentials, req) {
         const clientIp = resolveClientIp(req.headers || {});
-        const ratelimit = await checkRateLimit(clientIp, RateLimits.strict);
-
-        if (!ratelimit.success) {
-          throw new Error("Çok fazla başarısız giriş denemesi. Lütfen daha sonra tekrar deneyiniz.");
-        }
 
         if (!credentials?.email || !credentials?.password) return null;
 

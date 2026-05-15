@@ -53,6 +53,9 @@ function resolveClientIp(headers: Record<string, string | string[] | undefined>)
 }
 
 
+const ADMIN_ABSOLUTE_MAX_AGE = 60 * 60 * 24 * 7; // 7 gün — refresh token eşdeğeri
+const ADMIN_ACCESS_MAX_AGE = 60 * 60;            // 1 saat — access token eşdeğeri
+
 export const authConfig: AuthOptions = {
   providers: [
     CredentialsProvider({
@@ -118,7 +121,7 @@ export const authConfig: AuthOptions = {
   },
   callbacks: {
     async session({ session, token }: { session: any; token: any }) {
-      if (!token?.sub) {
+      if (!token?.sub || token.adminSessionExpired === "absolute") {
         session.user.id = undefined;
         session.user.email = null;
         session.user.name = null;
@@ -127,6 +130,7 @@ export const authConfig: AuthOptions = {
         session.user.districtId = null;
         session.user.fullAddress = null;
         session.user.isTestUser = false;
+        session.adminSessionExpired = token.adminSessionExpired || null;
         return session;
       }
 
@@ -138,6 +142,7 @@ export const authConfig: AuthOptions = {
       session.user.districtId = token.districtId;
       session.user.fullAddress = token.fullAddress;
       session.user.isTestUser = Boolean(token.isTestUser);
+      session.adminSessionExpired = token.adminSessionExpired || null;
       return session;
     },
     async jwt({ token, user }: { token: any; user?: any }) {
@@ -151,11 +156,34 @@ export const authConfig: AuthOptions = {
         token.districtId = user.districtId ?? null;
         token.fullAddress = user.fullAddress ?? null;
         token.isTestUser = user.isTestUser ?? false;
+
+        if (user.isAdmin) {
+          const nowSec = Math.floor(Date.now() / 1000);
+          token.adminLoginAt = nowSec;
+          token.adminLastActiveAt = nowSec;
+        }
+
         return token;
       }
 
       const userId = token.sub as string | undefined;
       if (!userId) return token;
+
+      if (token.isAdmin && token.adminLoginAt) {
+        const nowSec = Math.floor(Date.now() / 1000);
+        const sinceLogin = nowSec - (token.adminLoginAt as number);
+        const sinceActive = nowSec - ((token.adminLastActiveAt as number) || 0);
+
+        if (sinceLogin > ADMIN_ABSOLUTE_MAX_AGE) {
+          return { expired: true, adminSessionExpired: "absolute" };
+        }
+
+        if (sinceActive > ADMIN_ACCESS_MAX_AGE) {
+          return { ...token, adminSessionExpired: "inactive" };
+        }
+
+        token.adminLastActiveAt = nowSec;
+      }
 
       try {
         const dbUser = await prisma.user.findFirst({

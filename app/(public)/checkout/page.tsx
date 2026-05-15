@@ -320,7 +320,7 @@ export default function CheckoutPage() {
         const phoneIsValid = /^5\d{9}$/.test(normalizedPhone);
 
         if (!phoneIsValid) {
-            toast.error("Telefon numarası geçersiz. 5XXXXXXXXX formatında bir GSM numarası girin.");
+            toast.error("Telefon numarası geçersiz. 10 haneli GSM numarası girin (5 ile başlamalı).");
             return;
         }
 
@@ -536,7 +536,7 @@ export default function CheckoutPage() {
                                 </div>
                                 <div className="space-y-2">
                                     <p className="text-sm text-gray-600">
-                                        Ödeme ve bildirimler için cep telefonu (5XXXXXXXXX)
+                                        Ödeme ve bildirimler için cep telefonu (10 hane, 5 ile başlar)
                                     </p>
                                     <div className="w-full flex items-center border border-gray-300 rounded focus-within:border-black overflow-hidden">
                                         <span className="px-3 text-sm text-gray-600 border-r border-gray-200">+90</span>

@@ -5,7 +5,11 @@ import { prisma } from "@/lib/db";
 import { z } from "zod";
 
 const schema = z.object({
-  code: z.string().min(1),
+  code: z
+    .string()
+    .trim()
+    .min(1, "Kupon kodu gerekli")
+    .max(64, "Kupon kodu çok uzun"),
 });
 
 export async function GET(req: NextRequest) {
@@ -20,38 +24,27 @@ export async function GET(req: NextRequest) {
   const userCoupons = await prisma.userCoupon.findMany({
     where: { userId },
     include: { coupon: true },
+    orderBy: { id: "desc" },
   });
 
-  const result = await Promise.all(
-    userCoupons.map(async (uc: any) => {
-      const c = uc.coupon;
+  const result = userCoupons.map((uc) => {
+    const c = uc.coupon;
+    const usedAt = uc.usedAt;
+    const isExpired = c.expiresAt ? c.expiresAt < now : false;
+    const isUsable = !usedAt && c.isActive && !isExpired;
 
-      const used = await prisma.appointment.findFirst({
-        where: {
-          userId,
-          couponId: c.id,
-          isPaid: true,
-        },
-        select: { confirmedAt: true },
-      });
-
-      const usedAt = used?.confirmedAt || null;
-      const isExpired = c.expiresAt ? c.expiresAt < now : false;
-      const isUsable = !usedAt && c.isActive && !isExpired;
-
-      return {
-        id: uc.id,
-        code: c.code,
-        description: c.description,
-        discountType: c.discountType,
-        value: c.value,
-        isActive: c.isActive,
-        expiresAt: c.expiresAt,
-        usedAt,
-        isUsable,
-      };
-    })
-  );
+    return {
+      id: uc.id,
+      code: c.code,
+      description: c.description,
+      discountType: c.discountType,
+      value: c.value,
+      isActive: c.isActive,
+      expiresAt: c.expiresAt,
+      usedAt,
+      isUsable,
+    };
+  });
 
   return NextResponse.json(result);
 }
@@ -62,17 +55,26 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await req.json();
-  const parsed = schema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json({ error: "Geçersiz kupon kodu." }, { status: 400 });
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Geçersiz istek gövdesi." }, { status: 400 });
   }
 
-  const { code } = parsed.data;
-  const userId = session.user.id;
+  const parsed = schema.safeParse(body);
+  if (!parsed.success) {
+    const first = parsed.error.issues[0]?.message ?? "Geçersiz kupon kodu.";
+    return NextResponse.json({ error: first }, { status: 400 });
+  }
 
-  const coupon = await prisma.coupon.findUnique({
-    where: { code },
+  const userId = session.user.id;
+  const codeInput = parsed.data.code;
+
+  const coupon = await prisma.coupon.findFirst({
+    where: {
+      code: { equals: codeInput, mode: "insensitive" },
+    },
   });
 
   if (!coupon) {
@@ -87,26 +89,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Kupon süresi dolmuş." }, { status: 400 });
   }
 
-  const alreadyUsed = await prisma.appointment.findFirst({
-    where: {
-      userId,
-      couponId: coupon.id,
-      isPaid: true,
-    },
-  });
-
-  if (alreadyUsed) {
-    return NextResponse.json({ error: "Bu kuponu zaten kullandınız." }, { status: 400 });
-  }
-
-  const alreadyAssigned = await prisma.userCoupon.findFirst({
+  const existingLink = await prisma.userCoupon.findFirst({
     where: {
       userId,
       couponId: coupon.id,
     },
   });
 
-  if (alreadyAssigned) {
+  if (existingLink) {
+    if (existingLink.usedAt) {
+      return NextResponse.json({ error: "Bu kuponu zaten kullandınız." }, { status: 400 });
+    }
     return NextResponse.json({ error: "Bu kupon zaten hesabınıza tanımlı." }, { status: 400 });
   }
 

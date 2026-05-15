@@ -55,6 +55,7 @@ interface ProductDetailPageProps {
     parentLookConfigs?: any[];
   };
   hasOrdered?: boolean;
+  hasReviewed?: boolean;
 }
 
 const defaultProduct = {
@@ -91,7 +92,7 @@ const defaultProduct = {
   modelInfo: null,
 };
 
-export default function ProductDetailPage({ product = defaultProduct, hasOrdered = false }: ProductDetailPageProps) {
+export default function ProductDetailPage({ product = defaultProduct, hasOrdered = false, hasReviewed = false }: ProductDetailPageProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [selectedImage, setSelectedImage] = useState(0);
@@ -1248,14 +1249,6 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                       </div>
                     </div>
                   );
-                } else if (isCartQuantityCapped) {
-                  return (
-                    <div className="mb-6 p-3 bg-gray-50 border border-gray-200 rounded">
-                      <p className="text-sm text-gray-700">
-                        Bu renk/beden için tüm mevcut adedi zaten sepetinize eklediniz.
-                      </p>
-                    </div>
-                  );
                 } else if (selectedVariantStock < 5) {
                   return (
                     <div className="mb-4">
@@ -1275,21 +1268,49 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
               <div className="flex items-center border border-gray-300 h-14">
                 <button
                   onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
-                  className="px-4 h-full text-black hover:bg-gray-100 transition-colors font-light flex items-center justify-center disabled:opacity-50"
+                  className="px-4 h-full text-black hover:bg-gray-100 transition-colors font-light flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                   disabled={quantity <= 1}
                 >
                   <Minus className="w-4 h-4" />
                 </button>
-                <span className="px-6 h-full text-sm font-light text-black border-x border-gray-300 min-w-15 text-center flex items-center justify-center">
-                  {quantity}
-                </span>
-                <button
-                  onClick={() => setQuantity((prev) => Math.min(remainingStockForSelection, prev + 1))}
-                  className="px-4 h-full text-black hover:bg-gray-100 transition-colors font-light flex items-center justify-center"
-                  disabled={!selectedSize || remainingStockForSelection <= 0 || quantity >= remainingStockForSelection}
-                >
-                  <Plus className="w-4 h-4" />
-                </button>
+                <input
+                  type="number"
+                  value={quantity}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value, 10);
+                    if (isNaN(val) || val < 1) {
+                      setQuantity(1);
+                    } else if (remainingStockForSelection > 0 && val > remainingStockForSelection) {
+                      setQuantity(remainingStockForSelection);
+                    } else {
+                      setQuantity(val);
+                    }
+                  }}
+                  onBlur={() => {
+                    if (quantity < 1) setQuantity(1);
+                    if (remainingStockForSelection > 0 && quantity > remainingStockForSelection) {
+                      setQuantity(remainingStockForSelection);
+                    }
+                  }}
+                  min={1}
+                  max={remainingStockForSelection > 0 ? remainingStockForSelection : 1}
+                  className="w-12 h-full text-sm font-light text-black border-x border-gray-300 text-center bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none focus:outline-none"
+                />
+                <div className="relative group/plus">
+                  <button
+                    onClick={() => setQuantity((prev) => Math.min(remainingStockForSelection, prev + 1))}
+                    className="px-4 h-full text-black hover:bg-gray-100 transition-colors font-light flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                    disabled={!selectedSize || remainingStockForSelection <= 0 || quantity >= remainingStockForSelection}
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                  {selectedSize && remainingStockForSelection > 0 && quantity >= remainingStockForSelection && (
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-black text-white text-xs font-light whitespace-nowrap opacity-0 group-hover/plus:opacity-100 transition-opacity pointer-events-none z-10 rounded">
+                      Maksimum stok sınırına ulaştınız
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-black"></div>
+                    </div>
+                  )}
+                </div>
               </div>
 
               
@@ -1507,6 +1528,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
         selectedColorId={product.colors?.[selectedColor]?.id}
         reviews={product.reviews || []}
         hasOrdered={hasOrdered}
+        hasReviewed={hasReviewed}
       />
 
       

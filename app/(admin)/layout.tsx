@@ -33,6 +33,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { usePathname } from "next/navigation";
 import { AdminNotificationBell } from "./_components/AdminNotificationBell";
+import AdminIdleGuard from "./_components/AdminIdleGuard";
 
 const navSections = [
   {
@@ -233,6 +234,14 @@ export default function AdminLayout({
   useEffect(() => {
     if (status === "loading") return;
 
+    if ((session as any)?.adminSessionExpired) {
+      signOut({ redirect: false }).then(() => {
+        toast.error("Admin oturumunuz sona erdi. Lütfen tekrar giriş yapın.");
+        router.replace("/auth-tabs?reason=session_expired");
+      });
+      return;
+    }
+
     if (!session || !session.user?.isAdmin) {
       router.replace("/");
       return;
@@ -263,6 +272,7 @@ export default function AdminLayout({
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
+      <AdminIdleGuard />
       <aside className={`hidden md:flex bg-gray-900 text-white flex-col shrink-0 transition-all duration-300 ${sidebarCollapsed ? "w-16" : "w-64"
         }`}>
         <div className={`border-b border-gray-800 ${sidebarCollapsed ? "p-3" : "p-6"}`}>

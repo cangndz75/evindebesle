@@ -31,7 +31,12 @@ export default function AddCouponModal({ onSuccess }: Props) {
         headers: { "Content-Type": "application/json" },
       });
 
-      const data = await res.json();
+      let data: { error?: string; success?: boolean } = {};
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error("Sunucu yanıtı okunamadı. Lütfen tekrar deneyin.");
+      }
 
       if (!res.ok) throw new Error(data.error || "Bir hata oluştu.");
       toast.success("Kupon eklendi!");
@@ -48,22 +53,36 @@ export default function AddCouponModal({ onSuccess }: Props) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">Kupon Ekle</Button>
+        <Button type="button" variant="outline">
+          Kupon Ekle
+        </Button>
       </DialogTrigger>
       <DialogContent className="max-w-sm">
         <DialogTitle>Kupon Kodu Ekle</DialogTitle>
-        <div className="space-y-4">
+        <form
+          className="space-y-4"
+          noValidate
+          onSubmit={(e) => {
+            e.preventDefault();
+            void handleSubmit();
+          }}
+        >
           <Label htmlFor="code">Kupon Kodu</Label>
           <Input
             id="code"
+            name="couponCode"
+            type="text"
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck={false}
             value={code}
             onChange={(e) => setCode(e.target.value)}
             placeholder="Örn: HOSGELDIN"
           />
-          <Button onClick={handleSubmit} disabled={loading} className="w-full">
+          <Button type="submit" disabled={loading} className="w-full">
             {loading ? "Ekleniyor..." : "Kuponu Kullan"}
           </Button>
-        </div>
+        </form>
       </DialogContent>
     </Dialog>
   );

@@ -1,5 +1,7 @@
 import "server-only";
 
+import { decryptPiiIfNeeded } from "@/lib/security/at-rest-crypto";
+
 type AnyRecord = Record<string, any>;
 
 function resolveOrderItemImage(item: AnyRecord) {
@@ -52,7 +54,7 @@ export function toOrderListDTO(order: AnyRecord) {
     })),
     shippingAddress: order.shippingAddress
       ? {
-          fullAddress: order.shippingAddress.fullAddress,
+          fullAddress: decryptPiiIfNeeded(order.shippingAddress.fullAddress),
           district: {
             name: order.shippingAddress.district?.name,
           },
@@ -102,7 +104,7 @@ export function toOrderDetailDTO(order: AnyRecord) {
     })),
     shippingAddress: order.shippingAddress
       ? {
-          fullAddress: order.shippingAddress.fullAddress,
+          fullAddress: decryptPiiIfNeeded(order.shippingAddress.fullAddress),
           district: {
             name: order.shippingAddress.district?.name,
             city: order.shippingAddress.district?.city,
@@ -111,7 +113,7 @@ export function toOrderDetailDTO(order: AnyRecord) {
       : null,
     billingAddress: order.billingAddress
       ? {
-          fullAddress: order.billingAddress.fullAddress,
+          fullAddress: decryptPiiIfNeeded(order.billingAddress.fullAddress),
           district: {
             name: order.billingAddress.district?.name,
             city: order.billingAddress.district?.city,
@@ -126,7 +128,7 @@ export function toOrderDetailDTO(order: AnyRecord) {
         }
       : null,
     user: {
-      fullAddress: order.user?.fullAddress ?? null,
+      fullAddress: order.user?.fullAddress ? decryptPiiIfNeeded(order.user.fullAddress) : null,
       district: order.user?.district
         ? {
             name: order.user.district.name,
@@ -161,7 +163,7 @@ export function toInvoiceDTO(order: AnyRecord) {
     },
     billingAddress: order.billingAddress
       ? {
-          fullAddress: order.billingAddress.fullAddress,
+          fullAddress: decryptPiiIfNeeded(order.billingAddress.fullAddress),
           district: {
             name: order.billingAddress.district?.name,
             city: order.billingAddress.district?.city,
@@ -170,7 +172,7 @@ export function toInvoiceDTO(order: AnyRecord) {
       : null,
     shippingAddress: order.shippingAddress
       ? {
-          fullAddress: order.shippingAddress.fullAddress,
+          fullAddress: decryptPiiIfNeeded(order.shippingAddress.fullAddress),
           district: {
             name: order.shippingAddress.district?.name,
             city: order.shippingAddress.district?.city,

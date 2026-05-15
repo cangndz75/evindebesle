@@ -50,6 +50,17 @@ export function encryptAtRest(plainText: string): string {
   return `${ENC_PREFIX}${iv.toString("base64")}.${authTag.toString("base64")}.${cipherText.toString("base64")}`;
 }
 
+/** Düz metin gösterimi için: şifreli değilse aynen döner, şifreliyse çözmeyi dener. */
+export function decryptPiiIfNeeded(value: string | null | undefined): string {
+  if (value == null || value === "") return "";
+  if (!isEncryptedAtRest(value)) return value;
+  try {
+    return decryptAtRest(value) ?? value;
+  } catch {
+    return value;
+  }
+}
+
 export function decryptAtRest(value: string | null | undefined): string | null | undefined {
   if (value == null) return value;
   if (!isEncryptedAtRest(value)) return value;

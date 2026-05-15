@@ -1,4 +1,4 @@
-﻿import { notFound } from "next/navigation";
+import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import ProductDetailPage from "../../_components/ProductDetailPage";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
@@ -240,19 +240,31 @@ export default async function ProductSlugPage({
   const user = await getCurrentUser();
   let hasOrdered = false;
 
+  let hasReviewed = false;
+
   if (user) {
-    const orderCount = await prisma.order.count({
-      where: {
-        userId: user.id,
-        status: "DELIVERED", // Sadece teslim edilmiş siparişler
-        items: {
-          some: {
-            productId: product.id,
+    const [orderCount, existingReview] = await Promise.all([
+      prisma.order.count({
+        where: {
+          userId: user.id,
+          status: "DELIVERED",
+          items: {
+            some: {
+              productId: product.id,
+            },
           },
         },
-      },
-    });
+      }),
+      prisma.productReview.findFirst({
+        where: {
+          productId: product.id,
+          userId: user.id,
+        },
+        select: { id: true },
+      }),
+    ]);
     hasOrdered = orderCount > 0;
+    hasReviewed = !!existingReview;
   }
 
   let selectedColor = product.colors?.[0];
@@ -409,5 +421,5 @@ export default async function ProductSlugPage({
     })) || []
   };
 
-  return <ProductDetailPage product={formattedProduct} hasOrdered={hasOrdered} />;
+  return <ProductDetailPage product={formattedProduct} hasOrdered={hasOrdered} hasReviewed={hasReviewed} />;
 }

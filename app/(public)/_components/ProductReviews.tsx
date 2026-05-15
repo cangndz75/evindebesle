@@ -55,10 +55,11 @@ interface ProductReviewsProps {
   productImage?: string | null;
   selectedColorId?: string;
   reviews?: { id: string; userName: string; rating: number; comment: string; createdAt: Date | string; colorId?: string; colorName?: string }[];
-  hasOrdered?: boolean; // Kullanıcı bu ürünü sipariş verdi mi?
+  hasOrdered?: boolean;
+  hasReviewed?: boolean;
 }
 
-export default function ProductReviews({ productId, productName = "Ürün", productImage = null, selectedColorId, reviews = [], hasOrdered = false }: ProductReviewsProps) {
+export default function ProductReviews({ productId, productName = "Ürün", productImage = null, selectedColorId, reviews = [], hasOrdered = false, hasReviewed = false }: ProductReviewsProps) {
   const [showAllModal, setShowAllModal] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -145,7 +146,7 @@ export default function ProductReviews({ productId, productName = "Ürün", prod
           <h2 className="text-3xl md:text-4xl font-serif font-light text-black text-center md:text-left">
             Yorumlar
           </h2>
-          {hasOrdered && (
+          {hasOrdered && !hasReviewed && (
             <Button
               onClick={() => setShowReviewModal(true)}
               className="bg-black text-white hover:bg-gray-800 flex items-center gap-2"
@@ -166,7 +167,7 @@ export default function ProductReviews({ productId, productName = "Ürün", prod
             <p className="text-gray-500 mb-6 max-w-sm mx-auto">
               Bu ürün hakkında ilk yorumu siz yaparak diğer kullanıcılara yardımcı olabilirsiniz.
             </p>
-            {hasOrdered && (
+            {hasOrdered && !hasReviewed && (
               <Button variant="outline" onClick={() => setShowReviewModal(true)}>
                 İlk Yorumu Yap
               </Button>

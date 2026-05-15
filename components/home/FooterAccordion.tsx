@@ -25,7 +25,7 @@ const footerSections = [
       { label: "Sık Sorulan Sorular", href: "/faq" },
       { label: "İade & Değişim", href: "/returns" },
       { label: "İletişim", href: "/contact" },
-      { label: "Siparişimi Takip Et", href: "/track" },
+      // { label: "Siparişimi Takip Et", href: "/track" },
     ],
   },
   {
@@ -47,9 +47,9 @@ const footerSections = [
 ];
 
 const staticBenefits = [
-  { icon: "app", text: "Uygulamayı indir, erken erişim kazan" },
-  { icon: "medal", text: "Dark Velvet Rewards ile ücretsiz iade" },
-  { icon: "clock", text: "30 gün içinde kolay iade" },
+  { icon: "app", text: "Kaliteli ürünler, güvenli alışveriş" },
+  { icon: "medal", text: "Premium kalite, zamansız duruş" },
+  { icon: "clock", text: "Özenli işçilik, kusursuz imza" },
 ];
 
 const AppIcon = () => (

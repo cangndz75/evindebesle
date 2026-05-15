@@ -203,24 +203,32 @@ export default function OrdersPage() {
 
   const handleDownloadInvoice = async (orderId: string, orderNumber: string) => {
     try {
-      const response = await fetch(`/api/orders/${orderId}/invoice`);
+      const response = await fetch(`/api/orders/${orderId}/invoice`, { credentials: "same-origin" });
+      const contentType = response.headers.get("content-type") || "";
 
       if (!response.ok) {
+        if (contentType.includes("application/json")) {
+          const j = (await response.json().catch(() => null)) as { error?: string } | null;
+          throw new Error(typeof j?.error === "string" ? j.error : "Fatura oluşturulamadı");
+        }
         throw new Error("Fatura oluşturulamadı");
       }
 
+      const ext = contentType.includes("text/html") ? "html" : "pdf";
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `fatura-${orderNumber}.pdf`;
+      a.download = `fatura-${orderNumber}.${ext}`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
+      toast.success(ext === "html" ? "Fatura indirildi (HTML). Tarayıcıdan PDF olarak yazdırabilirsiniz." : "Fatura indirildi.");
     } catch (error) {
       console.error("Invoice download error:", error);
-      toast.error("Fatura indirirken bir hata oluştu. Lütfen tekrar deneyin.");
+      const msg = error instanceof Error ? error.message : "Fatura indirirken bir hata oluştu.";
+      toast.error(msg);
     }
   };
 
@@ -479,9 +487,9 @@ export default function OrdersPage() {
 
                       
                       {order.shippingAddress && (
-                        <div className="text-sm text-gray-600">
+                        <div className="text-sm text-gray-600 min-w-0">
                           <p className="font-medium mb-1">Teslimat Adresi:</p>
-                          <p>
+                          <p className="wrap-break-word whitespace-pre-wrap">
                             {order.shippingAddress.district.name} - {order.shippingAddress.fullAddress}
                           </p>
                         </div>

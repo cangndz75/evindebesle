@@ -3,6 +3,9 @@ import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { checkRateLimit, getClientIdentifier, RateLimits } from "@/lib/rateLimit";
 
+const MW_ADMIN_ABSOLUTE_MAX = 60 * 60 * 24 * 7; // 7 gün
+const MW_ADMIN_ACCESS_MAX = 60 * 60;             // 1 saat
+
 const ADMIN_PAGE_PREFIXES = [
   "/admin",
   "/dashboard",
@@ -71,6 +74,27 @@ export async function middleware(request: NextRequest) {
         return applyNoStoreHeaders(
           NextResponse.rewrite(new URL("/not-found", request.url), { status: 404 })
         );
+      }
+
+      if (token.isAdmin && token.adminLoginAt) {
+        const nowSec = Math.floor(Date.now() / 1000);
+        const sinceLogin = nowSec - (token.adminLoginAt as number);
+        const sinceActive = nowSec - ((token.adminLastActiveAt as number) || 0);
+
+        if (sinceLogin > MW_ADMIN_ABSOLUTE_MAX || sinceActive > MW_ADMIN_ACCESS_MAX) {
+          if (isProtectedAdminApiPath) {
+            return applyNoStoreHeaders(
+              NextResponse.json(
+                { error: "Admin session expired", code: "ADMIN_SESSION_EXPIRED" },
+                { status: 401 }
+              )
+            );
+          }
+          const loginUrl = new URL("/auth-tabs", request.url);
+          loginUrl.searchParams.set("reason", "session_expired");
+          loginUrl.searchParams.set("callbackUrl", pathname);
+          return applyNoStoreHeaders(NextResponse.redirect(loginUrl));
+        }
       }
     }
 

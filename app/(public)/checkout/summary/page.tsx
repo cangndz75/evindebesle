@@ -138,21 +138,58 @@ export default function CheckoutSummaryPage() {
                                             </button>
                                         </div>
                                         <div className="flex justify-between items-end mt-4">
-                                            <div className="flex items-center border border-gray-200 rounded">
-                                                <button
-                                                    onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
-                                                    className="px-3 py-1 hover:bg-gray-50"
-                                                >
-                                                    -
-                                                </button>
-                                                <span className="px-2 text-sm">{item.quantity}</span>
-                                                <button
-                                                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                                    className="px-3 py-1 hover:bg-gray-50"
-                                                >
-                                                    +
-                                                </button>
-                                            </div>
+                                            {(() => {
+                                                const stockLimit =
+                                                    typeof item.availableStock === "number"
+                                                        ? Math.max(0, item.availableStock)
+                                                        : typeof item.size?.stock === "number"
+                                                            ? Math.max(0, item.size.stock)
+                                                            : null;
+
+                                                const sameVariantOtherQty = items.reduce((sum, ci) => {
+                                                    if (
+                                                        ci.id !== item.id &&
+                                                        ci.productId === item.productId &&
+                                                        ci.colorId === item.colorId &&
+                                                        ci.sizeId === item.sizeId
+                                                    ) return sum + ci.quantity;
+                                                    return sum;
+                                                }, 0);
+
+                                                const maxQty = stockLimit !== null ? Math.max(0, stockLimit - sameVariantOtherQty) : null;
+                                                const cannotIncrease = maxQty !== null && item.quantity >= maxQty;
+
+                                                return (
+                                                    <div className="flex items-center border border-gray-200 rounded">
+                                                        <button
+                                                            onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
+                                                            disabled={item.quantity <= 1}
+                                                            className="px-3 py-1 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                                                        >
+                                                            -
+                                                        </button>
+                                                        <span className="px-2 text-sm">{item.quantity}</span>
+                                                        <div className="relative group/plus">
+                                                            <button
+                                                                onClick={() => {
+                                                                    if (maxQty !== null && item.quantity >= maxQty) return;
+                                                                    updateQuantity(item.id, maxQty !== null ? Math.min(maxQty, item.quantity + 1) : item.quantity + 1);
+                                                                }}
+                                                                disabled={cannotIncrease}
+                                                                className="px-3 py-1 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                                                            >
+                                                                +
+                                                            </button>
+                                                            {cannotIncrease && (
+                                                                <div className="absolute bottom-full right-0 mb-2 px-3 py-1.5 bg-black text-white text-[10px] font-light whitespace-nowrap opacity-0 group-hover/plus:opacity-100 transition-opacity pointer-events-none z-50 rounded">
+                                                                    Maksimum stok sınırına ulaştınız
+                                                                    <div className="absolute top-full right-3 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-black"></div>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })()}
                                             <div className="flex flex-col items-end">
                                                 <p className="font-medium text-lg">{(item.product.price) * item.quantity} ₺</p>
                                                 {item.product.originalPrice && item.product.originalPrice > item.product.price && (

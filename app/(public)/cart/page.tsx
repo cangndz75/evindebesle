@@ -675,11 +675,11 @@ export default function CartPage() {
     const itemCount = cartItems.reduce((acc, it) => acc + (it.quantity || 0), 0);
 
     return (
-        <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-gray-50 px-4 pt-3 pb-10 sm:px-6 md:py-12 lg:px-8">
             <div className="max-w-4xl mx-auto">
                 <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
                     
-                    <div className="px-8 py-6 border-b border-gray-100 flex items-center justify-between">
+                    <div className="px-4 py-4 border-b border-gray-100 flex items-center justify-between sm:px-6 sm:py-5 md:px-8 md:py-6">
                         <div>
                             <h1 className="text-2xl font-serif text-black">Sepetim</h1>
                             <p className="text-sm text-gray-500 mt-1">
@@ -688,7 +688,7 @@ export default function CartPage() {
                         </div>
                     </div>
 
-                    <div className="p-8">
+                    <div className="p-4 md:p-8">
                         {!isReady && cartItems.length === 0 ? (
                             <div className="space-y-4 py-4">
                                 {[1, 2, 3].map((i) => (
@@ -817,25 +817,33 @@ export default function CartPage() {
                                                             <span className="w-8 text-center text-sm font-medium">
                                                                 {item.quantity}
                                                             </span>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    if (maxQuantity === null) {
-                                                                        updateQuantity(item.id, item.quantity + 1);
-                                                                        return;
-                                                                    }
+                                                            <div className="relative group/plus">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        if (maxQuantity === null) {
+                                                                            updateQuantity(item.id, item.quantity + 1);
+                                                                            return;
+                                                                        }
 
-                                                                    if (item.quantity >= maxQuantity) {
-                                                                        return;
-                                                                    }
+                                                                        if (item.quantity >= maxQuantity) {
+                                                                            return;
+                                                                        }
 
-                                                                    updateQuantity(item.id, Math.min(maxQuantity, item.quantity + 1));
-                                                                }}
-                                                                disabled={cannotIncrease}
-                                                                className="h-8 w-8 grid place-items-center rounded-full hover:bg-gray-50 disabled:opacity-40"
-                                                            >
-                                                                <Plus className="h-3 w-3" />
-                                                            </button>
+                                                                        updateQuantity(item.id, Math.min(maxQuantity, item.quantity + 1));
+                                                                    }}
+                                                                    disabled={cannotIncrease}
+                                                                    className="h-8 w-8 grid place-items-center rounded-full hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                                                                >
+                                                                    <Plus className="h-3 w-3" />
+                                                                </button>
+                                                                {cannotIncrease && (
+                                                                    <div className="absolute bottom-full right-0 mb-2 px-3 py-1.5 bg-black text-white text-[10px] font-light whitespace-nowrap opacity-0 group-hover/plus:opacity-100 transition-opacity pointer-events-none z-50 rounded">
+                                                                        Maksimum stok sınırına ulaştınız
+                                                                        <div className="absolute top-full right-3 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-black"></div>
+                                                                    </div>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                         <div className="text-right">
                                                             <p className="text-lg font-semibold text-black">
@@ -1109,20 +1117,34 @@ export default function CartPage() {
                                             <button
                                                 type="button"
                                                 onClick={() => setQuickQuantity((prev) => Math.max(1, prev - 1))}
-                                                className="h-9 w-9 grid place-items-center text-[#888] hover:text-black"
+                                                disabled={quickQuantity <= 1}
+                                                className="h-9 w-9 grid place-items-center text-[#888] hover:text-black disabled:opacity-40 disabled:cursor-not-allowed"
                                             >
                                                 <Minus className="h-4 w-4" />
                                             </button>
                                             <span className="w-8 text-center text-sm">{quickQuantity}</span>
-                                            <button
-                                                type="button"
-                                                onClick={() => setQuickQuantity((prev) => Math.min(quickRemainingStockForSelection, prev + 1))}
-                                                disabled={!quickSelectedSizeId || quickRemainingStockForSelection <= 0 || quickQuantity >= quickRemainingStockForSelection}
-                                                className="h-9 w-9 grid place-items-center text-[#888] hover:text-black disabled:opacity-40"
-                                            >
-                                                <Plus className="h-4 w-4" />
-                                            </button>
+                                            <div className="relative group/plus">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setQuickQuantity((prev) => Math.min(quickRemainingStockForSelection, prev + 1))}
+                                                    disabled={!quickSelectedSizeId || quickRemainingStockForSelection <= 0 || quickQuantity >= quickRemainingStockForSelection}
+                                                    className="h-9 w-9 grid place-items-center text-[#888] hover:text-black disabled:opacity-40 disabled:cursor-not-allowed"
+                                                >
+                                                    <Plus className="h-4 w-4" />
+                                                </button>
+                                                {quickSelectedSizeId && quickRemainingStockForSelection > 0 && quickQuantity >= quickRemainingStockForSelection && (
+                                                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-black text-white text-[10px] font-light whitespace-nowrap opacity-0 group-hover/plus:opacity-100 transition-opacity pointer-events-none z-50 rounded">
+                                                        Maksimum stok sınırına ulaştınız
+                                                        <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-black"></div>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
+                                        {quickSelectedSizeId && quickRemainingStockForSelection > 0 && quickRemainingStockForSelection < 5 && (
+                                            <span className="text-red-600 text-xs font-medium animate-pulse">
+                                                Son {quickRemainingStockForSelection} ürün!
+                                            </span>
+                                        )}
                                     </div>
 
                                     <div className="mt-6 space-y-2.5">

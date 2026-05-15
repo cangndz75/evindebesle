@@ -177,7 +177,7 @@ export async function POST(req: Request) {
 
         if (!phoneIsValid) {
             return NextResponse.json(
-                { error: "Telefon numaras\u0131 ge\u00e7ersiz. 5XXXXXXXXX format\u0131nda bir GSM numaras\u0131 girin." },
+                { error: "Telefon numarası geçersiz. 10 haneli GSM numarası girin (5 ile başlamalı)." },
                 { status: 400 }
             );
         }

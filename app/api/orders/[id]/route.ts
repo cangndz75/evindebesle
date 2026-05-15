@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { jsonNoStore } from "@/lib/api/policy";
@@ -12,7 +12,7 @@ export async function GET(
 ) {
     try {
         const { id } = await params;
-        const user = await getCurrentUser();
+        const user = await getCurrentUser(request);
 
         if (!user) {
             return jsonNoStore({ error: "Unauthorized" }, { status: 401 });

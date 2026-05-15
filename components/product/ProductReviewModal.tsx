@@ -59,6 +59,11 @@ export default function ProductReviewModal({
             const data = await res.json();
 
             if (!res.ok) {
+                if (res.status === 409) {
+                    toast.error("Bu ürün için zaten yorum yapmışsınız.");
+                    handleClose();
+                    return;
+                }
                 throw new Error(data.error || "Bir hata oluştu");
             }
 

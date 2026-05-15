@@ -203,7 +203,7 @@ function ProductTile({
           unoptimized
         />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-1/2 bg-linear-to-t from-black/55 via-black/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-2 opacity-0 transition-all duration-300 group-hover:opacity-100">
+        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-2 opacity-0 transition-all duration-300 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto">
           <button
             type="button"
             onClick={(e) => {
@@ -229,8 +229,10 @@ function ProductTile({
         </div>
       </div>
       <div className="mt-2 space-y-0.5">
-        <p className="line-clamp-2 text-[12px] leading-4 font-medium text-[#222]">{product.name}</p>
-        <p className="text-[12px] font-semibold text-[#1a1a1a]">{formatPriceTRY(product.price)}</p>
+        <Link href={productUrl} onClick={() => onNavigate?.()} className="block min-w-0">
+          <p className="line-clamp-2 text-[12px] leading-4 font-medium text-[#222]">{product.name}</p>
+          <p className="text-[12px] font-semibold text-[#1a1a1a]">{formatPriceTRY(product.price)}</p>
+        </Link>
         {product.colors && product.colors.length > 0 ? (
           <div className="flex items-center gap-1 pt-1">
             {product.colors.slice(0, 4).map((color) => (
@@ -519,6 +521,38 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
     }
   };
 
+  const quickSelectedSizeStock =
+    quickProductDetails && quickSelectedSizeId
+      ? getSizeStockForColor(quickProductDetails, quickSelectedColorId, quickSelectedSizeId)
+      : 0;
+
+  const quickSameVariantQuantityInCart = quickProductDetails
+    ? cartItems.reduce((sum, item) => {
+        if (
+          item.productId === quickProductDetails.id &&
+          item.colorId === (quickSelectedColorId || null) &&
+          item.sizeId === (quickSelectedSizeId || null)
+        ) {
+          return sum + item.quantity;
+        }
+        return sum;
+      }, 0)
+    : 0;
+
+  const quickRemainingStockForSelection = Math.max(0, quickSelectedSizeStock - quickSameVariantQuantityInCart);
+
+  useEffect(() => {
+    if (!quickSelectedSizeId) {
+      setQuickQuantity(1);
+      return;
+    }
+    if (quickRemainingStockForSelection <= 0) {
+      setQuickQuantity(1);
+      return;
+    }
+    setQuickQuantity((prev) => Math.min(prev, quickRemainingStockForSelection));
+  }, [quickSelectedColorId, quickSelectedSizeId, quickRemainingStockForSelection]);
+
   const handleQuickAddToCart = async () => {
     if (!quickProduct || !quickProductDetails) return;
     if (quickSubmitting) return;
@@ -529,6 +563,17 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
 
     if (hasSizes && !selectedSize) {
       toast.error("Lutfen beden seciniz");
+      return;
+    }
+
+    if (quickRemainingStockForSelection <= 0) {
+      toast.error("Seçtiğiniz renk/beden için sepette eklenebilir stok kalmadı");
+      return;
+    }
+
+    if (quickQuantity > quickRemainingStockForSelection) {
+      setQuickQuantity(quickRemainingStockForSelection);
+      toast.error(`En fazla ${quickRemainingStockForSelection} adet ekleyebilirsiniz`);
       return;
     }
 
@@ -943,7 +988,13 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                           className="flex gap-3 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                         >
                           {activeList.slice(0, 10).map((p) => (
-                            <ProductTile key={p.id} product={p} onQuickAdd={handleQuickAddInstant} onQuickDetail={openQuickModal} />
+                            <ProductTile
+                              key={p.id}
+                              product={p}
+                              onNavigate={onClose}
+                              onQuickAdd={handleQuickAddInstant}
+                              onQuickDetail={openQuickModal}
+                            />
                           ))}
                           {activeList.length === 0 ? (
                             <div className="text-sm text-gray-500 py-6">
@@ -959,7 +1010,28 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                 
                 {cartItems.length > 0 ? (
                   <div className="space-y-0 pb-24">
-                    {cartItems.map((item) => (
+                    {cartItems.map((item) => {
+                      const stockLimit =
+                        typeof item.availableStock === "number"
+                          ? Math.max(0, item.availableStock)
+                          : typeof item.size?.stock === "number"
+                            ? Math.max(0, item.size.stock)
+                            : null;
+
+                      const sameVariantOtherQty = cartItems.reduce((sum, ci) => {
+                        if (
+                          ci.id !== item.id &&
+                          ci.productId === item.productId &&
+                          ci.colorId === item.colorId &&
+                          ci.sizeId === item.sizeId
+                        ) return sum + ci.quantity;
+                        return sum;
+                      }, 0);
+
+                      const maxQty = stockLimit !== null ? Math.max(0, stockLimit - sameVariantOtherQty) : null;
+                      const cannotIncrease = maxQty !== null && item.quantity >= maxQty;
+
+                      return (
                       <div
                         key={item.id}
                         className="border-b border-gray-200 py-4"
@@ -1020,14 +1092,26 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                                 <span className="min-w-7.5 text-center text-sm font-medium text-black">
                                   {item.quantity}
                                 </span>
-                                <button
-                                  type="button"
-                                  onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                  className="h-8 w-8 grid place-items-center text-black hover:bg-black/5"
-                                  aria-label="Miktarı artır"
-                                >
-                                  <Plus className="h-4 w-4" />
-                                </button>
+                                <div className="relative group/plus">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      if (maxQty !== null && item.quantity >= maxQty) return;
+                                      updateQuantity(item.id, maxQty !== null ? Math.min(maxQty, item.quantity + 1) : item.quantity + 1);
+                                    }}
+                                    disabled={cannotIncrease}
+                                    className="h-8 w-8 grid place-items-center text-black hover:bg-black/5 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                                    aria-label="Miktarı artır"
+                                  >
+                                    <Plus className="h-4 w-4" />
+                                  </button>
+                                  {cannotIncrease && (
+                                    <div className="absolute bottom-full right-0 mb-2 px-3 py-1.5 bg-black text-white text-[10px] font-light whitespace-nowrap opacity-0 group-hover/plus:opacity-100 transition-opacity pointer-events-none z-50 rounded">
+                                      Maksimum stok sınırına ulaştınız
+                                      <div className="absolute top-full right-3 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-black"></div>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
 
                               <div className="text-right">
@@ -1042,7 +1126,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                           </div>
                         </div>
                       </div>
-                    ))}
+                    );})}
 
                     {recommendedProducts.length > 0 ? (
                       <div className="pt-5 border-t border-gray-200">
@@ -1077,7 +1161,13 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                             className="flex gap-3 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                           >
                             {recommendedProducts.slice(0, 12).map((p) => (
-                              <ProductTile key={p.id} product={p} onQuickAdd={handleQuickAddInstant} onQuickDetail={openQuickModal} />
+                              <ProductTile
+                                key={p.id}
+                                product={p}
+                                onNavigate={onClose}
+                                onQuickAdd={handleQuickAddInstant}
+                                onQuickDetail={openQuickModal}
+                              />
                             ))}
                           </div>
                         </div>
@@ -1241,28 +1331,43 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                       <button
                         type="button"
                         onClick={() => setQuickQuantity((prev) => Math.max(1, prev - 1))}
-                        className="h-9 w-9 grid place-items-center text-[#888] hover:text-black"
+                        disabled={quickQuantity <= 1}
+                        className="h-9 w-9 grid place-items-center text-[#888] hover:text-black disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         <Minus className="h-4 w-4" />
                       </button>
                       <span className="w-8 text-center text-sm">{quickQuantity}</span>
-                      <button
-                        type="button"
-                        onClick={() => setQuickQuantity((prev) => prev + 1)}
-                        className="h-9 w-9 grid place-items-center text-[#888] hover:text-black"
-                      >
-                        <Plus className="h-4 w-4" />
-                      </button>
+                      <div className="relative group/plus">
+                        <button
+                          type="button"
+                          onClick={() => setQuickQuantity((prev) => Math.min(quickRemainingStockForSelection, prev + 1))}
+                          disabled={!quickSelectedSizeId || quickRemainingStockForSelection <= 0 || quickQuantity >= quickRemainingStockForSelection}
+                          className="h-9 w-9 grid place-items-center text-[#888] hover:text-black disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </button>
+                        {quickSelectedSizeId && quickRemainingStockForSelection > 0 && quickQuantity >= quickRemainingStockForSelection && (
+                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-black text-white text-[10px] font-light whitespace-nowrap opacity-0 group-hover/plus:opacity-100 transition-opacity pointer-events-none z-50 rounded">
+                            Maksimum stok sınırına ulaştınız
+                            <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-black"></div>
+                          </div>
+                        )}
+                      </div>
                     </div>
+                    {quickSelectedSizeId && quickRemainingStockForSelection > 0 && quickRemainingStockForSelection < 5 && (
+                      <span className="text-red-600 text-xs font-medium animate-pulse">
+                        Son {quickRemainingStockForSelection} ürün!
+                      </span>
+                    )}
                   </div>
 
                   <div className="mt-6 space-y-2.5">
                     <Button
                       onClick={handleQuickAddToCart}
-                      disabled={quickSubmitting}
-                      className="h-12 w-full rounded-none bg-black text-white hover:bg-black/90 tracking-[0.15em] text-xs"
+                      disabled={quickSubmitting || quickRemainingStockForSelection <= 0}
+                      className="h-12 w-full rounded-none bg-black text-white hover:bg-black/90 tracking-[0.15em] text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {quickSubmitting ? "EKLENIYOR" : "SEPETE EKLE"}
+                      {quickSubmitting ? "EKLENIYOR" : quickRemainingStockForSelection <= 0 && quickSelectedSizeId ? "STOK TÜKENDİ" : "SEPETE EKLE"}
                     </Button>
                     <Link
                       href={quickProductDetails.slug ? `/products/${quickProductDetails.slug}` : `/product/${quickProductDetails.id}`}

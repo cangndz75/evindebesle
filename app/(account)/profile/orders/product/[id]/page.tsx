@@ -197,22 +197,35 @@ export default function OrderDetailPage() {
         if (!order) return;
         setDownloading(true);
         try {
-            const response = await fetch(`/api/orders/${order.id}/invoice`);
-            if (!response.ok) throw new Error("Fatura indirilemedi");
+            const response = await fetch(`/api/orders/${order.id}/invoice`, { credentials: "same-origin" });
+            const contentType = response.headers.get("content-type") || "";
 
+            if (!response.ok) {
+                if (contentType.includes("application/json")) {
+                    const j = (await response.json().catch(() => null)) as { error?: string } | null;
+                    throw new Error(typeof j?.error === "string" ? j.error : "Fatura indirilemedi");
+                }
+                throw new Error("Fatura indirilemedi");
+            }
+
+            const ext = contentType.includes("text/html") ? "html" : "pdf";
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;
-            a.download = `fatura-${order.orderNumber}.pdf`;
+            a.download = `fatura-${order.orderNumber}.${ext}`;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
-            toast.success("Fatura indirildi");
+            toast.success(
+                ext === "html"
+                    ? "Fatura indirildi (HTML). Tarayıcıdan PDF olarak yazdırabilirsiniz."
+                    : "Fatura indirildi"
+            );
         } catch (error) {
             console.error("Download error:", error);
-            toast.error("Fatura indirilemedi");
+            toast.error(error instanceof Error ? error.message : "Fatura indirilemedi");
         } finally {
             setDownloading(false);
         }
@@ -292,7 +305,7 @@ export default function OrderDetailPage() {
                 </div>
                 <div className="flex items-center gap-3">
                     {getStatusBadge(order.status)}
-                    {(order.paymentStatus === "PAID" || order.paymentStatus === "SUCCEEDED") && (
+                    {(order.paymentStatus === "PAID" || order.paymentStatus === "SUCCEEDED" || order.status === "PAID") && (
                         <Button variant="outline" onClick={handleDownloadInvoice} disabled={downloading}>
                             {downloading ? "İndiriliyor..." : "Fatura İndir"}
                             <Download className="w-4 h-4 ml-2" />
@@ -426,15 +439,15 @@ export default function OrderDetailPage() {
                             </CardHeader>
                             <CardContent>
                                 {order.shippingAddress ? (
-                                    <div className="text-sm text-gray-600 space-y-1">
-                                        <p>{order.shippingAddress.fullAddress}</p>
-                                        <p>{order.shippingAddress.district?.name} / {order.shippingAddress.district?.city}</p>
+                                    <div className="text-sm text-gray-600 space-y-1 min-w-0">
+                                        <p className="wrap-break-word whitespace-pre-wrap">{order.shippingAddress.fullAddress}</p>
+                                        <p className="wrap-break-word">{order.shippingAddress.district?.name} / {order.shippingAddress.district?.city}</p>
                                     </div>
                                 ) : order.user?.fullAddress ? (
-                                    <div className="text-sm text-gray-600 space-y-1">
-                                        <p>{order.user.fullAddress}</p>
+                                    <div className="text-sm text-gray-600 space-y-1 min-w-0">
+                                        <p className="wrap-break-word whitespace-pre-wrap">{order.user.fullAddress}</p>
                                         {order.user.district && (
-                                            <p>{order.user.district.name} / {order.user.district.city}</p>
+                                            <p className="wrap-break-word">{order.user.district.name} / {order.user.district.city}</p>
                                         )}
                                     </div>
                                 ) : (

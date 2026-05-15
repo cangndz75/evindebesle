@@ -451,6 +451,8 @@ model ProductReview {
   userName   String?
   rating     Int
   comment    String?
+  images     String[]      @default([])
+  hasImages  Boolean       @default(false)
   isApproved Boolean       @default(false)
   createdAt  DateTime      @default(now())
   updatedAt  DateTime      @updatedAt

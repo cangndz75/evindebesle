@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import ProductReviewModal from "@/components/product/ProductReviewModal";
+import Image from "next/image";
 
 type Review = {
   id: string;
@@ -19,6 +20,7 @@ type Review = {
   title: string;
   comment: string;
   date: string;
+  images: string[];
   usualSize: string;
   size: string;
   height: string;
@@ -54,7 +56,7 @@ interface ProductReviewsProps {
   productName?: string;
   productImage?: string | null;
   selectedColorId?: string;
-  reviews?: { id: string; userName: string; rating: number; comment: string; createdAt: Date | string; colorId?: string; colorName?: string }[];
+  reviews?: { id: string; userName: string; rating: number; comment: string; images?: string[]; createdAt: Date | string; colorId?: string; colorName?: string }[];
   hasOrdered?: boolean;
   hasReviewed?: boolean;
 }
@@ -88,6 +90,7 @@ export default function ProductReviews({ productId, productName = "Ürün", prod
       title: r.comment?.substring(0, 50) || "",
       comment: r.comment || "",
       date: formatDate(r.createdAt),
+      images: r.images || [],
       usualSize: "",
       size: "",
       height: "",
@@ -335,36 +338,88 @@ export default function ProductReviews({ productId, productName = "Ürün", prod
 }
 
 function ReviewCard({ review }: { review: Review }) {
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+
   return (
-    <div className="border-b border-gray-200 pb-8 last:border-b-0">
-      <div className="flex items-start justify-between mb-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <h3 className="text-base font-medium text-black">{review.reviewerName}</h3>
-            {review.isVerified && (
-              <div className="flex items-center gap-1 text-xs text-gray-600">
-                <Check className="w-3 h-3" />
-                <span>Doğrulanmış Alıcı</span>
-              </div>
-            )}
+    <>
+      <div className="border-b border-gray-200 pb-8 last:border-b-0">
+        <div className="flex items-start justify-between mb-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="text-base font-medium text-black">{review.reviewerName}</h3>
+              {review.isVerified && (
+                <div className="flex items-center gap-1 text-xs text-gray-600">
+                  <Check className="w-3 h-3" />
+                  <span>Doğrulanmış Alıcı</span>
+                </div>
+              )}
+            </div>
+            <div className="flex gap-1 mb-2">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Star
+                  key={star}
+                  className={`w-4 h-4 ${star <= review.rating ? "fill-black text-black" : "text-gray-300"
+                    }`}
+                />
+              ))}
+            </div>
           </div>
-          <div className="flex gap-1 mb-2">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <Star
-                key={star}
-                className={`w-4 h-4 ${star <= review.rating ? "fill-black text-black" : "text-gray-300"
-                  }`}
-              />
+          <span className="text-xs text-gray-600 font-light">{review.date}</span>
+        </div>
+
+        {review.title && (
+          <h4 className="text-sm font-medium text-black mb-2">{review.title}</h4>
+        )}
+        <p className="text-sm text-gray-700 font-light mb-4">{review.comment}</p>
+
+        {review.images && review.images.length > 0 && (
+          <div className="flex gap-2 flex-wrap">
+            {review.images.map((img, idx) => (
+              <button
+                key={idx}
+                onClick={() => { setLightboxIndex(idx); setLightboxOpen(true); }}
+                className="relative w-20 h-20 rounded-lg overflow-hidden border border-gray-200 hover:border-black transition-colors"
+              >
+                <Image src={img} alt={`Yorum fotoğrafı ${idx + 1}`} fill className="object-cover" />
+              </button>
             ))}
           </div>
-        </div>
-        <span className="text-xs text-gray-600 font-light">{review.date}</span>
+        )}
       </div>
 
-      {review.title && (
-        <h4 className="text-sm font-medium text-black mb-2">{review.title}</h4>
+      {review.images && review.images.length > 0 && (
+        <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
+          <DialogContent className="max-w-2xl p-2 sm:p-4">
+            <DialogHeader className="sr-only">
+              <DialogTitle>Yorum Fotoğrafı</DialogTitle>
+            </DialogHeader>
+            <div className="relative w-full aspect-square max-h-[70vh] rounded-lg overflow-hidden bg-gray-100">
+              <Image
+                src={review.images[lightboxIndex]}
+                alt="Yorum fotoğrafı"
+                fill
+                className="object-contain"
+              />
+            </div>
+            {review.images.length > 1 && (
+              <div className="flex justify-center gap-2 mt-2">
+                {review.images.map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setLightboxIndex(idx)}
+                    className={`relative w-14 h-14 rounded-lg overflow-hidden border-2 transition-colors ${
+                      idx === lightboxIndex ? "border-black" : "border-gray-200"
+                    }`}
+                  >
+                    <Image src={img} alt={`Küçük resim ${idx + 1}`} fill className="object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       )}
-      <p className="text-sm text-gray-700 font-light mb-4">{review.comment}</p>
-    </div>
+    </>
   );
 }

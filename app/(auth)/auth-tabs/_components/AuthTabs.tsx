@@ -80,7 +80,8 @@ export default function AuthTabs() {
 
         toast.success("Giriş başarılı!");
         const isAdmin = session.user?.isAdmin === true;
-        const redirectUrl = isAdmin ? "/dashboard" : "/home";
+        const mfaPending = session.user?.mfaPending === true;
+        const redirectUrl = isAdmin && mfaPending ? "/mfa-verify" : isAdmin ? "/dashboard" : "/home";
         window.location.href = redirectUrl;
       } catch {
         toast.error("Giriş sırasında bir hata oluştu. Lütfen tekrar deneyin.");

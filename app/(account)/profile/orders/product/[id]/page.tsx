@@ -305,7 +305,7 @@ export default function OrderDetailPage() {
                 </div>
                 <div className="flex items-center gap-3">
                     {getStatusBadge(order.status)}
-                    {(order.paymentStatus === "PAID" || order.paymentStatus === "SUCCEEDED" || order.status === "PAID") && (
+                    {(order.paymentStatus === "PAID" || order.paymentStatus === "SUCCEEDED") && (
                         <Button variant="outline" onClick={handleDownloadInvoice} disabled={downloading}>
                             {downloading ? "İndiriliyor..." : "Fatura İndir"}
                             <Download className="w-4 h-4 ml-2" />

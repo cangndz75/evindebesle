@@ -29,6 +29,7 @@ import {
   Users,
   Loader2,
   Upload,
+  MessageSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePathname } from "next/navigation";
@@ -174,6 +175,11 @@ const navSections = [
         href: "/admin-customers",
         icon: <User className="w-5 h-5" />,
       },
+      {
+        label: "Yorumlar",
+        href: "/admin-reviews",
+        icon: <MessageSquare className="w-5 h-5" />,
+      },
     ],
   },
 
@@ -229,7 +235,19 @@ export default function AdminLayout({
   const { data: session, status } = useSession();
   const [open, setOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [pendingReviewCount, setPendingReviewCount] = useState(0);
   const isCampaignsPage = pathname === "/campaigns";
+
+  useEffect(() => {
+    if (session?.user?.isAdmin) {
+      fetch("/api/admin-reviews?status=pending&countOnly=true")
+        .then((res) => res.json())
+        .then((data) => {
+          if (typeof data.count === "number") setPendingReviewCount(data.count);
+        })
+        .catch(() => {});
+    }
+  }, [session, pathname]);
 
   useEffect(() => {
     if (status === "loading") return;
@@ -325,6 +343,7 @@ export default function AdminLayout({
               <nav className="space-y-1">
                 {section.links.map(({ label, href, icon }) => {
                   const isActive = pathname === href;
+                  const showBadge = href === "/admin-reviews" && pendingReviewCount > 0;
                   return (
                     <Link
                       key={`${section.title}-${label}-${href}`}
@@ -336,8 +355,24 @@ export default function AdminLayout({
                         }`}
                       title={sidebarCollapsed ? label : undefined}
                     >
-                      <span className="flex-shrink-0">{icon}</span>
-                      {!sidebarCollapsed && <span className="whitespace-nowrap">{label}</span>}
+                      <span className="flex-shrink-0 relative">
+                        {icon}
+                        {sidebarCollapsed && showBadge && (
+                          <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                            {pendingReviewCount}
+                          </span>
+                        )}
+                      </span>
+                      {!sidebarCollapsed && (
+                        <span className="whitespace-nowrap flex items-center gap-2">
+                          {label}
+                          {showBadge && (
+                            <span className="bg-red-500 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none">
+                              {pendingReviewCount}
+                            </span>
+                          )}
+                        </span>
+                      )}
                     </Link>
                   );
                 })}
@@ -385,17 +420,27 @@ export default function AdminLayout({
                 {section.title}
               </h3>
               <nav className="space-y-2">
-                {section.links.map(({ label, href, icon }) => (
-                  <Link
-                    key={`${section.title}-${label}-${href}`}
-                    href={href}
-                    onClick={() => setOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-base hover:bg-gray-800 transition-colors"
-                  >
-                    {icon}
-                    {label}
-                  </Link>
-                ))}
+                {section.links.map(({ label, href, icon }) => {
+                  const showMobileBadge = href === "/admin-reviews" && pendingReviewCount > 0;
+                  return (
+                    <Link
+                      key={`${section.title}-${label}-${href}`}
+                      href={href}
+                      onClick={() => setOpen(false)}
+                      className="flex items-center gap-3 px-3 py-2 rounded-lg text-base hover:bg-gray-800 transition-colors"
+                    >
+                      {icon}
+                      <span className="flex items-center gap-2">
+                        {label}
+                        {showMobileBadge && (
+                          <span className="bg-red-500 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none">
+                            {pendingReviewCount}
+                          </span>
+                        )}
+                      </span>
+                    </Link>
+                  );
+                })}
               </nav>
             </div>
           ))}

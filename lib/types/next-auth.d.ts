@@ -6,6 +6,7 @@ declare module "next-auth" {
       id: string;
       isAdmin: boolean;
       adminMfaEnabled?: boolean;
+      mfaPending?: boolean;
       name?: string | null;
       email?: string | null;
       image?: string | null;
@@ -19,5 +20,6 @@ declare module "next-auth" {
     id: string
     isAdmin: boolean
     adminMfaEnabled?: boolean
+    mfaPending?: boolean
   }
 }

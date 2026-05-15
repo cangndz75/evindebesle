@@ -4,6 +4,32 @@ import { v2 as cloudinary } from "cloudinary";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+
+const IMAGE_SIGNATURES: { mime: string; magic: number[]; offset?: number; extra?: { bytes: number[]; offset: number } }[] = [
+  { mime: "image/jpeg", magic: [0xff, 0xd8, 0xff] },
+  { mime: "image/png", magic: [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a] },
+  { mime: "image/gif", magic: [0x47, 0x49, 0x46, 0x38] },
+  { mime: "image/webp", magic: [0x52, 0x49, 0x46, 0x46], extra: { bytes: [0x57, 0x45, 0x42, 0x50], offset: 8 } },
+];
+
+function detectImageMime(buf: Buffer): string | null {
+  for (const sig of IMAGE_SIGNATURES) {
+    const off = sig.offset ?? 0;
+    if (buf.length < off + sig.magic.length) continue;
+    const matches = sig.magic.every((b, i) => buf[off + i] === b);
+    if (!matches) continue;
+
+    if (sig.extra) {
+      const { bytes, offset } = sig.extra;
+      if (buf.length < offset + bytes.length) continue;
+      if (!bytes.every((b, i) => buf[offset + i] === b)) continue;
+    }
+    return sig.mime;
+  }
+  return null;
+}
+
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -48,11 +74,26 @@ export async function POST(req: NextRequest) {
       buffer = Buffer.from(arrayBuffer);
     }
 
+    if (buffer.length > MAX_FILE_SIZE) {
+      return NextResponse.json(
+        { error: "Dosya boyutu 10 MB sınırını aşıyor." },
+        { status: 400 },
+      );
+    }
+
+    const detectedMime = detectImageMime(buffer);
+    if (!detectedMime) {
+      return NextResponse.json(
+        { error: "Yalnızca JPEG, PNG, GIF ve WebP formatları kabul edilmektedir." },
+        { status: 400 },
+      );
+    }
+
     const res = await new Promise<{ secure_url: string }>((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
           folder: "darkvelvet",
-          resource_type: "auto",
+          resource_type: "image",
           quality: "auto:good",
           fetch_format: "auto",
           width: 2000,
@@ -77,7 +118,6 @@ export async function POST(req: NextRequest) {
       uploadStream.end(buffer);
     });
 
-    console.log("Cloudinary upload successful:", res.secure_url);
     return NextResponse.json({ url: res.secure_url });
   } catch (e: any) {
     console.error("Global upload error:", e);

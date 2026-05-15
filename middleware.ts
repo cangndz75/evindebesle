@@ -49,6 +49,7 @@ export async function middleware(request: NextRequest) {
       "/api/verify-otp",
       "/api/checkout/initialize",
       "/api/payment/auth",
+      "/api/auth/callback/credentials",
     ].some((path) => pathname.startsWith(path));
 
     const isProtectedAdminPath = isAdminPagePath(pathname);
@@ -95,6 +96,22 @@ export async function middleware(request: NextRequest) {
           loginUrl.searchParams.set("callbackUrl", pathname);
           return applyNoStoreHeaders(NextResponse.redirect(loginUrl));
         }
+      }
+
+      const isMfaVerifyPath = pathname === "/mfa-verify" || pathname.startsWith("/mfa-verify/");
+      const isMfaVerifyApi = pathname.startsWith("/api/admin/mfa/verify-login");
+      if (token.mfaPending && !isMfaVerifyPath && !isMfaVerifyApi) {
+        if (isProtectedAdminApiPath) {
+          return applyNoStoreHeaders(
+            NextResponse.json(
+              { error: "MFA verification required", code: "MFA_PENDING" },
+              { status: 403 }
+            )
+          );
+        }
+        return applyNoStoreHeaders(
+          NextResponse.redirect(new URL("/mfa-verify", request.url))
+        );
       }
     }
 

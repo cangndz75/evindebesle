@@ -1,4 +1,4 @@
-﻿import { prisma } from "@/lib/db";
+import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { productId, rating, comment } = body;
+        const { productId, rating, comment, images } = body;
 
         if (!productId || !rating) {
             return NextResponse.json(
@@ -38,6 +38,9 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        const reviewImages = Array.isArray(images) ? images.filter((url: string) => typeof url === "string" && url.length > 0) : [];
+        const hasImages = reviewImages.length > 0;
+        const shouldAutoApprove = !hasImages;
 
         const review = await prisma.productReview.create({
             data: {
@@ -46,7 +49,9 @@ export async function POST(request: NextRequest) {
                 userName: session.user.name || "Kullanıcı",
                 rating: Number(rating),
                 comment: comment || "",
-                isApproved: true, // Geliştirme aşamasında otomatik onay
+                images: reviewImages,
+                hasImages,
+                isApproved: shouldAutoApprove,
             },
             include: {
                 product: {
@@ -57,14 +62,22 @@ export async function POST(request: NextRequest) {
             },
         });
 
+        const notifMessage = hasImages
+            ? `${session.user.name || session.user.email} "${review.product.name}" ürününe fotoğraflı yorum yaptı. Onay bekliyor.`
+            : `${session.user.name || session.user.email} "${review.product.name}" ürününe ${rating}/5 puan verdi.`;
+
         await createAdminNotification({
             type: "REVIEW",
-            title: "Yeni Yorum",
-            message: `${session.user.name || session.user.email} "${review.product.name}" ürününe ${rating}/5 puan verdi.`,
-            link: "/admin-products",
+            title: hasImages ? "Fotoğraflı Yorum - Onay Bekliyor" : "Yeni Yorum",
+            message: notifMessage,
+            link: hasImages ? "/admin-reviews" : "/admin-products",
         });
 
-        return NextResponse.json({ success: true, review });
+        return NextResponse.json({
+            success: true,
+            review,
+            pendingApproval: hasImages,
+        });
     } catch (error: any) {
         console.error("Review creation error:", error);
         return NextResponse.json(

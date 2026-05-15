@@ -8,8 +8,10 @@ import { clearRedisCart, persistRedisCartToDatabase } from "@/lib/cart-redis";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { finalizePayment } from "@/lib/services/payment";
+import { calculateShippingCost } from "@/lib/shipping";
 import crypto from "crypto";
 import { detectCardDataInPayload } from "@/lib/security/pci";
+import { CheckoutSchema } from "@/lib/validation/checkout";
 
 export async function POST(req: Request) {
     const idemScope = "checkout.initialize";
@@ -40,7 +42,14 @@ export async function POST(req: Request) {
             );
         }
 
-        const body = await req.json();
+        const rawBody = await req.json();
+
+        const parsed = CheckoutSchema.safeParse(rawBody);
+        if (!parsed.success) {
+            const firstError = parsed.error.errors[0]?.message || "Geçersiz istek verisi.";
+            return NextResponse.json({ error: firstError }, { status: 400 });
+        }
+        const body = parsed.data;
 
         const cardDataFindings = detectCardDataInPayload(body);
         if (cardDataFindings.length > 0) {
@@ -50,13 +59,6 @@ export async function POST(req: Request) {
                     message: "Doğrudan kart verisi gönderimi yasaktır. Hosted checkout akışını kullanın.",
                     rejectedFields: cardDataFindings.slice(0, 5),
                 },
-                { status: 400 }
-            );
-        }
-
-        if (body?.acceptDistanceSalesContract !== true) {
-            return NextResponse.json(
-                { error: "Mesafeli sat\u0131\u015f s\u00f6zle\u015fmesini onaylaman\u0131z gerekir." },
                 { status: 400 }
             );
         }
@@ -389,7 +391,7 @@ export async function POST(req: Request) {
             });
         }
 
-        const shipping = Number(body.shippingPrice || 0);
+        const shipping = await calculateShippingCost(subtotal);
 
         let shippingAddressId: string | null = selectedAddressRecord?.id || null;
         let billingAddressId: string | null = selectedAddressRecord?.id || null;

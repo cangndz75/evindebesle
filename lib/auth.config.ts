@@ -107,6 +107,7 @@ export const authConfig: AuthOptions = {
           name: user.name,
           isAdmin: user.isAdmin,
           adminMfaEnabled: Boolean(user.adminMfaEnabled),
+          mfaPending: user.isAdmin && Boolean(user.adminMfaEnabled),
           districtId: user.districtId,
           fullAddress: user.fullAddress,
           isTestUser: user.isTestUser ?? false,
@@ -139,13 +140,19 @@ export const authConfig: AuthOptions = {
       session.user.name = token.name ?? session.user.name;
       session.user.isAdmin = Boolean(token.isAdmin);
       session.user.adminMfaEnabled = Boolean(token.adminMfaEnabled);
+      session.user.mfaPending = Boolean(token.mfaPending);
       session.user.districtId = token.districtId;
       session.user.fullAddress = token.fullAddress;
       session.user.isTestUser = Boolean(token.isTestUser);
       session.adminSessionExpired = token.adminSessionExpired || null;
       return session;
     },
-    async jwt({ token, user }: { token: any; user?: any }) {
+    async jwt({ token, user, trigger, session: updatePayload }: { token: any; user?: any; trigger?: string; session?: any }) {
+      if (trigger === "update" && updatePayload?.mfaVerified === true) {
+        token.mfaPending = false;
+        return token;
+      }
+
       if (user) {
         const id = typeof user.id === "string" ? user.id : String(user.id);
         token.sub = id;
@@ -153,6 +160,7 @@ export const authConfig: AuthOptions = {
         token.name = user.name ?? null;
         token.isAdmin = Boolean(user.isAdmin);
         token.adminMfaEnabled = Boolean(user.adminMfaEnabled);
+        token.mfaPending = Boolean(user.mfaPending);
         token.districtId = user.districtId ?? null;
         token.fullAddress = user.fullAddress ?? null;
         token.isTestUser = user.isTestUser ?? false;
@@ -232,6 +240,41 @@ export const authConfig: AuthOptions = {
       }
 
       return token;
+    },
+  },
+  cookies: {
+    sessionToken: {
+      name: process.env.NODE_ENV === "production"
+        ? "__Secure-next-auth.session-token"
+        : "next-auth.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax" as const,
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+    csrfToken: {
+      name: process.env.NODE_ENV === "production"
+        ? "__Host-next-auth.csrf-token"
+        : "next-auth.csrf-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax" as const,
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+    callbackUrl: {
+      name: process.env.NODE_ENV === "production"
+        ? "__Secure-next-auth.callback-url"
+        : "next-auth.callback-url",
+      options: {
+        httpOnly: true,
+        sameSite: "lax" as const,
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
     },
   },
   pages: {

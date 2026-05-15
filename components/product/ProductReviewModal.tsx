@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
     Dialog,
     DialogContent,
@@ -12,8 +12,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Star } from "lucide-react";
+import { Star, Camera, X, Loader2 } from "lucide-react";
 import Image from "next/image";
+import { uploadFileToCloudinary } from "@/lib/cloudinary";
 
 interface ProductReviewModalProps {
     isOpen: boolean;
@@ -23,6 +24,8 @@ interface ProductReviewModalProps {
     productImage: string | null;
     onReviewSubmitted: () => void;
 }
+
+const MAX_IMAGES = 5;
 
 export default function ProductReviewModal({
     isOpen,
@@ -36,6 +39,47 @@ export default function ProductReviewModal({
     const [comment, setComment] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const [hoverRating, setHoverRating] = useState<number>(0);
+    const [selectedImages, setSelectedImages] = useState<File[]>([]);
+    const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        if (files.length === 0) return;
+
+        const remaining = MAX_IMAGES - selectedImages.length;
+        if (remaining <= 0) {
+            toast.error(`En fazla ${MAX_IMAGES} fotoğraf ekleyebilirsiniz`);
+            return;
+        }
+
+        const newFiles = files.slice(0, remaining);
+        const validFiles = newFiles.filter((file) => {
+            if (!file.type.startsWith("image/")) {
+                toast.error(`"${file.name}" geçerli bir görsel değil`);
+                return false;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error(`"${file.name}" 5MB'dan büyük`);
+                return false;
+            }
+            return true;
+        });
+
+        if (validFiles.length === 0) return;
+
+        const newPreviews = validFiles.map((file) => URL.createObjectURL(file));
+        setSelectedImages((prev) => [...prev, ...validFiles]);
+        setImagePreviews((prev) => [...prev, ...newPreviews]);
+
+        if (fileInputRef.current) fileInputRef.current.value = "";
+    };
+
+    const removeImage = (index: number) => {
+        URL.revokeObjectURL(imagePreviews[index]);
+        setSelectedImages((prev) => prev.filter((_, i) => i !== index));
+        setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+    };
 
     const handleSubmit = async () => {
         if (rating === 0) {
@@ -46,6 +90,21 @@ export default function ProductReviewModal({
         setSubmitting(true);
 
         try {
+            let uploadedUrls: string[] = [];
+
+            if (selectedImages.length > 0) {
+                toast.info("Fotoğraflar yükleniyor...");
+                const uploadPromises = selectedImages.map((file) => uploadFileToCloudinary(file));
+                const results = await Promise.all(uploadPromises);
+                uploadedUrls = results.filter((url): url is string => url !== null);
+
+                if (uploadedUrls.length !== selectedImages.length) {
+                    toast.error("Bazı fotoğraflar yüklenemedi, lütfen tekrar deneyin");
+                    setSubmitting(false);
+                    return;
+                }
+            }
+
             const res = await fetch("/api/product-reviews", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -53,6 +112,7 @@ export default function ProductReviewModal({
                     productId,
                     rating,
                     comment,
+                    images: uploadedUrls,
                 }),
             });
 
@@ -67,7 +127,11 @@ export default function ProductReviewModal({
                 throw new Error(data.error || "Bir hata oluştu");
             }
 
-            toast.success("Yorumunuz başarıyla gönderildi");
+            if (data.pendingApproval) {
+                toast.success("Fotoğraflı yorumunuz admin onayına gönderildi");
+            } else {
+                toast.success("Yorumunuz başarıyla gönderildi");
+            }
             onReviewSubmitted();
             handleClose();
         } catch (error: any) {
@@ -81,12 +145,15 @@ export default function ProductReviewModal({
         setRating(0);
         setComment("");
         setHoverRating(0);
+        imagePreviews.forEach((url) => URL.revokeObjectURL(url));
+        setSelectedImages([]);
+        setImagePreviews([]);
         onClose();
     };
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-            <DialogContent className="max-w-md">
+            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Ürünü Değerlendir</DialogTitle>
                     <DialogDescription>
@@ -115,7 +182,6 @@ export default function ProductReviewModal({
                 </div>
 
                 <div className="space-y-6 pt-4">
-                    
                     <div className="flex flex-col items-center gap-2">
                         <Label>Puanınız</Label>
                         <div className="flex gap-2">
@@ -148,7 +214,6 @@ export default function ProductReviewModal({
                         )}
                     </div>
 
-                    
                     <div className="space-y-2">
                         <Label htmlFor="comment">Yorumunuz (İsteğe bağlı)</Label>
                         <Textarea
@@ -161,12 +226,68 @@ export default function ProductReviewModal({
                         />
                     </div>
 
+                    <div className="space-y-2">
+                        <Label>Fotoğraf Ekle (İsteğe bağlı)</Label>
+                        <p className="text-xs text-muted-foreground">
+                            Fotoğraflı yorumlar admin onayından sonra yayınlanır. En fazla {MAX_IMAGES} fotoğraf.
+                        </p>
+
+                        {imagePreviews.length > 0 && (
+                            <div className="flex gap-2 flex-wrap">
+                                {imagePreviews.map((preview, index) => (
+                                    <div key={index} className="relative w-20 h-20 rounded-lg overflow-hidden border border-gray-200 group">
+                                        <Image
+                                            src={preview}
+                                            alt={`Fotoğraf ${index + 1}`}
+                                            fill
+                                            className="object-cover"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => removeImage(index)}
+                                            className="absolute top-0.5 right-0.5 bg-black/60 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                                        >
+                                            <X className="w-3 h-3" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {selectedImages.length < MAX_IMAGES && (
+                            <button
+                                type="button"
+                                onClick={() => fileInputRef.current?.click()}
+                                className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-lg text-sm text-gray-600 hover:border-gray-400 hover:text-gray-800 transition-colors w-full justify-center"
+                            >
+                                <Camera className="w-4 h-4" />
+                                Fotoğraf Seç
+                            </button>
+                        )}
+
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={handleImageSelect}
+                            className="hidden"
+                        />
+                    </div>
+
                     <div className="flex justify-end gap-3 pt-2">
                         <Button variant="outline" onClick={handleClose} disabled={submitting}>
                             Vazgeç
                         </Button>
                         <Button onClick={handleSubmit} disabled={submitting || rating === 0}>
-                            {submitting ? "Gönderiliyor..." : "Yorumu Gönder"}
+                            {submitting ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    Gönderiliyor...
+                                </>
+                            ) : (
+                                "Yorumu Gönder"
+                            )}
                         </Button>
                     </div>
                 </div>

@@ -83,6 +83,14 @@ export function toOrderDetailDTO(order: AnyRecord) {
     currency: order.currency,
     createdAt: order.createdAt,
     trackingNumber: order.trackingNumber ?? null,
+    cargoCompany: order.cargoCompany
+      ? {
+          id: order.cargoCompany.id,
+          name: order.cargoCompany.name,
+          code: order.cargoCompany.code,
+          trackingUrl: order.cargoCompany.trackingUrl ?? null,
+        }
+      : null,
     paymentMethod: order.payment?.provider ?? null,
     items: (order.items || []).map((item: AnyRecord) => ({
       id: item.id,

@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Edit2, Plus, RefreshCw, Trash2 } from "lucide-react";
+import { Edit2, Plus, RefreshCw, Trash2, Truck } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 
 interface CompanySettings {
@@ -100,6 +100,20 @@ export default function CompanySettingsClient() {
   const [faqDrafts, setFaqDrafts] = useState<FAQDraft[]>([{ question: "", answer: "" }]);
   const [editingFaqId, setEditingFaqId] = useState<string | null>(null);
 
+  type CargoCompanyRow = {
+    id: number;
+    name: string;
+    code: string;
+    trackingUrl: string | null;
+    isActive: boolean;
+    _count?: { orders: number };
+  };
+  const [cargoCompanies, setCargoCompanies] = useState<CargoCompanyRow[]>([]);
+  const [cargoLoading, setCargoLoading] = useState(false);
+  const [cargoSaving, setCargoSaving] = useState(false);
+  const [editingCargoId, setEditingCargoId] = useState<number | null>(null);
+  const [cargoDraft, setCargoDraft] = useState({ name: "", code: "", trackingUrl: "" });
+
   useEffect(() => {
     const loadSettings = async () => {
       try {
@@ -151,6 +165,27 @@ export default function CompanySettingsClient() {
     };
 
     loadSettings();
+  }, []);
+
+  const loadCargoCompanies = async () => {
+    try {
+      setCargoLoading(true);
+      const res = await fetch("/api/admin/cargo-companies");
+      if (!res.ok) {
+        toast.error("Kargo firmaları yüklenemedi");
+        return;
+      }
+      const data = await res.json();
+      setCargoCompanies(Array.isArray(data.companies) ? data.companies : []);
+    } catch {
+      toast.error("Kargo firmaları yüklenemedi");
+    } finally {
+      setCargoLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadCargoCompanies();
   }, []);
 
   const loadFaqs = async () => {
@@ -380,6 +415,116 @@ export default function CompanySettingsClient() {
     }
   };
 
+  const resetCargoDraft = () => {
+    setEditingCargoId(null);
+    setCargoDraft({ name: "", code: "", trackingUrl: "" });
+  };
+
+  const startEditCargo = (c: CargoCompanyRow) => {
+    setEditingCargoId(c.id);
+    setCargoDraft({
+      name: c.name,
+      code: c.code,
+      trackingUrl: c.trackingUrl || "",
+    });
+  };
+
+  const saveCargoCompany = async () => {
+    const name = cargoDraft.name.trim();
+    const code = cargoDraft.code.trim().toLowerCase().replace(/\s+/g, "-");
+    if (!name) {
+      toast.error("Firma adı girin");
+      return;
+    }
+    if (!code) {
+      toast.error("Sistem kodu girin (ör. aras)");
+      return;
+    }
+    try {
+      setCargoSaving(true);
+      if (editingCargoId != null) {
+        const res = await fetch(`/api/admin/cargo-companies/${editingCargoId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name,
+            code,
+            trackingUrl: cargoDraft.trackingUrl.trim() || null,
+          }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          toast.error(
+            typeof data?.message === "string" ? data.message : data?.error || "Güncellenemedi"
+          );
+          return;
+        }
+        toast.success("Kargo firması güncellendi");
+      } else {
+        const res = await fetch("/api/admin/cargo-companies", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name,
+            code,
+            trackingUrl: cargoDraft.trackingUrl.trim() || null,
+            isActive: true,
+          }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          toast.error(
+            typeof data?.message === "string" ? data.message : data?.error || "Eklenemedi"
+          );
+          return;
+        }
+        toast.success("Kargo firması eklendi");
+      }
+      await loadCargoCompanies();
+      resetCargoDraft();
+    } catch {
+      toast.error("İşlem başarısız");
+    } finally {
+      setCargoSaving(false);
+    }
+  };
+
+  const toggleCargoCompany = async (c: CargoCompanyRow, isActive: boolean) => {
+    try {
+      const res = await fetch(`/api/admin/cargo-companies/${c.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive }),
+      });
+      if (!res.ok) {
+        toast.error("Durum güncellenemedi");
+        return;
+      }
+      setCargoCompanies((prev) => prev.map((x) => (x.id === c.id ? { ...x, isActive } : x)));
+      toast.success("Güncellendi");
+    } catch {
+      toast.error("Durum güncellenemedi");
+    }
+  };
+
+  const deleteCargoCompany = async (c: CargoCompanyRow) => {
+    try {
+      const res = await fetch(`/api/admin/cargo-companies/${c.id}`, { method: "DELETE" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(typeof data?.message === "string" ? data.message : data?.error || "Silinemedi");
+        return;
+      }
+      setCargoCompanies((prev) => prev.filter((x) => x.id !== c.id));
+      if (editingCargoId === c.id) {
+        resetCargoDraft();
+      }
+      toast.success("Silindi");
+    } catch {
+      toast.error("Silinemedi");
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="p-8">
@@ -474,7 +619,103 @@ export default function CompanySettingsClient() {
 
         <Separator />
 
-        
+        <div className="space-y-4">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="text-xl font-semibold flex items-center gap-2">
+                <Truck className="w-5 h-5" />
+                Kargo Firmaları
+              </h2>
+              <p className="text-sm text-gray-600 mt-1">
+                Siparişlerde görünen taşıyıcı adı ve takip bağlantı şablonu. Takip URL&apos;sinde{" "}
+                <code className="text-xs bg-gray-100 px-1 rounded">{"{trackingNumber}"}</code> yer tutucusunu
+                kullanabilirsiniz.
+              </p>
+            </div>
+            <Button type="button" variant="outline" size="sm" onClick={() => loadCargoCompanies()}>
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Yenile
+            </Button>
+          </div>
+
+          <div className="rounded-lg border p-4 space-y-3 bg-white">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="space-y-2 md:col-span-1">
+                <Label>Görünen ad</Label>
+                <Input
+                  value={cargoDraft.name}
+                  onChange={(e) => setCargoDraft((d) => ({ ...d, name: e.target.value }))}
+                  placeholder="Örn: Aras Kargo"
+                />
+              </div>
+              <div className="space-y-2 md:col-span-1">
+                <Label>Sistem kodu</Label>
+                <Input
+                  value={cargoDraft.code}
+                  onChange={(e) => setCargoDraft((d) => ({ ...d, code: e.target.value }))}
+                  placeholder="örn: aras"
+                />
+              </div>
+              <div className="space-y-2 md:col-span-1">
+                <Label>Takip URL şablonu (isteğe bağlı)</Label>
+                <Input
+                  value={cargoDraft.trackingUrl}
+                  onChange={(e) => setCargoDraft((d) => ({ ...d, trackingUrl: e.target.value }))}
+                  placeholder="https://...?no={trackingNumber}"
+                />
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button type="button" onClick={saveCargoCompany} disabled={cargoSaving}>
+                {cargoSaving ? "Kaydediliyor..." : editingCargoId != null ? "Firmayı Güncelle" : "Firma Ekle"}
+              </Button>
+              {editingCargoId != null && (
+                <Button type="button" variant="outline" onClick={resetCargoDraft}>
+                  İptal
+                </Button>
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-lg border bg-white overflow-auto">
+            {cargoLoading ? (
+              <div className="p-4 text-sm text-gray-500">Yükleniyor...</div>
+            ) : cargoCompanies.length === 0 ? (
+              <div className="p-4 text-sm text-gray-500">Henüz kargo firması yok.</div>
+            ) : (
+              <div className="divide-y min-w-[520px]">
+                {cargoCompanies.map((c) => (
+                  <div key={c.id} className="p-3 flex flex-wrap items-center justify-between gap-3">
+                    <div className="min-w-0 space-y-1">
+                      <div className="font-medium text-sm">{c.name}</div>
+                      <div className="text-xs text-gray-500 font-mono">{c.code}</div>
+                      {c.trackingUrl && (
+                        <div className="text-xs text-gray-500 truncate max-w-md" title={c.trackingUrl}>
+                          {c.trackingUrl}
+                        </div>
+                      )}
+                      {typeof c._count?.orders === "number" && (
+                        <div className="text-xs text-gray-400">{c._count.orders} sipariş</div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Switch checked={c.isActive} onCheckedChange={(v) => toggleCargoCompany(c, v)} />
+                      <Button type="button" variant="outline" size="sm" onClick={() => startEditCargo(c)}>
+                        <Edit2 className="w-4 h-4" />
+                      </Button>
+                      <Button type="button" variant="outline" size="sm" onClick={() => deleteCargoCompany(c)}>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <Separator />
+
         <div className="space-y-4">
           <div>
             <h2 className="text-xl font-semibold">Fatura Bilgileri</h2>

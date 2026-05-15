@@ -63,7 +63,15 @@ export async function GET(
                     select: {
                         provider: true,
                     },
-                }
+                },
+                cargoCompany: {
+                    select: {
+                        id: true,
+                        name: true,
+                        code: true,
+                        trackingUrl: true,
+                    },
+                },
             },
         });
 

@@ -68,6 +68,12 @@ interface OrderDetail {
         contactPhone: string;
     } | null;
     trackingNumber: string | null;
+    cargoCompany: {
+        id: number;
+        name: string;
+        code: string;
+        trackingUrl: string | null;
+    } | null;
     user: {
         fullAddress: string | null;
         district: {
@@ -112,7 +118,6 @@ export default function OrderDetailPage() {
     const router = useRouter();
     const [order, setOrder] = useState<OrderDetail | null>(null);
     const [loading, setLoading] = useState(true);
-    const [downloading, setDownloading] = useState(false);
 
     const [reviewModalOpen, setReviewModalOpen] = useState(false);
     const [reviewViewModalOpen, setReviewViewModalOpen] = useState(false);
@@ -193,44 +198,6 @@ export default function OrderDetailPage() {
             .catch(() => setCurrentReturnRequest(null));
     }, [order]);
 
-    const handleDownloadInvoice = async () => {
-        if (!order) return;
-        setDownloading(true);
-        try {
-            const response = await fetch(`/api/orders/${order.id}/invoice`, { credentials: "same-origin" });
-            const contentType = response.headers.get("content-type") || "";
-
-            if (!response.ok) {
-                if (contentType.includes("application/json")) {
-                    const j = (await response.json().catch(() => null)) as { error?: string } | null;
-                    throw new Error(typeof j?.error === "string" ? j.error : "Fatura indirilemedi");
-                }
-                throw new Error("Fatura indirilemedi");
-            }
-
-            const ext = contentType.includes("text/html") ? "html" : "pdf";
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = `fatura-${order.orderNumber}.${ext}`;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-            toast.success(
-                ext === "html"
-                    ? "Fatura indirildi (HTML). Tarayıcıdan PDF olarak yazdırabilirsiniz."
-                    : "Fatura indirildi"
-            );
-        } catch (error) {
-            console.error("Download error:", error);
-            toast.error(error instanceof Error ? error.message : "Fatura indirilemedi");
-        } finally {
-            setDownloading(false);
-        }
-    };
-
     const handleOpenReviewModal = (product: { id: string; name: string; image: string | null }) => {
         setSelectedReviewProduct(product);
         setReviewModalOpen(true);
@@ -286,6 +253,16 @@ export default function OrderDetailPage() {
 
     if (!order) return null;
 
+    const cargoTrackingHref =
+        order.trackingNumber && order.cargoCompany?.trackingUrl
+            ? order.cargoCompany.trackingUrl.includes("{trackingNumber}")
+                ? order.cargoCompany.trackingUrl.replace(
+                      "{trackingNumber}",
+                      encodeURIComponent(order.trackingNumber)
+                  )
+                : order.cargoCompany.trackingUrl
+            : null;
+
     return (
         <div className="max-w-5xl mx-auto p-4 md:py-10 md:px-6">
             
@@ -306,10 +283,12 @@ export default function OrderDetailPage() {
                 <div className="flex items-center gap-3">
                     {getStatusBadge(order.status)}
                     {(order.paymentStatus === "PAID" || order.paymentStatus === "SUCCEEDED") && (
-                        <Button variant="outline" onClick={handleDownloadInvoice} disabled={downloading}>
-                            {downloading ? "İndiriliyor..." : "Fatura İndir"}
-                            <Download className="w-4 h-4 ml-2" />
-                        </Button>
+                        <Link href={`/profile/orders/product/${order.id}/invoice`}>
+                            <Button variant="outline">
+                                Fatura Görüntüle
+                                <Download className="w-4 h-4 ml-2" />
+                            </Button>
+                        </Link>
                     )}
                 </div>
             </div>
@@ -466,16 +445,28 @@ export default function OrderDetailPage() {
                                 <div className="space-y-4">
                                     <div>
                                         <p className="text-xs text-gray-500 uppercase tracking-wide">Kargo Firması</p>
-                                        <p className="font-medium">Aras Kargo</p>
+                                        <p className="font-medium">
+                                            {order.cargoCompany?.name || "Henüz atanmadı"}
+                                        </p>
                                     </div>
                                     <div>
                                         <p className="text-xs text-gray-500 uppercase tracking-wide">Takip Numarası</p>
                                         {order.trackingNumber ? (
-                                            <div className="flex items-center gap-2">
-                                                <p className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
-                                                    {order.trackingNumber}
-                                                </p>
-                                                
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                {cargoTrackingHref ? (
+                                                    <a
+                                                        href={cargoTrackingHref}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="font-mono text-sm bg-gray-100 px-2 py-1 rounded hover:bg-gray-200 underline-offset-2 hover:underline"
+                                                    >
+                                                        {order.trackingNumber}
+                                                    </a>
+                                                ) : (
+                                                    <p className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
+                                                        {order.trackingNumber}
+                                                    </p>
+                                                )}
                                             </div>
                                         ) : (
                                             <p className="text-sm text-gray-500 italic">Henüz oluşmadı</p>

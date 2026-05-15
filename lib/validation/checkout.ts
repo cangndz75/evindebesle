@@ -30,7 +30,7 @@ export const CheckoutSchema = z.object({
   paymentMethod: z.enum(["CREDIT_CARD", "TEST"]).default("CREDIT_CARD"),
   couponCode: z.string().optional().nullable(),
   acceptDistanceSalesContract: z.literal(true, {
-    errorMap: () => ({ message: "Mesafeli satış sözleşmesini onaylamanız gerekir." }),
+    message: "Mesafeli satış sözleşmesini onaylamanız gerekir.",
   }),
   userId: z.string().optional().nullable(),
   newsletterConsent: z.boolean().optional(),

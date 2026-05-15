@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { Prisma } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
+
+type UserCouponWithCoupon = Prisma.UserCouponGetPayload<{
+  include: { coupon: true };
+}>;
 
 const schema = z.object({
   code: z
@@ -27,7 +32,7 @@ export async function GET(req: NextRequest) {
     orderBy: { id: "desc" },
   });
 
-  const result = userCoupons.map((uc) => {
+  const result = userCoupons.map((uc: UserCouponWithCoupon) => {
     const c = uc.coupon;
     const usedAt = uc.usedAt;
     const isExpired = c.expiresAt ? c.expiresAt < now : false;

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { prisma } from "@/lib/db";
+import { deactivateExpiredCoupons } from "@/lib/coupons/deactivateExpiredCoupons";
 
 export async function GET(request: NextRequest) {
   try {
@@ -9,6 +10,8 @@ export async function GET(request: NextRequest) {
     if (!session?.user?.isAdmin) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    await deactivateExpiredCoupons();
 
     const coupons = await prisma.coupon.findMany({
       include: {

@@ -1,8 +1,9 @@
-﻿import { NextRequest, NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authConfig } from "@/lib/auth.config"
 import { prisma } from "@/lib/db"
 import { logAuditAction } from "@/lib/auditLog"
+import { deactivateExpiredCoupons } from "@/lib/coupons/deactivateExpiredCoupons"
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authConfig)
@@ -69,6 +70,13 @@ export async function POST(req: NextRequest) {
 
 export async function GET() {
   try {
+    const session = await getServerSession(authConfig)
+    if (!session?.user?.isAdmin) {
+      return NextResponse.json({ error: "Yetkisiz erişim" }, { status: 401 })
+    }
+
+    await deactivateExpiredCoupons()
+
     const coupons = await prisma.coupon.findMany({
       include: {
         category: true,

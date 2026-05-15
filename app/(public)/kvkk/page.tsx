@@ -37,7 +37,7 @@ export default function KVKKPage() {
                     </div>
                     <p className="text-gray-700 leading-relaxed">
                         <strong>Unvan:</strong> Dark Velvet Tekstil Ticaret A.Ş.<br />
-                        <strong>Adres:</strong> Uptwins Blok, Orta, Yalnız Selvi Cd. No: 5AB, 34880 Kartal/İstanbul<br />
+                        <strong>Adres:</strong> YUNUS MAH. ERSİN SK. NO: 8 İÇ KAPI NO: 3 KARTAL/İSTANBUL<br />
                         <strong>E-posta:</strong> <a href="mailto:kvkk@darkvelvet.com" className="text-indigo-600 hover:underline">kvkk@darkvelvet.com</a><br />
                         <strong>Telefon:</strong> +90 216 519 26 00
                     </p>

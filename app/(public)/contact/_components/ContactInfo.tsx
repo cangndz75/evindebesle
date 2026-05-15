@@ -18,14 +18,14 @@ export default function ContactInfo() {
           <p className="text-sm">Dark Velvet LTD. ŞTİ.</p>
         </div>
 
-        <div className="space-y-2">
+        {/* <div className="space-y-2">
           <h4 className="font-semibold text-black">MERSİS No</h4>
           <p className="text-sm">0302111904500001</p>
-        </div>
+        </div> */}
 
         <div className="space-y-2">
           <h4 className="font-semibold text-black">Vergi Bilgileri</h4>
-          <p className="text-sm">Yakacık Vergi Dairesi | VKN: 3021119045</p>
+          <p className="text-sm">KARTAL Vergi Dairesi | VKN: 6690628147</p>
         </div>
 
         <div className="space-y-2">
@@ -41,7 +41,7 @@ export default function ContactInfo() {
         <div className="space-y-2">
           <h4 className="font-semibold text-black">Adres</h4>
           <p className="text-sm">
-            Uptwins Blok, Orta, Yalnız Selvi Cd. No : 5AB, 34880 Kartal/İstanbul
+            YUNUS MAH. ERSİN SK. NO: 8 İÇ KAPI NO: 3 KARTAL/İSTANBUL
           </p>
         </div>
 

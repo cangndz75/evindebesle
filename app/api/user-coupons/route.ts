@@ -3,6 +3,7 @@ import type { Prisma } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { prisma } from "@/lib/db";
+import { deactivateExpiredCoupons } from "@/lib/coupons/deactivateExpiredCoupons";
 import { z } from "zod";
 
 type UserCouponWithCoupon = Prisma.UserCouponGetPayload<{
@@ -25,6 +26,8 @@ export async function GET(req: NextRequest) {
 
   const now = new Date();
   const userId = session.user.id;
+
+  await deactivateExpiredCoupons();
 
   const userCoupons = await prisma.userCoupon.findMany({
     where: { userId },
@@ -75,6 +78,8 @@ export async function POST(req: NextRequest) {
 
   const userId = session.user.id;
   const codeInput = parsed.data.code;
+
+  await deactivateExpiredCoupons();
 
   const coupon = await prisma.coupon.findFirst({
     where: {

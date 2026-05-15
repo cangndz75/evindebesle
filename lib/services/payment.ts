@@ -65,10 +65,14 @@ export async function finalizePayment({
             if (order.couponId) {
                 const coupon = await tx.coupon.findUnique({
                     where: { id: order.couponId },
-                    select: { id: true, maxUsage: true, isActive: true },
+                    select: { id: true, maxUsage: true, isActive: true, expiresAt: true },
                 });
 
-                if (coupon?.isActive) {
+                const couponStillValid =
+                    coupon?.isActive &&
+                    (coupon.expiresAt == null || coupon.expiresAt > new Date());
+
+                if (couponStillValid) {
                     if (coupon.maxUsage == null) {
                         await tx.coupon.update({
                             where: { id: coupon.id },

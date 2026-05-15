@@ -1,5 +1,6 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { deactivateExpiredCoupons } from "@/lib/coupons/deactivateExpiredCoupons";
 
 export async function POST(req: Request) {
     try {
@@ -8,6 +9,8 @@ export async function POST(req: Request) {
         if (!code) {
             return NextResponse.json({ valid: false, message: "Kupon kodu boş olamaz" }, { status: 400 });
         }
+
+        await deactivateExpiredCoupons();
 
         const coupon = await prisma.coupon.findUnique({
             where: { code: code },

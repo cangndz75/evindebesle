@@ -18,7 +18,7 @@ export default function Footer() {
         <div className="leading-7 text-[15px]">
           <p className="font-medium uppercase tracking-wide">Dark Velvet bir Premium Giyim markasıdır.</p>
           <p>
-            Uptwins Blok, Orta, Yalnız Selvi Cd. No : 5AB, 34880 Kartal/İstanbul
+            YUNUS MAH. ERSİN SK. NO: 8 İÇ KAPI NO: 3 KARTAL/İSTANBUL
           </p>
           <p className="mt-1">Telefon: +90 216 519 26 00</p>
           <p className="mt-2 text-primary font-medium">

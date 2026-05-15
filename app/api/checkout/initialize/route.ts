@@ -11,6 +11,7 @@ import { calculateShippingCost } from "@/lib/shipping";
 import crypto from "crypto";
 import { detectCardDataInPayload } from "@/lib/security/pci";
 import { CheckoutSchema } from "@/lib/validation/checkout";
+import { deactivateExpiredCoupons } from "@/lib/coupons/deactivateExpiredCoupons";
 
 export async function POST(req: Request) {
     const idemScope = "checkout.initialize";
@@ -469,6 +470,8 @@ export async function POST(req: Request) {
         let couponId: string | null = null;
 
         if (body.couponCode) {
+            await deactivateExpiredCoupons();
+
             const coupon = await prisma.coupon.findUnique({
                 where: { code: body.couponCode }
             });

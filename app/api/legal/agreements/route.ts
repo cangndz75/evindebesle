@@ -85,9 +85,9 @@ function preInfoTemplate(data: any) {
 
   const sellerDefaults = {
     title: "Dark Velvet Tekstil LTD. ŞTİ.",
-    tax: "Yakacık VD | VKN: 3021119045 • MERSİS: 0302111904500001",
-    address: "Uptwins Blok, Orta, Yalnız Selvi Cd. No: 5AB, 34880 Kartal/İstanbul",
-    phone: "+90 216 519 26 00",
+    tax: "KARTAL VD | VKN: 6690628147",
+    address: "YUNUS MAH. ERSİN SK. NO: 8 İÇ KAPI NO: 3 KARTAL/İSTANBUL",
+    phone: "0535 681 83 75",
     email: "info@dark-velvet.com",
     website: "dark-velvet.com",
   };
@@ -142,9 +142,9 @@ function distanceSalesTemplate(data: any) {
 
   const sellerDefaults = {
     title: "Dark Velvet Tekstil LTD. ŞTİ.",
-    tax: "Yakacık VD | VKN: 3021119045 • MERSİS: 0302111904500001",
-    address: "Uptwins Blok, Orta, Yalnız Selvi Cd. No: 5AB, 34880 Kartal/İstanbul",
-    phone: "+90 216 519 26 00",
+    tax: "KARTAL VD | VKN: 3021119045 • MERSİS: 0302111904500001",
+    address: "YUNUS MAH. ERSİN SK. NO: 8 İÇ KAPI NO: 3 KARTAL/İSTANBUL",
+    phone: "+905356818375",
     email: "info@dark-velvet.com",
   };
   const s = { ...sellerDefaults, ...(seller || {}) };

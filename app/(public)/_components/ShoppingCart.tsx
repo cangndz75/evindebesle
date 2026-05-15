@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Minus, Plus, ShoppingBag, Trash2, ChevronLeft, ChevronRight, Tag, XCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -107,11 +107,13 @@ function ProductTile({
   onNavigate,
   onQuickAdd,
   onQuickDetail,
+  onPrefetch,
 }: {
   product: RecommendedProduct;
   onNavigate?: () => void;
   onQuickAdd: (product: RecommendedProduct, preferredColorId?: string | null) => void;
   onQuickDetail: (product: RecommendedProduct, preferredColorId?: string | null) => void;
+  onPrefetch?: (productId: string) => void;
 }) {
   const [selectedColorId, setSelectedColorId] = useState<string | null>(product.colors?.[0]?.id || null);
 
@@ -186,7 +188,12 @@ function ProductTile({
   };
 
   return (
-    <article className="group block w-28 shrink-0" aria-label={product.name}>
+    <article
+      className="group block w-28 shrink-0"
+      aria-label={product.name}
+      onMouseEnter={() => onPrefetch?.(product.id)}
+      onTouchStart={() => onPrefetch?.(product.id)}
+    >
       <div className="relative aspect-3/4 overflow-hidden rounded-md bg-[#f5f5f5] ring-1 ring-black/5">
         <Link
           href={productUrl}
@@ -286,6 +293,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
 
   const emptySliderRef = useRef<HTMLDivElement | null>(null);
   const filledRecommendedRef = useRef<HTMLDivElement | null>(null);
+  const productDetailsCache = useRef<Map<string, QuickProductDetails>>(new Map());
 
   const scrollSlider = (ref: React.RefObject<HTMLDivElement | null>, dir: "left" | "right") => {
     const el = ref.current;
@@ -431,6 +439,9 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
   };
 
   const fetchQuickProductDetails = async (productId: string) => {
+    const cached = productDetailsCache.current.get(productId);
+    if (cached) return cached;
+
     const res = await fetch(`/api/products/${productId}`);
     if (!res.ok) {
       throw new Error("fetch_failed");
@@ -460,8 +471,15 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
         stock: typeof size.stock === "number" ? size.stock : 0,
       })),
     };
+
+    productDetailsCache.current.set(productId, details);
     return details;
   };
+
+  const prefetchProductDetails = useCallback((productId: string) => {
+    if (productDetailsCache.current.has(productId)) return;
+    fetchQuickProductDetails(productId).catch(() => {});
+  }, []);
 
   const openQuickModal = async (product: RecommendedProduct, preferredColorId?: string | null) => {
     setQuickProduct(product);
@@ -994,6 +1012,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                               onNavigate={onClose}
                               onQuickAdd={handleQuickAddInstant}
                               onQuickDetail={openQuickModal}
+                              onPrefetch={prefetchProductDetails}
                             />
                           ))}
                           {activeList.length === 0 ? (
@@ -1167,6 +1186,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                                 onNavigate={onClose}
                                 onQuickAdd={handleQuickAddInstant}
                                 onQuickDetail={openQuickModal}
+                                onPrefetch={prefetchProductDetails}
                               />
                             ))}
                           </div>

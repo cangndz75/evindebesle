@@ -4,7 +4,6 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import type { AuthOptions } from "next-auth";
 import { prisma } from "@/lib/db";
 import bcrypt from "bcryptjs";
-import { checkRateLimit, RateLimits } from "./rateLimit";
 import { logAuditAction } from "@/lib/auditLog";
 
 function firstHeaderValue(value: string | string[] | undefined): string | null {

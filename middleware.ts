@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
-import { checkRateLimit, getClientIdentifier, RateLimits } from "@/lib/rateLimit";
+import { applyLayeredApiRateLimit } from "@/lib/middleware-api-rate-limit";
 
 const MW_ADMIN_ABSOLUTE_MAX = 60 * 60 * 24 * 7; // 7 gün
 const MW_ADMIN_ACCESS_MAX = 60 * 60;             // 1 saat
@@ -41,17 +41,6 @@ export async function middleware(request: NextRequest) {
     const isProtectedAdminApiPath =
       pathname.startsWith("/api/admin/") ||
       pathname.startsWith("/api/admin-");
-    const isSensitiveAuthApiPath = [
-      "/api/register",
-      "/api/forgot-password",
-      "/api/reset-password",
-      "/api/send-otp",
-      "/api/verify-otp",
-      "/api/checkout/initialize",
-      "/api/payment/auth",
-      "/api/auth/callback/credentials",
-    ].some((path) => pathname.startsWith(path));
-
     const isProtectedAdminPath = isAdminPagePath(pathname);
 
     if (isProtectedAdminPath || isProtectedAdminApiPath) {
@@ -115,21 +104,10 @@ export async function middleware(request: NextRequest) {
       }
     }
 
-    if (isSensitiveAuthApiPath) {
-      const ip = getClientIdentifier(request);
-      const rateKey = `sensitive:${pathname}:${ip}`;
-      const profile = pathname.includes("checkout") || pathname.includes("payment")
-        ? RateLimits.payment
-        : RateLimits.strict;
-      const result = await checkRateLimit(rateKey, profile);
-
-      if (!result.success) {
-        return applyNoStoreHeaders(
-          NextResponse.json(
-            { error: "Too many requests. Please try again later." },
-            { status: 429 }
-          )
-        );
+    if (isApiRoute) {
+      const rateLimited = await applyLayeredApiRateLimit(request);
+      if (rateLimited) {
+        return applyNoStoreHeaders(rateLimited);
       }
     }
 

@@ -3,7 +3,6 @@ import { prisma } from "@/lib/db";
 import { normalizeIdempotencyKey } from "@/lib/idempotency";
 import { releaseExpiredReservations, releaseReservationTx, reserveStockTx } from "@/lib/stock";
 import { iyzico, iyzicoCall } from "@/lib/iyzico";
-import { checkRateLimit, getClientIdentifier, RateLimits } from "@/lib/rateLimit";
 import { clearRedisCart, persistRedisCartToDatabase } from "@/lib/cart-redis";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
@@ -21,15 +20,6 @@ export async function POST(req: Request) {
     try {
         const reqUrl = new URL(req.url);
         const appBaseUrl = (process.env.APP_URL || process.env.NEXT_PUBLIC_BASE_URL || reqUrl.origin).replace(/\/$/, "");
-        const ip = getClientIdentifier(req);
-        const rateKey = `checkout:${ip}`;
-        const paymentRate = await checkRateLimit(rateKey, RateLimits.payment);
-        if (!paymentRate.success) {
-            return NextResponse.json(
-                { error: "\u00c7ok fazla \u00f6deme denemesi. L\u00fctfen bir dakika sonra tekrar deneyin." },
-                { status: 429 }
-            );
-        }
 
         await releaseExpiredReservations();
 
@@ -46,7 +36,7 @@ export async function POST(req: Request) {
 
         const parsed = CheckoutSchema.safeParse(rawBody);
         if (!parsed.success) {
-            const firstError = parsed.error.errors[0]?.message || "Geçersiz istek verisi.";
+            const firstError = parsed.error.issues[0]?.message || "Geçersiz istek verisi.";
             return NextResponse.json({ error: firstError }, { status: 400 });
         }
         const body = parsed.data;
@@ -567,7 +557,7 @@ export async function POST(req: Request) {
                     orderNumber: `DV-${Date.now()}`,
                     userId: resolvedUserId,
                     email: body.email,
-                    paymentMethod: body.paymentMethod === "TEST" ? "TEST" : "CREDIT_CARD",
+                    paymentMethod: "TEST",
                     distanceSalesContractAcceptedAt: new Date(),
                     currency,
                     subtotal,
@@ -663,7 +653,7 @@ export async function POST(req: Request) {
                 orderNumber: `DV-${Date.now()}`,
                 userId: resolvedUserId,
                 email: body.email,
-                paymentMethod: body.paymentMethod === "TEST" ? "TEST" : "CREDIT_CARD",
+                paymentMethod: "CREDIT_CARD",
                 distanceSalesContractAcceptedAt: new Date(),
                 currency,
                 subtotal,

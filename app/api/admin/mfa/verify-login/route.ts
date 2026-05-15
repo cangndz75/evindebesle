@@ -2,18 +2,8 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { verifyAdminMfaLogin } from "@/lib/security/admin-mfa";
-import { checkRateLimit, getClientIdentifier, RateLimits } from "@/lib/rateLimit";
 
 export async function POST(req: Request) {
-  const ip = getClientIdentifier(req);
-  const rateResult = await checkRateLimit(`mfa-verify:${ip}`, RateLimits.strict);
-  if (!rateResult.success) {
-    return NextResponse.json(
-      { error: "Çok fazla deneme. Lütfen bir dakika sonra tekrar deneyin." },
-      { status: 429 },
-    );
-  }
-
   const session = await getServerSession(authConfig);
   if (!session?.user?.id || !session.user.isAdmin) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

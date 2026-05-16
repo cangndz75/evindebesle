@@ -19,6 +19,10 @@ function SuccessContent() {
             return;
         }
 
+        let attempt = 0;
+        const MAX_ATTEMPTS = 10;
+        let timeoutId: ReturnType<typeof setTimeout>;
+
         const checkStatus = async () => {
             try {
                 const res = await fetch(`/api/orders/${orderId}/payment`);
@@ -47,7 +51,13 @@ function SuccessContent() {
                     } else if (data.paymentStatus === "FAILED") {
                         setStatus("failed");
                     } else {
-                        setTimeout(checkStatus, 3000);
+                        attempt++;
+                        if (attempt < MAX_ATTEMPTS) {
+                            const delay = Math.min(3000 * Math.pow(1.5, attempt - 1), 15000);
+                            timeoutId = setTimeout(checkStatus, delay);
+                        } else {
+                            setStatus("error");
+                        }
                     }
                 } else {
                     setStatus("error");
@@ -59,6 +69,7 @@ function SuccessContent() {
         };
 
         checkStatus();
+        return () => clearTimeout(timeoutId);
     }, [orderId]);
 
     useEffect(() => {

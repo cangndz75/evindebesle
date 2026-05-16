@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useCartStore } from "@/lib/stores/cartStore";
+import { useCompanySettingsStore } from "@/lib/stores/companySettingsStore";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import Image from "next/image";
@@ -70,8 +71,7 @@ export default function CheckoutPage() {
         country: "Turkey" // Default
     });
 
-    const [freeShippingThreshold, setFreeShippingThreshold] = useState(99);
-    const [shippingCost, setShippingCost] = useState(49.90);
+    const { freeShippingThreshold, shippingPrice: shippingCost, hydrate: hydrateSettings } = useCompanySettingsStore();
 
     const [couponInput, setCouponInput] = useState("");
     const [couponLoading, setCouponLoading] = useState(false);
@@ -85,7 +85,11 @@ export default function CheckoutPage() {
     const [selectedSavedAddressId, setSelectedSavedAddressId] = useState<string>("");
     const pendingIdempotencyKey = useRef<string | null>(null);
 
+    const didInitRef = useRef(false);
     useEffect(() => {
+        if (didInitRef.current) return;
+        didInitRef.current = true;
+
         const init = async () => {
             await refreshCart();
             if (status === "authenticated" && session?.user) {
@@ -102,14 +106,8 @@ export default function CheckoutPage() {
     }, [refreshCart, session, status]);
 
     useEffect(() => {
-        fetch("/api/company-settings")
-            .then(res => res.json())
-            .then(data => {
-                setFreeShippingThreshold(Number(data.freeShippingThreshold) || 99);
-                setShippingCost(Number(data.shippingPrice) || 49.90);
-            })
-            .catch(() => { });
-    }, []);
+        hydrateSettings();
+    }, [hydrateSettings]);
 
     useEffect(() => {
         if (status !== "authenticated") {

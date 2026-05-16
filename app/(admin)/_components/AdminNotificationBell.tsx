@@ -64,6 +64,8 @@ export function AdminNotificationBell() {
         {
             refreshInterval: 30000,
             revalidateOnFocus: true,
+            refreshWhenHidden: false,
+            refreshWhenOffline: false,
         }
     );
 

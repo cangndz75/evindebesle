@@ -114,12 +114,14 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
   }, [sortBy, selectedCategory, priceRange, selectedSizes, selectedColors]);
 
   useEffect(() => {
+    if (!isOpen) return;
+
     const timer = setTimeout(() => {
       searchProducts(searchQuery);
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [searchQuery, searchProducts]);
+  }, [isOpen, searchQuery, searchProducts]);
 
   useEffect(() => {
     if (isOpen) {
@@ -460,7 +462,6 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
                           fill
                           className="object-cover transition-opacity duration-500"
                           sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                          unoptimized
                         />
                         {product.hoverImage && (
                           <Image
@@ -469,7 +470,6 @@ export default function SearchModal({ isOpen, onClose, initialQuery = "" }: Sear
                             fill
                             className="object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100 absolute inset-0"
                             sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                            unoptimized
                           />
                         )}
                         {product.badge && (

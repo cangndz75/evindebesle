@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { Heart, ChevronDown, ArrowUpDown, Filter } from "lucide-react";
+import { useFavoritesStore } from "@/lib/stores/favoritesStore";
 import useSWR from "swr";
 import { toast } from "sonner";
 import {
@@ -95,50 +96,18 @@ type ProductWithGridPosition = Product & {
 };
 
 function FavoriteButton({ productId, productName }: { productId: string; productName: string }) {
-  const [isFavorite, setIsFavorite] = useState(false);
+  const isFavorite = useFavoritesStore((s) => s.favoriteIds.has(productId));
+  const toggleFav = useFavoritesStore((s) => s.toggleFavorite);
   const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    const checkFavorite = async () => {
-      try {
-        const res = await fetch(`/api/favorites/check?productId=${productId}`);
-        const data = await res.json();
-        setIsFavorite(data.isFavorite);
-      } catch (error) {
-        console.error("Error checking favorite:", error);
-      }
-    };
-    checkFavorite();
-  }, [productId]);
 
   const handleToggle = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsLoading(true);
     try {
-      if (isFavorite) {
-        await fetch(`/api/favorites?productId=${productId}`, {
-          method: "DELETE",
-        });
-        setIsFavorite(false);
-        toast.success(`${productName} favorilerden çıkarıldı`, {
-          position: "bottom-left",
-        });
-      } else {
-        await fetch("/api/favorites", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ productId }),
-        });
-        setIsFavorite(true);
-        toast.success(`${productName} favorilere eklendi`, {
-          position: "bottom-left",
-        });
-      }
-      window.dispatchEvent(new Event("favoriteUpdated"));
+      await toggleFav(productId);
     } catch (error) {
       console.error("Error toggling favorite:", error);
-      toast.error("Bir hata oluştu");
     } finally {
       setIsLoading(false);
     }
@@ -261,6 +230,14 @@ export default function WomenProductsPage({
   hideCategoryFilters = false,
 }: WomenProductsPageProps) {
   const searchParams = useSearchParams();
+
+  const hydrateRef = useRef(false);
+  useEffect(() => {
+    if (hydrateRef.current) return;
+    hydrateRef.current = true;
+    useFavoritesStore.getState().hydrate();
+  }, []);
+
   const [selectedCategory, setSelectedCategory] = useState(initialSelectedCategory);
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [loading, setLoading] = useState(false);

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useCartStore } from "@/lib/stores/cartStore";
+import { useCompanySettingsStore } from "@/lib/stores/companySettingsStore";
 import Link from "next/link";
 import Image from "next/image";
 import CouponInput from "@/components/checkout/CouponInput";
@@ -23,8 +24,7 @@ export default function CheckoutSummaryPage() {
         refreshCart
     } = useCartStore();
     const router = useRouter();
-    const [freeShippingThreshold, setFreeShippingThreshold] = useState(99);
-    const [shippingPrice, setShippingPrice] = useState(49.90);
+    const { freeShippingThreshold, shippingPrice, hydrate: hydrateSettings } = useCompanySettingsStore();
 
     const getCartItemImage = (item: typeof items[number]) => {
         if (item.color?.images) {
@@ -64,14 +64,8 @@ export default function CheckoutSummaryPage() {
     }, [hydrated, hydrate, refreshCart]);
 
     useEffect(() => {
-        fetch("/api/company-settings")
-            .then(res => res.json())
-            .then(data => {
-                setFreeShippingThreshold(Number(data.freeShippingThreshold) || 99);
-                setShippingPrice(Number(data.shippingPrice) || 49.90);
-            })
-            .catch(() => { });
-    }, []);
+        hydrateSettings();
+    }, [hydrateSettings]);
 
     const subtotal = items.reduce((acc, item) => acc + (item.product.price) * item.quantity, 0);
     const shipping = subtotal >= freeShippingThreshold ? 0 : shippingPrice;

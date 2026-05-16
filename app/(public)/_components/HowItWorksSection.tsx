@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Rocket, Users, ShieldCheck } from "lucide-react";
@@ -38,13 +38,12 @@ const features = [
 export default function HowItWorksSection() {
   const [currentFeature, setCurrentFeature] = useState(0);
   const [progress, setProgress] = useState(0);
-  const autoSlide = true;
+  const progressRef = useRef(progress);
+  progressRef.current = progress;
 
   useEffect(() => {
-    if (!autoSlide) return;
-
     const timer = setInterval(() => {
-      if (progress < 100) {
+      if (progressRef.current < 100) {
         setProgress((prev) => prev + 100 / (4000 / 100));
       } else {
         setCurrentFeature((prev) => (prev + 1) % features.length);
@@ -53,7 +52,7 @@ export default function HowItWorksSection() {
     }, 100);
 
     return () => clearInterval(timer);
-  }, [progress]);
+  }, []);
 
   return (
     <div className="relative z-10 p-8 md:p-12">

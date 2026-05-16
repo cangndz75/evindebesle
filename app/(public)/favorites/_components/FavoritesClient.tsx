@@ -178,7 +178,6 @@ export default function FavoritesClient({
                         fill
                         className="object-cover transition-transform duration-500 group-hover:scale-105"
                         sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                        unoptimized
                       />
                       <button
                         onClick={(e) => {
@@ -404,7 +403,6 @@ export default function FavoritesClient({
                           fill
                           className="object-cover"
                           sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                          unoptimized
                         />
                       </div>
                     </Link>

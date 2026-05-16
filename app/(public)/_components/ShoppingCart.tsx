@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { getRecentlyViewed } from "@/lib/recently-viewed";
 import { useCartStore, type CartItem } from "@/lib/stores/cartStore";
+import { useCompanySettingsStore } from "@/lib/stores/companySettingsStore";
 
 type ProductColor = {
   id: string;
@@ -207,7 +208,6 @@ function ProductTile({
           fill
           className="object-cover transition-transform duration-300 group-hover:scale-[1.04]"
           sizes="112px"
-          unoptimized
         />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-1/2 bg-linear-to-t from-black/55 via-black/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
         <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-2 opacity-0 transition-all duration-300 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto">
@@ -275,7 +275,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
   const removeItem = useCartStore((state) => state.removeItem);
   const addItemOptimistic = useCartStore((state) => state.addItemOptimistic);
 
-  const [freeShippingThreshold, setFreeShippingThreshold] = useState(99);
+  const { freeShippingThreshold, hydrate: hydrateSettings } = useCompanySettingsStore();
   const [recommendedProducts, setRecommendedProducts] = useState<RecommendedProduct[]>([]);
   const [recentlyViewedProducts, setRecentlyViewedProducts] = useState<RecommendedProduct[]>([]);
   const [activeTab, setActiveTab] = useState<"recommended" | "recent">("recommended");
@@ -483,24 +483,33 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
 
   const openQuickModal = async (product: RecommendedProduct, preferredColorId?: string | null) => {
     setQuickProduct(product);
-    setQuickModalOpen(false);
-    setQuickLoading(true);
     setQuickSubmitting(false);
     setQuickQuantity(1);
     setQuickImageIndex(0);
     setQuickSelectedColorId(null);
     setQuickSelectedSizeId(null);
+
+    const cached = productDetailsCache.current.get(product.id);
+    if (cached) {
+      setQuickProductDetails(cached);
+      setQuickLoading(false);
+      const initialColorId = cached.colors.find((c) => c.id === preferredColorId)?.id || cached.colors[0]?.id || null;
+      setQuickSelectedColorId(initialColorId);
+      setQuickSelectedSizeId(getVisibleSortedSizes(cached, initialColorId)[0]?.id || null);
+      setQuickModalOpen(true);
+      return;
+    }
+
     setQuickProductDetails(null);
+    setQuickLoading(true);
+    setQuickModalOpen(true);
 
     try {
       const details = await fetchQuickProductDetails(product.id);
       setQuickProductDetails(details);
-
-      const initialColorId = details.colors.find((color) => color.id === preferredColorId)?.id || details.colors[0]?.id || null;
+      const initialColorId = details.colors.find((c) => c.id === preferredColorId)?.id || details.colors[0]?.id || null;
       setQuickSelectedColorId(initialColorId);
-      const firstAvailableSize = getVisibleSortedSizes(details, initialColorId)[0];
-      setQuickSelectedSizeId(firstAvailableSize?.id || null);
-      setQuickModalOpen(true);
+      setQuickSelectedSizeId(getVisibleSortedSizes(details, initialColorId)[0]?.id || null);
     } catch {
       toast.error("Ürün bilgisi yuklenemedi");
       setQuickProductDetails(null);
@@ -641,25 +650,20 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
     }
   };
 
-  const loadCompanySettings = async () => {
-    try {
-      const res = await fetch("/api/company-settings");
-      if (res.ok) {
-        const data = await res.json();
-        setFreeShippingThreshold(Number(data.freeShippingThreshold) || 99);
-      }
-    } catch (error) {
-      console.error("Error loading company settings:", error);
-    }
-  };
-
   const loadRecommendedProducts = async (items: CartItem[]) => {
     try {
       const productIds = items.map((i) => i.productId);
       const res = await fetch(`/api/products/recommended?productIds=${productIds.join(",")}`);
       if (res.ok) {
         const data = await res.json();
-        setRecommendedProducts(Array.isArray(data) ? data : []);
+        const products = Array.isArray(data) ? data : [];
+        setRecommendedProducts(products);
+
+        products.slice(0, 6).forEach((p: RecommendedProduct) => {
+          if (!productDetailsCache.current.has(p.id)) {
+            fetchQuickProductDetails(p.id).catch(() => {});
+          }
+        });
       }
     } catch (error) {
       console.error("Error loading recommended products:", error);
@@ -746,9 +750,9 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
       if (!hydrated) {
         hydrate();
       }
-      loadCompanySettings();
+      hydrateSettings();
     }
-  }, [isOpen, hydrated, hydrate]);
+  }, [isOpen, hydrated, hydrate, hydrateSettings]);
 
   useEffect(() => {
     if (!cartItems.length) {
@@ -1067,7 +1071,6 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                               fill
                               className="object-cover"
                               sizes="96px"
-                              unoptimized
                             />
                           </Link>
 
@@ -1245,7 +1248,6 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                       fill
                       className="object-cover"
                       sizes="(max-width: 768px) 100vw, 45vw"
-                      unoptimized
                     />
                     <div className="absolute left-4 bottom-4 flex items-center gap-2">
                       {images.slice(0, 4).map((thumb, idx) => (
@@ -1255,7 +1257,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                           onClick={() => setQuickImageIndex(idx)}
                           className={`relative h-10 w-10 overflow-hidden rounded border ${quickImageIndex === idx ? "border-black" : "border-[#d7d7d7]"}`}
                         >
-                          <Image src={thumb} alt="thumb" fill className="object-cover" sizes="40px" unoptimized />
+                          <Image src={thumb} alt="thumb" fill className="object-cover" sizes="40px" />
                         </button>
                       ))}
                     </div>

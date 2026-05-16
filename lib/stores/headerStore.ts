@@ -1,6 +1,8 @@
-﻿import { create } from "zustand";
+import { create } from "zustand";
 import { getGuestCartCount } from "@/lib/cart-utils";
 import { useCartStore } from "@/lib/stores/cartStore";
+import { useCompanySettingsStore } from "@/lib/stores/companySettingsStore";
+import { useFavoritesStore } from "@/lib/stores/favoritesStore";
 
 type HeaderState = {
   cartCount: number;
@@ -11,9 +13,11 @@ type HeaderState = {
   setFavoriteCount: (count: number) => void;
   setFreeShippingThreshold: (threshold: number) => void;
   hydrate: (session: any) => Promise<void>;
-  refreshCartCount: (session: any) => Promise<void>;
+  refreshCartCount: (session: any) => void;
   refreshFavoriteCount: (session: any) => Promise<void>;
 };
+
+let _headerInflight: Promise<void> | null = null;
 
 export const useHeaderStore = create<HeaderState>((set, get) => ({
   cartCount: 0,
@@ -26,34 +30,38 @@ export const useHeaderStore = create<HeaderState>((set, get) => ({
   setFreeShippingThreshold: (threshold) => set({ freeShippingThreshold: threshold }),
 
   hydrate: async (session) => {
-    if (!session?.user) {
-      const guestCount = getGuestCartCount();
-      set({ cartCount: guestCount, favoriteCount: 0, isHydrated: true });
-    } else {
+    if (get().isHydrated) return;
+    if (_headerInflight) return _headerInflight;
+
+    _headerInflight = (async () => {
       try {
-        const [cartRes, favoritesRes, settingsRes] = await Promise.all([
-          fetch("/api/cart"),
-          fetch("/api/favorites"),
-          fetch("/api/company-settings"),
-        ]);
+        if (!session?.user) {
+          const guestCount = getGuestCartCount();
+          set({ cartCount: guestCount, favoriteCount: 0, isHydrated: true });
+          return;
+        }
+
+        const cartState = useCartStore.getState();
+        const needsCartFetch = !cartState.hydrated;
+
+        const fetches: Promise<any>[] = [
+          needsCartFetch ? fetch("/api/cart") : Promise.resolve(null),
+          useFavoritesStore.getState().hydrate(),
+          useCompanySettingsStore.getState().hydrate(),
+        ];
+
+        const [cartRes] = await Promise.all(fetches);
 
         let cartCount = 0;
-        if (cartRes.ok) {
+        if (cartRes && cartRes.ok) {
           const items = await cartRes.json();
           cartCount = items.reduce((sum: number, item: any) => sum + item.quantity, 0);
+        } else if (!needsCartFetch) {
+          cartCount = cartState.items.reduce((sum, item) => sum + item.quantity, 0);
         }
 
-        let favoriteCount = 0;
-        if (favoritesRes.ok) {
-          const favorites = await favoritesRes.json();
-          favoriteCount = favorites.length || 0;
-        }
-
-        let freeShippingThreshold = 99;
-        if (settingsRes.ok) {
-          const data = await settingsRes.json();
-          freeShippingThreshold = data.freeShippingThreshold || 99;
-        }
+        const favoriteCount = useFavoritesStore.getState().favoriteIds.size;
+        const freeShippingThreshold = useCompanySettingsStore.getState().freeShippingThreshold;
 
         set({
           cartCount,
@@ -63,13 +71,16 @@ export const useHeaderStore = create<HeaderState>((set, get) => ({
         });
       } catch (error) {
         console.error("Error hydrating header:", error);
-        // Fail-safe: never keep stale badge values on hydration errors.
         set({ cartCount: 0, favoriteCount: 0, isHydrated: true });
+      } finally {
+        _headerInflight = null;
       }
-    }
+    })();
+
+    return _headerInflight;
   },
 
-  refreshCartCount: async (session) => {
+  refreshCartCount: (session) => {
     if (!session?.user) {
       const guestCount = getGuestCartCount();
       set({ cartCount: guestCount });
@@ -77,25 +88,8 @@ export const useHeaderStore = create<HeaderState>((set, get) => ({
     }
 
     const cartState = useCartStore.getState();
-    if (cartState.hydrated) {
-      const total = cartState.items.reduce((sum, item) => sum + item.quantity, 0);
-      set({ cartCount: total });
-      return;
-    }
-
-    try {
-      const res = await fetch("/api/cart");
-      if (res.ok) {
-        const items = await res.json();
-        const total = items.reduce((sum: number, item: any) => sum + item.quantity, 0);
-        set({ cartCount: total });
-      } else {
-        set({ cartCount: 0 });
-      }
-    } catch (error) {
-      console.error("Error refreshing cart count:", error);
-      set({ cartCount: 0 });
-    }
+    const total = cartState.items.reduce((sum, item) => sum + item.quantity, 0);
+    set({ cartCount: total });
   },
 
   refreshFavoriteCount: async (session) => {
@@ -104,14 +98,12 @@ export const useHeaderStore = create<HeaderState>((set, get) => ({
       return;
     }
 
-    try {
-      const res = await fetch("/api/favorites");
-      if (res.ok) {
-        const favorites = await res.json();
-        set({ favoriteCount: favorites.length || 0 });
-      }
-    } catch (error) {
-      console.error("Error refreshing favorite count:", error);
+    const favStore = useFavoritesStore.getState();
+    if (favStore.isHydrated) {
+      set({ favoriteCount: favStore.favoriteIds.size });
+    } else {
+      await favStore.hydrate();
+      set({ favoriteCount: useFavoritesStore.getState().favoriteIds.size });
     }
   },
 }));

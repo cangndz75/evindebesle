@@ -6,10 +6,15 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronRight, Heart, ShoppingBag, Info, Plus, Minus, ChevronLeft, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
-import ProductReviews from "./ProductReviews";
+import dynamic from "next/dynamic";
 import { sanitizeHtmlForRender } from "@/lib/security/sanitizeHtml";
-import SizeGuideModal from "./SizeGuideModal";
-import FindMySizeModal from "./FindMySizeModal";
+
+const ProductReviews = dynamic(() => import("./ProductReviews"), {
+  ssr: false,
+  loading: () => <div className="h-48 bg-gray-50 animate-pulse rounded-lg" />,
+});
+const SizeGuideModal = dynamic(() => import("./SizeGuideModal"), { ssr: false });
+const FindMySizeModal = dynamic(() => import("./FindMySizeModal"), { ssr: false });
 import { addToRecentlyViewed, getRecentlyViewed } from "@/lib/recently-viewed";
 import { useCartStore } from "@/lib/stores/cartStore";
 import { Button } from "@/components/ui/button";
@@ -664,8 +669,6 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
     };
 
     checkStock();
-    const interval = setInterval(checkStock, 30000); // Her 30 saniyede bir kontrol et
-    return () => clearInterval(interval);
   }, [selectedSize, selectedColor, product.id]);
 
   const toggleFavorite = async () => {

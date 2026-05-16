@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -14,10 +14,12 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import ShoppingCart from "@/app/(public)/_components/ShoppingCart";
-import SearchModal from "@/components/home/SearchModal";
-import CartPreview from "@/components/home/CartPreview";
+import dynamic from "next/dynamic";
 import AnnouncementBanner from "@/components/home/AnnouncementBanner";
+
+const ShoppingCart = dynamic(() => import("@/app/(public)/_components/ShoppingCart"), { ssr: false });
+const SearchModal = dynamic(() => import("@/components/home/SearchModal"), { ssr: false });
+const CartPreview = dynamic(() => import("@/components/home/CartPreview"), { ssr: false });
 import { useHeaderStore } from "@/lib/stores/headerStore";
 import { useCategories } from "@/hooks/useCategories";
 import { useCollections } from "@/hooks/useCollections";
@@ -90,61 +92,58 @@ export default function SiteHeader() {
     );
   }, [activeMobileCategories]);
 
-  useEffect(() => {
-    hydrateHeader(session);
+  const didHydrateRef = useRef(false);
+  const didSyncRef = useRef(false);
 
+  useEffect(() => {
+    if (didHydrateRef.current) return;
+    didHydrateRef.current = true;
+
+    hydrateHeader(session);
     if (!cartHydrated) {
       hydrateCart();
     }
   }, [session, hydrateHeader, cartHydrated, hydrateCart]);
 
   useEffect(() => {
-    if (session?.user && cartHydrated) {
-      const syncCart = async () => {
-        try {
-          await syncGuestCartToAPI();
-          await refreshCartCount(session);
-        } catch (error) {
-          console.error("Cart sync error in header:", error);
-        }
-      };
+    if (!session?.user || !cartHydrated || didSyncRef.current) return;
+    didSyncRef.current = true;
 
-      syncCart();
-    }
+    const syncCart = async () => {
+      try {
+        await syncGuestCartToAPI();
+        refreshCartCount(session);
+      } catch (error) {
+        console.error("Cart sync error in header:", error);
+      }
+    };
+
+    syncCart();
   }, [session, cartHydrated, syncGuestCartToAPI, refreshCartCount]);
 
-  useEffect(() => {
-    const handleOpenCart = () => {
-      setCartOpen(true);
-    };
-    window.addEventListener('openCart', handleOpenCart);
-    return () => window.removeEventListener('openCart', handleOpenCart);
-  }, []);
+  const sessionRef = useRef(session);
+  sessionRef.current = session;
 
   useEffect(() => {
     const handleFavoriteUpdate = () => {
-      refreshFavoriteCount(session);
+      refreshFavoriteCount(sessionRef.current);
     };
-    window.addEventListener("favoriteUpdated", handleFavoriteUpdate);
-    return () => window.removeEventListener("favoriteUpdated", handleFavoriteUpdate);
-  }, [session, refreshFavoriteCount]);
-
-  useEffect(() => {
     const handleCartUpdate = () => {
-      refreshCartCount(session);
+      refreshCartCount(sessionRef.current);
     };
-
     const handleOpenCart = () => {
       setCartOpen(true);
     };
 
+    window.addEventListener("favoriteUpdated", handleFavoriteUpdate);
     window.addEventListener("cartUpdated", handleCartUpdate);
     window.addEventListener("openCart", handleOpenCart);
     return () => {
+      window.removeEventListener("favoriteUpdated", handleFavoriteUpdate);
       window.removeEventListener("cartUpdated", handleCartUpdate);
       window.removeEventListener("openCart", handleOpenCart);
     };
-  }, [session, refreshCartCount]);
+  }, [refreshFavoriteCount, refreshCartCount]);
 
   const mega = useMemo<Record<MenuKey, { left: MegaGroup[]; rightPromo: Promo | null }>>(
     () => {
@@ -640,7 +639,6 @@ export default function SiteHeader() {
                           fill
                           className="object-cover transition-transform duration-1000 group-hover/promo:scale-105"
                           sizes="400px"
-                          unoptimized
                         />
                         <div className="absolute inset-0 bg-black/5" />
                       </div>
@@ -662,10 +660,12 @@ export default function SiteHeader() {
         )}
 
         
-        <SearchModal
-          isOpen={searchModalOpen}
-          onClose={() => setSearchModalOpen(false)}
-        />
+        {searchModalOpen && (
+          <SearchModal
+            isOpen={searchModalOpen}
+            onClose={() => setSearchModalOpen(false)}
+          />
+        )}
 
         
         <CartPreview
@@ -675,7 +675,9 @@ export default function SiteHeader() {
       </header>
 
       
-      <ShoppingCart isOpen={cartOpen} onClose={() => setCartOpen(false)} />
+      {cartOpen && (
+        <ShoppingCart isOpen={cartOpen} onClose={() => setCartOpen(false)} />
+      )}
     </div>
   );
 }

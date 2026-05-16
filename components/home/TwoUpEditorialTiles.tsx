@@ -57,7 +57,6 @@ export default function TwoUpEditorialTiles() {
                     fill
                     sizes="(max-width: 768px) 100vw, 50vw"
                     className="object-cover object-center transition-transform duration-700 group-hover:scale-[1.02]"
-                    unoptimized
                     priority={false}
                   />
                   
@@ -101,7 +100,6 @@ export default function TwoUpEditorialTiles() {
                       fill
                       sizes="(max-width: 768px) 85vw, 50vw"
                       className="object-cover object-center transition-transform duration-700 group-hover:scale-[1.02]"
-                      unoptimized
                       priority={index === 0}
                     />
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors" />

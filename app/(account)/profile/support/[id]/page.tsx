@@ -43,7 +43,11 @@ export default function TicketDetailPage() {
     const { data: ticket, mutate, isLoading } = useSWR<TicketDetail>(
         params.id ? `/api/support/${params.id}` : null,
         fetcher,
-        { refreshInterval: 5000 } // Poll every 5s for new messages
+        {
+            refreshInterval: 30000,
+            refreshWhenHidden: false,
+            refreshWhenOffline: false,
+        }
     );
 
     useEffect(() => {

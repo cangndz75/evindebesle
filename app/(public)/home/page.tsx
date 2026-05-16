@@ -1,19 +1,10 @@
 import nextDynamic from "next/dynamic";
 import { cache } from "react";
-import CampaignStrip from "@/components/home/CampaignStrip";
 import ByltStyleHero from "@/components/home/ByltStyleHero";
 import ProductShowcase from "@/components/home/ProductShowcase";
-
-import CategoryShowcase from "@/components/home/CategoryShowcase";
 import HomeCategoryRail from "@/components/home/HomeCategoryRail";
 
 const EditorialBanner = nextDynamic(() => import("@/components/home/EditorialBanner"), {
-  loading: () => <div className="h-64 bg-gray-100 animate-pulse" />,
-});
-const CollectionCarousel = nextDynamic(() => import("@/components/home/CollectionCarousel"), {
-  loading: () => <div className="h-96 bg-gray-100 animate-pulse" />,
-});
-const BrandShowcase = nextDynamic(() => import("@/components/home/BrandShowcase"), {
   loading: () => <div className="h-64 bg-gray-100 animate-pulse" />,
 });
 const SplitShowcase = nextDynamic(() => import("@/components/home/SplitShowcase"), {
@@ -22,21 +13,16 @@ const SplitShowcase = nextDynamic(() => import("@/components/home/SplitShowcase"
 const FeaturedCardsRow = nextDynamic(() => import("@/components/home/FeaturedCardsRow"), {
   loading: () => <div className="h-64 bg-gray-100 animate-pulse" />,
 });
-const ProductCarousel = nextDynamic(() => import("@/components/home/ProductCarousel"), {
-  loading: () => <div className="h-96 bg-gray-100 animate-pulse" />,
-});
 const EditorialTiles = nextDynamic(() => import("@/components/home/EditorialTiles"), {
   loading: () => <div className="h-64 bg-gray-100 animate-pulse" />,
-});
-const TabbedBestSellers = nextDynamic(() => import("@/components/home/TabbedBestSellers"), {
-  loading: () => <div className="h-96 bg-gray-100 animate-pulse" />,
 });
 const NewsletterSignup = nextDynamic(() => import("@/components/home/NewsletterSignup"), {
   loading: () => <div className="h-32 bg-gray-100 animate-pulse" />,
 });
-import { womensBrands, mensBrands } from "@/lib/homeData";
 import type { Product } from "@/lib/homeData";
-import TabbedProductCarousel from "@/components/home/TabbedProductCarousel";
+const TabbedProductCarousel = nextDynamic(() => import("@/components/home/TabbedProductCarousel"), {
+  loading: () => <div className="h-96 bg-gray-100 animate-pulse" />,
+});
 import { prisma } from "@/lib/db";
 import { resolveSwatchHex } from "@/lib/color-swatch";
 

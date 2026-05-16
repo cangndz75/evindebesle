@@ -509,7 +509,6 @@ export default function HomeHeader() {
                                                 fill
                                                 className="object-cover transition-transform duration-500 group-hover:scale-105"
                                                 sizes="200px"
-                                                unoptimized
                                             />
                                         </div>
                                         <h3 className="text-xs font-light text-[#111] mb-0.5">

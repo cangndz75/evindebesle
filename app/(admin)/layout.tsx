@@ -239,15 +239,21 @@ export default function AdminLayout({
   const isCampaignsPage = pathname === "/campaigns";
 
   useEffect(() => {
-    if (session?.user?.isAdmin) {
+    if (!session?.user?.isAdmin) return;
+
+    const fetchCount = () => {
       fetch("/api/admin-reviews?status=pending&countOnly=true")
         .then((res) => res.json())
         .then((data) => {
           if (typeof data.count === "number") setPendingReviewCount(data.count);
         })
         .catch(() => {});
-    }
-  }, [session, pathname]);
+    };
+
+    fetchCount();
+    const interval = setInterval(fetchCount, 120_000);
+    return () => clearInterval(interval);
+  }, [session]);
 
   useEffect(() => {
     if (status === "loading") return;

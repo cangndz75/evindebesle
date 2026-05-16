@@ -1,4 +1,4 @@
-﻿import { withSentryConfig } from "@sentry/nextjs";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const ciDistDir = process.env.NEXT_DIST_DIR?.trim();
 
@@ -8,7 +8,6 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
-    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",

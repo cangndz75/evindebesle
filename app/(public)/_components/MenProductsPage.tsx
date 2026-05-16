@@ -254,7 +254,6 @@ export default function MenProductsPage() {
                       fill
                       className="object-cover transition-opacity duration-500"
                       sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                      unoptimized
                     />
                     {!isColorActive && product.hoverImage && (
                       <Image
@@ -263,7 +262,6 @@ export default function MenProductsPage() {
                         fill
                         className="object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
                         sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                        unoptimized
                       />
                     )}
                     {product.originalPrice && product.originalPrice > product.price ? (

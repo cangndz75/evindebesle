@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { getRecentlyViewed } from "@/lib/recently-viewed";
 import { useCartStore, type CartItem } from "@/lib/stores/cartStore";
+import { useCompanySettingsStore } from "@/lib/stores/companySettingsStore";
 
 type ProductColor = {
     id: string;
@@ -121,7 +122,6 @@ function ProductTile({
                     fill
                     className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                     sizes="168px"
-                    unoptimized
                 />
                 <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-1/2 bg-linear-to-t from-black/55 via-black/15 to-transparent opacity-80 transition-opacity duration-300 group-hover:opacity-100" />
                 <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-2 opacity-0 transition-all duration-300 group-hover:opacity-100">
@@ -190,7 +190,7 @@ export default function CartPage() {
     const removeItem = useCartStore((state) => state.removeItem);
     const addItemOptimistic = useCartStore((state) => state.addItemOptimistic);
 
-    const [freeShippingThreshold, setFreeShippingThreshold] = useState(99);
+    const { freeShippingThreshold, hydrate: hydrateSettings } = useCompanySettingsStore();
     const [recommendedProducts, setRecommendedProducts] = useState<RecommendedProduct[]>([]);
     const [recentlyViewedProducts, setRecentlyViewedProducts] = useState<RecommendedProduct[]>([]);
     const [activeTab, setActiveTab] = useState<"recommended" | "recent">("recommended");
@@ -467,16 +467,8 @@ export default function CartPage() {
         router.push("/checkout");
     };
 
-    const loadCompanySettings = async () => {
-        try {
-            const res = await fetch("/api/company-settings");
-            if (res.ok) {
-                const data = await res.json();
-                setFreeShippingThreshold(Number(data.freeShippingThreshold) || 99);
-            }
-        } catch (error) {
-            console.error("Error loading company settings:", error);
-        }
+    const loadCompanySettings = () => {
+        hydrateSettings();
     };
 
     const loadRecommendedProducts = async (items: CartItem[]) => {
@@ -779,7 +771,6 @@ export default function CartPage() {
                                                         fill
                                                         className="object-cover"
                                                         sizes="120px"
-                                                        unoptimized
                                                     />
                                                 </Link>
 
@@ -1005,7 +996,6 @@ export default function CartPage() {
                                             fill
                                             className="object-cover"
                                             sizes="(max-width: 768px) 100vw, 48vw"
-                                            unoptimized
                                         />
                                         <div className="absolute left-4 bottom-4 flex items-center gap-2">
                                             {images.slice(0, 4).map((thumb, idx) => (
@@ -1015,7 +1005,7 @@ export default function CartPage() {
                                                     onClick={() => setQuickImageIndex(idx)}
                                                     className={`relative h-10 w-10 overflow-hidden rounded border ${quickImageIndex === idx ? "border-black" : "border-[#d7d7d7]"}`}
                                                 >
-                                                    <Image src={thumb} alt="thumb" fill className="object-cover" sizes="40px" unoptimized />
+                                                    <Image src={thumb} alt="thumb" fill className="object-cover" sizes="40px" />
                                                 </button>
                                             ))}
                                         </div>

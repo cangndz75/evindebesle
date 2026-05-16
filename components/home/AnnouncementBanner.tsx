@@ -1,6 +1,7 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
+import { useCompanySettingsStore } from "@/lib/stores/companySettingsStore";
 
 type AnnouncementBannerProps = {
   variant?: "default" | "pink";
@@ -13,41 +14,13 @@ export default function AnnouncementBanner({
   className = "",
   position = "static" 
 }: AnnouncementBannerProps) {
-  const [freeShippingThreshold, setFreeShippingThreshold] = useState<number | null>(null);
-  const [announcementMessages, setAnnouncementMessages] = useState<string[]>([]);
+  const { freeShippingThreshold, announcementMessages, isHydrated, hydrate } = useCompanySettingsStore();
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const loading = !isHydrated;
 
   useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const res = await fetch("/api/company-settings");
-        if (res.ok) {
-          const data = await res.json();
-          setFreeShippingThreshold(data.freeShippingThreshold || 999);
-          setAnnouncementMessages(
-            Array.isArray(data.announcementMessages)
-              ? data.announcementMessages
-                  .filter((message: unknown): message is string => typeof message === "string")
-                  .map((message: string) => message.trim())
-                  .filter(Boolean)
-              : []
-          );
-        } else {
-          setFreeShippingThreshold(999);
-          setAnnouncementMessages([]);
-        }
-      } catch (error) {
-        console.error("Error fetching company settings:", error);
-        setFreeShippingThreshold(999);
-        setAnnouncementMessages([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSettings();
-  }, []);
+    hydrate();
+  }, [hydrate]);
 
   const bgColor = variant === "pink" ? "bg-pink-400" : "bg-black";
   const textColor = "text-white";

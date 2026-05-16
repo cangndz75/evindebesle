@@ -52,10 +52,8 @@ export async function POST(req: Request) {
     }
 
     try {
-      await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/analytics/track`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      await prisma.analyticsEvent.create({
+        data: {
           sessionId: req.headers.get('x-session-id') || 'backend-session',
           eventType: 'SIGNUP',
           eventData: {
@@ -64,8 +62,10 @@ export async function POST(req: Request) {
             userEmail: newUser.email,
           },
           page: '/register',
-          timestamp: new Date().toISOString(),
-        }),
+          ipAddress: ip,
+          userAgent: req.headers.get('user-agent') || null,
+          timestamp: new Date(),
+        },
       });
     } catch (err) {
       console.error('[ANALYTICS_TRACK_ERROR]', err);

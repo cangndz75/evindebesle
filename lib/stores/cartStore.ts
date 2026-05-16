@@ -1,4 +1,4 @@
-﻿import { create } from "zustand";
+import { create } from "zustand";
 import { getGuestCart, addToGuestCart, saveGuestCart } from "@/lib/cart-utils";
 
 export type CartItem = {
@@ -97,6 +97,7 @@ const formatGuestCart = (guestCart: ReturnType<typeof getGuestCart>): CartItem[]
 
 const updateTimers = new Map<string, NodeJS.Timeout>();
 const pendingUpdates = new Map<string, number>();
+let _cartHydrateInflight: Promise<void> | null = null;
 
 export const useCartStore = create<CartState>((set, get) => ({
   items: [],
@@ -137,43 +138,50 @@ export const useCartStore = create<CartState>((set, get) => ({
 
   hydrate: async () => {
     if (get().hydrated) return;
+    if (_cartHydrateInflight) return _cartHydrateInflight;
 
-    const guestCart = getGuestCart();
-    if (guestCart.length > 0) {
-      set({ items: formatGuestCart(guestCart), hydrated: true, isReady: false });
-    } else {
-      set({ hydrated: true, isReady: false });
-    }
+    _cartHydrateInflight = (async () => {
+      const guestCart = getGuestCart();
+      if (guestCart.length > 0) {
+        set({ items: formatGuestCart(guestCart), hydrated: true, isReady: false });
+      } else {
+        set({ hydrated: true, isReady: false });
+      }
 
-    try {
-      const res = await fetch("/api/cart");
-      if (res.ok) {
-        const items = await res.json();
-        const latestGuestCart = getGuestCart();
+      try {
+        const res = await fetch("/api/cart");
+        if (res.ok) {
+          const items = await res.json();
+          const latestGuestCart = getGuestCart();
 
-        if (Array.isArray(items) && items.length === 0 && latestGuestCart.length > 0) {
-          set({ items: formatGuestCart(latestGuestCart), hydrated: true, isReady: true });
+          if (Array.isArray(items) && items.length === 0 && latestGuestCart.length > 0) {
+            set({ items: formatGuestCart(latestGuestCart), hydrated: true, isReady: true });
+          } else {
+            set({ items, hydrated: true, isReady: true });
+          }
+        } else if (res.status === 401) {
+          const latestGuestCart = getGuestCart();
+          if (latestGuestCart.length === 0) {
+            set({ items: [], hydrated: true, isReady: true });
+          } else {
+            set({ items: formatGuestCart(latestGuestCart), hydrated: true, isReady: true });
+          }
         } else {
-          set({ items, hydrated: true, isReady: true });
+          set({ hydrated: true, isReady: true });
         }
-      } else if (res.status === 401) {
+      } catch (error) {
         const latestGuestCart = getGuestCart();
         if (latestGuestCart.length === 0) {
           set({ items: [], hydrated: true, isReady: true });
         } else {
           set({ items: formatGuestCart(latestGuestCart), hydrated: true, isReady: true });
         }
-      } else {
-        set({ hydrated: true, isReady: true });
+      } finally {
+        _cartHydrateInflight = null;
       }
-    } catch (error) {
-      const latestGuestCart = getGuestCart();
-      if (latestGuestCart.length === 0) {
-        set({ items: [], hydrated: true, isReady: true });
-      } else {
-        set({ items: formatGuestCart(latestGuestCart), hydrated: true, isReady: true });
-      }
-    }
+    })();
+
+    return _cartHydrateInflight;
   },
 
   addItemOptimistic: async (params: AddItemParams) => {

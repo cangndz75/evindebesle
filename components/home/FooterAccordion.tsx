@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
+import { useCompanySettingsStore } from "@/lib/stores/companySettingsStore";
 import {
   Accordion,
   AccordionContent,
@@ -88,25 +89,15 @@ const TruckIcon = () => (
 
 function BenefitMarquee() {
   const ref = useRef<HTMLDivElement>(null);
-  const [benefits, setBenefits] = useState(staticBenefits);
+  const { freeShippingThreshold, hydrate } = useCompanySettingsStore();
+  const benefits = useMemo(() => [
+    ...staticBenefits,
+    { icon: "truck" as const, text: `${Math.round(freeShippingThreshold)}₺ üzeri ücretsiz hızlı kargo` },
+  ], [freeShippingThreshold]);
 
   useEffect(() => {
-    fetch("/api/company-settings")
-      .then((res) => res.json())
-      .then((data) => {
-        const threshold = data.freeShippingThreshold ?? 999;
-        setBenefits([
-          ...staticBenefits,
-          { icon: "truck", text: `${threshold}₺ üzeri ücretsiz hızlı kargo` },
-        ]);
-      })
-      .catch(() => {
-        setBenefits([
-          ...staticBenefits,
-          { icon: "truck", text: "999₺ üzeri ücretsiz hızlı kargo" },
-        ]);
-      });
-  }, []);
+    hydrate();
+  }, [hydrate]);
 
   useEffect(() => {
     if (!ref.current) return;

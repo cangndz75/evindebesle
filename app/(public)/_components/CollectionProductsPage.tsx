@@ -6,6 +6,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Heart, ChevronDown, ArrowUpDown, Filter } from "lucide-react";
 import useSWR from "swr";
 import { toast } from "sonner";
+import { useFavoritesStore } from "@/lib/stores/favoritesStore";
 import {
   Dialog,
   DialogContent,
@@ -82,42 +83,18 @@ type CollectionProductsPageProps = {
 };
 
 function FavoriteButton({ productId, productName }: { productId: string; productName: string }) {
-  const [isFavorite, setIsFavorite] = useState(false);
+  const isFavorite = useFavoritesStore((s) => s.favoriteIds.has(productId));
+  const toggleFav = useFavoritesStore((s) => s.toggleFavorite);
   const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    const checkFavorite = async () => {
-      try {
-        const res = await fetch(`/api/favorites/check?productId=${productId}`);
-        const data = await res.json();
-        setIsFavorite(data.isFavorite);
-      } catch (error) {}
-    };
-    checkFavorite();
-  }, [productId]);
 
   const handleToggle = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const nextFavorite = !isFavorite;
-    setIsFavorite(nextFavorite);
     setIsLoading(true);
     try {
-      if (!nextFavorite) {
-        await fetch(`/api/favorites?productId=${productId}`, { method: "DELETE" });
-        toast.success(`${productName} favorilerden çıkarıldı`, { position: "bottom-left" });
-      } else {
-        await fetch("/api/favorites", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ productId }),
-        });
-        toast.success(`${productName} favorilere eklendi`, { position: "bottom-left" });
-      }
-      window.dispatchEvent(new Event("favoriteUpdated"));
+      await toggleFav(productId);
     } catch (error) {
-      setIsFavorite(!nextFavorite);
-      toast.error("Bir hata oluştu");
+      console.error("Error toggling favorite:", error);
     } finally {
       setIsLoading(false);
     }
@@ -142,6 +119,13 @@ export default function CollectionProductsPage({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+
+  const hydrateRef = useRef(false);
+  useEffect(() => {
+    if (hydrateRef.current) return;
+    hydrateRef.current = true;
+    useFavoritesStore.getState().hydrate();
+  }, []);
 
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [products, setProducts] = useState<Product[]>(initialProducts);

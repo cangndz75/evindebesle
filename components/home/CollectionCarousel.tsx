@@ -188,7 +188,6 @@ export default function CollectionCarousel() {
                     fill
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
                     sizes="(max-width: 768px) 280px, 320px"
-                    unoptimized
                   />
                 </div>
                 <h3 className="text-sm md:text-base font-light text-[#111] mb-2 uppercase tracking-wider text-center">

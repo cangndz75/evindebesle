@@ -15,7 +15,6 @@ export default function EditorialBanner() {
           className="object-cover object-center"
           sizes="100vw"
           priority
-          unoptimized
         />
         
         <div className="absolute inset-0 bg-linear-to-r from-black/60 via-black/40 to-transparent" />

@@ -1,7 +1,12 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import FooterAccordion from "@/components/home/FooterAccordion";
+import dynamic from "next/dynamic";
+
+const FooterAccordion = dynamic(() => import("@/components/home/FooterAccordion"), {
+    ssr: false,
+    loading: () => <footer className="h-64 bg-gray-50" />,
+});
 
 export default function ConditionalFooter() {
     const pathname = usePathname();

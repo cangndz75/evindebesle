@@ -33,7 +33,7 @@ import { toast } from "sonner";
 type ProductOrder = {
   id: string;
   orderNumber: string;
-  status: "PENDING" | "PREPARING" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "COMPLETED" | "CANCELLED";
+  status: "PENDING" | "PREPARING" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "COMPLETED" | "CANCELLED" | "RETURN_REQUESTED" | "REFUNDED" | "RETURNED";
   paymentStatus: "PENDING" | "PAID" | "FAILED" | "REFUNDED" | "SUCCEEDED";
   total: number;
   createdAt: string;
@@ -78,6 +78,13 @@ type ReturnRequestData = {
   status: string;
   reason: string;
   description: string | null;
+  images?: string[];
+  adminNote?: string | null;
+  cargoTrackingCode?: string | null;
+  bankReferenceCode?: string | null;
+  refundAmount?: number | null;
+  receivedAt?: string | null;
+  refundedAt?: string | null;
   createdAt: string;
   order: {
     orderNumber: string;
@@ -90,6 +97,8 @@ type ReturnRequestData = {
       productName: string;
       colorName: string | null;
       sizeName: string | null;
+      unitPrice?: number;
+      totalPrice?: number;
     };
   }>;
 };
@@ -285,6 +294,21 @@ export default function OrdersPage() {
         label: "İptal Edildi",
         className: "bg-red-100 text-red-800 border-red-200",
         icon: <XCircle className="w-3 h-3" />,
+      },
+      RETURN_REQUESTED: {
+        label: "İade Talep Edildi",
+        className: "bg-orange-100 text-orange-800 border-orange-200",
+        icon: <RotateCcw className="w-3 h-3" />,
+      },
+      REFUNDED: {
+        label: "İade Edildi",
+        className: "bg-teal-100 text-teal-800 border-teal-200",
+        icon: <CheckCircle className="w-3 h-3" />,
+      },
+      RETURNED: {
+        label: "İade Edildi",
+        className: "bg-teal-100 text-teal-800 border-teal-200",
+        icon: <CheckCircle className="w-3 h-3" />,
       },
     };
     const statusInfo = statusMap[status] || {
@@ -498,17 +522,17 @@ export default function OrdersPage() {
                       
                       <div className="flex flex-wrap justify-end gap-2 pt-2 border-t">
                         
-                        {(order.status === "DELIVERED" || order.status === "COMPLETED") && (
-                          returnRequestsByOrder[order.id] ? (
-                            <Button
-                              variant="outline"
-                              onClick={() => handleOpenReturnViewModal(returnRequestsByOrder[order.id])}
-                              className="flex items-center gap-2"
-                            >
-                              <RotateCcw className="w-4 h-4" />
-                              İadeyi Görüntüle
-                            </Button>
-                          ) : (
+                        {returnRequestsByOrder[order.id] ? (
+                          <Button
+                            variant="outline"
+                            onClick={() => handleOpenReturnViewModal(returnRequestsByOrder[order.id])}
+                            className="flex items-center gap-2"
+                          >
+                            <RotateCcw className="w-4 h-4" />
+                            İadeyi Görüntüle
+                          </Button>
+                        ) : (
+                          (order.status === "DELIVERED" || order.status === "COMPLETED") && (
                             <Button
                               variant="outline"
                               onClick={() => handleOpenReturnModal(order)}

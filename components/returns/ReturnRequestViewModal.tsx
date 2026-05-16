@@ -1,165 +1,293 @@
 "use client";
 
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useState } from "react";
+import { Copy, Check, Truck, Package, AlertCircle } from "lucide-react";
 
 const RETURN_REASON_LABELS: Record<string, string> = {
-  WRONG_SIZE: "Beden uygun değil",
-  WRONG_COLOR: "Renk beklediğim gibi değil",
-  DAMAGED: "Ürün hasarlı geldi",
-  WRONG_PRODUCT: "Yanlış ürün gönderildi",
-  NOT_AS_DESCRIBED: "Ürün açıklamayla uyuşmuyor",
-  CHANGED_MIND: "Fikir değişikliği",
-  OTHER: "Diğer",
+    WRONG_SIZE: "Beden uygun değil",
+    WRONG_COLOR: "Renk beklediğim gibi değil",
+    DAMAGED: "Ürün hasarlı geldi",
+    WRONG_PRODUCT: "Yanlış ürün gönderildi",
+    NOT_AS_DESCRIBED: "Ürün açıklamayla uyuşmuyor",
+    CHANGED_MIND: "Fikir değişikliği",
+    OTHER: "Diğer",
+};
+
+const STATUS_CONFIG: Record<string, { label: string; className: string; description: string }> = {
+    PENDING: {
+        label: "Kargo Bekleniyor",
+        className: "bg-yellow-100 text-yellow-800 border-yellow-200",
+        description: "İade talebiniz oluşturuldu. Ürünü kargoya vermeniz bekleniyor.",
+    },
+    RECEIVED: {
+        label: "Teslim Alındı",
+        className: "bg-blue-100 text-blue-800 border-blue-200",
+        description: "Ürün depomuzda teslim alındı ve inceleniyor.",
+    },
+    APPROVED: {
+        label: "Onaylandı",
+        className: "bg-emerald-100 text-emerald-800 border-emerald-200",
+        description: "İade talebiniz onaylandı. Ücret iadesi işleme alındı.",
+    },
+    REJECTED: {
+        label: "Reddedildi",
+        className: "bg-red-100 text-red-800 border-red-200",
+        description: "İade talebiniz reddedildi.",
+    },
+    REFUNDED: {
+        label: "İade Edildi",
+        className: "bg-green-100 text-green-800 border-green-200",
+        description: "İade tutarı kartınıza yatırılmıştır.",
+    },
+    COMPLETED: {
+        label: "Tamamlandı",
+        className: "bg-gray-100 text-gray-800 border-gray-200",
+        description: "İade süreci tamamlanmıştır.",
+    },
 };
 
 interface ReturnRequestItem {
-  id: string;
-  quantity: number;
-  reason: string | null;
-  orderItem: {
-    productName: string;
-    colorName: string | null;
-    sizeName: string | null;
-  };
+    id: string;
+    quantity: number;
+    reason: string | null;
+    orderItem: {
+        productName: string;
+        colorName: string | null;
+        sizeName: string | null;
+        image?: string | null;
+        unitPrice?: number;
+        totalPrice?: number;
+    };
 }
 
 interface ReturnRequestData {
-  id: string;
-  status: string;
-  reason: string;
-  description: string | null;
-  createdAt: string;
-  order: {
-    orderNumber: string;
-  };
-  items: ReturnRequestItem[];
+    id: string;
+    orderId: string;
+    status: string;
+    reason: string;
+    description: string | null;
+    images?: string[];
+    adminNote?: string | null;
+    cargoTrackingCode?: string | null;
+    bankReferenceCode?: string | null;
+    refundAmount?: number | null;
+    receivedAt?: string | null;
+    refundedAt?: string | null;
+    createdAt: string;
+    order: {
+        orderNumber: string;
+    };
+    items: ReturnRequestItem[];
 }
 
 interface ReturnRequestViewModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  data: ReturnRequestData | null;
-  onCancelled?: () => void;
-}
-
-function getStatusBadge(status: string) {
-  const map: Record<string, { label: string; className: string }> = {
-    PENDING: { label: "Bekliyor", className: "bg-yellow-100 text-yellow-800" },
-    APPROVED: { label: "Onaylandı", className: "bg-green-100 text-green-800" },
-    REJECTED: { label: "İptal/Red", className: "bg-red-100 text-red-800" },
-    COMPLETED: { label: "Tamamlandı", className: "bg-blue-100 text-blue-800" },
-  };
-  const item = map[status] || { label: status, className: "bg-gray-100 text-gray-800" };
-  return <Badge className={item.className}>{item.label}</Badge>;
+    isOpen: boolean;
+    onClose: () => void;
+    data: ReturnRequestData | null;
+    onCancelled?: () => void;
 }
 
 export default function ReturnRequestViewModal({
-  isOpen,
-  onClose,
-  data,
-  onCancelled,
+    isOpen,
+    onClose,
+    data,
+    onCancelled,
 }: ReturnRequestViewModalProps) {
-  const [cancelling, setCancelling] = useState(false);
+    const [cancelling, setCancelling] = useState(false);
+    const [codeCopied, setCodeCopied] = useState(false);
 
-  if (!data) return null;
+    if (!data) return null;
 
-  const canCancel = data.status === "PENDING";
+    const canCancel = data.status === "PENDING";
+    const statusInfo = STATUS_CONFIG[data.status] || STATUS_CONFIG.PENDING;
 
-  const handleCancel = async () => {
-    setCancelling(true);
-    try {
-      const res = await fetch(`/api/returns/${data.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "cancel" }),
-      });
+    const handleCancel = async () => {
+        setCancelling(true);
+        try {
+            const res = await fetch(`/api/returns/${data.id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ action: "cancel" }),
+            });
 
-      const payload = await res.text();
-      if (!res.ok) {
-        throw new Error(payload || "İade iptal edilemedi");
-      }
+            const payload = await res.text();
+            if (!res.ok) throw new Error(payload || "İade iptal edilemedi");
 
-      toast.success("İade talebiniz iptal edildi");
-      onCancelled?.();
-      onClose();
-    } catch (error: any) {
-      toast.error(error?.message || "İade iptal edilemedi");
-    } finally {
-      setCancelling(false);
-    }
-  };
+            toast.success("İade talebiniz iptal edildi");
+            onCancelled?.();
+            onClose();
+        } catch (error: any) {
+            toast.error(error?.message || "İade iptal edilemedi");
+        } finally {
+            setCancelling(false);
+        }
+    };
 
-  return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-160 max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>İade Talebi Detayı</DialogTitle>
-          <DialogDescription>
-            Sipariş No: <span className="font-semibold">{data.order.orderNumber}</span>
-          </DialogDescription>
-        </DialogHeader>
+    const handleCopyCode = () => {
+        if (data.cargoTrackingCode) {
+            navigator.clipboard.writeText(data.cargoTrackingCode);
+            setCodeCopied(true);
+            toast.success("Kargo kodu kopyalandı");
+            setTimeout(() => setCodeCopied(false), 2000);
+        }
+    };
 
-        <div className="space-y-4">
-          <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3 border">
-            <div className="text-sm text-gray-600">Durum</div>
-            {getStatusBadge(data.status)}
-          </div>
+    const formatPrice = (v: number) =>
+        new Intl.NumberFormat("tr-TR", { style: "currency", currency: "TRY" }).format(v);
 
-          <div className="rounded-lg border p-3 space-y-2">
-            <p className="text-sm font-medium">Genel İade Nedeni</p>
-            <p className="text-sm text-gray-700">{RETURN_REASON_LABELS[data.reason] || data.reason}</p>
-            {data.description && (
-              <>
-                <p className="text-sm font-medium pt-2">Açıklama</p>
-                <p className="text-sm text-gray-700 whitespace-pre-wrap">{data.description}</p>
-              </>
-            )}
-          </div>
+    return (
+        <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+            <DialogContent className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                    <DialogTitle>İade Talebi Detayı</DialogTitle>
+                    <DialogDescription>
+                        Sipariş No: <span className="font-semibold">{data.order.orderNumber}</span>
+                    </DialogDescription>
+                </DialogHeader>
 
-          <div className="rounded-lg border p-3 space-y-3">
-            <p className="text-sm font-medium">İade Edilen Ürünler</p>
-            {data.items.map((item) => (
-              <div key={item.id} className="rounded-md bg-gray-50 p-3 text-sm space-y-1">
-                <p className="font-medium text-gray-900">{item.orderItem.productName}</p>
-                <p className="text-gray-600">Adet: {item.quantity}</p>
-                <p className="text-gray-600">
-                  {(item.orderItem.colorName || item.orderItem.sizeName)
-                    ? `Renk: ${item.orderItem.colorName || "-"} • Beden: ${item.orderItem.sizeName || "-"}`
-                    : ""}
-                </p>
-                {item.reason && (
-                  <p className="text-gray-600">
-                    Ürün Nedeni: {RETURN_REASON_LABELS[item.reason] || item.reason}
-                  </p>
-                )}
-              </div>
-            ))}
-          </div>
+                <div className="space-y-4">
+                    {/* Status */}
+                    <div className="bg-gray-50 rounded-lg p-4 border space-y-2">
+                        <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-500">Durum</span>
+                            <Badge className={`${statusInfo.className} border`}>{statusInfo.label}</Badge>
+                        </div>
+                        <p className="text-sm text-gray-600">{statusInfo.description}</p>
+                    </div>
 
-          <div className="text-xs text-gray-500">
-            Oluşturulma: {new Date(data.createdAt).toLocaleString("tr-TR")}
-          </div>
-        </div>
+                    {/* Cargo Info */}
+                    {data.cargoTrackingCode && data.status === "PENDING" && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
+                            <div className="flex items-center gap-2 text-blue-800 font-semibold text-sm">
+                                <Truck className="w-4 h-4" />
+                                Kargo Bilgileri
+                            </div>
+                            <div className="flex items-center justify-between text-sm">
+                                <span className="text-blue-700">İade Kargo Kodu:</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="font-mono font-bold text-blue-900 bg-white px-3 py-1 rounded border border-blue-200">
+                                        {data.cargoTrackingCode}
+                                    </span>
+                                    <Button variant="ghost" size="sm" onClick={handleCopyCode} className="h-8 w-8 p-0">
+                                        {codeCopied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+                                    </Button>
+                                </div>
+                            </div>
+                            <p className="text-xs text-blue-600">
+                                Bu kodla ürünü ücretsiz olarak kargoya teslim edebilirsiniz.
+                            </p>
+                        </div>
+                    )}
 
-        <div className="flex justify-end gap-2 pt-2">
-          <Button variant="outline" onClick={onClose}>Kapat</Button>
-          {canCancel && (
-            <Button variant="destructive" onClick={handleCancel} disabled={cancelling}>
-              {cancelling ? "İptal Ediliyor..." : "İade Talebini İptal Et"}
-            </Button>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
+                    {/* Refund Amount + bank reference */}
+                    {data.status === "REFUNDED" && (data.refundAmount != null || data.bankReferenceCode) && (
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-4 space-y-2">
+                            {data.refundAmount != null && (
+                                <p className="text-sm text-green-800">
+                                    <span className="font-semibold">{formatPrice(data.refundAmount)}</span> tutarında iade kartınıza yatırılmıştır.
+                                    Bankanıza bağlı olarak 1-10 iş günü içinde hesabınıza yansıyacaktır.
+                                </p>
+                            )}
+                            {data.bankReferenceCode && (
+                                <p className="text-xs text-green-900 pt-1 border-t border-green-200">
+                                    <span className="font-medium">Banka referansı:</span>{" "}
+                                    <span className="font-mono break-all">{data.bankReferenceCode}</span>
+                                </p>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Rejection Reason */}
+                    {data.status === "REJECTED" && data.adminNote && (
+                        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                            <div className="flex items-start gap-2">
+                                <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 shrink-0" />
+                                <div>
+                                    <p className="text-sm font-semibold text-red-800 mb-1">Ret Nedeni</p>
+                                    <p className="text-sm text-red-700">{data.adminNote}</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Reason */}
+                    <div className="rounded-lg border p-4 space-y-2">
+                        <p className="text-sm font-medium">Genel İade Nedeni</p>
+                        <p className="text-sm text-gray-700">{RETURN_REASON_LABELS[data.reason] || data.reason}</p>
+                        {data.description && (
+                            <>
+                                <p className="text-sm font-medium pt-2">Açıklama</p>
+                                <p className="text-sm text-gray-700 whitespace-pre-wrap">{data.description}</p>
+                            </>
+                        )}
+                    </div>
+
+                    {/* Items */}
+                    <div className="rounded-lg border p-4 space-y-3">
+                        <p className="text-sm font-medium">İade Edilen Ürünler</p>
+                        {data.items.map((item) => (
+                            <div key={item.id} className="rounded-md bg-gray-50 p-3 text-sm space-y-1">
+                                <div className="flex items-center justify-between">
+                                    <p className="font-medium text-gray-900">{item.orderItem.productName}</p>
+                                    {item.orderItem.unitPrice && (
+                                        <span className="text-sm font-semibold">
+                                            {formatPrice(item.orderItem.unitPrice * item.quantity)}
+                                        </span>
+                                    )}
+                                </div>
+                                <div className="flex flex-wrap gap-2 text-gray-600">
+                                    <span>Adet: {item.quantity}</span>
+                                    {item.orderItem.colorName && <span>Renk: {item.orderItem.colorName}</span>}
+                                    {item.orderItem.sizeName && <span>Beden: {item.orderItem.sizeName}</span>}
+                                </div>
+                                {item.reason && (
+                                    <p className="text-gray-500">
+                                        Neden: {RETURN_REASON_LABELS[item.reason] || item.reason}
+                                    </p>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Customer Photos */}
+                    {data.images && data.images.length > 0 && (
+                        <div className="rounded-lg border p-4">
+                            <p className="text-sm font-medium mb-2">Yüklenen Görseller</p>
+                            <div className="flex flex-wrap gap-2">
+                                {data.images.map((url, idx) => (
+                                    <img key={idx} src={url} alt="" className="w-16 h-16 object-cover rounded-lg border" />
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Timestamps */}
+                    <div className="text-xs text-gray-500 space-y-1">
+                        <p>Oluşturulma: {new Date(data.createdAt).toLocaleString("tr-TR")}</p>
+                        {data.receivedAt && <p>Teslim Alınma: {new Date(data.receivedAt).toLocaleString("tr-TR")}</p>}
+                        {data.refundedAt && <p>İade Tarihi: {new Date(data.refundedAt).toLocaleString("tr-TR")}</p>}
+                    </div>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2">
+                    <Button variant="outline" onClick={onClose}>Kapat</Button>
+                    {canCancel && (
+                        <Button variant="destructive" onClick={handleCancel} disabled={cancelling}>
+                            {cancelling ? "İptal Ediliyor..." : "İade Talebini İptal Et"}
+                        </Button>
+                    )}
+                </div>
+            </DialogContent>
+        </Dialog>
+    );
 }

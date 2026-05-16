@@ -30,6 +30,7 @@ import {
   Loader2,
   Upload,
   MessageSquare,
+  RotateCcw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePathname } from "next/navigation";
@@ -59,6 +60,11 @@ const navSections = [
         label: "Stok Yönetimi",
         href: "/admin-stock",
         icon: <Package className="w-5 h-5" />,
+      },
+      {
+        label: "İadeler",
+        href: "/admin-returns",
+        icon: <RotateCcw className="w-5 h-5" />,
       },
       {
         label: "Faturalar",
@@ -236,22 +242,32 @@ export default function AdminLayout({
   const [open, setOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [pendingReviewCount, setPendingReviewCount] = useState(0);
+  const [pendingReturnCount, setPendingReturnCount] = useState(0);
   const isCampaignsPage = pathname === "/campaigns";
 
   useEffect(() => {
     if (!session?.user?.isAdmin) return;
 
-    const fetchCount = () => {
-      fetch("/api/admin-reviews?status=pending&countOnly=true")
-        .then((res) => res.json())
-        .then((data) => {
-          if (typeof data.count === "number") setPendingReviewCount(data.count);
-        })
-        .catch(() => {});
+    const fetchCounts = () => {
+      Promise.all([
+        fetch("/api/admin-reviews?status=pending&countOnly=true")
+          .then((res) => (res.ok ? res.json() : null))
+          .catch(() => null),
+        fetch("/api/admin/returns?countOnly=true")
+          .then((res) => (res.ok ? res.json() : null))
+          .catch(() => null),
+      ]).then(([reviewData, returnData]) => {
+        if (reviewData && typeof reviewData.count === "number") {
+          setPendingReviewCount(reviewData.count);
+        }
+        if (returnData && typeof returnData.pendingAction === "number") {
+          setPendingReturnCount(returnData.pendingAction);
+        }
+      });
     };
 
-    fetchCount();
-    const interval = setInterval(fetchCount, 120_000);
+    fetchCounts();
+    const interval = setInterval(fetchCounts, 120_000);
     return () => clearInterval(interval);
   }, [session]);
 
@@ -349,7 +365,10 @@ export default function AdminLayout({
               <nav className="space-y-1">
                 {section.links.map(({ label, href, icon }) => {
                   const isActive = pathname === href;
-                  const showBadge = href === "/admin-reviews" && pendingReviewCount > 0;
+                  const reviewBadge = href === "/admin-reviews" && pendingReviewCount > 0;
+                  const returnBadge = href === "/admin-returns" && pendingReturnCount > 0;
+                  const showCollapsedBadge = reviewBadge || returnBadge;
+                  const collapsedCount = reviewBadge ? pendingReviewCount : returnBadge ? pendingReturnCount : 0;
                   return (
                     <Link
                       key={`${section.title}-${label}-${href}`}
@@ -363,18 +382,23 @@ export default function AdminLayout({
                     >
                       <span className="flex-shrink-0 relative">
                         {icon}
-                        {sidebarCollapsed && showBadge && (
-                          <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
-                            {pendingReviewCount}
+                        {sidebarCollapsed && showCollapsedBadge && (
+                          <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-4 h-4 px-0.5 flex items-center justify-center tabular-nums">
+                            {collapsedCount > 99 ? "99+" : collapsedCount}
                           </span>
                         )}
                       </span>
                       {!sidebarCollapsed && (
                         <span className="whitespace-nowrap flex items-center gap-2">
                           {label}
-                          {showBadge && (
-                            <span className="bg-red-500 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none">
+                          {reviewBadge && (
+                            <span className="bg-red-500 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none tabular-nums">
                               {pendingReviewCount}
+                            </span>
+                          )}
+                          {returnBadge && (
+                            <span className="bg-red-500 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none tabular-nums">
+                              ({pendingReturnCount > 99 ? "99+" : pendingReturnCount})
                             </span>
                           )}
                         </span>
@@ -427,7 +451,8 @@ export default function AdminLayout({
               </h3>
               <nav className="space-y-2">
                 {section.links.map(({ label, href, icon }) => {
-                  const showMobileBadge = href === "/admin-reviews" && pendingReviewCount > 0;
+                  const reviewBadge = href === "/admin-reviews" && pendingReviewCount > 0;
+                  const returnBadge = href === "/admin-returns" && pendingReturnCount > 0;
                   return (
                     <Link
                       key={`${section.title}-${label}-${href}`}
@@ -438,9 +463,14 @@ export default function AdminLayout({
                       {icon}
                       <span className="flex items-center gap-2">
                         {label}
-                        {showMobileBadge && (
-                          <span className="bg-red-500 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none">
+                        {reviewBadge && (
+                          <span className="bg-red-500 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none tabular-nums">
                             {pendingReviewCount}
+                          </span>
+                        )}
+                        {returnBadge && (
+                          <span className="bg-red-500 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none tabular-nums">
+                            ({pendingReturnCount > 99 ? "99+" : pendingReturnCount})
                           </span>
                         )}
                       </span>

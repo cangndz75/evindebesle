@@ -965,21 +965,28 @@ model StockMovement {
 }
 
 model ReturnRequest {
-  id           String              @id @default(cuid())
-  orderId      String
-  userId       String
-  status       ReturnStatus        @default(PENDING)
-  reason       String
-  description  String?
-  images       String[]
-  adminNote    String?
-  refundAmount Float?
-  createdAt    DateTime            @default(now())
-  updatedAt    DateTime            @updatedAt
-  items        ReturnRequestItem[]
+  id                String              @id @default(cuid())
+  orderId           String
+  userId            String
+  status            ReturnStatus        @default(PENDING)
+  reason            String
+  description       String?
+  images            String[]
+  adminNote         String?
+  refundAmount        Float?
+  bankReferenceCode   String? // Iyzico hostReference / authCode (destek & banka sorguları)
+  cargoTrackingCode String?
+  receivedAt        DateTime?
+  refundedAt        DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  items             ReturnRequestItem[]
 
   order Order @relation(fields: [orderId], references: [id])
   user  User  @relation(fields: [userId], references: [id])
+
+  @@index([orderId])
+  @@index([status])
 }
 
 model ReturnRequestItem {
@@ -1053,8 +1060,10 @@ enum StockMovementType {
 
 enum ReturnStatus {
   PENDING
+  RECEIVED
   APPROVED
   REJECTED
+  REFUNDED
   COMPLETED
 }
 

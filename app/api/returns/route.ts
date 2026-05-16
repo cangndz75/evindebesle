@@ -1,9 +1,12 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { createAdminNotification } from "@/lib/admin-notification";
 import { resend, resendFromAddress } from "@/lib/resend";
+
+const RETURN_CARGO_CODE = process.env.RETURN_CARGO_CODE || "DV-IADE-2026";
+const RETURN_CARGO_COMPANY = process.env.RETURN_CARGO_COMPANY || "Yurtiçi Kargo";
 
 export async function GET(req: Request) {
     try {
@@ -31,6 +34,8 @@ export async function GET(req: Request) {
                                 colorName: true,
                                 sizeName: true,
                                 image: true,
+                                unitPrice: true,
+                                totalPrice: true,
                             },
                         },
                     },
@@ -98,9 +103,7 @@ export async function POST(req: Request) {
         }
 
         const existingReturn = await prisma.returnRequest.findFirst({
-            where: {
-                orderId,
-            },
+            where: { orderId },
         });
 
         if (existingReturn) {
@@ -114,32 +117,44 @@ export async function POST(req: Request) {
             }
         }
 
-        const returnRequest = await prisma.returnRequest.create({
-            data: {
-                orderId,
-                userId: session.user.id,
-                reason,
-                description: description || null,
-                images: images || [],
-                status: "PENDING",
-                items: {
-                    create: items.map((item: { orderItemId: string; quantity: number; reason?: string }) => ({
-                        orderItemId: item.orderItemId,
-                        quantity: item.quantity,
-                        reason: item.reason || null,
-                    })),
+        const cargoTrackingCode = `${RETURN_CARGO_CODE}-${Date.now().toString(36).toUpperCase()}`;
+
+        const returnRequest = await prisma.$transaction(async (tx: any) => {
+            const rr = await tx.returnRequest.create({
+                data: {
+                    orderId,
+                    userId: session.user.id,
+                    reason,
+                    description: description || null,
+                    images: images || [],
+                    status: "PENDING",
+                    cargoTrackingCode,
+                    items: {
+                        create: items.map((item: { orderItemId: string; quantity: number; reason?: string }) => ({
+                            orderItemId: item.orderItemId,
+                            quantity: item.quantity,
+                            reason: item.reason || null,
+                        })),
+                    },
                 },
-            },
-            include: {
-                items: true,
-            },
+                include: {
+                    items: true,
+                },
+            });
+
+            await tx.order.update({
+                where: { id: orderId },
+                data: { status: "RETURN_REQUESTED" },
+            });
+
+            return rr;
         });
 
         await createAdminNotification({
             type: "RETURN",
             title: "Yeni İade Talebi",
-            message: `#${order.orderNumber} numaralı sipariş için iade talebi oluşturuldu.`,
-            link: "/admin-returns",
+            message: `#${order.orderNumber} numaralı sipariş için iade talebi oluşturuldu. İncelemek için İadeler sayfasına gidin.`,
+            link: `/admin-returns?returnId=${returnRequest.id}`,
         });
 
         const to =
@@ -156,10 +171,18 @@ export async function POST(req: Request) {
                     to,
                     subject: `İade talebiniz oluşturuldu - ${order.orderNumber}`,
                     html: `
-                      <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111">
-                        <h2>İade talebiniz oluşturuldu</h2>
+                      <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111;max-width:600px;margin:0 auto">
+                        <h2>İade Talebiniz Oluşturuldu</h2>
                         <p>Sipariş No: <strong>${order.orderNumber}</strong></p>
-                        <p>İade talebiniz alınmıştır. Süreci Hesabım > Siparişlerim ekranından takip edebilirsiniz.</p>
+                        <p>İade talebiniz başarıyla alınmıştır.</p>
+                        <div style="background:#f9f9f9;padding:16px;border-radius:8px;margin:16px 0;border:1px solid #eee">
+                          <h3 style="margin:0 0 8px;font-size:15px">Kargo Bilgileri</h3>
+                          <p style="margin:4px 0"><strong>Kargo Firması:</strong> ${RETURN_CARGO_COMPANY}</p>
+                          <p style="margin:4px 0"><strong>İade Kargo Kodu:</strong> ${cargoTrackingCode}</p>
+                          <p style="margin:8px 0 0;font-size:13px;color:#666">Ürünü yukarıdaki kodla ${RETURN_CARGO_COMPANY}'ye ücretsiz olarak teslim edebilirsiniz.</p>
+                        </div>
+                        <p>Süreci Hesabım &gt; Siparişlerim ekranından takip edebilirsiniz.</p>
+                        <p style="color:#666;font-size:13px;margin-top:24px">Dark Velvet</p>
                       </div>
                     `,
                 })
@@ -168,8 +191,11 @@ export async function POST(req: Request) {
                 });
         }
 
-
-        return NextResponse.json(returnRequest);
+        return NextResponse.json({
+            ...returnRequest,
+            cargoTrackingCode,
+            cargoCompany: RETURN_CARGO_COMPANY,
+        });
     } catch (error) {
         console.error("[RETURNS_POST]", error);
         return new NextResponse("Internal Error", { status: 500 });

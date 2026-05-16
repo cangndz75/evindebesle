@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
     Dialog,
     DialogContent,
@@ -21,7 +21,19 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Package, ChevronRight, ChevronLeft, Check, AlertCircle } from "lucide-react";
+import {
+    Loader2,
+    Package,
+    ChevronRight,
+    ChevronLeft,
+    Check,
+    AlertCircle,
+    Camera,
+    X,
+    Truck,
+    Copy,
+    CheckCircle,
+} from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -34,6 +46,8 @@ const RETURN_REASONS = [
     { value: "CHANGED_MIND", label: "Fikir değişikliği" },
     { value: "OTHER", label: "Diğer" },
 ];
+
+const DAMAGE_REASONS = ["DAMAGED", "WRONG_PRODUCT", "NOT_AS_DESCRIBED"];
 
 interface OrderItem {
     id: string;
@@ -78,7 +92,12 @@ export default function ReturnRequestModal({
     const [selectedItems, setSelectedItems] = useState<SelectedItem[]>([]);
     const [generalReason, setGeneralReason] = useState("");
     const [description, setDescription] = useState("");
+    const [images, setImages] = useState<string[]>([]);
+    const [uploadingImage, setUploadingImage] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [result, setResult] = useState<{ cargoTrackingCode: string; cargoCompany: string } | null>(null);
+    const [codeCopied, setCodeCopied] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         if (!isOpen) {
@@ -86,6 +105,9 @@ export default function ReturnRequestModal({
             setSelectedItems([]);
             setGeneralReason("");
             setDescription("");
+            setImages([]);
+            setResult(null);
+            setCodeCopied(false);
         }
     }, [isOpen]);
 
@@ -115,6 +137,45 @@ export default function ReturnRequestModal({
         );
     };
 
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
+
+        if (images.length + files.length > 5) {
+            toast.error("En fazla 5 görsel yükleyebilirsiniz");
+            return;
+        }
+
+        setUploadingImage(true);
+
+        for (const file of Array.from(files)) {
+            if (file.size > 10 * 1024 * 1024) {
+                toast.error(`${file.name}: Dosya boyutu 10 MB'dan küçük olmalıdır`);
+                continue;
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append("file", file);
+                const res = await fetch("/api/upload", { method: "POST", body: formData });
+                const data = await res.json();
+
+                if (!res.ok) throw new Error(data.error || "Yükleme hatası");
+
+                setImages((prev) => [...prev, data.url]);
+            } catch (err: any) {
+                toast.error(err.message || "Görsel yüklenirken hata oluştu");
+            }
+        }
+
+        setUploadingImage(false);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+    };
+
+    const removeImage = (idx: number) => {
+        setImages((prev) => prev.filter((_, i) => i !== idx));
+    };
+
     const handleSubmit = async () => {
         if (!order) return;
 
@@ -127,6 +188,7 @@ export default function ReturnRequestModal({
                     orderId: order.id,
                     reason: generalReason,
                     description: description || undefined,
+                    images,
                     items: selectedItems,
                 }),
             });
@@ -136,9 +198,14 @@ export default function ReturnRequestModal({
                 throw new Error(errorText || "Bir hata oluştu");
             }
 
+            const data = await response.json();
+            setResult({
+                cargoTrackingCode: data.cargoTrackingCode,
+                cargoCompany: data.cargoCompany,
+            });
+            setStep(4);
             toast.success("İade talebiniz başarıyla oluşturuldu");
             onSuccess?.();
-            onClose();
         } catch (error: any) {
             toast.error(error.message || "İade talebi oluşturulurken hata oluştu");
         } finally {
@@ -146,13 +213,23 @@ export default function ReturnRequestModal({
         }
     };
 
+    const handleCopyCode = () => {
+        if (result?.cargoTrackingCode) {
+            navigator.clipboard.writeText(result.cargoTrackingCode);
+            setCodeCopied(true);
+            toast.success("Kargo kodu kopyalandı");
+            setTimeout(() => setCodeCopied(false), 2000);
+        }
+    };
+
     const canProceedStep1 = selectedItems.length > 0 && generalReason !== "";
-    const canProceedStep2 = true;
+    const showImageUpload = DAMAGE_REASONS.includes(generalReason);
+    const totalSteps = result ? 4 : 3;
 
     if (!order) return null;
 
     return (
-        <Dialog open={isOpen} onOpenChange={onClose}>
+        <Dialog open={isOpen} onOpenChange={(open) => !isSubmitting && !open && onClose()}>
             <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
@@ -164,7 +241,7 @@ export default function ReturnRequestModal({
                     </DialogDescription>
                 </DialogHeader>
 
-                
+                {/* Step Indicator */}
                 <div className="flex items-center justify-center gap-2 py-4">
                     {[1, 2, 3].map((s) => (
                         <div key={s} className="flex items-center">
@@ -192,7 +269,7 @@ export default function ReturnRequestModal({
                     ))}
                 </div>
 
-                
+                {/* STEP 1: Select Items & Reason */}
                 {step === 1 && (
                     <div className="space-y-4">
                         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
@@ -233,7 +310,7 @@ export default function ReturnRequestModal({
                                             onCheckedChange={() => toggleItemSelection(item.id, item.quantity)}
                                             className="mt-1"
                                         />
-                                        <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                                        <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden shrink-0">
                                             {item.image || item.product.image ? (
                                                 <img
                                                     src={item.image || item.product.image || ""}
@@ -255,21 +332,14 @@ export default function ReturnRequestModal({
                                             </Label>
                                             <div className="flex flex-wrap gap-1 mt-1">
                                                 {item.colorName && (
-                                                    <Badge variant="secondary" className="text-xs">
-                                                        {item.colorName}
-                                                    </Badge>
+                                                    <Badge variant="secondary" className="text-xs">{item.colorName}</Badge>
                                                 )}
                                                 {item.sizeName && (
-                                                    <Badge variant="secondary" className="text-xs">
-                                                        {item.sizeName}
-                                                    </Badge>
+                                                    <Badge variant="secondary" className="text-xs">{item.sizeName}</Badge>
                                                 )}
-                                                <Badge variant="outline" className="text-xs">
-                                                    {item.quantity} adet
-                                                </Badge>
+                                                <Badge variant="outline" className="text-xs">{item.quantity} adet</Badge>
                                             </div>
 
-                                            
                                             {isSelected && (
                                                 <div className="mt-3 space-y-2 pt-3 border-t">
                                                     <div className="flex items-center gap-2">
@@ -283,9 +353,7 @@ export default function ReturnRequestModal({
                                                             </SelectTrigger>
                                                             <SelectContent>
                                                                 {Array.from({ length: item.quantity }, (_, i) => i + 1).map((n) => (
-                                                                    <SelectItem key={n} value={String(n)}>
-                                                                        {n}
-                                                                    </SelectItem>
+                                                                    <SelectItem key={n} value={String(n)}>{n}</SelectItem>
                                                                 ))}
                                                             </SelectContent>
                                                         </Select>
@@ -301,9 +369,7 @@ export default function ReturnRequestModal({
                                                             </SelectTrigger>
                                                             <SelectContent>
                                                                 {RETURN_REASONS.map((r) => (
-                                                                    <SelectItem key={r.value} value={r.value}>
-                                                                        {r.label}
-                                                                    </SelectItem>
+                                                                    <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
                                                                 ))}
                                                             </SelectContent>
                                                         </Select>
@@ -318,7 +384,7 @@ export default function ReturnRequestModal({
                     </div>
                 )}
 
-                
+                {/* STEP 2: Description + Photo Upload */}
                 {step === 2 && (
                     <div className="space-y-4">
                         <div>
@@ -330,10 +396,59 @@ export default function ReturnRequestModal({
                                 className="min-h-[120px]"
                             />
                         </div>
+
+                        {showImageUpload && (
+                            <div>
+                                <Label className="mb-2 block">Hasar / Sorun Görseli (Opsiyonel)</Label>
+                                <p className="text-xs text-gray-500 mb-3">
+                                    Ürünle ilgili sorunun görsellerini yükleyin (en fazla 5 adet)
+                                </p>
+
+                                <div className="flex flex-wrap gap-2">
+                                    {images.map((url, idx) => (
+                                        <div key={idx} className="relative w-20 h-20 rounded-lg overflow-hidden border group">
+                                            <img src={url} alt="" className="w-full h-full object-cover" />
+                                            <button
+                                                onClick={() => removeImage(idx)}
+                                                className="absolute top-1 right-1 w-5 h-5 bg-black/70 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                            >
+                                                <X className="w-3 h-3" />
+                                            </button>
+                                        </div>
+                                    ))}
+
+                                    {images.length < 5 && (
+                                        <button
+                                            onClick={() => fileInputRef.current?.click()}
+                                            disabled={uploadingImage}
+                                            className="w-20 h-20 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-gray-400 hover:border-gray-400 hover:text-gray-500 transition-colors disabled:opacity-50"
+                                        >
+                                            {uploadingImage ? (
+                                                <Loader2 className="w-5 h-5 animate-spin" />
+                                            ) : (
+                                                <>
+                                                    <Camera className="w-5 h-5" />
+                                                    <span className="text-[10px] mt-1">Ekle</span>
+                                                </>
+                                            )}
+                                        </button>
+                                    )}
+                                </div>
+
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept="image/jpeg,image/png,image/webp"
+                                    multiple
+                                    onChange={handleImageUpload}
+                                    className="hidden"
+                                />
+                            </div>
+                        )}
                     </div>
                 )}
 
-                
+                {/* STEP 3: Summary */}
                 {step === 3 && (
                     <div className="space-y-4">
                         <div className="bg-gray-50 rounded-lg p-4 space-y-3">
@@ -363,59 +478,136 @@ export default function ReturnRequestModal({
                                         <p className="text-gray-700 text-sm bg-white p-2 rounded border">{description}</p>
                                     </div>
                                 )}
+                                {images.length > 0 && (
+                                    <div className="pt-2">
+                                        <span className="text-gray-500 block mb-1">Yüklenen Görseller:</span>
+                                        <div className="flex gap-2">
+                                            {images.map((url, idx) => (
+                                                <img key={idx} src={url} alt="" className="w-12 h-12 object-cover rounded border" />
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                         <div className="flex items-start gap-2 bg-yellow-50 text-yellow-800 p-3 rounded-lg text-sm">
-                            <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                            <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
                             <p>
-                                İade talebiniz onaylandıktan sonra size kargo bilgileri ile birlikte e-posta gönderilecektir.
+                                İade talebiniz oluşturulduktan sonra size kargo bilgileri ile birlikte e-posta gönderilecektir.
                             </p>
                         </div>
                     </div>
                 )}
 
-                <DialogFooter className="flex-col sm:flex-row gap-2 pt-4">
-                    {step > 1 && (
-                        <Button
-                            variant="outline"
-                            onClick={() => setStep((s) => s - 1)}
-                            disabled={isSubmitting}
-                            className="w-full sm:w-auto"
-                        >
-                            <ChevronLeft className="h-4 w-4 mr-1" />
-                            Geri
+                {/* STEP 4: Success + Cargo Info */}
+                {step === 4 && result && (
+                    <div className="space-y-4">
+                        <div className="text-center py-4">
+                            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <CheckCircle className="w-8 h-8 text-green-600" />
+                            </div>
+                            <h3 className="text-lg font-semibold mb-1">İade Talebiniz Oluşturuldu</h3>
+                            <p className="text-sm text-gray-500">Aşağıdaki bilgileri kullanarak ürünü kargoya verebilirsiniz</p>
+                        </div>
+
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-5 space-y-3">
+                            <div className="flex items-center gap-2 text-blue-800 font-semibold">
+                                <Truck className="w-5 h-5" />
+                                Kargo Bilgileri
+                            </div>
+                            <div className="space-y-2 text-sm">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-blue-700">Kargo Firması:</span>
+                                    <span className="font-semibold text-blue-900">{result.cargoCompany}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-blue-700">İade Kargo Kodu:</span>
+                                    <div className="flex items-center gap-2">
+                                        <span className="font-mono font-bold text-blue-900 bg-white px-3 py-1 rounded border border-blue-200">
+                                            {result.cargoTrackingCode}
+                                        </span>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={handleCopyCode}
+                                            className="h-8 w-8 p-0"
+                                        >
+                                            {codeCopied ? (
+                                                <Check className="w-4 h-4 text-green-600" />
+                                            ) : (
+                                                <Copy className="w-4 h-4" />
+                                            )}
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+                            <p className="text-xs text-blue-600 pt-2 border-t border-blue-200">
+                                Ürünü yukarıdaki kodla {result.cargoCompany}&apos;ye ücretsiz olarak teslim edebilirsiniz.
+                            </p>
+                        </div>
+
+                        <div className="flex items-start gap-2 bg-amber-50 text-amber-800 p-3 rounded-lg text-sm">
+                            <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                            <p>
+                                Kargo bilgileri e-posta adresinize de gönderilmiştir. Ürün depomuzda incelendikten sonra iade işleminiz tamamlanacaktır.
+                            </p>
+                        </div>
+                    </div>
+                )}
+
+                {/* Footer */}
+                {step < 4 && (
+                    <DialogFooter className="flex-col sm:flex-row gap-2 pt-4">
+                        {step > 1 && (
+                            <Button
+                                variant="outline"
+                                onClick={() => setStep((s) => s - 1)}
+                                disabled={isSubmitting}
+                                className="w-full sm:w-auto"
+                            >
+                                <ChevronLeft className="h-4 w-4 mr-1" />
+                                Geri
+                            </Button>
+                        )}
+                        <div className="flex-1" />
+                        {step < 3 ? (
+                            <Button
+                                onClick={() => setStep((s) => s + 1)}
+                                disabled={step === 1 ? !canProceedStep1 : false}
+                                className="w-full sm:w-auto"
+                            >
+                                İleri
+                                <ChevronRight className="h-4 w-4 ml-1" />
+                            </Button>
+                        ) : (
+                            <Button
+                                onClick={handleSubmit}
+                                disabled={isSubmitting}
+                                className="w-full sm:w-auto"
+                            >
+                                {isSubmitting ? (
+                                    <>
+                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                        Gönderiliyor...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Check className="h-4 w-4 mr-2" />
+                                        Talebi Gönder
+                                    </>
+                                )}
+                            </Button>
+                        )}
+                    </DialogFooter>
+                )}
+
+                {step === 4 && (
+                    <DialogFooter className="pt-4">
+                        <Button onClick={onClose} className="w-full sm:w-auto">
+                            Tamam
                         </Button>
-                    )}
-                    <div className="flex-1" />
-                    {step < 3 ? (
-                        <Button
-                            onClick={() => setStep((s) => s + 1)}
-                            disabled={step === 1 ? !canProceedStep1 : !canProceedStep2}
-                            className="w-full sm:w-auto"
-                        >
-                            İleri
-                            <ChevronRight className="h-4 w-4 ml-1" />
-                        </Button>
-                    ) : (
-                        <Button
-                            onClick={handleSubmit}
-                            disabled={isSubmitting}
-                            className="w-full sm:w-auto"
-                        >
-                            {isSubmitting ? (
-                                <>
-                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                    Gönderiliyor...
-                                </>
-                            ) : (
-                                <>
-                                    <Check className="h-4 w-4 mr-2" />
-                                    Talebi Gönder
-                                </>
-                            )}
-                        </Button>
-                    )}
-                </DialogFooter>
+                    </DialogFooter>
+                )}
             </DialogContent>
         </Dialog>
     );

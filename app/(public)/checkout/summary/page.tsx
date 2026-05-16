@@ -84,7 +84,7 @@ export default function CheckoutSummaryPage() {
 
     if (!isReady && items.length === 0) {
         return (
-            <div className="min-h-screen pt-32 pb-16 bg-gray-50 flex items-center justify-center">
+            <div className="min-h-screen pt-6 pb-16 bg-gray-50 flex items-center justify-center">
                 <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
             </div>
         );
@@ -92,7 +92,7 @@ export default function CheckoutSummaryPage() {
 
     if (items.length === 0) {
         return (
-            <div className="min-h-screen pt-32 pb-16 bg-gray-50 flex flex-col items-center justify-center">
+            <div className="min-h-screen pt-6 pb-16 bg-gray-50 flex flex-col items-center justify-center">
                 <h1 className="text-2xl font-light mb-4">Sepetiniz Boş</h1>
                 <Link href="/home" className="bg-black text-white px-6 py-3 rounded text-sm uppercase tracking-wider hover:bg-gray-800 transition-colors">
                     Alışverişe Başla
@@ -102,7 +102,7 @@ export default function CheckoutSummaryPage() {
     }
 
     return (
-        <div className="min-h-screen pt-30 pb-16 bg-gray-50">
+        <div className="min-h-screen pt-6 pb-16 bg-gray-50">
             <div className="max-w-7xl mx-auto px-4 md:px-8">
                 <h1 className="text-2xl md:text-3xl font-serif font-light mb-8">Sepetim ({items.length})</h1>
 

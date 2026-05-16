@@ -394,6 +394,7 @@ export default async function ProductSlugPage({
       rating: r.rating,
       comment: r.comment || "",
       createdAt: r.createdAt.toISOString(),
+      images: Array.isArray(r.images) ? r.images : [],
       colorId: r.colorId || undefined,
       colorName: r.color?.name,
     })),

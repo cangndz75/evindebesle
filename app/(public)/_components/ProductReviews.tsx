@@ -20,6 +20,7 @@ type Review = {
   title: string;
   comment: string;
   date: string;
+  rawDate: string;
   images: string[];
   usualSize: string;
   size: string;
@@ -33,10 +34,14 @@ type Review = {
 function formatDate(date: Date | string): string {
   const now = new Date();
   const reviewDate = new Date(date);
-  const diffTime = Math.abs(now.getTime() - reviewDate.getTime());
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  const diffMs = Math.abs(now.getTime() - reviewDate.getTime());
+  const diffMinutes = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-  if (diffDays === 0) return "BUGÜN";
+  if (diffMinutes < 1) return "AZ ÖNCE";
+  if (diffMinutes < 60) return `${diffMinutes} DAKİKA ÖNCE`;
+  if (diffHours < 24) return `${diffHours} SAAT ÖNCE`;
   if (diffDays === 1) return "1 GÜN ÖNCE";
   if (diffDays < 7) return `${diffDays} GÜN ÖNCE`;
   if (diffDays < 30) {
@@ -90,6 +95,7 @@ export default function ProductReviews({ productId, productName = "Ürün", prod
       title: r.comment?.substring(0, 50) || "",
       comment: r.comment || "",
       date: formatDate(r.createdAt),
+      rawDate: typeof r.createdAt === "string" ? r.createdAt : new Date(r.createdAt).toISOString(),
       images: r.images || [],
       usualSize: "",
       size: "",
@@ -119,17 +125,9 @@ export default function ProductReviews({ productId, productName = "Ürün", prod
     } else if (sortBy === "lowest") {
       filtered.sort((a, b) => a.rating - b.rating);
     } else if (sortBy === "newest") {
-      filtered.sort((a, b) => {
-        const dateA = parseInt(a.date) || 0; // Basit parse, geliştirilebilir
-        const dateB = parseInt(b.date) || 0;
-        return dateA - dateB;
-      });
+      filtered.sort((a, b) => new Date(b.rawDate).getTime() - new Date(a.rawDate).getTime());
     } else if (sortBy === "oldest") {
-      filtered.sort((a, b) => {
-        const dateA = parseInt(a.date) || 0;
-        const dateB = parseInt(b.date) || 0;
-        return dateB - dateA;
-      });
+      filtered.sort((a, b) => new Date(a.rawDate).getTime() - new Date(b.rawDate).getTime());
     }
 
     return filtered;

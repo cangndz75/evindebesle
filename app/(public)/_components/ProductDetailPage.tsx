@@ -43,7 +43,7 @@ interface ProductDetailPageProps {
     shipmentType?: string;
     trendyolLink?: string;
     gender?: "MALE" | "FEMALE" | "UNISEX";
-    reviews?: { id: string; userName: string; rating: number; comment: string; createdAt: Date | string; colorId?: string; colorName?: string }[];
+    reviews?: { id: string; userName: string; rating: number; comment: string; images?: string[]; createdAt: Date | string; colorId?: string; colorName?: string }[];
     category?: string;
     categorySlug?: string;
     washingInstruction?: { id: string; title: string; content: string } | null;

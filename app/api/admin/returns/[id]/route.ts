@@ -434,6 +434,19 @@ export async function PATCH(
                 );
             }
 
+            type RefundLine = {
+                quantity: number;
+                orderItem: {
+                    id: string;
+                    productId: string;
+                    colorId: string | null;
+                    sizeId: string | null;
+                    unitPrice: number;
+                    totalPrice: number;
+                };
+            };
+            const refundLines = returnRequest.items as RefundLine[];
+
             const refundResult = await performIyzicoRefund(
                 returnRequest.id,
                 {
@@ -443,7 +456,7 @@ export async function PATCH(
                     paidAt: returnRequest.order.paidAt,
                     payment: returnRequest.order.payment,
                 },
-                returnRequest.items.map((item) => ({
+                refundLines.map((item) => ({
                     orderItemId: item.orderItem.id,
                     quantity: item.quantity,
                 }))
@@ -456,7 +469,7 @@ export async function PATCH(
                 );
             }
 
-            const refundAmount = returnRequest.items.reduce(
+            const refundAmount = refundLines.reduce(
                 (sum, item) => sum + item.orderItem.unitPrice * item.quantity,
                 0
             );
@@ -498,7 +511,7 @@ export async function PATCH(
                         },
                     });
 
-                    for (const item of returnRequest.items) {
+                    for (const item of refundLines) {
                         const { productId, sizeId, colorId } = item.orderItem;
 
                         let variantId = null;

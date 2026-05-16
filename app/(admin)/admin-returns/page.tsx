@@ -180,11 +180,10 @@ export default function AdminReturnsPage() {
         fetch(`/api/admin/returns/${returnId}`)
             .then((res) => (res.ok ? res.json() : null))
             .then((data: ReturnRequest | null) => {
-                if (data?.id === returnId && !openedFromQuery.current) {
-                    openedFromQuery.current = true;
-                    openDetail(data);
-                    router.replace("/admin-returns", { scroll: false });
-                }
+                if (!data || data.id !== returnId || openedFromQuery.current) return;
+                openedFromQuery.current = true;
+                openDetail(data);
+                router.replace("/admin-returns", { scroll: false });
             })
             .catch(() => {});
     }, [searchParams, requests, loading, router]);

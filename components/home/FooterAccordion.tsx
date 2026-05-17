@@ -17,7 +17,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Truck, RotateCcw, Star, Smartphone, Map, X } from "lucide-react";
+import { Truck, RotateCcw, Star, Smartphone, Map } from "lucide-react";
 
 const footerSections = [
   {

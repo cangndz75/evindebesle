@@ -12,6 +12,7 @@ import crypto from "crypto";
 import { detectCardDataInPayload } from "@/lib/security/pci";
 import { CheckoutSchema } from "@/lib/validation/checkout";
 import { deactivateExpiredCoupons } from "@/lib/coupons/deactivateExpiredCoupons";
+import { resolveOrderLineImageAbsoluteUrl } from "@/lib/resolve-order-line-image";
 
 export async function POST(req: Request) {
     const idemScope = "checkout.initialize";
@@ -273,10 +274,23 @@ export async function POST(req: Request) {
                     isTrackInventory: true,
                     allowBackorders: true,
                     price: true,
+                    primaryImage: true,
+                    image: true,
                     categoryId: true,
                     category: { select: { name: true } },
                     gender: true,
-                    colors: { select: { id: true, name: true } },
+                    colors: {
+                        select: {
+                            id: true,
+                            name: true,
+                            images: true,
+                            productImages: {
+                                select: { url: true },
+                                orderBy: { order: "asc" as const },
+                                take: 1,
+                            },
+                        },
+                    },
                     sizes: { select: { id: true, name: true } },
                 },
             });
@@ -366,6 +380,11 @@ export async function POST(req: Request) {
             const lineTotal = Number(price) * item.quantity;
             subtotal += lineTotal;
 
+            const lineImage = resolveOrderLineImageAbsoluteUrl(appBaseUrl, {
+                product,
+                colorId: resolvedColorId,
+            });
+
             orderItemsData.push({
                 productId: variant.productId,
                 colorId: resolvedColorId,
@@ -373,6 +392,7 @@ export async function POST(req: Request) {
                 productName: product.name,
                 colorName: item.colorName || null,
                 sizeName: item.sizeName || null,
+                image: lineImage,
                 unitPrice: Number(price),
                 quantity: item.quantity,
                 totalPrice: lineTotal,

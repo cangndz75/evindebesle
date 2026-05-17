@@ -1,6 +1,6 @@
 import { prisma } from "../db";
 import { resend } from "../resend";
-import { buildDistanceSalesContractHtmlForOrder } from "@/lib/legal/distance-sales-contract";
+import { resolveOrderLineImageAbsoluteUrl, type OrderLineImageProductInput } from "@/lib/resolve-order-line-image";
 import { createShipmentLabelForOrder } from "./cargo";
 import { fromKurus, sumKurus, toKurus } from "../utils/money";
 import { randomUUID } from "crypto";
@@ -10,6 +10,22 @@ import { sendAdminOrderWhatsApp } from "@/lib/whatsapp";
 const VAT_RATE = 20;
 const DEFAULT_TCKN_VKN = "11111111111";
 const DEFAULT_INVOICE_PREFIX = "DRK";
+
+type OrderPaidEmailLine = {
+  image: string | null;
+  productName: string;
+  colorName: string | null;
+  sizeName: string | null;
+  quantity: number;
+  totalPrice: number;
+  colorId: string | null;
+  product: OrderLineImageProductInput | null;
+  color: {
+    id: string;
+    images: string | null;
+    productImages: Array<{ url: string }>;
+  } | null;
+};
 
 function escapeHtml(input: string): string {
   return input
@@ -270,37 +286,6 @@ export async function sendInvoiceCreatedEmail(orderId: string, invoiceNumber: st
   });
 }
 
-async function sendDistanceSalesContractEmail(orderId: string) {
-  const html = await buildDistanceSalesContractHtmlForOrder(orderId);
-  if (!html) return;
-
-  const order = await prisma.order.findUnique({
-    where: { id: orderId },
-    include: {
-      user: { select: { email: true } },
-      shippingAddress: true,
-      billingAddress: true,
-    },
-  });
-  if (!order) return;
-
-  const to =
-    order.email ||
-    order.user?.email ||
-    order.shippingAddress?.email ||
-    order.billingAddress?.email;
-  if (!to) return;
-
-  const from = process.env.ORDER_MAIL_FROM || "siparis@dark-velvet.com";
-
-  await resend.emails.send({
-    from,
-    to,
-    subject: `Mesafeli Satış Sözleşmesi — ${order.orderNumber}`,
-    html,
-  });
-}
-
 async function sendOrderPaidEmail(orderId: string) {
   const order = await prisma.order.findUnique({
     where: { id: orderId },
@@ -323,6 +308,36 @@ async function sendOrderPaidEmail(orderId: string) {
       },
       items: {
         orderBy: { createdAt: "asc" },
+        include: {
+          product: {
+            select: {
+              primaryImage: true,
+              image: true,
+              colors: {
+                select: {
+                  id: true,
+                  images: true,
+                  productImages: {
+                    select: { url: true },
+                    orderBy: { order: "asc" as const },
+                    take: 1,
+                  },
+                },
+              },
+            },
+          },
+          color: {
+            select: {
+              id: true,
+              images: true,
+              productImages: {
+                select: { url: true },
+                orderBy: { order: "asc" as const },
+                take: 1,
+              },
+            },
+          },
+        },
       },
     },
   });
@@ -351,19 +366,18 @@ async function sendOrderPaidEmail(orderId: string) {
   const discount = Number(order.discount || 0);
   const createdAtLabel = formatDateTr(order.createdAt);
 
-  const itemsHtml = order.items
-    .map((item: {
-      image: string | null;
-      productName: string;
-      colorName: string | null;
-      sizeName: string | null;
-      quantity: number;
-      totalPrice: number;
-    }) => {
-      const imageCell = item.image
+  const itemsHtml = (order.items as OrderPaidEmailLine[]).map((item) => {
+      const imageUrl = resolveOrderLineImageAbsoluteUrl(siteUrl, {
+        persistedImage: item.image,
+        product: item.product ?? undefined,
+        colorId: item.colorId,
+        lineColor: item.color,
+      });
+
+      const imageCell = imageUrl
         ? `
           <td width="74" style="padding:12px 0;vertical-align:top;">
-            <img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.productName)}" width="64" height="64" style="display:block;border-radius:8px;object-fit:cover;border:1px solid #e5e7eb;" />
+            <img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(item.productName)}" width="64" height="64" style="display:block;border-radius:8px;object-fit:cover;border:1px solid #e5e7eb;" />
           </td>
         `
         : "<td width=\"10\" style=\"padding:0;\"></td>";
@@ -494,14 +508,7 @@ async function sendOrderPaidEmail(orderId: string) {
 
                 <tr>
                   <td style="padding:14px 28px 26px;">
-                    <table role="presentation" cellpadding="0" cellspacing="0">
-                      <tr>
-                        <td>
-                          <a href="${siteUrl}/profile/orders" style="display:inline-block;background:#111827;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:12px 20px;border-radius:8px;">Siparişimi Görüntüle</a>
-                        </td>
-                      </tr>
-                    </table>
-                    <p style="margin:14px 0 0;color:#6b7280;font-size:12px;line-height:1.6;">
+                    <p style="margin:0;color:#6b7280;font-size:12px;line-height:1.6;">
                       Siparişiniz hazırlanıp kargoya verildiğinde takip bilgilerini ayrıca e-posta ile paylaşacağız.
                     </p>
                   </td>
@@ -521,12 +528,6 @@ async function sendOrderPaidEmail(orderId: string) {
 
 export async function runOrderPostPaymentTasks(orderId: string) {
   await sendOrderPaidEmail(orderId);
-
-  try {
-    await sendDistanceSalesContractEmail(orderId);
-  } catch (e) {
-    console.error("Mesafeli satış sözleşmesi e-postası gönderilemedi:", e);
-  }
 
   if (process.env.AUTO_CREATE_SHIPMENT_LABEL === "true") {
     try {

@@ -1,3 +1,4 @@
+import { getSession } from "next-auth/react";
 import { create } from "zustand";
 
 type FavoritesState = {
@@ -22,6 +23,12 @@ export const useFavoritesStore = create<FavoritesState>((set, get) => ({
 
         _favInflight = (async () => {
             try {
+                const session = await getSession();
+                if (!session?.user) {
+                    set({ favoriteIds: new Set<string>(), isHydrated: true });
+                    return;
+                }
+
                 const res = await fetch("/api/favorites");
                 if (res.ok) {
                     const favorites = await res.json();

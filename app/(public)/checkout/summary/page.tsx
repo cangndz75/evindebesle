@@ -26,6 +26,14 @@ export default function CheckoutSummaryPage() {
     const router = useRouter();
     const { freeShippingThreshold, shippingPrice, hydrate: hydrateSettings } = useCompanySettingsStore();
 
+    const getCartLineProductHref = (item: (typeof items)[number]) => {
+        const base = item.product.slug ? `/products/${item.product.slug}` : `/product/${item.product.id}`;
+        if (item.colorId) {
+            return `${base}?colorId=${encodeURIComponent(item.colorId)}`;
+        }
+        return base;
+    };
+
     const getCartItemImage = (item: typeof items[number]) => {
         if (item.color?.images) {
             let colorImages: string[] = [];
@@ -117,7 +125,7 @@ export default function CheckoutSummaryPage() {
                                     <div className="flex-1 min-w-0">
                                         <div className="flex justify-between items-start">
                                             <div>
-                                                <Link href={`/product/${item.product.id}`} className="text-base font-medium text-black hover:underline">
+                                                <Link href={getCartLineProductHref(item)} className="text-base font-medium text-black hover:underline">
                                                     {item.product.name}
                                                 </Link>
                                                 <p className="text-sm text-gray-500 mt-1">

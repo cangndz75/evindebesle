@@ -36,10 +36,36 @@ export type RateLimitCheckResult = {
     unavailable?: boolean;
 };
 
+/**
+ * Edge / Lambda’da `Redis.fromEnv()` bazen env’i okuyamaz; ayrıca göreli yol (`/pipeline`)
+ * hatası URL’nin boş veya geçersiz olduğunu gösterir. REST adresi mutlaka https://… olmalı.
+ */
+function readUpstashRestCredentials(): { url: string; token: string } | null {
+    const rawUrl = process.env.UPSTASH_REDIS_REST_URL?.trim();
+    const token = process.env.UPSTASH_REDIS_REST_TOKEN?.trim();
+    if (!rawUrl || !token) return null;
+    try {
+        const parsed = new URL(rawUrl);
+        if (parsed.protocol !== "https:") {
+            console.error(
+                "[rateLimit] UPSTASH_REDIS_REST_URL https ile başlamalı (Upstash REST URL’si, rediss:// değil):",
+                rawUrl
+            );
+            return null;
+        }
+        if (!parsed.hostname) return null;
+    } catch {
+        console.error(
+            "[rateLimit] UPSTASH_REDIS_REST_URL geçerli bir adres değil (tam REST URL: https://….upstash.io):",
+            rawUrl
+        );
+        return null;
+    }
+    return { url: rawUrl, token };
+}
+
 function upstashEnvConfigured(): boolean {
-    return Boolean(
-        process.env.UPSTASH_REDIS_REST_URL?.trim() && process.env.UPSTASH_REDIS_REST_TOKEN?.trim()
-    );
+    return readUpstashRestCredentials() !== null;
 }
 
 /** Acil durum: production'da bile Redis olmadan geç (varsayılan: kapalı) */
@@ -53,8 +79,12 @@ const globalForRedis = globalThis as unknown as {
 };
 
 function getRedis(): Redis {
+    const creds = readUpstashRestCredentials();
+    if (!creds) {
+        throw new Error("[rateLimit] Upstash REST url/token okunamadı (readUpstashRestCredentials null)");
+    }
     if (!globalForRedis._upstashRedis) {
-        globalForRedis._upstashRedis = Redis.fromEnv();
+        globalForRedis._upstashRedis = new Redis(creds);
     }
     return globalForRedis._upstashRedis;
 }
@@ -97,7 +127,7 @@ export async function checkRateLimit(
 
     if (!upstashEnvConfigured()) {
         const msg =
-            "[rateLimit] UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN tanımlı değil; hız sınırı uygulanmıyor.";
+            "[rateLimit] UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN eksik veya geçersiz (REST: https://….upstash.io + token). Edge/Lambda ortamında bu değişkenlerin runtime’da da tanımlı olduğundan emin olun.";
         if (process.env.NODE_ENV === "production" && !rateLimitAllowFailOpen()) {
             console.error(`${msg} Production: istekler reddediliyor (RATE_LIMIT_ALLOW_FAIL_OPEN=1 ile geçici gevşetme).`);
             return failClosedPayload;

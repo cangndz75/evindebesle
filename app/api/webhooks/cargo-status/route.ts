@@ -100,6 +100,10 @@ export async function POST(req: NextRequest) {
     if (rateLimitEnabled && process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
       const limitResult = await checkRateLimit(`cargo-webhook:${requestIp}`, RateLimits.strict);
       if (!limitResult.success) {
+        if (limitResult.unavailable) {
+          securityAudit("cargo_webhook_rate_limit_unavailable", { ip: requestIp });
+          return NextResponse.json({ error: "RATE_LIMIT_SERVICE_UNAVAILABLE" }, { status: 503 });
+        }
         securityAudit("cargo_webhook_rate_limited", {
           ip: requestIp,
           limit: limitResult.limit,

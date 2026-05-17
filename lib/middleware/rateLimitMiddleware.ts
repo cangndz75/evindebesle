@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { checkRateLimit, getClientIdentifier, RateLimits } from "@/lib/rateLimit";
 
 type RateLimitPreset = keyof typeof RateLimits;
@@ -14,6 +14,15 @@ export function withRateLimit<T extends Request>(
         const result = await checkRateLimit(identifier, limit);
 
         if (!result.success) {
+            if (result.unavailable) {
+                return NextResponse.json(
+                    {
+                        error: "Hız sınırı servisi geçici olarak kullanılamıyor.",
+                        code: "RATE_LIMIT_SERVICE_UNAVAILABLE",
+                    },
+                    { status: 503, headers: { "Retry-After": "60" } }
+                );
+            }
             return NextResponse.json(
                 {
                     error: "Too many requests",
@@ -52,6 +61,15 @@ export async function rateLimitCheck(
     const result = await checkRateLimit(identifier, limit);
 
     if (!result.success) {
+        if (result.unavailable) {
+            return NextResponse.json(
+                {
+                    error: "Hız sınırı servisi geçici olarak kullanılamıyor.",
+                    code: "RATE_LIMIT_SERVICE_UNAVAILABLE",
+                },
+                { status: 503, headers: { "Retry-After": "60" } }
+            );
+        }
         return NextResponse.json(
             {
                 error: "Çok fazla istek gönderdiniz. Lütfen bekleyin.",

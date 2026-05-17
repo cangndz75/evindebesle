@@ -27,6 +27,26 @@ export const RateLimits = {
 
 type RateLimitConfig = typeof RateLimits[keyof typeof RateLimits];
 
+export type RateLimitCheckResult = {
+    success: boolean;
+    limit: number;
+    remaining: number;
+    resetTime: number;
+    /** Production'da Upstash yok veya Redis hatası; istek güvenli şekilde reddedilmeli */
+    unavailable?: boolean;
+};
+
+function upstashEnvConfigured(): boolean {
+    return Boolean(
+        process.env.UPSTASH_REDIS_REST_URL?.trim() && process.env.UPSTASH_REDIS_REST_TOKEN?.trim()
+    );
+}
+
+/** Acil durum: production'da bile Redis olmadan geç (varsayılan: kapalı) */
+function rateLimitAllowFailOpen(): boolean {
+    return process.env.RATE_LIMIT_ALLOW_FAIL_OPEN === "true" || process.env.RATE_LIMIT_ALLOW_FAIL_OPEN === "1";
+}
+
 // HMR sırasında çoklu Redis bağlantılarını önlemek için global singleton
 const globalForRedis = globalThis as unknown as {
     _upstashRedis: Redis | undefined;
@@ -63,11 +83,26 @@ export function getClientIdentifier(req: Request): string {
     return ip;
 }
 
-export async function checkRateLimit(identifier: string, limitConfig: RateLimitConfig) {
-    if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
-        console.warn(
-            "[rateLimit] UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN tanımlı değil; hız sınırı uygulanmıyor."
-        );
+export async function checkRateLimit(
+    identifier: string,
+    limitConfig: RateLimitConfig
+): Promise<RateLimitCheckResult> {
+    const failClosedPayload: RateLimitCheckResult = {
+        success: false,
+        limit: 0,
+        remaining: 0,
+        resetTime: Date.now() + 60_000,
+        unavailable: true,
+    };
+
+    if (!upstashEnvConfigured()) {
+        const msg =
+            "[rateLimit] UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN tanımlı değil; hız sınırı uygulanmıyor.";
+        if (process.env.NODE_ENV === "production" && !rateLimitAllowFailOpen()) {
+            console.error(`${msg} Production: istekler reddediliyor (RATE_LIMIT_ALLOW_FAIL_OPEN=1 ile geçici gevşetme).`);
+            return failClosedPayload;
+        }
+        console.warn(msg);
         return {
             success: true,
             limit: limitConfig.maxRequests,
@@ -86,7 +121,10 @@ export async function checkRateLimit(identifier: string, limitConfig: RateLimitC
             resetTime: result.reset,
         };
     } catch (error) {
-        console.error("[rateLimit] Upstash hatası, istek güvenlik nedeniyle geçiriliyor:", error);
+        console.error("[rateLimit] Upstash hatası:", error);
+        if (process.env.NODE_ENV === "production" && !rateLimitAllowFailOpen()) {
+            return failClosedPayload;
+        }
         return {
             success: true,
             limit: limitConfig.maxRequests,

@@ -18,6 +18,22 @@ function tooManyResponse(message: string, resetTime: number) {
   );
 }
 
+function rateLimitUnavailableResponse() {
+  return NextResponse.json(
+    {
+      error:
+        "Hız sınırı servisi şu an kullanılamıyor. Lütfen bir süre sonra tekrar deneyin veya destek ile iletişime geçin.",
+      code: "RATE_LIMIT_SERVICE_UNAVAILABLE",
+    },
+    {
+      status: 503,
+      headers: {
+        "Retry-After": "60",
+      },
+    }
+  );
+}
+
 /**
  * /api/* için path + method bazlı Upstash rate limit.
  * Admin sayfa korumasından sonra, route handler’dan önce çalıştırılmalıdır.
@@ -34,6 +50,9 @@ export async function applyLayeredApiRateLimit(request: NextRequest): Promise<Ne
   const run = async (key: string, profile: LimitConfig, message: string) => {
     const result = await checkRateLimit(key, profile);
     if (!result.success) {
+      if (result.unavailable) {
+        return rateLimitUnavailableResponse();
+      }
       return tooManyResponse(message, result.resetTime);
     }
     return null;
@@ -129,13 +148,30 @@ export async function applyLayeredApiRateLimit(request: NextRequest): Promise<Ne
     }
   }
 
-  // 10 — Form / spam (POST)
+  // 10 — Dosya yükleme (maliyet / kötüye kullanım)
+  if (pathname.startsWith("/api/upload") && method === "POST") {
+    let actor = `ip:${ip}`;
+    try {
+      const token = await getToken({ req: request });
+      if (token?.sub) actor = `u:${token.sub}`;
+    } catch {
+      /* ignore */
+    }
+    return run(
+      `rl:upload:${actor}`,
+      RateLimits.upload,
+      "Çok fazla yükleme isteği. Lütfen bir dakika sonra tekrar deneyin."
+    );
+  }
+
+  // 11 — Form / spam (POST)
   if (method === "POST") {
     const formPrefixes = [
       "/api/product-reviews",
       "/api/contact",
       "/api/support",
       "/api/appointment-reviews",
+      "/api/newsletter/subscribe",
     ];
     if (formPrefixes.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
       let actor = `ip:${ip}`;

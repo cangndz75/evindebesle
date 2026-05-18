@@ -2,7 +2,7 @@ import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
-import { iyzico, iyzicoCall } from "@/lib/iyzico";
+import { iyzico, iyzicoCall, extractIyzicoItemTransactions } from "@/lib/iyzico";
 import { resend, resendFromAddress } from "@/lib/resend";
 import { createAdminNotification } from "@/lib/admin-notification";
 
@@ -63,7 +63,8 @@ async function performIyzicoRefund(
         paidAt: Date | null;
         payment?: { paymentId: string | null; rawResult: any } | null;
     },
-    returnItems: Array<{ orderItemId: string; quantity: number }>
+    /** Checkout'ta basket id = productId olduğu için productId ile eşleştirme gerekir */
+    returnItems: Array<{ orderItemId: string; productId: string; quantity: number }>
 ): Promise<IyzicoRefundOutcome> {
     const ip = "127.0.0.1";
     const paymentId = order.payment?.paymentId || order.paymentId;
@@ -97,12 +98,9 @@ async function performIyzicoRefund(
         }
     }
 
-    const itemTransactions =
-        order.payment?.rawResult?.itemTransactions ||
-        order.payment?.rawResult?.paymentItems ||
-        [];
+    const itemTransactions = extractIyzicoItemTransactions(order.payment?.rawResult);
 
-    if (!Array.isArray(itemTransactions) || itemTransactions.length === 0) {
+    if (itemTransactions.length === 0) {
         return { success: false, message: "İade işlemi için transaction bilgisi bulunamadı." };
     }
 
@@ -116,8 +114,12 @@ async function performIyzicoRefund(
         if (!paymentTransactionId) continue;
 
         if (!allItems) {
-            const txItemId = tx?.itemId;
-            const isTargeted = returnItems.some((ri) => ri.orderItemId === txItemId);
+            const txItemId = tx?.itemId as string | undefined;
+            const isTargeted = returnItems.some(
+                (ri) =>
+                    ri.orderItemId === txItemId ||
+                    ri.productId === txItemId
+            );
             if (txItemId && !isTargeted) continue;
         }
 
@@ -158,7 +160,11 @@ async function performIyzicoRefund(
     }
 
     if (refundResponses.length === 0) {
-        return { success: false, message: "İade başlatmak için uygun transaction bulunamadı." };
+        return {
+            success: false,
+            message:
+                "İade başlatmak için uygun transaction bulunamadı. Ödeme kaydındaki kalem id'leri ile iade satırları eşleşmiyor olabilir; destek ile iletişime geçin.",
+        };
     }
 
     return {
@@ -458,6 +464,7 @@ export async function PATCH(
                 },
                 refundLines.map((item) => ({
                     orderItemId: item.orderItem.id,
+                    productId: item.orderItem.productId,
                     quantity: item.quantity,
                 }))
             );

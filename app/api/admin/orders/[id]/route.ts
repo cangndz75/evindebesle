@@ -5,7 +5,7 @@ import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { notifyOrderShippedEmail } from "@/lib/services/cargo";
 import { ensureInvoiceForOrder, sendInvoiceCreatedEmail } from "@/lib/services/order-post-payment";
-import { iyzico, iyzicoCall } from "@/lib/iyzico";
+import { iyzico, iyzicoCall, extractIyzicoItemTransactions } from "@/lib/iyzico";
 
 type AdminOrderDetailItem = Prisma.OrderItemGetPayload<{
   include: {
@@ -97,10 +97,7 @@ async function startIyzicoCancellation(order: {
     console.error("Iyzico cancel error:", error);
   }
 
-  const itemTransactions =
-    order.payment?.rawResult?.itemTransactions ||
-    order.payment?.rawResult?.paymentItems ||
-    [];
+  const itemTransactions = extractIyzicoItemTransactions(order.payment?.rawResult);
 
   if (!Array.isArray(itemTransactions) || itemTransactions.length === 0) {
     return {

@@ -602,6 +602,9 @@ model Order {
   paidAt            DateTime?
   trackingNumber    String?
   cargoCompanyId    Int?
+  shipinkOrderId    String?
+  cargoPdfUrl       String?
+  cargoTrackingUrl  String?
   shippedAt         DateTime?
   deliveredAt       DateTime?
   couponId          String?

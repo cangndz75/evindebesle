@@ -50,6 +50,40 @@ export async function createShipinkOrder(token: string, orderData: any): Promise
   return result.data.id;
 }
 
+export async function createOutgoingShipment(
+  token: string,
+  shipinkOrderId: string,
+  packagesData: any[]
+) {
+  const CARRIER_SERVICE_ID = process.env.SHIPINK_CARRIER_SERVICE_ID || "";
+  const CARRIER_ACCOUNT_ID = process.env.SHIPINK_CARRIER_ACCOUNT_ID || "";
+  const WAREHOUSE_ID = process.env.SHIPINK_WAREHOUSE_ID || "";
+
+  const response = await fetch(`${SHIPINK_API_URL}/shipments`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify({
+      order_id: shipinkOrderId,
+      direction: "outgoing",
+      ...(CARRIER_SERVICE_ID && { carrier_service_id: CARRIER_SERVICE_ID }),
+      ...(CARRIER_ACCOUNT_ID && { carrier_account_id: CARRIER_ACCOUNT_ID }),
+      ...(WAREHOUSE_ID && { warehouse_id: WAREHOUSE_ID }),
+      packages: packagesData
+    })
+  });
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(result.message || 'Shipink giden gönderi oluşturulamadı.');
+  }
+
+  return result.data;
+}
+
 export async function createReturnShipment(token: string, shipinkOrderId: string, packagesData: any[]) {
   const response = await fetch(`${SHIPINK_API_URL}/shipments`, {
     method: 'POST',

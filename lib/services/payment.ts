@@ -8,6 +8,7 @@ import { sendAdminOrderPaidSms } from "@/lib/sms";
 import { sendAdminOrderWhatsApp } from "@/lib/whatsapp";
 import { enqueueOrderPostPaymentJob } from "@/lib/queue/order-post-payment";
 import { runOrderPostPaymentTasks } from "@/lib/services/order-post-payment";
+import { sendTelegramMessage, TelegramTemplates } from "@/lib/telegramService";
 
 interface FinalizePaymentParams {
     orderId: string;
@@ -130,6 +131,14 @@ export async function finalizePayment({
             });
 
             if (!queued.queued) {
+                const orderWithDetails = await prisma.order.findUnique({
+                    where: { id: result.order.id },
+                    include: {
+                        user: { select: { name: true } },
+                        items: { select: { id: true } },
+                    },
+                });
+
                 await Promise.allSettled([
                     createAdminNotification({
                         type: "ORDER",
@@ -147,6 +156,12 @@ export async function finalizePayment({
                         total: result.order.total,
                         orderId: result.order.id,
                     }),
+                    sendTelegramMessage(TelegramTemplates.newOrder({
+                        orderNumber: result.order.orderNumber,
+                        customerName: orderWithDetails?.user?.name || "Misafir",
+                        totalAmount: result.order.total,
+                        itemsCount: orderWithDetails?.items?.length || 0,
+                    })),
                     runOrderPostPaymentTasks(result.order.id),
                 ]);
             }

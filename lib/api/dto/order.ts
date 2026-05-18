@@ -37,6 +37,9 @@ export function toOrderListDTO(order: AnyRecord) {
     paymentStatus: order.paymentStatus,
     total: order.total,
     createdAt: order.createdAt,
+    paidAt: order.paidAt ?? null,
+    shippedAt: order.shippedAt ?? null,
+    deliveredAt: order.deliveredAt ?? null,
     trackingNumber: order.trackingNumber ?? null,
     items: (order.items || []).map((item: AnyRecord) => ({
       id: item.id,
@@ -82,6 +85,9 @@ export function toOrderDetailDTO(order: AnyRecord) {
     discount: order.discount,
     currency: order.currency,
     createdAt: order.createdAt,
+    paidAt: order.paidAt ?? null,
+    shippedAt: order.shippedAt ?? null,
+    deliveredAt: order.deliveredAt ?? null,
     trackingNumber: order.trackingNumber ?? null,
     cargoCompany: order.cargoCompany
       ? {

@@ -27,8 +27,7 @@ import MyReviewModal from "@/components/product/MyReviewModal";
 import ReturnRequestModal from "@/components/returns/ReturnRequestModal";
 import ReturnRequestViewModal from "@/components/returns/ReturnRequestViewModal";
 import { toast } from "sonner";
-
-
+import { getReturnWindowDays, isOrderReturnWindowOpen } from "@/lib/returnWindow";
 
 type ProductOrder = {
   id: string;
@@ -37,6 +36,9 @@ type ProductOrder = {
   paymentStatus: "PENDING" | "PAID" | "FAILED" | "REFUNDED" | "SUCCEEDED";
   total: number;
   createdAt: string;
+  paidAt?: string | null;
+  shippedAt?: string | null;
+  deliveredAt?: string | null;
   items: Array<{
     id: string;
     productName: string;
@@ -534,8 +536,12 @@ export default function OrdersPage() {
                             <RotateCcw className="w-4 h-4" />
                             İadeyi Görüntüle
                           </Button>
-                        ) : (
-                          (order.status === "DELIVERED" || order.status === "COMPLETED") && (
+                        ) : (order.status === "DELIVERED" || order.status === "COMPLETED") ? (
+                          isOrderReturnWindowOpen({
+                            deliveredAt: order.deliveredAt,
+                            shippedAt: order.shippedAt,
+                            paidAt: order.paidAt,
+                          }) ? (
                             <Button
                               variant="outline"
                               onClick={() => handleOpenReturnModal(order)}
@@ -544,8 +550,12 @@ export default function OrdersPage() {
                               <RotateCcw className="w-4 h-4" />
                               İade Talep Et
                             </Button>
+                          ) : (
+                            <p className="text-xs text-zinc-500 max-w-[220px] text-right self-center">
+                              İade süresi ({getReturnWindowDays()} gün) sona ermiştir.
+                            </p>
                           )
-                        )}
+                        ) : null}
 
                         
                         {order.invoice && (

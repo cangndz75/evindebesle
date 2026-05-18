@@ -5,6 +5,8 @@ import { authConfig } from "@/lib/auth.config";
 import { createAdminNotification } from "@/lib/admin-notification";
 import { sendTransactionalEmail } from "@/lib/email/transactional";
 import { getShipinkToken, createShipinkOrder, createReturnShipment } from "@/lib/shipinkService";
+import { getReturnReferenceDate, getReturnWindowDays, isReturnWindowOpen } from "@/lib/returnWindow";
+import { sendTelegramMessage, TelegramTemplates } from "@/lib/telegramService";
 
 const RETURN_CARGO_COMPANY = process.env.RETURN_CARGO_COMPANY || "Shipink Kargo";
 
@@ -101,6 +103,18 @@ export async function POST(req: Request) {
 
         if (order.status !== "DELIVERED" && order.status !== "COMPLETED") {
             return new NextResponse("Only delivered orders can be returned", { status: 400 });
+        }
+
+        const returnRef = getReturnReferenceDate({
+            deliveredAt: order.deliveredAt,
+            shippedAt: order.shippedAt,
+            paidAt: order.paidAt,
+        });
+        if (returnRef && !isReturnWindowOpen(returnRef)) {
+            return new NextResponse(
+                `İade süresi doldu. Teslim veya ödeme tarihinden itibaren en fazla ${getReturnWindowDays()} gün içinde talep oluşturabilirsiniz.`,
+                { status: 400 }
+            );
         }
 
         const existingReturn = await prisma.returnRequest.findFirst({
@@ -231,6 +245,13 @@ export async function POST(req: Request) {
             message: `#${order.orderNumber} numaralı sipariş için iade talebi oluşturuldu. İncelemek için İadeler sayfasına gidin.`,
             link: `/admin-returns?returnId=${returnRequest.id}`,
         });
+
+        sendTelegramMessage(TelegramTemplates.newReturn({
+            orderNumber: order.orderNumber,
+            customerName: order.user?.name || "Müşteri",
+            reason,
+            itemsCount: items.length,
+        })).catch((err) => console.error("[RETURN_TELEGRAM]", err));
 
         const to =
             order.email ||

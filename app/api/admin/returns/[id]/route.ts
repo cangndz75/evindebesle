@@ -470,8 +470,18 @@ export async function PATCH(
             );
 
             if (!refundResult.success) {
+                const rawMsg = refundResult.message || "";
+                const isSandboxBalance =
+                    rawMsg.includes("bakiye") ||
+                    rawMsg.includes("balance") ||
+                    rawMsg.includes("yetersiz");
+
+                const userMessage = isSandboxBalance
+                    ? `Iyzico bakiye yetersiz: ${rawMsg}. Sandbox ortamında bakiye sınırlıdır; canlıya geçtiğinizde gerçek satışlardan gelen bakiye ile iade yapabilirsiniz.`
+                    : rawMsg || "Iyzico iade işlemi başarısız oldu.";
+
                 return NextResponse.json(
-                    { error: refundResult.message || "Iyzico iade işlemi başarısız oldu." },
+                    { error: userMessage },
                     { status: 400 }
                 );
             }

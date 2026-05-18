@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { createAdminNotification } from "@/lib/admin-notification";
+import { sendTelegramMessage, TelegramTemplates } from "@/lib/telegramService";
 
 export async function POST(request: NextRequest) {
     try {
@@ -72,6 +73,13 @@ export async function POST(request: NextRequest) {
             message: notifMessage,
             link: hasImages ? "/admin-reviews" : "/admin-products",
         });
+
+        sendTelegramMessage(TelegramTemplates.newReview({
+            productName: review.product.name,
+            customerName: session.user.name || "Müşteri",
+            rating: review.rating,
+            comment: review.comment || "Yorum metni yok.",
+        })).catch((err) => console.error("[REVIEW_TELEGRAM]", err));
 
         return NextResponse.json({
             success: true,

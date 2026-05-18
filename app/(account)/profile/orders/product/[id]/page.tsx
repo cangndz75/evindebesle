@@ -30,6 +30,7 @@ import ProductReviewModal from "@/components/product/ProductReviewModal";
 import MyReviewModal from "@/components/product/MyReviewModal";
 import ReturnRequestModal from "@/components/returns/ReturnRequestModal";
 import ReturnRequestViewModal from "@/components/returns/ReturnRequestViewModal";
+import { getReturnWindowDays, isOrderReturnWindowOpen } from "@/lib/returnWindow";
 
 interface OrderDetail {
     id: string;
@@ -40,6 +41,9 @@ interface OrderDetail {
     subtotal: number; // Assuming API returns this or we calculate
     shippingCost: number; // Assuming API returns this
     createdAt: string;
+    paidAt?: string | null;
+    shippedAt?: string | null;
+    deliveredAt?: string | null;
     items: Array<{
         id: string;
         productName: string;
@@ -534,7 +538,11 @@ export default function OrderDetailPage() {
                                             <RotateCcw className="w-4 h-4" />
                                             İadeyi Görüntüle
                                         </Button>
-                                    ) : (
+                                    ) : isOrderReturnWindowOpen({
+                                        deliveredAt: order.deliveredAt,
+                                        shippedAt: order.shippedAt,
+                                        paidAt: order.paidAt,
+                                    }) ? (
                                         <Button
                                             variant="outline"
                                             className="w-full flex items-center gap-2"
@@ -543,6 +551,10 @@ export default function OrderDetailPage() {
                                             <RotateCcw className="w-4 h-4" />
                                             İade Oluştur
                                         </Button>
+                                    ) : (
+                                        <p className="text-xs text-center text-zinc-500">
+                                            İade süresi ({getReturnWindowDays()} gün) sona ermiştir.
+                                        </p>
                                     )
                                 )}
                             </div>

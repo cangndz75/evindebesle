@@ -61,6 +61,9 @@ type Order = {
   discount: number;
   total: number;
   trackingNumber: string | null;
+  shipinkOrderId: string | null;
+  cargoPdfUrl: string | null;
+  cargoTrackingUrl: string | null;
   customerNote: string | null;
   adminNote: string | null;
   createdAt: string;
@@ -240,14 +243,21 @@ export default function OrderDetailPage() {
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data?.error || "Kargo barkodu oluşturulamadı");
+        throw new Error(data?.error || "Kargo etiketi oluşturulamadı");
       }
 
       const data = await res.json();
-      toast.success(`Kargo barkodu oluşturuldu: ${data.trackingNumber}`);
+
+      if (data.pdfUrl) {
+        window.open(data.pdfUrl, "_blank");
+        toast.success("Kargo etiketi oluşturuldu! PDF yeni sekmede açıldı.");
+      } else {
+        toast.success(`Kargo barkodu oluşturuldu: ${data.trackingNumber}`);
+      }
+
       await fetchOrder();
     } catch (error: any) {
-      toast.error(error?.message || "Kargo barkodu oluşturulamadı");
+      toast.error(error?.message || "Kargo etiketi oluşturulamadı");
     } finally {
       setCreatingLabel(false);
     }
@@ -486,7 +496,7 @@ export default function OrderDetailPage() {
               className="bg-slate-900 text-white hover:bg-slate-800"
             >
               <Truck className="mr-2 h-4 w-4" />
-              {creatingLabel ? "Barkod Oluşturuluyor" : "Kargo Barkodu Oluştur"}
+              {creatingLabel ? "Etiket Oluşturuluyor..." : "Kargo Etiketi Üret"}
             </Button>
           )}
           <DropdownMenu>
@@ -638,6 +648,33 @@ export default function OrderDetailPage() {
                     }}
                   />
                   <p className="mt-2 text-center text-xs font-medium tracking-[0.2em] text-slate-500">{order.trackingNumber}</p>
+                </div>
+              )}
+
+              {(order.cargoPdfUrl || order.cargoTrackingUrl) && (
+                <div className="flex flex-wrap gap-2">
+                  {order.cargoPdfUrl && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.open(order.cargoPdfUrl!, "_blank")}
+                      className="gap-2"
+                    >
+                      <Printer className="h-4 w-4" />
+                      Etiketi Yazdır (PDF)
+                    </Button>
+                  )}
+                  {order.cargoTrackingUrl && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.open(order.cargoTrackingUrl!, "_blank")}
+                      className="gap-2"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      Shipink Takip
+                    </Button>
+                  )}
                 </div>
               )}
             </CardContent>

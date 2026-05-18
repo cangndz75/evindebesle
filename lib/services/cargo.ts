@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { resend } from "@/lib/resend";
 import { canTransitionToCompletedFrom } from "@/lib/services/cargo-state";
+import { getShipinkToken, createShipinkOrder, createOutgoingShipment } from "@/lib/shipinkService";
 
 type CreateShipmentResult = {
   trackingNumber: string;
@@ -109,11 +110,19 @@ async function requestExternalCargoLabel(input: {
   };
 }
 
+type ShipinkCreateResult = CreateShipmentResult & {
+  pdfUrl?: string | null;
+};
+
+function isShipinkConfigured(): boolean {
+  return !!(process.env.SHIPINK_EMAIL && process.env.SHIPINK_PASSWORD);
+}
+
 export async function createShipmentLabelForOrder(params: {
   orderId: string;
   cargoCompanyCode?: string;
   performedById?: string;
-}): Promise<CreateShipmentResult> {
+}): Promise<ShipinkCreateResult> {
   const order = await prisma.order.findUnique({
     where: { id: params.orderId },
     include: {
@@ -124,6 +133,7 @@ export async function createShipmentLabelForOrder(params: {
           phone: true,
         },
       },
+      items: true,
       shippingAddress: {
         include: {
           district: true,
@@ -157,9 +167,111 @@ export async function createShipmentLabelForOrder(params: {
       ),
       cargoCompanyId: order.cargoCompanyId || cargoCompany.id,
       cargoCompanyName: order.cargoCompany?.name || cargoCompany.name,
+      pdfUrl: (order as any).cargoPdfUrl || null,
     };
   }
 
+  if (isShipinkConfigured()) {
+    return createShipmentViaShipink(order, cargoCompany, params.performedById);
+  }
+
+  return createShipmentViaLegacy(order, cargoCompany, params.performedById);
+}
+
+async function createShipmentViaShipink(
+  order: any,
+  cargoCompany: any,
+  performedById?: string,
+): Promise<ShipinkCreateResult> {
+  const token = await getShipinkToken();
+  const shippingAddr = order.shippingAddress as any;
+
+  const orderPayload = {
+    customer: {
+      name: order.user?.name || "Müşteri",
+      email: { main: order.user?.email || "", work: "" },
+      phone: { main: order.user?.phone || "", work: "", cell: "", code: "" },
+      address: {
+        street: shippingAddr?.fullAddress || "",
+        city: shippingAddr?.district?.city || "",
+        state: shippingAddr?.district?.city || "",
+        zip: shippingAddr?.postalCode || "",
+        country_code: "TR",
+      },
+    },
+    items: (order.items || []).map((item: any) => ({
+      name: item.productName || "Ürün",
+      quantity: item.quantity,
+      price: Number(item.unitPrice ?? 0),
+      category: "clothing",
+    })),
+    currency: "TRY",
+    price: Number(order.total),
+    payment: { method: "credit-card", status: "completed" },
+  };
+
+  const shipinkOrderId = await createShipinkOrder(token, orderPayload);
+
+  const packagePayload = [
+    { dimension_unit: "cm", height: 10, length: 30, width: 25, weight: 1, weight_unit: "kg" },
+  ];
+
+  const shipmentResult = await createOutgoingShipment(token, shipinkOrderId, packagePayload);
+
+  const trackingNumber =
+    shipmentResult?.carrier?.shipment_id ||
+    shipmentResult?.tracking_number ||
+    shipmentResult?.trackingNumber ||
+    null;
+  const cargoPdfUrl = shipmentResult?.document?.labels?.[0]?.pdf || null;
+  const cargoTrackingUrl = shipmentResult?.tracking?.url || null;
+
+  await prisma.$transaction([
+    prisma.order.update({
+      where: { id: order.id },
+      data: {
+        status: "SHIPPED",
+        shippedAt: new Date(),
+        trackingNumber,
+        cargoCompanyId: cargoCompany.id,
+        shipinkOrderId,
+        cargoPdfUrl,
+        cargoTrackingUrl,
+      },
+    }),
+    prisma.auditLog.create({
+      data: {
+        entityId: order.id,
+        entityType: "ORDER",
+        action: "SHIPMENT_LABEL_CREATED",
+        newValue: {
+          status: "SHIPPED",
+          trackingNumber,
+          cargoCompanyId: cargoCompany.id,
+          shipinkOrderId,
+          cargoPdfUrl,
+        },
+        performedById,
+      },
+    }),
+  ]);
+
+  await notifyOrderShippedEmail(order.id);
+
+  return {
+    trackingNumber: trackingNumber || "",
+    trackingUrl: cargoTrackingUrl || buildTrackingUrl(cargoCompany.trackingUrl, trackingNumber || ""),
+    cargoCompanyId: cargoCompany.id,
+    cargoCompanyName: cargoCompany.name,
+    pdfUrl: cargoPdfUrl,
+  };
+}
+
+async function createShipmentViaLegacy(
+  order: any,
+  cargoCompany: any,
+  performedById?: string,
+): Promise<ShipinkCreateResult> {
   const recipientAddress = [
     order.shippingAddress?.district?.name,
     order.shippingAddress?.district?.city,
@@ -202,7 +314,7 @@ export async function createShipmentLabelForOrder(params: {
           trackingNumber,
           cargoCompanyId: cargoCompany.id,
         },
-        performedById: params.performedById,
+        performedById,
       },
     }),
   ]);

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { timingSafeEqual } from "crypto";
 import { prisma } from "@/lib/db";
 import { sendTelegramMessage } from "@/lib/telegramService";
 
@@ -12,8 +13,68 @@ const BK_STATUS_MAP: Record<string, string> = {
   RETURNED: "RETURNED",
 };
 
+/** Webhook satırındaki token; yoksa API token ile doğrulanır (Basit Kargo paneli genelde aynı değeri kullanır). */
+function getExpectedWebhookSecret(): string | null {
+  const webhook = process.env.BASITKARGO_WEBHOOK_TOKEN?.trim();
+  const api = process.env.BASITKARGO_API_TOKEN?.trim();
+  return webhook || api || null;
+}
+
+function extractBearerOrRaw(header: string | null): string | null {
+  if (!header) return null;
+  const h = header.trim();
+  if (h.toLowerCase().startsWith("bearer ")) return h.slice(7).trim();
+  return h;
+}
+
+function safeEqualToken(received: string, expected: string): boolean {
+  try {
+    const a = Buffer.from(received, "utf8");
+    const b = Buffer.from(expected, "utf8");
+    if (a.length !== b.length) return false;
+    return timingSafeEqual(a, b);
+  } catch {
+    return false;
+  }
+}
+
+/** Basit Kargo panelinden gelen istekleri doğrular (Authorization, Authorization-Token, X-Webhook-Token). */
+function verifyBasitKargoWebhook(req: NextRequest): boolean {
+  const expected = getExpectedWebhookSecret();
+  if (!expected) {
+    console.warn(
+      "[BASITKARGO_WEBHOOK] BASITKARGO_WEBHOOK_TOKEN veya BASITKARGO_API_TOKEN tanımlı değil; istek reddedildi."
+    );
+    return false;
+  }
+
+  const authHeader = req.headers.get("authorization") || req.headers.get("Authorization");
+  const authTokenHeader =
+    req.headers.get("authorization-token") ||
+    req.headers.get("Authorization-Token") ||
+    req.headers.get("Authorization-token");
+  const xWebhook = req.headers.get("x-webhook-token");
+
+  const candidates = [
+    extractBearerOrRaw(authHeader),
+    authTokenHeader?.trim() || null,
+    xWebhook?.trim() || null,
+  ].filter((x): x is string => Boolean(x && x.length > 0));
+
+  for (const token of candidates) {
+    if (safeEqualToken(token, expected)) return true;
+  }
+
+  return false;
+}
+
 export async function POST(req: NextRequest) {
   try {
+    if (!verifyBasitKargoWebhook(req)) {
+      console.warn("[WEBHOOK_AUTH_FAILED] Yetkisiz Basit Kargo webhook isteği engellendi.");
+      return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
+    }
+
     const payload = await req.json();
 
     const barcode = payload.barcode;
@@ -25,14 +86,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "MISSING_FIELDS" }, { status: 400 });
     }
 
+    const orConditions: Array<Record<string, string>> = [{ trackingNumber: barcode }];
+    if (handlerShipmentCode && handlerShipmentCode !== barcode) {
+      orConditions.push({ trackingNumber: handlerShipmentCode });
+    }
+    if (payload.id && typeof payload.id === "string") {
+      orConditions.push({ shipinkOrderId: payload.id });
+    }
+
     const order = await prisma.order.findFirst({
-      where: {
-        OR: [
-          { trackingNumber: barcode },
-          { trackingNumber: handlerShipmentCode || undefined },
-          { shipinkOrderId: payload.id || undefined },
-        ],
-      },
+      where: { OR: orConditions },
     });
 
     if (!order) {

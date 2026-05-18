@@ -29,6 +29,7 @@ export async function POST(
     const result = await createShipmentLabelForOrder({
       orderId: id,
       cargoCompanyCode: typeof body?.cargoCompanyCode === "string" ? body.cargoCompanyCode : undefined,
+      handlerCode: typeof body?.handlerCode === "string" ? body.handlerCode : undefined,
       performedById: session.user.id,
     });
 

@@ -2,6 +2,12 @@ import { prisma } from "@/lib/db";
 import { resend } from "@/lib/resend";
 import { canTransitionToCompletedFrom } from "@/lib/services/cargo-state";
 import { getShipinkToken, createShipinkOrder, createOutgoingShipment } from "@/lib/shipinkService";
+import {
+  isBasitKargoConfigured,
+  createOrderWithBarcode,
+  getLabelSvg,
+  type BasitKargoOrderPayload,
+} from "@/lib/basitkargoService";
 
 type CreateShipmentResult = {
   trackingNumber: string;
@@ -110,8 +116,10 @@ async function requestExternalCargoLabel(input: {
   };
 }
 
-type ShipinkCreateResult = CreateShipmentResult & {
+type ShipmentCreateResult = CreateShipmentResult & {
   pdfUrl?: string | null;
+  labelSvgUrl?: string | null;
+  provider?: "basitkargo" | "shipink" | "legacy";
 };
 
 function isShipinkConfigured(): boolean {
@@ -121,8 +129,9 @@ function isShipinkConfigured(): boolean {
 export async function createShipmentLabelForOrder(params: {
   orderId: string;
   cargoCompanyCode?: string;
+  handlerCode?: string;
   performedById?: string;
-}): Promise<ShipinkCreateResult> {
+}): Promise<ShipmentCreateResult> {
   const order = await prisma.order.findUnique({
     where: { id: params.orderId },
     include: {
@@ -171,6 +180,10 @@ export async function createShipmentLabelForOrder(params: {
     };
   }
 
+  if (isBasitKargoConfigured()) {
+    return createShipmentViaBasitKargo(order, cargoCompany, params.handlerCode, params.performedById);
+  }
+
   if (isShipinkConfigured()) {
     return createShipmentViaShipink(order, cargoCompany, params.performedById);
   }
@@ -178,11 +191,117 @@ export async function createShipmentLabelForOrder(params: {
   return createShipmentViaLegacy(order, cargoCompany, params.performedById);
 }
 
+function mapCargoCodeToBasitKargoHandler(code: string): string {
+  const map: Record<string, string> = {
+    aras: "ARAS",
+    mng: "MNG",
+    yurtici: "YURTICI",
+    surat: "SURAT",
+    ptt: "PTT",
+  };
+  return map[code.toLowerCase()] || "ECONOMIC";
+}
+
+async function createShipmentViaBasitKargo(
+  order: any,
+  cargoCompany: any,
+  handlerCode?: string,
+  performedById?: string,
+): Promise<ShipmentCreateResult> {
+  const shippingAddr = order.shippingAddress as any;
+  const districtName = shippingAddr?.district?.name || "";
+  const cityName = shippingAddr?.district?.city || "";
+
+  const resolvedHandler =
+    handlerCode || mapCargoCodeToBasitKargoHandler(cargoCompany.code);
+
+  const payload: BasitKargoOrderPayload = {
+    handlerCode: resolvedHandler,
+    type: "OUTGOING",
+    content: {
+      name: `Sipariş ${order.orderNumber}`,
+      code: order.orderNumber,
+      items: (order.items || []).map((item: any) => ({
+        name: item.productName || "Ürün",
+        code: item.productId || item.id,
+        quantity: String(item.quantity),
+      })),
+      packages: [{ height: 10, width: 25, depth: 30, weight: 1 }],
+    },
+    client: {
+      name: order.user?.name || "Müşteri",
+      phone: order.user?.phone || "",
+      city: cityName,
+      town: districtName,
+      address: shippingAddr?.fullAddress || "",
+    },
+  };
+
+  const result = await createOrderWithBarcode(payload);
+
+  const trackingNumber = result.barcode || null;
+  let labelSvgUrl: string | null = null;
+
+  if (result.id) {
+    try {
+      const svg = await getLabelSvg(result.id);
+      if (svg && typeof svg === "string" && svg.length > 100) {
+        const base64 = Buffer.from(svg).toString("base64");
+        labelSvgUrl = `data:image/svg+xml;base64,${base64}`;
+      }
+    } catch (e) {
+      console.error("[BASITKARGO_LABEL_SVG]", e);
+    }
+  }
+
+  await prisma.$transaction([
+    prisma.order.update({
+      where: { id: order.id },
+      data: {
+        status: "SHIPPED",
+        shippedAt: new Date(),
+        trackingNumber,
+        cargoCompanyId: cargoCompany.id,
+        shipinkOrderId: result.id,
+        cargoTrackingUrl: null,
+        cargoPdfUrl: null,
+      },
+    }),
+    prisma.auditLog.create({
+      data: {
+        entityId: order.id,
+        entityType: "ORDER",
+        action: "SHIPMENT_LABEL_CREATED",
+        newValue: {
+          status: "SHIPPED",
+          trackingNumber,
+          cargoCompanyId: cargoCompany.id,
+          basitKargoId: result.id,
+          handlerCode: resolvedHandler,
+          provider: "basitkargo",
+        },
+        performedById,
+      },
+    }),
+  ]);
+
+  await notifyOrderShippedEmail(order.id);
+
+  return {
+    trackingNumber: trackingNumber || "",
+    trackingUrl: buildTrackingUrl(cargoCompany.trackingUrl, trackingNumber || ""),
+    cargoCompanyId: cargoCompany.id,
+    cargoCompanyName: cargoCompany.name,
+    labelSvgUrl,
+    provider: "basitkargo",
+  };
+}
+
 async function createShipmentViaShipink(
   order: any,
   cargoCompany: any,
   performedById?: string,
-): Promise<ShipinkCreateResult> {
+): Promise<ShipmentCreateResult> {
   const token = await getShipinkToken();
   const shippingAddr = order.shippingAddress as any;
 
@@ -271,7 +390,7 @@ async function createShipmentViaLegacy(
   order: any,
   cargoCompany: any,
   performedById?: string,
-): Promise<ShipinkCreateResult> {
+): Promise<ShipmentCreateResult> {
   const recipientAddress = [
     order.shippingAddress?.district?.name,
     order.shippingAddress?.district?.city,

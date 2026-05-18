@@ -140,6 +140,8 @@ export default function OrderDetailPage() {
   const [updating, setUpdating] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [creatingLabel, setCreatingLabel] = useState(false);
+  const [cargoModalOpen, setCargoModalOpen] = useState(false);
+  const [selectedHandler, setSelectedHandler] = useState("ECONOMIC");
   const [invoice, setInvoice] = useState<{ id: string; invoiceNumber: string; status: string; totalAmount: number; createdAt: string } | null>(null);
   const [creatingInvoice, setCreatingInvoice] = useState(false);
 
@@ -230,15 +232,19 @@ export default function OrderDetailPage() {
     }
   };
 
-  const handleCreateCargoLabel = async () => {
+  const handleCreateCargoLabel = async (handlerCode?: string) => {
     if (!order) return;
 
     setCreatingLabel(true);
+    setCargoModalOpen(false);
     try {
       const res = await fetch(`/api/admin/orders/${order.id}/ship-label`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cargoCompanyCode: "aras" }),
+        body: JSON.stringify({
+          cargoCompanyCode: "aras",
+          handlerCode: handlerCode || selectedHandler,
+        }),
       });
 
       if (!res.ok) {
@@ -251,6 +257,9 @@ export default function OrderDetailPage() {
       if (data.pdfUrl) {
         window.open(data.pdfUrl, "_blank");
         toast.success("Kargo etiketi oluşturuldu! PDF yeni sekmede açıldı.");
+      } else if (data.labelSvgUrl) {
+        window.open(data.labelSvgUrl, "_blank");
+        toast.success("Kargo etiketi oluşturuldu! Etiket yeni sekmede açıldı.");
       } else {
         toast.success(`Kargo barkodu oluşturuldu: ${data.trackingNumber}`);
       }
@@ -491,7 +500,7 @@ export default function OrderDetailPage() {
           </Button>
           {order.status !== "SHIPPED" && order.status !== "DELIVERED" && order.status !== "COMPLETED" && order.status !== "CANCELLED" && (
             <Button
-              onClick={handleCreateCargoLabel}
+              onClick={() => setCargoModalOpen(true)}
               disabled={creatingLabel}
               className="bg-slate-900 text-white hover:bg-slate-800"
             >
@@ -978,6 +987,53 @@ export default function OrderDetailPage() {
             >
               <CheckCircle className="w-4 h-4 mr-2" />
               Güncelle
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={cargoModalOpen} onOpenChange={setCargoModalOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Kargo Etiketi Üret</DialogTitle>
+            <DialogDescription>
+              Sipariş #{order.orderNumber} için kargo firması seçin
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 py-4">
+            {[
+              { code: "ECONOMIC", label: "En Ekonomik (Otomatik)", desc: "BasitKargo en uygun firmayı seçer" },
+              { code: "FAST", label: "En Hızlı (Otomatik)", desc: "BasitKargo en hızlı firmayı seçer" },
+              { code: "ARAS", label: "Aras Kargo", desc: "" },
+              { code: "MNG", label: "MNG Kargo", desc: "" },
+              { code: "YURTICI", label: "Yurtiçi Kargo", desc: "" },
+              { code: "SURAT", label: "Sürat Kargo", desc: "" },
+              { code: "PTT", label: "PTT Kargo", desc: "" },
+            ].map((h) => (
+              <Button
+                key={h.code}
+                variant={selectedHandler === h.code ? "default" : "outline"}
+                className={`w-full justify-start h-auto p-3 ${selectedHandler === h.code ? "bg-gray-900 text-white" : ""}`}
+                onClick={() => setSelectedHandler(h.code)}
+              >
+                <div className="text-left">
+                  <div className="font-medium">{h.label}</div>
+                  {h.desc && <div className={`text-xs mt-0.5 ${selectedHandler === h.code ? "text-gray-300" : "text-gray-500"}`}>{h.desc}</div>}
+                </div>
+              </Button>
+            ))}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCargoModalOpen(false)}>
+              İptal
+            </Button>
+            <Button
+              onClick={() => handleCreateCargoLabel(selectedHandler)}
+              disabled={creatingLabel}
+              className="bg-gray-900 text-white hover:bg-gray-800"
+            >
+              <Truck className="w-4 h-4 mr-2" />
+              {creatingLabel ? "Oluşturuluyor..." : "Etiketi Oluştur"}
             </Button>
           </DialogFooter>
         </DialogContent>

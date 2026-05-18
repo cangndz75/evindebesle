@@ -3,10 +3,10 @@ import { prisma } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { createAdminNotification } from "@/lib/admin-notification";
-import { resend, resendFromAddress } from "@/lib/resend";
+import { sendTransactionalEmail } from "@/lib/email/transactional";
+import { getShipinkToken, createShipinkOrder, createReturnShipment } from "@/lib/shipinkService";
 
-const RETURN_CARGO_CODE = process.env.RETURN_CARGO_CODE || "DV-IADE-2026";
-const RETURN_CARGO_COMPANY = process.env.RETURN_CARGO_COMPANY || "Yurtiçi Kargo";
+const RETURN_CARGO_COMPANY = process.env.RETURN_CARGO_COMPANY || "Shipink Kargo";
 
 export async function GET(req: Request) {
     try {
@@ -79,11 +79,12 @@ export async function POST(req: Request) {
                     select: {
                         name: true,
                         email: true,
+                        phone: true,
                     },
                 },
                 shippingAddress: {
-                    select: {
-                        email: true,
+                    include: {
+                        district: true,
                     },
                 },
                 billingAddress: {
@@ -117,7 +118,63 @@ export async function POST(req: Request) {
             }
         }
 
-        const cargoTrackingCode = `${RETURN_CARGO_CODE}-${Date.now().toString(36).toUpperCase()}`;
+        // Shipink: token al → sipariş oluştur → iade etiketi kes
+        let shipinkOrderId: string | null = null;
+        let cargoTrackingCode: string | null = null;
+        let cargoTrackingUrl: string | null = null;
+        let cargoPdfUrl: string | null = null;
+
+        try {
+            const token = await getShipinkToken();
+
+            const shippingAddr = order.shippingAddress as any;
+            const returnItemsForShipink = (items as any[]).map((ri) => {
+                const oi = order.items.find((o: any) => o.id === ri.orderItemId) as any;
+                return {
+                    name: oi?.productName || "Ürün",
+                    quantity: ri.quantity,
+                    price: Number(oi?.unitPrice ?? 0),
+                    category: "clothing",
+                };
+            });
+            const totalRefundAmount = returnItemsForShipink.reduce(
+                (sum: number, i: any) => sum + i.price * i.quantity, 0
+            );
+
+            const orderPayload = {
+                customer: {
+                    name: order.user?.name || "",
+                    email: { main: order.user?.email || "", work: "" },
+                    phone: { main: order.user?.phone || "", work: "", cell: "", code: "" },
+                    address: {
+                        street: shippingAddr?.fullAddress || "",
+                        city: shippingAddr?.district?.city || "",
+                        state: shippingAddr?.district?.city || "",
+                        zip: shippingAddr?.postalCode || "",
+                        country_code: "TR",
+                    },
+                },
+                items: returnItemsForShipink,
+                currency: "TRY",
+                price: totalRefundAmount,
+                payment: { method: "credit-card", status: "completed" },
+            };
+
+            shipinkOrderId = await createShipinkOrder(token, orderPayload);
+
+            const packagePayload = [
+                { dimension_unit: "cm", height: 5, length: 30, width: 20, weight: 1, weight_unit: "kg" },
+            ];
+            const shipmentResult = await createReturnShipment(token, shipinkOrderId, packagePayload);
+
+            cargoPdfUrl = shipmentResult?.document?.labels?.[0]?.pdf || null;
+            cargoTrackingUrl = shipmentResult?.tracking?.url || null;
+            cargoTrackingCode = shipmentResult?.carrier?.shipment_id || null;
+        } catch (shipinkError: any) {
+            console.error("[RETURNS_POST_SHIPINK]", shipinkError);
+            // Shipink başarısız olursa fallback olarak dummy kod üret, iade talebi yine oluşsun
+            cargoTrackingCode = `DV-IADE-${Date.now().toString(36).toUpperCase()}`;
+        }
 
         const returnRequest = await prisma.$transaction(async (tx: any) => {
             const rr = await tx.returnRequest.create({
@@ -129,6 +186,9 @@ export async function POST(req: Request) {
                     images: images || [],
                     status: "PENDING",
                     cargoTrackingCode,
+                    cargoTrackingUrl,
+                    cargoPdfUrl,
+                    shipinkOrderId,
                     items: {
                         create: items.map((item: { orderItemId: string; quantity: number; reason?: string }) => ({
                             orderItemId: item.orderItemId,
@@ -165,35 +225,27 @@ export async function POST(req: Request) {
             null;
 
         if (to) {
-            await resend.emails
-                .send({
-                    from: resendFromAddress(),
-                    to,
-                    subject: `İade talebiniz oluşturuldu - ${order.orderNumber}`,
-                    html: `
-                      <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111;max-width:600px;margin:0 auto">
-                        <h2>İade Talebiniz Oluşturuldu</h2>
-                        <p>Sipariş No: <strong>${order.orderNumber}</strong></p>
-                        <p>İade talebiniz başarıyla alınmıştır.</p>
-                        <div style="background:#f9f9f9;padding:16px;border-radius:8px;margin:16px 0;border:1px solid #eee">
-                          <h3 style="margin:0 0 8px;font-size:15px">Kargo Bilgileri</h3>
-                          <p style="margin:4px 0"><strong>Kargo Firması:</strong> ${RETURN_CARGO_COMPANY}</p>
-                          <p style="margin:4px 0"><strong>İade Kargo Kodu:</strong> ${cargoTrackingCode}</p>
-                          <p style="margin:8px 0 0;font-size:13px;color:#666">Ürünü yukarıdaki kodla ${RETURN_CARGO_COMPANY}'ye ücretsiz olarak teslim edebilirsiniz.</p>
-                        </div>
-                        <p>Süreci Hesabım &gt; Siparişlerim ekranından takip edebilirsiniz.</p>
-                        <p style="color:#666;font-size:13px;margin-top:24px">Dark Velvet</p>
-                      </div>
-                    `,
-                })
-                .catch((mailError) => {
-                    console.error("[RETURNS_POST_MAIL]", mailError);
-                });
+            await sendTransactionalEmail({
+                to,
+                type: "RETURN_REQUEST_CREATED",
+                payload: {
+                    orderNumber: order.orderNumber,
+                    carrierName: RETURN_CARGO_COMPANY,
+                    trackingCode: cargoTrackingCode,
+                    pdfUrl: cargoPdfUrl,
+                    trackingUrl: cargoTrackingUrl,
+                },
+            }).catch((mailError) => {
+                console.error("[RETURNS_POST_MAIL]", mailError);
+            });
         }
 
         return NextResponse.json({
             ...returnRequest,
             cargoTrackingCode,
+            cargoTrackingUrl,
+            cargoPdfUrl,
+            shipinkOrderId,
             cargoCompany: RETURN_CARGO_COMPANY,
         });
     } catch (error) {

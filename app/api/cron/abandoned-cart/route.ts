@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { resend } from "@/lib/resend";
+import { sendTransactionalEmail } from "@/lib/email/transactional";
 
 export async function GET(req: NextRequest) {
     try {
@@ -49,27 +49,22 @@ export async function GET(req: NextRequest) {
             });
 
             const checkoutUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/checkout?orderId=${order.id}`;
-            const emailContent = `
-                <h2>Sepetiniz Sizi Bekliyor!</h2>
-                <p>Merhaba, sepetinizde unuttuğunuz ürünler olduğunu fark ettik.</p>
-                <p>Alışverişinizi tamamlamanız için size özel indirim kodu tanımladık: <strong>${couponCode}</strong></p>
-                <p>Bu kod ile %10 indirim kazanın.</p>
-                <a href="${checkoutUrl}" style="background: #111; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Alışverişi Tamamla</a>
-                <p>Sipariş ID: ${order.id}</p>
-            `;
 
-            const { error } = await resend.emails.send({
-                from: "Dark Velvet <newsletter@dark-velvet.com>",
+            const { error } = await sendTransactionalEmail({
                 to: order.email!,
-                subject: "Sepetinizde Size Özel Bir Teklif Var!",
-                html: emailContent,
+                type: "ABANDONED_CHECKOUT_REMINDER",
+                payload: {
+                    checkoutUrl,
+                    couponCode,
+                    orderIdShort: order.id.slice(0, 12),
+                },
             });
 
             if (!error) {
                 await prisma.emailLog.create({
                     data: {
                         userId: order.userId || "guest",
-                        subject: "Abandoned Cart Recovery",
+                        subject: "Ödeme hatırlatması — sepetiniz açık",
                         content: `Order: ${order.id}, Coupon: ${couponCode}`,
                         type: "ABANDONED_CART",
                         success: true,

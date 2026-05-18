@@ -39,6 +39,9 @@ import {
     Package,
     ImageIcon,
     CreditCard,
+    Copy,
+    ExternalLink,
+    FileDown,
 } from "lucide-react";
 
 const RETURN_REASON_LABELS: Record<string, string> = {
@@ -104,6 +107,9 @@ type ReturnRequest = {
     refundAmount: number | null;
     bankReferenceCode: string | null;
     cargoTrackingCode: string | null;
+    cargoTrackingUrl: string | null;
+    cargoPdfUrl: string | null;
+    shipinkOrderId: string | null;
     receivedAt: string | null;
     refundedAt: string | null;
     createdAt: string;
@@ -385,9 +391,62 @@ export default function AdminReturnsPage() {
                                     </p>
                                     {selectedRequest.cargoTrackingCode && (
                                         <p className="text-sm">
-                                            <span className="text-gray-500">Kargo Kodu:</span>{" "}
+                                            <span className="text-gray-500">Kargo kodu:</span>{" "}
                                             <span className="font-mono">{selectedRequest.cargoTrackingCode}</span>
                                         </p>
+                                    )}
+                                    {(selectedRequest.shipinkOrderId ||
+                                        selectedRequest.cargoTrackingUrl ||
+                                        selectedRequest.cargoPdfUrl) && (
+                                        <div className="mt-3 space-y-2 border-t pt-3">
+                                            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                                Shipink
+                                            </p>
+                                            {selectedRequest.shipinkOrderId && (
+                                                <div className="flex flex-wrap items-center gap-2 text-sm">
+                                                    <span className="text-gray-500 shrink-0">Sipariş ID:</span>
+                                                    <span className="font-mono text-xs break-all text-gray-900">
+                                                        {selectedRequest.shipinkOrderId}
+                                                    </span>
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="h-7 px-2 text-gray-600"
+                                                        onClick={() => {
+                                                            void navigator.clipboard
+                                                                .writeText(selectedRequest.shipinkOrderId!)
+                                                                .then(() => toast.success("Shipink sipariş ID kopyalandı"))
+                                                                .catch(() => toast.error("Kopyalanamadı"));
+                                                        }}
+                                                    >
+                                                        <Copy className="h-3.5 w-3.5" />
+                                                    </Button>
+                                                </div>
+                                            )}
+                                            {selectedRequest.cargoTrackingUrl && (
+                                                <a
+                                                    href={selectedRequest.cargoTrackingUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-700 hover:underline"
+                                                >
+                                                    <ExternalLink className="h-4 w-4" />
+                                                    Kargo durumunu takip et
+                                                </a>
+                                            )}
+                                            {selectedRequest.cargoPdfUrl && (
+                                                <a
+                                                    href={selectedRequest.cargoPdfUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-800 hover:underline"
+                                                >
+                                                    <FileDown className="h-4 w-4" />
+                                                    İade etiketi (PDF)
+                                                </a>
+                                            )}
+                                        </div>
                                     )}
                                     {selectedRequest.bankReferenceCode && (
                                         <p className="text-sm pt-1 border-t mt-2">

@@ -976,6 +976,9 @@ model ReturnRequest {
   refundAmount        Float?
   bankReferenceCode   String? // Iyzico hostReference / authCode (destek & banka sorguları)
   cargoTrackingCode String?
+  cargoTrackingUrl  String?
+  cargoPdfUrl       String?
+  shipinkOrderId    String?
   receivedAt        DateTime?
   refundedAt        DateTime?
   createdAt         DateTime            @default(now())

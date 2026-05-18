@@ -98,6 +98,15 @@ type ReturnRequestData = {
     reason: string;
     description: string | null;
     createdAt: string;
+    images?: string[];
+    adminNote?: string | null;
+    cargoTrackingCode?: string | null;
+    cargoPdfUrl?: string | null;
+    cargoTrackingUrl?: string | null;
+    bankReferenceCode?: string | null;
+    refundAmount?: number | null;
+    receivedAt?: string | null;
+    refundedAt?: string | null;
     order: {
         orderNumber: string;
     };

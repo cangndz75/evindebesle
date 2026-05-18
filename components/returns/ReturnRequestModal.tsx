@@ -30,9 +30,10 @@ import {
     AlertCircle,
     Camera,
     X,
-    Truck,
     Copy,
     CheckCircle,
+    Download,
+    ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -95,7 +96,12 @@ export default function ReturnRequestModal({
     const [images, setImages] = useState<string[]>([]);
     const [uploadingImage, setUploadingImage] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [result, setResult] = useState<{ cargoTrackingCode: string; cargoCompany: string } | null>(null);
+    const [result, setResult] = useState<{
+        cargoTrackingCode: string | null;
+        cargoCompany: string;
+        cargoPdfUrl: string | null;
+        cargoTrackingUrl: string | null;
+    } | null>(null);
     const [codeCopied, setCodeCopied] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -200,8 +206,10 @@ export default function ReturnRequestModal({
 
             const data = await response.json();
             setResult({
-                cargoTrackingCode: data.cargoTrackingCode,
+                cargoTrackingCode: data.cargoTrackingCode ?? null,
                 cargoCompany: data.cargoCompany,
+                cargoPdfUrl: data.cargoPdfUrl ?? null,
+                cargoTrackingUrl: data.cargoTrackingUrl ?? null,
             });
             setStep(4);
             toast.success("İade talebiniz başarıyla oluşturuldu");
@@ -213,18 +221,24 @@ export default function ReturnRequestModal({
         }
     };
 
-    const handleCopyCode = () => {
-        if (result?.cargoTrackingCode) {
-            navigator.clipboard.writeText(result.cargoTrackingCode);
+    const handleCopyCode = async () => {
+        if (!result?.cargoTrackingCode) {
+            toast.error("Kopyalanacak kod bulunamadı");
+            return;
+        }
+        try {
+            await navigator.clipboard.writeText(result.cargoTrackingCode);
             setCodeCopied(true);
             toast.success("Kargo kodu kopyalandı");
             setTimeout(() => setCodeCopied(false), 2000);
+        } catch {
+            toast.error("Panoya kopyalanamadı");
         }
     };
 
     const canProceedStep1 = selectedItems.length > 0 && generalReason !== "";
     const showImageUpload = DAMAGE_REASONS.includes(generalReason);
-    const totalSteps = result ? 4 : 3;
+    const isSuccessStep = step === 4 && !!result;
 
     if (!order) return null;
 
@@ -232,42 +246,68 @@ export default function ReturnRequestModal({
         <Dialog open={isOpen} onOpenChange={(open) => !isSubmitting && !open && onClose()}>
             <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                        <Package className="h-5 w-5" />
-                        İade Talebi Oluştur
+                    <DialogTitle
+                        className={cn(
+                            "flex items-center gap-2",
+                            isSuccessStep && "text-xl font-semibold tracking-tight text-zinc-800"
+                        )}
+                    >
+                        {isSuccessStep ? (
+                            <>
+                                <CheckCircle className="h-5 w-5 shrink-0 text-zinc-900" strokeWidth={1.5} />
+                                İade Talebiniz Alındı
+                            </>
+                        ) : (
+                            <>
+                                <Package className="h-5 w-5 shrink-0" />
+                                İade Oluştur
+                            </>
+                        )}
                     </DialogTitle>
                     <DialogDescription>
-                        Sipariş No: <span className="font-semibold">{order.orderNumber}</span>
+                        {isSuccessStep ? (
+                            <>
+                                Sipariş{" "}
+                                <span className="font-semibold text-zinc-900">#{order.orderNumber}</span> için iade
+                                kaydınız oluşturuldu. Aşağıdan kargo bilgilerinize ulaşabilirsiniz.
+                            </>
+                        ) : (
+                            <>
+                                Sipariş No: <span className="font-semibold">{order.orderNumber}</span>
+                            </>
+                        )}
                     </DialogDescription>
                 </DialogHeader>
 
-                {/* Step Indicator */}
-                <div className="flex items-center justify-center gap-2 py-4">
-                    {[1, 2, 3].map((s) => (
-                        <div key={s} className="flex items-center">
-                            <div
-                                className={cn(
-                                    "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors",
-                                    step === s
-                                        ? "bg-black text-white"
-                                        : step > s
-                                            ? "bg-green-500 text-white"
-                                            : "bg-gray-200 text-gray-500"
-                                )}
-                            >
-                                {step > s ? <Check className="h-4 w-4" /> : s}
-                            </div>
-                            {s < 3 && (
+                {/* Step Indicator — başarı ekranında gizlenir */}
+                {step < 4 && (
+                    <div className="flex items-center justify-center gap-2 py-4">
+                        {[1, 2, 3].map((s) => (
+                            <div key={s} className="flex items-center">
                                 <div
                                     className={cn(
-                                        "w-12 h-0.5 mx-1",
-                                        step > s ? "bg-green-500" : "bg-gray-200"
+                                        "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors",
+                                        step === s
+                                            ? "bg-black text-white"
+                                            : step > s
+                                                ? "bg-zinc-900 text-white"
+                                                : "bg-zinc-100 text-zinc-400"
                                     )}
-                                />
-                            )}
-                        </div>
-                    ))}
-                </div>
+                                >
+                                    {step > s ? <Check className="h-4 w-4" /> : s}
+                                </div>
+                                {s < 3 && (
+                                    <div
+                                        className={cn(
+                                            "w-12 h-0.5 mx-1",
+                                            step > s ? "bg-zinc-900" : "bg-zinc-100"
+                                        )}
+                                    />
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                )}
 
                 {/* STEP 1: Select Items & Reason */}
                 {step === 1 && (
@@ -490,66 +530,105 @@ export default function ReturnRequestModal({
                                 )}
                             </div>
                         </div>
-                        <div className="flex items-start gap-2 bg-yellow-50 text-yellow-800 p-3 rounded-lg text-sm">
-                            <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                        <div className="flex items-start gap-2 rounded-lg border border-zinc-200 bg-zinc-50/80 p-3 text-sm text-zinc-600">
+                            <AlertCircle className="h-4 w-4 mt-0.5 shrink-0 text-zinc-400" />
                             <p>
-                                İade talebiniz oluşturulduktan sonra size kargo bilgileri ile birlikte e-posta gönderilecektir.
+                                Onay sonrası kargo kodu, varsa PDF etiket ve takip linki e-postanıza da gönderilir.
                             </p>
                         </div>
                     </div>
                 )}
 
-                {/* STEP 4: Success + Cargo Info */}
+                {/* STEP 4: Başarı — sade, vurgulu kargo bilgisi */}
                 {step === 4 && result && (
-                    <div className="space-y-4">
-                        <div className="text-center py-4">
-                            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <CheckCircle className="w-8 h-8 text-green-600" />
+                    <div className="space-y-6">
+                        <div className="text-center pt-1">
+                            <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full border border-zinc-200 bg-white shadow-sm">
+                                <CheckCircle className="h-7 w-7 text-zinc-900" strokeWidth={1.5} />
                             </div>
-                            <h3 className="text-lg font-semibold mb-1">İade Talebiniz Oluşturuldu</h3>
-                            <p className="text-sm text-gray-500">Aşağıdaki bilgileri kullanarak ürünü kargoya verebilirsiniz</p>
-                        </div>
-
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-5 space-y-3">
-                            <div className="flex items-center gap-2 text-blue-800 font-semibold">
-                                <Truck className="w-5 h-5" />
-                                Kargo Bilgileri
-                            </div>
-                            <div className="space-y-2 text-sm">
-                                <div className="flex justify-between items-center">
-                                    <span className="text-blue-700">Kargo Firması:</span>
-                                    <span className="font-semibold text-blue-900">{result.cargoCompany}</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-blue-700">İade Kargo Kodu:</span>
-                                    <div className="flex items-center gap-2">
-                                        <span className="font-mono font-bold text-blue-900 bg-white px-3 py-1 rounded border border-blue-200">
-                                            {result.cargoTrackingCode}
-                                        </span>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={handleCopyCode}
-                                            className="h-8 w-8 p-0"
-                                        >
-                                            {codeCopied ? (
-                                                <Check className="w-4 h-4 text-green-600" />
-                                            ) : (
-                                                <Copy className="w-4 h-4" />
-                                            )}
-                                        </Button>
-                                    </div>
-                                </div>
-                            </div>
-                            <p className="text-xs text-blue-600 pt-2 border-t border-blue-200">
-                                Ürünü yukarıdaki kodla {result.cargoCompany}&apos;ye ücretsiz olarak teslim edebilirsiniz.
+                            <p className="mx-auto max-w-sm text-sm leading-relaxed text-zinc-500">
+                                Paketinizi kargoya vermek için aşağıdaki kodu şubede iletebilir veya etiketi
+                                yazdırabilirsiniz. Özet ayrıca e-postanıza gönderildi.
                             </p>
                         </div>
 
-                        <div className="flex items-start gap-2 bg-amber-50 text-amber-800 p-3 rounded-lg text-sm">
-                            <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                        <div className="rounded-xl border border-zinc-200 bg-zinc-50/40 px-4 py-3 text-center text-xs text-zinc-500">
+                            Taşıyıcı: <span className="font-medium text-zinc-800">{result.cargoCompany}</span>
+                        </div>
+
+                        {result.cargoTrackingCode ? (
+                            <div className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+                                <div className="flex items-center justify-between gap-2">
+                                    <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-zinc-500">
+                                        İade kargo kodu
+                                    </p>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-8 gap-1.5 border-zinc-200 text-xs text-zinc-700"
+                                        onClick={handleCopyCode}
+                                    >
+                                        {codeCopied ? (
+                                            <>
+                                                <Check className="h-3.5 w-3.5" />
+                                                Kopyalandı
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Copy className="h-3.5 w-3.5" />
+                                                Kopyala
+                                            </>
+                                        )}
+                                    </Button>
+                                </div>
+                                <p className="mt-3 break-all text-center text-2xl font-semibold tabular-nums tracking-tight text-zinc-900 sm:text-3xl">
+                                    {result.cargoTrackingCode}
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="rounded-xl border border-dashed border-zinc-200 bg-zinc-50/60 px-4 py-6 text-center text-sm text-zinc-500">
+                                Kargo kodu bu oturumda oluşturulamadı; etiket veya e-postanızdaki bilgileri kullanın.
+                            </div>
+                        )}
+
+                        {(result.cargoPdfUrl || result.cargoTrackingUrl) && (
+                            <div className="flex flex-col gap-2 sm:flex-row">
+                                {result.cargoPdfUrl ? (
+                                    <Button
+                                        className="flex-1 gap-2 bg-zinc-900 text-white hover:bg-zinc-800"
+                                        asChild
+                                    >
+                                        <a
+                                            href={result.cargoPdfUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            <Download className="h-4 w-4 shrink-0" />
+                                            İade etiketini indir
+                                        </a>
+                                    </Button>
+                                ) : null}
+                                {result.cargoTrackingUrl ? (
+                                    <Button variant="outline" className="flex-1 gap-2 border-zinc-200" asChild>
+                                        <a
+                                            href={result.cargoTrackingUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            <ExternalLink className="h-4 w-4 shrink-0" />
+                                            Kargo durumunu takip et
+                                        </a>
+                                    </Button>
+                                ) : null}
+                            </div>
+                        )}
+
+                        <div className="flex items-start gap-2.5 rounded-lg border border-zinc-100 bg-zinc-50/80 px-3.5 py-3 text-xs leading-relaxed text-zinc-600">
+                            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-zinc-400" />
                             <p>
-                                Kargo bilgileri e-posta adresinize de gönderilmiştir. Ürün depomuzda incelendikten sonra iade işleminiz tamamlanacaktır.
+                                Ürün depomuza ulaştığında inceleme yapılır; onay sonrası ücret iadesi kartınıza
+                                yansıtılır. Süreci siparişlerim sayfasından takip edebilirsiniz.
                             </p>
                         </div>
                     </div>

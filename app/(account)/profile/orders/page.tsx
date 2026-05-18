@@ -81,6 +81,9 @@ type ReturnRequestData = {
   images?: string[];
   adminNote?: string | null;
   cargoTrackingCode?: string | null;
+  cargoTrackingUrl?: string | null;
+  cargoPdfUrl?: string | null;
+  shipinkOrderId?: string | null;
   bankReferenceCode?: string | null;
   refundAmount?: number | null;
   receivedAt?: string | null;

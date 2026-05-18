@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useState } from "react";
-import { Copy, Check, Truck, Package, AlertCircle } from "lucide-react";
+import { Copy, Check, Package, AlertCircle, Download, ExternalLink } from "lucide-react";
 
 const RETURN_REASON_LABELS: Record<string, string> = {
     WRONG_SIZE: "Beden uygun değil",
@@ -79,6 +79,8 @@ interface ReturnRequestData {
     images?: string[];
     adminNote?: string | null;
     cargoTrackingCode?: string | null;
+    cargoPdfUrl?: string | null;
+    cargoTrackingUrl?: string | null;
     bankReferenceCode?: string | null;
     refundAmount?: number | null;
     receivedAt?: string | null;
@@ -133,12 +135,15 @@ export default function ReturnRequestViewModal({
         }
     };
 
-    const handleCopyCode = () => {
-        if (data.cargoTrackingCode) {
-            navigator.clipboard.writeText(data.cargoTrackingCode);
+    const handleCopyCode = async () => {
+        if (!data.cargoTrackingCode) return;
+        try {
+            await navigator.clipboard.writeText(data.cargoTrackingCode);
             setCodeCopied(true);
             toast.success("Kargo kodu kopyalandı");
             setTimeout(() => setCodeCopied(false), 2000);
+        } catch {
+            toast.error("Panoya kopyalanamadı");
         }
     };
 
@@ -165,29 +170,78 @@ export default function ReturnRequestViewModal({
                         <p className="text-sm text-gray-600">{statusInfo.description}</p>
                     </div>
 
-                    {/* Cargo Info */}
-                    {data.cargoTrackingCode && data.status === "PENDING" && (
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
-                            <div className="flex items-center gap-2 text-blue-800 font-semibold text-sm">
-                                <Truck className="w-4 h-4" />
-                                Kargo Bilgileri
+                    {/* Kargo — bekleyen iadelerde kod, etiket ve takip */}
+                    {data.status === "PENDING" &&
+                        (data.cargoTrackingCode || data.cargoPdfUrl || data.cargoTrackingUrl) && (
+                            <div className="space-y-4 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+                                <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-zinc-500">
+                                    İade kargosu
+                                </p>
+                                {data.cargoTrackingCode && (
+                                    <div>
+                                        <div className="flex items-center justify-between gap-2">
+                                            <span className="text-xs text-zinc-500">Kargo kodu</span>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                className="h-8 gap-1.5 border-zinc-200 text-xs"
+                                                onClick={handleCopyCode}
+                                            >
+                                                {codeCopied ? (
+                                                    <>
+                                                        <Check className="h-3.5 w-3.5" />
+                                                        Kopyalandı
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Copy className="h-3.5 w-3.5" />
+                                                        Kopyala
+                                                    </>
+                                                )}
+                                            </Button>
+                                        </div>
+                                        <p className="mt-2 break-all text-center text-xl font-semibold tabular-nums tracking-tight text-zinc-900 sm:text-2xl">
+                                            {data.cargoTrackingCode}
+                                        </p>
+                                    </div>
+                                )}
+                                {(data.cargoPdfUrl || data.cargoTrackingUrl) && (
+                                    <div className="flex flex-col gap-2 sm:flex-row">
+                                        {data.cargoPdfUrl && (
+                                            <Button
+                                                className="flex-1 gap-2 bg-zinc-900 text-white hover:bg-zinc-800"
+                                                asChild
+                                            >
+                                                <a
+                                                    href={data.cargoPdfUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                >
+                                                    <Download className="h-4 w-4 shrink-0" />
+                                                    İade etiketini indir
+                                                </a>
+                                            </Button>
+                                        )}
+                                        {data.cargoTrackingUrl && (
+                                            <Button variant="outline" className="flex-1 gap-2 border-zinc-200" asChild>
+                                                <a
+                                                    href={data.cargoTrackingUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                >
+                                                    <ExternalLink className="h-4 w-4 shrink-0" />
+                                                    Kargo durumunu takip et
+                                                </a>
+                                            </Button>
+                                        )}
+                                    </div>
+                                )}
+                                <p className="text-xs leading-relaxed text-zinc-500">
+                                    Etiketi yazdırıp pakete yapıştırabilir veya şubede kargo kodunu iletebilirsiniz.
+                                </p>
                             </div>
-                            <div className="flex items-center justify-between text-sm">
-                                <span className="text-blue-700">İade Kargo Kodu:</span>
-                                <div className="flex items-center gap-2">
-                                    <span className="font-mono font-bold text-blue-900 bg-white px-3 py-1 rounded border border-blue-200">
-                                        {data.cargoTrackingCode}
-                                    </span>
-                                    <Button variant="ghost" size="sm" onClick={handleCopyCode} className="h-8 w-8 p-0">
-                                        {codeCopied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
-                                    </Button>
-                                </div>
-                            </div>
-                            <p className="text-xs text-blue-600">
-                                Bu kodla ürünü ücretsiz olarak kargoya teslim edebilirsiniz.
-                            </p>
-                        </div>
-                    )}
+                        )}
 
                     {/* Refund Amount + bank reference */}
                     {data.status === "REFUNDED" && (data.refundAmount != null || data.bankReferenceCode) && (

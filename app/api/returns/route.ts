@@ -118,62 +118,77 @@ export async function POST(req: Request) {
             }
         }
 
-        // Shipink: token al → sipariş oluştur → iade etiketi kes
+        // Shipink: (1) sipariş oluştur → shipinkOrderId (2) iade gönderisi / etiket
         let shipinkOrderId: string | null = null;
         let cargoTrackingCode: string | null = null;
         let cargoTrackingUrl: string | null = null;
         let cargoPdfUrl: string | null = null;
 
+        const shippingAddr = order.shippingAddress as any;
+        const returnItemsForShipink = (items as any[]).map((ri) => {
+            const oi = order.items.find((o: any) => o.id === ri.orderItemId) as any;
+            return {
+                name: oi?.productName || "Ürün",
+                quantity: ri.quantity,
+                price: Number(oi?.unitPrice ?? 0),
+                category: "clothing",
+            };
+        });
+        const totalRefundAmount = returnItemsForShipink.reduce(
+            (sum: number, i: any) => sum + i.price * i.quantity,
+            0
+        );
+
+        const orderPayload = {
+            customer: {
+                name: order.user?.name || "",
+                email: { main: order.user?.email || "", work: "" },
+                phone: { main: order.user?.phone || "", work: "", cell: "", code: "" },
+                address: {
+                    street: shippingAddr?.fullAddress || "",
+                    city: shippingAddr?.district?.city || "",
+                    state: shippingAddr?.district?.city || "",
+                    zip: shippingAddr?.postalCode || "",
+                    country_code: "TR",
+                },
+            },
+            items: returnItemsForShipink,
+            currency: "TRY",
+            price: totalRefundAmount,
+            payment: { method: "credit-card", status: "completed" },
+        };
+
+        const packagePayload = [
+            { dimension_unit: "cm", height: 5, length: 30, width: 20, weight: 1, weight_unit: "kg" },
+        ];
+
         try {
             const token = await getShipinkToken();
 
-            const shippingAddr = order.shippingAddress as any;
-            const returnItemsForShipink = (items as any[]).map((ri) => {
-                const oi = order.items.find((o: any) => o.id === ri.orderItemId) as any;
-                return {
-                    name: oi?.productName || "Ürün",
-                    quantity: ri.quantity,
-                    price: Number(oi?.unitPrice ?? 0),
-                    category: "clothing",
-                };
-            });
-            const totalRefundAmount = returnItemsForShipink.reduce(
-                (sum: number, i: any) => sum + i.price * i.quantity, 0
-            );
-
-            const orderPayload = {
-                customer: {
-                    name: order.user?.name || "",
-                    email: { main: order.user?.email || "", work: "" },
-                    phone: { main: order.user?.phone || "", work: "", cell: "", code: "" },
-                    address: {
-                        street: shippingAddr?.fullAddress || "",
-                        city: shippingAddr?.district?.city || "",
-                        state: shippingAddr?.district?.city || "",
-                        zip: shippingAddr?.postalCode || "",
-                        country_code: "TR",
-                    },
-                },
-                items: returnItemsForShipink,
-                currency: "TRY",
-                price: totalRefundAmount,
-                payment: { method: "credit-card", status: "completed" },
-            };
-
+            // 1) Shipink siparişi — başarılıysa shipinkOrderId dolar (kısmi başarı senaryosu için kritik)
             shipinkOrderId = await createShipinkOrder(token, orderPayload);
 
-            const packagePayload = [
-                { dimension_unit: "cm", height: 5, length: 30, width: 20, weight: 1, weight_unit: "kg" },
-            ];
+            // 2) İade gönderisi / etiket — hata çoğunlukla bu adımda; shipinkOrderId yine de korunur
             const shipmentResult = await createReturnShipment(token, shipinkOrderId, packagePayload);
 
+            cargoTrackingCode = shipmentResult?.carrier?.shipment_id || null;
             cargoPdfUrl = shipmentResult?.document?.labels?.[0]?.pdf || null;
             cargoTrackingUrl = shipmentResult?.tracking?.url || null;
-            cargoTrackingCode = shipmentResult?.carrier?.shipment_id || null;
-        } catch (shipinkError: any) {
-            console.error("[RETURNS_POST_SHIPINK]", shipinkError);
-            // Shipink başarısız olursa fallback olarak dummy kod üret, iade talebi yine oluşsun
-            cargoTrackingCode = `DV-IADE-${Date.now().toString(36).toUpperCase()}`;
+        } catch (shipinkError: unknown) {
+            console.error(
+                "Shipink entegrasyon hatası (müşteri yedek kodu ile devam edebilir):",
+                shipinkError
+            );
+
+            /**
+             * EDGE CASE — kısmi başarı:
+             * Hata fırlatıldığında `shipinkOrderId` doluysa sipariş Shipink'e yazılmış ancak gönderi/etiket
+             * tamamlanamamış olabilir. Bu ID'yi sıfırlamıyoruz; admin Shipink panelinden manuel ilerleyebilir.
+             * Müşteri mağdur olmasın diye yalnızca `cargoTrackingCode` boşsa yerel yedek kod üretilir.
+             */
+            if (!cargoTrackingCode) {
+                cargoTrackingCode = `DV-IADE-${Date.now().toString(36).toUpperCase()}`;
+            }
         }
 
         const returnRequest = await prisma.$transaction(async (tx: any) => {

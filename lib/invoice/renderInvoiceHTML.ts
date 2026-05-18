@@ -44,7 +44,12 @@ interface InvoiceData {
   invoice: InvoiceLike;
   company: CompanyLike;
   qrDataUrl: string;
+  /** Satıcı imzası görseli URL; `null` gönderilirse blok gösterilmez. Aksi halde parametre → INVOICE_SIGNATURE_IMAGE_URL → varsayılan */
+  issuerSignatureUrl?: string | null;
 }
+
+export const DEFAULT_INVOICE_SIGNATURE_IMAGE_URL =
+  "https://res.cloudinary.com/drb0agkvi/image/upload/v1779100598/WhatsApp_Image_2026-05-18_at_10.43.12_bpcp4i.jpg";
 
 function escapeHtml(value: unknown): string {
   return String(value ?? "")
@@ -69,7 +74,19 @@ function formatMoney(value: number): string {
   }).format(value);
 }
 
-export function renderInvoiceHTML({ order, invoice, company, qrDataUrl }: InvoiceData): string {
+export function renderInvoiceHTML({
+  order,
+  invoice,
+  company,
+  qrDataUrl,
+  issuerSignatureUrl,
+}: InvoiceData): string {
+  const signatureSrc =
+    issuerSignatureUrl === null
+      ? null
+      : issuerSignatureUrl?.trim() ||
+        (typeof process !== "undefined" && process.env.INVOICE_SIGNATURE_IMAGE_URL?.trim()) ||
+        DEFAULT_INVOICE_SIGNATURE_IMAGE_URL;
   const customer = invoice.customerDetails || {};
   const customerName = customer.name || "-";
   const customerAddress =
@@ -182,11 +199,34 @@ export function renderInvoiceHTML({ order, invoice, company, qrDataUrl }: Invoic
     }
     .text-right { text-align: right; }
     .text-center { text-align: center; }
+    .totals-signature-block {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      margin-top: 8px;
+      gap: 10px;
+    }
     .totals {
       width: 320px;
-      margin-left: auto;
-      margin-top: 8px;
       font-size: 10px;
+    }
+    .issuer-signature {
+      width: 320px;
+      text-align: center;
+      padding-top: 4px;
+    }
+    .issuer-signature-caption {
+      font-size: 9px;
+      color: #333;
+      margin-bottom: 4px;
+      letter-spacing: 0.02em;
+    }
+    .issuer-signature img {
+      display: inline-block;
+      max-width: 200px;
+      max-height: 72px;
+      object-fit: contain;
+      vertical-align: bottom;
     }
     .totals-row {
       display: grid;
@@ -266,10 +306,20 @@ export function renderInvoiceHTML({ order, invoice, company, qrDataUrl }: Invoic
       </tbody>
     </table>
 
-    <div class="totals">
-      <div class="totals-row"><div>Ara Toplam</div><div>${formatMoney(invoice.subtotal)} TL</div></div>
-      <div class="totals-row"><div>Hesaplanan KDV</div><div>${formatMoney(invoice.taxAmount)} TL</div></div>
-      <div class="totals-row grand"><div>Odenecek Tutar</div><div>${formatMoney(invoice.totalAmount)} TL</div></div>
+    <div class="totals-signature-block">
+      <div class="totals">
+        <div class="totals-row"><div>Ara Toplam</div><div>${formatMoney(invoice.subtotal)} TL</div></div>
+        <div class="totals-row"><div>Hesaplanan KDV</div><div>${formatMoney(invoice.taxAmount)} TL</div></div>
+        <div class="totals-row grand"><div>Odenecek Tutar</div><div>${formatMoney(invoice.totalAmount)} TL</div></div>
+      </div>
+      ${
+        signatureSrc
+          ? `<div class="issuer-signature">
+        <div class="issuer-signature-caption">Kaşe ve İmza</div>
+        <img src="${escapeHtml(signatureSrc)}" alt="" loading="eager" decoding="async" />
+      </div>`
+          : ""
+      }
     </div>
 
     <div class="footer">

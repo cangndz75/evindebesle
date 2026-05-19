@@ -1,6 +1,10 @@
 /**
- * Shipink order/shipment adres alanları: street, district (ilçe), city (il), zip, country_code.
- * @see https://shipink.dev — state kullanılmıyor; ilçe `district` alanına gider.
+ * Shipink order/shipment adres alanları.
+ *
+ * Shipink TR paneli:
+ * - "İl" → `state` (il / province)
+ * - "İlçe" → `city` ve `district` (ilçe)
+ * - `street` → açık adres satırı
  */
 
 export type ShipinkAddressSource = {
@@ -10,14 +14,32 @@ export type ShipinkAddressSource = {
   district?: { name?: string | null; city?: string | null } | null;
 } | null;
 
-export function buildShipinkCustomerAddress(addr: ShipinkAddressSource) {
-  const city = addr?.district?.city?.trim() || "";
-  const district = addr?.district?.name?.trim() || "";
+export type ResolvedShipinkAddress = {
+  street: string;
+  /** İlçe */
+  city: string;
+  /** İlçe (API dokümantasyonu) */
+  district: string;
+  /** İl / province */
+  state: string;
+  zip: string;
+  country_code: string;
+};
+
+function resolveProvinceAndDistrict(addr: ShipinkAddressSource): { province: string; county: string } {
+  const province = addr?.district?.city?.trim() || "";
+  const county = addr?.district?.name?.trim() || "";
+  return { province, county };
+}
+
+export function buildShipinkCustomerAddress(addr: ShipinkAddressSource): ResolvedShipinkAddress {
+  const { province, county } = resolveProvinceAndDistrict(addr);
 
   return {
     street: addr?.fullAddress?.trim() || "",
-    district,
-    city,
+    state: province,
+    city: county,
+    district: county,
     zip: "",
     country_code: "TR",
   };
@@ -26,8 +48,9 @@ export function buildShipinkCustomerAddress(addr: ShipinkAddressSource) {
 export function buildShipinkCustomerBlock(order: {
   user?: { name?: string | null; email?: string | null; phone?: string | null } | null;
   shippingAddress?: ShipinkAddressSource;
+  billingAddress?: ShipinkAddressSource;
 }) {
-  const addr = order.shippingAddress ?? null;
+  const addr = order.shippingAddress ?? order.billingAddress ?? null;
   const name = order.user?.name || addr?.fullName || "Müşteri";
   const phone = order.user?.phone || addr?.phone || "";
   const email = order.user?.email || "";

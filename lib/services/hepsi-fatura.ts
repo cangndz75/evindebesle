@@ -5,12 +5,15 @@ import { randomUUID } from "crypto";
 const HEPSI_API_USER = (process.env.HEPSIBURADA_API_USER || "").trim();
 const HEPSI_API_PASSWORD = (process.env.HEPSIBURADA_API_PASSWORD || "").trim();
 
-const HEPSI_API_BASE =
-  process.env.NODE_ENV === "production"
-    ? "https://api.hepsiburadaefaturam.com"
-    : "https://testapi.hepsiburadaefaturam.com";
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
 
-const HEPSI_PORTAL_BASE = "https://www.hepsiburadaefaturam.com";
+const HEPSI_API_BASE = IS_PRODUCTION
+  ? "https://api.hepsiburadaefaturam.com"
+  : "https://testapi.hepsiburadaefaturam.com";
+
+const HEPSI_PORTAL_BASE = IS_PRODUCTION
+  ? "https://www.hepsiburadaefaturam.com"
+  : "https://test.hepsiburadaefaturam.com";
 const VAT_RATE = 20;
 const VAT_TAX_TYPE_CODE = "0015";
 
@@ -324,7 +327,7 @@ export async function sendEArchiveInvoice(orderId: string): Promise<HepsiFaturaR
     return {
       ettn: existingEttn,
       invoiceNumber: "",
-      pdfUrl: `${HEPSI_PORTAL_BASE}/Genel/Fatura/${existingEttn}`,
+      pdfUrl: `${HEPSI_PORTAL_BASE}/Genel/Fatura/Goruntule/${existingEttn}/False`,
       scenario: "earchive",
     };
   }
@@ -364,21 +367,33 @@ export async function sendEArchiveInvoice(orderId: string): Promise<HepsiFaturaR
     );
   }
 
-  if (responseBody?.IsSucceded === false) {
+  if (responseBody?.IsSucceded === false || responseBody?.IsSuccessful === false) {
     throw new HepsiFaturaError(
       "HEPSI_BUSINESS_ERROR",
-      responseBody.Message || "HepsiFatura iş hatası",
+      responseBody.Message || responseBody.Errors?.[0] || "HepsiFatura iş hatası",
       responseBody,
     );
   }
 
-  const invoiceNumbers = responseBody?.Value || [];
-  const first = invoiceNumbers[0];
-  const ettn = first?.Id || uuid;
-  const invoiceNumber = first?.Number || "";
+  console.log(
+    `[HepsiFatura] API yanıtı (orderId: ${orderId}):`,
+    JSON.stringify(responseBody).slice(0, 500),
+  );
+
+  const invoiceValues = responseBody?.Value || responseBody?.Data?.Value || [];
+  const valueList = Array.isArray(invoiceValues) ? invoiceValues : [invoiceValues];
+  const first = valueList[0];
+
+  const ettn =
+    first?.UUID || first?.Id || first?.uuid || first?.id ||
+    responseBody?.UUID || responseBody?.uuid ||
+    uuid;
+  const invoiceNumber =
+    first?.Number || first?.InvoiceNumber || first?.DocumentNumber ||
+    responseBody?.Number || "";
   const scenario = first?.InvoiceScenario || "earchive";
 
-  const pdfUrl = `${HEPSI_PORTAL_BASE}/Genel/Fatura/${ettn}`;
+  const pdfUrl = `${HEPSI_PORTAL_BASE}/Genel/Fatura/Goruntule/${ettn}/False`;
 
   await prisma.$transaction([
     prisma.order.update({

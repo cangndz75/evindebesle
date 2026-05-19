@@ -3,6 +3,7 @@ import {
   getShipinkToken,
   createShipinkOrder,
   createOutgoingShipment,
+  updateShipinkOrderCustomer,
 } from "@/lib/shipinkService";
 import { formatShipinkFetchError, getShipinkApiBaseUrl } from "@/lib/shipinkApiBase";
 import { buildShipinkCustomerBlock } from "@/lib/shipink-customer-address";
@@ -30,11 +31,13 @@ async function fetchPendingOrders() {
 }
 
 function buildShipinkOrderPayload(order: SyncableOrder) {
+  const customer = buildShipinkCustomerBlock({
+    user: order.user,
+    shippingAddress: order.shippingAddress,
+  });
+
   return {
-    customer: buildShipinkCustomerBlock({
-      user: order.user,
-      shippingAddress: order.shippingAddress,
-    }),
+    customer,
     items: order.items.map((item: { productName?: string | null; quantity: number; unitPrice?: number | null }) => ({
       name: item.productName || "Ürün",
       quantity: item.quantity,
@@ -74,7 +77,9 @@ async function syncSingleOrder(
     return { success: true };
   }
 
-  const shipinkOrderId = await createShipinkOrder(token, buildShipinkOrderPayload(order));
+  const payload = buildShipinkOrderPayload(order);
+  const shipinkOrderId = await createShipinkOrder(token, payload);
+  await updateShipinkOrderCustomer(token, shipinkOrderId, payload.customer).catch(() => false);
   const shipmentResult = await createOutgoingShipment(token, shipinkOrderId, DEFAULT_PACKAGE);
 
   const trackingNumber =
@@ -125,6 +130,31 @@ function isShipinkCredentialsConfigured(): boolean {
  * Cron ile çakışmaz: shipinkOrderId doluysa veya PAID değilse no-op.
  * Hata durumunda sadece log; ödeme akışı etkilenmez. Cron sonradan tekrar dener.
  */
+/** Shipink panelindeki alıcı il/ilçe alanlarını veritabanından yeniden yazar. */
+export async function refreshShipinkOrderAddress(orderId: string): Promise<boolean> {
+  if (!isShipinkCredentialsConfigured()) return false;
+
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: {
+      user: { select: { name: true, email: true, phone: true } },
+      shippingAddress: { include: { district: true } },
+      billingAddress: { include: { district: true } },
+    },
+  });
+
+  if (!order?.shipinkOrderId) return false;
+
+  const customer = buildShipinkCustomerBlock({
+    user: order.user,
+    shippingAddress: order.shippingAddress,
+    billingAddress: order.billingAddress,
+  });
+
+  const token = await getShipinkToken();
+  return updateShipinkOrderCustomer(token, order.shipinkOrderId, customer);
+}
+
 export async function tryPushPaidOrderToShipink(orderId: string): Promise<void> {
   if (!isShipinkCredentialsConfigured()) return;
 
@@ -134,6 +164,7 @@ export async function tryPushPaidOrderToShipink(orderId: string): Promise<void> 
       user: { select: { name: true, email: true, phone: true } },
       items: true,
       shippingAddress: { include: { district: true } },
+      billingAddress: { include: { district: true } },
     },
   });
 

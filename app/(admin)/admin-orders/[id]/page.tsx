@@ -147,6 +147,7 @@ export default function OrderDetailPage() {
   const [invoice, setInvoice] = useState<{ id: string; invoiceNumber: string; status: string; totalAmount: number; createdAt: string } | null>(null);
   const [creatingInvoice, setCreatingInvoice] = useState(false);
   const [creatingEArchive, setCreatingEArchive] = useState(false);
+  const [syncingShipinkAddress, setSyncingShipinkAddress] = useState(false);
 
   useEffect(() => {
     if (params.id) {
@@ -259,17 +260,46 @@ export default function OrderDetailPage() {
     }
   };
 
+  const handleSyncShipinkAddress = async () => {
+    if (!order?.shipinkOrderId) return;
+    setSyncingShipinkAddress(true);
+    try {
+      const res = await fetch(`/api/admin/orders/${order.id}/shipink-address`, { method: "POST" });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        toast.success("Shipink adresi güncellendi (il / ilçe)");
+      } else {
+        toast.error(data.error || "Shipink adresi güncellenemedi");
+      }
+    } catch {
+      toast.error("Shipink adresi güncellenirken hata oluştu");
+    } finally {
+      setSyncingShipinkAddress(false);
+    }
+  };
+
   const handleCreateCargoLabel = async (handlerCode?: string) => {
     if (!order) return;
 
     setCreatingLabel(true);
     setCargoModalOpen(false);
+
+    const code = (handlerCode || selectedHandler || "ECONOMIC").toUpperCase();
+    const cargoCodeMap: Record<string, string> = {
+      ARAS: "aras",
+      MNG: "mng",
+      YURTICI: "yurtici",
+      SURAT: "surat",
+      PTT: "ptt",
+    };
+    const cargoCompanyCode = cargoCodeMap[code] || "aras";
+
     try {
       const res = await fetch(`/api/admin/orders/${order.id}/ship-label`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          cargoCompanyCode: "aras",
+          cargoCompanyCode,
           handlerCode: handlerCode || selectedHandler,
         }),
       });
@@ -531,6 +561,16 @@ export default function OrderDetailPage() {
             >
               <FileText className="mr-2 h-4 w-4" />
               e-Arşiv Faturayı Görüntüle
+            </Button>
+          )}
+          {order.shipinkOrderId && (
+            <Button
+              variant="outline"
+              onClick={handleSyncShipinkAddress}
+              disabled={syncingShipinkAddress}
+            >
+              <Truck className="mr-2 h-4 w-4" />
+              {syncingShipinkAddress ? "Güncelleniyor..." : "Shipink İl/İlçe Güncelle"}
             </Button>
           )}
           <Button

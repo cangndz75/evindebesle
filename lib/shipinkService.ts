@@ -1,5 +1,6 @@
 import { getShipinkAccessToken } from "@/lib/shipinkAuthService";
 import { getShipinkApiBaseUrl } from "@/lib/shipinkApiBase";
+import type { buildShipinkCustomerBlock } from "@/lib/shipink-customer-address";
 
 /**
  * DB-backed OAuth2 token.
@@ -26,6 +27,32 @@ export async function createShipinkOrder(token: string, orderData: any): Promise
   }
 
   return result.data.id;
+}
+
+/** Mevcut Shipink siparişinde alıcı adresini günceller (il/ilçe düzeltmesi vb.). */
+export async function updateShipinkOrderCustomer(
+  token: string,
+  shipinkOrderId: string,
+  customer: ReturnType<typeof buildShipinkCustomerBlock>,
+): Promise<boolean> {
+  const response = await fetch(`${getShipinkApiBaseUrl()}/orders/${shipinkOrderId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ customer }),
+  });
+
+  if (!response.ok) {
+    const body = await response.text().catch(() => "");
+    console.warn(
+      `[Shipink] PUT /orders/${shipinkOrderId} adres güncelleme ${response.status}: ${body.slice(0, 200)}`,
+    );
+    return false;
+  }
+
+  return true;
 }
 
 export async function createOutgoingShipment(

@@ -1,7 +1,12 @@
 import { prisma } from "@/lib/db";
 import { resend } from "@/lib/resend";
 import { canTransitionToCompletedFrom } from "@/lib/services/cargo-state";
-import { getShipinkToken, createShipinkOrder, createOutgoingShipment } from "@/lib/shipinkService";
+import {
+  getShipinkToken,
+  createShipinkOrder,
+  createOutgoingShipment,
+  updateShipinkOrderCustomer,
+} from "@/lib/shipinkService";
 import { buildShipinkCustomerBlock } from "@/lib/shipink-customer-address";
 import {
   isBasitKargoConfigured,
@@ -9,6 +14,32 @@ import {
   getLabelSvg,
   type BasitKargoOrderPayload,
 } from "@/lib/basitkargoService";
+
+const DEFAULT_CARGO_COMPANIES: Record<string, { name: string; trackingUrl: string }> = {
+  aras: { name: "Aras Kargo", trackingUrl: "https://kargotakip.araskargo.com.tr/mainpage.aspx?code={TRACKING}" },
+  mng: { name: "MNG Kargo", trackingUrl: "https://www.mngkargo.com.tr/wps/portal/gonderiSorgula?barcode={TRACKING}" },
+  yurtici: { name: "Yurtiçi Kargo", trackingUrl: "https://www.yurticikargo.com/tr/online-servisler/gonderi-sorgula?code={TRACKING}" },
+  surat: { name: "Sürat Kargo", trackingUrl: "https://www.suratkargo.com.tr/KargoTakip?kargotakipno={TRACKING}" },
+  ptt: { name: "PTT Kargo", trackingUrl: "https://gonderitakip.ptt.gov.tr/Track/Verify?q={TRACKING}" },
+  trendyolexpress: { name: "Trendyol Express", trackingUrl: "" },
+};
+
+async function ensureCargoCompany(code: string) {
+  const defaults = DEFAULT_CARGO_COMPANIES[code.toLowerCase()];
+  if (!defaults) return null;
+
+  const existing = await prisma.cargoCompany.findFirst({ where: { code } });
+  if (existing) return existing;
+
+  return prisma.cargoCompany.create({
+    data: {
+      code,
+      name: defaults.name,
+      trackingUrl: defaults.trackingUrl,
+      isActive: true,
+    },
+  });
+}
 
 type CreateShipmentResult = {
   trackingNumber: string;
@@ -157,6 +188,11 @@ export async function createShipmentLabelForOrder(params: {
           district: true,
         },
       },
+      billingAddress: {
+        include: {
+          district: true,
+        },
+      },
       cargoCompany: true,
     },
   });
@@ -165,12 +201,17 @@ export async function createShipmentLabelForOrder(params: {
     throw new Error("ORDER_NOT_FOUND");
   }
 
-  const cargoCompany = await prisma.cargoCompany.findFirst({
+  const requestedCode = params.cargoCompanyCode || "aras";
+  let cargoCompany = await prisma.cargoCompany.findFirst({
     where: {
       isActive: true,
-      ...(params.cargoCompanyCode ? { code: params.cargoCompanyCode } : { code: "aras" }),
+      code: requestedCode,
     },
   });
+
+  if (!cargoCompany) {
+    cargoCompany = await ensureCargoCompany(requestedCode);
+  }
 
   if (!cargoCompany) {
     throw new Error("CARGO_COMPANY_NOT_FOUND");
@@ -335,11 +376,14 @@ async function createShipmentViaShipink(
 ): Promise<ShipmentCreateResult> {
   const token = await getShipinkToken();
 
+  const customer = buildShipinkCustomerBlock({
+    user: order.user,
+    shippingAddress: order.shippingAddress,
+    billingAddress: order.billingAddress,
+  });
+
   const orderPayload = {
-    customer: buildShipinkCustomerBlock({
-      user: order.user,
-      shippingAddress: order.shippingAddress,
-    }),
+    customer,
     items: (order.items || []).map((item: any) => ({
       name: item.productName || "Ürün",
       quantity: item.quantity,
@@ -352,6 +396,7 @@ async function createShipmentViaShipink(
   };
 
   const shipinkOrderId = await createShipinkOrder(token, orderPayload);
+  await updateShipinkOrderCustomer(token, shipinkOrderId, customer).catch(() => false);
 
   const packagePayload = [
     { dimension_unit: "cm", height: 10, length: 30, width: 25, weight: 1, weight_unit: "kg" },

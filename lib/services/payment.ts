@@ -130,41 +130,45 @@ export async function finalizePayment({
                 orderId: result.order.id,
             });
 
-            if (!queued.queued) {
-                const orderWithDetails = await prisma.order.findUnique({
-                    where: { id: result.order.id },
-                    include: {
-                        user: { select: { name: true } },
-                        items: { select: { id: true } },
-                    },
-                });
+            const orderWithDetails = await prisma.order.findUnique({
+                where: { id: result.order.id },
+                include: {
+                    user: { select: { name: true } },
+                    items: { select: { id: true } },
+                },
+            });
 
-                await Promise.allSettled([
-                    createAdminNotification({
-                        type: "ORDER",
-                        title: "Yeni Sipariş Alındı",
-                        message: `#${result.order.orderNumber} numaralı sipariş başarıyla oluşturuldu.`,
-                        link: `/admin-orders/${result.order.id}`
-                    }),
-                    sendAdminOrderPaidSms({
-                        orderNumber: result.order.orderNumber,
-                        total: result.order.total,
-                        orderId: result.order.id,
-                    }),
-                    sendAdminOrderWhatsApp({
-                        orderNumber: result.order.orderNumber,
-                        total: result.order.total,
-                        orderId: result.order.id,
-                    }),
-                    sendTelegramMessage(TelegramTemplates.newOrder({
+            /**
+             * Telegram / admin bildirimleri her zaman burada (BullMQ kuyruğu açık olsa bile).
+             * Kuyruk sadece `runOrderPostPaymentTasks` (e-posta vb.) için; worker çalışmasa bile anlık bildirim gider.
+             */
+            await Promise.allSettled([
+                createAdminNotification({
+                    type: "ORDER",
+                    title: "Yeni Sipariş Alındı",
+                    message: `#${result.order.orderNumber} numaralı sipariş başarıyla oluşturuldu.`,
+                    link: `/admin-orders/${result.order.id}`,
+                }),
+                sendAdminOrderPaidSms({
+                    orderNumber: result.order.orderNumber,
+                    total: result.order.total,
+                    orderId: result.order.id,
+                }),
+                sendAdminOrderWhatsApp({
+                    orderNumber: result.order.orderNumber,
+                    total: result.order.total,
+                    orderId: result.order.id,
+                }),
+                sendTelegramMessage(
+                    TelegramTemplates.newOrder({
                         orderNumber: result.order.orderNumber,
                         customerName: orderWithDetails?.user?.name || "Misafir",
                         totalAmount: result.order.total,
                         itemsCount: orderWithDetails?.items?.length || 0,
-                    })),
-                    runOrderPostPaymentTasks(result.order.id),
-                ]);
-            }
+                    })
+                ),
+                queued.queued ? Promise.resolve() : runOrderPostPaymentTasks(result.order.id),
+            ]);
         } catch (queueError) {
             console.error("Post-payment queue error:", queueError);
         }

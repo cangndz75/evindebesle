@@ -98,7 +98,7 @@ const faqData = [
         answer: "Kargo teslimatında sorun yaşıyorsanız öncelikle kargo takip numaranız ile kargo firmasının müşteri hizmetlerinden durumu sorgulayabilirsiniz. Kargo şubesinden teslim almak isterseniz ilgili şubeye kimliğinizle başvurabilirsiniz. Sorununuz çözülmezse <strong>Bize Ulaşın</strong> sayfamız üzerinden destek talebinde bulunabilirsiniz.",
         category: "shipping",
         order: 4,
-    },
+    }, 
     {
         question: "Yurt dışına gönderim yapıyor musunuz?",
         answer: "Şu an için yalnızca <strong>Türkiye genelinde</strong> kargo gönderimi yapmaktayız. Yurt dışı gönderim seçenekleri yakında hizmete sunulacaktır.",

@@ -64,6 +64,8 @@ type Order = {
   shipinkOrderId: string | null;
   cargoPdfUrl: string | null;
   cargoTrackingUrl: string | null;
+  invoiceUrl: string | null;
+  invoiceEttn: string | null;
   customerNote: string | null;
   adminNote: string | null;
   createdAt: string;
@@ -144,6 +146,7 @@ export default function OrderDetailPage() {
   const [selectedHandler, setSelectedHandler] = useState("ECONOMIC");
   const [invoice, setInvoice] = useState<{ id: string; invoiceNumber: string; status: string; totalAmount: number; createdAt: string } | null>(null);
   const [creatingInvoice, setCreatingInvoice] = useState(false);
+  const [creatingEArchive, setCreatingEArchive] = useState(false);
 
   useEffect(() => {
     if (params.id) {
@@ -229,6 +232,30 @@ export default function OrderDetailPage() {
       toast.error("Fatura oluşturulurken bir hata oluştu");
     } finally {
       setCreatingInvoice(false);
+    }
+  };
+
+  const handleCreateEArchiveInvoice = async () => {
+    if (!order) return;
+    setCreatingEArchive(true);
+    try {
+      const res = await fetch(`/api/admin/orders/${order.id}/shipink-invoice`, {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        toast.success(`e-Arşiv fatura kesildi! ETTN: ${data.ettn?.slice(0, 8)}...`);
+        if (data.emailSent) toast.success("Müşteriye fatura e-postası gönderildi.");
+        if (data.shipinkUpdated) toast.success("Shipink paneline fatura bilgisi iletildi.");
+        if (data.warning) toast(data.warning, { icon: "⚠️" });
+        router.refresh();
+      } else {
+        toast.error(data.error || "e-Arşiv fatura oluşturulamadı");
+      }
+    } catch {
+      toast.error("e-Arşiv fatura oluşturulurken bir hata oluştu");
+    } finally {
+      setCreatingEArchive(false);
     }
   };
 
@@ -483,6 +510,27 @@ export default function OrderDetailPage() {
             >
               <FileText className="mr-2 h-4 w-4" />
               {creatingInvoice ? "Oluşturuluyor..." : "Fatura Oluştur"}
+            </Button>
+          )}
+          {!order.invoiceEttn && (
+            <Button
+              variant="default"
+              onClick={handleCreateEArchiveInvoice}
+              disabled={creatingEArchive}
+              className="bg-emerald-600 text-white hover:bg-emerald-700"
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              {creatingEArchive ? "Kesiliyor..." : "e-Arşiv Fatura Kes"}
+            </Button>
+          )}
+          {order.invoiceEttn && (
+            <Button
+              variant="outline"
+              onClick={() => window.open(`https://www.hepsiburadaefaturam.com/Genel/Fatura/${order.invoiceEttn}`, "_blank")}
+              className="border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              e-Arşiv Faturayı Görüntüle
             </Button>
           )}
           <Button

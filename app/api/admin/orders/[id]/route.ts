@@ -5,7 +5,7 @@ import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { notifyOrderShippedEmail } from "@/lib/services/cargo";
 import { ensureInvoiceForOrder, sendInvoiceCreatedEmail } from "@/lib/services/order-post-payment";
-import { orchestrateInvoiceCreation } from "@/lib/services/invoice-orchestrator";
+
 import { iyzico, iyzicoCall, extractIyzicoItemTransactions } from "@/lib/iyzico";
 
 type AdminOrderDetailItem = Prisma.OrderItemGetPayload<{
@@ -408,10 +408,6 @@ export async function PATCH(
           console.error("Order shipped invoice email error:", err);
         });
       }
-
-      orchestrateInvoiceCreation(updatedOrder.id).catch((err) => {
-        console.error("Shipink invoice orchestration error:", err);
-      });
 
       await notifyOrderShippedEmail(updatedOrder.id).catch((err) => {
         console.error("Order shipped email error:", err);

@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 /**
  * POST /api/admin/orders/[id]/shipink-invoice
- * Admin panelinden manuel olarak Shipink e-Arşiv fatura oluşturma ve müşteriye mail gönderme.
+ * Admin panelinden manuel olarak e-Arşiv fatura oluşturma (HepsiFatura) ve müşteriye mail gönderme.
  */
 export async function POST(
   request: NextRequest,
@@ -41,6 +41,7 @@ export async function POST(
       pdfUrl: result.pdfUrl,
       invoiceNumber: result.invoiceNumber,
       emailSent: result.emailSent,
+      shipinkUpdated: result.shipinkUpdated,
       ...(result.error ? { warning: result.error } : {}),
     });
   } catch (error: unknown) {

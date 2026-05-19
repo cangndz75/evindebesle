@@ -1,8 +1,9 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { iyzico, iyzicoCall } from "@/lib/iyzico";
 import { releaseReservationTx } from "@/lib/stock";
 import { finalizePayment } from "@/lib/services/payment";
+import { tryPushPaidOrderToShipink } from "@/lib/jobs/syncOrdersToShipink";
 import { redactForLog } from "@/lib/security/log";
 import { verifyIyzicoWebhookSignature } from "@/lib/security/webhook-signature";
 
@@ -39,6 +40,9 @@ export async function POST(req: NextRequest) {
         }
 
         if (payment.status === "SUCCEEDED") {
+            void tryPushPaidOrderToShipink(payment.orderId).catch((err) => {
+                console.error(`[IYZICO_WEBHOOK] Shipink anlık senkronizasyon (${payment.orderId}):`, err);
+            });
             return NextResponse.json({ status: "already_processed" });
         }
 
@@ -60,8 +64,11 @@ export async function POST(req: NextRequest) {
                 rawResult: retrieveRes
             });
 
-            console.log(`Webhook: Order ${payment.orderId} successfully updated via webhook.`);
+            void tryPushPaidOrderToShipink(payment.orderId).catch((err) => {
+                console.error(`[IYZICO_WEBHOOK] Shipink anlık senkronizasyon (${payment.orderId}):`, err);
+            });
 
+            console.log(`Webhook: Order ${payment.orderId} successfully updated via webhook.`);
 
             return NextResponse.json({ status: "success" });
         } else {

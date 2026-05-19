@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { iyzico, iyzicoCall } from "@/lib/iyzico";
 import { commitReservationToSaleTx, releaseReservationTx } from "@/lib/stock";
 import { finalizePayment } from "@/lib/services/payment";
+import { tryPushPaidOrderToShipink } from "@/lib/jobs/syncOrdersToShipink";
 
 const isDebugEnabled = process.env.IYZICO_DEBUG === "1" || process.env.IYZICO_DEBUG === "true";
 
@@ -86,6 +87,9 @@ async function handleCallback(req: NextRequest) {
         }
 
         if (payment.status === "SUCCEEDED") {
+            void tryPushPaidOrderToShipink(orderId).catch((err) => {
+                console.error(`[IYZICO_CALLBACK] Shipink anlık senkronizasyon (${orderId}):`, err);
+            });
             return NextResponse.redirect(`${baseUrl}/checkout/success?orderId=${orderId}`, 303);
         }
 
@@ -131,6 +135,10 @@ async function handleCallback(req: NextRequest) {
                 paymentId: retrieveRes.paymentId,
                 conversationId: retrieveRes.conversationId,
                 rawResult: retrieveRes
+            });
+
+            void tryPushPaidOrderToShipink(orderId).catch((err) => {
+                console.error(`[IYZICO_CALLBACK] Shipink anlık senkronizasyon (${orderId}):`, err);
             });
 
             callbackDebug("finalize_success", {

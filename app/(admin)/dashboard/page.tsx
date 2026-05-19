@@ -158,7 +158,7 @@ export default function AdminDashboard() {
         orderNumber: order.orderNumber || `#${order.id.slice(0, 8)}`,
         customerName: order.user?.name || "Bilinmeyen Müşteri",
         total: order.total || 0,
-        status: order.status as "PENDING" | "PREPARING" | "SHIPPED" | "DELIVERED" | "CANCELLED" | "REFUNDED",
+        status: order.status,
         createdAt: order.createdAt?.toString() || new Date().toISOString(),
         itemCount: order.items?.length || 0,
       })),

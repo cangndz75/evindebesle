@@ -70,9 +70,12 @@ const DEFAULT_PACKAGE = [
   },
 ];
 
+type ShipinkPushSource = "cron" | "post_payment";
+
 async function syncSingleOrder(
   order: SyncableOrder,
   token: string,
+  source: ShipinkPushSource = "cron",
 ): Promise<{ success: boolean; error?: string }> {
   const fresh = await prisma.order.findUnique({
     where: { id: order.id },
@@ -94,6 +97,8 @@ async function syncSingleOrder(
   const cargoPdfUrl = shipmentResult?.document?.labels?.[0]?.pdf || null;
   const cargoTrackingUrl = shipmentResult?.tracking?.url || null;
 
+  const providerLabel = source === "post_payment" ? "shipink_post_payment" : "shipink_cron";
+
   await prisma.$transaction([
     prisma.order.update({
       where: { id: order.id },
@@ -113,13 +118,47 @@ async function syncSingleOrder(
         newValue: {
           shipinkOrderId,
           trackingNumber,
-          provider: "shipink_cron",
+          provider: providerLabel,
+          source,
         },
       },
     }),
   ]);
 
   return { success: true };
+}
+
+function isShipinkCredentialsConfigured(): boolean {
+  return !!(process.env.SHIPINK_EMAIL?.trim() && process.env.SHIPINK_PASSWORD?.trim());
+}
+
+/**
+ * Ödeme sonrası (veya tekrar gelen callback) tek siparişi Shipink'e iter.
+ * Cron ile çakışmaz: shipinkOrderId doluysa veya PAID değilse no-op.
+ * Hata durumunda sadece log; ödeme akışı etkilenmez. Cron sonradan tekrar dener.
+ */
+export async function tryPushPaidOrderToShipink(orderId: string): Promise<void> {
+  if (!isShipinkCredentialsConfigured()) return;
+
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: {
+      user: { select: { name: true, email: true, phone: true } },
+      items: true,
+      shippingAddress: { include: { district: true } },
+    },
+  });
+
+  if (!order || order.deletedAt) return;
+  if (order.status !== "PAID" || order.shipinkOrderId) return;
+
+  try {
+    const token = await getShipinkToken();
+    await syncSingleOrder(order as SyncableOrder, token, "post_payment");
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(`[SHIPINK_PUSH_PAID] ${order.orderNumber} (${orderId}):`, message);
+  }
 }
 
 export type ShipinkSyncResult = {
@@ -144,7 +183,7 @@ export async function runShipinkOrderSync(): Promise<ShipinkSyncResult> {
 
   for (const order of orders) {
     try {
-      const result = await syncSingleOrder(order, token);
+      const result = await syncSingleOrder(order, token, "cron");
       results.push({ orderId: order.id, orderNumber: order.orderNumber, ...result });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);

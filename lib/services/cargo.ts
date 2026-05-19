@@ -382,25 +382,41 @@ async function createShipmentViaShipink(
     billingAddress: order.billingAddress,
   });
 
-  const orderPayload = {
-    customer,
-    items: (order.items || []).map((item: any) => ({
-      name: item.productName || "Ürün",
-      quantity: item.quantity,
-      price: Number(item.unitPrice ?? 0),
-      category: "clothing",
-    })),
-    currency: "TRY",
-    price: Number(order.total),
-    payment: { method: "credit-card", status: "completed" },
-  };
-
-  const shipinkOrderId = await createShipinkOrder(token, orderPayload);
-  await updateShipinkOrderCustomer(token, shipinkOrderId, customer).catch(() => false);
-
   const packagePayload = [
     { dimension_unit: "cm", height: 10, length: 30, width: 25, weight: 1, weight_unit: "kg" },
   ];
+
+  let shipinkOrderId: string | null = order.shipinkOrderId || null;
+
+  if (!shipinkOrderId) {
+    const orderPayload = {
+      customer,
+      items: (order.items || []).map((item: any) => ({
+        name: item.productName || "Ürün",
+        quantity: item.quantity,
+        price: Number(item.unitPrice ?? 0),
+        category: "clothing",
+      })),
+      currency: "TRY",
+      price: Number(order.total),
+      payment: { method: "credit-card", status: "completed" },
+    };
+    shipinkOrderId = await createShipinkOrder(token, orderPayload);
+  }
+
+  await updateShipinkOrderCustomer(token, shipinkOrderId, customer).catch(() => false);
+
+  if (order.trackingNumber && order.cargoPdfUrl) {
+    return {
+      trackingNumber: order.trackingNumber,
+      trackingUrl:
+        order.cargoTrackingUrl ||
+        buildTrackingUrl(cargoCompany.trackingUrl, order.trackingNumber),
+      cargoCompanyId: cargoCompany.id,
+      cargoCompanyName: cargoCompany.name,
+      pdfUrl: order.cargoPdfUrl,
+    };
+  }
 
   const shipmentResult = await createOutgoingShipment(token, shipinkOrderId, packagePayload);
 

@@ -20,13 +20,18 @@ export async function createShipinkOrder(token: string, orderData: any): Promise
     body: JSON.stringify(orderData)
   });
 
-  const result = await response.json();
+  const result = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    throw new Error(result.message || 'Shipink sipariş oluşturulamadı.');
+    const detail =
+      result?.message ||
+      result?.error ||
+      result?.errors?.[0]?.message ||
+      JSON.stringify(result).slice(0, 300);
+    throw new Error(`Shipink sipariş oluşturulamadı (${response.status}): ${detail}`);
   }
 
-  return result.data.id;
+  return result.data?.id || result.data?.order_id || result.id;
 }
 
 /** Mevcut Shipink siparişinde alıcı adresini günceller (il/ilçe düzeltmesi vb.). */
@@ -80,13 +85,22 @@ export async function createOutgoingShipment(
     })
   });
 
-  const result = await response.json();
+  const result = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    throw new Error(result.message || 'Shipink giden gönderi oluşturulamadı.');
+    const detail =
+      result?.message ||
+      result?.error ||
+      result?.errors?.[0]?.message ||
+      JSON.stringify(result).slice(0, 400);
+    console.error(
+      `[Shipink] POST /shipments ${response.status} order_id=${shipinkOrderId}:`,
+      detail,
+    );
+    throw new Error(`Shipink giden gönderi oluşturulamadı (${response.status}): ${detail}`);
   }
 
-  return result.data;
+  return result.data || result;
 }
 
 export async function createReturnShipment(token: string, shipinkOrderId: string, packagesData: any[]) {

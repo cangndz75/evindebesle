@@ -20,6 +20,8 @@ function isInvalidShipinkHost(hostname: string): boolean {
   return INVALID_HOST_PATTERNS.some((re) => re.test(hostname));
 }
 
+let warnedInvalidShipinkUrl = false;
+
 export function getShipinkApiBaseUrl(): string {
   const explicit = (process.env.SHIPINK_API_URL || "").trim().replace(/\/$/, "");
   if (!explicit) {
@@ -29,15 +31,21 @@ export function getShipinkApiBaseUrl(): string {
   try {
     const { hostname } = new URL(explicit);
     if (isInvalidShipinkHost(hostname)) {
-      console.warn(
-        `[Shipink] SHIPINK_API_URL geçersiz host (${hostname}). ` +
-          `Vercel'de kaldırın veya ${DEFAULT_PROD} kullanın. Varsayılan kullanılıyor.`,
-      );
+      if (!warnedInvalidShipinkUrl) {
+        warnedInvalidShipinkUrl = true;
+        console.warn(
+          `[Shipink] SHIPINK_API_URL geçersiz host (${hostname}). ` +
+            `Vercel/.env içinde ${DEFAULT_PROD} yapın veya değişkeni kaldırın.`,
+        );
+      }
       return defaultBaseUrl();
     }
     return explicit;
   } catch {
-    console.warn(`[Shipink] SHIPINK_API_URL geçersiz URL: ${explicit}. Varsayılan kullanılıyor.`);
+    if (!warnedInvalidShipinkUrl) {
+      warnedInvalidShipinkUrl = true;
+      console.warn(`[Shipink] SHIPINK_API_URL geçersiz URL: ${explicit}. Varsayılan kullanılıyor.`);
+    }
     return defaultBaseUrl();
   }
 }

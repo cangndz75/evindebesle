@@ -126,6 +126,14 @@ function isShipinkConfigured(): boolean {
   return !!(process.env.SHIPINK_EMAIL && process.env.SHIPINK_PASSWORD);
 }
 
+/** shipink | basitkargo | boş (varsayılan: önce BasitKargo) */
+function activeCargoProviderPreference(): "shipink" | "basitkargo" | "auto" {
+  const v = (process.env.ACTIVE_CARGO_PROVIDER || "").trim().toLowerCase();
+  if (v === "shipink") return "shipink";
+  if (v === "basitkargo") return "basitkargo";
+  return "auto";
+}
+
 export async function createShipmentLabelForOrder(params: {
   orderId: string;
   cargoCompanyCode?: string;
@@ -178,6 +186,28 @@ export async function createShipmentLabelForOrder(params: {
       cargoCompanyName: order.cargoCompany?.name || cargoCompany.name,
       pdfUrl: (order as any).cargoPdfUrl || null,
     };
+  }
+
+  const cargoPref = activeCargoProviderPreference();
+
+  if (cargoPref === "shipink") {
+    if (isShipinkConfigured()) {
+      return createShipmentViaShipink(order, cargoCompany, params.performedById);
+    }
+    if (isBasitKargoConfigured()) {
+      return createShipmentViaBasitKargo(order, cargoCompany, params.handlerCode, params.performedById);
+    }
+    return createShipmentViaLegacy(order, cargoCompany, params.performedById);
+  }
+
+  if (cargoPref === "basitkargo") {
+    if (isBasitKargoConfigured()) {
+      return createShipmentViaBasitKargo(order, cargoCompany, params.handlerCode, params.performedById);
+    }
+    if (isShipinkConfigured()) {
+      return createShipmentViaShipink(order, cargoCompany, params.performedById);
+    }
+    return createShipmentViaLegacy(order, cargoCompany, params.performedById);
   }
 
   if (isBasitKargoConfigured()) {

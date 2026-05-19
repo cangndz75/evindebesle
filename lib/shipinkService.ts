@@ -1,8 +1,5 @@
 import { getShipinkAccessToken } from "@/lib/shipinkAuthService";
-
-const SHIPINK_API_URL = process.env.NODE_ENV === 'production'
-  ? 'https://api.shipink.io'
-  : 'https://api.dev.shipink.io';
+import { getShipinkApiBaseUrl } from "@/lib/shipinkApiBase";
 
 /**
  * DB-backed OAuth2 token.
@@ -13,7 +10,7 @@ export async function getShipinkToken(): Promise<string> {
 }
 
 export async function createShipinkOrder(token: string, orderData: any): Promise<string> {
-  const response = await fetch(`${SHIPINK_API_URL}/orders`, {
+  const response = await fetch(`${getShipinkApiBaseUrl()}/orders`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -40,7 +37,7 @@ export async function createOutgoingShipment(
   const CARRIER_ACCOUNT_ID = process.env.SHIPINK_CARRIER_ACCOUNT_ID || "";
   const WAREHOUSE_ID = process.env.SHIPINK_WAREHOUSE_ID || "";
 
-  const response = await fetch(`${SHIPINK_API_URL}/shipments`, {
+  const response = await fetch(`${getShipinkApiBaseUrl()}/shipments`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -66,7 +63,7 @@ export async function createOutgoingShipment(
 }
 
 export async function createReturnShipment(token: string, shipinkOrderId: string, packagesData: any[]) {
-  const response = await fetch(`${SHIPINK_API_URL}/shipments`, {
+  const response = await fetch(`${getShipinkApiBaseUrl()}/shipments`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

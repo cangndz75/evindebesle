@@ -1,11 +1,7 @@
 import { prisma } from "@/lib/db";
 import { getShipinkAccessToken } from "@/lib/shipinkAuthService";
 import { withDefaultCompanyProfile } from "@/lib/invoice/company-profile";
-
-const SHIPINK_API_URL =
-  process.env.NODE_ENV === "production"
-    ? "https://api.shipink.io"
-    : "https://api.dev.shipink.io";
+import { getShipinkApiBaseUrl } from "@/lib/shipinkApiBase";
 
 export interface ShipinkInvoiceResult {
   ettn: string;
@@ -154,7 +150,7 @@ function buildShipinkInvoicePayload(order: OrderForInvoice, company: Record<stri
 }
 
 async function callShipinkInvoiceApi(token: string, payload: unknown): Promise<ShipinkInvoiceResult> {
-  const response = await fetch(`${SHIPINK_API_URL}/invoices`, {
+  const response = await fetch(`${getShipinkApiBaseUrl()}/invoices`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -304,7 +300,7 @@ export async function getShipinkInvoicePdfUrl(orderId: string): Promise<string |
 
   try {
     const token = await getShipinkAccessToken();
-    const response = await fetch(`${SHIPINK_API_URL}/invoices/${order.invoiceEttn}/pdf`, {
+    const response = await fetch(`${getShipinkApiBaseUrl()}/invoices/${order.invoiceEttn}/pdf`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 

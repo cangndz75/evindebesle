@@ -5,6 +5,7 @@ import { authConfig } from "@/lib/auth.config";
 import { createAdminNotification } from "@/lib/admin-notification";
 import { sendTransactionalEmail } from "@/lib/email/transactional";
 import { getShipinkToken, createShipinkOrder, createReturnShipment } from "@/lib/shipinkService";
+import { buildShipinkCustomerBlock } from "@/lib/shipink-customer-address";
 import { isBasitKargoConfigured, createOrderWithBarcode, type BasitKargoOrderPayload } from "@/lib/basitkargoService";
 import { getReturnReferenceDate, getReturnWindowDays, isReturnWindowOpen } from "@/lib/returnWindow";
 import { sendTelegramMessage, TelegramTemplates } from "@/lib/telegramService";
@@ -187,18 +188,10 @@ export async function POST(req: Request) {
                 );
 
                 const shipinkPayload = {
-                    customer: {
-                        name: order.user?.name || "",
-                        email: { main: order.user?.email || "", work: "" },
-                        phone: { main: order.user?.phone || "", work: "", cell: "", code: "" },
-                        address: {
-                            street: shippingAddr?.fullAddress || "",
-                            city: shippingAddr?.district?.city || "",
-                            state: shippingAddr?.district?.city || "",
-                            zip: shippingAddr?.postalCode || "",
-                            country_code: "TR",
-                        },
-                    },
+                    customer: buildShipinkCustomerBlock({
+                        user: order.user,
+                        shippingAddress: shippingAddr,
+                    }),
                     items: returnItemsForShipink,
                     currency: "TRY",
                     price: totalRefundAmount,

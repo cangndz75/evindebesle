@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Printer, ArrowLeft } from "lucide-react";
+import { Printer, ArrowLeft, Download } from "lucide-react";
 import { toast } from "sonner";
 import { InvoiceDocument, type InvoiceDocumentData } from "@/components/invoice/InvoiceDocument";
 import { InvoicePrintStyles } from "@/components/invoice/InvoicePrintStyles";
@@ -14,6 +14,7 @@ export default function InvoiceDetailPage() {
     const router = useRouter();
     const [invoice, setInvoice] = useState<InvoiceDocumentData | null>(null);
     const [loading, setLoading] = useState(true);
+    const [downloading, setDownloading] = useState(false);
 
     useEffect(() => {
         const fetchInvoice = async () => {
@@ -43,6 +44,37 @@ export default function InvoiceDetailPage() {
         window.print();
     };
 
+    const handleDownloadPdf = async () => {
+        if (!invoice?.orderId) return;
+        setDownloading(true);
+        try {
+            const res = await fetch(`/api/orders/${invoice.orderId}/invoice`, {
+                credentials: "same-origin",
+            });
+            if (!res.ok) {
+                const body = await res.json().catch(() => ({}));
+                toast.error(typeof body?.error === "string" ? body.error : "Fatura indirilemedi");
+                return;
+            }
+            const contentType = res.headers.get("content-type") || "";
+            const ext = contentType.includes("text/html") ? "html" : "pdf";
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `fatura-${invoice.order?.orderNumber || invoice.invoiceNumber}.${ext}`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            toast.success(ext === "pdf" ? "Fatura PDF indirildi" : "Fatura HTML olarak indirildi");
+        } catch {
+            toast.error("Fatura indirilemedi");
+        } finally {
+            setDownloading(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="p-8 space-y-4">
@@ -64,6 +96,10 @@ export default function InvoiceDetailPage() {
                     <h1 className="text-xl font-bold">Fatura Önizleme</h1>
                 </div>
                 <div className="flex gap-2">
+                    <Button variant="outline" onClick={handleDownloadPdf} disabled={downloading}>
+                        <Download className="w-4 h-4 mr-2" />
+                        {downloading ? "İndiriliyor..." : "PDF İndir"}
+                    </Button>
                     <Button onClick={handlePrint}>
                         <Printer className="w-4 h-4 mr-2" />
                         Yazdır

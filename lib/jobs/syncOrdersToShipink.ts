@@ -5,6 +5,7 @@ import {
   createOutgoingShipment,
 } from "@/lib/shipinkService";
 import { formatShipinkFetchError, getShipinkApiBaseUrl } from "@/lib/shipinkApiBase";
+import { buildShipinkCustomerBlock } from "@/lib/shipink-customer-address";
 import { sendTelegramMessage } from "@/lib/telegramService";
 
 const BATCH_SIZE = 20;
@@ -29,25 +30,11 @@ async function fetchPendingOrders() {
 }
 
 function buildShipinkOrderPayload(order: SyncableOrder) {
-  const addr = order.shippingAddress as {
-    fullAddress?: string;
-    postalCode?: string;
-    district?: { city?: string };
-  } | null;
-
   return {
-    customer: {
-      name: order.user?.name || "Müşteri",
-      email: { main: order.user?.email || "", work: "" },
-      phone: { main: order.user?.phone || "", work: "", cell: "", code: "" },
-      address: {
-        street: addr?.fullAddress || "",
-        city: addr?.district?.city || "",
-        state: addr?.district?.city || "",
-        zip: addr?.postalCode || "",
-        country_code: "TR",
-      },
-    },
+    customer: buildShipinkCustomerBlock({
+      user: order.user,
+      shippingAddress: order.shippingAddress,
+    }),
     items: order.items.map((item: { productName?: string | null; quantity: number; unitPrice?: number | null }) => ({
       name: item.productName || "Ürün",
       quantity: item.quantity,

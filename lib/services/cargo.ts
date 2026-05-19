@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { resend } from "@/lib/resend";
 import { canTransitionToCompletedFrom } from "@/lib/services/cargo-state";
 import { getShipinkToken, createShipinkOrder, createOutgoingShipment } from "@/lib/shipinkService";
+import { buildShipinkCustomerBlock } from "@/lib/shipink-customer-address";
 import {
   isBasitKargoConfigured,
   createOrderWithBarcode,
@@ -333,21 +334,12 @@ async function createShipmentViaShipink(
   performedById?: string,
 ): Promise<ShipmentCreateResult> {
   const token = await getShipinkToken();
-  const shippingAddr = order.shippingAddress as any;
 
   const orderPayload = {
-    customer: {
-      name: order.user?.name || "Müşteri",
-      email: { main: order.user?.email || "", work: "" },
-      phone: { main: order.user?.phone || "", work: "", cell: "", code: "" },
-      address: {
-        street: shippingAddr?.fullAddress || "",
-        city: shippingAddr?.district?.city || "",
-        state: shippingAddr?.district?.city || "",
-        zip: shippingAddr?.postalCode || "",
-        country_code: "TR",
-      },
-    },
+    customer: buildShipinkCustomerBlock({
+      user: order.user,
+      shippingAddress: order.shippingAddress,
+    }),
     items: (order.items || []).map((item: any) => ({
       name: item.productName || "Ürün",
       quantity: item.quantity,

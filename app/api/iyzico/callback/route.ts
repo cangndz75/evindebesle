@@ -87,9 +87,11 @@ async function handleCallback(req: NextRequest) {
         }
 
         if (payment.status === "SUCCEEDED") {
-            void tryPushPaidOrderToShipink(orderId).catch((err) => {
+            try {
+                await tryPushPaidOrderToShipink(orderId);
+            } catch (err) {
                 console.error(`[IYZICO_CALLBACK] Shipink anlık senkronizasyon (${orderId}):`, err);
-            });
+            }
             return NextResponse.redirect(`${baseUrl}/checkout/success?orderId=${orderId}`, 303);
         }
 
@@ -137,9 +139,11 @@ async function handleCallback(req: NextRequest) {
                 rawResult: retrieveRes
             });
 
-            void tryPushPaidOrderToShipink(orderId).catch((err) => {
+            try {
+                await tryPushPaidOrderToShipink(orderId);
+            } catch (err) {
                 console.error(`[IYZICO_CALLBACK] Shipink anlık senkronizasyon (${orderId}):`, err);
-            });
+            }
 
             callbackDebug("finalize_success", {
                 orderId,

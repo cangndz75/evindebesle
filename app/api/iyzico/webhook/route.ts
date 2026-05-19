@@ -40,9 +40,11 @@ export async function POST(req: NextRequest) {
         }
 
         if (payment.status === "SUCCEEDED") {
-            void tryPushPaidOrderToShipink(payment.orderId).catch((err) => {
+            try {
+                await tryPushPaidOrderToShipink(payment.orderId);
+            } catch (err) {
                 console.error(`[IYZICO_WEBHOOK] Shipink anlık senkronizasyon (${payment.orderId}):`, err);
-            });
+            }
             return NextResponse.json({ status: "already_processed" });
         }
 
@@ -64,9 +66,11 @@ export async function POST(req: NextRequest) {
                 rawResult: retrieveRes
             });
 
-            void tryPushPaidOrderToShipink(payment.orderId).catch((err) => {
+            try {
+                await tryPushPaidOrderToShipink(payment.orderId);
+            } catch (err) {
                 console.error(`[IYZICO_WEBHOOK] Shipink anlık senkronizasyon (${payment.orderId}):`, err);
-            });
+            }
 
             console.log(`Webhook: Order ${payment.orderId} successfully updated via webhook.`);
 

@@ -257,7 +257,7 @@ export default function OrderDetailPage() {
       toast.error("e-Arşiv fatura oluşturulurken bir hata oluştu");
     } finally {
       setCreatingEArchive(false);
-    }
+    } 
   };
 
   const handleSyncShipinkAddress = async () => {

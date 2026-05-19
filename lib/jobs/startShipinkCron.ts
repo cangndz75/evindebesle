@@ -14,9 +14,9 @@ export function startShipinkCronScheduler(): void {
     return;
   }
 
-  // Vercel'de platform cron (vercel.json) kullanılır; çift tetiklemeyi önle
+  // Vercel Hobby: vercel.json günlük cron (03:00 UTC); ödeme push'u birincil yol
   if (process.env.VERCEL === "1") {
-    console.info("[SHIPINK_CRON] Vercel ortamı — vercel.json cron kullanılacak.");
+    console.info("[SHIPINK_CRON] Vercel ortamı — günlük platform cron (yedek).");
     return;
   }
 

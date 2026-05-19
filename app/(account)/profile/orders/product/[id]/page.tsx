@@ -86,6 +86,11 @@ interface OrderDetail {
         } | null;
     };
     paymentMethod: string | null; // e.g. "CREDIT_CARD", "IY ZICO"
+    invoice: {
+        id: string;
+        invoiceNumber: string;
+        createdAt: string;
+    } | null;
 }
 
 type UserProductReview = {
@@ -295,7 +300,7 @@ export default function OrderDetailPage() {
                 </div>
                 <div className="flex items-center gap-3">
                     {getStatusBadge(order.status)}
-                    {(order.paymentStatus === "PAID" || order.paymentStatus === "SUCCEEDED") && (
+                    {order.invoice && (
                         <Link href={`/profile/orders/product/${order.id}/invoice`}>
                             <Button variant="outline">
                                 Fatura Görüntüle

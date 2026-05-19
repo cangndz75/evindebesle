@@ -1,3 +1,11 @@
+import {
+  INVOICE_BRAND_LOGO_SRC,
+  resolveInvoiceSignatureUrl,
+  DEFAULT_INVOICE_SIGNATURE_IMAGE_URL,
+} from "@/lib/invoice/brand";
+
+export { DEFAULT_INVOICE_SIGNATURE_IMAGE_URL };
+
 type OrderLike = {
   orderNumber: string;
   createdAt: string | Date;
@@ -44,12 +52,11 @@ interface InvoiceData {
   invoice: InvoiceLike;
   company: CompanyLike;
   qrDataUrl: string;
-  /** Satıcı imzası görseli URL; `null` gönderilirse blok gösterilmez. Aksi halde parametre → INVOICE_SIGNATURE_IMAGE_URL → varsayılan */
+  /** PDF için mutlak URL; verilmezse yalnızca önizleme sayfasında kullanılır */
+  brandLogoSrc?: string;
+  /** Satıcı imzası görseli URL; `null` gönderilirse blok gösterilmez */
   issuerSignatureUrl?: string | null;
 }
-
-export const DEFAULT_INVOICE_SIGNATURE_IMAGE_URL =
-  "https://res.cloudinary.com/drb0agkvi/image/upload/v1779100598/WhatsApp_Image_2026-05-18_at_10.43.12_bpcp4i.jpg";
 
 function escapeHtml(value: unknown): string {
   return String(value ?? "")
@@ -74,19 +81,23 @@ function formatMoney(value: number): string {
   }).format(value);
 }
 
+function formatDateTimeTR(value: string | Date | null | undefined): string {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  return date.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+}
+
 export function renderInvoiceHTML({
   order,
   invoice,
   company,
   qrDataUrl,
+  brandLogoSrc,
   issuerSignatureUrl,
 }: InvoiceData): string {
-  const signatureSrc =
-    issuerSignatureUrl === null
-      ? null
-      : issuerSignatureUrl?.trim() ||
-        (typeof process !== "undefined" && process.env.INVOICE_SIGNATURE_IMAGE_URL?.trim()) ||
-        DEFAULT_INVOICE_SIGNATURE_IMAGE_URL;
+  const signatureSrc = resolveInvoiceSignatureUrl(issuerSignatureUrl);
+  const logoSrc = brandLogoSrc?.trim() || INVOICE_BRAND_LOGO_SRC;
   const customer = invoice.customerDetails || {};
   const customerName = customer.name || "-";
   const customerAddress =
@@ -106,17 +117,19 @@ export function renderInvoiceHTML({
       const taxRate = Number(item.taxRate ?? 20);
       const gross = Number(item.totalPrice || 0);
       const tax = gross - (gross * 100) / (100 + taxRate);
-      const exTaxUnit = item.quantity > 0 ? (gross - tax) / item.quantity : 0;
+      const exTaxTotal = gross - tax;
+      const exTaxUnit = item.quantity > 0 ? exTaxTotal / item.quantity : 0;
 
       return `
         <tr>
-          <td>${index + 1}</td>
+          <td class="text-center">${index + 1}</td>
+          <td>PROD-${index + 100}</td>
           <td>${escapeHtml(item.productName)}</td>
           <td class="text-right">${escapeHtml(item.quantity)} Adet</td>
-          <td class="text-right">${formatMoney(exTaxUnit)} TL</td>
+          <td class="text-right">${formatMoney(exTaxUnit)} TRY</td>
+          <td class="text-right">${formatMoney(exTaxTotal)} TRY</td>
           <td class="text-center">%${taxRate.toFixed(2)}</td>
-          <td class="text-right">${formatMoney(tax)} TL</td>
-          <td class="text-right">${formatMoney(gross)} TL</td>
+          <td class="text-right">${formatMoney(tax)} TRY</td>
         </tr>
       `;
     })
@@ -248,6 +261,7 @@ export function renderInvoiceHTML({
 </head>
 <body>
   <div class="page">
+    <img src="${escapeHtml(logoSrc)}" alt="Evinde Besle" style="display:block;margin:0 auto 14px;max-height:56px;max-width:280px;object-fit:contain;" />
     <div class="top">
       <div class="left small">
         <div class="section-title">Satıcı</div>
@@ -262,7 +276,7 @@ export function renderInvoiceHTML({
       </div>
 
       <div class="right">
-        <div class="title">e-Arsiv Fatura</div>
+        <div class="title">e-Arşiv Fatura</div>
         <img class="qr" src="${escapeHtml(qrDataUrl)}" alt="QR" />
         <div class="meta-grid">
           <div>Ozellestirme No</div><div>: ${escapeHtml(invoice.customizationNo)}</div>
@@ -292,13 +306,14 @@ export function renderInvoiceHTML({
     <table>
       <thead>
         <tr>
-          <th style="width:40px;">Sira</th>
-          <th>Aciklama</th>
-          <th style="width:90px;">Miktar</th>
+          <th style="width:40px;">Sıra No</th>
+          <th>Mal Hizmet Kodu</th>
+          <th>Mal Hizmet Adı</th>
+          <th style="width:90px;" class="text-right">Miktar</th>
           <th style="width:110px;" class="text-right">Birim Fiyat</th>
-          <th style="width:75px;" class="text-center">KDV Orani</th>
-          <th style="width:100px;" class="text-right">KDV Tutari</th>
-          <th style="width:105px;" class="text-right">Tutar</th>
+          <th style="width:110px;" class="text-right">Mal Hizmet Tutarı</th>
+          <th style="width:75px;" class="text-center">KDV Oranı</th>
+          <th style="width:100px;" class="text-right">KDV Tutarı</th>
         </tr>
       </thead>
       <tbody>

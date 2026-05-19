@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import puppeteer from "puppeteer";
 import { renderInvoiceHTML } from "@/lib/invoice/renderInvoiceHTML";
+import { INVOICE_BRAND_LOGO_SRC } from "@/lib/invoice/brand";
 import { toInvoiceDTO } from "@/lib/api/dto/order";
 import { jsonNoStore } from "@/lib/api/policy";
 import QRCode from "qrcode";
@@ -131,10 +132,17 @@ export async function GET(
       orderBy: { createdAt: "desc" },
     });
 
+    if (!invoiceRecord) {
+      return jsonNoStore(
+        { error: "Faturanız henüz oluşturulmadı. Siparişiniz kargoya verildiğinde faturanıza erişebilirsiniz." },
+        { status: 404 }
+      );
+    }
+
     const orderDto = toInvoiceDTO(order);
 
-    const items = Array.isArray((invoiceRecord?.items as any[] | undefined))
-      ? (invoiceRecord?.items as any[])
+    const items = Array.isArray(invoiceRecord.items as any[])
+      ? (invoiceRecord.items as any[])
       : orderDto.items.map((item: any) => ({
           productName: item.productName,
           quantity: item.quantity,
@@ -143,32 +151,31 @@ export async function GET(
           taxRate: VAT_RATE,
         }));
 
-    const subtotal = typeof invoiceRecord?.subtotal === "number" ? invoiceRecord.subtotal : orderDto.subtotal;
-    const taxAmount =
-      typeof invoiceRecord?.taxAmount === "number" ? invoiceRecord.taxAmount : orderDto.subtotal * (VAT_RATE / 100);
-    const totalAmount = typeof invoiceRecord?.totalAmount === "number" ? invoiceRecord.totalAmount : orderDto.total;
+    const subtotal = invoiceRecord.subtotal;
+    const taxAmount = invoiceRecord.taxAmount;
+    const totalAmount = invoiceRecord.totalAmount;
 
     const customerDetailsRaw =
-      invoiceRecord?.customerDetails && typeof invoiceRecord.customerDetails === "object"
+      invoiceRecord.customerDetails && typeof invoiceRecord.customerDetails === "object"
         ? (invoiceRecord.customerDetails as Record<string, unknown>)
         : buildFallbackCustomer(order);
 
     const customerDetails = decryptJsonPiiStrings(customerDetailsRaw) as Record<string, unknown>;
 
     const companyDetails =
-      invoiceRecord?.companyDetails && typeof invoiceRecord.companyDetails === "object"
+      invoiceRecord.companyDetails && typeof invoiceRecord.companyDetails === "object"
         ? withDefaultCompanyProfile(invoiceRecord.companyDetails)
         : (companySettings as Record<string, unknown>);
 
     const invoicePayload = {
-      invoiceNumber: invoiceRecord?.invoiceNumber || `SIP-${order.orderNumber}`,
+      invoiceNumber: invoiceRecord.invoiceNumber,
       ettn: resolveInvoiceEttn({
-        invoiceId: invoiceRecord?.id || order.id,
+        invoiceId: invoiceRecord.id,
         customerDetails,
         companyDetails,
       }),
-      issuedAt: invoiceRecord?.issuedAt || order.paidAt || order.createdAt,
-      dueDate: invoiceRecord?.dueDate || null,
+      issuedAt: invoiceRecord.issuedAt || order.paidAt || order.createdAt,
+      dueDate: invoiceRecord.dueDate || null,
       scenario: "EARSIVFATURA",
       type: "SATIS",
       customizationNo: "TR1.2",
@@ -196,6 +203,8 @@ export async function GET(
       errorCorrectionLevel: "M",
     });
 
+    const brandLogoSrc = `${request.nextUrl.origin}${INVOICE_BRAND_LOGO_SRC}`;
+
     const html = renderInvoiceHTML({
       order: orderDto,
       invoice: invoicePayload,
@@ -210,6 +219,7 @@ export async function GET(
         website: "https://www.dark-velvet.com",
       },
       qrDataUrl,
+      brandLogoSrc,
     });
 
     let browser: Awaited<ReturnType<typeof puppeteer.launch>> | undefined;

@@ -640,6 +640,8 @@ model Order {
   idempotencyKey    String?
   reservedUntil     DateTime?
   currency          String             @default("TRY")
+  invoiceUrl        String?
+  invoiceEttn       String?
   payment           PaymentAttempt?
   stockReservations StockReservation[]
 

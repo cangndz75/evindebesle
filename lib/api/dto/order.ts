@@ -74,6 +74,9 @@ export function toOrderListDTO(order: AnyRecord) {
 }
 
 export function toOrderDetailDTO(order: AnyRecord) {
+  const latestInvoice =
+    Array.isArray(order.invoices) && order.invoices.length > 0 ? order.invoices[0] : null;
+
   return {
     id: order.id,
     orderNumber: order.orderNumber,
@@ -150,6 +153,13 @@ export function toOrderDetailDTO(order: AnyRecord) {
           }
         : null,
     },
+    invoice: latestInvoice
+      ? {
+          id: latestInvoice.id,
+          invoiceNumber: latestInvoice.invoiceNumber,
+          createdAt: latestInvoice.createdAt,
+        }
+      : null,
   };
 }
 

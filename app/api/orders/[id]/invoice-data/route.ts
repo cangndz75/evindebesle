@@ -131,8 +131,15 @@ export async function GET(
       orderBy: { createdAt: "desc" },
     });
 
-    const items = Array.isArray(invoiceRecord?.items as unknown[])
-      ? (invoiceRecord!.items as { productName: string; quantity: number; unitPrice: number; totalPrice: number; taxRate: number }[])
+    if (!invoiceRecord) {
+      return jsonNoStore(
+        { error: "Faturanız henüz oluşturulmadı. Siparişiniz kargoya verildiğinde faturanıza erişebilirsiniz." },
+        { status: 404 }
+      );
+    }
+
+    const items = Array.isArray(invoiceRecord.items as unknown[])
+      ? (invoiceRecord.items as { productName: string; quantity: number; unitPrice: number; totalPrice: number; taxRate: number }[])
       : order.items.map((item: { productName: string; quantity: number; unitPrice: number; totalPrice: number }) => ({
           productName: item.productName,
           quantity: item.quantity,
@@ -141,45 +148,34 @@ export async function GET(
           taxRate: VAT_RATE,
         }));
 
-    const subtotal =
-      typeof invoiceRecord?.subtotal === "number"
-        ? invoiceRecord.subtotal
-        : order.subtotal;
-    const taxAmount =
-      typeof invoiceRecord?.taxAmount === "number"
-        ? invoiceRecord.taxAmount
-        : order.subtotal * (VAT_RATE / 100);
-    const totalAmount =
-      typeof invoiceRecord?.totalAmount === "number"
-        ? invoiceRecord.totalAmount
-        : order.total;
+    const subtotal = invoiceRecord.subtotal;
+    const taxAmount = invoiceRecord.taxAmount;
+    const totalAmount = invoiceRecord.totalAmount;
 
     const customerDetailsRaw =
-      invoiceRecord?.customerDetails &&
-      typeof invoiceRecord.customerDetails === "object"
+      invoiceRecord.customerDetails && typeof invoiceRecord.customerDetails === "object"
         ? (invoiceRecord.customerDetails as Record<string, unknown>)
         : buildFallbackCustomer(order);
 
     const customerDetails = decryptJsonPiiStrings(customerDetailsRaw) as Record<string, unknown>;
 
     const companyDetails =
-      invoiceRecord?.companyDetails &&
-      typeof invoiceRecord.companyDetails === "object"
+      invoiceRecord.companyDetails && typeof invoiceRecord.companyDetails === "object"
         ? withDefaultCompanyProfile(invoiceRecord.companyDetails)
         : (companySettings as Record<string, unknown>);
 
     return NextResponse.json({
-      id: invoiceRecord?.id || order.id,
-      invoiceNumber: invoiceRecord?.invoiceNumber || `SIP-${order.orderNumber}`,
+      id: invoiceRecord.id,
+      invoiceNumber: invoiceRecord.invoiceNumber,
       orderId: order.id,
-      status: invoiceRecord?.status || "ISSUED",
+      status: invoiceRecord.status,
       subtotal,
       taxAmount,
       totalAmount,
       shippingCost: order.shippingCost,
-      createdAt: invoiceRecord?.createdAt || order.createdAt,
-      issuedAt: invoiceRecord?.issuedAt || order.paidAt || order.createdAt,
-      dueDate: invoiceRecord?.dueDate || null,
+      createdAt: invoiceRecord.createdAt,
+      issuedAt: invoiceRecord.issuedAt || order.paidAt || order.createdAt,
+      dueDate: invoiceRecord.dueDate || null,
       companyDetails,
       customerDetails,
       items,

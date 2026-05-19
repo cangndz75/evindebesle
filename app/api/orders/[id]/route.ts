@@ -72,6 +72,15 @@ export async function GET(
                         trackingUrl: true,
                     },
                 },
+                invoices: {
+                    select: {
+                        id: true,
+                        invoiceNumber: true,
+                        createdAt: true,
+                    },
+                    orderBy: { createdAt: "desc" },
+                    take: 1,
+                },
             },
         });
 

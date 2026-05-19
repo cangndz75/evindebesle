@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { getShipinkApiBaseUrl } from "@/lib/shipinkApiBase";
+import { formatShipinkFetchError, getShipinkApiBaseUrl } from "@/lib/shipinkApiBase";
 
 const PROVIDER = "shipink";
 
@@ -44,15 +44,20 @@ async function loginWithCredentials(): Promise<string> {
   }
 
   const base = getShipinkApiBaseUrl();
-  const res = await fetch(`${base}/token`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      username: SHIPINK_EMAIL,
-      email: SHIPINK_EMAIL,
-      password: SHIPINK_PASSWORD,
-    }),
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${base}/token`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username: SHIPINK_EMAIL,
+        email: SHIPINK_EMAIL,
+        password: SHIPINK_PASSWORD,
+      }),
+    });
+  } catch (err) {
+    throw new Error(formatShipinkFetchError(err, `[ShipinkAuth] POST ${base}/token`));
+  }
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
@@ -78,11 +83,17 @@ async function loginWithCredentials(): Promise<string> {
 }
 
 async function refreshAccessToken(refreshToken: string): Promise<string> {
-  const res = await fetch(`${getShipinkApiBaseUrl()}/token/refresh`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ refresh_token: refreshToken }),
-  });
+  const base = getShipinkApiBaseUrl();
+  let res: Response;
+  try {
+    res = await fetch(`${base}/token/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    });
+  } catch (err) {
+    throw new Error(formatShipinkFetchError(err, `[ShipinkAuth] POST ${base}/token/refresh`));
+  }
 
   if (!res.ok) {
     console.warn("[ShipinkAuth] Refresh başarısız, yeniden login yapılacak.");

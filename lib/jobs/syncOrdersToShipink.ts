@@ -4,6 +4,7 @@ import {
   createShipinkOrder,
   createOutgoingShipment,
 } from "@/lib/shipinkService";
+import { formatShipinkFetchError, getShipinkApiBaseUrl } from "@/lib/shipinkApiBase";
 import { sendTelegramMessage } from "@/lib/telegramService";
 
 const BATCH_SIZE = 20;
@@ -156,8 +157,10 @@ export async function tryPushPaidOrderToShipink(orderId: string): Promise<void> 
     const token = await getShipinkToken();
     await syncSingleOrder(order as SyncableOrder, token, "post_payment");
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    console.error(`[SHIPINK_PUSH_PAID] ${order.orderNumber} (${orderId}):`, message);
+    console.error(
+      `[SHIPINK_PUSH_PAID] ${order.orderNumber} (${orderId}):`,
+      formatShipinkFetchError(err, `base=${getShipinkApiBaseUrl()}`),
+    );
   }
 }
 

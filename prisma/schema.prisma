@@ -1559,3 +1559,18 @@ model LookItem {
   @@unique([lookConfigurationId, productId])
 }
 
+model WelcomePopupSettings {
+  id               String   @id @default(cuid())
+  isEnabled        Boolean  @default(false)
+  delayMs          Int      @default(3000)
+  title            String   @default("İlk Siparişine Özel Sürpriz İndirimin Var! 🎁")
+  description      String   @db.Text @default("E-posta adresini bırak, sadece sana özel tanımlanacak indirimi keşfet.")
+  emailPlaceholder String   @default("E-posta adresiniz *")
+  consentText      String   @db.Text @default("Kullanım Koşullarını ve Gizlilik Politikasını okuduğumu ve kabul ettiğimi onaylıyorum.")
+  buttonText       String   @default("Sürprizi Gör ✨")
+  imageUrl         String?
+  showEmailForm    Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+

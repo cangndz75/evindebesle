@@ -31,6 +31,7 @@ import {
   Upload,
   MessageSquare,
   RotateCcw,
+  Gift,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePathname } from "next/navigation";
@@ -130,6 +131,11 @@ const navSections = [
         label: "Bülten Aboneleri",
         href: "/admin-subscribers",
         icon: <Users className="w-5 h-5" />,
+      },
+      {
+        label: "Hoş Geldin Popup",
+        href: "/admin-welcome-popup",
+        icon: <Gift className="w-5 h-5" />,
       },
     ],
   },

@@ -9,6 +9,7 @@ import WebSiteSchema from "@/components/seo/WebSiteSchema";
 import AnalyticsScripts from "@/components/seo/AnalyticsScripts";
 import ConditionalFooter from "@/components/structure/ConditionalFooter";
 import ScrollToTopButton from "@/components/structure/ScrollToTopButton";
+import ConditionalWelcomePopup from "@/components/structure/ConditionalWelcomePopup";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"], display: "swap" });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"], display: "swap" });
@@ -109,6 +110,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <ScrollToTopButton />
           <ConditionalFooter />
           <ToasterWrapper />
+          <ConditionalWelcomePopup />
         </SessionWrapper>
       </body>
     </html>

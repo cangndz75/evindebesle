@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { prisma } from "@/lib/db";
 import { deactivateExpiredCoupons } from "@/lib/coupons/deactivateExpiredCoupons";
+import { syncWelcomeCouponForUser } from "@/lib/coupons/sync-welcome-coupon";
 import { z } from "zod";
 
 type UserCouponWithCoupon = Prisma.UserCouponGetPayload<{
@@ -28,6 +29,12 @@ export async function GET(req: NextRequest) {
   const userId = session.user.id;
 
   await deactivateExpiredCoupons();
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { email: true },
+  });
+  await syncWelcomeCouponForUser(userId, user?.email);
 
   const userCoupons = await prisma.userCoupon.findMany({
     where: { userId },

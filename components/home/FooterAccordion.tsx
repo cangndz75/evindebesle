@@ -17,7 +17,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Truck, RotateCcw, Star, Smartphone, Map } from "lucide-react";
+import { Truck, RotateCcw, Star, Smartphone, Map, Instagram } from "lucide-react";
 
 const footerSections = [
   {
@@ -281,8 +281,25 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-16 pt-6 border-t border-black/10 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-black/60">
+        <div className="md:hidden flex items-center justify-between gap-4 pt-8 pb-4">
+          <a
+            href="https://www.instagram.com/darkvelvet0/"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Instagram"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-black/10 text-[#111] transition-colors hover:bg-black/5"
+          >
+            <Instagram className="h-5 w-5" strokeWidth={1.5} />
+          </a>
+          <img
+            src="/logo_band_colored@2x.png"
+            alt="Ödeme yöntemleri"
+            className="h-6 w-auto max-w-[55%] object-contain object-right"
+          />
+        </div>
+
+        <div className="mt-8 md:mt-16 pt-6 border-t border-black/10 flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-xs text-black/60 text-center md:text-left w-full md:w-auto">
             © 2026 Dark Velvet. Tüm hakları saklıdır.
           </p>
 
@@ -323,6 +340,7 @@ export default function Footer() {
                       <li><Link href={getAccountHref("/profile/personal-info")} className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Profilim</Link></li>
                       <li><Link href={getAccountHref("/profile/orders")} className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Siparişlerim</Link></li>
                       <li><Link href={getAccountHref("/favorites")} className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Favorilerim</Link></li>
+                      <li><Link href={getAccountHref("/profile/coupons")} className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Kuponlarım</Link></li>
                       <li><Link href={getAccountHref("/profile/addresses")} className="text-sm text-black/60 hover:text-black hover:pl-2 transition-all block">Adreslerim</Link></li>
                     </ul>
                   </div>

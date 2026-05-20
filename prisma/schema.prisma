@@ -217,9 +217,10 @@ model Coupon {
   categoryId   String?
   gender       Gender?
 
-  category     Category?    @relation(fields: [categoryId], references: [id])
-  orders       Order[]
-  userCoupons  UserCoupon[]
+  category          Category?    @relation(fields: [categoryId], references: [id])
+  orders            Order[]
+  userCoupons       UserCoupon[]
+  welcomeSubscriber Subscriber?
 }
 
 model UserCoupon {
@@ -1145,11 +1146,14 @@ model StockReservation {
 }
 
 model Subscriber {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id               String    @id @default(cuid())
+  email            String    @unique
+  isActive         Boolean   @default(true)
+  welcomeClaimedAt DateTime?
+  welcomeCouponId  String?   @unique
+  welcomeCoupon    Coupon?   @relation(fields: [welcomeCouponId], references: [id], onDelete: SetNull)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 }
 
 model BlogPost {
@@ -1560,17 +1564,24 @@ model LookItem {
 }
 
 model WelcomePopupSettings {
-  id               String   @id @default(cuid())
-  isEnabled        Boolean  @default(false)
-  delayMs          Int      @default(3000)
-  title            String   @default("İlk Siparişine Özel Sürpriz İndirimin Var! 🎁")
-  description      String   @db.Text @default("E-posta adresini bırak, sadece sana özel tanımlanacak indirimi keşfet.")
-  emailPlaceholder String   @default("E-posta adresiniz *")
-  consentText      String   @db.Text @default("Kullanım Koşullarını ve Gizlilik Politikasını okuduğumu ve kabul ettiğimi onaylıyorum.")
-  buttonText       String   @default("Sürprizi Gör ✨")
+  id               String       @id @default(cuid())
+  isEnabled        Boolean      @default(false)
+  delayMs          Int          @default(3000)
+  title            String       @default("İlk Siparişine Özel Sürpriz İndirimin Var! 🎁")
+  description      String       @db.Text @default("E-posta adresini bırak, sadece sana özel tanımlanacak indirimi keşfet.")
+  emailPlaceholder String       @default("E-posta adresiniz *")
+  consentText      String       @db.Text @default("Kullanım Koşullarını ve Gizlilik Politikasını okuduğumu ve kabul ettiğimi onaylıyorum.")
+  buttonText       String       @default("Sürprizi Gör ✨")
   imageUrl         String?
-  showEmailForm    Boolean  @default(true)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  showEmailForm    Boolean      @default(true)
+  discountType     DiscountType @default(PERCENT)
+  discountValue    Int          @default(15)
+  codePrefix       String       @default("WELCOME")
+  couponValidDays  Int          @default(30)
+  emailSubject     String       @default("Dark Velvet'e Hoş Geldin! İlk Sipariş İndirimin İçeride 🎁")
+  successTitle     String       @default("Harika!")
+  successMessage   String       @db.Text @default("İndirim kodunu {email} adresine gönderdik. Gelen kutunu (veya spam klasörünü) kontrol etmeyi unutma!")
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
 }
 

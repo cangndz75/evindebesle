@@ -181,6 +181,7 @@ export async function applyLayeredApiRateLimit(request: NextRequest): Promise<Ne
       "/api/support",
       "/api/appointment-reviews",
       "/api/newsletter/subscribe",
+      "/api/welcome-popup/subscribe",
     ];
     if (formPrefixes.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
       let actor = `ip:${ip}`;

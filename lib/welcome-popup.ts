@@ -1,3 +1,5 @@
+import type { DiscountType } from "@prisma/client";
+
 export type WelcomePopupSettings = {
   isEnabled: boolean;
   delayMs: number;
@@ -8,6 +10,13 @@ export type WelcomePopupSettings = {
   buttonText: string;
   imageUrl: string | null;
   showEmailForm: boolean;
+  discountType: DiscountType;
+  discountValue: number;
+  codePrefix: string;
+  couponValidDays: number;
+  emailSubject: string;
+  successTitle: string;
+  successMessage: string;
 };
 
 export const DEFAULT_WELCOME_POPUP_SETTINGS: WelcomePopupSettings = {
@@ -22,6 +31,14 @@ export const DEFAULT_WELCOME_POPUP_SETTINGS: WelcomePopupSettings = {
   buttonText: "Sürprizi Gör ✨",
   imageUrl: null,
   showEmailForm: true,
+  discountType: "PERCENT",
+  discountValue: 15,
+  codePrefix: "WELCOME",
+  couponValidDays: 30,
+  emailSubject: "Dark Velvet'e Hoş Geldin! İlk Sipariş İndirimin İçeride 🎁",
+  successTitle: "Harika!",
+  successMessage:
+    "İndirim kodunu {email} adresine gönderdik. Gelen kutunu (veya spam klasörünü) kontrol etmeyi unutma!",
 };
 
 export function toPublicWelcomePopupSettings(
@@ -40,5 +57,33 @@ export function toPublicWelcomePopupSettings(
     imageUrl: row.imageUrl ?? null,
     showEmailForm:
       row.showEmailForm ?? DEFAULT_WELCOME_POPUP_SETTINGS.showEmailForm,
+    discountType:
+      row.discountType ?? DEFAULT_WELCOME_POPUP_SETTINGS.discountType,
+    discountValue:
+      row.discountValue ?? DEFAULT_WELCOME_POPUP_SETTINGS.discountValue,
+    codePrefix: row.codePrefix ?? DEFAULT_WELCOME_POPUP_SETTINGS.codePrefix,
+    couponValidDays:
+      row.couponValidDays ?? DEFAULT_WELCOME_POPUP_SETTINGS.couponValidDays,
+    emailSubject:
+      row.emailSubject ?? DEFAULT_WELCOME_POPUP_SETTINGS.emailSubject,
+    successTitle:
+      row.successTitle ?? DEFAULT_WELCOME_POPUP_SETTINGS.successTitle,
+    successMessage:
+      row.successMessage ?? DEFAULT_WELCOME_POPUP_SETTINGS.successMessage,
   };
+}
+
+export function formatWelcomeDiscountLabel(
+  discountType: DiscountType,
+  discountValue: number
+): string {
+  if (discountType === "PERCENT") return `%${discountValue}`;
+  return `${discountValue} TL`;
+}
+
+export function interpolateSuccessMessage(
+  template: string,
+  email: string
+): string {
+  return template.replace(/\{email\}/g, email);
 }

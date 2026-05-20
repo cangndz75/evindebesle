@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Save, Gift } from "lucide-react";
+import { Loader2, Save, Gift, Upload, X } from "lucide-react";
+import Image from "next/image";
+import { uploadFileToCloudinary } from "@/lib/cloudinary";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,15 +17,47 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { WelcomePopupSettings } from "@/lib/welcome-popup";
-import { DEFAULT_WELCOME_POPUP_SETTINGS } from "@/lib/welcome-popup";
+import {
+  DEFAULT_WELCOME_POPUP_SETTINGS,
+  formatWelcomeDiscountLabel,
+} from "@/lib/welcome-popup";
 
 export default function AdminWelcomePopupPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [form, setForm] = useState<WelcomePopupSettings>(
     DEFAULT_WELCOME_POPUP_SETTINGS
   );
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    try {
+      const url = await uploadFileToCloudinary(file);
+      if (url) {
+        update("imageUrl", url);
+        toast.success("Görsel yüklendi");
+      } else {
+        toast.error("Görsel yüklenemedi");
+      }
+    } catch {
+      toast.error("Yükleme sırasında hata oluştu");
+    } finally {
+      setUploadingImage(false);
+      e.target.value = "";
+    }
+  };
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -41,6 +75,13 @@ export default function AdminWelcomePopupPage() {
             buttonText: data.buttonText ?? "",
             imageUrl: data.imageUrl ?? null,
             showEmailForm: data.showEmailForm ?? true,
+            discountType: data.discountType ?? "PERCENT",
+            discountValue: data.discountValue ?? 15,
+            codePrefix: data.codePrefix ?? "WELCOME",
+            couponValidDays: data.couponValidDays ?? 30,
+            emailSubject: data.emailSubject ?? "",
+            successTitle: data.successTitle ?? "",
+            successMessage: data.successMessage ?? "",
           });
         }
       } catch {
@@ -171,6 +212,120 @@ export default function AdminWelcomePopupPage() {
 
       <Card>
         <CardHeader>
+          <CardTitle>İndirim & E-posta Kampanyası</CardTitle>
+          <CardDescription>
+            Kullanıcı formu gönderdiğinde oluşturulacak tek kullanımlık kupon ve
+            Resend ile gidecek e-posta ayarları
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label>İndirim türü</Label>
+              <Select
+                value={form.discountType}
+                onValueChange={(v) =>
+                  update("discountType", v as "PERCENT" | "AMOUNT")
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="PERCENT">Yüzde (%)</SelectItem>
+                  <SelectItem value="AMOUNT">Sabit tutar (TL)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="discountValue">
+                {form.discountType === "PERCENT" ? "İndirim oranı (%)" : "İndirim (TL)"}
+              </Label>
+              <Input
+                id="discountValue"
+                type="number"
+                min={1}
+                max={form.discountType === "PERCENT" ? 100 : 100000}
+                value={form.discountValue}
+                onChange={(e) =>
+                  update(
+                    "discountValue",
+                    Math.max(1, parseInt(e.target.value, 10) || 1)
+                  )
+                }
+              />
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground rounded-md bg-muted/50 px-3 py-2">
+            Önizleme:{" "}
+            <strong>
+              {formatWelcomeDiscountLabel(form.discountType, form.discountValue)}
+            </strong>{" "}
+            indirim · kod öneki{" "}
+            <strong>{form.codePrefix || "WELCOME"}-XXXXXX</strong>
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="codePrefix">Kupon kodu öneki</Label>
+              <Input
+                id="codePrefix"
+                value={form.codePrefix}
+                onChange={(e) =>
+                  update("codePrefix", e.target.value.toUpperCase())
+                }
+                placeholder="WELCOME"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="couponValidDays">Geçerlilik (gün)</Label>
+              <Input
+                id="couponValidDays"
+                type="number"
+                min={1}
+                max={365}
+                value={form.couponValidDays}
+                onChange={(e) =>
+                  update(
+                    "couponValidDays",
+                    Math.max(1, parseInt(e.target.value, 10) || 30)
+                  )
+                }
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="emailSubject">E-posta konusu</Label>
+            <Input
+              id="emailSubject"
+              value={form.emailSubject}
+              onChange={(e) => update("emailSubject", e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="successTitle">Başarı ekranı başlığı</Label>
+            <Input
+              id="successTitle"
+              value={form.successTitle}
+              onChange={(e) => update("successTitle", e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="successMessage">Başarı ekranı mesajı</Label>
+            <Textarea
+              id="successMessage"
+              value={form.successMessage}
+              onChange={(e) => update("successMessage", e.target.value)}
+              rows={2}
+            />
+            <p className="text-xs text-muted-foreground">
+              {"{email}"} yazarsanız kullanıcının adresi otomatik yerleştirilir.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>İçerik</CardTitle>
           <CardDescription>Modalda görünecek metinler ve görsel</CardDescription>
         </CardHeader>
@@ -196,15 +351,64 @@ export default function AdminWelcomePopupPage() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="imageUrl">Görsel URL (isteğe bağlı)</Label>
-            <Input
-              id="imageUrl"
-              value={form.imageUrl ?? ""}
-              onChange={(e) =>
-                update("imageUrl", e.target.value.trim() || null)
-              }
-              placeholder="https://..."
-            />
+            <Label htmlFor="imageUrl">Görsel (isteğe bağlı)</Label>
+            {form.imageUrl && (
+              <div className="relative aspect-[2/1] w-full max-w-md overflow-hidden rounded-lg border bg-gray-50">
+                <Image
+                  src={form.imageUrl}
+                  alt="Popup görsel önizleme"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 448px) 100vw, 448px"
+                />
+                <button
+                  type="button"
+                  onClick={() => update("imageUrl", null)}
+                  className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-white transition-colors hover:bg-black"
+                  aria-label="Görseli kaldır"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+            <div className="flex gap-2">
+              <Input
+                id="imageUrl"
+                value={form.imageUrl ?? ""}
+                onChange={(e) =>
+                  update("imageUrl", e.target.value.trim() || null)
+                }
+                placeholder="URL veya dosya yükleyin..."
+                className="flex-1"
+              />
+              <input
+                type="file"
+                id="welcome-popup-image-upload"
+                className="hidden"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                onChange={handleImageUpload}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                disabled={uploadingImage}
+                onClick={() =>
+                  document.getElementById("welcome-popup-image-upload")?.click()
+                }
+              >
+                {uploadingImage ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Upload className="h-4 w-4" />
+                )}
+                <span className="ml-2 hidden sm:inline">
+                  {uploadingImage ? "Yükleniyor..." : "Yükle"}
+                </span>
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              JPEG, PNG, WebP veya GIF — en fazla 10 MB
+            </p>
           </div>
 
           {form.showEmailForm && (
@@ -226,6 +430,9 @@ export default function AdminWelcomePopupPage() {
                   onChange={(e) => update("consentText", e.target.value)}
                   rows={2}
                 />
+                <p className="text-xs text-muted-foreground">
+                  Metinde &quot;Kullanım Koşullarını&quot; ve &quot;Gizlilik Politikasını&quot; ifadeleri otomatik tıklanabilir olur ve modal açar.
+                </p>
               </div>
             </>
           )}

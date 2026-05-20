@@ -41,7 +41,11 @@ export default function CouponsClient() {
           <Skeleton className="h-20 w-full" />
         </div>
       ) : coupons.length === 0 ? (
-        <p>Henüz bir kuponunuz bulunmamaktadır.</p>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          Henüz bir kuponunuz bulunmuyor. Hoş geldin kampanyasından aldığınız kod,
+          hesap e-postanızla eşleştiğinde burada görünür; &quot;Kupon Ekle&quot; ile de
+          tanımlayabilirsiniz.
+        </p>
       ) : (
         <div className="space-y-4">
           {coupons.map((coupon: any) => {

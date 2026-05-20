@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
@@ -13,7 +13,7 @@ const tabs = [
   // { label: "Hizmet Tercihlerim", href: "/profile/pets" },
   { label: "Siparişlerim", href: "/profile/orders" },
   { label: "Favorilerim", href: "/profile/favorites" },
-  { label: "İndirim Kuponlarım", href: "/profile/coupons" },
+  { label: "Kuponlarım", href: "/profile/coupons" },
 ];
 
 export default function ProfileMobileHeader() {

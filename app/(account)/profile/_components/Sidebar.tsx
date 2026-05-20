@@ -9,6 +9,7 @@ const links = [
   { href: "/profile/personal-info", label: "Kişisel Bilgilerim" },
   { href: "/profile/addresses", label: "Adreslerim" },
   { href: "/profile/orders", label: "Siparişlerim" },
+  { href: "/profile/coupons", label: "Kuponlarım" },
   { href: "/profile/support", label: "Destek Taleplerim" },
 ];
 

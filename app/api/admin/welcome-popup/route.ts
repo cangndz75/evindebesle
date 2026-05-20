@@ -47,6 +47,13 @@ export async function PATCH(request: NextRequest) {
       buttonText,
       imageUrl,
       showEmailForm,
+      discountType,
+      discountValue,
+      codePrefix,
+      couponValidDays,
+      emailSubject,
+      successTitle,
+      successMessage,
     } = body;
 
     const data = {
@@ -74,6 +81,28 @@ export async function PATCH(request: NextRequest) {
             : undefined,
       showEmailForm:
         typeof showEmailForm === "boolean" ? showEmailForm : undefined,
+      discountType:
+        discountType === "PERCENT" || discountType === "AMOUNT"
+          ? discountType
+          : undefined,
+      discountValue:
+        typeof discountValue === "number" && discountValue > 0
+          ? Math.round(discountValue)
+          : undefined,
+      codePrefix:
+        typeof codePrefix === "string" ? codePrefix.trim().toUpperCase() : undefined,
+      couponValidDays:
+        typeof couponValidDays === "number" &&
+        couponValidDays >= 1 &&
+        couponValidDays <= 365
+          ? Math.round(couponValidDays)
+          : undefined,
+      emailSubject:
+        typeof emailSubject === "string" ? emailSubject.trim() : undefined,
+      successTitle:
+        typeof successTitle === "string" ? successTitle.trim() : undefined,
+      successMessage:
+        typeof successMessage === "string" ? successMessage.trim() : undefined,
     };
 
     let settings = await prisma.welcomePopupSettings.findFirst();
@@ -97,6 +126,22 @@ export async function PATCH(request: NextRequest) {
           imageUrl: data.imageUrl ?? null,
           showEmailForm:
             data.showEmailForm ?? DEFAULT_WELCOME_POPUP_SETTINGS.showEmailForm,
+          discountType:
+            data.discountType ?? DEFAULT_WELCOME_POPUP_SETTINGS.discountType,
+          discountValue:
+            data.discountValue ?? DEFAULT_WELCOME_POPUP_SETTINGS.discountValue,
+          codePrefix:
+            data.codePrefix ?? DEFAULT_WELCOME_POPUP_SETTINGS.codePrefix,
+          couponValidDays:
+            data.couponValidDays ??
+            DEFAULT_WELCOME_POPUP_SETTINGS.couponValidDays,
+          emailSubject:
+            data.emailSubject ?? DEFAULT_WELCOME_POPUP_SETTINGS.emailSubject,
+          successTitle:
+            data.successTitle ?? DEFAULT_WELCOME_POPUP_SETTINGS.successTitle,
+          successMessage:
+            data.successMessage ??
+            DEFAULT_WELCOME_POPUP_SETTINGS.successMessage,
         },
       });
     } else {
@@ -119,6 +164,25 @@ export async function PATCH(request: NextRequest) {
           ...(data.imageUrl !== undefined && { imageUrl: data.imageUrl }),
           ...(data.showEmailForm !== undefined && {
             showEmailForm: data.showEmailForm,
+          }),
+          ...(data.discountType !== undefined && {
+            discountType: data.discountType,
+          }),
+          ...(data.discountValue !== undefined && {
+            discountValue: data.discountValue,
+          }),
+          ...(data.codePrefix !== undefined && { codePrefix: data.codePrefix }),
+          ...(data.couponValidDays !== undefined && {
+            couponValidDays: data.couponValidDays,
+          }),
+          ...(data.emailSubject !== undefined && {
+            emailSubject: data.emailSubject,
+          }),
+          ...(data.successTitle !== undefined && {
+            successTitle: data.successTitle,
+          }),
+          ...(data.successMessage !== undefined && {
+            successMessage: data.successMessage,
           }),
         },
       });

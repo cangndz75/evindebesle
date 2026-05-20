@@ -6,21 +6,38 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { signIn, getSession } from "next-auth/react";
 import { getZodErrorMessage, PASSWORD_POLICY_HINT, registerSchema } from "@/lib/validation/auth";
+import LegalDocumentModal, {
+  LegalTextLink,
+  type LegalDocumentType,
+} from "@/components/legal/LegalDocumentModal";
 
-function AuthFooter() {
+function AuthFooter({
+  onOpenLegal,
+}: {
+  onOpenLegal: (type: LegalDocumentType) => void;
+}) {
   return (
     <footer className="lg:hidden w-full bg-white border-t border-gray-200 py-6 px-6">
       <div className="max-w-md mx-auto">
         <div className="flex flex-col gap-4 text-xs text-gray-600">
           <div className="flex flex-wrap gap-x-4 gap-y-2 justify-center">
-            <Link href="/privacy" className="hover:text-black transition-colors">
+            <button
+              type="button"
+              onClick={() => onOpenLegal("privacy")}
+              className="hover:text-black transition-colors underline-offset-2 hover:underline"
+            >
               Gizlilik Politikası
-            </Link>
-            <Link href="/terms" className="hover:text-black transition-colors">
+            </button>
+            <button
+              type="button"
+              onClick={() => onOpenLegal("terms")}
+              className="hover:text-black transition-colors underline-offset-2 hover:underline"
+            >
               Kullanım Koşulları
-            </Link>
+            </button>
             <Link href="/contact" className="hover:text-black transition-colors">
               İletişim
             </Link>
@@ -51,6 +68,8 @@ export default function AuthTabs() {
   const [registerPassword, setRegisterPassword] = useState("");
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
   const [registerPending, startRegisterTransition] = useTransition();
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [legalModal, setLegalModal] = useState<LegalDocumentType | null>(null);
 
   const handleLogin = () => {
     startTransition(async () => {
@@ -91,6 +110,11 @@ export default function AuthTabs() {
   };
 
   const handleRegister = () => {
+    if (!acceptedTerms) {
+      toast.error("Kullanım koşullarını ve gizlilik politikasını kabul etmelisiniz.");
+      return;
+    }
+
     startRegisterTransition(async () => {
       try {
         const validated = registerSchema.safeParse({
@@ -304,9 +328,39 @@ export default function AuthTabs() {
                   <p className="text-xs text-gray-500 leading-relaxed">{PASSWORD_POLICY_HINT}</p>
                 </div>
 
+                <div className="flex items-start gap-2.5 pt-1">
+                  <Checkbox
+                    id="register-terms"
+                    checked={acceptedTerms}
+                    onCheckedChange={(checked) =>
+                      setAcceptedTerms(checked === true)
+                    }
+                    className="mt-0.5"
+                  />
+                  <label
+                    htmlFor="register-terms"
+                    className="text-xs leading-relaxed text-gray-600 cursor-pointer select-none"
+                  >
+                    <LegalTextLink
+                      type="terms"
+                      onOpen={setLegalModal}
+                    >
+                      Kullanım Koşullarını
+                    </LegalTextLink>{" "}
+                    ve{" "}
+                    <LegalTextLink
+                      type="privacy"
+                      onOpen={setLegalModal}
+                    >
+                      Gizlilik Politikasını
+                    </LegalTextLink>{" "}
+                    okuduğumu ve kabul ettiğimi onaylıyorum.
+                  </label>
+                </div>
+
                 <Button
                   type="submit"
-                  disabled={registerPending}
+                  disabled={registerPending || !acceptedTerms}
                   className="w-full h-12 bg-[#111] text-white hover:bg-[#333] uppercase tracking-wider text-sm font-semibold rounded-none mt-2"
                 >
                   {registerPending ? "Kayıt olunuyor..." : "Hesap Oluştur"}
@@ -358,7 +412,11 @@ export default function AuthTabs() {
       </div>
 
       
-      <AuthFooter />
+      <AuthFooter onOpenLegal={setLegalModal} />
+      <LegalDocumentModal
+        type={legalModal}
+        onClose={() => setLegalModal(null)}
+      />
     </div>
   );
 }

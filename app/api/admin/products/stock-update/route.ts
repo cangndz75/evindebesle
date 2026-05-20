@@ -1,10 +1,11 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { prisma } from "@/lib/db";
 import { logAuditAction } from "@/lib/auditLog";
 import { revalidatePath } from "next/cache";
 import { syncSizeStocksFromVariants } from "@/lib/stock";
+import { processBackInStockNotifications } from "@/lib/services/stock-back-in-stock";
 
 export async function POST(req: NextRequest) {
     try {
@@ -54,6 +55,13 @@ export async function POST(req: NextRequest) {
 
             await syncSizeStocksFromVariants(existingVariant.productId);
 
+            await processBackInStockNotifications({
+                productId: existingVariant.productId,
+                variantId: existingVariant.id,
+                previousStock: existingVariant.stock || 0,
+                newStock,
+            });
+
             const variant = await prisma.productVariant.findUnique({
                 where: { id: variantId },
                 select: {
@@ -94,11 +102,26 @@ export async function POST(req: NextRequest) {
             const size = await prisma.productSize.findUnique({
                 where: { id: variantId },
                 select: {
+                    productId: true,
                     product: {
                         select: { id: true, slug: true }
                     }
                 }
             });
+
+            if (size?.productId) {
+                const variantForNotify = await prisma.productVariant.findFirst({
+                    where: { productId: size.productId, sizeId: variantId },
+                    select: { id: true },
+                });
+                await processBackInStockNotifications({
+                    productId: size.productId,
+                    variantId: variantForNotify?.id ?? null,
+                    previousStock: existingSize.stock || 0,
+                    newStock,
+                });
+            }
+
             productForRevalidate = size?.product ?? null;
         }
 

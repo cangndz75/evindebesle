@@ -12,6 +12,10 @@ import crypto from "crypto";
 import { detectCardDataInPayload } from "@/lib/security/pci";
 import { CheckoutSchema } from "@/lib/validation/checkout";
 import { deactivateExpiredCoupons } from "@/lib/coupons/deactivateExpiredCoupons";
+import {
+    computeCampaignDiscount,
+    getActiveCampaignBanner,
+} from "@/lib/campaign-banner";
 import { resolveOrderLineImageAbsoluteUrl } from "@/lib/resolve-order-line-image";
 
 export async function POST(req: Request) {
@@ -496,6 +500,15 @@ export async function POST(req: Request) {
 
         let discount = 0;
         let couponId: string | null = null;
+        let campaignDiscount = 0;
+
+        const activeCampaign = await getActiveCampaignBanner();
+        if (activeCampaign) {
+            campaignDiscount = computeCampaignDiscount(
+                subtotal,
+                activeCampaign.discountTiers
+            );
+        }
 
         if (body.couponCode) {
             await deactivateExpiredCoupons();
@@ -531,6 +544,9 @@ export async function POST(req: Request) {
                 return NextResponse.json({ error: "B\u00f6yle bir kupon yoktur" }, { status: 400 });
             }
         }
+
+        // Kampanya kademesi ve kupon birlikte kullanılmaz; müşteriye en yüksek indirim uygulanır
+        discount = Math.max(discount, campaignDiscount);
 
         const total = subtotal + shipping - discount;
         const currency = "TRY";

@@ -595,6 +595,50 @@ export default function CartPage() {
 
     const qualifiesForFreeShipping = totalPrice >= freeShippingThreshold;
 
+    const [campaignEstimate, setCampaignEstimate] = useState<{
+        discount: number;
+        appliedTier: { label: string } | null;
+        nextTier: { threshold: number; discount: number; discountType: string; remaining: number } | null;
+    } | null>(null);
+
+    useEffect(() => {
+        if (cartItems.length === 0 || totalPrice <= 0) {
+            setCampaignEstimate(null);
+            return;
+        }
+
+        const controller = new AbortController();
+        const timeout = setTimeout(async () => {
+            try {
+                const res = await fetch(
+                    `/api/campaign-banner/estimate?subtotal=${totalPrice}`,
+                    { signal: controller.signal }
+                );
+                if (!res.ok) return;
+                const data = await res.json();
+                if (!data.isActive) {
+                    setCampaignEstimate(null);
+                    return;
+                }
+                setCampaignEstimate({
+                    discount: data.discount ?? 0,
+                    appliedTier: data.appliedTier ?? null,
+                    nextTier: data.nextTier ?? null,
+                });
+            } catch {
+                if (!controller.signal.aborted) setCampaignEstimate(null);
+            }
+        }, 300);
+
+        return () => {
+            clearTimeout(timeout);
+            controller.abort();
+        };
+    }, [cartItems.length, totalPrice]);
+
+    const campaignDiscount = campaignEstimate?.discount ?? 0;
+    const estimatedPayable = Math.max(0, totalPrice - campaignDiscount);
+
     const getProductImage = (item: CartItem) => {
         if (item.color?.images) {
             let colorImages: string[] = [];
@@ -862,8 +906,39 @@ export default function CartPage() {
                                             <span className="text-gray-600">Ara Toplam</span>
                                             <span className="text-xl font-serif text-black">{formatPriceTRY(totalPrice)}</span>
                                         </div>
+                                        {campaignDiscount > 0 && (
+                                            <>
+                                                <div className="flex items-center justify-between mb-1 text-[#3d5a45]">
+                                                    <span className="text-sm font-medium">
+                                                        Kampanya İndirimi
+                                                        {campaignEstimate?.appliedTier?.label
+                                                            ? ` (${campaignEstimate.appliedTier.label})`
+                                                            : ""}
+                                                    </span>
+                                                    <span className="text-sm font-semibold">
+                                                        -{formatPriceTRY(campaignDiscount)}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <span className="text-gray-800 font-medium">Tahmini Ödenecek</span>
+                                                    <span className="text-lg font-serif text-black">
+                                                        {formatPriceTRY(estimatedPayable)}
+                                                    </span>
+                                                </div>
+                                            </>
+                                        )}
+                                        {campaignEstimate?.nextTier && campaignDiscount === 0 && (
+                                            <p className="text-xs text-[#3d5a45] mb-3">
+                                                {formatPriceTRY(campaignEstimate.nextTier.remaining)} daha ekleyin,{" "}
+                                                {campaignEstimate.nextTier.discountType === "AMOUNT"
+                                                    ? `${campaignEstimate.nextTier.discount} TL`
+                                                    : `%${campaignEstimate.nextTier.discount}`}{" "}
+                                                indirim kazanın!
+                                            </p>
+                                        )}
                                         <p className="text-xs text-gray-500 text-right mb-6">
                                             Vergiler ve kargo ödeme adımında hesaplanır.
+                                            {campaignDiscount > 0 ? " Kampanya indirimi ödeme adımında otomatik uygulanır." : ""}
                                         </p>
                                         <div className="flex flex-col gap-3">
                                             <Button

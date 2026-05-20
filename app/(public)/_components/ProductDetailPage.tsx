@@ -6,7 +6,9 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronRight, Heart, ShoppingBag, Info, Plus, Minus, ChevronLeft, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
+import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
+import StockNotifyPanel from "@/components/product/StockNotifyPanel";
 import { sanitizeHtmlForRender } from "@/lib/security/sanitizeHtml";
 
 const ProductReviews = dynamic(() => import("./ProductReviews"), {
@@ -113,7 +115,7 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
   const [selectedColor, setSelectedColor] = useState(initialColorIndex >= 0 ? initialColorIndex : 0);
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [quantity, setQuantity] = useState(1);
-  const [emailNotify, setEmailNotify] = useState<string>("");
+  const { data: session } = useSession();
   const [isFavorite, setIsFavorite] = useState(false);
   const [isLoadingFavorite, setIsLoadingFavorite] = useState(false);
   const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
@@ -509,26 +511,17 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
     return [];
   };
 
-  const handleStockNotify = async () => {
-    if (!emailNotify || !selectedSize) return;
-    try {
-      const res = await fetch("/api/stock-notify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          productId: product.id,
-          size: selectedSize,
-          email: emailNotify,
-        }),
-      });
-      if (res.ok) {
-        alert("Stoka girince size mail gönderilecek!");
-        setEmailNotify("");
-      }
-    } catch (error) {
-      console.error("Error:", error);
-    }
-  };
+  const allSizesOutForCurrentColor = (() => {
+    const sizes = getAvailableSizesForColor();
+    if (sizes.length === 0) return false;
+    return sizes.every((s) => {
+      const name = typeof s === "string" ? s : s.name;
+      return getVariantStock(name) <= 0;
+    });
+  })();
+
+  const showStockNotifyPanel =
+    isActualOutOfStock || (!selectedSize && allSizesOutForCurrentColor);
 
   useEffect(() => {
     if (!selectedSize) {
@@ -1225,47 +1218,24 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
             </div>
 
             
-            {(() => {
+            {showStockNotifyPanel ? (
+              <StockNotifyPanel
+                className="mb-8"
+                productId={product.id}
+                colorId={selectedColorId}
+                sizeId={selectedSizeId}
+                defaultEmail={session?.user?.email ?? ""}
+              />
+            ) : (
+              <>
+                {selectedSize && selectedVariantStock > 0 && selectedVariantStock < 5 && (
+                  <div className="mb-4">
+                    <span className="text-red-600 text-sm font-medium animate-pulse">
+                      Son {selectedVariantStock} ürün!
+                    </span>
+                  </div>
+                )}
 
-              if (selectedSize) {
-                const stock = remainingStockForSelection;
-
-                if (isActualOutOfStock) {
-                  return (
-                    <div className="mb-6 p-3 bg-gray-50 border border-gray-200 rounded">
-                      <p className="text-sm text-gray-700 mb-2">Bu renk ve bedende sepete eklenebilecek stok kalmadı.</p>
-                      <div className="flex gap-2">
-                        <input
-                          type="email"
-                          placeholder="E-posta adresiniz"
-                          value={emailNotify}
-                          onChange={(e) => setEmailNotify(e.target.value)}
-                          className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded"
-                        />
-                        <button
-                          onClick={handleStockNotify}
-                          disabled={!emailNotify}
-                          className="px-4 py-2 text-sm bg-black text-white rounded hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          Haber Ver
-                        </button>
-                      </div>
-                    </div>
-                  );
-                } else if (selectedVariantStock < 5) {
-                  return (
-                    <div className="mb-4">
-                      <span className="text-red-600 text-sm font-medium animate-pulse">
-                        Son {selectedVariantStock} ürün!
-                      </span>
-                    </div>
-                  );
-                }
-              }
-              return null;
-            })()}
-
-            
             <div className="flex items-center gap-4 mb-8">
               
               <div className="flex items-center border border-gray-300 h-14">
@@ -1325,6 +1295,8 @@ export default function ProductDetailPage({ product = defaultProduct, hasOrdered
                 Sepete Ekle
               </button>
             </div>
+              </>
+            )}
           </div>
 
         </div>

@@ -3,6 +3,8 @@ import { cache } from "react";
 import ByltStyleHero from "@/components/home/ByltStyleHero";
 import ProductShowcase from "@/components/home/ProductShowcase";
 import HomeCategoryRail from "@/components/home/HomeCategoryRail";
+import CampaignBanner from "@/components/home/CampaignBanner";
+import { getActiveCampaignBanner } from "@/lib/campaign-banner";
 
 const EditorialBanner = nextDynamic(() => import("@/components/home/EditorialBanner"), {
   loading: () => <div className="h-64 bg-gray-100 animate-pulse" />,
@@ -270,12 +272,13 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  const [newArrivalsTab, bestSellersTab, recommendedTab, showcaseProducts, categories] = await Promise.all([
+  const [newArrivalsTab, bestSellersTab, recommendedTab, showcaseProducts, categories, campaignBanner] = await Promise.all([
     getTabbedProducts("new-arrivals"),
     getTabbedProducts("best-sellers"),
     getTabbedProducts("recommended"),
     getShowcaseProducts(),
     getCategories(),
+    getActiveCampaignBanner(),
   ]);
 
   return (
@@ -285,6 +288,20 @@ export default async function HomePage() {
       <div className="py-4">
         <HomeCategoryRail categories={categories} />
       </div>
+      {campaignBanner && (
+        <div className="py-4">
+          <CampaignBanner
+            badgeText={campaignBanner.badgeText}
+            title={campaignBanner.title}
+            description={campaignBanner.description}
+            buttonText={campaignBanner.buttonText}
+            buttonUrl={campaignBanner.buttonUrl}
+            subNote={campaignBanner.subNote}
+            discountTiers={campaignBanner.discountTiers}
+            themeColor={campaignBanner.themeColor}
+          />
+        </div>
+      )}
       <EditorialBanner />
       <ProductShowcase products={showcaseProducts} />
       

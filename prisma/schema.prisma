@@ -1275,6 +1275,7 @@ model StockNotification {
 
   product Product @relation("StockNotifications", fields: [productId], references: [id], onDelete: Cascade)
 
+  @@unique([productId, email, variantId])
   @@index([productId])
   @@index([isNotified])
 }
@@ -1561,6 +1562,24 @@ model LookItem {
   product             Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([lookConfigurationId, productId])
+}
+
+model CampaignBanner {
+  id            String    @id @default(cuid())
+  name          String    @default("Kampanya")
+  isActive      Boolean   @default(false)
+  startsAt      DateTime?
+  endsAt        DateTime?
+  badgeText     String?
+  title         String   @default("BAYRAM İNDİRİMLERİ BAŞLADI")
+  description   String?  @db.Text
+  buttonText    String?
+  buttonUrl     String?
+  subNote       String?
+  discountTiers Json?
+  themeColor    String   @default("olive")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model WelcomePopupSettings {

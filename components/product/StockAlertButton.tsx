@@ -35,7 +35,7 @@ export default function StockAlertButton({ productId, variantId, variantName, cl
 
         setLoading(true);
         try {
-            const res = await fetch("/api/products/stock-alert", {
+            const res = await fetch("/api/products/stock-notification", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

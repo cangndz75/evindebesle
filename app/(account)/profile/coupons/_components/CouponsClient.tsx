@@ -42,9 +42,7 @@ export default function CouponsClient() {
         </div>
       ) : coupons.length === 0 ? (
         <p className="text-sm text-muted-foreground leading-relaxed">
-          Henüz bir kuponunuz bulunmuyor. Hoş geldin kampanyasından aldığınız kod,
-          hesap e-postanızla eşleştiğinde burada görünür; &quot;Kupon Ekle&quot; ile de
-          tanımlayabilirsiniz.
+          Henüz bir kuponunuz bulunmuyor.
         </p>
       ) : (
         <div className="space-y-4">

@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { prisma } from "@/lib/db";
 import { syncSizeStocksFromVariants } from "@/lib/stock";
+import { processBackInStockNotifications } from "@/lib/services/stock-back-in-stock";
 
 export async function PATCH(
   request: NextRequest,
@@ -54,6 +55,13 @@ export async function PATCH(
       }
 
       await syncSizeStocksFromVariants(currentVariant.productId);
+
+      await processBackInStockNotifications({
+        productId: currentVariant.productId,
+        variantId: currentVariant.id,
+        previousStock: currentVariant.stock || 0,
+        newStock: nextStock,
+      });
     }
 
     return NextResponse.json({ success: true });

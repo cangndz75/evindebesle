@@ -32,6 +32,7 @@ import {
   MessageSquare,
   RotateCcw,
   Gift,
+  Megaphone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePathname } from "next/navigation";
@@ -142,6 +143,11 @@ const navSections = [
   {
     title: "ANA SAYFA & UI YÖNETİMİ",
     links: [
+      {
+        label: "Kampanya Bannerları",
+        href: "/admin-campaign-banner",
+        icon: <Megaphone className="w-5 h-5" />,
+      },
       {
         label: "Ana Sayfa Vitrin",
         href: "/admin-product-showcase",

@@ -10,6 +10,7 @@ import AnalyticsScripts from "@/components/seo/AnalyticsScripts";
 import ConditionalFooter from "@/components/structure/ConditionalFooter";
 import ScrollToTopButton from "@/components/structure/ScrollToTopButton";
 import ConditionalWelcomePopup from "@/components/structure/ConditionalWelcomePopup";
+import ConditionalCookieConsent from "@/components/structure/ConditionalCookieConsent";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"], display: "swap" });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"], display: "swap" });
@@ -111,6 +112,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <ConditionalFooter />
           <ToasterWrapper />
           <ConditionalWelcomePopup />
+          <ConditionalCookieConsent />
         </SessionWrapper>
       </body>
     </html>

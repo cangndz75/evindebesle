@@ -12,10 +12,8 @@ import crypto from "crypto";
 import { detectCardDataInPayload } from "@/lib/security/pci";
 import { CheckoutSchema } from "@/lib/validation/checkout";
 import { deactivateExpiredCoupons } from "@/lib/coupons/deactivateExpiredCoupons";
-import {
-    computeCampaignDiscount,
-    getActiveCampaignBanner,
-} from "@/lib/campaign-banner";
+import { computeCampaignDiscount } from "@/lib/campaign-banner";
+import { getActiveCampaignBanner } from "@/lib/campaign-banner.server";
 import { resolveOrderLineImageAbsoluteUrl } from "@/lib/resolve-order-line-image";
 
 export async function POST(req: Request) {

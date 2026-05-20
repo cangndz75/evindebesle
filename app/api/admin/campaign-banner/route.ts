@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { CampaignBanner } from "@prisma/client";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { prisma } from "@/lib/db";
 import { logAuditAction } from "@/lib/auditLog";
-import {
-  DEFAULT_CAMPAIGN_BANNER,
-  normalizeDiscountTiersFromBody,
-  parseOptionalDate,
-  toAdminCampaignBanner,
-} from "@/lib/campaign-banner";
+import { DEFAULT_CAMPAIGN_BANNER } from "@/lib/campaign-banner";
+import { toAdminCampaignBanner } from "@/lib/campaign-banner.server";
 
 export async function GET() {
   try {
@@ -21,7 +18,7 @@ export async function GET() {
     });
 
     return NextResponse.json({
-      campaigns: rows.map((row) => toAdminCampaignBanner(row)),
+      campaigns: rows.map((row: CampaignBanner) => toAdminCampaignBanner(row)),
     });
   } catch (error) {
     console.error("Error listing campaign banners:", error);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,7 @@ import LegalDocumentModal, {
 function AuthFooter({
   onOpenLegal,
 }: {
-  onOpenLegal: (type: LegalDocumentType) => void;
+  onOpenLegal: (legalType: LegalDocumentType) => void;
 }) {
   return (
     <footer className="lg:hidden w-full bg-white border-t border-gray-200 py-6 px-6">
@@ -54,8 +54,25 @@ function AuthFooter({
   );
 }
 
+function resolvePostLoginRedirect(
+  callbackUrl: string | null,
+  isAdmin: boolean,
+  mfaPending: boolean
+): string {
+  if (isAdmin && mfaPending) return "/mfa-verify";
+  if (isAdmin) return "/dashboard";
+
+  if (callbackUrl && callbackUrl.startsWith("/") && !callbackUrl.startsWith("//")) {
+    return callbackUrl;
+  }
+
+  return "/home";
+}
+
 export default function AuthTabs() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl");
   const [tab, setTab] = useState<"login" | "register">("login");
 
   const [email, setEmail] = useState("");
@@ -101,7 +118,7 @@ export default function AuthTabs() {
         toast.success("Giriş başarılı!");
         const isAdmin = session.user?.isAdmin === true;
         const mfaPending = session.user?.mfaPending === true;
-        const redirectUrl = isAdmin && mfaPending ? "/mfa-verify" : isAdmin ? "/dashboard" : "/home";
+        const redirectUrl = resolvePostLoginRedirect(callbackUrl, isAdmin, mfaPending);
         window.location.href = redirectUrl;
       } catch {
         toast.error("Giriş sırasında bir hata oluştu. Lütfen tekrar deneyin.");

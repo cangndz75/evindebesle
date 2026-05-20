@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { Prisma } from "@prisma/client";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { prisma } from "@/lib/db";
 import { logAuditAction } from "@/lib/auditLog";
@@ -6,8 +7,8 @@ import {
   normalizeDiscountTiersFromBody,
   parseDiscountTiers,
   parseOptionalDate,
-  toAdminCampaignBanner,
 } from "@/lib/campaign-banner";
+import { toAdminCampaignBanner } from "@/lib/campaign-banner.server";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -69,7 +70,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       );
     }
 
-    const row = await prisma.$transaction(async (tx) => {
+    const row = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       if (wantsActive) {
         await tx.campaignBanner.updateMany({
           where: { id: { not: id }, isActive: true },

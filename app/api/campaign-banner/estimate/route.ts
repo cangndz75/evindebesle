@@ -3,8 +3,8 @@ import {
   computeCampaignDiscount,
   getApplicableCampaignTier,
   getNextCampaignTier,
-  getActiveCampaignBanner,
 } from "@/lib/campaign-banner";
+import { getActiveCampaignBanner } from "@/lib/campaign-banner.server";
 
 export async function GET(request: NextRequest) {
   try {

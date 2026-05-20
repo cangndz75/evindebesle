@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,8 +58,10 @@ export default function NewsletterSignup() {
                 Katıl
               </Button>
             </div>
-            <p className="text-xs text-[#111]/60 font-light mt-3 underline">
-              Gizlilik politikamızı okuyun
+            <p className="text-xs text-[#111]/60 font-light mt-3">
+              <Link href="/privacy" className="underline hover:text-[#111]">
+                Gizlilik politikamızı okuyun
+              </Link>
             </p>
           </form>
         </div>

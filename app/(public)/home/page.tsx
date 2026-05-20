@@ -4,7 +4,7 @@ import ByltStyleHero from "@/components/home/ByltStyleHero";
 import ProductShowcase from "@/components/home/ProductShowcase";
 import HomeCategoryRail from "@/components/home/HomeCategoryRail";
 import CampaignBanner from "@/components/home/CampaignBanner";
-import { getActiveCampaignBanner } from "@/lib/campaign-banner";
+import { getActiveCampaignBanner } from "@/lib/campaign-banner.server";
 
 const EditorialBanner = nextDynamic(() => import("@/components/home/EditorialBanner"), {
   loading: () => <div className="h-64 bg-gray-100 animate-pulse" />,

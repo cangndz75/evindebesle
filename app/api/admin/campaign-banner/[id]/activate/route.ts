@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { prisma } from "@/lib/db";
 import { logAuditAction } from "@/lib/auditLog";
-import { parseDiscountTiers, toAdminCampaignBanner } from "@/lib/campaign-banner";
+import type { Prisma } from "@prisma/client";
+import { parseDiscountTiers } from "@/lib/campaign-banner";
+import { toAdminCampaignBanner } from "@/lib/campaign-banner.server";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -27,7 +29,7 @@ export async function POST(_request: NextRequest, context: RouteContext) {
       );
     }
 
-    const row = await prisma.$transaction(async (tx) => {
+    const row = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       await tx.campaignBanner.updateMany({
         where: { id: { not: id } },
         data: { isActive: false },

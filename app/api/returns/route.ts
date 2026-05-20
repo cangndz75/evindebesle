@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
-import { getServerSession } from "next-auth";
-import { authConfig } from "@/lib/auth.config";
+import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { createAdminNotification } from "@/lib/admin-notification";
 import { sendTransactionalEmail } from "@/lib/email/transactional";
 import { getShipinkToken, createShipinkOrder, createReturnShipment } from "@/lib/shipinkService";
@@ -12,17 +12,17 @@ import { sendTelegramMessage, TelegramTemplates } from "@/lib/telegramService";
 
 const RETURN_CARGO_COMPANY = process.env.RETURN_CARGO_COMPANY || "Shipink Kargo";
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
     try {
-        const session = await getServerSession(authConfig);
+        const user = await getCurrentUser(req);
 
-        if (!session?.user?.id) {
+        if (!user) {
             return new NextResponse("Unauthorized", { status: 401 });
         }
 
         const returns = await prisma.returnRequest.findMany({
             where: {
-                userId: session.user.id,
+                userId: user.id,
             },
             include: {
                 order: {
@@ -57,11 +57,11 @@ export async function GET(req: Request) {
     }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
     try {
-        const session = await getServerSession(authConfig);
+        const user = await getCurrentUser(req);
 
-        if (!session?.user?.id) {
+        if (!user) {
             return new NextResponse("Unauthorized", { status: 401 });
         }
 
@@ -75,7 +75,7 @@ export async function POST(req: Request) {
         const order = await prisma.order.findUnique({
             where: {
                 id: orderId,
-                userId: session.user.id,
+                userId: user.id,
             },
             include: {
                 items: true,
@@ -222,7 +222,7 @@ export async function POST(req: Request) {
             const rr = await tx.returnRequest.create({
                 data: {
                     orderId,
-                    userId: session.user.id,
+                    userId: user.id,
                     reason,
                     description: description || null,
                     images: images || [],

@@ -1,7 +1,8 @@
-﻿
+
 import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
+import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { jsonNoStore } from "@/lib/api/policy";
 import { toOrderListDTO } from "@/lib/api/dto/order";
 
@@ -9,14 +10,13 @@ export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   try {
-    const token = await getToken({ req: request });
-    const userId = typeof token?.sub === "string" ? token.sub : null;
-    if (!userId) {
+    const user = await getCurrentUser(request);
+    if (!user) {
       return jsonNoStore({ error: "Unauthorized" }, { status: 401 });
     }
 
     const orders = await prisma.order.findMany({
-      where: { userId },
+      where: { userId: user.id },
       include: {
         items: {
           include: {

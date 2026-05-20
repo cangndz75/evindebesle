@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -108,10 +109,13 @@ type ReturnRequestData = {
   }>;
 };
 
+const ORDERS_CALLBACK = "/profile/orders";
+
 export default function OrdersPage() {
   const [productOrders, setProductOrders] = useState<ProductOrder[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
   const router = useRouter();
+  const { data: session, status: sessionStatus } = useSession();
 
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [reviewViewModalOpen, setReviewViewModalOpen] = useState(false);
@@ -143,14 +147,42 @@ export default function OrdersPage() {
   };
 
   useEffect(() => {
-    fetch("/api/orders")
-      .then((res) => res.json())
-      .then((data) => setProductOrders(data))
-      .finally(() => setLoadingOrders(false));
+    if (sessionStatus === "loading") return;
 
-    fetch("/api/returns")
-      .then((res) => res.json())
-      .then((data: ReturnRequestData[]) => {
+    if (!session?.user) {
+      router.replace(
+        `/auth-tabs?callbackUrl=${encodeURIComponent(ORDERS_CALLBACK)}`
+      );
+      return;
+    }
+
+    const loadOrders = async () => {
+      try {
+        const res = await fetch("/api/orders", { credentials: "same-origin" });
+        if (res.status === 401) {
+          router.replace(
+            `/auth-tabs?callbackUrl=${encodeURIComponent(ORDERS_CALLBACK)}`
+          );
+          return;
+        }
+        if (!res.ok) {
+          setProductOrders([]);
+          return;
+        }
+        const data = await res.json();
+        setProductOrders(Array.isArray(data) ? data : []);
+      } catch {
+        setProductOrders([]);
+      } finally {
+        setLoadingOrders(false);
+      }
+    };
+
+    const loadReturns = async () => {
+      try {
+        const res = await fetch("/api/returns", { credentials: "same-origin" });
+        if (!res.ok) return;
+        const data: ReturnRequestData[] = await res.json();
         const byOrder: Record<string, ReturnRequestData> = {};
         for (const request of data || []) {
           if (!byOrder[request.orderId]) {
@@ -158,11 +190,14 @@ export default function OrdersPage() {
           }
         }
         setReturnRequestsByOrder(byOrder);
-      })
-      .catch(() => {
+      } catch {
         setReturnRequestsByOrder({});
-      });
-  }, []);
+      }
+    };
+
+    void loadOrders();
+    void loadReturns();
+  }, [session, sessionStatus, router]);
 
   useEffect(() => {
     const productIds = Array.from(
@@ -651,9 +686,12 @@ export default function OrdersPage() {
               }
               setReturnRequestsByOrder(byOrder);
             });
-          fetch("/api/orders")
-            .then((res) => res.json())
-            .then((data) => setProductOrders(data));
+          fetch("/api/orders", { credentials: "same-origin" })
+            .then(async (res) => {
+              if (!res.ok) return;
+              const data = await res.json();
+              if (Array.isArray(data)) setProductOrders(data);
+            });
         }}
       />
 

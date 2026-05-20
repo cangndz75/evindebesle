@@ -527,15 +527,15 @@ export default function CompanySettingsClient() {
 
   if (isLoading) {
     return (
-      <div className="p-8">
+      <div className="admin-page">
         <p>Yükleniyor...</p>
       </div>
     );
   }
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-light mb-2">Firma Ayarları</h1>
+    <div className="admin-page mx-auto max-w-4xl">
+      <h1 className="text-2xl sm:text-3xl font-light mb-2">Firma Ayarları</h1>
       <p className="text-gray-600 mb-8">Şirket bilgilerinizi ve genel ayarlarınızı yönetin</p>
 
       <div className="space-y-8">

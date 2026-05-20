@@ -9,7 +9,7 @@ export default function AnalyticsPage() {
     const [activeTab, setActiveTab] = useState("overview");
 
     return (
-        <div className="p-6 space-y-6">
+        <div className="admin-page space-y-6">
             
             <div>
                 <h1 className="text-3xl font-bold">Advanced Analytics</h1>

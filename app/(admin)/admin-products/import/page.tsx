@@ -143,7 +143,7 @@ export default function ProductImportPage() {
   };
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6">
+    <div className="admin-page mx-auto max-w-6xl space-y-6">
       
       <div className="flex items-center gap-3">
         <FileSpreadsheet className="w-7 h-7 text-green-600" />

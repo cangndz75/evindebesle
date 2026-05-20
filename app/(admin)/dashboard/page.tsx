@@ -186,7 +186,7 @@ export default function AdminDashboard() {
   const todayText = format(new Date(), "d MMMM yyyy", { locale: tr });
 
   return (
-    <div className="min-h-screen bg-[#f6f7f9] p-4 md:p-6 space-y-5">
+    <div className="admin-page space-y-5">
       <div className="rounded-2xl border border-[#e9ebef] bg-white px-5 py-4">
         <h1 className="text-[22px] font-semibold text-[#202736]">Genel Bakış</h1>
         <p className="text-sm text-[#7e8797]">Bugün, {todayText}</p>
@@ -252,7 +252,7 @@ export default function AdminDashboard() {
                 <AlertTriangle className="h-4 w-4 text-[#e54c5f]" />
               </div>
               <div>
-                <p className="text-[20px] leading-none font-semibold text-[#1f2431]">{soldOutCount} ürün tamamen tükendi</p>
+                <p className="text-base sm:text-lg leading-snug font-semibold text-[#1f2431]">{soldOutCount} ürün tamamen tükendi</p>
                 <p className="mt-1 text-sm text-[#7a8393]">Satışa kapalı ürünler müşteri kaybına yol açabilir.</p>
               </div>
             </div>
@@ -271,7 +271,7 @@ export default function AdminDashboard() {
                 <AlertTriangle className="h-4 w-4 text-[#d19a00]" />
               </div>
               <div>
-                <p className="text-[20px] leading-none font-semibold text-[#1f2431]">{criticalCount} ürün kritik stok seviyesinde</p>
+                <p className="text-base sm:text-lg leading-snug font-semibold text-[#1f2431]">{criticalCount} ürün kritik stok seviyesinde</p>
                 <p className="mt-1 text-sm text-[#7a8393]">Bu ürünler 2-3 gün içinde tükenebilir.</p>
               </div>
             </div>

@@ -217,8 +217,8 @@ export function AdminNotificationBell() {
     return (
         <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative group hover:bg-gray-800 transition-colors">
-                    <Bell className={cn("h-5 w-5 text-gray-400 group-hover:text-white transition-colors",
+                <Button variant="ghost" size="icon" className="relative group hover:bg-gray-100 md:hover:bg-gray-800 transition-colors">
+                    <Bell className={cn("h-5 w-5 text-gray-600 md:text-gray-400 md:group-hover:text-white transition-colors",
                         unreadCount > 0 && "animate-pulse-subtle"
                     )} />
                     {unreadCount > 0 && (

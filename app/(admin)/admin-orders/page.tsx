@@ -340,18 +340,18 @@ export default function AdminOrdersPage() {
   ];
 
   return (
-    <div className="space-y-6 p-4 md:p-6">
+    <div className="admin-page space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <h1 className="text-2xl md:text-3xl font-bold">Tüm Siparişler</h1>
       </div>
 
       
-      <div className="flex gap-2 p-1 bg-gray-100 rounded-lg">
+      <div className="admin-tabs-scroll p-1 bg-gray-100 rounded-lg">
         {tabs.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === tab.key
+            className={`min-w-[max(7rem,28%)] px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${activeTab === tab.key
               ? "bg-white text-gray-900 shadow-sm"
               : "text-gray-600 hover:text-gray-900"
               }`}
@@ -395,7 +395,7 @@ export default function AdminOrdersPage() {
               toast.info("Yüksek riskli siparişler filtreleniyor (Demo)");
             }
           }}>
-            <SelectTrigger className="w-[150px]">
+            <SelectTrigger className="w-full md:w-[150px]">
               <SelectValue placeholder="Risk Durumu" />
             </SelectTrigger>
             <SelectContent>
@@ -406,7 +406,7 @@ export default function AdminOrdersPage() {
           </Select>
         </div>
         {selectedOrders.size > 0 && (
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2 w-full">
             <Button variant="outline" size="sm" onClick={() => handleBulkAction("labels")}>
               <Download className="w-4 h-4 mr-2" />
               Etiket
@@ -445,7 +445,7 @@ export default function AdminOrdersPage() {
           Sipariş bulunamadı
         </div>
       ) : (
-        <div className="rounded-md border overflow-x-auto">
+        <div className="admin-table-wrap">
           <Table>
             <TableHeader>
               <TableRow>

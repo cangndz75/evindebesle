@@ -278,7 +278,7 @@ export default function CouponsPage() {
   });
 
   return (
-    <div className="space-y-4 px-6 py-10">
+    <div className="admin-page space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex flex-wrap gap-2">
           <Input
@@ -287,7 +287,7 @@ export default function CouponsPage() {
             onChange={(e) =>
               table.getColumn("code")?.setFilterValue(e.target.value)
             }
-            className="min-w-[240px]"
+            className="w-full sm:min-w-[200px] sm:max-w-xs"
           />
           <Button
             variant={showPerformance ? "default" : "outline"}

@@ -65,7 +65,7 @@ export default function NewBlogPostPage() {
     };
 
     return (
-        <div className="p-6 space-y-6 max-w-5xl mx-auto">
+        <div className="admin-page mx-auto max-w-5xl space-y-6">
             <div className="flex items-center gap-4">
                 <Link href="/admin-blog">
                     <Button variant="ghost" size="icon">

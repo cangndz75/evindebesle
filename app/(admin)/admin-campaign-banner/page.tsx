@@ -173,10 +173,10 @@ export default function AdminCampaignBannerListPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 pb-12">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
+    <div className="admin-page mx-auto max-w-6xl pb-12">
+      <div className="admin-page-header">
+        <div className="min-w-0">
+          <h1 className="flex items-center gap-2 text-xl sm:text-2xl font-bold">
             <Megaphone className="w-7 h-7" />
             Kampanya Bannerları
           </h1>
@@ -185,7 +185,8 @@ export default function AdminCampaignBannerListPage() {
             aralığı ve kademeler sepete otomatik yansır.
           </p>
         </div>
-        <Button onClick={handleCreate} disabled={actingId === "new"}>
+        <div className="admin-page-actions">
+        <Button onClick={handleCreate} disabled={actingId === "new"} className="w-full sm:w-auto">
           {actingId === "new" ? (
             <Loader2 className="w-4 h-4 animate-spin mr-2" />
           ) : (
@@ -193,6 +194,7 @@ export default function AdminCampaignBannerListPage() {
           )}
           Yeni Kampanya
         </Button>
+        </div>
       </div>
 
       {campaigns.length === 0 ? (
@@ -201,7 +203,7 @@ export default function AdminCampaignBannerListPage() {
           <Button onClick={handleCreate}>İlk kampanyayı oluştur</Button>
         </div>
       ) : (
-        <div className="border rounded-lg overflow-hidden bg-white">
+        <div className="admin-table-wrap">
           <Table>
             <TableHeader>
               <TableRow>

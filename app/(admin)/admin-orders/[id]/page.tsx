@@ -505,7 +505,7 @@ export default function OrderDetailPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-6 space-y-5">
+    <div className="admin-page -mx-3 sm:mx-0 space-y-5">
       <div className="flex items-center gap-2 text-sm text-slate-500">
         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4" />

@@ -238,11 +238,11 @@ export default function AddProductPage() {
 
 
   return (
-    <div className="min-h-screen bg-gray-50/50 pb-20">
+    <div className="min-w-0 pb-20 -mx-3 sm:mx-0">
       <FormProvider {...methods}>
         
-        <header className="sticky top-0 z-30 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shadow-sm">
-          <div className="flex items-center gap-4">
+        <header className="sticky top-14 md:top-0 z-30 bg-white border-b border-gray-200 px-3 sm:px-6 py-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between shadow-sm">
+          <div className="flex items-center gap-3 min-w-0">
             <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-gray-500 hover:text-gray-900">
               <ArrowLeft className="w-5 h-5" />
             </Button>
@@ -251,8 +251,8 @@ export default function AddProductPage() {
               <p className="text-xs text-gray-500 mt-1">{isVariable ? "Varyantlı Ürün" : "Tekil Ürün"}</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <Button variant="outline" className="text-gray-600 border-gray-300" onClick={() => toast.info("Taslak (frontend only) kaydedildi")}>
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            <Button variant="outline" className="flex-1 sm:flex-none text-gray-600 border-gray-300" onClick={() => toast.info("Taslak (frontend only) kaydedildi")}>
               Taslağı Kaydet
             </Button>
             <Button

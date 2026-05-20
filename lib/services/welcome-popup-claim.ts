@@ -1,5 +1,5 @@
 import { randomBytes } from "crypto";
-import type { DiscountType } from "@prisma/client";
+import type { DiscountType, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { resend, resendFromAddress } from "@/lib/resend";
 import { generateWelcomeDiscountEmailHtml } from "@/lib/email/templates/welcome-discount-template";
@@ -66,7 +66,7 @@ export async function claimWelcomePopupDiscount(
   const discountCode = await generateUniqueCouponCode(settings.codePrefix);
   const discountLabel = formatWelcomeDiscountLabel(discountType, discountValue);
 
-  const { coupon } = await prisma.$transaction(async (tx) => {
+  const { coupon } = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     const coupon = await tx.coupon.create({
       data: {
         code: discountCode,

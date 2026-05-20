@@ -1,4 +1,4 @@
-﻿const getCloudinaryConfig = () => {
+const getCloudinaryConfig = () => {
     let cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
     let uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 
@@ -35,6 +35,35 @@ export async function uploadBase64ToCloudinary(base64String: string): Promise<st
         return data.secure_url || null;
     } catch (error: any) {
         console.error("Base64 upload error:", error);
+        return null;
+    }
+}
+
+/**
+ * Yorum görselleri — sunucu tarafı doğrulama, EXIF temizleme, userId rate limit.
+ */
+export async function uploadReviewImage(file: File, productId?: string): Promise<string | null> {
+    try {
+        const formData = new FormData();
+        formData.append("file", file);
+        if (productId) formData.append("productId", productId);
+
+        const res = await fetch("/api/upload/review", {
+            method: "POST",
+            body: formData,
+        });
+
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+            throw new Error(
+                typeof data?.error === "string" ? data.error : "Yorum görseli yüklenemedi"
+            );
+        }
+
+        return typeof data?.url === "string" ? data.url : null;
+    } catch (error: unknown) {
+        console.error("Review image upload error:", error);
         return null;
     }
 }

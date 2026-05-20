@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Star, Camera, X, Loader2 } from "lucide-react";
 import Image from "next/image";
-import { uploadFileToCloudinary } from "@/lib/cloudinary";
+import { uploadReviewImage } from "@/lib/cloudinary";
 
 interface ProductReviewModalProps {
     isOpen: boolean;
@@ -54,9 +54,10 @@ export default function ProductReviewModal({
         }
 
         const newFiles = files.slice(0, remaining);
+        const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
         const validFiles = newFiles.filter((file) => {
-            if (!file.type.startsWith("image/")) {
-                toast.error(`"${file.name}" geçerli bir görsel değil`);
+            if (!allowedTypes.includes(file.type)) {
+                toast.error(`"${file.name}" yalnızca JPG, PNG veya WebP olmalıdır`);
                 return false;
             }
             if (file.size > 5 * 1024 * 1024) {
@@ -94,7 +95,9 @@ export default function ProductReviewModal({
 
             if (selectedImages.length > 0) {
                 toast.info("Fotoğraflar yükleniyor...");
-                const uploadPromises = selectedImages.map((file) => uploadFileToCloudinary(file));
+                const uploadPromises = selectedImages.map((file) =>
+                    uploadReviewImage(file, productId)
+                );
                 const results = await Promise.all(uploadPromises);
                 uploadedUrls = results.filter((url): url is string => url !== null);
 
@@ -268,7 +271,7 @@ export default function ProductReviewModal({
                         <input
                             ref={fileInputRef}
                             type="file"
-                            accept="image/*"
+                            accept="image/jpeg,image/png,image/webp"
                             multiple
                             onChange={handleImageSelect}
                             className="hidden"

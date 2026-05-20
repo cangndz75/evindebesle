@@ -97,6 +97,25 @@ npm run dev
 set APP_BASE_URL=http://localhost:3000 && npm run security:dast
 ```
 
+## Rate limiting (Upstash)
+
+- Production default: **fail-closed** if `UPSTASH_REDIS_REST_URL` / token missing or Redis errors (`RATE_LIMIT_SERVICE_UNAVAILABLE`, HTTP 503).
+- Emergency fail-open: `RATE_LIMIT_ALLOW_FAIL_OPEN=1` (avoid in production unless incident response).
+- Invoice PDF (`/api/orders/[id]/invoice`, `invoice-data`): **5 requests / minute per userId** (`RateLimits.invoicePdf`).
+- Review images (`/api/upload/review`): **10 uploads / hour per userId**, max **5 MB**, JPEG/PNG/WebP only (magic bytes + sharp EXIF strip), Cloudinary folder `darkvelvet/reviews/`.
+
+## Resend Webhook Security
+
+Resend webhook endpoint: `/api/webhooks/resend`
+
+- Svix signature verification (`svix-id`, `svix-timestamp`, `svix-signature`)
+- Rate limit via middleware (`strict` profile)
+- Campaign open/click events matched by `trackingId` tag on outbound mail
+
+Set in Resend dashboard → Webhooks → signing secret:
+
+- `RESEND_WEBHOOK_SECRET`
+
 ## Cargo Webhook Security
 
 Cargo webhook endpoint: `/api/webhooks/cargo-status`

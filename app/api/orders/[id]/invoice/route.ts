@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
+import { checkUserRateLimit, rateLimitDenyResponse, RateLimits } from "@/lib/rateLimit";
 import puppeteer from "puppeteer";
 import { renderInvoiceHTML } from "@/lib/invoice/renderInvoiceHTML";
 import { INVOICE_BRAND_LOGO_SRC } from "@/lib/invoice/brand";
@@ -79,6 +80,20 @@ export async function GET(
 
     if (!user) {
       return jsonNoStore({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const rateLimitResult = await checkUserRateLimit(user.id, "invoicePdf");
+    const rateLimited = rateLimitDenyResponse(
+      rateLimitResult,
+      RateLimits.invoicePdf,
+      "Çok fazla fatura indirme isteği. Lütfen bir dakika sonra tekrar deneyin."
+    );
+    if (rateLimited) {
+      return new NextResponse(rateLimited.body, {
+        status: rateLimited.status,
+        statusText: rateLimited.statusText,
+        headers: rateLimited.headers,
+      });
     }
 
     const order = await prisma.order.findUnique({

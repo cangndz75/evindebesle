@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { jsonNoStore } from "@/lib/api/policy";
+import { checkUserRateLimit, rateLimitDenyResponse, RateLimits } from "@/lib/rateLimit";
 import { withDefaultCompanyProfile } from "@/lib/invoice/company-profile";
 import { decryptPiiIfNeeded, isEncryptedAtRest } from "@/lib/security/at-rest-crypto";
 
@@ -65,6 +66,20 @@ export async function GET(
 
     if (!user) {
       return jsonNoStore({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const rateLimitResult = await checkUserRateLimit(user.id, "invoicePdf");
+    const rateLimited = rateLimitDenyResponse(
+      rateLimitResult,
+      RateLimits.invoicePdf,
+      "Çok fazla fatura isteği. Lütfen bir dakika sonra tekrar deneyin."
+    );
+    if (rateLimited) {
+      return new NextResponse(rateLimited.body, {
+        status: rateLimited.status,
+        statusText: rateLimited.statusText,
+        headers: rateLimited.headers,
+      });
     }
 
     const order = await prisma.order.findUnique({

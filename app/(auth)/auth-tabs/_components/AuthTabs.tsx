@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { signIn, getSession } from "next-auth/react";
+import { getZodErrorMessage, PASSWORD_POLICY_HINT, registerSchema } from "@/lib/validation/auth";
 
 function AuthFooter() {
   return (
@@ -92,10 +93,20 @@ export default function AuthTabs() {
   const handleRegister = () => {
     startRegisterTransition(async () => {
       try {
+        const validated = registerSchema.safeParse({
+          name,
+          email: registerEmail,
+          password: registerPassword,
+        });
+        if (!validated.success) {
+          toast.error(getZodErrorMessage(validated.error));
+          return;
+        }
+
         const res = await fetch("/api/register", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, email: registerEmail, password: registerPassword }),
+          body: JSON.stringify(validated.data),
         });
 
         const data = await res.json();
@@ -107,17 +118,20 @@ export default function AuthTabs() {
 
         sessionStorage.setItem(
           "pendingRegisterAuth",
-          JSON.stringify({ email: registerEmail, password: registerPassword })
+          JSON.stringify({
+            email: validated.data.email,
+            password: validated.data.password,
+          })
         );
 
         if (data.verificationEmailSent === false) {
           toast.warning(
-            "Hesap olu2şturuldu ancak doğrulama e-postası gönderilemedi. Doğrulama sayfasından kodu tekrar isteyin."
+            "Hesap oluşturuldu ancak doğrulama e-postası gönderilemedi. Doğrulama sayfasından kodu tekrar isteyin."
           );
         } else {
           toast.success("Kayıt başarılı! E-postanıza doğrulama kodu gönderildi.");
         }
-        router.push(`/verify?email=${encodeURIComponent(registerEmail)}`);
+        router.push(`/verify?email=${encodeURIComponent(validated.data.email)}`);
       } catch {
         toast.error("Bir hata oluştu.");
       }
@@ -287,6 +301,7 @@ export default function AuthTabs() {
                       {showRegisterPassword ? "Gizle" : "Göster"}
                     </button>
                   </div>
+                  <p className="text-xs text-gray-500 leading-relaxed">{PASSWORD_POLICY_HINT}</p>
                 </div>
 
                 <Button

@@ -113,7 +113,16 @@ export async function applyLayeredApiRateLimit(request: NextRequest): Promise<Ne
     );
   }
 
-  // 7 — Kupon doğrulama
+  // 7 — Resend webhook (imza doğrulaması route içinde; abuse sınırı)
+  if (pathname.startsWith("/api/webhooks/resend") && method === "POST") {
+    return run(
+      `rl:webhook:resend:${ip}`,
+      RateLimits.strict,
+      "Çok fazla webhook isteği. Lütfen kısa bir süre sonra tekrar deneyin."
+    );
+  }
+
+  // 8 — Kupon doğrulama
   if (pathname.startsWith("/api/coupons/verify") && method === "POST") {
     return run(
       `rl:finance:coupon:${ip}`,
@@ -148,7 +157,7 @@ export async function applyLayeredApiRateLimit(request: NextRequest): Promise<Ne
     }
   }
 
-  // 10 — Dosya yükleme (maliyet / kötüye kullanım)
+  // 10 — Genel dosya yükleme (admin / iade vb.; yorum: /api/upload/review route limiti)
   if (pathname.startsWith("/api/upload") && method === "POST") {
     let actor = `ip:${ip}`;
     try {

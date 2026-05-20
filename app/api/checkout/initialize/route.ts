@@ -43,6 +43,13 @@ export async function POST(req: Request) {
         }
         const body = parsed.data;
 
+        if (body.paymentMethod === "TEST" && process.env.NODE_ENV === "production") {
+            return NextResponse.json(
+                { error: "TEST ödeme yöntemi üretim ortamında kullanılamaz." },
+                { status: 403 }
+            );
+        }
+
         const cardDataFindings = detectCardDataInPayload(body);
         if (cardDataFindings.length > 0) {
             return NextResponse.json(
@@ -83,7 +90,8 @@ export async function POST(req: Request) {
 
         const session = await getServerSession(authConfig);
 
-        let resolvedUserId = body.userId || session?.user?.id || null;
+        // P0: İstemciden gelen body.userId yok sayılır; oturum varsa yalnızca session.user.id kullanılır.
+        let resolvedUserId: string | null = session?.user?.id ?? null;
         if (!resolvedUserId && body?.email) {
             const matchedUser = await prisma.user.findUnique({
                 where: { email: body.email },

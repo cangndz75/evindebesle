@@ -5,6 +5,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import {
+  getZodErrorMessage,
+  PASSWORD_POLICY_HINT,
+  resetPasswordFormSchema,
+} from "@/lib/validation/auth";
 
 export default function ResetPasswordClient() {
   const [password, setPassword] = useState("");
@@ -20,13 +25,9 @@ export default function ResetPasswordClient() {
       return;
     }
 
-    if (password.length < 6) {
-      toast.error("Şifre en az 6 karakter olmalı.");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      toast.error("Şifreler eşleşmiyor.");
+    const validated = resetPasswordFormSchema.safeParse({ password, confirmPassword });
+    if (!validated.success) {
+      toast.error(getZodErrorMessage(validated.error));
       return;
     }
 
@@ -34,15 +35,22 @@ export default function ResetPasswordClient() {
       const res = await fetch("/api/reset-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, password }),
+        body: JSON.stringify({ token, password: validated.data.password }),
       });
+
+      const data = await res.json().catch(() => ({}));
 
       if (res.ok) {
         toast.success("Şifre başarıyla yenilendi.");
         router.push("/auth-tabs");
-      } else {
-        toast.error("Geçersiz veya süresi dolmuş bağlantı.");
+        return;
       }
+
+      toast.error(
+        typeof data?.error === "string"
+          ? data.error
+          : "Geçersiz veya süresi dolmuş bağlantı."
+      );
     });
   };
 
@@ -59,12 +67,8 @@ export default function ResetPasswordClient() {
       </div>
 
       <div className="w-full max-w-lg bg-white p-10 rounded-2xl shadow-2xl space-y-6">
-        <h1 className="text-3xl font-bold text-center">
-          🔐 Yeni Şifre Belirle
-        </h1>
-        <p className="text-sm text-muted-foreground text-center">
-          Yeni bir şifre giriniz
-        </p>
+        <h1 className="text-3xl font-bold text-center">🔐 Yeni Şifre Belirle</h1>
+        <p className="text-sm text-muted-foreground text-center">Yeni bir şifre giriniz</p>
 
         <div className="space-y-4">
           <Input
@@ -74,6 +78,8 @@ export default function ResetPasswordClient() {
             onChange={(e) => setPassword(e.target.value)}
             disabled={pending}
             className="h-12 text-base"
+            autoComplete="new-password"
+            maxLength={64}
           />
           <Input
             type="password"
@@ -82,7 +88,10 @@ export default function ResetPasswordClient() {
             onChange={(e) => setConfirmPassword(e.target.value)}
             disabled={pending}
             className="h-12 text-base"
+            autoComplete="new-password"
+            maxLength={64}
           />
+          <p className="text-xs text-muted-foreground leading-relaxed">{PASSWORD_POLICY_HINT}</p>
         </div>
 
         <Button

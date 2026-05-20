@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
+import { getZodErrorMessage, PASSWORD_POLICY_HINT, registerSchema } from "@/lib/validation/auth";
 
 export default function RegisterForm() {
   const router = useRouter();
@@ -19,10 +20,16 @@ export default function RegisterForm() {
   const handleRegister = () => {
     startTransition(async () => {
       try {
+        const validated = registerSchema.safeParse({ name, email, password });
+        if (!validated.success) {
+          toast.error(getZodErrorMessage(validated.error));
+          return;
+        }
+
         const res = await fetch("/api/register", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, email, password }),
+          body: JSON.stringify(validated.data),
         });
 
         const data = await res.json();
@@ -34,7 +41,10 @@ export default function RegisterForm() {
 
         sessionStorage.setItem(
           "pendingRegisterAuth",
-          JSON.stringify({ email, password })
+          JSON.stringify({
+            email: validated.data.email,
+            password: validated.data.password,
+          })
         );
 
         if (data.verificationEmailSent === false) {
@@ -44,7 +54,7 @@ export default function RegisterForm() {
         } else {
           toast.success("Kayıt başarılı! E-postanıza doğrulama kodu gönderildi.");
         }
-        router.push(`/verify?email=${encodeURIComponent(email)}`);
+        router.push(`/verify?email=${encodeURIComponent(validated.data.email)}`);
       } catch {
         toast.error("Bir hata oluştu.");
       }
@@ -85,6 +95,7 @@ export default function RegisterForm() {
             {showPassword ? "Gizle" : "Göster"}
           </button>
         </div>
+        <p className="text-xs text-muted-foreground leading-relaxed">{PASSWORD_POLICY_HINT}</p>
 
         <Button disabled={pending} onClick={handleRegister} className="w-full">
           {pending ? "Kayıt olunuyor..." : "Kayıt Ol"}

@@ -23,6 +23,12 @@ export const RateLimits = {
     catalogPublic: { maxRequests: 120, window: "60 s" },
 
     formSpam: { maxRequests: 2, window: "60 s" },
+
+    /** Puppeteer PDF fatura — kullanıcı başına (route içinde userId ile) */
+    invoicePdf: { maxRequests: 5, window: "60 s" },
+
+    /** Yorum görseli yükleme — kullanıcı başına */
+    reviewUpload: { maxRequests: 10, window: "3600 s" },
 } as const;
 
 type RateLimitConfig = typeof RateLimits[keyof typeof RateLimits];
@@ -69,8 +75,13 @@ function upstashEnvConfigured(): boolean {
 }
 
 /** Acil durum: production'da bile Redis olmadan geç (varsayılan: kapalı) */
-function rateLimitAllowFailOpen(): boolean {
+export function rateLimitAllowFailOpen(): boolean {
     return process.env.RATE_LIMIT_ALLOW_FAIL_OPEN === "true" || process.env.RATE_LIMIT_ALLOW_FAIL_OPEN === "1";
+}
+
+/** Üretimde Upstash yok/hata → istek reddedilir (fail-closed). */
+export function isRateLimitFailClosed(): boolean {
+    return process.env.NODE_ENV === "production" && !rateLimitAllowFailOpen();
 }
 
 // HMR sırasında çoklu Redis bağlantılarını önlemek için global singleton
@@ -166,4 +177,49 @@ export async function checkRateLimit(
 
 export async function rateLimit(identifier: string) {
     return checkRateLimit(identifier, RateLimits.standard);
+}
+
+export type RateLimitPreset = keyof typeof RateLimits;
+
+/**
+ * Abuse’a karşı IP yerine oturumlu kullanıcı kimliği ile limit (ör. fatura PDF).
+ */
+export async function checkUserRateLimit(
+    userId: string,
+    preset: RateLimitPreset = "standard"
+): Promise<RateLimitCheckResult> {
+    const limitConfig = RateLimits[preset];
+    return checkRateLimit(`u:${userId}:${preset}`, limitConfig);
+}
+
+export function rateLimitDenyResponse(
+    result: RateLimitCheckResult,
+    limitConfig: RateLimitConfig,
+    message = "Çok fazla istek. Lütfen daha sonra tekrar deneyin."
+): Response | null {
+    if (result.success) return null;
+
+    if (result.unavailable) {
+        return Response.json(
+            {
+                error: "Hız sınırı servisi geçici olarak kullanılamıyor.",
+                code: "RATE_LIMIT_SERVICE_UNAVAILABLE",
+            },
+            { status: 503, headers: { "Retry-After": "60" } }
+        );
+    }
+
+    const retryAfter = Math.max(1, Math.ceil((result.resetTime - Date.now()) / 1000));
+    return Response.json(
+        { error: message, retryAfter },
+        {
+            status: 429,
+            headers: {
+                "Retry-After": String(retryAfter),
+                "X-RateLimit-Limit": String(result.limit || limitConfig.maxRequests),
+                "X-RateLimit-Remaining": String(result.remaining),
+                "X-RateLimit-Reset": String(result.resetTime),
+            },
+        }
+    );
 }

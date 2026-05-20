@@ -32,6 +32,7 @@ export const CheckoutSchema = z.object({
   acceptDistanceSalesContract: z.literal(true, {
     message: "Mesafeli satış sözleşmesini onaylamanız gerekir.",
   }),
+  /** @deprecated Sunucu yok sayar; oturum varsa session.user.id kullanılır. */
   userId: z.string().optional().nullable(),
   newsletterConsent: z.boolean().optional(),
 });

@@ -3,22 +3,29 @@ import { rateLimit } from "@/lib/rateLimit";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { sendVerificationOtpByEmail } from "@/lib/email/sendVerificationOtp";
+import { getZodErrorMessage, registerSchema } from "@/lib/validation/auth";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { name, email, password } = body;
-    const normalizedEmail = String(email || "").trim().toLowerCase();
-    const normalizedName = String(name || "").trim();
+
+    const parsed = registerSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: getZodErrorMessage(parsed.error) },
+        { status: 400 }
+      );
+    }
+
+    const { name: normalizedName, email: normalizedEmail, password } = parsed.data;
 
     const ip = req.headers.get("x-forwarded-for") || "127.0.0.1";
     const { success } = await rateLimit(ip);
     if (!success) {
-      return NextResponse.json({ error: "Çok fazla istek gönderdiniz. Lütfen daha sonra tekrar deneyin." }, { status: 429 });
-    }
-
-    if (!normalizedName || !normalizedEmail || !password) {
-      return NextResponse.json({ error: "Tüm alanlar zorunludur." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Çok fazla istek gönderdiniz. Lütfen daha sonra tekrar deneyin." },
+        { status: 429 }
+      );
     }
 
     const existingUser = await prisma.user.findUnique({ where: { email: normalizedEmail } });
@@ -46,36 +53,35 @@ export async function POST(req: Request) {
         mailDebugError = otpResult.error ?? "unknown";
         console.error("[REGISTER_OTP_MAIL]", otpResult.error);
       }
-    } catch (mailErr: any) {
-      mailDebugError = mailErr?.message || String(mailErr);
+    } catch (mailErr: unknown) {
+      mailDebugError = mailErr instanceof Error ? mailErr.message : String(mailErr);
       console.error("[REGISTER_OTP_MAIL_EXCEPTION]", mailErr);
     }
 
     try {
       await prisma.analyticsEvent.create({
         data: {
-          sessionId: req.headers.get('x-session-id') || 'backend-session',
-          eventType: 'SIGNUP',
+          sessionId: req.headers.get("x-session-id") || "backend-session",
+          eventType: "SIGNUP",
           eventData: {
             userId: newUser.id,
-            method: 'email',
+            method: "email",
             userEmail: newUser.email,
           },
-          page: '/register',
+          page: "/register",
           ipAddress: ip,
-          userAgent: req.headers.get('user-agent') || null,
+          userAgent: req.headers.get("user-agent") || null,
           timestamp: new Date(),
         },
       });
     } catch (err) {
-      console.error('[ANALYTICS_TRACK_ERROR]', err);
+      console.error("[ANALYTICS_TRACK_ERROR]", err);
     }
 
     return NextResponse.json(
       { success: true, userId: newUser.id, verificationEmailSent, mailDebugError },
       { status: 201 }
     );
-
   } catch (error) {
     console.error("[REGISTER_ERROR]", error);
     return NextResponse.json({ error: "Sunucu hatası." }, { status: 500 });

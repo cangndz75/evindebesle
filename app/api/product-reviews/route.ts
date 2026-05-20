@@ -5,6 +5,19 @@ import { authConfig } from "@/lib/auth.config";
 import { createAdminNotification } from "@/lib/admin-notification";
 import { sendTelegramMessage, TelegramTemplates } from "@/lib/telegramService";
 
+const MAX_REVIEW_IMAGES = 5;
+
+function isAllowedReviewImageUrl(url: string): boolean {
+    try {
+        const parsed = new URL(url);
+        if (parsed.protocol !== "https:") return false;
+        if (parsed.hostname !== "res.cloudinary.com") return false;
+        return parsed.pathname.includes("/darkvelvet/reviews/");
+    } catch {
+        return false;
+    }
+}
+
 export async function POST(request: NextRequest) {
     try {
         const session = await getServerSession(authConfig);
@@ -39,7 +52,25 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const reviewImages = Array.isArray(images) ? images.filter((url: string) => typeof url === "string" && url.length > 0) : [];
+        const rawImages = Array.isArray(images)
+            ? images.filter((url: string) => typeof url === "string" && url.length > 0)
+            : [];
+
+        if (rawImages.length > MAX_REVIEW_IMAGES) {
+            return NextResponse.json(
+                { error: `En fazla ${MAX_REVIEW_IMAGES} görsel eklenebilir.` },
+                { status: 400 }
+            );
+        }
+
+        const reviewImages = rawImages.filter(isAllowedReviewImageUrl);
+        if (rawImages.length > 0 && reviewImages.length !== rawImages.length) {
+            return NextResponse.json(
+                { error: "Geçersiz görsel URL'si. Yalnızca onaylı yorum yükleme adresleri kabul edilir." },
+                { status: 400 }
+            );
+        }
+
         const hasImages = reviewImages.length > 0;
         const shouldAutoApprove = !hasImages;
 

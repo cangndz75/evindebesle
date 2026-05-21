@@ -171,13 +171,13 @@ export default function CategoriesPage() {
     setLoading(true);
     try {
       const res = await fetch("/api/admin-categories");
-      if (!res.ok) throw new Error("Kategoriler y?klenemedi");
+      if (!res.ok) throw new Error("Kategoriler yüklenemedi");
       const categories = await res.json();
       setData(Array.isArray(categories) ? categories : []);
     } catch (error) {
-      console.error("Kategoriler y?klenirken hata:", error);
+      console.error("Kategoriler yüklenirken hata:", error);
       setData([]);
-      toast.error("Kategoriler y?klenirken bir hata olu?tu");
+      toast.error("Kategoriler yüklenirken bir hata oluştu");
     } finally {
       setLoading(false);
     }
@@ -186,13 +186,13 @@ export default function CategoriesPage() {
   const fetchSizeGuides = async () => {
     try {
       const res = await fetch("/api/admin/size-guides");
-      if (!res.ok) throw new Error("Beden rehberleri y?klenemedi");
+      if (!res.ok) throw new Error("Beden rehberleri yüklenemedi");
       const guides = await res.json();
       setSizeGuideOptions(Array.isArray(guides) ? guides : []);
     } catch (error) {
-      console.error("Beden rehberleri y?klenirken hata:", error);
+      console.error("Beden rehberleri yüklenirken hata:", error);
       setSizeGuideOptions([]);
-      toast.error("Beden rehberleri y?klenirken bir hata olu?tu");
+      toast.error("Beden rehberleri yüklenirken bir hata oluştu");
     }
   };
 
@@ -206,12 +206,12 @@ export default function CategoriesPage() {
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      toast.error("L?tfen ge?erli bir resim dosyas? se?in");
+      toast.error("Lütfen geçerli bir resim dosyası se?in");
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      toast.error("Resim boyutu 5MB'dan k???k olmal?d?r");
+      toast.error("Resim boyutu 5MB'dan küçük olmalıdır");
       return;
     }
 
@@ -226,14 +226,14 @@ export default function CategoriesPage() {
         body: formData,
       });
 
-      if (!res.ok) throw new Error("Y?kleme ba?ar?s?z");
+      if (!res.ok) throw new Error("Yükleme başarısız");
 
       const data = await res.json();
       setFormImage(data.url);
-      toast.success("Resim y?klendi");
+      toast.success("Resim yüklendi");
     } catch (error) {
       console.error("Upload error:", error);
-      toast.error("Resim y?klenirken bir hata olu?tu");
+      toast.error("Resim yüklenirken bir hata oluştu");
     } finally {
       setUploadingImage(false);
     }
@@ -271,7 +271,7 @@ export default function CategoriesPage() {
 
   const handleSave = async () => {
     if (!formName.trim()) {
-      toast.error("Kategori ad? gereklidir");
+      toast.error("Kategori adı gereklidir");
       return;
     }
 
@@ -301,16 +301,16 @@ export default function CategoriesPage() {
 
       if (!res.ok) {
         const error = await res.json();
-        throw new Error(error.error || "Kay?t s?ras?nda bir hata olu?tu");
+        throw new Error(error.error || "Kayıt sırasında bir hata oluştu");
       }
 
-      toast.success(editingCategory ? "Kategori g?ncellendi" : "Kategori eklendi");
+      toast.success(editingCategory ? "Kategori güncellendi" : "Kategori eklendi");
       setAddDialogOpen(false);
       setEditDialogOpen(false);
       fetchCategories();
     } catch (error: any) {
-      console.error("Kay?t hatas?:", error);
-      toast.error(error.message || "Kay?t s?ras?nda bir hata olu?tu");
+      console.error("Kayıt hatası:", error);
+      toast.error(error.message || "Kayıt sırasında bir hata oluştu");
     } finally {
       setSaving(false);
     }
@@ -324,15 +324,15 @@ export default function CategoriesPage() {
         body: JSON.stringify({ [field]: value }),
       });
 
-      if (!res.ok) throw new Error("G?ncelleme ba?ar?s?z");
+      if (!res.ok) throw new Error("Güncelleme başarısız");
 
       setData((prev) =>
         prev.map((item) => (item.id === id ? { ...item, [field]: value } : item))
       );
-      toast.success("G?ncellendi");
+      toast.success("Güncellendi");
     } catch (error) {
       console.error("Toggle error:", error);
-      toast.error("Bir hata olu?tu");
+      toast.error("Bir hata oluştu");
     }
   };
 
@@ -347,15 +347,15 @@ export default function CategoriesPage() {
 
       if (!res.ok) {
         const error = await res.json();
-        throw new Error(error.error || "Silme s?ras?nda bir hata olu?tu");
+        throw new Error(error.error || "Silme sırasında bir hata oluştu");
       }
 
       toast.success("Kategori silindi");
       setDeleteId(null);
       fetchCategories();
     } catch (error: any) {
-      console.error("Silme hatas?:", error);
-      toast.error(error.message || "Silme s?ras?nda bir hata olu?tu");
+      console.error("Silme hatası:", error);
+      toast.error(error.message || "Silme sırasında bir hata oluştu");
     } finally {
       setDeleting(false);
     }
@@ -384,11 +384,11 @@ export default function CategoriesPage() {
         body: JSON.stringify({ items: updates }),
       });
 
-      if (!res.ok) throw new Error("S?ralama kaydedilemedi");
-      toast.success("S?ralama g?ncellendi");
+      if (!res.ok) throw new Error("Sıralama kaydedilemedi");
+      toast.success("Sıralama güncellendi");
     } catch (error) {
       console.error("Reorder error:", error);
-      toast.error("S?ralama kaydedilemedi");
+      toast.error("Sıralama kaydedilemedi");
       fetchCategories();
     } finally {
       setReordering(false);
@@ -398,7 +398,7 @@ export default function CategoriesPage() {
   const columns: ColumnDef<Category>[] = [
     {
       accessorKey: "image",
-      header: "G?rsel",
+      header: "Görsel",
       cell: ({ row }) => {
         const image = row.original.image;
         return (
@@ -422,7 +422,7 @@ export default function CategoriesPage() {
     },
     {
       accessorKey: "name",
-      header: "Kategori Ad?",
+      header: "Kategori Adı",
       cell: ({ row }) => (
         <div className="font-medium">{row.getValue("name")}</div>
       ),
@@ -436,7 +436,7 @@ export default function CategoriesPage() {
     },
     {
       accessorKey: "defaultSizeGuide",
-      header: "Varsay?lan Rehber",
+      header: "Varsayılan Rehber",
       cell: ({ row }) => (
         <div className="text-sm text-gray-600">
           {row.original.defaultSizeGuide?.title || "-"}
@@ -445,7 +445,7 @@ export default function CategoriesPage() {
     },
     {
       accessorKey: "_count",
-      header: "?r?n Say?s?",
+      header: "Ürün Sayısı",
       cell: ({ row }) => {
         const count = row.original._count;
         return (
@@ -484,14 +484,14 @@ export default function CategoriesPage() {
             }
           />
           <span className="text-xs font-medium">
-            {row.getValue("showOnHome") ? "Evet" : "Hay?r"}
+            {row.getValue("showOnHome") ? "Evet" : "Hayır"}
           </span>
         </div>
       ),
     },
     {
       accessorKey: "showOnMen",
-      header: "Erkek Sayfas?",
+      header: "Erkek Sayfası",
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           <Switch
@@ -501,14 +501,14 @@ export default function CategoriesPage() {
             }
           />
           <span className="text-xs font-medium">
-            {row.getValue("showOnMen") ? "Evet" : "Hay?r"}
+            {row.getValue("showOnMen") ? "Evet" : "Hayır"}
           </span>
         </div>
       ),
     },
     {
       accessorKey: "showOnWomen",
-      header: "Kad?n Sayfas?",
+      header: "Kadın Sayfası",
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           <Switch
@@ -518,14 +518,14 @@ export default function CategoriesPage() {
             }
           />
           <span className="text-xs font-medium">
-            {row.getValue("showOnWomen") ? "Evet" : "Hay?r"}
+            {row.getValue("showOnWomen") ? "Evet" : "Hayır"}
           </span>
         </div>
       ),
     },
     {
       id: "actions",
-      header: "??lemler",
+      header: "İşlemler",
       cell: ({ row }) => {
         const category = row.original;
         return (
@@ -584,7 +584,7 @@ export default function CategoriesPage() {
         <div>
           <h1 className="text-2xl font-bold">Kategoriler</h1>
           <p className="text-sm text-gray-500 mt-1">
-            S?ralamalar? de?i?tirmek i�in s�r�kleyip b?rak?n
+            Sıralamaları değiştirmek için sürükleyip bırakın
           </p>
         </div>
         <Button onClick={handleAdd}>
@@ -608,7 +608,7 @@ export default function CategoriesPage() {
         </div>
         {reordering && (
           <span className="text-sm text-gray-500 animate-pulse">
-            S?ralama kaydediliyor...
+            Sıralama kaydediliyor...
           </span>
         )}
       </div>
@@ -643,7 +643,7 @@ export default function CategoriesPage() {
                 {data.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={columns.length + 1} className="text-center py-8">
-                      Kategori bulunamad?
+                      Kategori bulunamadı
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -700,7 +700,7 @@ export default function CategoriesPage() {
                             }
                           />
                           <span className="text-xs font-medium">
-                            {category.showOnHome ? "Evet" : "Hay?r"}
+                            {category.showOnHome ? "Evet" : "Hayır"}
                           </span>
                         </div>
                       </TableCell>
@@ -713,7 +713,7 @@ export default function CategoriesPage() {
                             }
                           />
                           <span className="text-xs font-medium">
-                            {category.showOnMen ? "Evet" : "Hay?r"}
+                            {category.showOnMen ? "Evet" : "Hayır"}
                           </span>
                         </div>
                       </TableCell>
@@ -726,7 +726,7 @@ export default function CategoriesPage() {
                             }
                           />
                           <span className="text-xs font-medium">
-                            {category.showOnWomen ? "Evet" : "Hay?r"}
+                            {category.showOnWomen ? "Evet" : "Hayır"}
                           </span>
                         </div>
                       </TableCell>
@@ -770,22 +770,22 @@ export default function CategoriesPage() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <Label htmlFor="add-name">Kategori Ad? *</Label>
+              <Label htmlFor="add-name">Kategori Adı *</Label>
               <Input
                 id="add-name"
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
-                placeholder="Kategori ad?"
+                placeholder="Kategori adı"
                 className="mt-1"
               />
             </div>
             <div>
-              <Label htmlFor="add-description">A??klama</Label>
+              <Label htmlFor="add-description">Açıklama</Label>
               <Textarea
                 id="add-description"
                 value={formDescription}
                 onChange={(e) => setFormDescription(e.target.value)}
-                placeholder="Kategori a??klamas?"
+                placeholder="Kategori açıklaması"
                 className="mt-1"
                 rows={3}
               />
@@ -796,23 +796,23 @@ export default function CategoriesPage() {
                 <Label htmlFor="gender">Cinsiyet</Label>
                 <Select value={formGender} onValueChange={setFormGender}>
                   <SelectTrigger id="gender" className="mt-1">
-                    <SelectValue placeholder="Se?iniz" />
+                    <SelectValue placeholder="Seçiniz" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="MALE">Erkek</SelectItem>
-                    <SelectItem value="FEMALE">Kad?n</SelectItem>
+                    <SelectItem value="FEMALE">Kadın</SelectItem>
                     <SelectItem value="UNISEX">Unisex</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <Label htmlFor="add-default-size-guide">Varsay?lan Beden Rehberi</Label>
+                <Label htmlFor="add-default-size-guide">Varsayılan Beden Rehberi</Label>
                 <Select value={formDefaultSizeGuideId} onValueChange={setFormDefaultSizeGuideId}>
                   <SelectTrigger id="add-default-size-guide" className="mt-1">
-                    <SelectValue placeholder="Se?iniz" />
+                    <SelectValue placeholder="Seçiniz" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">Se?im Yok</SelectItem>
+                    <SelectItem value="none">Seçim Yok</SelectItem>
                     {sizeGuideOptions.map((guide) => (
                       <SelectItem key={guide.id} value={guide.id}>
                         {guide.title}
@@ -825,7 +825,7 @@ export default function CategoriesPage() {
                 <Label htmlFor="group">Grup</Label>
                 <Select value={formGroup} onValueChange={setFormGroup}>
                   <SelectTrigger id="group" className="mt-1">
-                    <SelectValue placeholder="Se?iniz" />
+                    <SelectValue placeholder="Seçiniz" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Giyim">Giyim</SelectItem>
@@ -844,7 +844,7 @@ export default function CategoriesPage() {
                   checked={formShowOnHome}
                   onCheckedChange={setFormShowOnHome}
                 />
-                <Label htmlFor="showOnHome">Anasayfada G?ster</Label>
+                <Label htmlFor="showOnHome">Anasayfada Göster</Label>
               </div>
               <div className="flex items-center gap-2">
                 <Switch
@@ -863,7 +863,7 @@ export default function CategoriesPage() {
                   checked={formShowOnMen}
                   onCheckedChange={setFormShowOnMen}
                 />
-                <Label htmlFor="showOnMen">Erkek Sayfas?nda G?ster</Label>
+                <Label htmlFor="showOnMen">Erkek Sayfasında Göster</Label>
               </div>
               <div className="flex items-center gap-2">
                 <Switch
@@ -871,12 +871,12 @@ export default function CategoriesPage() {
                   checked={formShowOnWomen}
                   onCheckedChange={setFormShowOnWomen}
                 />
-                <Label htmlFor="showOnWomen">Kad?n Sayfas?nda G?ster</Label>
+                <Label htmlFor="showOnWomen">Kadın Sayfasında Göster</Label>
               </div>
             </div>
 
             <div>
-              <Label>Kategori G?rseli (Dikey)</Label>
+              <Label>Kategori Görseli (Dikey)</Label>
               <div className="mt-2">
                 {formImage ? (
                   <div className="relative w-32 h-44 rounded-lg overflow-hidden bg-gray-100 group">
@@ -912,7 +912,7 @@ export default function CategoriesPage() {
                     )}
                   </label>
                 )}
-                <p className="text-xs text-gray-500 mt-1">?nerilen oran: 3:4 (dikey)</p>
+                <p className="text-xs text-gray-500 mt-1">Önerilen oran: 3:4 (dikey)</p>
               </div>
             </div>
 
@@ -927,7 +927,7 @@ export default function CategoriesPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setAddDialogOpen(false)}>
-              ?ptal
+              İptal
             </Button>
             <Button onClick={handleSave} disabled={saving || uploadingImage}>
               {saving ? "Kaydediliyor..." : "Kaydet"}
@@ -939,26 +939,26 @@ export default function CategoriesPage() {
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Kategori D?zenle</DialogTitle>
+            <DialogTitle>Kategori Düzenle</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <Label htmlFor="edit-name">Kategori Ad? *</Label>
+              <Label htmlFor="edit-name">Kategori Adı *</Label>
               <Input
                 id="edit-name"
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
-                placeholder="Kategori ad?"
+                placeholder="Kategori adı"
                 className="mt-1"
               />
             </div>
             <div>
-              <Label htmlFor="edit-description">A??klama</Label>
+              <Label htmlFor="edit-description">Açıklama</Label>
               <Textarea
                 id="edit-description"
                 value={formDescription}
                 onChange={(e) => setFormDescription(e.target.value)}
-                placeholder="Kategori a??klamas?"
+                placeholder="Kategori açıklaması"
                 className="mt-1"
                 rows={3}
               />
@@ -969,23 +969,23 @@ export default function CategoriesPage() {
                 <Label htmlFor="edit-gender">Cinsiyet</Label>
                 <Select value={formGender} onValueChange={setFormGender}>
                   <SelectTrigger id="edit-gender" className="mt-1">
-                    <SelectValue placeholder="Se?iniz" />
+                    <SelectValue placeholder="Seçiniz" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="MALE">Erkek</SelectItem>
-                    <SelectItem value="FEMALE">Kad?n</SelectItem>
+                    <SelectItem value="FEMALE">Kadın</SelectItem>
                     <SelectItem value="UNISEX">Unisex</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <Label htmlFor="edit-default-size-guide">Varsay?lan Beden Rehberi</Label>
+                <Label htmlFor="edit-default-size-guide">Varsayılan Beden Rehberi</Label>
                 <Select value={formDefaultSizeGuideId} onValueChange={setFormDefaultSizeGuideId}>
                   <SelectTrigger id="edit-default-size-guide" className="mt-1">
-                    <SelectValue placeholder="Se?iniz" />
+                    <SelectValue placeholder="Seçiniz" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">Se?im Yok</SelectItem>
+                    <SelectItem value="none">Seçim Yok</SelectItem>
                     {sizeGuideOptions.map((guide) => (
                       <SelectItem key={guide.id} value={guide.id}>
                         {guide.title}
@@ -998,7 +998,7 @@ export default function CategoriesPage() {
                 <Label htmlFor="edit-group">Grup</Label>
                 <Select value={formGroup} onValueChange={setFormGroup}>
                   <SelectTrigger id="edit-group" className="mt-1">
-                    <SelectValue placeholder="Se?iniz" />
+                    <SelectValue placeholder="Seçiniz" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Giyim">Giyim</SelectItem>
@@ -1017,12 +1017,12 @@ export default function CategoriesPage() {
                   checked={formShowOnHome}
                   onCheckedChange={setFormShowOnHome}
                 />
-                <Label htmlFor="edit-showOnHome">Anasayfada G?ster</Label>
+                <Label htmlFor="edit-showOnHome">Anasayfada Göster</Label>
               </div>
             </div>
 
             <div>
-              <Label>Kategori G?rseli (Dikey)</Label>
+              <Label>Kategori Görseli (Dikey)</Label>
               <div className="mt-2">
                 {formImage ? (
                   <div className="relative w-32 h-44 rounded-lg overflow-hidden bg-gray-100 group">
@@ -1058,7 +1058,7 @@ export default function CategoriesPage() {
                     )}
                   </label>
                 )}
-                <p className="text-xs text-gray-500 mt-1">?nerilen oran: 3:4 (dikey)</p>
+                <p className="text-xs text-gray-500 mt-1">Önerilen oran: 3:4 (dikey)</p>
               </div>
             </div>
 
@@ -1073,7 +1073,7 @@ export default function CategoriesPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
-              ?ptal
+              İptal
             </Button>
             <Button onClick={handleSave} disabled={saving || uploadingImage}>
               {saving ? "Kaydediliyor..." : "Kaydet"}
@@ -1087,10 +1087,10 @@ export default function CategoriesPage() {
           <DialogHeader>
             <DialogTitle>Kategoriyi Sil</DialogTitle>
           </DialogHeader>
-          <p>Bu kategoriyi silmek istedi?inizden emin misiniz?</p>
+          <p>Bu kategoriyi silmek istediğinizden emin misiniz?</p>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteId(null)}>
-              ?ptal
+              İptal
             </Button>
             <Button
               variant="destructive"

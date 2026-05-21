@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { getGuestCart, addToGuestCart, saveGuestCart } from "@/lib/cart-utils";
+import { getCartSubtotal } from "@/lib/campaign-banner";
 
 export type CartItem = {
   id: string;
@@ -66,6 +67,8 @@ type CartState = {
   isReady: boolean; // hydrate tamamlandı ve initial fetch tamamlandı
   couponCode: string | null;
   discountAmount: number;
+  campaignDiscount: number;
+  campaignDiscountLabel: string | null;
   setItems: (items: CartItem[]) => void;
   hydrate: () => Promise<void>;
   refreshCart: () => Promise<void>; // API'den cart'ı fetch edip güncelle (hydrate değil)
@@ -76,6 +79,7 @@ type CartState = {
   removeItem: (itemId: string) => Promise<void>;
   applyCoupon: (code: string) => Promise<{ success: boolean; message: string }>;
   removeCoupon: () => void;
+  syncCampaignDiscount: () => Promise<void>;
   clearCart: () => void;
 };
 
@@ -105,8 +109,40 @@ export const useCartStore = create<CartState>((set, get) => ({
   isReady: false,
   couponCode: null,
   discountAmount: 0,
+  campaignDiscount: 0,
+  campaignDiscountLabel: null,
 
   setItems: (items) => set({ items, hydrated: true, isReady: true }),
+
+  syncCampaignDiscount: async () => {
+    const items = get().items;
+    const subtotal = getCartSubtotal(items);
+    if (subtotal <= 0) {
+      set({ campaignDiscount: 0, campaignDiscountLabel: null });
+      return;
+    }
+    try {
+      const res = await fetch(
+        `/api/campaign-banner/estimate?subtotal=${encodeURIComponent(String(subtotal))}`
+      );
+      if (!res.ok) {
+        set({ campaignDiscount: 0, campaignDiscountLabel: null });
+        return;
+      }
+      const data = await res.json();
+      if (data.isActive && (data.discount ?? 0) > 0) {
+        set({
+          campaignDiscount: data.discount,
+          campaignDiscountLabel:
+            data.appliedTier?.label ?? "Kampanya indirimi",
+        });
+      } else {
+        set({ campaignDiscount: 0, campaignDiscountLabel: null });
+      }
+    } catch {
+      set({ campaignDiscount: 0, campaignDiscountLabel: null });
+    }
+  },
 
   reset: () => {
     set({
@@ -115,6 +151,8 @@ export const useCartStore = create<CartState>((set, get) => ({
       isReady: false,
       couponCode: null,
       discountAmount: 0,
+      campaignDiscount: 0,
+      campaignDiscountLabel: null,
     });
     if (typeof window !== "undefined") {
       localStorage.removeItem("guestCart");
@@ -129,6 +167,8 @@ export const useCartStore = create<CartState>((set, get) => ({
       isReady: true,
       couponCode: null,
       discountAmount: 0,
+      campaignDiscount: 0,
+      campaignDiscountLabel: null,
     });
     if (typeof window !== "undefined") {
       localStorage.removeItem("guestCart");
@@ -177,6 +217,7 @@ export const useCartStore = create<CartState>((set, get) => ({
           set({ items: formatGuestCart(latestGuestCart), hydrated: true, isReady: true });
         }
       } finally {
+        await get().syncCampaignDiscount();
         _cartHydrateInflight = null;
       }
     })();
@@ -547,6 +588,8 @@ export const useCartStore = create<CartState>((set, get) => ({
       }
     } catch (error) {
       console.error("Error refreshing cart:", error);
+    } finally {
+      await get().syncCampaignDiscount();
     }
   },
 

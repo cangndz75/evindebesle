@@ -16,6 +16,10 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import DistanceSellingBody from "@/components/legal/DistanceSellingBody";
+import {
+    getEffectiveCheckoutDiscount,
+    getCheckoutDiscountLabel,
+} from "@/lib/campaign-banner";
 
 declare global {
     interface Window {
@@ -53,7 +57,17 @@ function isLocalGsm10(raw: string | null | undefined) {
 }
 
 export default function CheckoutPage() {
-    const { items: cart, refreshCart, couponCode, discountAmount, applyCoupon, removeCoupon } = useCartStore();
+    const {
+        items: cart,
+        refreshCart,
+        couponCode,
+        discountAmount,
+        campaignDiscount,
+        campaignDiscountLabel,
+        syncCampaignDiscount,
+        applyCoupon,
+        removeCoupon,
+    } = useCartStore();
     const { data: session, status } = useSession();
     const router = useRouter();
     const [loading, setLoading] = useState(false);
@@ -218,7 +232,23 @@ export default function CheckoutPage() {
         return acc + (price * item.quantity);
     }, 0);
     const shippingPrice = subtotal >= freeShippingThreshold ? 0 : shippingCost;
-    const total = Math.max(0, subtotal + shippingPrice - discountAmount);
+    const effectiveDiscount = getEffectiveCheckoutDiscount(
+        discountAmount,
+        campaignDiscount
+    );
+    const discountLabel = getCheckoutDiscountLabel({
+        couponDiscount: discountAmount,
+        campaignDiscount,
+        campaignLabel: campaignDiscountLabel,
+        couponCode,
+    });
+    const total = Math.max(0, subtotal + shippingPrice - effectiveDiscount);
+
+    useEffect(() => {
+        if (cart.length > 0) {
+            void syncCampaignDiscount();
+        }
+    }, [cart, subtotal, syncCampaignDiscount]);
     const isManualAddressDisabled = status === "authenticated" && useSavedAddress && savedAddresses.length > 0 && Boolean(selectedSavedAddressId);
     const selectedSavedAddress = savedAddresses.find((addr) => addr.id === selectedSavedAddressId) || null;
 
@@ -820,10 +850,10 @@ export default function CheckoutPage() {
                                 <span className="text-gray-600">Kargo</span>
                                 <span>{shippingPrice === 0 ? "Ücretsiz" : `${shippingPrice.toFixed(2)} TL`}</span>
                             </div>
-                            {discountAmount > 0 && (
-                                <div className="flex justify-between text-green-600">
-                                    <span>İndirim</span>
-                                    <span>-{discountAmount.toFixed(2)} TL</span>
+                            {effectiveDiscount > 0 && (
+                                <div className="flex justify-between text-green-700">
+                                    <span className="pr-2">{discountLabel}</span>
+                                    <span className="shrink-0">-{effectiveDiscount.toFixed(2)} TL</span>
                                 </div>
                             )}
                             <div className="flex justify-between text-lg font-bold pt-2 border-t border-gray-200 mt-2">

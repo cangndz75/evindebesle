@@ -189,6 +189,10 @@ export default function CartPage() {
     const updateQuantity = useCartStore((state) => state.updateQuantity);
     const removeItem = useCartStore((state) => state.removeItem);
     const addItemOptimistic = useCartStore((state) => state.addItemOptimistic);
+    const campaignDiscount = useCartStore((state) => state.campaignDiscount);
+    const campaignDiscountLabel = useCartStore((state) => state.campaignDiscountLabel);
+    const discountAmount = useCartStore((state) => state.discountAmount);
+    const syncCampaignDiscount = useCartStore((state) => state.syncCampaignDiscount);
 
     const { freeShippingThreshold, hydrate: hydrateSettings } = useCompanySettingsStore();
     const [recommendedProducts, setRecommendedProducts] = useState<RecommendedProduct[]>([]);
@@ -595,20 +599,20 @@ export default function CartPage() {
 
     const qualifiesForFreeShipping = totalPrice >= freeShippingThreshold;
 
-    const [campaignEstimate, setCampaignEstimate] = useState<{
+    const [nextTierHint, setNextTierHint] = useState<{
+        remaining: number;
         discount: number;
-        appliedTier: { label: string } | null;
-        nextTier: { threshold: number; discount: number; discountType: string; remaining: number } | null;
+        discountType: string;
     } | null>(null);
 
     useEffect(() => {
         if (cartItems.length === 0 || totalPrice <= 0) {
-            setCampaignEstimate(null);
+            setNextTierHint(null);
             return;
         }
-
         const controller = new AbortController();
         const timeout = setTimeout(async () => {
+            void syncCampaignDiscount();
             try {
                 const res = await fetch(
                     `/api/campaign-banner/estimate?subtotal=${totalPrice}`,
@@ -616,28 +620,27 @@ export default function CartPage() {
                 );
                 if (!res.ok) return;
                 const data = await res.json();
-                if (!data.isActive) {
-                    setCampaignEstimate(null);
-                    return;
+                if (data.nextTier && (campaignDiscount === 0 || data.discount === 0)) {
+                    setNextTierHint({
+                        remaining: data.nextTier.remaining,
+                        discount: data.nextTier.discount,
+                        discountType: data.nextTier.discountType ?? "PERCENT",
+                    });
+                } else {
+                    setNextTierHint(null);
                 }
-                setCampaignEstimate({
-                    discount: data.discount ?? 0,
-                    appliedTier: data.appliedTier ?? null,
-                    nextTier: data.nextTier ?? null,
-                });
             } catch {
-                if (!controller.signal.aborted) setCampaignEstimate(null);
+                if (!controller.signal.aborted) setNextTierHint(null);
             }
         }, 300);
-
         return () => {
             clearTimeout(timeout);
             controller.abort();
         };
-    }, [cartItems.length, totalPrice]);
+    }, [cartItems.length, totalPrice, syncCampaignDiscount, campaignDiscount]);
 
-    const campaignDiscount = campaignEstimate?.discount ?? 0;
-    const estimatedPayable = Math.max(0, totalPrice - campaignDiscount);
+    const effectiveDiscount = Math.max(discountAmount, campaignDiscount);
+    const estimatedPayable = Math.max(0, totalPrice - effectiveDiscount);
 
     const getProductImage = (item: CartItem) => {
         if (item.color?.images) {
@@ -906,17 +909,16 @@ export default function CartPage() {
                                             <span className="text-gray-600">Ara Toplam</span>
                                             <span className="text-xl font-serif text-black">{formatPriceTRY(totalPrice)}</span>
                                         </div>
-                                        {campaignDiscount > 0 && (
+                                        {effectiveDiscount > 0 && (
                                             <>
                                                 <div className="flex items-center justify-between mb-1 text-[#3d5a45]">
                                                     <span className="text-sm font-medium">
-                                                        Kampanya İndirimi
-                                                        {campaignEstimate?.appliedTier?.label
-                                                            ? ` (${campaignEstimate.appliedTier.label})`
-                                                            : ""}
+                                                        {campaignDiscount >= discountAmount && campaignDiscountLabel
+                                                            ? campaignDiscountLabel
+                                                            : "İndirim"}
                                                     </span>
                                                     <span className="text-sm font-semibold">
-                                                        -{formatPriceTRY(campaignDiscount)}
+                                                        -{formatPriceTRY(effectiveDiscount)}
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center justify-between mb-2">
@@ -927,18 +929,18 @@ export default function CartPage() {
                                                 </div>
                                             </>
                                         )}
-                                        {campaignEstimate?.nextTier && campaignDiscount === 0 && (
+                                        {nextTierHint && effectiveDiscount === 0 && (
                                             <p className="text-xs text-[#3d5a45] mb-3">
-                                                {formatPriceTRY(campaignEstimate.nextTier.remaining)} daha ekleyin,{" "}
-                                                {campaignEstimate.nextTier.discountType === "AMOUNT"
-                                                    ? `${campaignEstimate.nextTier.discount} TL`
-                                                    : `%${campaignEstimate.nextTier.discount}`}{" "}
+                                                {formatPriceTRY(nextTierHint.remaining)} daha ekleyin,{" "}
+                                                {nextTierHint.discountType === "AMOUNT"
+                                                    ? `${nextTierHint.discount} TL`
+                                                    : `%${nextTierHint.discount}`}{" "}
                                                 indirim kazanın!
                                             </p>
                                         )}
                                         <p className="text-xs text-gray-500 text-right mb-6">
                                             Vergiler ve kargo ödeme adımında hesaplanır.
-                                            {campaignDiscount > 0 ? " Kampanya indirimi ödeme adımında otomatik uygulanır." : ""}
+                                            {effectiveDiscount > 0 ? " İndirim ödeme adımında otomatik uygulanır." : ""}
                                         </p>
                                         <div className="flex flex-col gap-3">
                                             <Button

@@ -2,6 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useCartStore } from "@/lib/stores/cartStore";
+import {
+    getEffectiveCheckoutDiscount,
+    getCheckoutDiscountLabel,
+} from "@/lib/campaign-banner";
 import { useCompanySettingsStore } from "@/lib/stores/companySettingsStore";
 import Link from "next/link";
 import Image from "next/image";
@@ -17,11 +21,14 @@ export default function CheckoutSummaryPage() {
         updateQuantity,
         couponCode,
         discountAmount,
+        campaignDiscount,
+        campaignDiscountLabel,
+        syncCampaignDiscount,
         removeCoupon,
         hydrated,
         isReady,
         hydrate,
-        refreshCart
+        refreshCart,
     } = useCartStore();
     const router = useRouter();
     const { freeShippingThreshold, shippingPrice, hydrate: hydrateSettings } = useCompanySettingsStore();
@@ -77,7 +84,19 @@ export default function CheckoutSummaryPage() {
 
     const subtotal = items.reduce((acc, item) => acc + (item.product.price) * item.quantity, 0);
     const shipping = subtotal >= freeShippingThreshold ? 0 : shippingPrice;
-    const discount = discountAmount || 0;
+    const discount = getEffectiveCheckoutDiscount(discountAmount, campaignDiscount);
+    const discountLabel = getCheckoutDiscountLabel({
+        couponDiscount: discountAmount,
+        campaignDiscount,
+        campaignLabel: campaignDiscountLabel,
+        couponCode,
+    });
+
+    useEffect(() => {
+        if (items.length > 0) {
+            void syncCampaignDiscount();
+        }
+    }, [items, subtotal, syncCampaignDiscount]);
     const total = subtotal + shipping - discount;
 
     const handleProceed = () => {
@@ -224,17 +243,19 @@ export default function CheckoutSummaryPage() {
                                     <span>{shipping === 0 ? "Ücretsiz" : `${shipping.toFixed(2)} ₺`}</span>
                                 </div>
                                 {discount > 0 && (
-                                    <div className="flex justify-between text-green-600">
-                                        <div className="flex items-center gap-2">
-                                            <span>İndirim ({couponCode})</span>
-                                            <button
-                                                onClick={removeCoupon}
-                                                className="text-red-500 hover:text-red-700 text-xs px-1"
-                                            >
-                                                [Kaldır]
-                                            </button>
+                                    <div className="flex justify-between text-green-700">
+                                        <div className="flex items-center gap-2 min-w-0">
+                                            <span className="truncate">{discountLabel}</span>
+                                            {couponCode && discountAmount >= campaignDiscount && (
+                                                <button
+                                                    onClick={removeCoupon}
+                                                    className="text-red-500 hover:text-red-700 text-xs px-1 shrink-0"
+                                                >
+                                                    [Kaldır]
+                                                </button>
+                                            )}
                                         </div>
-                                        <span>-{discount.toFixed(2)} ₺</span>
+                                        <span className="shrink-0">-{discount.toFixed(2)} ₺</span>
                                     </div>
                                 )}
                                 <div className="border-t pt-3 mt-3 flex justify-between font-bold text-lg text-black">

@@ -199,6 +199,43 @@ export function computeCampaignDiscount(
   return applied?.discountAmount ?? 0;
 }
 
+export function getCartSubtotal(
+  items: Array<{ product: { price: number }; quantity: number }>
+): number {
+  return items.reduce(
+    (acc, item) => acc + item.product.price * item.quantity,
+    0
+  );
+}
+
+/** Kupon ve kampanya birlikte kullanılmaz; sunucu ile aynı: en yüksek indirim. */
+export function getEffectiveCheckoutDiscount(
+  couponDiscount: number,
+  campaignDiscount: number
+): number {
+  return Math.max(couponDiscount, campaignDiscount);
+}
+
+export function getCheckoutDiscountLabel(options: {
+  couponDiscount: number;
+  campaignDiscount: number;
+  campaignLabel: string | null;
+  couponCode: string | null;
+}): string {
+  const { couponDiscount, campaignDiscount, campaignLabel, couponCode } =
+    options;
+  if (campaignDiscount > couponDiscount && campaignLabel) {
+    return campaignLabel;
+  }
+  if (couponDiscount > 0 && couponCode) {
+    return `Kupon (${couponCode})`;
+  }
+  if (campaignDiscount > 0) {
+    return campaignLabel || "Kampanya indirimi";
+  }
+  return "İndirim";
+}
+
 export function getNextCampaignTier(
   subtotal: number,
   tiers: CampaignDiscountTier[]

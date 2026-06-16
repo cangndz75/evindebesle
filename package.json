@@ -55,7 +55,7 @@
     "@t3-oss/env-nextjs": "^0.13.8",
     "@tanstack/react-table": "^8.21.3",
     "@tiptap/extension-image": "^3.17.1",
-    "@tiptap/extension-link": "^3.17.1",
+    "@tiptap/extension-link": "^3.22.2",
     "@tiptap/react": "^3.17.1",
     "@tiptap/starter-kit": "^3.17.1",
     "@types/canvas-confetti": "^1.9.0",
